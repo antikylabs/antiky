@@ -116,6 +116,30 @@ export function validateTownWorld(world: TownWorld): TownValidationReport {
     }
   }
 
+  for (let index = 0; index < world.awnings.length; index += 1) {
+    const awning = world.awnings[index]!;
+    if (![awning.x, awning.y, awning.z, awning.width, awning.depth, awning.yaw, awning.slope, awning.phase].every(Number.isFinite)) {
+      errors.push(`awnings[${index}] contains a non-finite value`);
+      break;
+    }
+    if (awning.width <= 0 || awning.depth <= 0 || awning.phase < 0 || awning.phase >= 1) {
+      errors.push(`awnings[${index}] contains invalid dimensions or phase`);
+      break;
+    }
+  }
+
+  for (let index = 0; index < world.spriteProps.length; index += 1) {
+    const prop = world.spriteProps[index]!;
+    if (![prop.x, prop.y, prop.z, prop.scale, prop.yaw, prop.curvature].every(Number.isFinite)) {
+      errors.push(`spriteProps[${index}] contains a non-finite value`);
+      break;
+    }
+    if (prop.scale <= 0 || prop.curvature < 0 || prop.curvature > 1) {
+      errors.push(`spriteProps[${index}] contains an invalid scale or curvature`);
+      break;
+    }
+  }
+
   const waterfallValues = Object.values(world.waterfall);
   if (!waterfallValues.every(Number.isFinite) || world.waterfall.minX >= world.waterfall.maxX) {
     errors.push('waterfall contains non-finite or inverted horizontal bounds');
@@ -185,6 +209,12 @@ export function validateTownDeterminism(first: TownWorld, second: TownWorld): st
   }
   if (JSON.stringify(first.vegetation) !== JSON.stringify(second.vegetation)) {
     errors.push('vegetation metadata changed across identical builds');
+  }
+  if (JSON.stringify(first.awnings) !== JSON.stringify(second.awnings)) {
+    errors.push('awning metadata changed across identical builds');
+  }
+  if (JSON.stringify(first.spriteProps) !== JSON.stringify(second.spriteProps)) {
+    errors.push('sprite-prop metadata changed across identical builds');
   }
   return errors;
 }

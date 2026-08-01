@@ -20,6 +20,7 @@ import {
   vec3,
   vec4,
   type Vec3,
+  type Vec4,
 } from 'brometal';
 import { specGGX } from 'brometal/shader-functions';
 
@@ -29,6 +30,23 @@ function waterNormal(x: number, z: number, time: number): Vec3 {
   const dz = cos(z * 0.58 - time * 0.58) * 0.075 +
     cos((x + z) * 1.1 - time * 0.82) * 0.045;
   return normalize(vec3(-dx, 1, -dz));
+}
+
+function practicalWaterRadiance(
+  world: Vec3,
+  normal: Vec3,
+  view: Vec3,
+  posInvRangeSq: Vec4,
+  colorPower: Vec4,
+): Vec3 {
+  const toLight = posInvRangeSq.xyz.sub(world);
+  const distanceSq = dot(toLight, toLight);
+  const range = clamp(1 - distanceSq * posInvRangeSq.w, 0, 1);
+  const attenuation = range * range;
+  const light = normalize(toLight);
+  const diffuse = max(dot(normal, light), 0) * 0.08;
+  const specular = min(specGGX(normal, light, view, 0.2), 2.2) * 0.16;
+  return colorPower.xyz.scale(colorPower.w * attenuation * (diffuse + specular));
 }
 
 /**
@@ -51,6 +69,16 @@ export default shader({
     uShallowColor: 'vec3',
     uRoughness: 'float',
     uCrestStrength: 'float',
+    uPracticalCount: 'float',
+    uPracticalStrength: 'float',
+    uPracticalPosInvRangeSq0: 'vec4',
+    uPracticalColorPower0: 'vec4',
+    uPracticalPosInvRangeSq1: 'vec4',
+    uPracticalColorPower1: 'vec4',
+    uPracticalPosInvRangeSq2: 'vec4',
+    uPracticalColorPower2: 'vec4',
+    uPracticalPosInvRangeSq3: 'vec4',
+    uPracticalColorPower3: 'vec4',
     uFogColor: 'vec3',
     uFogStart: 'float',
     uFogEnd: 'float',
@@ -87,6 +115,16 @@ export default shader({
       uShallowColor,
       uRoughness,
       uCrestStrength,
+      uPracticalCount,
+      uPracticalStrength,
+      uPracticalPosInvRangeSq0,
+      uPracticalColorPower0,
+      uPracticalPosInvRangeSq1,
+      uPracticalColorPower1,
+      uPracticalPosInvRangeSq2,
+      uPracticalColorPower2,
+      uPracticalPosInvRangeSq3,
+      uPracticalColorPower3,
       uFogColor,
       uFogStart,
       uFogEnd,
@@ -134,6 +172,24 @@ export default shader({
     color = color
       .add(uSunColor.scale(sunSpecular + diffuseGlint))
       .add(uShallowColor.scale(crest * 0.22));
+
+    // The canal catches the same authored lantern bank as the town instead of
+    // reading as an unlit blue strip after sunset. Four nearby fixtures are a
+    // bounded shared-backend path; no clustered-light compute dependency.
+    let practical = vec3(0, 0, 0);
+    if (uPracticalCount > 0.5) practical = practical.add(practicalWaterRadiance(
+      vWorld, normal, view, uPracticalPosInvRangeSq0, uPracticalColorPower0,
+    ));
+    if (uPracticalCount > 1.5) practical = practical.add(practicalWaterRadiance(
+      vWorld, normal, view, uPracticalPosInvRangeSq1, uPracticalColorPower1,
+    ));
+    if (uPracticalCount > 2.5) practical = practical.add(practicalWaterRadiance(
+      vWorld, normal, view, uPracticalPosInvRangeSq2, uPracticalColorPower2,
+    ));
+    if (uPracticalCount > 3.5) practical = practical.add(practicalWaterRadiance(
+      vWorld, normal, view, uPracticalPosInvRangeSq3, uPracticalColorPower3,
+    ));
+    color = color.add(practical.scale(uPracticalStrength));
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
     color = mix(color, uFogColor, fog);

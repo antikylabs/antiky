@@ -84,6 +84,40 @@ export type TownFountain = {
   outlets: readonly { x: number; y: number; z: number }[];
 };
 
+export type TownAwningStyle = 'red-cream' | 'blue-cream' | 'gold-cream';
+
+export type TownAwning = {
+  x: number;
+  y: number;
+  z: number;
+  width: number;
+  depth: number;
+  yaw: number;
+  slope: number;
+  style: TownAwningStyle;
+  phase: number;
+};
+
+export type TownSpritePropType =
+  | 'barrel'
+  | 'open-chest'
+  | 'closed-chest'
+  | 'open-book'
+  | 'book-stack'
+  | 'map-kit'
+  | 'produce-basket'
+  | 'crate';
+
+export type TownSpriteProp = {
+  x: number;
+  y: number;
+  z: number;
+  type: TownSpritePropType;
+  scale: number;
+  yaw: number;
+  curvature: number;
+};
+
 export type TownWorld = {
   /** Legacy cube instances retained until the renderer switches to `mesh`. */
   voxels: {
@@ -98,6 +132,8 @@ export type TownWorld = {
   materials: readonly TownMaterial[];
   geometryValidation: VoxelMeshValidation;
   props: TownProp[];
+  awnings: TownAwning[];
+  spriteProps: TownSpriteProp[];
   /** Deterministic non-voxel vegetation instances for renderer batching. */
   vegetation: TownVegetation[];
   walkers: TownWalker[];
@@ -528,12 +564,12 @@ const VISUAL_MIN_Z = -54;
 // ground beneath it so no finite platform edge can enter the frame.
 const VISUAL_MAX_Z = 72;
 const WATERFALL_GRID = {
-  minX: 19.5,
-  maxX: 22.5,
+  minX: -27.5,
+  maxX: -23.5,
   z: -23.5,
-  topY: 2.5,
+  topY: 9,
   bottomY: 0.5,
-  channelMinZ: -31.5,
+  channelMinZ: -33.5,
   channelMaxZ: -23.5,
 } as const;
 
@@ -600,6 +636,27 @@ function addVegetation(
     scale,
     yaw: hash(seed * 17) * Math.PI * 2,
     phase: hash(seed * 29),
+  });
+}
+
+function addSpriteProp(
+  spriteProps: TownSpriteProp[],
+  gx: number,
+  gy: number,
+  gz: number,
+  type: TownSpritePropType,
+  scale: number,
+  seed: number,
+  curvature = 0.22,
+): void {
+  spriteProps.push({
+    x: gx * VOXEL_SIZE,
+    y: gy * VOXEL_SIZE,
+    z: gz * VOXEL_SIZE,
+    type,
+    scale,
+    yaw: hash(seed * 23) * Math.PI * 2,
+    curvature,
   });
 }
 
@@ -1175,10 +1232,10 @@ function bellTower(builder: VoxelBuilder, colliders: TownCollider[], x: number, 
 function marketStall(
   builder: VoxelBuilder,
   colliders: TownCollider[],
+  awnings: TownAwning[],
   x: number,
   z: number,
-  clothA: PaletteName,
-  clothB: PaletteName,
+  style: TownAwningStyle,
 ): void {
   const base = groundHeightGrid(x + 3, z + 2);
   for (const [px, pz] of [[x, z], [x + 6, z], [x, z + 4], [x + 6, z + 4]] as const) {
@@ -1193,34 +1250,21 @@ function marketStall(
   builder.fillBox(x, base + 1, z + 1, 2, 2, 3, 'timber');
   builder.fillBox(x + 5, base + 1, z + 1, 2, 2, 3, 'timber');
   builder.surfaceBox(x + 3, base + 3.75, z + 2, 8, 0.5, 4, 'timberLight');
-  for (let xx = 0; xx < 8; xx += 1) {
-    for (let zz = 0; zz < 6; zz += 1) {
-      builder.set(x - 1 + xx, base + 7, z - 1 + zz, xx % 2 === 0 ? clothA : clothB);
-      builder.carveSurfaceCell(x - 1 + xx, base + 7, z - 1 + zz);
-    }
-  }
-  const canopyXCells = 8 * TOWN_DETAIL_RESOLUTION;
-  const canopyZCells = 6 * TOWN_DETAIL_RESOLUTION;
-  for (let ix = 0; ix < canopyXCells; ix += 1) {
-    const cloth = Math.floor(ix / 2) % 2 === 0 ? clothA : clothB;
-    for (let iz = 0; iz < canopyZCells; iz += 1) {
-      const slope = Math.floor((canopyZCells - 1 - iz) / 6) * DETAIL;
-      builder.surfaceBox(
-        fineCenter(x - 1, ix),
-        base + 7 + slope,
-        fineCenter(z - 1, iz),
-        DETAIL,
-        DETAIL,
-        DETAIL,
-        cloth,
-      );
-    }
-    if (Math.floor(ix / 2) % 2 === 0) {
-      builder.surfaceBox(fineCenter(x - 1, ix), base + 6.5, z + 4.5 + DETAIL, DETAIL, 3 * DETAIL, DETAIL, cloth);
-    }
-  }
-  builder.surfaceBox(x + 2.5, base + 7.5 + 2 * DETAIL, z + 4.5 + DETAIL, 9, DETAIL, DETAIL, 'timber');
-  builder.surfaceBox(x + 2.5, base + 7.5 + 2 * DETAIL, z - 1.5 - DETAIL, 9, DETAIL, DETAIL, 'timber');
+  builder.surfaceBox(x + 2.5, base + 7.5, z + 4.5 + DETAIL / 2, 9, DETAIL, DETAIL, 'timber');
+  builder.surfaceBox(x + 2.5, base + 7.5, z - 1.5 - DETAIL / 2, 9, DETAIL, DETAIL, 'timber');
+  builder.surfaceBox(x - 1.5 - DETAIL / 2, base + 7.5, z + 1.5, DETAIL, DETAIL, 6 + DETAIL, 'timber');
+  builder.surfaceBox(x + 6.5 + DETAIL / 2, base + 7.5, z + 1.5, DETAIL, DETAIL, 6 + DETAIL, 'timber');
+  awnings.push({
+    x: (x + 2.5) * VOXEL_SIZE,
+    y: (base + 7.15) * VOXEL_SIZE,
+    z: (z + 1.5) * VOXEL_SIZE,
+    width: 8 * VOXEL_SIZE,
+    depth: 6 * VOXEL_SIZE,
+    yaw: 0,
+    slope: 0.14,
+    style,
+    phase: hash(x * 59 + z * 83),
+  });
 
   // Narrow counter slats and many small produce piles match the reference's
   // lived-in market density while keeping the path collider unchanged.
@@ -1481,17 +1525,22 @@ function stoneBench(builder: VoxelBuilder, colliders: TownCollider[], x: number,
   addCollider(colliders, x - (facingZ ? 2 : 0), z - (facingZ ? 0 : 2), width, depth, 0.02);
 }
 
-function cargoCluster(builder: VoxelBuilder, colliders: TownCollider[], x: number, z: number): void {
+function cargoCluster(
+  builder: VoxelBuilder,
+  colliders: TownCollider[],
+  spriteProps: TownSpriteProp[],
+  x: number,
+  z: number,
+): void {
   const base = groundHeightGrid(x, z);
-  // Barrels use three stepped courses and narrow iron hoops rather than one cube.
-  for (const [bx, bz, height] of [[x, z, 2], [x + 1.75, z + 0.5, 1.5]] as const) {
-    builder.surfaceBox(bx, base + 0.75, bz, 1, 0.5, 1, 'timber');
-    builder.surfaceBox(bx, base + 1.25, bz, 1.5, height - 0.5, 1.5, 'timberLight');
-    builder.surfaceBox(bx, base + height, bz, 1, 0.5, 1, 'timber');
-    builder.surfaceBox(bx, base + 0.75, bz, 1.75, 0.25, 1.75, 'iron');
-    builder.surfaceBox(bx, base + height - 0.25, bz, 1.75, 0.25, 1.75, 'iron');
+  for (const [index, bx, bz, scale] of [
+    [0, x, z, 0.92],
+    [1, x + 1.75, z + 0.5, 0.78],
+  ] as const) {
+    addSpriteProp(spriteProps, bx, base + 0.5, bz, 'barrel', scale, x * 67 + z * 41 + index, 0.31);
   }
-  // Offset crates create a readable triangular cluster in the fixed camera.
+  // The structural crate stays voxel-authored and retains the cluster's
+  // original blocking envelope; curved barrels are bent sprite geometry.
   builder.surfaceBox(x - 1.5, base + 0.75, z + 0.5, 1.5, 1.5, 1.5, 'timber');
   builder.surfaceBox(x - 1.5, base + 1.5, z + 0.5, 1.75, 0.25, 1.75, 'timberLight');
   builder.surfaceBox(x - 1.5, base + 0.75, z + 1.25, 1.75, 0.25, 0.25, 'iron');
@@ -1620,7 +1669,7 @@ function scatterTownClutter(
 
   for (const [gx, gz, violet] of [
     [-27, -5, true], [-24, -4, false], [24, -4, true], [27, -5, false],
-    [-29, -23, false], [27, -23, true], [-21, 5, true], [22, 5, false],
+    [-31, -22, false], [27, -23, true], [-21, 5, true], [22, 5, false],
     [-8, 8, false], [9, 8, true], [-7, 20, true], [8, 20, false],
   ] as const) terracottaPot(builder, vegetation, gx, gz, violet);
 
@@ -1671,44 +1720,85 @@ function canalMasonry(builder: VoxelBuilder): void {
 }
 
 function waterfallChannel(builder: VoxelBuilder, colliders: TownCollider[]): void {
-  // Recess the upper channel one fine cell into the rear terrace. The animated
-  // water ribbon is renderer-owned; these are its dry, readable stone banks.
-  for (let z = -31; z <= -25; z += 1) {
-    for (let x = 20; x <= 22; x += 1) {
-      builder.carveSurfaceBox(x, 2 + DETAIL, z, 1, DETAIL, 1);
-      builder.surfaceBox(x, 2, z, 1, DETAIL, 1, 'stoneDark');
-    }
-    for (const bankX of [19 + DETAIL, 22 + 2 * DETAIL]) {
-      builder.surfaceBox(bankX, 2.5 + DETAIL / 2, z, DETAIL, DETAIL, 1, z % 3 === 0 ? 'stoneLight' : 'stone');
+  const channelCenterX = (WATERFALL_GRID.minX + WATERFALL_GRID.maxX) / 2;
+  const frontZ = WATERFALL_GRID.z - 0.5;
+
+  // An elevated, open stone leat carries the renderer-owned water forward
+  // between two rear buildings. The trough is deliberately dark so the thin
+  // animated channel has strong material contrast from the southeast camera.
+  for (let z = -33; z <= -25; z += 1) {
+    builder.surfaceBox(channelCenterX, 8.5 + DETAIL / 2, z, 4, DETAIL, 1, 'stoneDark');
+    for (const bankX of [WATERFALL_GRID.minX - DETAIL / 2, WATERFALL_GRID.maxX + DETAIL / 2]) {
+      builder.surfaceBox(
+        bankX,
+        9 + DETAIL / 2,
+        z,
+        DETAIL,
+        3 * DETAIL,
+        1,
+        z % 3 === 0 ? 'stoneLight' : 'stone',
+      );
     }
   }
 
-  // A real opening, projecting spill lip, and stepped jambs establish the
-  // 1.24 m drop without baking an opaque water wall into the voxel mesh.
-  builder.carveSurfaceBox(21, 1.5, -24 + DETAIL, 3, 2, DETAIL);
-  for (const jambX of [19 + 2 * DETAIL, 22 + DETAIL]) {
-    builder.surfaceBox(jambX, 1.5, -24 + 2 * DETAIL, 2 * DETAIL, 3, DETAIL, 'stone');
-    for (let course = 0; course < 9; course += 2) {
-      builder.surfaceBox(jambX, fineCenter(0, course), -24 + 3 * DETAIL, 2 * DETAIL, DETAIL, DETAIL, 'stoneLight');
+  // Twin solid piers anchor the 5.27 m drop to the rear terrace. They occupy
+  // the otherwise empty gap between the west house and guildhall, keeping the
+  // primary processional route and all existing building colliders untouched.
+  for (const pierX of [-29, -23]) {
+    builder.fillBox(pierX, 0, -25, 2, 10, 2, 'stoneDark');
+    for (let ix = 0; ix < 2 * TOWN_DETAIL_RESOLUTION; ix += 1) {
+      for (let iy = 0; iy < 10 * TOWN_DETAIL_RESOLUTION; iy += 1) {
+        builder.surfaceBox(
+          fineCenter(pierX, ix),
+          fineCenter(0, iy),
+          -24 + DETAIL,
+          DETAIL,
+          DETAIL,
+          DETAIL,
+          masonryMaterial(ix, iy, pierX * 17),
+        );
+      }
     }
+    builder.surfaceBox(pierX + 0.5, 1, -23.5 + DETAIL, 2 + 2 * DETAIL, 2, 2 + DETAIL, 'stoneDark');
+    builder.surfaceBox(pierX + 0.5, 9.75, -24.5, 2 + 2 * DETAIL, DETAIL, 2 + 2 * DETAIL, 'stoneLight');
   }
-  builder.surfaceBox(21, 2.5 + DETAIL / 2, -24 + 2 * DETAIL, 4, DETAIL, 2 * DETAIL, 'stoneLight');
 
-  // The lower catch basin is shallow enough to remain a visual feature while
-  // its stable collider keeps both playable and ambient actors out of it.
-  for (let x = 19; x <= 23; x += 1) {
-    for (let z = -23; z <= -20; z += 1) {
-      const edge = x === 19 || x === 23 || z === -20;
-      if (!edge) continue;
-      builder.surfaceBox(x, 0.5 + DETAIL, z, 1, 2 * DETAIL, 1, (x + z) % 3 === 0 ? 'stoneLight' : 'stone');
+  // A recessed backplate makes the translucent fall readable in both bright
+  // sun and shadow; projecting voussoirs and spill lip give it architectural
+  // weight without inserting voxel water into the opening.
+  builder.surfaceBox(channelCenterX, 4.75, frontZ - DETAIL, 4, 8.5, DETAIL, 'stoneDark');
+  builder.surfaceBox(channelCenterX, 9.5, -24.5, 6, 1, 2, 'stone');
+  builder.surfaceBox(channelCenterX, 9 + DETAIL / 2, frontZ + DETAIL, 5, DETAIL, 2 * DETAIL, 'stoneLight');
+  for (const [offset, height] of [[-2.5, 8], [2.5, 8], [-2, 8.5], [2, 8.5]] as const) {
+    builder.surfaceBox(
+      channelCenterX + offset,
+      height,
+      frontZ + 2 * DETAIL,
+      DETAIL,
+      DETAIL,
+      DETAIL,
+      'stoneLight',
+    );
+  }
+
+  // The foreground basin terminates the vertical ribbon with a broad stone
+  // silhouette and dark floor that the water renderer can cover with foam.
+  for (let x = -30; x <= -21; x += 1) {
+    for (let z = -23; z <= -19; z += 1) {
+      const edge = x === -30 || x === -21 || z === -19;
+      if (edge) {
+        builder.surfaceBox(x, 0.5 + DETAIL, z, 1, 2 * DETAIL, 1, (x + z) % 3 === 0 ? 'stoneLight' : 'stone');
+      } else {
+        builder.surfaceBox(x, 0 + DETAIL, z, 1, DETAIL, 1, 'stoneDark');
+      }
     }
   }
   colliders.push({
     id: 'town.water.waterfall-basin',
-    minX: 18.5 * VOXEL_SIZE,
-    maxX: 23.5 * VOXEL_SIZE,
+    minX: -30.5 * VOXEL_SIZE,
+    maxX: -20.5 * VOXEL_SIZE,
     minZ: -25 * VOXEL_SIZE,
-    maxZ: -19.5 * VOXEL_SIZE,
+    maxZ: -18.5 * VOXEL_SIZE,
   });
 }
 
@@ -1841,6 +1931,8 @@ function buildTownDetails(
   colliders: TownCollider[],
   props: TownProp[],
   vegetation: TownVegetation[],
+  awnings: TownAwning[],
+  spriteProps: TownSpriteProp[],
 ): void {
   distantTerrain(builder, vegetation);
   bridge(builder);
@@ -1859,14 +1951,14 @@ function buildTownDetails(
   house(builder, colliders, vegetation, -23, -35, 17, 10, 12, 'plasterPale', 'roofRed');
   bellTower(builder, colliders, 8, -35);
 
-  marketStall(builder, colliders, -18, -1, 'clothRed', 'clothCream');
-  marketStall(builder, colliders, 11, 0, 'clothBlue', 'clothCream');
-  marketStall(builder, colliders, -15, -16, 'clothGold', 'clothCream');
+  marketStall(builder, colliders, awnings, -18, -1, 'red-cream');
+  marketStall(builder, colliders, awnings, 11, 0, 'blue-cream');
+  marketStall(builder, colliders, awnings, -15, -16, 'gold-cream');
 
   stoneBench(builder, colliders, -9, -11);
   stoneBench(builder, colliders, 9, -11);
-  cargoCluster(builder, colliders, -10, 7);
-  cargoCluster(builder, colliders, 12, 6);
+  cargoCluster(builder, colliders, spriteProps, -10, 7);
+  cargoCluster(builder, colliders, spriteProps, 12, 6);
   flowerPlanter(builder, colliders, vegetation, -7, -6, true);
   flowerPlanter(builder, colliders, vegetation, 7, -6, false);
   flowerPlanter(builder, colliders, vegetation, -6, -13, false);
@@ -1875,17 +1967,15 @@ function buildTownDetails(
 
   for (const [x, z, height, autumn] of [
     [-34, 22, 8, false], [-24, 26, 7, true], [39, 22, 8, true],
-    [-24, 8, 8, false], [24, 8, 7, false], [-25, -22, 9, true], [23, -23, 8, false],
+    [-24, 8, 8, false], [24, 8, 7, false], [-17, -22, 9, true], [23, -23, 8, false],
     [-3, -29, 7, false], [44, -19, 8, true], [-45, -23, 9, false],
   ] as const) tree(colliders, vegetation, x, z, height, autumn);
 
   scatterTownClutter(builder, colliders, vegetation);
 
-  const TOWN = { fence: 82, barrel: 107, sack: 106, mushrooms: 29 } as const;
+  const TOWN = { fence: 82 } as const;
   for (const [gx, gz, tile, size] of [
-    [-11, 5, TOWN.barrel, 0.75], [-9, 4, TOWN.sack, 0.7], [16, 5, TOWN.barrel, 0.75],
-    [18, 5, TOWN.sack, 0.7], [-22, -5, TOWN.fence, 0.9], [22, -5, TOWN.fence, 0.9],
-    [-27, 18, TOWN.mushrooms, 0.5], [29, 19, TOWN.mushrooms, 0.5],
+    [-22, -5, TOWN.fence, 0.9], [22, -5, TOWN.fence, 0.9],
   ] as const) {
     props.push({
       x: gx * VOXEL_SIZE,
@@ -1896,6 +1986,25 @@ function buildTownDetails(
       tint: [1, 0.94, 0.84],
     });
   }
+
+  for (const [gx, gz, type, scale, curvature] of [
+    [-11, 5, 'barrel', 0.82, 0.31], [-9, 4, 'produce-basket', 0.72, 0.2],
+    [16, 5, 'barrel', 0.82, 0.31], [18, 5, 'produce-basket', 0.72, 0.2],
+    [-27, 18, 'map-kit', 0.56, 0.12], [29, 19, 'crate', 0.68, 0.18],
+    [-11, -9, 'open-chest', 0.82, 0.24], [13, -9, 'closed-chest', 0.82, 0.24],
+    [-17, 4, 'open-book', 0.46, 0.1], [15, 5, 'book-stack', 0.5, 0.12],
+  ] as const) {
+    addSpriteProp(
+      spriteProps,
+      gx,
+      groundHeightGrid(gx, gz) + 0.5,
+      gz,
+      type,
+      scale,
+      gx * 71 + gz * 43,
+      curvature,
+    );
+  }
 }
 
 export function buildTownWorld(): TownWorld {
@@ -1903,9 +2012,11 @@ export function buildTownWorld(): TownWorld {
   const colliders: TownCollider[] = [];
   const props: TownProp[] = [];
   const vegetation: TownVegetation[] = [];
+  const awnings: TownAwning[] = [];
+  const spriteProps: TownSpriteProp[] = [];
   buildGround(builder);
   addWaterColliders(colliders);
-  buildTownDetails(builder, colliders, props, vegetation);
+  buildTownDetails(builder, colliders, props, vegetation, awnings, spriteProps);
   const voxels = builder.compile();
   const mesh = builder.compileSurface();
   const geometryValidation = validateVoxelSurfaceMesh(mesh);
@@ -2008,6 +2119,8 @@ export function buildTownWorld(): TownWorld {
     materials: TOWN_MATERIALS,
     geometryValidation,
     props,
+    awnings,
+    spriteProps,
     vegetation,
     walkers,
     heroPath,
@@ -2035,7 +2148,7 @@ export function buildTownWorld(): TownWorld {
       basinY: 0.5 * VOXEL_SIZE,
       waterY: 0.9 * VOXEL_SIZE,
       radius: 3.2 * VOXEL_SIZE,
-      jetTopY: 10 * VOXEL_SIZE,
+      jetTopY: 8.45 * VOXEL_SIZE,
       outlets: [
         { x: -1.25 * VOXEL_SIZE, y: 7 * VOXEL_SIZE, z: -6 * VOXEL_SIZE },
         { x: 1.25 * VOXEL_SIZE, y: 7 * VOXEL_SIZE, z: -6 * VOXEL_SIZE },
@@ -2043,7 +2156,7 @@ export function buildTownWorld(): TownWorld {
         { x: 0, y: 7 * VOXEL_SIZE, z: -4.75 * VOXEL_SIZE },
       ],
     },
-    extent: WORLD_MAX_X * VOXEL_SIZE,
+    extent: Math.max(Math.abs(mesh.bounds.min[0]), Math.abs(mesh.bounds.max[0])),
     physicsColliders: colliders,
     walkSurfaceHeight,
     walkSurfaceNormal,

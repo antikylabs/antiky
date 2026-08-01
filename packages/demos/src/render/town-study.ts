@@ -15,6 +15,23 @@ import {
   type TownWalker,
 } from '../art/town';
 import {
+  bindTownAwningGeometry,
+  bindTownPropGeometry,
+  buildTownAwningBatch,
+  buildTownPropBatch,
+  createTownAwningGeometry,
+  createTownPropGeometry,
+  uploadTownAwningBatch,
+  uploadTownPropBatch,
+} from '../art/town-dynamic-props';
+import {
+  TOWN_VEGETATION_ATLAS_URL,
+  bindTownFoliageGeometry,
+  buildTownFoliageRenderData,
+  uploadTownFoliageInstances,
+} from '../art/town-foliage';
+import { buildTownWaterFeatures } from '../art/town-water-features';
+import {
   SpriteBatch,
   billboardBasis,
   buildStandeeSideMesh,
@@ -31,10 +48,17 @@ import {
 } from '../physics';
 import type { DemoFactory, DemoMode } from '../runtime';
 import postShader from '../shaders/town-post.shader.gen';
+import awningShadowShader from '../shaders/town-awning-shadow.shader.gen';
+import awningShader from '../shaders/town-awning.shader.gen';
+import foliageShadowShader from '../shaders/town-foliage-shadow.shader.gen';
+import foliageShader from '../shaders/town-foliage.shader.gen';
+import propShadowShader from '../shaders/town-prop-shadow.shader.gen';
+import propShader from '../shaders/town-prop.shader.gen';
 import shadowShader from '../shaders/town-shadow.shader.gen';
 import spriteShadowShader from '../shaders/town-sprite-shadow.shader.gen';
 import spriteShader from '../shaders/town-sprite.shader.gen';
 import voxelShader from '../shaders/town-voxel.shader.gen';
+import waterFeaturesShader from '../shaders/town-water-features.shader.gen';
 import waterShader from '../shaders/town-water.shader.gen';
 
 // Camera-right/front golden-hour key. The previous vector was almost pure
@@ -50,9 +74,9 @@ const SCENE_CLEAR = [0.04, 0.05, 0.08, FAR_DEPTH] as const;
 const MATERIAL_ATLAS_TEXEL = [1 / 1254, 1 / 1254] as const;
 const HERO_SPEED = 3.8;
 const STANDEE_THICKNESS = 0.1;
-const NPC_COUNT = 4;
-const NPC_WALKER_INDICES = [0, 2, 3, 4] as const;
-const NPC_START_PROGRESS = [0.08, 0.38, 0.64, 0.82] as const;
+const NPC_COUNT = 8;
+const NPC_WALKER_INDICES = [0, 1, 3, 4, 0, 1, 3, 4] as const;
+const NPC_START_PROGRESS = [0.08, 0.38, 0.64, 0.82, 0.55, 0.76, 0.18, 0.43] as const;
 
 const PRACTICAL_LIGHTS = [
   { position: [-3.565, 4.237, 6.82], radius: 4, power: 1.05, color: [1, 0.52, 0.22] },
@@ -107,15 +131,15 @@ function cameraPose(mode: DemoMode, aspect: number) {
   if (mode === 'interactive') {
     return {
       mobile,
-      fovY: mobile ? 0.9 : 0.62,
-      offset: mobile ? [12, 9.5, 13] as const : [15, 10.5, 14] as const,
+      fovY: mobile ? 0.9 : 0.6,
+      offset: mobile ? [12, 9.5, 13] as const : [20, 14, 20] as const,
     };
   }
   return {
     mobile,
-    fovY: mobile ? 0.82 : 0.59,
-    position: mobile ? [30, 20, 36] as const : [22.5, 16.4, 28.5] as const,
-    target: mobile ? [-2.5, 3, -1] as const : [-2.8, 3, -2] as const,
+    fovY: mobile ? 0.82 : 0.57,
+    position: mobile ? [30, 20, 36] as const : [28, 19, 36] as const,
+    target: mobile ? [-2.5, 3, -1] as const : [-1, 3, -4] as const,
   };
 }
 
@@ -124,6 +148,16 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   const materialTexture = await loadTexture(
     renderer,
     '/textures/town-material-atlas-v1.png',
+    { filter: 'smooth', wrap: 'clamp', anisotropy: 8 },
+  );
+  const propTexture = await loadTexture(
+    renderer,
+    '/textures/town-prop-atlas-v2.png',
+    { filter: 'smooth', wrap: 'clamp', anisotropy: 8 },
+  );
+  const vegetationTexture = await loadTexture(
+    renderer,
+    TOWN_VEGETATION_ATLAS_URL,
     { filter: 'smooth', wrap: 'clamp', anisotropy: 8 },
   );
   const shadowResolution = renderer.canvas.width < 700 ? 1024 : 2048;
@@ -198,6 +232,137 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   waterProgram.uniforms.uShadowTexel.set(shadowTexel);
   waterProgram.uniforms.uShadowBias.set(0.00085);
   waterProgram.uniforms.uShadowStrength.set(0.64);
+
+  const waterFeatureMesh = buildTownWaterFeatures(world.waterfall, world.fountain);
+  const waterFeatureProgram = createProgram(renderer, waterFeaturesShader);
+  waterFeatureProgram.attributes.aPosition.set(waterFeatureMesh.positions);
+  waterFeatureProgram.attributes.aNormal.set(waterFeatureMesh.normals);
+  waterFeatureProgram.attributes.aUv.set(waterFeatureMesh.uvs);
+  waterFeatureProgram.attributes.aFeature.set(waterFeatureMesh.featureData);
+  waterFeatureProgram.setIndices(waterFeatureMesh.indices);
+  waterFeatureProgram.uniforms.uLightViewProj.set(lightViewProjection);
+  waterFeatureProgram.uniforms.uLightDir.set(LIGHT_DIR);
+  waterFeatureProgram.uniforms.uSunColor.set(SUN_COLOR);
+  waterFeatureProgram.uniforms.uSunIntensity.set(2.35);
+  waterFeatureProgram.uniforms.uSkyColor.set([0.2, 0.34, 0.58]);
+  waterFeatureProgram.uniforms.uDeepColor.set([0.018, 0.065, 0.085]);
+  waterFeatureProgram.uniforms.uShallowColor.set([0.045, 0.24, 0.28]);
+  waterFeatureProgram.uniforms.uFoamColor.set([0.5, 0.75, 0.78]);
+  waterFeatureProgram.uniforms.uRoughness.set(0.22);
+  waterFeatureProgram.uniforms.uFogColor.set(FOG_COLOR);
+  waterFeatureProgram.uniforms.uFogStart.set(45);
+  waterFeatureProgram.uniforms.uFogEnd.set(110);
+  waterFeatureProgram.uniforms.uFogStrength.set(0.2);
+  waterFeatureProgram.uniforms.uShadowTexel.set(shadowTexel);
+  waterFeatureProgram.uniforms.uShadowBias.set(0.00085);
+  waterFeatureProgram.uniforms.uShadowStrength.set(0.64);
+
+  const awningGeometry = createTownAwningGeometry();
+  const awningBatch = buildTownAwningBatch(world.awnings);
+  const awningShadowProgram = createProgram(renderer, awningShadowShader);
+  bindTownAwningGeometry(awningShadowProgram, awningGeometry, true);
+  const awningShadowCount = uploadTownAwningBatch(awningShadowProgram, awningBatch);
+  awningShadowProgram.uniforms.uLightViewProj.set(lightViewProjection);
+
+  const awningProgram = createProgram(renderer, awningShader);
+  bindTownAwningGeometry(awningProgram, awningGeometry);
+  const awningCount = uploadTownAwningBatch(awningProgram, awningBatch);
+  awningProgram.uniforms.uLightViewProj.set(lightViewProjection);
+  awningProgram.uniforms.uMaterialAtlasTexel.set(MATERIAL_ATLAS_TEXEL);
+  awningProgram.uniforms.uLightDir.set(LIGHT_DIR);
+  awningProgram.uniforms.uSunColor.set(SUN_COLOR);
+  awningProgram.uniforms.uSunIntensity.set(2.65);
+  awningProgram.uniforms.uSkyColor.set(SKY_COLOR);
+  awningProgram.uniforms.uSkyIntensity.set(0.46);
+  awningProgram.uniforms.uGroundColor.set(GROUND_COLOR);
+  awningProgram.uniforms.uGroundIntensity.set(0.12);
+  awningProgram.uniforms.uFogColor.set(FOG_COLOR);
+  awningProgram.uniforms.uFogStart.set(45);
+  awningProgram.uniforms.uFogEnd.set(110);
+  awningProgram.uniforms.uFogStrength.set(0.22);
+  awningProgram.uniforms.uShadowTexel.set(shadowTexel);
+  awningProgram.uniforms.uShadowBias.set(0.00055);
+  awningProgram.uniforms.uShadowSlopeBias.set(0.0013);
+  awningProgram.uniforms.uShadowStrength.set(0.72);
+
+  const propGeometry = createTownPropGeometry();
+  const propBatch = buildTownPropBatch(world.spriteProps);
+  const propShadowProgram = createProgram(renderer, propShadowShader);
+  bindTownPropGeometry(propShadowProgram, propGeometry);
+  const propShadowCount = uploadTownPropBatch(propShadowProgram, propBatch);
+  propShadowProgram.uniforms.uLightViewProj.set(lightViewProjection);
+  propShadowProgram.uniforms.uCutoff.set(0.44);
+
+  const propProgram = createProgram(renderer, propShader);
+  bindTownPropGeometry(propProgram, propGeometry);
+  const propCount = uploadTownPropBatch(propProgram, propBatch);
+  propProgram.uniforms.uLightViewProj.set(lightViewProjection);
+  propProgram.uniforms.uCutoff.set(0.44);
+  propProgram.uniforms.uLightDir.set(LIGHT_DIR);
+  propProgram.uniforms.uSunColor.set(SUN_COLOR);
+  propProgram.uniforms.uSunIntensity.set(2.65);
+  propProgram.uniforms.uSkyColor.set(SKY_COLOR);
+  propProgram.uniforms.uSkyIntensity.set(0.46);
+  propProgram.uniforms.uGroundColor.set(GROUND_COLOR);
+  propProgram.uniforms.uGroundIntensity.set(0.12);
+  propProgram.uniforms.uFogColor.set(FOG_COLOR);
+  propProgram.uniforms.uFogStart.set(45);
+  propProgram.uniforms.uFogEnd.set(110);
+  propProgram.uniforms.uFogStrength.set(0.22);
+  propProgram.uniforms.uShadowTexel.set(shadowTexel);
+  propProgram.uniforms.uShadowBias.set(0.00055);
+  propProgram.uniforms.uShadowSlopeBias.set(0.0013);
+  propProgram.uniforms.uShadowStrength.set(0.72);
+
+  const foliage = buildTownFoliageRenderData(world.vegetation);
+  const foliageCardShadowProgram = createProgram(renderer, foliageShadowShader);
+  bindTownFoliageGeometry(foliageCardShadowProgram, foliage.cardGeometry);
+  const foliageCardShadowCount = uploadTownFoliageInstances(
+    foliageCardShadowProgram,
+    foliage.cards,
+  );
+  const foliageTrunkShadowProgram = createProgram(renderer, foliageShadowShader);
+  bindTownFoliageGeometry(foliageTrunkShadowProgram, foliage.trunkGeometry);
+  const foliageTrunkShadowCount = uploadTownFoliageInstances(
+    foliageTrunkShadowProgram,
+    foliage.trunks,
+  );
+  const foliageShadowPrograms = [foliageCardShadowProgram, foliageTrunkShadowProgram] as const;
+  for (const program of foliageShadowPrograms) {
+    program.uniforms.uLightViewProj.set(lightViewProjection);
+    program.uniforms.uCutoff.set(0.35);
+    program.uniforms.uWindDirection.set([0.92, 0.38]);
+    program.uniforms.uWindSpeed.set(1.15);
+  }
+
+  const foliageCardProgram = createProgram(renderer, foliageShader);
+  bindTownFoliageGeometry(foliageCardProgram, foliage.cardGeometry);
+  const foliageCardCount = uploadTownFoliageInstances(foliageCardProgram, foliage.cards);
+  const foliageTrunkProgram = createProgram(renderer, foliageShader);
+  bindTownFoliageGeometry(foliageTrunkProgram, foliage.trunkGeometry);
+  const foliageTrunkCount = uploadTownFoliageInstances(foliageTrunkProgram, foliage.trunks);
+  const foliagePrograms = [foliageCardProgram, foliageTrunkProgram] as const;
+  for (const program of foliagePrograms) {
+    program.uniforms.uLightViewProj.set(lightViewProjection);
+    program.uniforms.uLightDir.set(LIGHT_DIR);
+    program.uniforms.uSunColor.set([1, 0.82, 0.58]);
+    program.uniforms.uSunIntensity.set(1.05);
+    program.uniforms.uSkyColor.set(SKY_COLOR);
+    program.uniforms.uSkyIntensity.set(0.46);
+    program.uniforms.uGroundColor.set(GROUND_COLOR);
+    program.uniforms.uGroundIntensity.set(0.12);
+    program.uniforms.uCutoff.set(0.35);
+    program.uniforms.uWindDirection.set([0.92, 0.38]);
+    program.uniforms.uWindSpeed.set(1.15);
+    program.uniforms.uFogColor.set(FOG_COLOR);
+    program.uniforms.uFogStart.set(45);
+    program.uniforms.uFogEnd.set(110);
+    program.uniforms.uFogStrength.set(0.22);
+    program.uniforms.uShadowTexel.set(shadowTexel);
+    program.uniforms.uShadowBias.set(0.00055);
+    program.uniforms.uShadowSlopeBias.set(0.0013);
+    program.uniforms.uShadowStrength.set(0.72);
+  }
 
   const actorMetadataResponse = await fetch('/sprites/antiky-wayfarer-cardinal-atlas.json');
   if (!actorMetadataResponse.ok) {
@@ -307,6 +472,18 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
     program.uniforms.uPracticalPosInvRangeSq6.set(practicalPositions[6]!);
     program.uniforms.uPracticalPosInvRangeSq7.set(practicalPositions[7]!);
   }
+  actorProgram.uniforms.uPracticalPosInvRangeSq0.set(practicalPositions[0]!);
+  actorProgram.uniforms.uPracticalPosInvRangeSq1.set(practicalPositions[1]!);
+  actorProgram.uniforms.uPracticalPosInvRangeSq2.set(practicalPositions[2]!);
+  actorProgram.uniforms.uPracticalPosInvRangeSq3.set(practicalPositions[3]!);
+  actorProgram.uniforms.uPracticalPosInvRangeSq4.set(practicalPositions[4]!);
+  actorProgram.uniforms.uPracticalPosInvRangeSq5.set(practicalPositions[5]!);
+  actorProgram.uniforms.uPracticalPosInvRangeSq6.set(practicalPositions[6]!);
+  actorProgram.uniforms.uPracticalPosInvRangeSq7.set(practicalPositions[7]!);
+  waterProgram.uniforms.uPracticalPosInvRangeSq0.set(practicalPositions[0]!);
+  waterProgram.uniforms.uPracticalPosInvRangeSq1.set(practicalPositions[1]!);
+  waterProgram.uniforms.uPracticalPosInvRangeSq2.set(practicalPositions[2]!);
+  waterProgram.uniforms.uPracticalPosInvRangeSq3.set(practicalPositions[3]!);
 
   const updatePracticalLights = (time: number, mobile: boolean): void => {
     const count = mobile ? 4 : mode === 'ambient' ? 8 : 6;
@@ -338,6 +515,22 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       program.uniforms.uPracticalColorPower6.set(practicalColors[6]!);
       program.uniforms.uPracticalColorPower7.set(practicalColors[7]!);
     }
+    actorProgram.uniforms.uPracticalCount.set(count);
+    actorProgram.uniforms.uPracticalStrength.set(strength);
+    actorProgram.uniforms.uPracticalColorPower0.set(practicalColors[0]!);
+    actorProgram.uniforms.uPracticalColorPower1.set(practicalColors[1]!);
+    actorProgram.uniforms.uPracticalColorPower2.set(practicalColors[2]!);
+    actorProgram.uniforms.uPracticalColorPower3.set(practicalColors[3]!);
+    actorProgram.uniforms.uPracticalColorPower4.set(practicalColors[4]!);
+    actorProgram.uniforms.uPracticalColorPower5.set(practicalColors[5]!);
+    actorProgram.uniforms.uPracticalColorPower6.set(practicalColors[6]!);
+    actorProgram.uniforms.uPracticalColorPower7.set(practicalColors[7]!);
+    waterProgram.uniforms.uPracticalCount.set(Math.min(count, 4));
+    waterProgram.uniforms.uPracticalStrength.set(strength * 0.82);
+    waterProgram.uniforms.uPracticalColorPower0.set(practicalColors[0]!);
+    waterProgram.uniforms.uPracticalColorPower1.set(practicalColors[1]!);
+    waterProgram.uniforms.uPracticalColorPower2.set(practicalColors[2]!);
+    waterProgram.uniforms.uPracticalColorPower3.set(practicalColors[3]!);
   };
 
   const fullscreen = createPlane({ width: 2, height: 2 });
@@ -347,22 +540,22 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   postProgram.uniforms.uBloomRadius.set(1.35);
   postProgram.uniforms.uBloomThreshold.set(1.02);
   postProgram.uniforms.uBloomKnee.set(0.2);
-  postProgram.uniforms.uBloomStrength.set(mode === 'ambient' ? 0.055 : 0.035);
+  postProgram.uniforms.uBloomStrength.set(mode === 'ambient' ? 0.075 : 0.05);
   postProgram.uniforms.uBloomTint.set([1, 0.63, 0.34]);
-  postProgram.uniforms.uExposure.set(1.02);
+  postProgram.uniforms.uExposure.set(1.1);
   postProgram.uniforms.uSaturation.set(1.07);
   postProgram.uniforms.uContrast.set(1.02);
   postProgram.uniforms.uGradeStrength.set(0.16);
   postProgram.uniforms.uShadowTint.set([0.88, 0.95, 1.08]);
   postProgram.uniforms.uHighlightTint.set([1.06, 0.96, 0.86]);
-  postProgram.uniforms.uVignette.set(mode === 'ambient' ? 0.09 : 0.06);
+  postProgram.uniforms.uVignette.set(mode === 'ambient' ? 0.12 : 0.085);
   postProgram.uniforms.uAtmosphereColor.set([0.6, 0.32, 0.2]);
-  postProgram.uniforms.uAtmosphereStart.set(46);
+  postProgram.uniforms.uAtmosphereStart.set(40);
   postProgram.uniforms.uAtmosphereEnd.set(112);
-  postProgram.uniforms.uAtmosphereStrength.set(0.16);
-  postProgram.uniforms.uSkyZenith.set([0.045, 0.09, 0.21]);
-  postProgram.uniforms.uSkyHorizon.set([0.9, 0.4, 0.2]);
-  postProgram.uniforms.uSunColor.set([1.75, 0.83, 0.32]);
+  postProgram.uniforms.uAtmosphereStrength.set(0.21);
+  postProgram.uniforms.uSkyZenith.set([0.038, 0.082, 0.19]);
+  postProgram.uniforms.uSkyHorizon.set([1.08, 0.47, 0.2]);
+  postProgram.uniforms.uSunColor.set([2.15, 1.02, 0.39]);
   postProgram.uniforms.uSunScreenPosition.set([0.82, 0.82]);
   postProgram.uniforms.uSunRadius.set(0.052);
   postProgram.uniforms.uFarDepth.set(FAR_DEPTH);
@@ -394,10 +587,14 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   };
 
   const npcTints = [
-    [0.92, 0.98, 1.08],
-    [1.07, 0.91, 0.83],
-    [0.88, 1.02, 0.91],
-    [1.03, 0.98, 0.84],
+    [0.78, 0.94, 1.18],
+    [1.14, 0.82, 0.72],
+    [0.76, 1.08, 0.8],
+    [1.16, 1.02, 0.7],
+    [1.08, 0.76, 1.03],
+    [0.72, 1.02, 1.1],
+    [1.18, 0.9, 0.78],
+    [0.84, 1.12, 0.72],
   ] as const;
   const npcs: ActorState[] = NPC_WALKER_INDICES.slice(0, NPC_COUNT).map((walkerIndex, index) => {
     const walker = world.walkers[walkerIndex]!;
@@ -414,7 +611,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       progress,
       stride: index * 1.7,
       tint: npcTints[index]!,
-      scale: 2.68 + (index % 2) * 0.1,
+      scale: 2.46 + (index % 2) * 0.1,
     };
   });
   const actorBatch = new SpriteBatch(actorAtlas, 1 + npcs.length);
@@ -447,7 +644,11 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   const unbindWebglTextures = (): void => {
     const gl = renderer.gl;
     if (!gl) return;
-    for (let unit = 0; unit < 4; unit += 1) {
+    // Texture bindings are context-global in WebGL. Clear every unit BroMetal
+    // could have assigned so adding another atlas never reintroduces a render-
+    // target feedback loop during shadow/scene ping-pong.
+    const unitCount = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS) as number;
+    for (let unit = 0; unit < unitCount; unit += 1) {
       gl.activeTexture(gl.TEXTURE0 + unit);
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
@@ -455,10 +656,10 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   };
 
   report({
-    instances: 1 + npcs.length,
-    drawCalls: 7,
+    instances: 1 + npcs.length + awningCount + propCount + foliageCardCount + foliageTrunkCount,
+    drawCalls: 16,
     bytesPerFrame: (1 + npcs.length) * 16 * 4 * 2,
-    note: `${world.mesh.stats.triangleCount.toLocaleString()} artifact-free town triangles; animated die-cut characters with contour depth`,
+    note: `${world.mesh.stats.triangleCount.toLocaleString()} artifact-free town triangles; GPU-wind foliage, animated water, cloth and die-cut characters`,
   });
 
   return {
@@ -515,9 +716,9 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
         }
         camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
         camera.lookAt(
-          hero.motor.state.position.x - (pose.mobile ? 4.5 : 3.4),
-          hero.motor.state.position.y + (pose.mobile ? 2.5 : 2.15),
-          hero.motor.state.position.z - (pose.mobile ? 6.5 : 5.5),
+          hero.motor.state.position.x - (pose.mobile ? 4.5 : 3.8),
+          hero.motor.state.position.y + (pose.mobile ? 2.5 : 2.8),
+          hero.motor.state.position.z - (pose.mobile ? 6.5 : 7.5),
         );
       } else {
         cameraPosition.set(pose.position!);
@@ -592,11 +793,36 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
 
       actorShadowProgram.uniforms.uRight.set(billboardRight);
       actorShadowProgram.uniforms.uUp.set(billboardUp);
+      awningShadowProgram.uniforms.uTime.set(simulationTime);
+      const windStrength = pose.mobile ? 0.62 : mode === 'ambient' ? 1 : 0.78;
+      for (const program of foliageShadowPrograms) {
+        program.uniforms.uTime.set(simulationTime);
+        program.uniforms.uWindStrength.set(windStrength);
+      }
+      for (const program of foliagePrograms) {
+        program.uniforms.uTime.set(simulationTime);
+        program.uniforms.uWindStrength.set(windStrength);
+      }
       unbindWebglTextures();
       renderer.drawTo(
         shadowTarget,
         () => {
           worldShadowProgram.draw();
+          if (foliageTrunkShadowCount > 0) {
+            foliageTrunkShadowProgram.uniforms.uAtlas.set(vegetationTexture);
+            foliageTrunkShadowProgram.draw({ instanceCount: foliageTrunkShadowCount });
+          }
+          if (foliageCardShadowCount > 0) {
+            foliageCardShadowProgram.uniforms.uAtlas.set(vegetationTexture);
+            foliageCardShadowProgram.draw({ instanceCount: foliageCardShadowCount });
+          }
+          if (awningShadowCount > 0) {
+            awningShadowProgram.draw({ instanceCount: awningShadowCount });
+          }
+          if (propShadowCount > 0) {
+            propShadowProgram.uniforms.uAtlas.set(propTexture);
+            propShadowProgram.draw({ instanceCount: propShadowCount });
+          }
           if (shadowActorCount > 0) {
             actorShadowProgram.uniforms.uAtlas.set(actorTexture);
             actorShadowProgram.draw({ instanceCount: shadowActorCount });
@@ -616,11 +842,49 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
           worldProgram.uniforms.uShadowMap.set(shadowTarget.texture);
           worldProgram.draw();
 
+          if (foliageTrunkCount > 0) {
+            foliageTrunkProgram.uniforms.uViewProj.set(viewProjection);
+            foliageTrunkProgram.uniforms.uCamPos.set(cameraPosition);
+            foliageTrunkProgram.uniforms.uAtlas.set(vegetationTexture);
+            foliageTrunkProgram.uniforms.uShadowMap.set(shadowTarget.texture);
+            foliageTrunkProgram.draw({ instanceCount: foliageTrunkCount });
+          }
+          if (foliageCardCount > 0) {
+            foliageCardProgram.uniforms.uViewProj.set(viewProjection);
+            foliageCardProgram.uniforms.uCamPos.set(cameraPosition);
+            foliageCardProgram.uniforms.uAtlas.set(vegetationTexture);
+            foliageCardProgram.uniforms.uShadowMap.set(shadowTarget.texture);
+            foliageCardProgram.draw({ instanceCount: foliageCardCount });
+          }
+
           waterProgram.uniforms.uViewProj.set(viewProjection);
           waterProgram.uniforms.uCamPos.set(cameraPosition);
           waterProgram.uniforms.uTime.set(simulationTime);
           waterProgram.uniforms.uShadowMap.set(shadowTarget.texture);
           waterProgram.draw();
+
+          waterFeatureProgram.uniforms.uViewProj.set(viewProjection);
+          waterFeatureProgram.uniforms.uCamPos.set(cameraPosition);
+          waterFeatureProgram.uniforms.uTime.set(simulationTime);
+          waterFeatureProgram.uniforms.uShadowMap.set(shadowTarget.texture);
+          waterFeatureProgram.draw();
+
+          if (awningCount > 0) {
+            awningProgram.uniforms.uViewProj.set(viewProjection);
+            awningProgram.uniforms.uCamPos.set(cameraPosition);
+            awningProgram.uniforms.uTime.set(simulationTime);
+            awningProgram.uniforms.uMaterialAtlas.set(materialTexture);
+            awningProgram.uniforms.uShadowMap.set(shadowTarget.texture);
+            awningProgram.draw({ instanceCount: awningCount });
+          }
+
+          if (propCount > 0) {
+            propProgram.uniforms.uViewProj.set(viewProjection);
+            propProgram.uniforms.uCamPos.set(cameraPosition);
+            propProgram.uniforms.uAtlas.set(propTexture);
+            propProgram.uniforms.uShadowMap.set(shadowTarget.texture);
+            propProgram.draw({ instanceCount: propCount });
+          }
 
           if (actorSides.indices.length > 0) {
             actorEdgeProgram.uniforms.uViewProj.set(viewProjection);
@@ -657,8 +921,8 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       postProgram.uniforms.uNearFocusRange.set(mode === 'ambient' ? 20 : 12);
       postProgram.uniforms.uFarFocusRange.set(mode === 'ambient' ? 26 : 18);
       postProgram.uniforms.uDofTransition.set(7);
-      postProgram.uniforms.uDofMaxRadius.set(mobile ? 0 : mode === 'ambient' ? 0.8 : 0);
-      postProgram.uniforms.uDofStrength.set(mobile ? 0 : mode === 'ambient' ? 0.18 : 0);
+      postProgram.uniforms.uDofMaxRadius.set(mobile ? 0 : mode === 'ambient' ? 1.1 : 0.45);
+      postProgram.uniforms.uDofStrength.set(mobile ? 0 : mode === 'ambient' ? 0.24 : 0.075);
       postProgram.uniforms.uDepthReject.set(3);
       postProgram.draw();
     },
@@ -675,6 +939,17 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       worldShadowProgram.dispose();
       materialTexture.dispose();
       actorTexture.dispose();
+      vegetationTexture.dispose();
+      foliageCardProgram.dispose();
+      foliageTrunkProgram.dispose();
+      foliageCardShadowProgram.dispose();
+      foliageTrunkShadowProgram.dispose();
+      propTexture.dispose();
+      propProgram.dispose();
+      propShadowProgram.dispose();
+      awningProgram.dispose();
+      awningShadowProgram.dispose();
+      waterFeatureProgram.dispose();
     },
   };
 };

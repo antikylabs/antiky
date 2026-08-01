@@ -19,6 +19,17 @@ assert(first.vegetation.length > 500, 'renderer vegetation metadata is too spars
 for (const type of ['grass', 'flower', 'reeds', 'ivy', 'shrub', 'tree-trunk', 'tree-crown'] as const) {
   assert(first.vegetation.some((item) => item.type === type), `missing renderer vegetation type: ${type}`);
 }
+assert(first.awnings.length === 3, 'renderer awning contract must contain the three market canopies');
+for (const style of ['red-cream', 'blue-cream', 'gold-cream'] as const) {
+  assert(first.awnings.some((awning) => awning.style === style), `missing renderer awning style: ${style}`);
+}
+assert(first.spriteProps.length === 14, 'bent sprite-prop contract must contain fourteen placements');
+for (const type of [
+  'barrel', 'open-chest', 'closed-chest', 'open-book',
+  'book-stack', 'map-kit', 'produce-basket', 'crate',
+] as const) {
+  assert(first.spriteProps.some((prop) => prop.type === type), `missing bent sprite prop type: ${type}`);
+}
 assert(first.waterfall.topY > first.waterfall.bottomY, 'waterfall renderer hook has no vertical drop');
 
 const second = buildTownWorld();
