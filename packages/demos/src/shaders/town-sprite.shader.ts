@@ -28,6 +28,21 @@ function keyedAlpha(texelSample: Vec4, colorKey: Vec3, useColorKey: number): num
   return texelSample.w * (1 - keyed);
 }
 
+function practicalRadiance(
+  world: Vec3,
+  normal: Vec3,
+  posInvRangeSq: Vec4,
+  colorPower: Vec4,
+  lobe: number,
+): Vec3 {
+  const toLight = posInvRangeSq.xyz.sub(world);
+  const distanceSq = dot(toLight, toLight);
+  const range = clamp(1 - distanceSq * posInvRangeSq.w, 0, 1);
+  const attenuation = range * range;
+  const wrappedDiffuse = 0.2 + 0.8 * max(dot(normal, normalize(toLight)), 0);
+  return colorPower.xyz.scale(colorPower.w * attenuation * wrappedDiffuse * lobe);
+}
+
 /**
  * Lit cardboard-standee shader.
  *
@@ -61,6 +76,24 @@ export default shader({
     uFrontLight: 'vec3',
     uBackLight: 'vec3',
     uSideLight: 'vec3',
+    uPracticalCount: 'float',
+    uPracticalStrength: 'float',
+    uPracticalPosInvRangeSq0: 'vec4',
+    uPracticalColorPower0: 'vec4',
+    uPracticalPosInvRangeSq1: 'vec4',
+    uPracticalColorPower1: 'vec4',
+    uPracticalPosInvRangeSq2: 'vec4',
+    uPracticalColorPower2: 'vec4',
+    uPracticalPosInvRangeSq3: 'vec4',
+    uPracticalColorPower3: 'vec4',
+    uPracticalPosInvRangeSq4: 'vec4',
+    uPracticalColorPower4: 'vec4',
+    uPracticalPosInvRangeSq5: 'vec4',
+    uPracticalColorPower5: 'vec4',
+    uPracticalPosInvRangeSq6: 'vec4',
+    uPracticalColorPower6: 'vec4',
+    uPracticalPosInvRangeSq7: 'vec4',
+    uPracticalColorPower7: 'vec4',
     uFogColor: 'vec3',
     uFogStart: 'float',
     uFogEnd: 'float',
@@ -111,6 +144,24 @@ export default shader({
       uFrontLight,
       uBackLight,
       uSideLight,
+      uPracticalCount,
+      uPracticalStrength,
+      uPracticalPosInvRangeSq0,
+      uPracticalColorPower0,
+      uPracticalPosInvRangeSq1,
+      uPracticalColorPower1,
+      uPracticalPosInvRangeSq2,
+      uPracticalColorPower2,
+      uPracticalPosInvRangeSq3,
+      uPracticalColorPower3,
+      uPracticalPosInvRangeSq4,
+      uPracticalColorPower4,
+      uPracticalPosInvRangeSq5,
+      uPracticalColorPower5,
+      uPracticalPosInvRangeSq6,
+      uPracticalColorPower6,
+      uPracticalPosInvRangeSq7,
+      uPracticalColorPower7,
       uFogColor,
       uFogStart,
       uFogEnd,
@@ -161,7 +212,49 @@ export default shader({
       .add(uBackLight.scale(backWeight))
       .add(uSideLight.scale(sideWeight))
       .scale(shadow);
-    let color = texel.xyz.mul(vTint.xyz).mul(uAmbientLight.add(directional));
+    const cardNormal = normalize(vBillboardNormal);
+    let practical = vec3(0, 0, 0);
+    if (uPracticalCount > 0.5) practical = practical.add(practicalRadiance(
+      vWorld, cardNormal, uPracticalPosInvRangeSq0, uPracticalColorPower0, 1,
+    ));
+    if (uPracticalCount > 1.5) practical = practical.add(practicalRadiance(
+      vWorld, cardNormal, uPracticalPosInvRangeSq1, uPracticalColorPower1, 1,
+    ));
+    if (uPracticalCount > 2.5) practical = practical.add(practicalRadiance(
+      vWorld, cardNormal, uPracticalPosInvRangeSq2, uPracticalColorPower2, 1,
+    ));
+    if (uPracticalCount > 3.5) practical = practical.add(practicalRadiance(
+      vWorld, cardNormal, uPracticalPosInvRangeSq3, uPracticalColorPower3, 1,
+    ));
+    if (uPracticalCount > 4.5) practical = practical.add(practicalRadiance(
+      vWorld, cardNormal, uPracticalPosInvRangeSq4, uPracticalColorPower4, 1,
+    ));
+    if (uPracticalCount > 5.5) practical = practical.add(practicalRadiance(
+      vWorld, cardNormal, uPracticalPosInvRangeSq5, uPracticalColorPower5, 1,
+    ));
+    if (uPracticalCount > 6.5) {
+      const windowLobe = smoothstep(
+        -0.1,
+        0.55,
+        normalize(vWorld.sub(uPracticalPosInvRangeSq6.xyz)).z,
+      );
+      practical = practical.add(practicalRadiance(
+        vWorld, cardNormal, uPracticalPosInvRangeSq6, uPracticalColorPower6, windowLobe,
+      ));
+    }
+    if (uPracticalCount > 7.5) {
+      const windowLobe = smoothstep(
+        -0.1,
+        0.55,
+        normalize(vWorld.sub(uPracticalPosInvRangeSq7.xyz)).z,
+      );
+      practical = practical.add(practicalRadiance(
+        vWorld, cardNormal, uPracticalPosInvRangeSq7, uPracticalColorPower7, windowLobe,
+      ));
+    }
+    let color = texel.xyz.mul(vTint.xyz).mul(
+      uAmbientLight.add(directional).add(practical.scale(uPracticalStrength)),
+    );
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
     color = mix(color, uFogColor, fog);
     return vec4(max(color, vec3(0, 0, 0)), vDepth);

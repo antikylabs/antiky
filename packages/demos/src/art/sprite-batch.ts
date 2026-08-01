@@ -152,6 +152,7 @@ export type StandeeSideMesh = {
   normals: Float32Array;
   baseColors: Float32Array;
   materials: Float32Array;
+  materialIds: Float32Array;
   localAo: Float32Array;
   emissive: Float32Array;
   indices: Uint32Array;
@@ -301,6 +302,7 @@ export function buildStandeeSideMesh(
   const normals: number[] = [];
   const baseColors: number[] = [];
   const materials: number[] = [];
+  const materialIds: number[] = [];
   const localAo: number[] = [];
   const emissive: number[] = [];
   const indices: number[] = [];
@@ -334,22 +336,22 @@ export function buildStandeeSideMesh(
       const vertexOffset = positions.length / 3;
 
       pushStandeeSideVertex(
-        positions, normals, baseColors, materials, localAo, emissive,
+        positions, normals, baseColors, materials, materialIds, localAo, emissive,
         centerX, centerY, centerZ, x0, y0, frontDepth, width, height,
         right, up, boardNormal, worldNormalX, worldNormalY, worldNormalZ, paper,
       );
       pushStandeeSideVertex(
-        positions, normals, baseColors, materials, localAo, emissive,
+        positions, normals, baseColors, materials, materialIds, localAo, emissive,
         centerX, centerY, centerZ, x0, y0, backDepth, width, height,
         right, up, boardNormal, worldNormalX, worldNormalY, worldNormalZ, paper,
       );
       pushStandeeSideVertex(
-        positions, normals, baseColors, materials, localAo, emissive,
+        positions, normals, baseColors, materials, materialIds, localAo, emissive,
         centerX, centerY, centerZ, x1, y1, frontDepth, width, height,
         right, up, boardNormal, worldNormalX, worldNormalY, worldNormalZ, paper,
       );
       pushStandeeSideVertex(
-        positions, normals, baseColors, materials, localAo, emissive,
+        positions, normals, baseColors, materials, materialIds, localAo, emissive,
         centerX, centerY, centerZ, x1, y1, backDepth, width, height,
         right, up, boardNormal, worldNormalX, worldNormalY, worldNormalZ, paper,
       );
@@ -365,6 +367,7 @@ export function buildStandeeSideMesh(
     normals: new Float32Array(normals),
     baseColors: new Float32Array(baseColors),
     materials: new Float32Array(materials),
+    materialIds: new Float32Array(materialIds),
     localAo: new Float32Array(localAo),
     emissive: new Float32Array(emissive),
     indices: new Uint32Array(indices),
@@ -384,6 +387,7 @@ function pushStandeeSideVertex(
   normals: number[],
   baseColors: number[],
   materials: number[],
+  materialIds: number[],
   localAo: number[],
   emissive: number[],
   centerX: number,
@@ -410,6 +414,9 @@ function pushStandeeSideVertex(
   normals.push(normalX, normalY, normalZ);
   baseColors.push(paper[0], paper[1], paper[2]);
   materials.push(0.92, 0.035);
+  // Custom material bypasses the environment texture atlas. The side wall is
+  // warm paper stock whose depth should read from lighting, not printed grain.
+  materialIds.push(49);
   localAo.push(0.88);
   emissive.push(0);
 }

@@ -6,8 +6,10 @@ import {
 } from './voxel-surface-mesh';
 
 export const TOWN_MESH_BUDGET = {
-  maxVertices: 100_000,
-  maxTriangles: 60_000,
+  // The fine façade/roof/paver pass trades a modest static-mesh increase for
+  // 3x linear detail while remaining an ~8 MB browser upload.
+  maxVertices: 135_000,
+  maxTriangles: 66_000,
   maxBytes: 8 * 1024 * 1024,
 } as const;
 
@@ -93,6 +95,35 @@ export function validateTownWorld(world: TownWorld): TownValidationReport {
     }
   }
 
+  const forbiddenVoxelVegetation = new Set(['leaf', 'leafLight', 'leafGold', 'flowerViolet', 'flowerCream']);
+  for (const id of mesh.materialIds) {
+    const material = world.materials[id];
+    if (material && forbiddenVoxelVegetation.has(material.name)) {
+      errors.push(`voxel mesh contains renderer-owned vegetation material: ${material.name}`);
+      break;
+    }
+  }
+
+  for (let index = 0; index < world.vegetation.length; index += 1) {
+    const item = world.vegetation[index]!;
+    if (![item.x, item.y, item.z, item.scale, item.yaw, item.phase].every(Number.isFinite)) {
+      errors.push(`vegetation[${index}] contains a non-finite value`);
+      break;
+    }
+    if (item.scale <= 0 || item.phase < 0 || item.phase >= 1) {
+      errors.push(`vegetation[${index}] contains an invalid scale or phase`);
+      break;
+    }
+  }
+
+  const waterfallValues = Object.values(world.waterfall);
+  if (!waterfallValues.every(Number.isFinite) || world.waterfall.minX >= world.waterfall.maxX) {
+    errors.push('waterfall contains non-finite or inverted horizontal bounds');
+  }
+  if (world.waterfall.bottomY >= world.waterfall.topY) {
+    errors.push('waterfall drop must have topY above bottomY');
+  }
+
   const colliderIds = new Set<string>();
   for (const collider of world.physicsColliders) {
     const values = [collider.minX, collider.maxX, collider.minZ, collider.maxZ];
@@ -151,6 +182,9 @@ export function validateTownDeterminism(first: TownWorld, second: TownWorld): st
   }
   if (first.voxels.count !== second.voxels.count) {
     errors.push('legacy compatibility instance count changed across identical builds');
+  }
+  if (JSON.stringify(first.vegetation) !== JSON.stringify(second.vegetation)) {
+    errors.push('vegetation metadata changed across identical builds');
   }
   return errors;
 }

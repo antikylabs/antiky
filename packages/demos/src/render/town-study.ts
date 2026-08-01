@@ -37,18 +37,33 @@ import spriteShader from '../shaders/town-sprite.shader.gen';
 import voxelShader from '../shaders/town-voxel.shader.gen';
 import waterShader from '../shaders/town-water.shader.gen';
 
-const LIGHT_DIR = normalize3([0.75, 0.2, -0.64]);
+// Camera-right/front golden-hour key. The previous vector was almost pure
+// screen-right, placing the visible plaza and façades behind their own skyline
+// even though the post sun appeared upper-right.
+const LIGHT_DIR = normalize3([0.88, 0.32, 0.18]);
 const SUN_COLOR = [1, 0.55, 0.28] as const;
 const SKY_COLOR = [0.24, 0.38, 0.68] as const;
 const GROUND_COLOR = [0.56, 0.27, 0.15] as const;
 const FOG_COLOR = [0.46, 0.36, 0.36] as const;
 const SHADOW_CLEAR = [1, 1, 1, 1] as const;
 const SCENE_CLEAR = [0.04, 0.05, 0.08, FAR_DEPTH] as const;
+const MATERIAL_ATLAS_TEXEL = [1 / 1254, 1 / 1254] as const;
 const HERO_SPEED = 3.8;
 const STANDEE_THICKNESS = 0.1;
 const NPC_COUNT = 4;
 const NPC_WALKER_INDICES = [0, 2, 3, 4] as const;
 const NPC_START_PROGRESS = [0.08, 0.38, 0.64, 0.82] as const;
+
+const PRACTICAL_LIGHTS = [
+  { position: [-3.565, 4.237, 6.82], radius: 4, power: 1.05, color: [1, 0.52, 0.22] },
+  { position: [3.565, 4.237, 6.82], radius: 4, power: 1.05, color: [1, 0.52, 0.22] },
+  { position: [-3.565, 3.617, 11.16], radius: 4, power: 1.05, color: [1, 0.52, 0.22] },
+  { position: [3.565, 3.617, 11.16], radius: 4, power: 1.05, color: [1, 0.52, 0.22] },
+  { position: [-8.06, 3.1, 1.86], radius: 3.6, power: 0.85, color: [1, 0.48, 0.18] },
+  { position: [7.44, 3.1, 2.48], radius: 3.6, power: 0.85, color: [1, 0.48, 0.18] },
+  { position: [-6.2, 4.03, -15.75], radius: 5, power: 1, color: [1, 0.62, 0.34] },
+  { position: [7.44, 4.96, -16.35], radius: 4.6, power: 0.9, color: [1, 0.58, 0.28] },
+] as const;
 
 type ActorState = {
   motor: KinematicCharacterMotor;
@@ -106,6 +121,11 @@ function cameraPose(mode: DemoMode, aspect: number) {
 
 const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   const world = buildTownWorld();
+  const materialTexture = await loadTexture(
+    renderer,
+    '/textures/town-material-atlas-v1.png',
+    { filter: 'smooth', wrap: 'clamp', anisotropy: 8 },
+  );
   const shadowResolution = renderer.canvas.width < 700 ? 1024 : 2048;
   const shadowTarget = createRenderTarget(renderer, {
     width: shadowResolution,
@@ -134,6 +154,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   worldProgram.attributes.aNormal.set(world.mesh.normals);
   worldProgram.attributes.aBaseColor.set(world.mesh.baseColors);
   worldProgram.attributes.aMaterial.set(world.mesh.materials);
+  worldProgram.attributes.aMaterialId.set(world.mesh.materialIds);
   worldProgram.attributes.aLocalAo.set(world.mesh.localAo);
   worldProgram.attributes.aEmissive.set(world.mesh.emissive);
   worldProgram.setIndices(world.mesh.indices);
@@ -145,7 +166,8 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   worldProgram.uniforms.uSkyIntensity.set(0.46);
   worldProgram.uniforms.uGroundColor.set(GROUND_COLOR);
   worldProgram.uniforms.uGroundIntensity.set(0.12);
-  worldProgram.uniforms.uEmissiveIntensity.set(1.32);
+  worldProgram.uniforms.uEmissiveIntensity.set(mode === 'ambient' ? 2.7 : 2);
+  worldProgram.uniforms.uMaterialAtlasTexel.set(MATERIAL_ATLAS_TEXEL);
   worldProgram.uniforms.uFogColor.set(FOG_COLOR);
   worldProgram.uniforms.uFogStart.set(45);
   worldProgram.uniforms.uFogEnd.set(110);
@@ -257,6 +279,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   actorEdgeProgram.uniforms.uGroundColor.set(GROUND_COLOR);
   actorEdgeProgram.uniforms.uGroundIntensity.set(0.12);
   actorEdgeProgram.uniforms.uEmissiveIntensity.set(0);
+  actorEdgeProgram.uniforms.uMaterialAtlasTexel.set(MATERIAL_ATLAS_TEXEL);
   actorEdgeProgram.uniforms.uFogColor.set(FOG_COLOR);
   actorEdgeProgram.uniforms.uFogStart.set(45);
   actorEdgeProgram.uniforms.uFogEnd.set(110);
@@ -266,6 +289,57 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   actorEdgeProgram.uniforms.uShadowSlopeBias.set(0.0013);
   actorEdgeProgram.uniforms.uShadowStrength.set(0.72);
 
+  const practicalPositions = PRACTICAL_LIGHTS.map((light) => new Float32Array([
+    light.position[0],
+    light.position[1],
+    light.position[2],
+    1 / (light.radius * light.radius),
+  ]));
+  const practicalColors = PRACTICAL_LIGHTS.map(() => new Float32Array(4));
+  const practicalPrograms = [worldProgram, actorEdgeProgram] as const;
+  for (const program of practicalPrograms) {
+    program.uniforms.uPracticalPosInvRangeSq0.set(practicalPositions[0]!);
+    program.uniforms.uPracticalPosInvRangeSq1.set(practicalPositions[1]!);
+    program.uniforms.uPracticalPosInvRangeSq2.set(practicalPositions[2]!);
+    program.uniforms.uPracticalPosInvRangeSq3.set(practicalPositions[3]!);
+    program.uniforms.uPracticalPosInvRangeSq4.set(practicalPositions[4]!);
+    program.uniforms.uPracticalPosInvRangeSq5.set(practicalPositions[5]!);
+    program.uniforms.uPracticalPosInvRangeSq6.set(practicalPositions[6]!);
+    program.uniforms.uPracticalPosInvRangeSq7.set(practicalPositions[7]!);
+  }
+
+  const updatePracticalLights = (time: number, mobile: boolean): void => {
+    const count = mobile ? 4 : mode === 'ambient' ? 8 : 6;
+    const strength = mobile ? 0.75 : mode === 'ambient' ? 1.15 : 0.8;
+    const flickerAmount = mobile ? 0.025 : mode === 'ambient' ? 0.06 : 0.035;
+    for (let index = 0; index < PRACTICAL_LIGHTS.length; index += 1) {
+      const light = PRACTICAL_LIGHTS[index]!;
+      const phase = index * 1.731;
+      const flicker = 1 + flickerAmount * (
+        Math.sin(time * 2.07 + phase) * 0.65 +
+        Math.sin(time * 5.63 + phase * 1.31) * 0.35
+      );
+      practicalColors[index]!.set([
+        light.color[0],
+        light.color[1],
+        light.color[2],
+        light.power * flicker,
+      ]);
+    }
+    for (const program of practicalPrograms) {
+      program.uniforms.uPracticalCount.set(count);
+      program.uniforms.uPracticalStrength.set(strength);
+      program.uniforms.uPracticalColorPower0.set(practicalColors[0]!);
+      program.uniforms.uPracticalColorPower1.set(practicalColors[1]!);
+      program.uniforms.uPracticalColorPower2.set(practicalColors[2]!);
+      program.uniforms.uPracticalColorPower3.set(practicalColors[3]!);
+      program.uniforms.uPracticalColorPower4.set(practicalColors[4]!);
+      program.uniforms.uPracticalColorPower5.set(practicalColors[5]!);
+      program.uniforms.uPracticalColorPower6.set(practicalColors[6]!);
+      program.uniforms.uPracticalColorPower7.set(practicalColors[7]!);
+    }
+  };
+
   const fullscreen = createPlane({ width: 2, height: 2 });
   const postProgram = createProgram(renderer, postShader);
   postProgram.attributes.aPosition.set(fullscreen.positions);
@@ -273,7 +347,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   postProgram.uniforms.uBloomRadius.set(1.35);
   postProgram.uniforms.uBloomThreshold.set(1.02);
   postProgram.uniforms.uBloomKnee.set(0.2);
-  postProgram.uniforms.uBloomStrength.set(0.045);
+  postProgram.uniforms.uBloomStrength.set(mode === 'ambient' ? 0.055 : 0.035);
   postProgram.uniforms.uBloomTint.set([1, 0.63, 0.34]);
   postProgram.uniforms.uExposure.set(1.02);
   postProgram.uniforms.uSaturation.set(1.07);
@@ -453,6 +527,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       camera.setLens({ fovY: pose.fovY, near: 0.32, far: FAR_DEPTH });
       const viewProjection = camera.viewProjection(renderer.aspect);
       billboardBasis(camera.view(), billboardRight, billboardUp, 0.32);
+      updatePracticalLights(simulationTime, pose.mobile);
 
       actorBatch.clear();
       const heroFacing = hero.motor.state.facing;
@@ -507,6 +582,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
         actorEdgeProgram.attributes.aNormal.set(actorSides.normals);
         actorEdgeProgram.attributes.aBaseColor.set(actorSides.baseColors);
         actorEdgeProgram.attributes.aMaterial.set(actorSides.materials);
+        actorEdgeProgram.attributes.aMaterialId.set(actorSides.materialIds);
         actorEdgeProgram.attributes.aLocalAo.set(actorSides.localAo);
         actorEdgeProgram.attributes.aEmissive.set(actorSides.emissive);
         actorEdgeProgram.setIndices(actorSides.indices);
@@ -536,6 +612,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
         () => {
           worldProgram.uniforms.uViewProj.set(viewProjection);
           worldProgram.uniforms.uCamPos.set(cameraPosition);
+          worldProgram.uniforms.uMaterialAtlas.set(materialTexture);
           worldProgram.uniforms.uShadowMap.set(shadowTarget.texture);
           worldProgram.draw();
 
@@ -548,6 +625,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
           if (actorSides.indices.length > 0) {
             actorEdgeProgram.uniforms.uViewProj.set(viewProjection);
             actorEdgeProgram.uniforms.uCamPos.set(cameraPosition);
+            actorEdgeProgram.uniforms.uMaterialAtlas.set(materialTexture);
             actorEdgeProgram.uniforms.uShadowMap.set(shadowTarget.texture);
             actorEdgeProgram.draw();
           }
@@ -595,6 +673,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       waterProgram.dispose();
       worldProgram.dispose();
       worldShadowProgram.dispose();
+      materialTexture.dispose();
       actorTexture.dispose();
     },
   };

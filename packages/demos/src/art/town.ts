@@ -45,6 +45,45 @@ export type TownCollider = {
   supportsGround?: boolean;
 };
 
+export type TownWaterfall = {
+  minX: number;
+  maxX: number;
+  z: number;
+  topY: number;
+  bottomY: number;
+  channelMinZ: number;
+  channelMaxZ: number;
+};
+
+export type TownVegetationType =
+  | 'grass'
+  | 'flower'
+  | 'reeds'
+  | 'ivy'
+  | 'shrub'
+  | 'tree-trunk'
+  | 'tree-crown';
+
+export type TownVegetation = {
+  x: number;
+  y: number;
+  z: number;
+  type: TownVegetationType;
+  scale: number;
+  yaw: number;
+  phase: number;
+};
+
+export type TownFountain = {
+  x: number;
+  z: number;
+  basinY: number;
+  waterY: number;
+  radius: number;
+  jetTopY: number;
+  outlets: readonly { x: number; y: number; z: number }[];
+};
+
 export type TownWorld = {
   /** Legacy cube instances retained until the renderer switches to `mesh`. */
   voxels: {
@@ -59,10 +98,16 @@ export type TownWorld = {
   materials: readonly TownMaterial[];
   geometryValidation: VoxelMeshValidation;
   props: TownProp[];
+  /** Deterministic non-voxel vegetation instances for renderer batching. */
+  vegetation: TownVegetation[];
   walkers: TownWalker[];
   heroPath: readonly (readonly [number, number])[];
   spawn: readonly [number, number];
   waterBounds: { minX: number; maxX: number; minZ: number; maxZ: number };
+  /** Numeric placement contract for the renderer's non-voxel waterfall ribbon. */
+  waterfall: TownWaterfall;
+  /** Placement contract for stylized non-voxel basin water and fountain jets. */
+  fountain: TownFountain;
   extent: number;
   physicsColliders: readonly TownCollider[];
   walkSurfaceHeight(x: number, z: number): number;
@@ -406,6 +451,9 @@ class VoxelBuilder {
     const detailEntries = [...this.surface.entries()].sort((left, right) => (
       left[0] - right[0] || left[1] - right[1] || left[2] - right[2]
     ));
+    const detailCarves = [...this.surfaceDetailCarves.values()].sort((left, right) => (
+      left[0] - right[0] || left[1] - right[1] || left[2] - right[2]
+    ));
     const axes = [0, 1, 2] as const;
     const surfaceCandidates = function* (): IterableIterator<readonly [number, number, number]> {
       for (const cell of sortedMacroCells) {
@@ -434,7 +482,7 @@ class VoxelBuilder {
         }
       }
       for (const [x, y, z] of detailEntries) yield [x, y, z] as const;
-      for (const [x, y, z] of this.surfaceDetailCarves.values()) {
+      for (const [x, y, z] of detailCarves) {
         yield [x, y, z] as const;
         for (const axis of axes) {
           for (const sign of [-1, 1] as const) {
@@ -447,7 +495,7 @@ class VoxelBuilder {
     };
 
     let solidCellCount = (sortedMacroCells.length - this.surfaceCarves.size) * resolution ** 3;
-    for (const [x, y, z] of this.surfaceDetailCarves.values()) {
+    for (const [x, y, z] of detailCarves) {
       if (baseAtFine(x, y, z)) solidCellCount -= 1;
     }
     for (const [x, y, z] of detailEntries) {
@@ -475,9 +523,19 @@ const WORLD_MIN_X = -46;
 const WORLD_MAX_X = 46;
 const WORLD_MIN_Z = -36;
 const WORLD_MAX_Z = 34;
+const VISUAL_MIN_Z = -54;
 // The interactive camera sits behind the playable boundary. Continue the
 // ground beneath it so no finite platform edge can enter the frame.
 const VISUAL_MAX_Z = 72;
+const WATERFALL_GRID = {
+  minX: 19.5,
+  maxX: 22.5,
+  z: -23.5,
+  topY: 2.5,
+  bottomY: 0.5,
+  channelMinZ: -31.5,
+  channelMaxZ: -23.5,
+} as const;
 
 function isCanal(gx: number, gz: number): boolean {
   return gz >= CANAL_MIN_Z && gz <= CANAL_MAX_Z;
@@ -523,6 +581,26 @@ function groundHeightGrid(gx: number, gz: number): number {
 
 function worldPoint(gx: number, gz: number): readonly [number, number] {
   return [gx * VOXEL_SIZE, gz * VOXEL_SIZE];
+}
+
+function addVegetation(
+  vegetation: TownVegetation[],
+  gx: number,
+  gy: number,
+  gz: number,
+  type: TownVegetationType,
+  scale: number,
+  seed: number,
+): void {
+  vegetation.push({
+    x: gx * VOXEL_SIZE,
+    y: gy * VOXEL_SIZE,
+    z: gz * VOXEL_SIZE,
+    type,
+    scale,
+    yaw: hash(seed * 17) * Math.PI * 2,
+    phase: hash(seed * 29),
+  });
 }
 
 function topSurfaceGrid(gx: number, gz: number): number {
@@ -581,9 +659,309 @@ function castShadow(builder: VoxelBuilder, x: number, z: number, width: number, 
   }
 }
 
+function fineCenter(macroStart: number, detailIndex: number): number {
+  return macroStart - 0.5 + (detailIndex + 0.5) * DETAIL;
+}
+
+function masonryMaterial(xIndex: number, yIndex: number, seed: number): PaletteName {
+  const courseOffset = yIndex % 2;
+  const brick = Math.floor((xIndex + courseOffset) / 2);
+  const variation = Math.abs(brick * 5 + yIndex * 3 + seed) % 13;
+  if (variation === 0 || variation === 8) return 'stoneLight';
+  if (variation === 4) return 'stoneDark';
+  if (variation === 10) return 'cobbleMoss';
+  return 'stone';
+}
+
+function plasterMaterial(wall: PaletteName, xIndex: number, yIndex: number, seed: number): PaletteName {
+  const patchX = Math.floor(xIndex / 3);
+  const patchY = Math.floor(yIndex / 3);
+  const variation = hash(seed + patchX * 19 + patchY * 47);
+  if (variation > 0.91) return 'plasterCool';
+  if (variation > 0.82) return 'plasterWarm';
+  if (variation < 0.075 && wall === 'plasterPale') return 'plaster';
+  return wall;
+}
+
+/** Re-materializes visible wall layers as 0.2067 m courses and repair patches. */
+function detailHouseFacades(
+  builder: VoxelBuilder,
+  x: number,
+  z: number,
+  width: number,
+  depth: number,
+  base: number,
+  height: number,
+  wall: PaletteName,
+): void {
+  const front = z + depth - 1;
+  const right = x + width - 1;
+  const xCells = width * TOWN_DETAIL_RESOLUTION;
+  const zCells = depth * TOWN_DETAIL_RESOLUTION;
+  const yCells = height * TOWN_DETAIL_RESOLUTION;
+  const seed = x * 37 + z * 71 + width * 11;
+
+  for (let ix = 0; ix < xCells; ix += 1) {
+    for (let iy = 0; iy < yCells; iy += 1) {
+      const material = iy < 6
+        ? masonryMaterial(ix, iy, seed)
+        : plasterMaterial(wall, ix, iy - 6, seed);
+      builder.surfaceBox(
+        fineCenter(x, ix),
+        fineCenter(base + 1, iy),
+        front + DETAIL,
+        DETAIL,
+        DETAIL,
+        DETAIL,
+        material,
+      );
+    }
+  }
+  for (let iz = 0; iz < zCells; iz += 1) {
+    for (let iy = 0; iy < yCells; iy += 1) {
+      const material = iy < 6
+        ? masonryMaterial(iz, iy, seed + 17)
+        : plasterMaterial(wall, iz, iy - 6, seed + 17);
+      builder.surfaceBox(
+        right + DETAIL,
+        fineCenter(base + 1, iy),
+        fineCenter(z, iz),
+        DETAIL,
+        DETAIL,
+        DETAIL,
+        material,
+      );
+    }
+  }
+}
+
+function frontBrace(
+  builder: VoxelBuilder,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  front: number,
+): void {
+  const steps = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) / DETAIL));
+  for (let step = 0; step <= steps; step += 1) {
+    const t = step / steps;
+    builder.surfaceBox(
+      x0 + (x1 - x0) * t,
+      y0 + (y1 - y0) * t,
+      front + 2 * DETAIL,
+      DETAIL,
+      DETAIL,
+      DETAIL,
+      'timber',
+    );
+  }
+}
+
+function sideBrace(
+  builder: VoxelBuilder,
+  z0: number,
+  y0: number,
+  z1: number,
+  y1: number,
+  right: number,
+): void {
+  const steps = Math.max(1, Math.round(Math.max(Math.abs(z1 - z0), Math.abs(y1 - y0)) / DETAIL));
+  for (let step = 0; step <= steps; step += 1) {
+    const t = step / steps;
+    builder.surfaceBox(
+      right + 2 * DETAIL,
+      y0 + (y1 - y0) * t,
+      z0 + (z1 - z0) * t,
+      DETAIL,
+      DETAIL,
+      DETAIL,
+      'timber',
+    );
+  }
+}
+
+function detailHouseTimber(
+  builder: VoxelBuilder,
+  x: number,
+  z: number,
+  width: number,
+  depth: number,
+  base: number,
+  height: number,
+): void {
+  const front = z + depth - 1;
+  const right = x + width - 1;
+  const facadeCenterY = base + (height + 3) / 2;
+  const facadeHeight = height - 2;
+  for (const beamX of [fineCenter(x, 0), fineCenter(x, width * TOWN_DETAIL_RESOLUTION - 1)]) {
+    builder.surfaceBox(beamX, facadeCenterY, front + 2 * DETAIL, DETAIL, facadeHeight, DETAIL, 'timber');
+  }
+  for (const beamY of [base + 5, base + height - 1]) {
+    builder.surfaceBox(x + (width - 1) / 2, beamY, front + 2 * DETAIL, width, DETAIL, DETAIL, 'timber');
+  }
+  builder.surfaceBox(x + (width - 1) / 2, base + 2.25, front + 2 * DETAIL, width, DETAIL, DETAIL, 'mortar');
+
+  frontBrace(builder, x + 0.5, base + 5.5, x + 2.5, base + 7.5, front);
+  frontBrace(builder, x + width - 1.5, base + 5.5, x + width - 3.5, base + 7.5, front);
+
+  for (const beamZ of [fineCenter(z, 0), fineCenter(z, depth * TOWN_DETAIL_RESOLUTION - 1)]) {
+    builder.surfaceBox(right + 2 * DETAIL, facadeCenterY, beamZ, DETAIL, facadeHeight, DETAIL, 'timber');
+  }
+  for (const beamY of [base + 5, base + height - 1]) {
+    builder.surfaceBox(right + 2 * DETAIL, beamY, z + (depth - 1) / 2, DETAIL, DETAIL, depth, 'timber');
+  }
+  sideBrace(builder, z + 0.5, base + 5.5, z + 2.5, base + 7.5, right);
+  sideBrace(builder, z + depth - 1.5, base + 5.5, z + depth - 3.5, base + 7.5, right);
+}
+
+function recessedFrontOpening(
+  builder: VoxelBuilder,
+  centerX: number,
+  centerY: number,
+  front: number,
+  width: number,
+  height: number,
+  material: PaletteName,
+  glow: number,
+  mullion: boolean,
+  frameMaterial: PaletteName = 'timber',
+  mullionMaterial: PaletteName = 'timberLight',
+): void {
+  builder.carveSurfaceBox(centerX, centerY, front + DETAIL, width, height, DETAIL);
+  builder.surfaceBox(centerX, centerY, front, width, height, DETAIL, material, glow);
+  const frameZ = front + 2 * DETAIL;
+  for (const frameX of [centerX - width / 2 - DETAIL / 2, centerX + width / 2 + DETAIL / 2]) {
+    builder.surfaceBox(frameX, centerY, frameZ, DETAIL, height + 2 * DETAIL, DETAIL, frameMaterial);
+  }
+  for (const frameY of [centerY - height / 2 - DETAIL / 2, centerY + height / 2 + DETAIL / 2]) {
+    builder.surfaceBox(centerX, frameY, frameZ, width + 2 * DETAIL, DETAIL, DETAIL, frameMaterial);
+  }
+  if (mullion) {
+    builder.surfaceBox(centerX, centerY, frameZ, DETAIL, height, DETAIL, mullionMaterial);
+    builder.surfaceBox(centerX, centerY, frameZ, width, DETAIL, DETAIL, mullionMaterial);
+  }
+}
+
+function recessedSideWindow(
+  builder: VoxelBuilder,
+  centerZ: number,
+  centerY: number,
+  right: number,
+  glow: number,
+  width = 3 * DETAIL,
+  height = 6 * DETAIL,
+  frameMaterial: PaletteName = 'timber',
+  mullionMaterial: PaletteName = 'timberLight',
+): void {
+  builder.carveSurfaceBox(right + DETAIL, centerY, centerZ, DETAIL, height, width);
+  builder.surfaceBox(right, centerY, centerZ, DETAIL, height, width, 'window', glow);
+  const frameX = right + 2 * DETAIL;
+  for (const frameZ of [centerZ - width / 2 - DETAIL / 2, centerZ + width / 2 + DETAIL / 2]) {
+    builder.surfaceBox(frameX, centerY, frameZ, DETAIL, height + 2 * DETAIL, DETAIL, frameMaterial);
+  }
+  for (const frameY of [centerY - height / 2 - DETAIL / 2, centerY + height / 2 + DETAIL / 2]) {
+    builder.surfaceBox(frameX, frameY, centerZ, DETAIL, DETAIL, width + 2 * DETAIL, frameMaterial);
+  }
+  builder.surfaceBox(frameX, centerY, centerZ, DETAIL, DETAIL, width, mullionMaterial);
+}
+
+function windowFlowerBox(
+  builder: VoxelBuilder,
+  vegetation: TownVegetation[],
+  centerX: number,
+  windowBottom: number,
+  front: number,
+  violet: boolean,
+): void {
+  const boxWidth = 5 * DETAIL;
+  builder.surfaceBox(
+    centerX,
+    windowBottom - DETAIL / 2,
+    front + 0.5 + DETAIL,
+    boxWidth,
+    DETAIL,
+    2 * DETAIL,
+    'terracotta',
+  );
+  for (const offset of [-DETAIL, 0, DETAIL]) {
+    addVegetation(
+      vegetation,
+      centerX + offset,
+      windowBottom,
+      front + 0.5 + DETAIL,
+      'flower',
+      0.48 + Math.abs(offset) * 0.12,
+      centerX * 31 + front * 17 + offset * 101 + (violet ? 7 : 19),
+    );
+  }
+}
+
+function hangingHouseSign(builder: VoxelBuilder, x: number, y: number, front: number, red: boolean): void {
+  builder.surfaceBox(x, y + 1.5 * DETAIL, front + 0.5 + 2 * DETAIL, DETAIL, DETAIL, 4 * DETAIL, 'iron');
+  builder.surfaceBox(x, y, front + 0.5 + 4 * DETAIL, 3 * DETAIL, 3 * DETAIL, DETAIL, red ? 'clothRed' : 'clothGold');
+  builder.surfaceBox(x, y + 2 * DETAIL, front + 0.5 + 4 * DETAIL, DETAIL, DETAIL, DETAIL, 'rope');
+  builder.surfaceBox(x, y - 2 * DETAIL, front + 0.5 + 4 * DETAIL, 4 * DETAIL, DETAIL, DETAIL, 'timber');
+}
+
+function roofMaterials(roof: PaletteName): readonly [PaletteName, PaletteName, PaletteName] {
+  if (roof === 'roofSlate') return ['roofSlate', 'roofSlateDark', 'roofSlateLight'];
+  if (roof === 'roofGold') return ['roofGold', 'roofGoldDark', 'roofGoldLight'];
+  return ['roofRed', 'roofRedDark', 'roofRedLight'];
+}
+
+function detailedGableRoof(
+  builder: VoxelBuilder,
+  x: number,
+  z: number,
+  width: number,
+  depth: number,
+  base: number,
+  height: number,
+  roof: PaletteName,
+): void {
+  // Two fine cells beyond each wall plane produce a 0.413 m eave, inside the
+  // requested 0.30–0.45 m depth hierarchy without a coarse full-voxel ledge.
+  const xCells = width * TOWN_DETAIL_RESOLUTION + 4;
+  const zCells = depth * TOWN_DETAIL_RESOLUTION + 4;
+  const [main, dark, light] = roofMaterials(roof);
+  let highestY = Number.NEGATIVE_INFINITY;
+  for (let ix = 0; ix < xCells; ix += 1) {
+    const rise = Math.min(ix, xCells - 1 - ix);
+    const roofY = base + height - DETAIL + rise * DETAIL;
+    highestY = Math.max(highestY, roofY + DETAIL / 2);
+    for (let iz = 0; iz < zCells; iz += 1) {
+      const edge = ix === 0 || ix === xCells - 1 || iz === 0 || iz === zCells - 1;
+      const phase = Math.abs(iz + Math.floor(rise / 3) * 3) % 18;
+      const material = edge ? 'roofEdge' : phase < 3 ? dark : phase >= 9 && phase < 11 ? light : main;
+      builder.surfaceBox(
+        fineCenter(x, ix - 2),
+        roofY,
+        fineCenter(z, iz - 2),
+        DETAIL,
+        DETAIL,
+        DETAIL,
+        material,
+      );
+    }
+  }
+  const leftPeak = fineCenter(x, xCells / 2 - 3);
+  const rightPeak = fineCenter(x, xCells / 2 - 2);
+  builder.surfaceBox(
+    (leftPeak + rightPeak) / 2,
+    highestY + DETAIL / 2,
+    z + (depth - 1) / 2,
+    2 * DETAIL,
+    DETAIL,
+    depth + 4 * DETAIL,
+    dark,
+  );
+}
+
 function house(
   builder: VoxelBuilder,
   colliders: TownCollider[],
+  vegetation: TownVegetation[],
   x: number,
   z: number,
   width: number,
@@ -599,54 +977,64 @@ function house(
   builder.fillBox(x, base + 1, z, width, 1, depth, 'stoneDark');
   builder.fillBox(x, base + 2, z, width, 1, depth, 'stone');
   builder.fillBox(x, base + 3, z, width, height - 2, depth, wall);
-
-  // Timber corners and belts make the facades read at homepage scale.
-  for (let y = base + 3; y <= base + height; y += 1) {
-    builder.set(x, y, z, 'timber');
-    builder.set(x + width - 1, y, z, 'timber');
-    builder.set(x, y, z + depth - 1, 'timber');
-    builder.set(x + width - 1, y, z + depth - 1, 'timber');
-  }
-  for (let xx = x; xx < x + width; xx += 1) {
-    builder.set(xx, base + 5, z + depth - 1, 'timber');
-    builder.set(xx, base + height - 1, z + depth - 1, 'timber');
-  }
+  detailHouseFacades(builder, x, z, width, depth, base, height, wall);
+  detailHouseTimber(builder, x, z, width, depth, base, height);
 
   const front = z + depth - 1;
+  const right = x + width - 1;
   const doorX = x + Math.floor(width / 2);
   for (let y = base + 2; y <= base + 4; y += 1) {
     builder.set(doorX, y, front, 'timber');
-    builder.carveSurfaceCell(doorX, y, front);
   }
-  // The door and windows sit half a detail-cell behind the facade. Their
-  // projecting frames occupy adjacent lattice cells, so no coplanar overlay
-  // surfaces are introduced.
-  builder.surfaceBox(doorX, base + 3, front - 0.25, 1, 2.5, 0.5, 'timber');
-  builder.surfaceBox(doorX + 0.25, base + 3, front + 0.25, 0.5, 0.5, 0.5, 'iron');
-  builder.surfaceBox(doorX, base + 1.75, front + 0.75, 2, 0.5, 1.5, 'stoneLight');
+  const doorHeight = 8 * DETAIL;
+  const doorCenterY = base + 0.5 + doorHeight / 2;
+  recessedFrontOpening(builder, doorX, doorCenterY, front, 4 * DETAIL, doorHeight, 'timberLight', 0, false);
+  builder.surfaceBox(doorX + DETAIL, doorCenterY, front + 3 * DETAIL, DETAIL, DETAIL, DETAIL, 'iron');
+  builder.surfaceBox(doorX, base + 0.5 + DETAIL / 2, front + 0.5 + DETAIL, 6 * DETAIL, DETAIL, 2 * DETAIL, 'stoneLight');
+
   for (const wx of [x + 3, x + width - 4]) {
     if (wx <= x + 1 || wx >= x + width - 1) continue;
     for (const windowBase of [base + 4, base + 7]) {
+      if (windowBase + 1 > base + height) continue;
       for (let wy = windowBase; wy <= windowBase + 1; wy += 1) {
         builder.set(wx, wy, front, 'window', windowBase === base + 4 ? 0.52 : 0.42);
-        builder.carveSurfaceCell(wx, wy, front);
       }
       const windowGlow = windowBase === base + 4 ? 0.52 : 0.42;
-      builder.surfaceBox(wx, windowBase + 0.5, front - 0.25, 0.5, 1.5, 0.5, 'window', windowGlow);
-      builder.surfaceBox(wx - 0.75, windowBase + 0.5, front + 0.75, 0.5, 2.5, 0.5, 'timber');
-      builder.surfaceBox(wx + 0.75, windowBase + 0.5, front + 0.75, 0.5, 2.5, 0.5, 'timber');
-      builder.surfaceBox(wx, windowBase - 0.75, front + 0.75, 1, 0.5, 0.5, 'timber');
-      builder.surfaceBox(wx, windowBase + 1.75, front + 0.75, 1, 0.5, 0.5, 'timber');
-      builder.surfaceBox(wx, windowBase + 0.5, front + 0.75, 0.5, 1.5, 0.5, 'timberLight');
+      recessedFrontOpening(builder, wx, windowBase + 0.5, front, 3 * DETAIL, 6 * DETAIL, 'window', windowGlow, true);
+      if (windowBase === base + 4 && ((wx + x) & 1) === 0) {
+        windowFlowerBox(builder, vegetation, wx, windowBase - 0.5, front, ((x + z) & 1) === 0);
+      }
     }
   }
 
-  // Half-voxel projecting timber frame and a stone/mortar foundation course.
-  builder.surfaceBox(x, base + (height + 3) / 2, front + 0.75, 0.5, height - 1, 0.5, 'timber');
-  builder.surfaceBox(x + width - 1, base + (height + 3) / 2, front + 0.75, 0.5, height - 1, 0.5, 'timber');
-  builder.surfaceBox(x + (width - 1) / 2, base + 5, front + 0.75, width, 0.5, 0.5, 'timber');
-  builder.surfaceBox(x + (width - 1) / 2, base + height - 1, front + 0.75, width, 0.5, 0.5, 'timber');
-  builder.surfaceBox(x + (width - 1) / 2, base + 2.25, front + 0.75, width, 0.5, 0.5, 'mortar');
+  for (const wz of [z + 3, z + depth - 4]) {
+    if (wz <= z + 1 || wz >= front - 1) continue;
+    for (const windowBase of [base + 4, base + 7]) {
+      if (windowBase + 1 > base + height) continue;
+      for (let wy = windowBase; wy <= windowBase + 1; wy += 1) builder.set(right, wy, wz, 'window', 0.36);
+      recessedSideWindow(builder, wz, windowBase + 0.5, right, 0.36);
+    }
+  }
+
+  if (width >= 15) {
+    const balconyY = base + 6.5;
+    const balconyZ = front + 0.5 + 1.5 * DETAIL;
+    builder.surfaceBox(doorX, balconyY - DETAIL / 2, balconyZ, 7 * DETAIL, DETAIL, 3 * DETAIL, 'timberLight');
+    builder.surfaceBox(doorX, balconyY + 2 * DETAIL, front + 0.5 + 3 * DETAIL, 7 * DETAIL, DETAIL, DETAIL, 'timber');
+    for (const railX of [doorX - 3 * DETAIL, doorX, doorX + 3 * DETAIL]) {
+      builder.surfaceBox(railX, balconyY + DETAIL, front + 0.5 + 3 * DETAIL, DETAIL, 3 * DETAIL, DETAIL, 'timber');
+    }
+  }
+  hangingHouseSign(builder, doorX + 2.5, base + 5.5, front, roof === 'roofRed');
+  addVegetation(
+    vegetation,
+    x + 0.25,
+    base + 2.5,
+    front + 0.52,
+    'ivy',
+    0.9 + hash(x * 13 + z * 37) * 0.45,
+    x * 53 + z * 89,
+  );
 
   // A stepped gable made of true voxels, not a rotated slab.
   const half = Math.ceil(width / 2);
@@ -658,31 +1046,61 @@ function house(
     for (let zz = z - 1; zz <= z + depth; zz += 1) {
       builder.set(left, y, zz, roof);
       builder.set(right, y, zz, roof);
+      builder.carveSurfaceCell(left, y, zz);
+      builder.carveSurfaceCell(right, y, zz);
     }
     for (let xx = left + 1; xx < right; xx += 1) {
       builder.set(xx, y, z, wall);
       builder.set(xx, y, z + depth - 1, wall);
     }
   }
-
-  // Projecting stepped eaves, a continuous ridge cap, and front verge tiles
-  // strengthen the silhouette at the fixed three-quarter camera angle.
-  builder.surfaceBox(x - 1, base + height - 0.25, z + (depth - 1) / 2, 0.5, 0.5, depth + 2, 'roofEdge');
-  builder.surfaceBox(x + width, base + height - 0.25, z + (depth - 1) / 2, 0.5, 0.5, depth + 2, 'roofEdge');
-  const ridgeY = base + height + Math.ceil(width / 2);
-  builder.surfaceBox(x + (width - 1) / 2, ridgeY + 0.75, z + (depth - 1) / 2, 0.5, 0.5, depth + 2, roof);
-  for (let step = 0; step <= half; step += 2) {
-    const left = x - 1 + step;
-    const right = x + width - step;
-    if (left > right) break;
-    builder.surfaceBox(left, base + height + step, front + 1.25, 0.5, 0.5, 0.5, 'roofEdge');
-    builder.surfaceBox(right, base + height + step, front + 1.25, 0.5, 0.5, 0.5, 'roofEdge');
-  }
+  detailedGableRoof(builder, x, z, width, depth, base, height, roof);
 
   const chimneyX = x + width - 3;
   builder.fillBox(chimneyX, base + height + 2, z + 2, 2, 5, 2, 'stoneDark');
-  builder.surfaceBox(chimneyX + 0.5, base + height + 7.25, z + 2.5, 2.5, 0.5, 2.5, 'stoneLight');
+  for (let course = 0; course < 15; course += 1) {
+    const material = masonryMaterial(course, course % 3, chimneyX + z);
+    builder.surfaceBox(
+      chimneyX + (course % 6 < 3 ? -DETAIL : 1 + DETAIL),
+      fineCenter(base + height + 2, course),
+      z + 2 + DETAIL,
+      DETAIL,
+      DETAIL,
+      2,
+      material,
+    );
+  }
+  builder.surfaceBox(chimneyX + 0.5, base + height + 7.25, z + 2.5, 2 + 2 * DETAIL, DETAIL, 2 + 2 * DETAIL, 'stoneLight');
   addCollider(colliders, x, z, width, depth);
+}
+
+function detailTowerFacades(builder: VoxelBuilder, x: number, z: number, base: number): void {
+  const faceCells = 9 * TOWN_DETAIL_RESOLUTION;
+  const yCells = 18 * TOWN_DETAIL_RESOLUTION;
+  for (let horizontal = 0; horizontal < faceCells; horizontal += 1) {
+    for (let vertical = 0; vertical < yCells; vertical += 1) {
+      const course = Math.floor(vertical / 2);
+      const material = masonryMaterial(horizontal, course, x * 31 + z * 17);
+      builder.surfaceBox(
+        fineCenter(x, horizontal),
+        fineCenter(base + 1, vertical),
+        z + 8 + DETAIL,
+        DETAIL,
+        DETAIL,
+        DETAIL,
+        material,
+      );
+      builder.surfaceBox(
+        x + 8 + DETAIL,
+        fineCenter(base + 1, vertical),
+        fineCenter(z, horizontal),
+        DETAIL,
+        DETAIL,
+        DETAIL,
+        material,
+      );
+    }
+  }
 }
 
 function bellTower(builder: VoxelBuilder, colliders: TownCollider[], x: number, z: number): void {
@@ -692,18 +1110,34 @@ function bellTower(builder: VoxelBuilder, colliders: TownCollider[], x: number, 
   for (let y = base + 2; y < base + 18; y += 4) {
     for (let xx = x; xx < x + 9; xx += 1) builder.set(xx, y, z + 8, 'stoneDark');
   }
+  detailTowerFacades(builder, x, z, base);
   for (const windowBase of [base + 5, base + 11]) {
     builder.fillBox(x + 3, windowBase, z + 8, 3, 3, 1, 'window', windowBase === base + 5 ? 0.46 : 0.36);
-    for (let wx = x + 3; wx <= x + 5; wx += 1) {
-      for (let wy = windowBase; wy <= windowBase + 2; wy += 1) {
-        builder.carveSurfaceCell(wx, wy, z + 8);
-      }
-    }
-    builder.surfaceBox(x + 4, windowBase + 1, z + 7.75, 2.5, 2.5, 0.5, 'window', windowBase === base + 5 ? 0.46 : 0.36);
-    builder.surfaceBox(x + 2.75, windowBase + 1, z + 8.75, 0.5, 3.5, 0.5, 'stoneDark');
-    builder.surfaceBox(x + 5.25, windowBase + 1, z + 8.75, 0.5, 3.5, 0.5, 'stoneDark');
-    builder.surfaceBox(x + 4, windowBase - 0.75, z + 8.75, 3, 0.5, 0.5, 'stoneDark');
-    builder.surfaceBox(x + 4, windowBase + 2.75, z + 8.75, 3, 0.5, 0.5, 'stoneDark');
+    recessedFrontOpening(
+      builder,
+      x + 4,
+      windowBase + 1,
+      z + 8,
+      5 * DETAIL,
+      8 * DETAIL,
+      'glassCool',
+      windowBase === base + 5 ? 0.46 : 0.36,
+      true,
+      'stoneDark',
+      'mortar',
+    );
+    builder.fillBox(x + 8, windowBase, z + 3, 1, 3, 3, 'window', windowBase === base + 5 ? 0.4 : 0.32);
+    recessedSideWindow(
+      builder,
+      z + 4,
+      windowBase + 1,
+      x + 8,
+      windowBase === base + 5 ? 0.4 : 0.32,
+      5 * DETAIL,
+      8 * DETAIL,
+      'stoneDark',
+      'mortar',
+    );
   }
 
   // Tapered corner buttresses and projecting string courses prevent the tower
@@ -747,8 +1181,14 @@ function marketStall(
   clothB: PaletteName,
 ): void {
   const base = groundHeightGrid(x + 3, z + 2);
-  for (const [px, pz] of [[x, z], [x + 6, z], [x, z + 4], [x + 6, z + 4]] as const)
+  for (const [px, pz] of [[x, z], [x + 6, z], [x, z + 4], [x + 6, z + 4]] as const) {
     builder.fillBox(px, base + 1, pz, 1, 6, 1, 'timber');
+    for (let py = base + 1; py <= base + 6; py += 1) builder.carveSurfaceCell(px, py, pz);
+    builder.surfaceBox(px, base + 3.5, pz, 2 * DETAIL, 6, 2 * DETAIL, 'timber');
+    for (const bandY of [base + 1.5, base + 5.5]) {
+      builder.surfaceBox(px, bandY, pz, 3 * DETAIL, DETAIL, 3 * DETAIL, 'iron');
+    }
+  }
   builder.fillBox(x, base + 3, z + 1, 7, 1, 3, 'timber');
   builder.fillBox(x, base + 1, z + 1, 2, 2, 3, 'timber');
   builder.fillBox(x + 5, base + 1, z + 1, 2, 2, 3, 'timber');
@@ -758,16 +1198,55 @@ function marketStall(
       builder.set(x - 1 + xx, base + 7, z - 1 + zz, xx % 2 === 0 ? clothA : clothB);
       builder.carveSurfaceCell(x - 1 + xx, base + 7, z - 1 + zz);
     }
-    builder.surfaceBox(x - 1 + xx, base + 7, z + 1.5, 1, 0.5, 6, xx % 2 === 0 ? clothA : clothB);
-    // Alternating hanging tabs make the canopy read as fabric rather than a slab.
-    builder.surfaceBox(x - 1 + xx, base + 6.25 - (xx % 2) * 0.25, z + 4.75, 1, xx % 2 === 0 ? 1 : 0.5, 0.5, xx % 2 === 0 ? clothA : clothB);
   }
-  builder.surfaceBox(x + 2.5, base + 7.5, z + 1.5, 9, 0.5, 0.5, 'timber');
-  builder.surfaceBox(x + 2.5, base + 7.5, z - 1.25, 9, 0.5, 0.5, 'timber');
+  const canopyXCells = 8 * TOWN_DETAIL_RESOLUTION;
+  const canopyZCells = 6 * TOWN_DETAIL_RESOLUTION;
+  for (let ix = 0; ix < canopyXCells; ix += 1) {
+    const cloth = Math.floor(ix / 2) % 2 === 0 ? clothA : clothB;
+    for (let iz = 0; iz < canopyZCells; iz += 1) {
+      const slope = Math.floor((canopyZCells - 1 - iz) / 6) * DETAIL;
+      builder.surfaceBox(
+        fineCenter(x - 1, ix),
+        base + 7 + slope,
+        fineCenter(z - 1, iz),
+        DETAIL,
+        DETAIL,
+        DETAIL,
+        cloth,
+      );
+    }
+    if (Math.floor(ix / 2) % 2 === 0) {
+      builder.surfaceBox(fineCenter(x - 1, ix), base + 6.5, z + 4.5 + DETAIL, DETAIL, 3 * DETAIL, DETAIL, cloth);
+    }
+  }
+  builder.surfaceBox(x + 2.5, base + 7.5 + 2 * DETAIL, z + 4.5 + DETAIL, 9, DETAIL, DETAIL, 'timber');
+  builder.surfaceBox(x + 2.5, base + 7.5 + 2 * DETAIL, z - 1.5 - DETAIL, 9, DETAIL, DETAIL, 'timber');
 
-  for (let index = 0; index < 5; index += 1) {
+  // Narrow counter slats and many small produce piles match the reference's
+  // lived-in market density while keeping the path collider unchanged.
+  for (let slat = 0; slat < 11; slat += 1) {
+    builder.surfaceBox(
+      x + 0.5 + slat * 2 * DETAIL,
+      base + 3.75,
+      z + 4 + DETAIL,
+      DETAIL,
+      2 * DETAIL,
+      DETAIL,
+      slat % 3 === 0 ? 'timber' : 'timberLight',
+    );
+  }
+
+  for (let index = 0; index < 11; index += 1) {
     const produce = index % 3 === 0 ? 'produceRed' : index % 3 === 1 ? 'produceGold' : 'produceGreen';
-    builder.surfaceBox(x + 1 + index, base + 4.25 + (index % 2) * 0.25, z + 3.75, 0.5, 0.5, 0.5, produce);
+    builder.surfaceBox(
+      x + 0.25 + index * 2 * DETAIL,
+      base + 4.25 + (index % 2) * DETAIL,
+      z + 3.75,
+      DETAIL,
+      DETAIL,
+      DETAIL,
+      produce,
+    );
   }
   builder.set(x + 1, base + 4, z + 4, 'lantern', 0.38);
   builder.set(x + 5, base + 4, z + 4, 'lantern', 0.38);
@@ -781,23 +1260,46 @@ function fountain(builder: VoxelBuilder, colliders: TownCollider[], cx: number, 
       const radius = Math.hypot(x, z);
       if (radius > 3.2 && radius < 4.6) {
         builder.set(cx + x, base + 1, cz + z, radius > 4.1 ? 'stone' : 'stoneLight');
-        builder.surfaceBox(cx + x, base + 1.75, cz + z, 1, 0.5, 1, 'stoneLight');
+        builder.carveSurfaceCell(cx + x, base + 1, cz + z);
       } else if (radius <= 3.2) {
         builder.set(cx + x, base + 1, cz + z, 'waterTile', 0.1);
         builder.carveSurfaceCell(cx + x, base + 1, cz + z);
-        builder.surfaceBox(cx + x, base + 0.75, cz + z, 1, 0.5, 1, 'waterTile', 0.1);
       }
     }
+  for (let fineX = -13; fineX <= 13; fineX += 1) {
+    for (let fineZ = -13; fineZ <= 13; fineZ += 1) {
+      const dx = fineX * DETAIL;
+      const dz = fineZ * DETAIL;
+      const radius = Math.hypot(dx, dz);
+      if (radius >= 3.25 && radius <= 4.35) {
+        const course = Math.round(radius / DETAIL);
+        builder.surfaceBox(
+          cx + dx,
+          base + 0.5 + DETAIL,
+          cz + dz,
+          DETAIL,
+          2 * DETAIL,
+          DETAIL,
+          masonryMaterial(fineX, fineZ, course),
+        );
+      } else if (radius < 3.25) {
+        builder.surfaceBox(
+          cx + dx,
+          base + 0.5 + DETAIL / 2,
+          cz + dz,
+          DETAIL,
+          DETAIL,
+          DETAIL,
+          'stoneDark',
+        );
+      }
+    }
+  }
   builder.surfaceBox(cx, base + 1.5, cz, 3, 1, 3, 'stoneDark');
   builder.fillBox(cx, base + 2, cz, 1, 6, 1, 'stoneLight');
   builder.surfaceBox(cx, base + 4.5, cz, 1.5, 1, 1.5, 'stone');
   builder.fillBox(cx - 1, base + 7, cz - 1, 3, 2, 3, 'stone');
   builder.surfaceBox(cx, base + 9.25, cz, 2, 0.5, 2, 'stoneLight');
-  builder.surfaceBox(cx, base + 10, cz, 0.5, 1, 0.5, 'waterFoam', 0.18);
-  // Four thin streams fall from the upper bowl into the recessed pool.
-  for (const [sx, sz] of [[-1.25, 0], [1.25, 0], [0, -1.25], [0, 1.25]] as const) {
-    builder.surfaceBox(cx + sx, base + 5.5, cz + sz, 0.5, 4, 0.5, 'waterFoam', 0.12);
-  }
   for (const [sx, sz] of [[-3, -3], [3, -3], [-3, 3], [3, 3]] as const) {
     builder.surfaceBox(cx + sx, base + 2.25, cz + sz, 0.5, 0.5, 0.5, 'roofGold');
   }
@@ -827,28 +1329,22 @@ function bridge(builder: VoxelBuilder): void {
   // lattice step. The sampled walk height below uses this same profile.
   const fineStart = CANAL_MIN_Z * TOWN_DETAIL_RESOLUTION;
   const fineEnd = (CANAL_MAX_Z + 1) * TOWN_DETAIL_RESOLUTION;
+  const fineStartX = BRIDGE_MIN_X * TOWN_DETAIL_RESOLUTION;
+  const fineEndX = (BRIDGE_MAX_X + 1) * TOWN_DETAIL_RESOLUTION;
   for (let fineZ = fineStart; fineZ < fineEnd; fineZ += 1) {
     const z = -0.5 + (fineZ + 0.5) / TOWN_DETAIL_RESOLUTION;
     const deckTop = bridgeSurfaceGridHeight(z);
-    const material = fineZ % 5 === 0 ? 'cobbleLight' : 'cobble';
-    builder.surfaceBox(
-      0,
-      deckTop - 0.5 / TOWN_DETAIL_RESOLUTION,
-      z,
-      BRIDGE_MAX_X - BRIDGE_MIN_X + 1,
-      1 / TOWN_DETAIL_RESOLUTION,
-      1 / TOWN_DETAIL_RESOLUTION,
-      material,
-    );
-    for (const edgeX of [BRIDGE_MIN_X, BRIDGE_MAX_X]) {
+    for (let fineX = fineStartX; fineX < fineEndX; fineX += 1) {
+      const gx = Math.floor(fineX / TOWN_DETAIL_RESOLUTION);
+      const edge = fineX < fineStartX + 2 || fineX >= fineEndX - 2;
       builder.surfaceBox(
-        edgeX,
-        deckTop - 0.5 / TOWN_DETAIL_RESOLUTION,
+        fineCenter(0, fineX),
+        deckTop - DETAIL / 2,
         z,
-        1,
-        1 / TOWN_DETAIL_RESOLUTION,
-        1 / TOWN_DETAIL_RESOLUTION,
-        'stoneLight',
+        DETAIL,
+        DETAIL,
+        DETAIL,
+        edge ? 'stoneLight' : detailedGroundMaterial(fineX, fineZ, gx, Math.floor(fineZ / TOWN_DETAIL_RESOLUTION)),
       );
     }
   }
@@ -856,23 +1352,41 @@ function bridge(builder: VoxelBuilder): void {
   // Side spandrels form a true arched silhouette rather than a rectangular
   // deck floating above the canal. The opening remains clear down to the water.
   for (const sideX of [BRIDGE_MIN_X, BRIDGE_MAX_X]) {
+    const outward = sideX < 0 ? -1 : 1;
     for (let z = CANAL_MIN_Z; z <= CANAL_MAX_Z; z += 1) {
       const distance = Math.abs(z - (CANAL_MIN_Z + CANAL_MAX_Z) / 2);
       const archCeiling = Math.max(-1, 2 - Math.floor(distance * 0.8));
       for (let y = -2; y < bridgeHeight(z); y += 1) {
         const endPier = z === CANAL_MIN_Z || z === CANAL_MAX_Z;
-        if (endPier || y > archCeiling) builder.set(sideX, y, z, y === bridgeHeight(z) - 1 ? 'stoneLight' : 'stoneDark');
+        if (endPier || y > archCeiling) {
+          builder.set(sideX, y, z, y === bridgeHeight(z) - 1 ? 'stoneLight' : 'stoneDark');
+          for (let iz = 0; iz < TOWN_DETAIL_RESOLUTION; iz += 1) {
+            for (let iy = 0; iy < TOWN_DETAIL_RESOLUTION; iy += 1) {
+              builder.surfaceBox(
+                sideX + outward * DETAIL,
+                fineCenter(y, iy),
+                fineCenter(z, iz),
+                DETAIL,
+                DETAIL,
+                DETAIL,
+                masonryMaterial(iz + z * 3, iy + (y + 3) * 3, sideX * 19),
+              );
+            }
+          }
+        }
       }
       if (z > CANAL_MIN_Z && z < CANAL_MAX_Z) {
-        builder.surfaceBox(
-          sideX + (sideX < 0 ? -0.75 : 0.75),
-          archCeiling + 0.75,
-          z,
-          0.5,
-          0.5,
-          1,
-          'stoneLight',
-        );
+        for (let iz = 0; iz < TOWN_DETAIL_RESOLUTION; iz += 1) {
+          builder.surfaceBox(
+            sideX + outward * 2 * DETAIL,
+            fineCenter(archCeiling + 1, 0),
+            fineCenter(z, iz),
+            DETAIL,
+            DETAIL,
+            DETAIL,
+            iz === 1 ? 'stoneLight' : 'mortar',
+          );
+        }
       }
     }
   }
@@ -896,21 +1410,46 @@ function bridge(builder: VoxelBuilder): void {
       builder.surfaceBox(x + 0.5, -0.25, z + (z === CANAL_MIN_Z ? -0.75 : 0.75), 2.5, 1.5, 0.5, 'stone');
     }
   }
+
+  // Crown banners make the crossing a civic landmark and provide motion-ready
+  // cloth geometry without changing the walkable deck or collider envelope.
+  const crownZ = (CANAL_MIN_Z + CANAL_MAX_Z) / 2;
+  const crownTop = bridgeSurfaceGridHeight(crownZ);
+  for (const sideX of [BRIDGE_MIN_X - 1, BRIDGE_MAX_X + 1]) {
+    builder.surfaceBox(sideX, crownTop + 3, crownZ, DETAIL, 6, DETAIL, 'iron');
+    builder.surfaceBox(
+      sideX + (sideX < 0 ? -DETAIL : DETAIL),
+      crownTop + 4.25,
+      crownZ + DETAIL,
+      3 * DETAIL,
+      3 * DETAIL,
+      DETAIL,
+      sideX < 0 ? 'clothRed' : 'clothGold',
+    );
+    builder.surfaceBox(sideX, crownTop + 6.25, crownZ, 2 * DETAIL, DETAIL, 2 * DETAIL, 'roofGold');
+  }
 }
 
-function tree(builder: VoxelBuilder, colliders: TownCollider[], gx: number, gz: number, height: number, autumn = false): void {
+function tree(
+  colliders: TownCollider[],
+  vegetation: TownVegetation[],
+  gx: number,
+  gz: number,
+  height: number,
+  autumn = false,
+): void {
   const base = groundHeightGrid(gx, gz);
-  builder.fillBox(gx, base + 1, gz, 2, height, 2, 'timber');
-  const crownY = base + height;
-  const primary = autumn ? 'leafGold' : 'leaf';
-  for (let x = -3; x <= 4; x += 1)
-    for (let y = -2; y <= 3; y += 1)
-      for (let z = -3; z <= 4; z += 1) {
-        const shape = Math.abs(x - 0.5) + Math.abs(z - 0.5) + Math.abs(y) * 1.3;
-        if (shape < 6.6 && hash(gx * 13 + gz * 31 + x * 7 + y * 17 + z * 23) > 0.12)
-          builder.set(gx + x, crownY + y, gz + z, hash(x + z + gx) > 0.72 ? 'leafLight' : primary);
-      }
-  castShadow(builder, gx - 2, gz - 2, 6, 6, 9);
+  const seed = gx * 101 + gz * 211;
+  addVegetation(vegetation, gx + 0.5, base + 0.5, gz + 0.5, 'tree-trunk', height * 0.62, seed);
+  addVegetation(
+    vegetation,
+    gx + 0.5,
+    base + height,
+    gz + 0.5,
+    'tree-crown',
+    1.75 + height * 0.09,
+    seed + (autumn ? 991 : 0),
+  );
   addCollider(colliders, gx, gz, 2, 2, 0.08, `town.tree.${gx}.${gz}`);
 }
 
@@ -959,13 +1498,27 @@ function cargoCluster(builder: VoxelBuilder, colliders: TownCollider[], x: numbe
   addCollider(colliders, x - 2.25, z - 0.75, 5.25, 3, 0.05, `town.cargo.${x}.${z}`);
 }
 
-function flowerPlanter(builder: VoxelBuilder, colliders: TownCollider[], x: number, z: number, violet: boolean): void {
+function flowerPlanter(
+  builder: VoxelBuilder,
+  colliders: TownCollider[],
+  vegetation: TownVegetation[],
+  x: number,
+  z: number,
+  violet: boolean,
+): void {
   const base = groundHeightGrid(x, z);
   builder.surfaceBox(x, base + 0.75, z, 2, 1, 1, 'stone');
   builder.surfaceBox(x, base + 1.25, z, 1.5, 0.5, 0.5, 'soil');
   for (const offset of [-0.5, 0, 0.5]) {
-    builder.surfaceBox(x + offset, base + 1.75 + Math.abs(offset) * 0.5, z, 0.25, 1, 0.25, 'leaf');
-    builder.surfaceBox(x + offset, base + 2.25 + Math.abs(offset) * 0.5, z, 0.5, 0.5, 0.5, violet ? 'flowerViolet' : 'flowerCream');
+    addVegetation(
+      vegetation,
+      x + offset,
+      base + 1.5,
+      z,
+      'flower',
+      0.62 + Math.abs(offset) * 0.16,
+      x * 31 + z * 47 + offset * 101 + (violet ? 7 : 17),
+    );
   }
   addCollider(colliders, x - 1, z - 0.5, 2, 1, 0.02, `town.planter.${x}.${z}`);
 }
@@ -985,7 +1538,123 @@ function handCart(builder: VoxelBuilder, colliders: TownCollider[], x: number, z
   addCollider(colliders, x - 2, z - 1, 5, 3, 0.08);
 }
 
+function occupiedByCollider(colliders: readonly TownCollider[], gx: number, gz: number, margin = 0.25): boolean {
+  const wx = gx * VOXEL_SIZE;
+  const wz = gz * VOXEL_SIZE;
+  return colliders.some((box) => (
+    wx > box.minX - margin
+    && wx < box.maxX + margin
+    && wz > box.minZ - margin
+    && wz < box.maxZ + margin
+  ));
+}
+
+function grassCluster(vegetation: TownVegetation[], gx: number, gz: number, seed: number): void {
+  const groundTop = groundHeightGrid(gx, gz) + 0.5;
+  addVegetation(vegetation, gx, groundTop, gz, 'grass', 0.72 + hash(seed * 13) * 0.58, seed);
+  if (hash(seed * 61) > 0.82) {
+    addVegetation(
+      vegetation,
+      gx,
+      groundTop,
+      gz,
+      'flower',
+      0.48 + hash(seed * 73) * 0.35,
+      seed + 409,
+    );
+  }
+}
+
+function terracottaPot(
+  builder: VoxelBuilder,
+  vegetation: TownVegetation[],
+  gx: number,
+  gz: number,
+  violet: boolean,
+): void {
+  const groundTop = groundHeightGrid(Math.round(gx), Math.round(gz)) + 0.5;
+  builder.surfaceBox(gx, groundTop + DETAIL, gz, 2 * DETAIL, 2 * DETAIL, 2 * DETAIL, 'terracotta');
+  addVegetation(
+    vegetation,
+    gx,
+    groundTop + 2 * DETAIL,
+    gz,
+    violet ? 'flower' : 'shrub',
+    violet ? 0.68 : 0.82,
+    gx * 31 + gz * 67 + (violet ? 3 : 11),
+  );
+}
+
+function smallCrate(builder: VoxelBuilder, gx: number, gz: number, produce: PaletteName): void {
+  const groundTop = groundHeightGrid(Math.round(gx), Math.round(gz)) + 0.5;
+  builder.surfaceBox(gx, groundTop + DETAIL, gz, 3 * DETAIL, 2 * DETAIL, 3 * DETAIL, 'timberLight');
+  builder.surfaceBox(gx, groundTop + 2.5 * DETAIL, gz, 3 * DETAIL, DETAIL, 3 * DETAIL, 'timber');
+  for (const offset of [-DETAIL, 0, DETAIL]) {
+    builder.surfaceBox(gx + offset, groundTop + 3.5 * DETAIL, gz, DETAIL, DETAIL, DETAIL, produce);
+  }
+}
+
+function scatterTownClutter(
+  builder: VoxelBuilder,
+  colliders: readonly TownCollider[],
+  vegetation: TownVegetation[],
+): void {
+  // A 1.24 m deterministic sampling rhythm meets the foreground density gate
+  // while preserving every paved route and all authored collision envelopes.
+  for (let gz = WORLD_MIN_Z + 2; gz <= WORLD_MAX_Z; gz += 2) {
+    for (let gx = WORLD_MIN_X + 2 + (Math.abs(gz) % 4 === 0 ? 1 : 0); gx <= WORLD_MAX_X - 2; gx += 2) {
+      if (isCanal(gx, gz) || pavedGroundAt(gx, gz) || occupiedByCollider(colliders, gx, gz)) continue;
+      const seed = gx * 97 + gz * 193;
+      if (hash(seed) < 0.16) continue;
+      grassCluster(vegetation, gx, gz, seed);
+    }
+  }
+
+  for (let gx = WORLD_MIN_X + 3; gx <= WORLD_MAX_X - 3; gx += 3) {
+    if (gx >= BRIDGE_MIN_X - 2 && gx <= BRIDGE_MAX_X + 2) continue;
+    const nearBank = CANAL_MIN_Z - 0.35;
+    const farBank = CANAL_MAX_Z + 0.35;
+    addVegetation(vegetation, gx, 0.5, nearBank, 'reeds', 0.72 + hash(gx * 37) * 0.45, gx * 97 + 11);
+    addVegetation(vegetation, gx + 0.5, 0.5, farBank, 'reeds', 0.72 + hash(gx * 43) * 0.45, gx * 101 + 17);
+  }
+
+  for (const [gx, gz, violet] of [
+    [-27, -5, true], [-24, -4, false], [24, -4, true], [27, -5, false],
+    [-29, -23, false], [27, -23, true], [-21, 5, true], [22, 5, false],
+    [-8, 8, false], [9, 8, true], [-7, 20, true], [8, 20, false],
+  ] as const) terracottaPot(builder, vegetation, gx, gz, violet);
+
+  for (const [gx, gz, produce] of [
+    [-20, 4, 'produceRed'], [-16, 5, 'produceGold'], [10, 5, 'produceGreen'],
+    [16, 6, 'produceRed'], [-18, -12, 'produceGold'], [-12, -11, 'produceGreen'],
+    [20, -7, 'produceRed'], [24, -8, 'produceGold'],
+  ] as const) smallCrate(builder, gx, gz, produce);
+}
+
 function canalMasonry(builder: VoxelBuilder): void {
+  // The canal-facing layers are running-bond stone rather than long flat
+  // retaining-wall strips. These cells replace the outer layer in the union.
+  for (const [bankZ, outward, minY, maxY] of [
+    [CANAL_MIN_Z - 1, 1, -2, 1],
+    [CANAL_MAX_Z + 1, -1, -2, 0],
+  ] as const) {
+    for (let fineX = WORLD_MIN_X * TOWN_DETAIL_RESOLUTION; fineX < (WORLD_MAX_X + 1) * TOWN_DETAIL_RESOLUTION; fineX += 1) {
+      for (let y = minY; y <= maxY; y += 1) {
+        for (let iy = 0; iy < TOWN_DETAIL_RESOLUTION; iy += 1) {
+          builder.surfaceBox(
+            fineCenter(0, fineX),
+            fineCenter(y, iy),
+            bankZ + outward * DETAIL,
+            DETAIL,
+            DETAIL,
+            DETAIL,
+            masonryMaterial(fineX, iy + (y + 3) * 3, bankZ * 13),
+          );
+        }
+      }
+    }
+  }
+
   // Repeated buttresses and coping break the long retaining-wall strips into
   // a measured rhythm that leads the eye toward the hero bridge.
   for (const bankZ of [CANAL_MIN_Z - 1, CANAL_MAX_Z + 1]) {
@@ -1001,22 +1670,155 @@ function canalMasonry(builder: VoxelBuilder): void {
   }
 }
 
+function waterfallChannel(builder: VoxelBuilder, colliders: TownCollider[]): void {
+  // Recess the upper channel one fine cell into the rear terrace. The animated
+  // water ribbon is renderer-owned; these are its dry, readable stone banks.
+  for (let z = -31; z <= -25; z += 1) {
+    for (let x = 20; x <= 22; x += 1) {
+      builder.carveSurfaceBox(x, 2 + DETAIL, z, 1, DETAIL, 1);
+      builder.surfaceBox(x, 2, z, 1, DETAIL, 1, 'stoneDark');
+    }
+    for (const bankX of [19 + DETAIL, 22 + 2 * DETAIL]) {
+      builder.surfaceBox(bankX, 2.5 + DETAIL / 2, z, DETAIL, DETAIL, 1, z % 3 === 0 ? 'stoneLight' : 'stone');
+    }
+  }
+
+  // A real opening, projecting spill lip, and stepped jambs establish the
+  // 1.24 m drop without baking an opaque water wall into the voxel mesh.
+  builder.carveSurfaceBox(21, 1.5, -24 + DETAIL, 3, 2, DETAIL);
+  for (const jambX of [19 + 2 * DETAIL, 22 + DETAIL]) {
+    builder.surfaceBox(jambX, 1.5, -24 + 2 * DETAIL, 2 * DETAIL, 3, DETAIL, 'stone');
+    for (let course = 0; course < 9; course += 2) {
+      builder.surfaceBox(jambX, fineCenter(0, course), -24 + 3 * DETAIL, 2 * DETAIL, DETAIL, DETAIL, 'stoneLight');
+    }
+  }
+  builder.surfaceBox(21, 2.5 + DETAIL / 2, -24 + 2 * DETAIL, 4, DETAIL, 2 * DETAIL, 'stoneLight');
+
+  // The lower catch basin is shallow enough to remain a visual feature while
+  // its stable collider keeps both playable and ambient actors out of it.
+  for (let x = 19; x <= 23; x += 1) {
+    for (let z = -23; z <= -20; z += 1) {
+      const edge = x === 19 || x === 23 || z === -20;
+      if (!edge) continue;
+      builder.surfaceBox(x, 0.5 + DETAIL, z, 1, 2 * DETAIL, 1, (x + z) % 3 === 0 ? 'stoneLight' : 'stone');
+    }
+  }
+  colliders.push({
+    id: 'town.water.waterfall-basin',
+    minX: 18.5 * VOXEL_SIZE,
+    maxX: 23.5 * VOXEL_SIZE,
+    minZ: -25 * VOXEL_SIZE,
+    maxZ: -19.5 * VOXEL_SIZE,
+  });
+}
+
+function distantTree(vegetation: TownVegetation[], gx: number, gy: number, gz: number, height: number): void {
+  const seed = gx * 79 + gz * 137;
+  addVegetation(vegetation, gx, gy, gz, 'tree-trunk', height * 0.56, seed);
+  addVegetation(vegetation, gx, gy + height, gz, 'tree-crown', 1.5 + height * 0.08, seed + 53);
+}
+
+function distantTerrain(builder: VoxelBuilder, vegetation: TownVegetation[]): void {
+  const hills = [
+    [-36, -49, 34, 13, 8],
+    [-4, -52, 30, 10, 7],
+    [29, -49, 40, 14, 10],
+  ] as const;
+  for (const [centerX, startZ, width, depth, height] of hills) {
+    for (let layer = 0; layer < height; layer += 1) {
+      const insetX = Math.floor(layer * 1.45);
+      const insetZ = Math.floor(layer * 0.45);
+      const layerWidth = Math.max(3, width - insetX * 2);
+      const layerDepth = Math.max(2, depth - insetZ * 2);
+      const material = layer === height - 1 ? 'grassLight' : layer % 4 === 0 ? 'stoneDark' : 'grass';
+      builder.fillBox(
+        centerX - Math.floor(width / 2) + insetX,
+        3 + layer,
+        startZ + insetZ,
+        layerWidth,
+        1,
+        layerDepth,
+        material,
+      );
+    }
+  }
+
+  // Sparse towers and tree masses extend the skyline well beyond the playable
+  // boundary without adding physics or navigation work to the distant set.
+  builder.fillBox(-18, 4, -48, 5, 12, 5, 'stoneDark');
+  builder.fillBox(-19, 16, -49, 7, 1, 7, 'stoneLight');
+  for (let step = 0; step < 4; step += 1) {
+    builder.fillBox(-19 + step, 17 + step, -49 + step, 7 - step * 2, 1, 7 - step * 2, 'roofSlateDark');
+  }
+  builder.fillBox(20, 4, -47, 6, 9, 5, 'stone');
+  for (let step = 0; step < 3; step += 1) {
+    builder.fillBox(19 + step, 13 + step, -48 + step, 8 - step * 2, 1, 7 - step * 2, 'roofRedDark');
+  }
+  for (const [x, y, z, height] of [
+    [-45, 10, -46, 7], [-32, 9, -48, 6], [-8, 9, -50, 7],
+    [3, 9, -50, 6], [33, 11, -47, 8], [45, 9, -45, 7],
+  ] as const) distantTree(vegetation, x, y, z, height);
+}
+
+function pavedGroundAt(gx: number, gz: number): boolean {
+  const plazaDistance = Math.hypot(gx * 0.82, (gz + 6) * 1.08);
+  const square = plazaDistance <= 19;
+  const southProcessional = Math.abs(gx) <= 4 && gz >= -30 && gz < CANAL_MIN_Z;
+  const northProcessional = Math.abs(gx) <= 4 && gz > CANAL_MAX_Z && gz <= 32;
+  const crossStreet = gz >= -3 && gz <= 2;
+  return square || southProcessional || northProcessional || crossStreet || isBridge(gx, gz);
+}
+
+function detailedGroundMaterial(fineX: number, fineZ: number, gx: number, gz: number): PaletteName {
+  const plazaDistance = Math.hypot(gx * 0.82, (gz + 6) * 1.08);
+  if (Math.abs(plazaDistance - 11) < 0.8) return 'stoneLight';
+  const rowOffset = Math.abs(fineZ) % 2;
+  const brick = Math.floor((fineX + rowOffset) / 2);
+  const variation = Math.abs(brick * 7 + fineZ * 3) % 17;
+  if (variation === 0 || variation === 11) return 'cobbleLight';
+  if (variation === 5) return 'cobbleDark';
+  if (variation === 14) return 'cobbleMoss';
+  return 'cobble';
+}
+
+function detailPavedGround(builder: VoxelBuilder): void {
+  const minFineX = WORLD_MIN_X * TOWN_DETAIL_RESOLUTION;
+  const maxFineX = (WORLD_MAX_X + 1) * TOWN_DETAIL_RESOLUTION;
+  const minFineZ = WORLD_MIN_Z * TOWN_DETAIL_RESOLUTION;
+  const maxFineZ = (WORLD_MAX_Z + 1) * TOWN_DETAIL_RESOLUTION;
+  for (let fineZ = minFineZ; fineZ < maxFineZ; fineZ += 1) {
+    const gz = Math.floor(fineZ / TOWN_DETAIL_RESOLUTION);
+    for (let fineX = minFineX; fineX < maxFineX; fineX += 1) {
+      const gx = Math.floor(fineX / TOWN_DETAIL_RESOLUTION);
+      if (!pavedGroundAt(gx, gz) || (isCanal(gx, gz) && !isBridge(gx, gz))) continue;
+      const y = groundHeightGrid(gx, gz);
+      builder.surfaceBox(
+        fineCenter(0, fineX),
+        y + DETAIL,
+        fineCenter(0, fineZ),
+        DETAIL,
+        DETAIL,
+        DETAIL,
+        detailedGroundMaterial(fineX, fineZ, gx, gz),
+      );
+    }
+  }
+}
+
 function buildGround(builder: VoxelBuilder): void {
-  for (let z = WORLD_MIN_Z; z <= VISUAL_MAX_Z; z += 1) {
+  for (let z = VISUAL_MIN_Z; z <= VISUAL_MAX_Z; z += 1) {
     for (let x = WORLD_MIN_X; x <= WORLD_MAX_X; x += 1) {
       if (isCanal(x, z)) builder.set(x, -3, z, 'waterBed');
       if (isCanal(x, z) && !isBridge(x, z)) continue;
       const y = groundHeightGrid(x, z);
       const plazaDistance = Math.hypot(x * 0.82, (z + 6) * 1.08);
       const square = plazaDistance <= 19;
-      const processionalPath = Math.abs(x) <= 4 && z >= -30 && z < CANAL_MIN_Z;
-      const crossStreet = z >= -3 && z <= 2;
       const plazaRing = square && Math.abs(plazaDistance - 11) < 1.25;
       const paverAccent = (Math.abs(x) + Math.abs(z + 6) * 2) % 9 === 0;
       const grassPatch = (Math.floor((x + 48) / 7) + Math.floor((z + 39) / 6) * 2) % 5 === 0;
       const material = plazaRing
         ? 'stoneLight'
-        : square || processionalPath || crossStreet || isBridge(x, z)
+        : pavedGroundAt(x, z)
           ? (paverAccent ? 'cobbleLight' : 'cobble')
           : (grassPatch ? 'grassLight' : 'grass');
       builder.set(x, y, z, material);
@@ -1030,22 +1832,31 @@ function buildGround(builder: VoxelBuilder): void {
   }
   for (let x = WORLD_MIN_X; x <= WORLD_MAX_X; x += 1)
     for (let y = 0; y <= 2; y += 1) builder.set(x, y, -24, 'stoneDark');
+
+  detailPavedGround(builder);
 }
 
-function buildTownDetails(builder: VoxelBuilder, colliders: TownCollider[], props: TownProp[]): void {
+function buildTownDetails(
+  builder: VoxelBuilder,
+  colliders: TownCollider[],
+  props: TownProp[],
+  vegetation: TownVegetation[],
+): void {
+  distantTerrain(builder, vegetation);
   bridge(builder);
   canalMasonry(builder);
+  waterfallChannel(builder, colliders);
   fountain(builder, colliders, 0, -6);
 
-  house(builder, colliders, -43, -17, 16, 13, 11, 'plaster', 'roofRed');
-  house(builder, colliders, -41, -34, 14, 11, 12, 'plasterPale', 'roofSlate');
-  house(builder, colliders, -45, 2, 14, 8, 9, 'plasterPale', 'roofGold');
-  house(builder, colliders, 27, -16, 16, 13, 12, 'plasterPale', 'roofSlate');
-  house(builder, colliders, 31, -34, 13, 11, 10, 'plaster', 'roofRed');
-  house(builder, colliders, 32, 2, 13, 9, 9, 'plaster', 'roofGold');
+  house(builder, colliders, vegetation, -43, -17, 16, 13, 11, 'plaster', 'roofRed');
+  house(builder, colliders, vegetation, -41, -34, 14, 11, 12, 'plasterPale', 'roofSlate');
+  house(builder, colliders, vegetation, -45, 2, 14, 8, 9, 'plasterPale', 'roofGold');
+  house(builder, colliders, vegetation, 27, -16, 16, 13, 12, 'plasterPale', 'roofSlate');
+  house(builder, colliders, vegetation, 31, -34, 13, 11, 10, 'plaster', 'roofRed');
+  house(builder, colliders, vegetation, 32, 2, 13, 9, 9, 'plaster', 'roofGold');
   // The guildhall and bell tower terminate the bridge-to-fountain processional
   // axis, forming the deliberately authored focal cluster in the ambient shot.
-  house(builder, colliders, -23, -35, 17, 10, 12, 'plasterPale', 'roofRed');
+  house(builder, colliders, vegetation, -23, -35, 17, 10, 12, 'plasterPale', 'roofRed');
   bellTower(builder, colliders, 8, -35);
 
   marketStall(builder, colliders, -18, -1, 'clothRed', 'clothCream');
@@ -1056,17 +1867,19 @@ function buildTownDetails(builder: VoxelBuilder, colliders: TownCollider[], prop
   stoneBench(builder, colliders, 9, -11);
   cargoCluster(builder, colliders, -10, 7);
   cargoCluster(builder, colliders, 12, 6);
-  flowerPlanter(builder, colliders, -7, -6, true);
-  flowerPlanter(builder, colliders, 7, -6, false);
-  flowerPlanter(builder, colliders, -6, -13, false);
-  flowerPlanter(builder, colliders, 6, -13, true);
+  flowerPlanter(builder, colliders, vegetation, -7, -6, true);
+  flowerPlanter(builder, colliders, vegetation, 7, -6, false);
+  flowerPlanter(builder, colliders, vegetation, -6, -13, false);
+  flowerPlanter(builder, colliders, vegetation, 6, -13, true);
   handCart(builder, colliders, 21, -7);
 
   for (const [x, z, height, autumn] of [
     [-34, 22, 8, false], [-24, 26, 7, true], [39, 22, 8, true],
     [-24, 8, 8, false], [24, 8, 7, false], [-25, -22, 9, true], [23, -23, 8, false],
     [-3, -29, 7, false], [44, -19, 8, true], [-45, -23, 9, false],
-  ] as const) tree(builder, colliders, x, z, height, autumn);
+  ] as const) tree(colliders, vegetation, x, z, height, autumn);
+
+  scatterTownClutter(builder, colliders, vegetation);
 
   const TOWN = { fence: 82, barrel: 107, sack: 106, mushrooms: 29 } as const;
   for (const [gx, gz, tile, size] of [
@@ -1089,9 +1902,10 @@ export function buildTownWorld(): TownWorld {
   const builder = new VoxelBuilder();
   const colliders: TownCollider[] = [];
   const props: TownProp[] = [];
+  const vegetation: TownVegetation[] = [];
   buildGround(builder);
   addWaterColliders(colliders);
-  buildTownDetails(builder, colliders, props);
+  buildTownDetails(builder, colliders, props, vegetation);
   const voxels = builder.compile();
   const mesh = builder.compileSurface();
   const geometryValidation = validateVoxelSurfaceMesh(mesh);
@@ -1194,14 +2008,40 @@ export function buildTownWorld(): TownWorld {
     materials: TOWN_MATERIALS,
     geometryValidation,
     props,
+    vegetation,
     walkers,
     heroPath,
-    spawn: worldPoint(0, 21),
+    // The bridge crown opens on the market and keeps the first live frame's
+    // hero in the authored focal composition rather than stranded low-left.
+    spawn: worldPoint(0, 16),
     waterBounds: {
       minX: WORLD_MIN_X * VOXEL_SIZE,
       maxX: WORLD_MAX_X * VOXEL_SIZE,
       minZ: (CANAL_MIN_Z - 0.5) * VOXEL_SIZE,
       maxZ: (CANAL_MAX_Z + 0.5) * VOXEL_SIZE,
+    },
+    waterfall: {
+      minX: WATERFALL_GRID.minX * VOXEL_SIZE,
+      maxX: WATERFALL_GRID.maxX * VOXEL_SIZE,
+      z: WATERFALL_GRID.z * VOXEL_SIZE,
+      topY: WATERFALL_GRID.topY * VOXEL_SIZE,
+      bottomY: WATERFALL_GRID.bottomY * VOXEL_SIZE,
+      channelMinZ: WATERFALL_GRID.channelMinZ * VOXEL_SIZE,
+      channelMaxZ: WATERFALL_GRID.channelMaxZ * VOXEL_SIZE,
+    },
+    fountain: {
+      x: 0,
+      z: -6 * VOXEL_SIZE,
+      basinY: 0.5 * VOXEL_SIZE,
+      waterY: 0.9 * VOXEL_SIZE,
+      radius: 3.2 * VOXEL_SIZE,
+      jetTopY: 10 * VOXEL_SIZE,
+      outlets: [
+        { x: -1.25 * VOXEL_SIZE, y: 7 * VOXEL_SIZE, z: -6 * VOXEL_SIZE },
+        { x: 1.25 * VOXEL_SIZE, y: 7 * VOXEL_SIZE, z: -6 * VOXEL_SIZE },
+        { x: 0, y: 7 * VOXEL_SIZE, z: -7.25 * VOXEL_SIZE },
+        { x: 0, y: 7 * VOXEL_SIZE, z: -4.75 * VOXEL_SIZE },
+      ],
     },
     extent: WORLD_MAX_X * VOXEL_SIZE,
     physicsColliders: colliders,

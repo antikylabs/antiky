@@ -14,6 +14,12 @@ const validation = validateTownWorld(first);
 assert(validation.valid, validation.errors.join('\n'));
 assert(validation.duplicateQuadCount === 0, 'town mesh contains duplicate coincident quads');
 assert(first.mesh.stats.coincidentUnitFaceCount === 0, 'town mesh contains duplicate unit faces');
+assert(first.canWalk(first.spawn[0], first.spawn[1]), 'bridge-crown spawn is not walkable');
+assert(first.vegetation.length > 500, 'renderer vegetation metadata is too sparse');
+for (const type of ['grass', 'flower', 'reeds', 'ivy', 'shrub', 'tree-trunk', 'tree-crown'] as const) {
+  assert(first.vegetation.some((item) => item.type === type), `missing renderer vegetation type: ${type}`);
+}
+assert(first.waterfall.topY > first.waterfall.bottomY, 'waterfall renderer hook has no vertical drop');
 
 const second = buildTownWorld();
 const deterministicErrors = validateTownDeterminism(first, second);
