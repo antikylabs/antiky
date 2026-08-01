@@ -53,7 +53,7 @@ export default function WorldsPage() {
 
       <section className="closing-cta wrap">
         <p>The technology work is already visible.</p>
-        <Link href="/demos/depth-study">See the 2.3D study <ArrowRight /></Link>
+        <Link href="/demos/town-study">See the 2.3D study <ArrowRight /></Link>
       </section>
     </>
   );

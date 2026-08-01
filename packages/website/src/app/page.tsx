@@ -20,7 +20,7 @@ const WORK = [
     href: '/research',
     status: 'Active research',
     title: 'Research',
-    body: 'Practical work on generated game assets, engine composition, rendering, and physics—shared when there is evidence worth showing.',
+    body: 'Research into generated game assets, 2.3D rendering, physics, and models trained to write shader DSL and game-framework code.',
   },
   {
     href: '/worlds',
@@ -37,16 +37,16 @@ export default function HomePage() {
   return (
     <>
       <section className="home-hero">
-        <DemoStage slug="depth-study" variant="hero" poster="/media/depth-study-poster.png" label="Depth Study — 2D characters inside a 3D world" />
+        <DemoStage slug="town-study" variant="hero" poster="/media/town-study-poster.png" label="Town Study — pixel characters inside a golden-hour voxel town" />
         <div className="home-hero-copy">
           <h1>Tools for making worlds.</h1>
           <p>Antiky Labs builds playable experiments, an emerging 2.3D framework, and future games.</p>
           <div className="actions">
-            <Link className="button button-primary" href="/demos/depth-study">Explore Depth Study <ArrowUpRight /></Link>
+            <Link className="button button-primary" href="/demos/town-study">Explore Town Study <ArrowUpRight /></Link>
             <Link className="text-link" href="/framework">Meet the framework <ArrowRight /></Link>
           </div>
         </div>
-        <p className="media-caption"><span>Live browser study</span> Real-time BroMetal render · not game footage</p>
+        <p className="media-caption"><span>Live browser scene</span> Cross the bridge and explore the market in real time</p>
       </section>
 
       <section className="work-index wrap">

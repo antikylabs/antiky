@@ -1,8 +1,9 @@
 ---
 name: Antiky Labs
-description: A clean, media-first dark system for playable work, an emerging framework, research, and future worlds.
+description: A clean, media-first dark system that lets working demos and documented artifacts carry the claim.
 colors:
   page-black: "#050506"
+  media-black: "#08090B"
   surface: "#0B0C0E"
   surface-raised: "#121317"
   surface-soft: "#18191E"
@@ -11,6 +12,7 @@ colors:
   text: "#F4F4F1"
   text-muted: "#A6A6AE"
   text-faint: "#74757E"
+  action-ink: "#0A0815"
   accent: "#8B7CFF"
   accent-hover: "#A69BFF"
   success: "#48C78E"
@@ -19,22 +21,41 @@ colors:
 typography:
   display:
     fontFamily: "Space Grotesk Variable, sans-serif"
+    fontSize: "clamp(3.5rem, 7.7vw, 7rem)"
+    fontWeight: 560
+    lineHeight: 0.93
+    letterSpacing: "-0.032em"
+  hero:
+    fontFamily: "Space Grotesk Variable, sans-serif"
     fontSize: "clamp(3.4rem, 6vw, 5.8rem)"
     fontWeight: 560
     lineHeight: 0.92
     letterSpacing: "-0.032em"
+  section:
+    fontFamily: "Space Grotesk Variable, sans-serif"
+    fontSize: "clamp(2.5rem, 5vw, 4.8rem)"
+    fontWeight: 560
+    lineHeight: 0.98
+    letterSpacing: "-0.032em"
+  lead:
+    fontFamily: "Inter Variable, sans-serif"
+    fontSize: "clamp(1.08rem, 1.6vw, 1.3rem)"
+    fontWeight: 400
+    lineHeight: 1.52
   body:
     fontFamily: "Inter Variable, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.6
-  measurement:
+  technical:
     fontFamily: "IBM Plex Mono, monospace"
     fontSize: "0.6875rem"
     fontWeight: 400
     lineHeight: 1.35
     letterSpacing: "0.08em"
 rounded:
+  nested: "5px"
+  compact: "6px"
   control: "8px"
   media: "12px"
 spacing:
@@ -43,155 +64,247 @@ spacing:
   md: "16px"
   lg: "24px"
   xl: "48px"
+  gutter: "clamp(24px, 4vw, 64px)"
+  gutter-mobile: "18px"
   section: "clamp(96px, 10vw, 150px)"
+  section-home: "clamp(104px, 10vw, 160px)"
 components:
   button-primary:
     backgroundColor: "{colors.accent}"
-    textColor: "{colors.page-black}"
+    textColor: "{colors.action-ink}"
     rounded: "{rounded.control}"
     padding: "0 18px"
     height: "46px"
   button-primary-hover:
     backgroundColor: "{colors.accent-hover}"
+    textColor: "{colors.action-ink}"
+    rounded: "{rounded.control}"
+  media-activation:
+    backgroundColor: "{colors.text}"
     textColor: "{colors.page-black}"
     rounded: "{rounded.control}"
-  media-frame:
-    backgroundColor: "{colors.surface}"
+    padding: "0 18px"
+    height: "50px"
+  live-media-stage:
+    backgroundColor: "{colors.media-black}"
     rounded: "{rounded.media}"
+    width: "100%"
+  directional-control:
+    backgroundColor: "{colors.surface-soft}"
+    textColor: "{colors.text}"
+    rounded: "{rounded.control}"
+    size: "44px"
 ---
 
 # Design System: Antiky Labs
 
 ## Overview
 
-**Creative North Star: Media First**
+**Creative North Star: "Media First"**
 
-Antiky Labs uses a clean, near-black interface that gives playable work and real artifacts most of
-the visual weight. The system is quiet around the subject: large Space Grotesk headlines, restrained
-navigation, hairline structure, and one violet action color. It should feel direct and contemporary,
-not like a themed developer portfolio.
+Antiky Labs is an evidence-led, near-black editorial system. The interface recedes so a working
+browser study, verified poster, source pane, or documented artifact can carry the visual claim.
+Large Space Grotesk headlines and quiet Inter copy provide confidence without turning the site into
+a themed developer portfolio.
 
-Product state is part of the design. Live demos, emerging framework work, active research, and
-planned worlds are named in text rather than implied through visual hype. The current hero uses a
-real still from Depth Study, then turns that same frame into the live study after explicit action.
+The signature composition is one dominant media field with a compact, opaque copy or control layer.
+It should feel technically credible and immediately legible: restrained chrome, hairline structure,
+explicit states, and a single violet action family around imagery that supplies its own color.
 
-**Key characteristics:**
+Product maturity is written plainly. Live work, emerging tools, active research, and planned worlds
+must not be made equivalent through visual hype.
 
-- One dominant media region per viewport.
-- Editorial rows and asymmetric splits instead of same-size feature cards.
-- Large type with concise copy and generous section separation.
-- Neutral surfaces with violet reserved for primary action.
-- Real work as imagery; no invented product footage.
+**The Process Is Not the Pitch Rule.** Internal development process, debates, and implementation
+method belong in supporting documentation; public hierarchy begins with working output, evidence, or
+a clearly labeled plan.
+
+**Key Characteristics:**
+
+- One dominant evidence-bearing media region per viewport.
+- Near-black editorial surfaces with fine structural rules.
+- Large, blunt headlines paired with concise, human copy.
+- One scarce violet action family; imagery carries the broader color range.
+- Explicit product state and explicit still-to-live transitions.
+- Asymmetric splits and editorial rows instead of repeated feature-card grids.
 
 ## Colors
 
-The palette is almost neutral so game imagery and research artifacts can carry their own color.
+The interface is almost neutral so live rendering and research artifacts remain visually primary.
 
-- **Page Black** (`#050506`): document background and darkest media fallback.
-- **Surface** (`#0B0C0E`): footer, statement bands, and primary contained surfaces.
-- **Raised Surface** (`#121317`): disclosed navigation and elevated utility UI.
-- **Soft Surface** (`#18191E`): hover and selected-control fill.
-- **Line / Strong Line** (`#292A31` / `#3A3B44`): structural rules and active boundaries.
-- **Text / Muted / Faint** (`#F4F4F1` / `#A6A6AE` / `#74757E`): primary copy, support copy,
-  and metadata.
-- **Antiky Violet** (`#8B7CFF`, hover `#A69BFF`): primary action and keyboard focus only.
-- **State colors:** success `#48C78E`, active research `#E9B64F`, error `#FF6B6B`.
+### Primary
 
-**The scarce accent rule.** Violet identifies the next meaningful action; it does not tint whole
-sections, borders, headings, or decorative effects.
+- **Antiky Violet:** the sole brand accent family, used for the strongest action, selected technical
+  state, text selection, and keyboard focus. Its lighter companion is a hover state, not a second
+  accent.
+
+### Neutral
+
+- **Page Black and Media Black:** the document ground and the fallback behind live rendering.
+- **Editorial Surfaces:** primary, raised, and soft near-black planes distinguish contained regions,
+  menus, selected controls, and quiet hover states without decorative lighting.
+- **Structural Lines:** low-contrast rules separate rows, frames, and major bands; stronger lines are
+  reserved for active boundaries and compact controls.
+- **Text, Muted Text, and Faint Text:** primary reading, supporting explanation, and technical metadata.
+  Faint text is never the only carrier of important state.
+- **Action Ink:** the dark foreground used on violet primary actions.
+
+### State
+
+- **Live Green:** confirms running or presently available work.
+- **Research Amber:** identifies active investigation and the WebGL2 technical state.
+- **Error Red:** belongs only to failure and recovery states.
+
+**The Scarce Accent Rule.** Violet identifies the next meaningful action or a selected technical
+state; it does not tint whole sections, headings, borders, shadows, or decorative effects.
 
 ## Typography
 
-**Display Font:** Space Grotesk Variable
-**Body Font:** Inter Variable
-**Measurement Font:** IBM Plex Mono
+**Display Font:** Space Grotesk Variable (sans-serif fallback)  
+**Body Font:** Inter Variable (sans-serif fallback)  
+**Technical Font:** IBM Plex Mono (monospace fallback)
 
-Space Grotesk provides broad, blunt headlines. Inter keeps editorial copy and controls quiet. IBM
-Plex Mono appears only for measurements, backend state, compact status, and source code.
+Space Grotesk gives headlines a broad, blunt silhouette. Inter keeps editorial prose and controls
+quiet. IBM Plex Mono makes measurements and renderer state feel precise without turning ordinary
+marketing copy into a terminal.
 
-- **Home hero:** `clamp(3.4rem, 6vw, 5.8rem)`, weight 560, line-height `0.92`.
-- **Page title:** `clamp(3.5rem, 7.7vw, 7rem)`, line-height `0.93`; reduce before reflow on mobile.
-- **Section title:** `clamp(2.5rem, 4.6vw, 4.8rem)`, line-height `0.98`.
-- **Lead:** `clamp(1.08rem, 1.6vw, 1.3rem)`, line-height about `1.52`.
-- **Body:** `1rem`, line-height `1.6`, with prose kept near 68 characters.
-- **Metadata:** `9px`–`11px` mono only when the content is genuinely status or measurement.
+### Hierarchy
 
-Headings use sentence case, tracking near `-0.032em`, and no eyebrow heading labels. Tracking never
-goes below `-0.04em`.
+- **Display:** fluid page titles, weight 560, tight line-height and tracking; keep them to a compact
+  phrase before forcing additional wraps.
+- **Hero:** the home statement, slightly smaller than the largest internal-page title so the live
+  media remains dominant.
+- **Section:** fluid editorial headings with near-solid leading and a practical maximum line length.
+- **Lead:** larger Inter copy used once to establish the section's central idea.
+- **Body:** regular Inter at the browser default size, generally kept near 64–68 characters per line.
+- **Technical:** compact mono for backend, frame rate, draw calls, source tabs, status, and attribution.
+  Use the smallest 9–10px labels only for secondary non-reading metadata; interactive labels should
+  remain at least 11px.
+
+Headings use sentence case. Tight tracking stays near the documented display values and never goes
+below `-0.04em` except the single oversized world wordmark. Do not add decorative uppercase eyebrow
+labels above every heading.
+
+**The Functional Mono Rule.** Mono type must communicate status, measurement, source, attribution,
+or a real section function; it is not decorative futurism.
 
 ## Layout
 
-The content shell is 1440px with responsive horizontal gutters of `clamp(24px, 4vw, 64px)` and 18px
-on small screens. The sticky header is 68px desktop and 62px mobile. The home hero fills the remaining
-viewport and places a controlled dark copy block over the lower-left of a full-bleed study.
+The desktop shell is capped at 1440px with fluid horizontal gutters. The sticky header is 68px tall;
+the home stage fills the remaining small viewport height and places a deliberately opaque copy block
+over its lower-left region. Internal pages alternate full-width media, unequal editorial splits, and
+hairline-separated rows.
 
-Major sections use `clamp(96px, 10vw, 150px)` vertical space. Editorial indexes are full-width rows
-with status, title, description, and one authored arrow. Two-column regions use unequal fractions and
-stack at 900px. At 620px the hierarchy becomes a direct sequence and every interactive target remains
-at least 44px high. Horizontal overflow is not permitted.
+Major sections use the documented fluid section rhythm. Copy columns stay narrow while media is
+allowed to expand. A page should normally have one dominant media stage; supporting evidence follows
+as rows, prose, or source panes rather than a competing wall of tiles.
+
+At 900px and below, desktop navigation becomes a disclosure menu and multi-column regions stack. At
+620px and below, gutters become 18px, the header becomes 62px, the hierarchy becomes a direct vertical
+sequence, and large media may bleed to the viewport edge with square side edges. Mobile live-media
+control rows and pause actions are at least 44px high; directional controls are 44px square. Preserve
+the same hit-area floor for new interactive stage controls even when their visible glyphs are smaller.
+
+**The One Stage Rule.** Give each viewport one obvious evidence-bearing media field and let everything
+else establish context, state, or the next action.
 
 ## Elevation & Depth
 
-The system is flat by default. Hairline rules and tonal surfaces establish most hierarchy. The only
-general elevation is `0 16px 44px rgba(0, 0, 0, 0.34)`, used for the hero copy block, mobile menu, and
-the demo activation control. It always has a visible downward offset and never becomes a colored halo.
+The editorial system is flat by default. Near-black tonal layers and one-pixel rules establish most
+hierarchy. Diffuse black shadows are reserved for true overlays: the hero copy field, disclosure menu,
+media activation, and directional pad. Shadows always have a visible downward offset and never become
+colored halos; ordinary content containers do not combine border and shadow.
 
-Media frames may use a 1px structural edge. Do not pair a border and shadow on ordinary content
-containers.
+Depth of field belongs to the rendered evidence, not the site chrome. Use restrained renderer-owned
+DOF to separate spatial layers while keeping the playable subject, route through the scene, and UI
+controls readable. The full study should reveal more spatial information than the atmospheric home
+crop; do not blur working proof into a cinematic beauty shot.
+
+**The Proof Stays in Focus Rule.** Depth may establish world scale and foreground-to-background
+separation, but it must never hide the interaction, result, or evidence the frame exists to show.
 
 ## Shapes
 
-Controls use an 8px radius. Media and code frames use 12px. The hero copy block remains square because
-it is a compositional field rather than a floating card. Status dots are the only circular state mark;
-pills are not a general component language. Structure comes from straight hairlines and large planar
-regions, not decorative grids or textured chrome.
+The form language is planar and lightly softened. Nested segmented-control selections use the smallest
+corners; compact tags and menu rows use 6px; ordinary controls use 8px; media and code frames use 12px.
+The home copy field remains square because it is a compositional plane, not a floating card. Full media
+frames lose their side radius at the mobile edge.
+
+Status dots are the only recurring circular state mark. Pills are not a general container language.
+Prefer straight hairlines, clipped media, and large planes over decorative grids, textured chrome, or
+arbitrary rounded cards.
 
 ## Components
 
 ### Navigation
 
-The desktop header keeps the brand left, four quiet routes right, and one bordered action. Active and
-hover states change text or surface tone without animated underlines. Mobile uses a semantic `details`
-disclosure with 48px rows and a visible current-page state.
+The desktop header keeps the brand left, the current public destinations right, and one bordered demo
+action. Default links are muted; hover and current-page states become primary text without animated
+underlines. The mobile semantic disclosure uses a raised surface, 48px rows, and a visible active state.
+Navigation reflects the current information architecture; removed or internal destinations do not
+remain as disabled placeholders.
 
-### Buttons and links
+### Buttons and Links
 
-Primary buttons are 46px-high violet rectangles with dark text, 8px corners, and an authored 18px SVG
-arrow. Hover lifts by 2px and shifts to `#A69BFF`. Text links use the same arrow vocabulary without a
-container. Focus is always a 2px violet outline with 3px offset.
+The primary action is a 46px-high violet rectangle with dark ink, 8px corners, and an authored 18px
+SVG arrow. Hover raises it by 2px and moves to the lighter violet state. Text links use the same arrow
+vocabulary without a container. Focus is always a 2px violet outline with a 3px offset. Media activation
+is visually distinct: a near-white 50px control over the poster, because it changes the frame from
+passive evidence to live interaction.
 
-### Media and demo stage
+### Live-Media Stage
 
-A stage shows an honest poster or fixed real render first. “Run live” explicitly starts animation;
-running, paused, loading, and error states remain labeled. Full study pages expose backend selection,
-frame rate, instances, pause, retry, pointer/touch orbit, and keyboard orbit. The homepage removes
-technical HUD clutter but preserves activation and pause.
+The live-media stage is the signature pattern. It owns the poster or fixed preview, canvas, phase,
+fallback, backend choice, measurements, pause/resume state, and interaction controls inside one clipped
+frame. Hero, full-study, and thumbnail variants share this state model while exposing only the controls
+appropriate to their context.
 
-### Editorial rows
+Where a verified poster exists, show it immediately and build the renderer behind it. The full study
+holds that poster until the visitor chooses **Enter the town**; the home hero may autoplay only after it
+is near the viewport. With reduced motion, the hero stays on the poster until explicit activation,
+transitions collapse, and the ready/paused canvas does not scale. Running stages pause when they leave
+the viewport; the ambient hero may resume when it returns only when reduced motion is not requested.
 
-Rows carry plain-text status, a strong title, a one- or two-sentence description, and one SVG action
-mark. Hover adds a quiet surface and horizontal inset. Rows replace card matrices across the public
-information architecture.
+Full-study HUDs may expose backend, running state, frame rate, instances, draw calls, pause, and either
+pointer orbit or movement controls. On narrow screens, remove explanatory labels and lower-priority
+measurements before shrinking actions. The backend group, pause control, and four-way pad remain easy to
+hit. Loading, ready, running, paused, and error states are always understandable in text; retry remains
+available after failure. Thumbnails are visually representative and non-interactive.
 
-### Status language
+### Editorial Rows
 
-Use **Live demo**, **Emerging**, **Active research**, and **Planned** exactly. State is written as text
-and may be reinforced—never replaced—by green, violet, amber, or gray.
+Rows combine plain-text maturity, a strong title, a short description, and one authored SVG action mark.
+Hover adds a quiet surface while the arrow moves diagonally; row geometry does not jump. On mobile, state
+moves above the title and description, preserving a direct reading sequence.
+
+### Status Language
+
+Use direct state labels such as **Live now**, **Live demo**, **Emerging**, **Active research**, and
+**Planned**. State is written as text and may be reinforced—never replaced—by green, violet, amber, or
+gray. A planned product must not receive the same visual treatment as a running study.
+
+### Technical Controls and Source Panes
+
+Backend choices behave as a compact segmented control with the selected option reversed to light. HUD
+chips are informational, not decorative badges. Source panes use a 12px frame, a quiet surface tab bar,
+compact mono type, and backend-aware selected text; the currently running backend may guide the initial
+tab but never overrides an explicit visitor choice.
 
 ## Do's and Don'ts
 
 ### Do
 
-- **Do** lead with a real demo, still, or documented artifact.
-- **Do** distinguish what runs now from emerging work and future intent.
-- **Do** use one dominant media frame and varied editorial pacing.
-- **Do** preserve the explicit still-to-live transition and reduced-motion behavior.
+- **Do** lead with a verified poster, live demo, or documented artifact.
+- **Do** distinguish running work, emerging tools, active research, and future intent in text.
+- **Do** preserve poster-first loading, explicit activation, pause/resume, and reduced-motion behavior.
+- **Do** keep mobile live-media actions at least 44px high and directional controls 44px square.
+- **Do** use one dominant media frame, restrained depth of field, and varied editorial pacing.
 - **Do** use the authored SVG icon family for directional actions.
 
 ### Don't
 
-- **Don't** market the internal development process or turn it into homepage hierarchy.
+- **Don't** treat internal development process as marketing copy or homepage hierarchy.
 - **Don't** present generated direction art as Emberwyrd footage or research evidence.
-- **Don't** use feature-card walls, eyebrow headings, decorative section numbers, or generic icon grids.
+- **Don't** use depth of field to obscure the subject, controls, or proof of a working study.
+- **Don't** use feature-card walls, decorative section numbers, or generic icon grids.
 - **Don't** use gradient text, glassmorphism, neon halos, starfields, or ambient WebGL decoration.
 - **Don't** invent packages, maturity, dates, metrics, model results, customers, or playable releases.

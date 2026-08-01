@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@antiky/framework": "0.0.0",
-    "brometal": "0.12.3"
+    "brometal": "file:../../vendor/brometal-0.12.3-pr2-d519e15.tgz"
   },
   "peerDependencies": {
     "react": "^19.1.0"

@@ -48,7 +48,13 @@ export default function DemoDeck({ demo, prev, next, index, sources }: Props) {
       </section>
 
       <div className="deck-stage wrap">
-        <DemoStage key={demo.slug} slug={demo.slug} label={`${demo.title} — interactive live study`} />
+        <DemoStage
+          key={demo.slug}
+          slug={demo.slug}
+          label={`${demo.title} — interactive live study`}
+          controlMode={demo.controlMode}
+          poster={demo.slug === 'town-study' ? '/media/town-study-poster.png' : undefined}
+        />
       </div>
 
       <div className="demo-meta wrap">

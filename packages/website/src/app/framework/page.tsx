@@ -24,13 +24,18 @@ export default function FrameworkPage() {
         <p className="status-line"><span className="status-dot status-emerging" /> Emerging framework</p>
         <p className="page-lead">Antiky Framework is an open-source game framework taking shape on top of BroMetal. Its focus is 2.3D: crisp 2D characters and objects inside spatial, depth-aware environments.</p>
         <div className="actions">
-          <Link className="button button-primary" href="/demos/depth-study">Run Depth Study <ArrowUpRight /></Link>
+          <Link className="button button-primary" href="/demos/town-study">Run Town Study <ArrowUpRight /></Link>
           <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">Explore BroMetal {BROMETAL_VERSION} <ArrowUpRight /></a>
         </div>
       </section>
 
-      <section className="wide-media wrap" aria-label="Depth Study preview">
-        <DemoStage slug="depth-study" label="Depth Study — live framework experiment" />
+      <section className="wide-media wrap" aria-label="Town Study preview">
+        <DemoStage
+          slug="town-study"
+          poster="/media/town-study-poster.png"
+          controlMode="move"
+          label="Town Study — live framework experiment"
+        />
       </section>
 
       <section className="content-section wrap split-heading">

@@ -9,23 +9,25 @@ export type DemoMeta = {
   proves: string[];
   tags: string[];
   controls?: string;
+  controlMode?: 'move' | 'orbit';
 };
 
 export const DEMOS: readonly DemoMeta[] = [
   {
-    slug: 'depth-study',
-    title: 'Depth Study',
+    slug: 'town-study',
+    title: 'Town Study',
     pillar: 'Framework',
-    tagline: 'A live study of 2D characters sharing light, fog, and depth with a 3D world.',
+    tagline: 'A living pixel cast inside a golden-hour voxel town.',
     notes:
-      'Depth Study is a small browser scene built on BroMetal. Sprite billboards and simple 3D geometry share one camera and one depth buffer, so characters can move behind objects instead of being composited as a separate layer. It is an experiment, not footage from Emberwyrd or a finished Antiky Framework feature.',
+      'Cross the canal and enter a market town at sunset. Lit cardboard travelers move through dense voxel streets, cast long shadows, and disappear naturally behind bridges, stalls, and buildings.',
     proves: [
-      '2D characters can be placed convincingly inside spatial 3D scenes',
-      'Geometry occludes characters through depth rather than manual layer order',
-      'The same study runs through BroMetal on WebGPU or WebGL2',
+      'A handcrafted bridge, market, canal, houses, and bell tower',
+      'Crisp illustrated travelers with physical depth, light, and shadow',
+      'A walkable scene with grounded movement and solid architecture',
     ],
-    tags: ['2.3D', 'sprites', 'depth'],
-    controls: 'Drag or use arrow keys to orbit',
+    tags: ['2.3D', 'voxel town', 'real-time lighting'],
+    controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
+    controlMode: 'move',
   },
   {
     slug: 'shader-study',

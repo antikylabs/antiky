@@ -20,6 +20,16 @@ export type Pointer = {
   clicked: boolean;
 };
 
+/** Directional input normalized to one unit. Keyboard and touch controls write
+ * the same state so a demo never needs to know which device produced it. */
+export type MovementInput = {
+  x: number;
+  z: number;
+  active: boolean;
+};
+
+export type DemoMode = 'ambient' | 'interactive' | 'thumbnail';
+
 /** Numbers a demo wants shown in the HUD. Static facts, mostly — the stage
  *  measures frame rate itself. */
 export type DemoStats = {
@@ -34,6 +44,8 @@ export type DemoStats = {
 export type DemoSetup = {
   renderer: Renderer;
   pointer: Pointer;
+  movement: MovementInput;
+  mode: DemoMode;
   report(stats: DemoStats): void;
 };
 

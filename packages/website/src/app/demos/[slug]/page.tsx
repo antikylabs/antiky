@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DEMOS, findDemo, neighbours } from '@antiky/demos/catalog';
@@ -44,6 +44,7 @@ function auroraSources(): ShaderSources {
 
 export default async function DemoPage({ params }: Params) {
   const { slug } = await params;
+  if (slug === 'depth-study') redirect('/demos/town-study');
   const demo = findDemo(slug);
   const around = neighbours(slug);
   if (!demo || !around) notFound();

@@ -3,7 +3,7 @@ import type { DemoFactory } from './runtime';
 /* Public names are intentionally product-facing. The renderers remain small,
  * reusable studies and can be replaced without changing the website routes. */
 const LOADERS: Record<string, () => Promise<{ default: DemoFactory }>> = {
-  'depth-study': () => import('./render/sprite-depth'),
+  'town-study': () => import('./render/town-study'),
   'shader-study': () => import('./render/one-source'),
 };
 

@@ -1,0 +1,169 @@
+import {
+  shader,
+  abs,
+  clamp,
+  cross,
+  discard,
+  dot,
+  floor,
+  length,
+  max,
+  mix,
+  mod,
+  normalize,
+  smoothstep,
+  step,
+  targetUv,
+  texture,
+  vec2,
+  vec3,
+  vec4,
+  type Vec3,
+  type Vec4,
+} from 'brometal';
+
+function keyedAlpha(texelSample: Vec4, colorKey: Vec3, useColorKey: number): number {
+  const keyed = (1 - smoothstep(0.015, 0.075, length(texelSample.xyz.sub(colorKey)))) *
+    clamp(useColorKey, 0, 1);
+  return texelSample.w * (1 - keyed);
+}
+
+/**
+ * Lit cardboard-standee shader.
+ *
+ * The illustrated face of a die-cut cardboard standee. Physical side walls are
+ * emitted from the atlas alpha contour by sprite-batch.ts and rendered through
+ * the town surface shader. There is intentionally no dilation, halo, keyline,
+ * or front-facing white outline in this shader.
+ */
+export default shader({
+  attributes: { aPosition: 'vec3', aUv: 'vec2', aShell: 'float' },
+  instanceAttributes: {
+    iCenter: 'vec3',
+    iSize: 'vec2',
+    iUvRect: 'vec4',
+    iTint: 'vec4',
+    iFacing: 'vec3',
+  },
+  uniforms: {
+    uViewProj: 'mat4',
+    uLightViewProj: 'mat4',
+    uRight: 'vec3',
+    uUp: 'vec3',
+    uCamPos: 'vec3',
+    uLightDir: 'vec3',
+    uAtlas: 'sampler2D',
+    uCutoff: 'float',
+    uColorKey: 'vec3',
+    uUseColorKey: 'float',
+    uStandeeThickness: 'float',
+    uAmbientLight: 'vec3',
+    uFrontLight: 'vec3',
+    uBackLight: 'vec3',
+    uSideLight: 'vec3',
+    uFogColor: 'vec3',
+    uFogStart: 'float',
+    uFogEnd: 'float',
+    uFogStrength: 'float',
+    uShadowMap: 'sampler2D',
+    uShadowTexel: 'vec2',
+    uShadowBias: 'float',
+    uShadowSlopeBias: 'float',
+    uShadowStrength: 'float',
+  },
+  varyings: {
+    vUv: 'vec2',
+    vTint: 'vec4',
+    vFacing: 'vec3',
+    vWorld: 'vec3',
+    vBillboardNormal: 'vec3',
+    vDepth: 'float',
+  },
+
+  vertex(
+    { aPosition, aUv, aShell, iCenter, iSize, iUvRect, iTint, iFacing },
+    { uViewProj, uRight, uUp, uCamPos, uStandeeThickness },
+    v,
+  ) {
+    const billboardNormal = normalize(cross(uRight, uUp));
+    const world = iCenter
+      .add(uRight.scale(aPosition.x * iSize.x))
+      .add(uUp.scale(aPosition.y * iSize.y))
+      .add(billboardNormal.scale(aShell * uStandeeThickness * 0.5));
+    v.vUv = iUvRect.xy.add(aUv.mul(iUvRect.zw));
+    v.vTint = iTint;
+    v.vFacing = iFacing;
+    v.vWorld = world;
+    v.vBillboardNormal = billboardNormal;
+    v.vDepth = length(world.sub(uCamPos));
+    return uViewProj.mul(vec4(world, 1));
+  },
+
+  fragment(
+    {
+      uLightViewProj,
+      uLightDir,
+      uAtlas,
+      uCutoff,
+      uColorKey,
+      uUseColorKey,
+      uAmbientLight,
+      uFrontLight,
+      uBackLight,
+      uSideLight,
+      uFogColor,
+      uFogStart,
+      uFogEnd,
+      uFogStrength,
+      uShadowMap,
+      uShadowTexel,
+      uShadowBias,
+      uShadowSlopeBias,
+      uShadowStrength,
+    },
+    { vUv, vTint, vFacing, vWorld, vBillboardNormal, vDepth },
+  ) {
+    const texel = texture(uAtlas, vUv);
+    const alpha = keyedAlpha(texel, uColorKey, uUseColorKey) * vTint.w;
+    if (alpha < uCutoff) discard();
+
+    const facingLength = max(length(vec2(vFacing.x, vFacing.z)), 0.001);
+    const facing = vec3(vFacing.x / facingLength, 0, vFacing.z / facingLength);
+    const lightLength = max(length(vec2(uLightDir.x, uLightDir.z)), 0.001);
+    const horizontalLight = vec3(uLightDir.x / lightLength, 0, uLightDir.z / lightLength);
+    const facingLight = dot(facing, horizontalLight);
+    const elevation = clamp(uLightDir.y, 0, 1);
+    const frontWeight = max(facingLight, 0) * (0.55 + elevation * 0.45);
+    const backWeight = max(-facingLight, 0) * (0.55 + elevation * 0.45);
+    const sideWeight = 1 - abs(facingLight);
+
+    const lightClip = uLightViewProj.mul(vec4(vWorld, 1));
+    const shadowUv = targetUv(lightClip);
+    const receiverDepth = clamp(lightClip.z / lightClip.w * 0.5 + 0.5, 0, 1);
+    const insideShadow = step(0.001, shadowUv.x) * step(shadowUv.x, 0.999) *
+      step(0.001, shadowUv.y) * step(shadowUv.y, 0.999) *
+      step(0.001, receiverDepth) * step(receiverDepth, 0.999) *
+      step(0.001, lightClip.w);
+    const billboardNdotL = max(dot(normalize(vBillboardNormal), normalize(uLightDir)), 0);
+    const slope = 1 - billboardNdotL;
+    const depthBias = uShadowBias + uShadowSlopeBias * slope * slope;
+    let occluded = 0;
+    for (let i = 0; i < 9; i += 1) {
+      const x = mod(i, 3) - 1;
+      const y = floor(i / 3) - 1;
+      const stored = texture(uShadowMap, shadowUv.add(uShadowTexel.mul(vec2(x, y))));
+      const nearestDepth = stored.x + stored.y / 255;
+      occluded = occluded + step(nearestDepth + depthBias, receiverDepth);
+    }
+    const shadow = 1 - insideShadow * clamp(uShadowStrength, 0, 1) * occluded / 9;
+
+    const directional = uFrontLight.scale(frontWeight)
+      .add(uBackLight.scale(backWeight))
+      .add(uSideLight.scale(sideWeight))
+      .scale(shadow);
+    let color = texel.xyz.mul(vTint.xyz).mul(uAmbientLight.add(directional));
+    const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
+    color = mix(color, uFogColor, fog);
+    return vec4(max(color, vec3(0, 0, 0)), vDepth);
+  },
+});
