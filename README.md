@@ -1,7 +1,18 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="packages/website/public/brand/antiky-labs-wordmark-and-text-white.png">
+    <source media="(prefers-color-scheme: light)" srcset="packages/website/public/brand/antiky-labs-wordmark-and-text-black.png">
+    <img src="packages/website/public/brand/antiky-labs-wordmark-and-text-black.png" alt="Antiky Labs" width="372">
+  </picture>
+</p>
+
 # Antiky monorepo
 
 This repository contains the Antiky Labs website, public demos, and the emerging Antiky Framework as
 npm workspaces.
+
+Canonical wordmark, lockup, and name-only files are available in the
+[Antiky Labs brand kit](packages/website/public/brand/README.md) as SVGs and transparent PNGs.
 
 ## Packages
 

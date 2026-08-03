@@ -14,8 +14,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "shaders": "npm run shaders --workspace @antiky/demos",
     "test": "npm test --workspaces --if-present",
+    "test:webgpu-only": "node --test scripts/webgpu-only.test.mjs",
     "test:zdloop": "npm test --workspace @antiky/zdloop",
-    "check": "npm run typecheck && npm test",
+    "check": "npm run typecheck && npm test && npm run test:webgpu-only",
     "zdarchive": "node packages/zdloop/archive-tasks.mjs",
     "zdloop": "node packages/zdloop/session-loop.mjs"
   },
