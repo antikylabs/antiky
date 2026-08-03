@@ -2,6 +2,8 @@ import console from "node:console";
 import process from "node:process";
 import { clearTimeout, setTimeout } from "node:timers";
 
+import { renderDecision } from "./session-loop-decision.mjs";
+
 const ANSI = {
   boldCyan: "\u001b[1;36m",
   cyan: "\u001b[36m",
@@ -178,6 +180,9 @@ export function createTui(control) {
   const state = {
     activity: [],
     currentTask: "Reading the work queue",
+    decisionAnswer: "",
+    decisionNotice: "",
+    decisionTask: "",
     feedbackProcessed: 0,
     loopState: undefined,
     notice: "",
@@ -193,6 +198,7 @@ export function createTui(control) {
     waitRemaining: 0,
   };
   let previousRawMode = false;
+  let decisionAction;
   let summaryAction;
 
   function color(value, code) {
@@ -268,9 +274,7 @@ export function createTui(control) {
     const fixedLines = lines.length + 3;
     const activityHeight = Math.max(3, height - fixedLines);
     const allActivity =
-      state.streamView === "raw"
-        ? rawActivityLines(taskWidth)
-        : activityLines(taskWidth);
+      state.streamView === "raw" ? rawActivityLines(taskWidth) : activityLines(taskWidth);
     const maxScroll = Math.max(0, allActivity.length - activityHeight);
     state.streamScroll = Math.min(state.streamScroll, maxScroll);
     const activityEnd = allActivity.length - state.streamScroll;
@@ -319,14 +323,31 @@ export function createTui(control) {
     const width = Math.max(50, Math.min(output.columns ?? 90, 120));
     const height = Math.max(20, output.rows ?? 30);
     const lines =
-      state.phase === "summary" ? renderSummary(width, height) : renderDashboard(width, height);
+      state.phase === "summary"
+        ? renderSummary(width, height)
+        : state.phase === "decision"
+          ? renderDecision(
+              {
+                answer: state.decisionAnswer,
+                color,
+                notice: state.decisionNotice,
+                shorten,
+                task: state.decisionTask,
+              },
+              width,
+              height,
+            )
+          : renderDashboard(width, height);
     output.write(`${TUI_CLEAR}${lines.slice(0, height).join("\n")}`);
   }
 
   function handleInput(chunk) {
     if (chunk.includes("\u0003")) {
       if (state.phase === "summary") summaryAction?.("quit");
-      else control.requestKill();
+      else {
+        control.requestKill();
+        if (state.phase === "decision") decisionAction?.("");
+      }
       return;
     }
 
@@ -352,6 +373,29 @@ export function createTui(control) {
     if (sawMouseEvent) render();
 
     for (const key of keyboardInput) {
+      if (state.phase === "decision") {
+        if (key === "\r" || key === "\n") {
+          const answer = state.decisionAnswer.trim();
+          if (!answer) {
+            state.decisionNotice = "Type a decision before submitting.";
+            render();
+          } else {
+            const resolveDecision = decisionAction;
+            decisionAction = undefined;
+            resolveDecision?.(answer);
+          }
+        } else if (key === "\u007f" || key === "\b") {
+          state.decisionAnswer = [...state.decisionAnswer].slice(0, -1).join("");
+          state.decisionNotice = "";
+          render();
+        } else if (key >= " ") {
+          state.decisionAnswer += key;
+          state.decisionNotice = "";
+          render();
+        }
+        continue;
+      }
+
       if (state.phase === "summary") {
         if (key === "c") summaryAction?.("continue");
         else if (key === "q" || key === "x") summaryAction?.("quit");
@@ -464,6 +508,16 @@ export function createTui(control) {
           summaryAction = undefined;
           resolvePromise(action);
         };
+      });
+    },
+    waitForDecision(task) {
+      state.phase = "decision";
+      state.decisionAnswer = "";
+      state.decisionNotice = "";
+      state.decisionTask = task;
+      render();
+      return new Promise((resolvePromise) => {
+        decisionAction = resolvePromise;
       });
     },
   };

@@ -16,6 +16,13 @@ the formal objective paths and prompts. When the process or TUI changes in `zd`,
 change and its regression tests here; this temporary package can disappear once Antiky consumes a
 released upstream package.
 
+`COMPARE` tasks run as normal Codex sessions and commit a neutral side-by-side artifact. When the
+following `DECIDE` reaches the front of the queue, the dashboard pauses before launching Codex,
+shows the decision task, and accepts the user's answer directly. Type the decision and press
+Enter; zdloop passes it to one `$zd-session`, which implements and records the choice before the
+loop continues. A non-interactive or `--no-tui` run stops cleanly and requests an interactive
+restart instead of repeating the unanswered decision.
+
 The root manifest pins the shared Next, PostCSS, sharp, and Transformers.js versions as security
 anchors. npm applies root overrides consistently across workspaces only when those packages are
 also direct root dependencies; `tests/integration.test.mjs` guards the patched resolved versions.

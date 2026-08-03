@@ -101,6 +101,14 @@ function isBlocked(line) {
   return blockVerdicts.at(-1) === "BLOCKED";
 }
 
+function isDecision(line) {
+  return /^\([ABC]\) \d{4}-\d{2}-\d{2} DECIDE\b/.test(line);
+}
+
+function buildDecisionPrompt(task, answer) {
+  return `Use $zd-session to complete exactly this task:\n\n${task}\n\nThe user reviewed the preceding COMPARE and supplied this decision:\n\nUser decision: ${answer}\n\nTreat that as the resolved product direction. Implement it, verify it, commit it, tick off the task, and stop after the handoff.`;
+}
+
 function readPlan() {
   if (!existsSync(TODO_PATH))
     fail(`${TODO_RELATIVE_PATH} does not exist; run this command from the repository root`);
@@ -231,7 +239,11 @@ function printDryRun(state, waitLabel, waitMs, startCommit) {
 
   for (const [index, task] of plan.tasks.entries()) {
     console.log(`\n${index + 1}. ${task}`);
-    console.log(`   Prompt: ${PROMPT}`);
+    if (isDecision(task)) {
+      console.log("   Human input required in the TUI before this session.");
+    } else {
+      console.log(`   Prompt: ${PROMPT}`);
+    }
   }
 
   printBlocked(plan);
@@ -291,6 +303,11 @@ async function runLoop(waitLabel, waitMs, startCommit) {
       state.feedback.entries.length > 0
         ? `Triage ${state.feedback.entries.length} pending ${FEEDBACK_RELATIVE_PATH} entries, then take the first eligible task`
         : state.plan.tasks[0];
+    if (state.feedback.entries.length === 0 && isDecision(task)) {
+      console.log(`Decision required: ${task}`);
+      console.log("Run zdloop interactively to answer it.");
+      return;
+    }
     console.log(`Starting Codex session ${sessionCount + 1}: ${task}`);
     const result = await runCodex(PROMPT, { sandbox: "workspace-write" });
     appendMemory(task, PROMPT, result);
@@ -397,15 +414,21 @@ async function runTuiLoop(waitLabel, waitMs, initialCommit, tui, control) {
         state.feedback.entries.length > 0
           ? `Triage ${state.feedback.entries.length} pending ${FEEDBACK_RELATIVE_PATH} entries, then take the first eligible task`
           : state.plan.tasks[0];
+      let prompt = PROMPT;
+      if (state.feedback.entries.length === 0 && isDecision(task)) {
+        const answer = await tui.waitForDecision(task);
+        if (control.killRequested) throw new LoopKilledError();
+        prompt = buildDecisionPrompt(task, answer);
+      }
       tui.setPhase("running", task);
-      const result = await runCodex(PROMPT, {
+      const result = await runCodex(prompt, {
         activitySummarizer,
         control,
         sandbox: "workspace-write",
         tui,
       });
       if (control.killRequested) throw new LoopKilledError();
-      appendMemory(task, PROMPT, result);
+      appendMemory(task, prompt, result);
       if (result.code !== 0) fail(`Codex exited with status ${result.code}; stopping the loop`);
 
       const nextState = readLoopState();

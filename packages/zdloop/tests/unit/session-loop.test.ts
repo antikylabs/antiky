@@ -207,6 +207,22 @@ CHECKPOINT - stop here
     expect(result.stdout).toContain("Waiting for an API");
   });
 
+  it("marks DECIDE tasks as requiring TUI input before their Codex session", () => {
+    const root = makeFixture(`# plan
+(B) 2026-08-03 COMPARE two options side by side +p2 @design est:20m
+(B) 2026-08-03 DECIDE whether option one or option two wins +p2 @design est:20m
+CHECKPOINT - stop here
+`);
+
+    const result = run(root, "60s", "--dry-run");
+
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain(
+      "2. (B) 2026-08-03 DECIDE whether option one or option two wins",
+    );
+    expect(result.stdout).toContain("Human input required in the TUI before this session.");
+  });
+
   it("refuses to run a plan with no future checkpoint", () => {
     const root = makeFixture(`(A) 2026-07-30 Work forever +p2 @editor est:20m\n`);
 
@@ -238,6 +254,88 @@ CHECKPOINT - stop here
 });
 
 describe("the Codex session loop", () => {
+  it("pauses at DECIDE, accepts an answer in the TUI, and passes it to Codex", async () => {
+    const task =
+      "(B) 2026-08-03 DECIDE whether highlighting stays Rust-only or expands +p2 @design est:20m";
+    const root = makeFixture(`${task}\nCHECKPOINT - inspect the result\n`);
+    const bin = installFakeCodex(
+      root,
+      `import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+const root = process.cwd();
+const prompt = process.argv.at(-1);
+appendFileSync(join(root, "invocations.jsonl"), JSON.stringify({ prompt }) + "\\n");
+const emit = (event) => process.stdout.write(JSON.stringify(event) + "\\n");
+if (prompt.includes("final read-only recap")) {
+  emit({ type: "item.completed", item: { type: "agent_message", text: "Decision implemented." } });
+  emit({ type: "turn.completed", usage: {} });
+  process.exit(0);
+}
+const todoPath = join(root, "docs", "objectives", "03-TODO_A.txt");
+const todo = readFileSync(todoPath, "utf8");
+writeFileSync(todoPath, "x 2026-08-03 " + todo);
+emit({ type: "item.completed", item: { type: "agent_message", text: "Expanded highlighting." } });
+emit({ type: "turn.completed", usage: {} });
+`,
+    );
+    const tui = startTui(root, bin);
+    const invocationPath = join(root, "invocations.jsonl");
+
+    await waitFor(
+      () => currentScreen(tui.stdout()).includes("Decision required"),
+      "the decision prompt",
+    );
+    expect(existsSync(invocationPath)).toBe(false);
+    tui.child.stdin.write("expandedd\u007f\n");
+
+    await waitFor(
+      () =>
+        existsSync(invocationPath) &&
+        readFileSync(invocationPath, "utf8").trim().split("\n").length === 2,
+      "the decision session and recap",
+    );
+    await waitFor(() => currentScreen(tui.stdout()).includes("Summary ready"), "the final recap");
+    tui.child.stdin.write("q");
+    const result = await tui.completed;
+
+    expect(result.status, result.stderr).toBe(0);
+    const invocations = readFileSync(invocationPath, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as { prompt: string });
+    expect(invocations[0]!.prompt).toContain(task);
+    expect(invocations[0]!.prompt).toContain("User decision: expanded");
+    expect(readFileSync(join(root, "docs", "objectives", "03-TODO_A.txt"), "utf8")).toContain(
+      `x 2026-08-03 ${task}`,
+    );
+  });
+
+  it("stops cleanly at DECIDE without a TUI instead of invoking Codex", () => {
+    const task = "(B) 2026-08-03 DECIDE choose one or two +p2 @design est:20m";
+    const root = makeFixture(`${task}\nCHECKPOINT - stop\n`);
+    const bin = installFakeCodex(
+      root,
+      `import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+writeFileSync(join(process.cwd(), "invoked"), "yes");
+`,
+    );
+
+    const result = spawnSync(process.execPath, [RUNNER, "1ms", "--no-tui"], {
+      cwd: root,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        PATH: `${bin}${delimiter}${process.env.PATH ?? ""}`,
+      },
+    });
+
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain(`Decision required: ${task}`);
+    expect(result.stdout).toContain("Run zdloop interactively to answer it.");
+    expect(existsSync(join(root, "invoked"))).toBe(false);
+  });
+
   it("gracefully stops after the active session, shows its recap, and continues on command", async () => {
     const root = makeFixture(`(A) 2026-07-30 First task +p2 @editor est:20m
 (B) 2026-07-30 Second task +p2 @editor est:20m
@@ -345,7 +443,7 @@ setTimeout(() => {
       invocations.filter(({ prompt }) => prompt.includes("final read-only recap")),
     ).toHaveLength(2);
     for (const invocation of invocations) expect(invocation.args).toContain("--json");
-  });
+  }, 10_000);
 
   it("kills the active Codex process immediately without running a recap", async () => {
     const root = makeFixture(`(A) 2026-07-30 Long task +p2 @editor est:20m
