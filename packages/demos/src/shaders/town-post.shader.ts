@@ -40,7 +40,7 @@ function townSky(
   sunPosition: Vec2,
   sunRadius: number,
 ): Vec3 {
-  // This receives a backend-independent screen coordinate, not targetUv.
+  // This receives a screen coordinate, not a render-target coordinate.
   // y=0 is the lower edge and y=1 the upper edge.
   const height = uv.y;
   const balancedHorizon = restrainedWarm(horizon, 0.58);
@@ -108,7 +108,7 @@ export default shader({
     v.vUv = targetUv(vec4(aPosition.x, aPosition.y, 0, 1));
     // targetUv intentionally flips Y for WebGPU render-target sampling. Keep a
     // second unflipped coordinate for the procedural sky, sun and vignette so
-    // those effects land in the same screen-space position on both backends.
+    // those effects land in the same screen-space position.
     v.vScreenUv = vec2(aPosition.x * 0.5 + 0.5, aPosition.y * 0.5 + 0.5);
     return vec4(aPosition.x, aPosition.y, 0, 1);
   },
@@ -186,10 +186,10 @@ export default shader({
       const angle = i * 2.39996;
       const spread = sqrt((i + 0.5) / 8);
       const offset = vec2(cos(angle), sin(angle)).scale(spread * sampleRadius);
-      const uv = clamp(
-        vUv.add(offset.mul(uTexel)),
-        vec2(0.001, 0.001),
-        vec2(0.999, 0.999),
+      const rawUv = vUv.add(offset.mul(uTexel));
+      const uv = vec2(
+        clamp(rawUv.x, 0.001, 0.999),
+        clamp(rawUv.y, 0.001, 0.999),
       );
       const tapRaw = texture(uScene, uv);
       const tapIsSky = smoothstep(uFarDepth * 0.985, uFarDepth * 0.998, tapRaw.w);
@@ -264,13 +264,14 @@ export default shader({
     const preToneLuma = luminance(graded);
     const toeLift = 1 - smoothstep(0.02, 0.22, preToneLuma);
     graded = graded.add(vec3(0.006, 0.009, 0.015).scale(toeLift));
-    graded = gammaCorrect(tonemapACES(max(graded, vec3(0, 0, 0))), 2.2);
+    const positiveGrade = vec3(max(graded.x, 0), max(graded.y, 0), max(graded.z, 0));
+    graded = gammaCorrect(tonemapACES(positiveGrade), 2.2);
     graded = brightnessContrast(graded, 0, uContrast);
 
     const centered = vScreenUv.sub(vec2(0.5, 0.5)).mul(vec2(1, 0.86));
     const radial = length(centered) * 1.41421;
     const vignette = 1 - clamp(uVignette, 0, 0.45) * smoothstep(0.56, 1.02, radial);
-    graded = clamp(graded.scale(vignette), vec3(0, 0, 0), vec3(1, 1, 1));
+    graded = clamp(graded.scale(vignette), 0, 1);
     return vec4(graded, 1);
   },
 });

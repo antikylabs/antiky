@@ -33,15 +33,15 @@ export const DEMOS: readonly DemoMeta[] = [
     slug: 'shader-study',
     title: 'Shader Study',
     pillar: 'Research',
-    tagline: 'One authored shader compiled for WebGPU and WebGL2.',
+    tagline: 'One typed shader compiled ahead of time for WebGPU.',
     notes:
-      'Shader Study isolates one useful property of BroMetal: a typed TypeScript shader source can be compiled to both WGSL and GLSL ES 3.00. Switch the backend while the study is running, then inspect the source and generated output below.',
+      'Shader Study isolates one useful property of BroMetal: a typed TypeScript shader source compiles ahead of time to WGSL. Run the study, then inspect the authored source and generated output below.',
     proves: [
-      'One TypeScript shader source targets both browser graphics APIs',
-      'The active backend can be changed without changing the study code',
-      'Generated WGSL and GLSL remain inspectable alongside the authored source',
+      'Typed TypeScript becomes browser-ready shader code at build time',
+      'No shader compiler ships to the browser',
+      'Generated WGSL remains inspectable beside the authored source',
     ],
-    tags: ['WebGPU', 'WebGL2', 'shaders'],
+    tags: ['WebGPU', 'WGSL', 'shaders'],
   },
 ];
 

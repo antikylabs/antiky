@@ -4,8 +4,8 @@
  * Cells are authored on an integer lattice. The compiler greedily joins
  * adjacent faces that share material data, so a solid block produces six
  * quads rather than the internal and overlapping faces produced by cube
- * instancing. Vertex attributes intentionally stay Float32: BroMetal's shared
- * WebGL2/WebGPU attribute surface currently accepts float attributes only.
+ * instancing. Vertex attributes intentionally stay Float32 to match BroMetal's
+ * GPU attribute surface.
  */
 
 export type VoxelColor = readonly [number, number, number];
@@ -45,7 +45,7 @@ export type VoxelSurfaceMesh = {
   emissive: Float32Array;
   /** Baked local visibility, one Float32 value per vertex (1 = open). */
   localAo: Float32Array;
-  /** Triangle-list indices. Uint32 is accepted by BroMetal on both backends. */
+  /** Triangle-list indices. BroMetal accepts Uint32 index buffers. */
   indices: Uint32Array;
   bounds: {
     min: readonly [number, number, number];

@@ -97,7 +97,7 @@ export default shader({
     const surfaceNormal = rotatedFrontNormal.scale(side);
     const thickness = 0.012 + iSize.x * 0.012;
     const world = iCenter.add(rotated).add(surfaceNormal.scale(thickness));
-    v.vUv = iUvRect.xy.add(aUv.mul(iUvRect.zw));
+    v.vUv = iUvRect.xy.add(aUv.mul(vec2(iUvRect.z, iUvRect.w)));
     v.vWorld = world;
     v.vNormal = surfaceNormal;
     v.vSide = side;
@@ -182,6 +182,6 @@ export default shader({
     color = color.add(warmKey.scale(specular));
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
     color = mix(color, uFogColor, fog);
-    return vec4(max(color, vec3(0, 0, 0)), vDepth);
+    return vec4(vec3(max(color.x, 0), max(color.y, 0), max(color.z, 0)), vDepth);
   },
 });

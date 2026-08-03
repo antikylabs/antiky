@@ -214,7 +214,12 @@ export default shader({
     let surfaceUv = vec2(vWorld.x, vWorld.z);
     if (abs(normal.x) > 0.5) surfaceUv = vec2(vWorld.z, vWorld.y);
     if (abs(normal.z) > 0.5) surfaceUv = vec2(vWorld.x, vWorld.y);
-    surfaceUv = mix(vec2(0.02, 0.02), vec2(0.98, 0.98), fract(surfaceUv.scale(0.82)));
+    const tiledUv = surfaceUv.scale(0.82);
+    const wrappedUv = vec2(fract(tiledUv.x), fract(tiledUv.y));
+    surfaceUv = vec2(
+      mix(0.02, 0.98, wrappedUv.x),
+      mix(0.02, 0.98, wrappedUv.y),
+    );
 
     const materialId = floor(vMaterialId + 0.5);
     let atlasTile = 0;
@@ -378,6 +383,6 @@ export default shader({
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
     color = mix(color, uFogColor, fog);
-    return vec4(max(color, vec3(0, 0, 0)), vDepth);
+    return vec4(vec3(max(color.x, 0), max(color.y, 0), max(color.z, 0)), vDepth);
   },
 });

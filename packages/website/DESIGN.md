@@ -151,7 +151,7 @@ The interface is almost neutral so live rendering and research artifacts remain 
 ### State
 
 - **Live Green:** confirms running or presently available work.
-- **Research Amber:** identifies active investigation and the WebGL2 technical state.
+- **Research Amber:** identifies active investigation and unresolved technical states.
 - **Error Red:** belongs only to failure and recovery states.
 
 **The Scarce Accent Rule.** Violet identifies the next meaningful action or a selected technical
@@ -176,7 +176,7 @@ marketing copy into a terminal.
 - **Section:** fluid editorial headings with near-solid leading and a practical maximum line length.
 - **Lead:** larger Inter copy used once to establish the section's central idea.
 - **Body:** regular Inter at the browser default size, generally kept near 64–68 characters per line.
-- **Technical:** compact mono for backend, frame rate, draw calls, source tabs, status, and attribution.
+- **Technical:** compact mono for frame rate, draw calls, source tabs, status, and attribution.
   Use the smallest 9–10px labels only for secondary non-reading metadata; interactive labels should
   remain at least 11px.
 
@@ -254,7 +254,7 @@ passive evidence to live interaction.
 ### Live-Media Stage
 
 The live-media stage is the signature pattern. It owns the poster or fixed preview, canvas, phase,
-fallback, backend choice, measurements, pause/resume state, and interaction controls inside one clipped
+fallback, measurements, pause/resume state, and interaction controls inside one clipped
 frame. Hero, full-study, and thumbnail variants share this state model while exposing only the controls
 appropriate to their context.
 
@@ -264,10 +264,10 @@ is near the viewport. With reduced motion, the hero stays on the poster until ex
 transitions collapse, and the ready/paused canvas does not scale. Running stages pause when they leave
 the viewport; the ambient hero may resume when it returns only when reduced motion is not requested.
 
-Full-study HUDs may expose backend, running state, frame rate, instances, draw calls, pause, and either
+Full-study HUDs may expose running state, frame rate, instances, draw calls, pause, and either
 pointer orbit or movement controls. On narrow screens, remove explanatory labels and lower-priority
-measurements before shrinking actions. The backend group, pause control, and four-way pad remain easy to
-hit. Loading, ready, running, paused, and error states are always understandable in text; retry remains
+measurements before shrinking actions. The pause control and four-way pad remain easy to hit. Loading,
+ready, running, paused, and error states are always understandable in text; retry remains
 available after failure. Thumbnails are visually representative and non-interactive.
 
 ### Editorial Rows
@@ -282,12 +282,11 @@ Use direct state labels such as **Live now**, **Live demo**, **Emerging**, **Act
 **Planned**. State is written as text and may be reinforced—never replaced—by green, violet, amber, or
 gray. A planned product must not receive the same visual treatment as a running study.
 
-### Technical Controls and Source Panes
+### Technical Readouts and Source Panes
 
-Backend choices behave as a compact segmented control with the selected option reversed to light. HUD
-chips are informational, not decorative badges. Source panes use a 12px frame, a quiet surface tab bar,
-compact mono type, and backend-aware selected text; the currently running backend may guide the initial
-tab but never overrides an explicit visitor choice.
+HUD chips are informational, not decorative badges. Source panes use a 12px frame, a quiet surface tab
+bar, and compact mono type. They separate authored TypeScript from generated WGSL without repeating
+runtime status that the live stage already communicates.
 
 ## Do's and Don'ts
 
@@ -306,5 +305,5 @@ tab but never overrides an explicit visitor choice.
 - **Don't** present generated direction art as Emberwyrd footage or research evidence.
 - **Don't** use depth of field to obscure the subject, controls, or proof of a working study.
 - **Don't** use feature-card walls, decorative section numbers, or generic icon grids.
-- **Don't** use gradient text, glassmorphism, neon halos, starfields, or ambient WebGL decoration.
+- **Don't** use gradient text, glassmorphism, neon halos, starfields, or ambient GPU decoration.
 - **Don't** invent packages, maturity, dates, metrics, model results, customers, or playable releases.

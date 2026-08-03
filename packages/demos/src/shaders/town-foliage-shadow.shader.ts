@@ -11,6 +11,7 @@ import {
   normalize,
   sin,
   texture,
+  vec2,
   vec3,
   vec4,
 } from 'brometal';
@@ -86,7 +87,8 @@ export default shader({
     // Keep otherwise-unused attributes in this program's interface so the
     // visible and caster programs bind identical geometry/instance streams.
     const interfaceNoop = aNormalWind.x * 0 + iTint.x * 0;
-    v.vUv = iUvRect.xy.add(aUv.mul(iUvRect.zw)).add(vec3(interfaceNoop, interfaceNoop, 0).xy);
+    v.vUv = iUvRect.xy.add(aUv.mul(vec2(iUvRect.z, iUvRect.w)))
+      .add(vec3(interfaceNoop, interfaceNoop, 0).xy);
     v.vKind = iKind;
     v.vWorld = world;
     return uLightViewProj.mul(vec4(world, 1));
@@ -97,7 +99,7 @@ export default shader({
     { vUv, vKind, vWorld },
   ) {
     // Keep the implicit-derivative sample outside the per-instance kind branch
-    // so this caster is valid WGSL as well as GLSL.
+    // so every invocation samples in uniform control flow.
     const atlasSample = texture(uAtlas, vUv);
     if (vKind < 0.5) {
       if (atlasSample.w < uCutoff) discard();

@@ -78,6 +78,31 @@ const NPC_COUNT = 8;
 const NPC_WALKER_INDICES = [0, 1, 3, 4, 0, 1, 3, 4] as const;
 const NPC_START_PROGRESS = [0.08, 0.38, 0.64, 0.82, 0.55, 0.76, 0.18, 0.43] as const;
 
+function orthographic(
+  left: number,
+  right: number,
+  bottom: number,
+  top: number,
+  near: number,
+  far: number,
+): Float32Array {
+  const width = right - left;
+  const height = top - bottom;
+  const depth = far - near;
+  if (width === 0 || height === 0 || depth === 0) {
+    throw new Error('Orthographic projection requires a non-empty volume.');
+  }
+  const matrix = new Float32Array(16);
+  matrix[0] = 2 / width;
+  matrix[5] = 2 / height;
+  matrix[10] = -2 / depth;
+  matrix[12] = -(right + left) / width;
+  matrix[13] = -(top + bottom) / height;
+  matrix[14] = -(far + near) / depth;
+  matrix[15] = 1;
+  return matrix;
+}
+
 const PRACTICAL_LIGHTS = [
   { position: [-3.565, 4.237, 6.82], radius: 4, power: 1.05, color: [1, 0.52, 0.22] },
   { position: [3.565, 4.237, 6.82], radius: 4, power: 1.05, color: [1, 0.52, 0.22] },
@@ -175,7 +200,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
     lightTarget[2] + LIGHT_DIR[2] * 102,
   ];
   const lightView = mat4.lookAt(lightEye, lightTarget);
-  const lightProjection = mat4.orthographic(-54, 54, -50, 50, 0.5, 170);
+  const lightProjection = orthographic(-54, 54, -50, 50, 0.5, 170);
   const lightViewProjection = mat4.multiply(lightProjection, lightView);
 
   const worldShadowProgram = createProgram(renderer, shadowShader);
@@ -635,26 +660,6 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
     return sceneTarget;
   };
 
-  /**
-   * WebGL texture units are context-global rather than program-local. BroMetal's
-   * sampler handles bind immediately, so a render target sampled by the prior
-   * pass can otherwise still be bound when that same target becomes the next
-   * framebuffer attachment. WebGPU bind groups do not need this guard.
-   */
-  const unbindWebglTextures = (): void => {
-    const gl = renderer.gl;
-    if (!gl) return;
-    // Texture bindings are context-global in WebGL. Clear every unit BroMetal
-    // could have assigned so adding another atlas never reintroduces a render-
-    // target feedback loop during shadow/scene ping-pong.
-    const unitCount = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS) as number;
-    for (let unit = 0; unit < unitCount; unit += 1) {
-      gl.activeTexture(gl.TEXTURE0 + unit);
-      gl.bindTexture(gl.TEXTURE_2D, null);
-    }
-    gl.activeTexture(gl.TEXTURE0);
-  };
-
   report({
     instances: 1 + npcs.length + awningCount + propCount + foliageCardCount + foliageTrunkCount,
     drawCalls: 16,
@@ -803,36 +808,34 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
         program.uniforms.uTime.set(simulationTime);
         program.uniforms.uWindStrength.set(windStrength);
       }
-      unbindWebglTextures();
       renderer.drawTo(
         shadowTarget,
         () => {
           worldShadowProgram.draw();
           if (foliageTrunkShadowCount > 0) {
             foliageTrunkShadowProgram.uniforms.uAtlas.set(vegetationTexture);
-            foliageTrunkShadowProgram.draw({ instanceCount: foliageTrunkShadowCount });
+            foliageTrunkShadowProgram.draw();
           }
           if (foliageCardShadowCount > 0) {
             foliageCardShadowProgram.uniforms.uAtlas.set(vegetationTexture);
-            foliageCardShadowProgram.draw({ instanceCount: foliageCardShadowCount });
+            foliageCardShadowProgram.draw();
           }
           if (awningShadowCount > 0) {
-            awningShadowProgram.draw({ instanceCount: awningShadowCount });
+            awningShadowProgram.draw();
           }
           if (propShadowCount > 0) {
             propShadowProgram.uniforms.uAtlas.set(propTexture);
-            propShadowProgram.draw({ instanceCount: propShadowCount });
+            propShadowProgram.draw();
           }
           if (shadowActorCount > 0) {
             actorShadowProgram.uniforms.uAtlas.set(actorTexture);
-            actorShadowProgram.draw({ instanceCount: shadowActorCount });
+            actorShadowProgram.draw();
           }
         },
         { clear: SHADOW_CLEAR },
       );
 
       const scene = ensureSceneTarget();
-      unbindWebglTextures();
       renderer.drawTo(
         scene,
         () => {
@@ -847,14 +850,14 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
             foliageTrunkProgram.uniforms.uCamPos.set(cameraPosition);
             foliageTrunkProgram.uniforms.uAtlas.set(vegetationTexture);
             foliageTrunkProgram.uniforms.uShadowMap.set(shadowTarget.texture);
-            foliageTrunkProgram.draw({ instanceCount: foliageTrunkCount });
+            foliageTrunkProgram.draw();
           }
           if (foliageCardCount > 0) {
             foliageCardProgram.uniforms.uViewProj.set(viewProjection);
             foliageCardProgram.uniforms.uCamPos.set(cameraPosition);
             foliageCardProgram.uniforms.uAtlas.set(vegetationTexture);
             foliageCardProgram.uniforms.uShadowMap.set(shadowTarget.texture);
-            foliageCardProgram.draw({ instanceCount: foliageCardCount });
+            foliageCardProgram.draw();
           }
 
           waterProgram.uniforms.uViewProj.set(viewProjection);
@@ -875,7 +878,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
             awningProgram.uniforms.uTime.set(simulationTime);
             awningProgram.uniforms.uMaterialAtlas.set(materialTexture);
             awningProgram.uniforms.uShadowMap.set(shadowTarget.texture);
-            awningProgram.draw({ instanceCount: awningCount });
+            awningProgram.draw();
           }
 
           if (propCount > 0) {
@@ -883,7 +886,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
             propProgram.uniforms.uCamPos.set(cameraPosition);
             propProgram.uniforms.uAtlas.set(propTexture);
             propProgram.uniforms.uShadowMap.set(shadowTarget.texture);
-            propProgram.draw({ instanceCount: propCount });
+            propProgram.draw();
           }
 
           if (actorSides.indices.length > 0) {
@@ -901,7 +904,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
             actorProgram.uniforms.uCamPos.set(cameraPosition);
             actorProgram.uniforms.uAtlas.set(actorTexture);
             actorProgram.uniforms.uShadowMap.set(shadowTarget.texture);
-            actorProgram.draw({ instanceCount: visibleActorCount });
+            actorProgram.draw();
           }
         },
         { clear: SCENE_CLEAR },

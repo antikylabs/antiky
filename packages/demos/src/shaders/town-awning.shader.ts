@@ -147,7 +147,11 @@ export default shader({
     { vUv, vWorld, vNormal, vStyle, vSide, vDepth },
   ) {
     const localInset = vec2(uMaterialAtlasTexel.x * 4, uMaterialAtlasTexel.y * 3);
-    const clothUv = mix(localInset, vec2(1, 1).sub(localInset), vUv);
+    const farInset = vec2(1, 1).sub(localInset);
+    const clothUv = vec2(
+      mix(localInset.x, farInset.x, vUv.x),
+      mix(localInset.y, farInset.y, vUv.y),
+    );
     // Tile eight is the bottom-left red/cream market cloth.
     const atlasUv = vec2(clothUv.x / 4, clothUv.y / 3);
     const clothSample = texture(uMaterialAtlas, atlasUv).xyz;
@@ -199,6 +203,6 @@ export default shader({
     color = color.add(uSkyColor.scale(clothEdge));
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
     color = mix(color, uFogColor, fog);
-    return vec4(max(color, vec3(0, 0, 0)), vDepth);
+    return vec4(vec3(max(color.x, 0), max(color.y, 0), max(color.z, 0)), vDepth);
   },
 });

@@ -175,7 +175,7 @@ export default shader({
 
     // The canal catches the same authored lantern bank as the town instead of
     // reading as an unlit blue strip after sunset. Four nearby fixtures are a
-    // bounded shared-backend path; no clustered-light compute dependency.
+    // bounded lighting path; no clustered-light compute dependency.
     let practical = vec3(0, 0, 0);
     if (uPracticalCount > 0.5) practical = practical.add(practicalWaterRadiance(
       vWorld, normal, view, uPracticalPosInvRangeSq0, uPracticalColorPower0,
@@ -193,6 +193,6 @@ export default shader({
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
     color = mix(color, uFogColor, fog);
-    return vec4(max(color, vec3(0, 0, 0)), vDepth);
+    return vec4(vec3(max(color.x, 0), max(color.y, 0), max(color.z, 0)), vDepth);
   },
 });

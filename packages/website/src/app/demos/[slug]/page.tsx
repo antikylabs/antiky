@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 /**
- * Shader Study shows its own source next to both compiler outputs. The
+ * Shader Study shows its own source next to the compiler output. The
  * TypeScript is read off disk at build time rather than pasted into a string,
  * so the pane cannot drift from the file that is actually compiled.
  */
@@ -37,8 +37,7 @@ function auroraSources(): ShaderSources {
   );
   return {
     typescript,
-    glsl: `${auroraShader.vertexSrc}\n// ── fragment ──────────────────────────────\n${auroraShader.fragmentSrc}`,
-    wgsl: auroraShader.wgslSrc ?? '// This build emitted no WGSL.',
+    wgsl: auroraShader.wgslSrc,
   };
 }
 

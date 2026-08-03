@@ -1,13 +1,8 @@
 'use client';
 
-import { createRenderer, type Renderer, type RendererBackend } from 'brometal';
+import { createRenderer, type Renderer } from 'brometal';
 import { useEffect, useRef, useState } from 'react';
-import BackendToggle from './BackendToggle';
 import {
-  getBackendChoice,
-  setLiveBackend,
-  subscribeBackend,
-  type BackendChoice,
   type DemoInstance,
   type DemoMode,
   type DemoStats,
@@ -50,8 +45,6 @@ export default function LiveDemoStage({
   const movementRef = useRef<MovementInput>({ x: 0, z: 0, active: false });
   const pressedRef = useRef(new Set<string>());
   const touchRef = useRef({ x: 0, z: 0 });
-  const [choice, setChoice] = useState<BackendChoice>('auto');
-  const [live, setLive] = useState<RendererBackend | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<DemoStats>({});
   const [fps, setFps] = useState(0);
@@ -78,11 +71,6 @@ export default function LiveDemoStage({
   };
 
   useEffect(() => {
-    setChoice(getBackendChoice());
-    return subscribeBackend(setChoice);
-  }, []);
-
-  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -99,7 +87,6 @@ export default function LiveDemoStage({
     pressedRef.current.clear();
     touchRef.current = { x: 0, z: 0 };
     setError(null);
-    setLive(null);
     setFps(0);
     setPhase(poster ? 'poster' : 'loading');
 
@@ -185,7 +172,6 @@ export default function LiveDemoStage({
       setPhase('loading');
       try {
         renderer = await createRenderer(canvas, {
-          backend: choice,
           clearColor: [0.05, 0.04, 0.045, 1],
           cull: 'back',
         });
@@ -193,9 +179,6 @@ export default function LiveDemoStage({
           renderer.destroy();
           return;
         }
-        setLive(renderer.backend);
-        if (variant === 'full') setLiveBackend(renderer.backend);
-
         const factory = await loadDemo(slug);
         if (!factory) throw new Error(`No demo is registered under "${slug}".`);
         demo = await factory({
@@ -251,10 +234,7 @@ export default function LiveDemoStage({
         renderer?.destroy();
         if (cancelled) return;
         const detail = cause instanceof Error ? cause.message : String(cause);
-        const message = choice === 'webgpu'
-          ? `WebGPU is selected, but this browser could not start it (${detail}). Choose Auto or WebGL2 and try again.`
-          : `The study could not start — ${detail}`;
-        setError(message);
+        setError(`WebGPU could not start — ${detail}`);
         setPhase('error');
       }
     };
@@ -283,7 +263,6 @@ export default function LiveDemoStage({
       cancelled = true;
       runningRef.current = false;
       movementRef.current = { x: 0, z: 0, active: false };
-      if (variant === 'full') setLiveBackend(null);
       observer.disconnect();
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerdown', onDown);
@@ -294,7 +273,7 @@ export default function LiveDemoStage({
       window.removeEventListener('blur', onBlur);
       teardown?.();
     };
-  }, [slug, choice, variant, poster, controlMode, retry]);
+  }, [slug, variant, poster, controlMode, retry]);
 
   const toggleRunning = () => {
     const next = !runningRef.current;
@@ -316,7 +295,7 @@ export default function LiveDemoStage({
       style={poster ? { backgroundImage: `url(${poster})` } : undefined}
     >
       <canvas
-        key={`${choice}-${retry}`}
+        key={retry}
         ref={canvasRef}
         className="stage-canvas"
         aria-label={label ?? `${slug} interactive study`}
@@ -324,7 +303,7 @@ export default function LiveDemoStage({
         tabIndex={variant === 'full' || variant === 'hero' ? 0 : -1}
       />
 
-      {phase === 'loading' ? <div className="stage-status" role="status">Loading the town…</div> : null}
+      {phase === 'loading' ? <div className="stage-status" role="status">Loading study…</div> : null}
 
       {error ? (
         <div className="stage-fallback" role="alert">
@@ -344,7 +323,6 @@ export default function LiveDemoStage({
 
       {variant === 'full' && phase !== 'error' && phase !== 'poster' && phase !== 'loading' ? (
         <div className="stage-hud">
-          <BackendToggle live={live} />
           <div className="hud-readout" aria-live="polite">
             <span className="hud-chip"><b>{phase}</b></span>
             {phase === 'running' ? <span className="hud-chip"><b>{fps || '—'}</b> fps</span> : null}

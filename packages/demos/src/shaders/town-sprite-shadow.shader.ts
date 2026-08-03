@@ -9,6 +9,7 @@ import {
   normalize,
   smoothstep,
   texture,
+  vec2,
   vec4,
 } from 'brometal';
 
@@ -53,7 +54,7 @@ export default shader({
       .add(uRight.scale(aPosition.x * iSize.x + facingNoop))
       .add(uUp.scale(aPosition.y * iSize.y))
       .add(billboardNormal.scale(aShell * uStandeeThickness * 0.5));
-    v.vUv = iUvRect.xy.add(aUv.mul(iUvRect.zw));
+    v.vUv = iUvRect.xy.add(aUv.mul(vec2(iUvRect.z, iUvRect.w)));
     v.vTintAlpha = iTint.w;
     v.vWorld = world;
     return uLightViewProj.mul(vec4(world, 1));

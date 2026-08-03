@@ -2,9 +2,9 @@ import { createPlane, createProgram } from 'brometal';
 import auroraShader from '../shaders/aurora.shader.gen';
 import type { DemoFactory } from '../runtime';
 
-/* One TypeScript function, running as GLSL ES 3.00 or as WGSL depending on the
- * toggle. The demo page shows all three texts side by side; this file only has
- * to hand the shader a fullscreen quad and a clock. */
+/* One TypeScript function compiled ahead of time to WGSL. The demo page shows
+ * the authored source and generated output; this file only has to hand the
+ * shader a fullscreen quad and a clock. */
 
 const factory: DemoFactory = ({ renderer, report }) => {
   const program = createProgram(renderer, auroraShader);
@@ -16,7 +16,7 @@ const factory: DemoFactory = ({ renderer, report }) => {
   report({
     drawCalls: 1,
     bytesPerFrame: 8,
-    note: 'the same shader source, compiled to both languages at build time',
+    note: 'typed shader source compiled to WGSL at build time',
   });
 
   return {

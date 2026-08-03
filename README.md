@@ -34,6 +34,19 @@ website → demos → framework
 - Demos depend on the framework and expose needs that justify new framework capabilities.
 - The framework never depends on the website or demo packages.
 
+The demos use BroMetal 0.14 and run on WebGPU only. The runner creates the WebGPU renderer directly;
+there is no graphics fallback or runtime selector.
+
+## Documentation
+
+The public documentation index is [`docs/README.md`](docs/README.md).
+
+- [Antiky Improvement Proposals](docs/aip/README.md) are contributor-authored proposals for
+  meaningful product, feature, process, governance, architecture, or other improvements.
+- [Architecture Decision Records](docs/adr/README.md) are written and owned by Core Contributors
+  after an architectural decision has been made. An accepted AIP may result in zero, one, or several
+  ADRs.
+
 ## Install
 
 ```bash
@@ -72,7 +85,7 @@ npm run dev:demos -- sprite-depth
 ## Checks and builds
 
 ```bash
-npm run typecheck
+npm run check
 npm run build
 npm run shaders
 ```
@@ -87,5 +100,5 @@ The website's development and production commands compile the demo shaders befor
 4. Add its public metadata to `packages/demos/src/catalog.ts`.
 5. Run it with `npm run dev -- demos <slug>`.
 
-`DemoStage` owns renderer creation, backend selection, the frame loop, visibility pausing, pointer
+`DemoStage` owns WebGPU renderer creation, the frame loop, visibility pausing, pointer
 state, and teardown. Individual demos only build their rendering resources and draw.

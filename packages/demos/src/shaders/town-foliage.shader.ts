@@ -128,7 +128,7 @@ export default shader({
       inverseScaledNormal.x * sine + inverseScaledNormal.z * cosine,
     ));
 
-    v.vUv = iUvRect.xy.add(aUv.mul(iUvRect.zw));
+    v.vUv = iUvRect.xy.add(aUv.mul(vec2(iUvRect.z, iUvRect.w)));
     v.vLocalUv = aUv;
     v.vTint = iTint;
     v.vKind = iKind;
@@ -220,6 +220,6 @@ export default shader({
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
     color = mix(color, uFogColor, fog);
-    return vec4(max(color, vec3(0, 0, 0)), vDepth);
+    return vec4(vec3(max(color.x, 0), max(color.y, 0), max(color.z, 0)), vDepth);
   },
 });

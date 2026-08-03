@@ -2,8 +2,8 @@ import { shader, length, vec2, vec3, vec4 } from 'brometal';
 import { cosinePalette, fbm2, tonemapACES } from 'brometal/shader-functions';
 
 /**
- * Deliberately short: this shader exists to be read next to the GLSL and the
- * WGSL the compiler emits from it. Both outputs come from these twenty lines.
+ * Deliberately short: this shader exists to be read next to the WGSL the
+ * compiler emits from it.
  */
 export default shader({
   attributes: { aPosition: 'vec3', aUv: 'vec2' },

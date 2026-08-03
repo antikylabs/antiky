@@ -9,6 +9,7 @@ import {
   normalize,
   sin,
   texture,
+  vec2,
   vec3,
   vec4,
 } from 'brometal';
@@ -55,7 +56,7 @@ export default shader({
     const surfaceNormal = rotatedFrontNormal.scale(aPosition.z);
     const thickness = 0.012 + iSize.x * 0.012;
     const world = iCenter.add(rotated).add(surfaceNormal.scale(thickness));
-    v.vUv = iUvRect.xy.add(aUv.mul(iUvRect.zw));
+    v.vUv = iUvRect.xy.add(aUv.mul(vec2(iUvRect.z, iUvRect.w)));
     v.vWorld = world;
     return uLightViewProj.mul(vec4(world, 1));
   },

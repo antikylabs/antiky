@@ -47,7 +47,7 @@ function fallingNormal(uvX: number, uvY: number, phase: number, time: number): V
  * 0 horizontal channel/basin/splash, 1 falling ribbon, 2 fountain jet.
  * The shader deliberately does not alpha blend. Remaining fragments write
  * stable hardware depth and linear camera distance in scene alpha, matching
- * the town post-processing payload on WebGL2 and WebGPU.
+ * the town post-processing payload.
  */
 export default shader({
   attributes: {
@@ -249,6 +249,6 @@ export default shader({
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
     color = mix(color, uFogColor, fog);
-    return vec4(max(color, vec3(0, 0, 0)), vDepth);
+    return vec4(vec3(max(color.x, 0), max(color.y, 0), max(color.z, 0)), vDepth);
   },
 });

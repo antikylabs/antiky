@@ -6,7 +6,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.
 
 export const GITHUB_URL = 'https://github.com/shadowcodex';
 export const BROMETAL_URL = 'https://brometal.dev';
-export const BROMETAL_VERSION = '0.12.3';
+export const BROMETAL_VERSION = '0.14.0';
 
 export const STATUS_LINE =
   'Antiky Framework and Emberwyrd are in development. The browser studies are the work you can run today.';

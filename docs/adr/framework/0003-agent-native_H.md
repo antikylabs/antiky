@@ -1,0 +1,3 @@
+# 0003: Agent Native
+
+All systems we build will be Agent Native. This means our framework will be built in a way that agents can use easier, we will provide MCPs and Tooling for testing, inspection, information, etc...
