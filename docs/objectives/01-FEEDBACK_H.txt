@@ -4,3 +4,4 @@
 # The agent archives these words verbatim and never writes new findings here.
 
 ---
+Framework should have a devmode that launches a browser with the game canvas mounted, minimal launch for test and play.
