@@ -2,12 +2,6 @@
 import type { CompiledShader } from 'brometal';
 
 const groundShader: CompiledShader<{ aPosition: 'vec3' }, Record<string, never>, { uViewProj: 'mat4'; uModel: 'mat4'; uFog: 'vec3'; uCamPos: 'vec3'; uFogDist: 'float'; uBase: 'vec3'; uLine: 'vec3' }> = {
-  vertexSrc: `#version 300 es
-layout(location=0)in vec3 aPosition;uniform mat4 uViewProj;uniform mat4 uModel;out vec3 vWorld;void main(){vec4 world=uModel*vec4(aPosition,1.0);vWorld=world.xyz;gl_Position=uViewProj*world;}
-`,
-  fragmentSrc: `#version 300 es
-precision highp float;uniform vec3 uFog;uniform vec3 uCamPos;uniform float uFogDist;uniform vec3 uBase;uniform vec3 uLine;in vec3 vWorld;out vec4 fragColor;void main(){float gx=abs(fract(vWorld.x)- 0.5);float gz=abs(fract(vWorld.z)- 0.5);float grid=smoothstep(0.44,0.5,max(gx,gz));float fog=clamp(length(vWorld - uCamPos)/uFogDist,0.0,1.0);fragColor=vec4(mix(mix(uBase,uLine,grid*0.7),uFog,fog*0.95),1.0);}
-`,
   wgslSrc: `struct BmUniforms {
   uViewProj : mat4x4f,
   uModel : mat4x4f,
@@ -47,6 +41,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   instanceAttributes: {},
   uniforms: { uViewProj: 'mat4', uModel: 'mat4', uFog: 'vec3', uCamPos: 'vec3', uFogDist: 'float', uBase: 'vec3', uLine: 'vec3' },
   layout: {"attributes":[{"name":"aPosition","type":"vec3","location":0,"size":3,"divisor":0}],"uniforms":[{"name":"uViewProj","type":"mat4","kind":"m4fv","size":16,"offset":0},{"name":"uModel","type":"mat4","kind":"m4fv","size":16,"offset":64},{"name":"uFog","type":"vec3","kind":"3fv","size":3,"offset":128},{"name":"uCamPos","type":"vec3","kind":"3fv","size":3,"offset":144},{"name":"uFogDist","type":"float","kind":"1f","size":1,"offset":156},{"name":"uBase","type":"vec3","kind":"3fv","size":3,"offset":160},{"name":"uLine","type":"vec3","kind":"3fv","size":3,"offset":176}],"uniformBlockSize":192},
+
 };
 
 export default groundShader;

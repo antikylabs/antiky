@@ -2,12 +2,6 @@
 import type { CompiledShader } from 'brometal';
 
 const spriteShader: CompiledShader<{ aPosition: 'vec3'; aUv: 'vec2' }, { iPos: 'vec3'; iSize: 'vec2'; iCell: 'float'; iTint: 'vec3' }, { uViewProj: 'mat4'; uRight: 'vec3'; uAtlas: 'sampler2D'; uCells: 'float'; uFog: 'vec3'; uCamPos: 'vec3'; uFogDist: 'float' }> = {
-  vertexSrc: `#version 300 es
-layout(location=0)in vec3 aPosition;layout(location=1)in vec2 aUv;layout(location=2)in vec3 iPos;layout(location=3)in vec2 iSize;layout(location=4)in float iCell;layout(location=5)in vec3 iTint;uniform mat4 uViewProj;uniform vec3 uRight;uniform float uCells;uniform vec3 uCamPos;uniform float uFogDist;out vec2 vUv;out vec3 vTint;out float vFog;void main(){vec3 world=iPos + uRight*(aPosition.x*iSize.x)+ vec3(0.0,1.0,0.0)*((aPosition.y + 0.5)*iSize.y);vUv=vec2((aUv.x + iCell)/uCells,aUv.y);vTint=iTint;vFog=clamp(length(world - uCamPos)/uFogDist,0.0,1.0);gl_Position=uViewProj*vec4(world,1.0);}
-`,
-  fragmentSrc: `#version 300 es
-precision highp float;uniform sampler2D uAtlas;uniform vec3 uFog;in vec2 vUv;in vec3 vTint;in float vFog;out vec4 fragColor;void main(){vec4 texel=texture(uAtlas,vUv);fragColor=vec4(mix(texel.xyz*vTint,uFog,vFog*0.85),texel.w);}
-`,
   wgslSrc: `struct BmUniforms {
   uViewProj : mat4x4f,
   uRight : vec3f,
@@ -54,6 +48,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   instanceAttributes: { iPos: 'vec3', iSize: 'vec2', iCell: 'float', iTint: 'vec3' },
   uniforms: { uViewProj: 'mat4', uRight: 'vec3', uAtlas: 'sampler2D', uCells: 'float', uFog: 'vec3', uCamPos: 'vec3', uFogDist: 'float' },
   layout: {"attributes":[{"name":"aPosition","type":"vec3","location":0,"size":3,"divisor":0},{"name":"aUv","type":"vec2","location":1,"size":2,"divisor":0},{"name":"iPos","type":"vec3","location":2,"size":3,"divisor":1},{"name":"iSize","type":"vec2","location":3,"size":2,"divisor":1},{"name":"iCell","type":"float","location":4,"size":1,"divisor":1},{"name":"iTint","type":"vec3","location":5,"size":3,"divisor":1}],"uniforms":[{"name":"uViewProj","type":"mat4","kind":"m4fv","size":16,"offset":0},{"name":"uRight","type":"vec3","kind":"3fv","size":3,"offset":64},{"name":"uAtlas","type":"sampler2D","kind":"1i","size":1,"unit":0,"textureBinding":1,"samplerBinding":2},{"name":"uCells","type":"float","kind":"1f","size":1,"offset":76},{"name":"uFog","type":"vec3","kind":"3fv","size":3,"offset":80},{"name":"uCamPos","type":"vec3","kind":"3fv","size":3,"offset":96},{"name":"uFogDist","type":"float","kind":"1f","size":1,"offset":108}],"uniformBlockSize":112},
+
 };
 
 export default spriteShader;

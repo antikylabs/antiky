@@ -2,12 +2,6 @@
 import type { CompiledShader } from 'brometal';
 
 const townAwningShadowShader: CompiledShader<{ aPosition: 'vec3'; aUv: 'vec2' }, { iCenter: 'vec3'; iSize: 'vec2'; iYaw: 'float'; iSlope: 'float'; iStyle: 'float'; iPhase: 'float' }, { uLightViewProj: 'mat4'; uTime: 'float' }> = {
-  vertexSrc: `#version 300 es
-layout(location=0)in vec3 aPosition;layout(location=1)in vec2 aUv;layout(location=2)in vec3 iCenter;layout(location=3)in vec2 iSize;layout(location=4)in float iYaw;layout(location=5)in float iSlope;layout(location=6)in float iStyle;layout(location=7)in float iPhase;uniform mat4 uLightViewProj;uniform float uTime;out vec3 vWorld;void main(){float phaseA=uTime*1.35 + iPhase*6.28318 + aUv.x*5.4 + aUv.y*2.1;float phaseB=uTime*0.83 + iPhase*10.6814 - aUv.x*3.2 + aUv.y*4.6;float waveA=sin(phaseA);float waveB=sin(phaseB);float freeEdge=0.35 + smoothstep(0.12,1.0,aUv.y)*0.65;float wind=(waveA*0.7 + waveB*0.3)*0.026*freeEdge;float sagAmplitude=0.03 + iSize.y*0.012;float sagX=sin(aUv.x*3.14159);float sagZ=sin(aUv.y*3.14159);float localX=aPosition.x*iSize.x;float localZ=aPosition.z*iSize.y;float localY=-aPosition.z*iSlope*iSize.y - sagX*sagZ*sagAmplitude + wind;float safeWidth=max(iSize.x,0.01);float safeDepth=max(iSize.y,0.01);float dyDx=-cos(aUv.x*3.14159)*3.14159/safeWidth*sagZ*sagAmplitude +(cos(phaseA)*5.4*0.7 - cos(phaseB)*3.2*0.3)/safeWidth*0.026*freeEdge;float dyDz=-iSlope - sagX*cos(aUv.y*3.14159)*3.14159/safeDepth*sagAmplitude +(cos(phaseA)*2.1*0.7 + cos(phaseB)*4.6*0.3)/safeDepth*0.026*freeEdge;vec3 localNormal=normalize(vec3(-dyDx,1.0,-dyDz));float yawCos=cos(iYaw);float yawSin=sin(iYaw);float styleNoop=iStyle*0.0;vec3 rotated=vec3(yawCos*localX + yawSin*localZ + styleNoop,localY,-yawSin*localX + yawCos*localZ);vec3 upperNormal=normalize(vec3(yawCos*localNormal.x + yawSin*localNormal.z,localNormal.y,-yawSin*localNormal.x + yawCos*localNormal.z));vec3 world=iCenter + rotated + upperNormal*(aPosition.y*0.008);vWorld=world;gl_Position=uLightViewProj*vec4(world,1.0);}
-`,
-  fragmentSrc: `#version 300 es
-precision highp float;uniform mat4 uLightViewProj;in vec3 vWorld;out vec4 fragColor;void main(){vec4 clip=uLightViewProj*vec4(vWorld,1.0);float depth=clamp(clip.z/clip.w*0.5 + 0.5,0.0,1.0);float scaled=depth*255.0;fragColor=vec4(floor(scaled)/255.0,fract(scaled),depth,1.0);}
-`,
   wgslSrc: `struct BmUniforms {
   uLightViewProj : mat4x4f,
   uTime : f32,
@@ -70,6 +64,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   instanceAttributes: { iCenter: 'vec3', iSize: 'vec2', iYaw: 'float', iSlope: 'float', iStyle: 'float', iPhase: 'float' },
   uniforms: { uLightViewProj: 'mat4', uTime: 'float' },
   layout: {"attributes":[{"name":"aPosition","type":"vec3","location":0,"size":3,"divisor":0},{"name":"aUv","type":"vec2","location":1,"size":2,"divisor":0},{"name":"iCenter","type":"vec3","location":2,"size":3,"divisor":1},{"name":"iSize","type":"vec2","location":3,"size":2,"divisor":1},{"name":"iYaw","type":"float","location":4,"size":1,"divisor":1},{"name":"iSlope","type":"float","location":5,"size":1,"divisor":1},{"name":"iStyle","type":"float","location":6,"size":1,"divisor":1},{"name":"iPhase","type":"float","location":7,"size":1,"divisor":1}],"uniforms":[{"name":"uLightViewProj","type":"mat4","kind":"m4fv","size":16,"offset":0},{"name":"uTime","type":"float","kind":"1f","size":1,"offset":64}],"uniformBlockSize":80},
+
 };
 
 export default townAwningShadowShader;

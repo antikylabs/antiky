@@ -2,12 +2,6 @@
 import type { CompiledShader } from 'brometal';
 
 const stormShader: CompiledShader<{ aPosition: 'vec3'; aNormal: 'vec3' }, { iSeed: 'vec4' }, { uViewProj: 'mat4'; uTime: 'float'; uSpread: 'float' }> = {
-  vertexSrc: `#version 300 es
-layout(location=0)in vec3 aPosition;layout(location=1)in vec3 aNormal;layout(location=2)in vec4 iSeed;uniform mat4 uViewProj;uniform float uTime;uniform float uSpread;out vec3 vColor;out vec3 vNormal;vec3 cosinePalette(float t,vec3 a,vec3 b,vec3 c,vec3 d){vec3 phase=(c*t + d)*6.28318;return a + vec3(cos(phase.x),cos(phase.y),cos(phase.z))*b;}vec3 rotate3(vec3 p,vec3 axis,float angle){vec3 a=normalize(axis);float c=cos(angle);float s=sin(angle);return p*c + cross(a,p)*s + a*(dot(a,p)*(1.0 - c));}void main(){float orbit=iSeed.x*6.2831853 + uTime*(0.08 + iSeed.y*0.22);float radius=(0.25 + iSeed.z*0.75)*uSpread;float rise=sin(uTime*(0.2 + iSeed.w*0.5)+ iSeed.x*9.0)*uSpread*0.32;vec3 centre=vec3(cos(orbit)*radius,rise +(iSeed.w - 0.5)*uSpread*0.5,sin(orbit)*radius);vec3 axis=vec3(iSeed.y - 0.5,iSeed.z + 0.2,iSeed.x - 0.5);vec3 spun=rotate3(aPosition*(0.06 + iSeed.z*0.05),axis,uTime*(0.6 + iSeed.y*2.0));vNormal=rotate3(aNormal,axis,uTime*(0.6 + iSeed.y*2.0));vColor=cosinePalette(fract(iSeed.x*0.7 + iSeed.z*0.3),vec3(0.42,0.3,0.28),vec3(0.45,0.32,0.3),vec3(1.0,0.9,0.7),vec3(0.0,0.15,0.35));gl_Position=uViewProj*vec4(spun + centre,1.0);}
-`,
-  fragmentSrc: `#version 300 es
-precision highp float;in vec3 vColor;in vec3 vNormal;out vec4 fragColor;float lambert(vec3 normal,vec3 lightDir){return max(dot(normalize(normal),normalize(lightDir)),0.0);}void main(){float key=lambert(vNormal,vec3(0.4,0.8,0.45));fragColor=vec4(vColor*(0.3 + key*0.9),1.0);}
-`,
   wgslSrc: `struct BmUniforms {
   uViewProj : mat4x4f,
   uTime : f32,
@@ -62,6 +56,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   instanceAttributes: { iSeed: 'vec4' },
   uniforms: { uViewProj: 'mat4', uTime: 'float', uSpread: 'float' },
   layout: {"attributes":[{"name":"aPosition","type":"vec3","location":0,"size":3,"divisor":0},{"name":"aNormal","type":"vec3","location":1,"size":3,"divisor":0},{"name":"iSeed","type":"vec4","location":2,"size":4,"divisor":1}],"uniforms":[{"name":"uViewProj","type":"mat4","kind":"m4fv","size":16,"offset":0},{"name":"uTime","type":"float","kind":"1f","size":1,"offset":64},{"name":"uSpread","type":"float","kind":"1f","size":1,"offset":68}],"uniformBlockSize":80},
+
 };
 
 export default stormShader;

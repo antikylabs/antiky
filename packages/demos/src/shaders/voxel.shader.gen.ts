@@ -2,12 +2,6 @@
 import type { CompiledShader } from 'brometal';
 
 const voxelShader: CompiledShader<{ aPosition: 'vec3'; aNormal: 'vec3' }, { iOffset: 'vec3'; iScale: 'vec3'; iColor: 'vec3' }, { uViewProj: 'mat4'; uLightDir: 'vec3'; uFog: 'vec3'; uCamPos: 'vec3'; uFogDist: 'float' }> = {
-  vertexSrc: `#version 300 es
-layout(location=0)in vec3 aPosition;layout(location=1)in vec3 aNormal;layout(location=2)in vec3 iOffset;layout(location=3)in vec3 iScale;layout(location=4)in vec3 iColor;uniform mat4 uViewProj;uniform vec3 uCamPos;uniform float uFogDist;out vec3 vNormal;out vec3 vColor;out float vFog;void main(){vec3 world=aPosition*iScale + iOffset;vNormal=aNormal;vColor=iColor;vFog=clamp(length(world - uCamPos)/uFogDist,0.0,1.0);gl_Position=uViewProj*vec4(world,1.0);}
-`,
-  fragmentSrc: `#version 300 es
-precision highp float;uniform vec3 uLightDir;uniform vec3 uFog;in vec3 vNormal;in vec3 vColor;in float vFog;out vec4 fragColor;vec3 hemisphereLight(vec3 normal,vec3 skyColor,vec3 groundColor){float blend=normalize(normal).y*0.5 + 0.5;return mix(groundColor,skyColor,blend);}float lambert(vec3 normal,vec3 lightDir){return max(dot(normalize(normal),normalize(lightDir)),0.0);}void main(){vec3 n=normalize(vNormal);vec3 ambient=hemisphereLight(n,vec3(0.3,0.36,0.48),vec3(0.09,0.07,0.08));float key=lambert(n,uLightDir);vec3 lit=vColor*(ambient + vec3(1.0,0.72,0.45)*(key*0.95));fragColor=vec4(mix(lit,uFog,vFog*0.92),1.0);}
-`,
   wgslSrc: `struct BmUniforms {
   uViewProj : mat4x4f,
   uLightDir : vec3f,
@@ -60,6 +54,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   instanceAttributes: { iOffset: 'vec3', iScale: 'vec3', iColor: 'vec3' },
   uniforms: { uViewProj: 'mat4', uLightDir: 'vec3', uFog: 'vec3', uCamPos: 'vec3', uFogDist: 'float' },
   layout: {"attributes":[{"name":"aPosition","type":"vec3","location":0,"size":3,"divisor":0},{"name":"aNormal","type":"vec3","location":1,"size":3,"divisor":0},{"name":"iOffset","type":"vec3","location":2,"size":3,"divisor":1},{"name":"iScale","type":"vec3","location":3,"size":3,"divisor":1},{"name":"iColor","type":"vec3","location":4,"size":3,"divisor":1}],"uniforms":[{"name":"uViewProj","type":"mat4","kind":"m4fv","size":16,"offset":0},{"name":"uLightDir","type":"vec3","kind":"3fv","size":3,"offset":64},{"name":"uFog","type":"vec3","kind":"3fv","size":3,"offset":80},{"name":"uCamPos","type":"vec3","kind":"3fv","size":3,"offset":96},{"name":"uFogDist","type":"float","kind":"1f","size":1,"offset":108}],"uniformBlockSize":112},
+
 };
 
 export default voxelShader;
