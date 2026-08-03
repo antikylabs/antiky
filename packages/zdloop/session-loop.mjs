@@ -186,19 +186,33 @@ function printRecapDryRun(startCommit, checkpoint) {
   console.log(`   Prompt: ${buildRecapPrompt(startCommit, checkpoint)}`);
 }
 
-function printDryRun(state, waitLabel, waitMs, startCommit) {
+function printDryRunSummary(state, waitLabel, waitMs) {
   const { feedback, plan } = state;
 
+  console.log("Dry run summary:");
+  console.log(`  Tasks to work: ${plan.tasks.length}`);
+  console.log(`  Blocked tasks: ${plan.blocked.length}`);
+  console.log(`  Pending feedback: ${feedback.entries.length} (${feedback.urgent} urgent)`);
   if (feedback.entries.length > 0) {
     const minimumSessions = Math.max(1, plan.tasks.length + feedback.urgent);
     console.log(
-      `Pending ${FEEDBACK_RELATIVE_PATH} entries: ${feedback.entries.length} (${feedback.urgent} urgent)`,
+      `  Minimum Codex sessions before checkpoint: ${minimumSessions} (recalculated after triage)`,
     );
-    console.log("Feedback forces the next Codex session before the checkpoint can stop the loop.");
+  } else {
+    console.log(`  Codex sessions before checkpoint: ${plan.tasks.length}`);
+  }
+  console.log(`  Wait between sessions: ${waitLabel} (${waitMs}ms)`);
+  console.log(`  Stop: ${plan.checkpoint}`);
+}
+
+function printDryRun(state, waitLabel, waitMs, startCommit) {
+  const { feedback, plan } = state;
+  printDryRunSummary(state, waitLabel, waitMs);
+
+  if (feedback.entries.length > 0) {
     console.log(
-      `Minimum Codex sessions before checkpoint: ${minimumSessions}; the exact total is recalculated after triage.`,
+      "\nFeedback forces the next Codex session before the checkpoint can stop the loop.",
     );
-    console.log(`Wait between sessions: ${waitLabel} (${waitMs}ms)`);
     console.log(
       `\n1. Triage ${FEEDBACK_RELATIVE_PATH}, then take the first eligible task in the live band`,
     );
@@ -209,24 +223,17 @@ function printDryRun(state, waitLabel, waitMs, startCommit) {
       console.log("\nCurrently runnable tasks (triage may reorder this snapshot):");
       for (const task of plan.tasks) console.log(`  - ${task}`);
     }
-    console.log(`\nStop: ${plan.checkpoint}`);
     printBlocked(plan);
     printRecapDryRun(startCommit, plan.checkpoint);
     console.log("No files changed and Codex was not invoked.");
     return;
   }
 
-  console.log(
-    `Dry run: ${plan.tasks.length} Codex ${sessionLabel(plan.tasks.length)} before checkpoint`,
-  );
-  console.log(`Wait between sessions: ${waitLabel} (${waitMs}ms)`);
-
   for (const [index, task] of plan.tasks.entries()) {
     console.log(`\n${index + 1}. ${task}`);
     console.log(`   Prompt: ${PROMPT}`);
   }
 
-  console.log(`\nStop: ${plan.checkpoint}`);
   printBlocked(plan);
   printRecapDryRun(startCommit, plan.checkpoint);
   console.log("No files changed and Codex was not invoked.");

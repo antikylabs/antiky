@@ -133,8 +133,9 @@ CHECKPOINT - stop and test
     const result = run(root, "1m", "--dry-run");
 
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain("Dry run: 2 Codex sessions before checkpoint");
-    expect(result.stdout).toContain("Wait between sessions: 1m (60000ms)");
+    expect(result.stdout).toMatch(
+      /^Dry run summary:\n {2}Tasks to work: 2\n {2}Blocked tasks: 0\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 2\n {2}Wait between sessions: 1m \(60000ms\)\n {2}Stop: CHECKPOINT - stop and test/,
+    );
     expect(result.stdout).toContain("1. (A) 2026-07-30 First open task");
     expect(result.stdout).toContain("2. (B) 2026-07-30 A task about CHECKPOINT handling");
     expect(result.stdout).not.toContain("Past the stop");
@@ -159,8 +160,9 @@ CHECKPOINT - stop here
     const result = run(root, "60s", "--dry-run");
 
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain("Dry run: 0 Codex sessions before checkpoint");
-    expect(result.stdout).toContain("Stop: CHECKPOINT - stop here");
+    expect(result.stdout).toMatch(
+      /^Dry run summary:\n {2}Tasks to work: 0\n {2}Blocked tasks: 0\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 0\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
+    );
   });
 
   it("forces a session when feedback is pending even if the checkpoint is next", () => {
@@ -179,13 +181,11 @@ Polish the startup copy
     const result = run(root, "60s", "--dry-run");
 
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain(
-      "Pending docs/objectives/01-FEEDBACK_H.txt entries: 2 (1 urgent)",
+    expect(result.stdout).toMatch(
+      /^Dry run summary:\n {2}Tasks to work: 0\n {2}Blocked tasks: 0\n {2}Pending feedback: 2 \(1 urgent\)\n {2}Minimum Codex sessions before checkpoint: 1 \(recalculated after triage\)\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
     );
     expect(result.stdout).toContain("Feedback forces the next Codex session");
-    expect(result.stdout).toContain("Minimum Codex sessions before checkpoint: 1");
     expect(result.stdout).toContain(`Prompt: ${PROMPT}`);
-    expect(result.stdout).toContain("Stop: CHECKPOINT - stop here");
   });
 
   it("does not schedule tasks that carry a written block", () => {
@@ -198,7 +198,9 @@ CHECKPOINT - stop here
     const result = run(root, "60s", "--dry-run");
 
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain("Dry run: 1 Codex session before checkpoint");
+    expect(result.stdout).toMatch(
+      /^Dry run summary:\n {2}Tasks to work: 1\n {2}Blocked tasks: 1\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 1\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
+    );
     expect(result.stdout).toContain("1. (B) 2026-07-30 Work that can run");
     expect(result.stdout).not.toContain("1. (A) 2026-07-30 Waiting for an API");
     expect(result.stdout).toContain("Blocked in this band: 1");
