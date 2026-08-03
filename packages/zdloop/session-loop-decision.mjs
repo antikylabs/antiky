@@ -32,7 +32,7 @@ export function renderDecision({ answer, color, notice, shorten, task }, width, 
   const lines = [
     `${color("zdloop", "1;36")}  ${color("Decision required", "1;33")}`,
     color("─".repeat(Math.min(width, 100)), "36"),
-    "Review the preceding COMPARE artifact, then answer the decision below.",
+    "Review the preceding @COMPARE artifact, then answer the decision below.",
     "",
     ...visibleTaskLines,
     "",

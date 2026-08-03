@@ -101,12 +101,20 @@ function isBlocked(line) {
   return blockVerdicts.at(-1) === "BLOCKED";
 }
 
+function hasTaskTag(line, tag) {
+  return line.split(/\s+/).includes(tag);
+}
+
+function isComparison(line) {
+  return hasTaskTag(line, "@COMPARE");
+}
+
 function isDecision(line) {
-  return /^\([ABC]\) \d{4}-\d{2}-\d{2} DECIDE\b/.test(line);
+  return hasTaskTag(line, "@DECIDE");
 }
 
 function buildDecisionPrompt(task, answer) {
-  return `Use $zd-session to complete exactly this task:\n\n${task}\n\nThe user reviewed the preceding COMPARE and supplied this decision:\n\nUser decision: ${answer}\n\nTreat that as the resolved product direction. Implement it, verify it, commit it, tick off the task, and stop after the handoff.`;
+  return `Use $zd-session to complete exactly this task:\n\n${task}\n\nThe user reviewed the preceding @COMPARE artifact and supplied this decision:\n\nUser decision: ${answer}\n\nTreat that as the resolved product direction. Implement it, verify it, commit it, tick off the task, and stop after the handoff.`;
 }
 
 function readPlan() {
@@ -196,10 +204,14 @@ function printRecapDryRun(startCommit, checkpoint) {
 
 function printDryRunSummary(state, waitLabel, waitMs) {
   const { feedback, plan } = state;
+  const comparisonCount = plan.tasks.filter(isComparison).length;
+  const decisionCount = plan.tasks.filter(isDecision).length;
 
   console.log("Dry run summary:");
   console.log(`  Tasks to work: ${plan.tasks.length}`);
   console.log(`  Blocked tasks: ${plan.blocked.length}`);
+  console.log(`  Comparison tasks: ${comparisonCount}`);
+  console.log(`  Decision gates: ${decisionCount}`);
   console.log(`  Pending feedback: ${feedback.entries.length} (${feedback.urgent} urgent)`);
   if (feedback.entries.length > 0) {
     const minimumSessions = Math.max(1, plan.tasks.length + feedback.urgent);
@@ -241,6 +253,8 @@ function printDryRun(state, waitLabel, waitMs, startCommit) {
     console.log(`\n${index + 1}. ${task}`);
     if (isDecision(task)) {
       console.log("   Human input required in the TUI before this session.");
+    } else if (isComparison(task)) {
+      console.log("   Review artifact required before its following @DECIDE gate.");
     } else {
       console.log(`   Prompt: ${PROMPT}`);
     }

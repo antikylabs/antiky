@@ -75,10 +75,14 @@ test("Claude commands are fully specialized for Antiky", () => {
   assert.match(session, /docs\/GOOD_ENGINEERING_H\.md/);
   assert.match(session, /docs\/adr\//);
   assert.match(session, /docs\/aip\//);
+  assert.match(session, /@COMPARE/);
+  assert.match(session, /@DECIDE/);
 
   const triage = read(".claude/commands/triage.md");
   assert.match(triage, /docs\/objectives\/05-ARCHIVE-FEEDBACK_A\.txt/);
   assert.match(triage, /docs\/objectives\/06-ARCHIVE-FINDINGS_A\.txt/);
+  assert.match(triage, /@COMPARE/);
+  assert.match(triage, /@DECIDE/);
 });
 
 test("Codex skills delegate to the matching canonical Claude commands", () => {

@@ -134,7 +134,7 @@ CHECKPOINT - stop and test
 
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toMatch(
-      /^Dry run summary:\n {2}Tasks to work: 2\n {2}Blocked tasks: 0\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 2\n {2}Wait between sessions: 1m \(60000ms\)\n {2}Stop: CHECKPOINT - stop and test/,
+      /^Dry run summary:\n {2}Tasks to work: 2\n {2}Blocked tasks: 0\n {2}Comparison tasks: 0\n {2}Decision gates: 0\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 2\n {2}Wait between sessions: 1m \(60000ms\)\n {2}Stop: CHECKPOINT - stop and test/,
     );
     expect(result.stdout).toContain("1. (A) 2026-07-30 First open task");
     expect(result.stdout).toContain("2. (B) 2026-07-30 A task about CHECKPOINT handling");
@@ -161,7 +161,7 @@ CHECKPOINT - stop here
 
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toMatch(
-      /^Dry run summary:\n {2}Tasks to work: 0\n {2}Blocked tasks: 0\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 0\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
+      /^Dry run summary:\n {2}Tasks to work: 0\n {2}Blocked tasks: 0\n {2}Comparison tasks: 0\n {2}Decision gates: 0\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 0\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
     );
   });
 
@@ -182,7 +182,7 @@ Polish the startup copy
 
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toMatch(
-      /^Dry run summary:\n {2}Tasks to work: 0\n {2}Blocked tasks: 0\n {2}Pending feedback: 2 \(1 urgent\)\n {2}Minimum Codex sessions before checkpoint: 1 \(recalculated after triage\)\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
+      /^Dry run summary:\n {2}Tasks to work: 0\n {2}Blocked tasks: 0\n {2}Comparison tasks: 0\n {2}Decision gates: 0\n {2}Pending feedback: 2 \(1 urgent\)\n {2}Minimum Codex sessions before checkpoint: 1 \(recalculated after triage\)\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
     );
     expect(result.stdout).toContain("Feedback forces the next Codex session");
     expect(result.stdout).toContain(`Prompt: ${PROMPT}`);
@@ -199,7 +199,7 @@ CHECKPOINT - stop here
 
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toMatch(
-      /^Dry run summary:\n {2}Tasks to work: 1\n {2}Blocked tasks: 1\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 1\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
+      /^Dry run summary:\n {2}Tasks to work: 1\n {2}Blocked tasks: 1\n {2}Comparison tasks: 0\n {2}Decision gates: 0\n {2}Pending feedback: 0 \(0 urgent\)\n {2}Codex sessions before checkpoint: 1\n {2}Wait between sessions: 60s \(60000ms\)\n {2}Stop: CHECKPOINT - stop here/,
     );
     expect(result.stdout).toContain("1. (B) 2026-07-30 Work that can run");
     expect(result.stdout).not.toContain("1. (A) 2026-07-30 Waiting for an API");
@@ -207,20 +207,26 @@ CHECKPOINT - stop here
     expect(result.stdout).toContain("Waiting for an API");
   });
 
-  it("marks DECIDE tasks as requiring TUI input before their Codex session", () => {
+  it("counts tagged review gates and ignores control words in prose", () => {
     const root = makeFixture(`# plan
-(B) 2026-08-03 COMPARE two options side by side +p2 @design est:20m
-(B) 2026-08-03 DECIDE whether option one or option two wins +p2 @design est:20m
+(B) 2026-08-03 Explain why DECIDE can appear in prose +p2 @design est:20m
+(B) 2026-08-03 Render two options side by side +p2 @design @COMPARE est:20m
+(B) 2026-08-03 Choose whether option one or option two wins +p2 @design @DECIDE est:20m
 CHECKPOINT - stop here
 `);
 
     const result = run(root, "60s", "--dry-run");
 
     expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain("  Comparison tasks: 1");
+    expect(result.stdout).toContain("  Decision gates: 1");
     expect(result.stdout).toContain(
-      "2. (B) 2026-08-03 DECIDE whether option one or option two wins",
+      "3. (B) 2026-08-03 Choose whether option one or option two wins",
     );
-    expect(result.stdout).toContain("Human input required in the TUI before this session.");
+    expect(result.stdout).toContain("Review artifact required before its following @DECIDE gate.");
+    expect(result.stdout.match(/Human input required in the TUI before this session\./g)).toHaveLength(
+      1,
+    );
   });
 
   it("refuses to run a plan with no future checkpoint", () => {
@@ -254,9 +260,9 @@ CHECKPOINT - stop here
 });
 
 describe("the Codex session loop", () => {
-  it("pauses at DECIDE, accepts an answer in the TUI, and passes it to Codex", async () => {
+  it("pauses at @DECIDE, accepts an answer in the TUI, and passes it to Codex", async () => {
     const task =
-      "(B) 2026-08-03 DECIDE whether highlighting stays Rust-only or expands +p2 @design est:20m";
+      "(B) 2026-08-03 Choose whether highlighting stays Rust-only or expands +p2 @design @DECIDE est:20m";
     const root = makeFixture(`${task}\nCHECKPOINT - inspect the result\n`);
     const bin = installFakeCodex(
       root,
@@ -310,8 +316,8 @@ emit({ type: "turn.completed", usage: {} });
     );
   });
 
-  it("stops cleanly at DECIDE without a TUI instead of invoking Codex", () => {
-    const task = "(B) 2026-08-03 DECIDE choose one or two +p2 @design est:20m";
+  it("stops cleanly at @DECIDE without a TUI instead of invoking Codex", () => {
+    const task = "(B) 2026-08-03 Choose one or two +p2 @design @DECIDE est:20m";
     const root = makeFixture(`${task}\nCHECKPOINT - stop\n`);
     const bin = installFakeCodex(
       root,

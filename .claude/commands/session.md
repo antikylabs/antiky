@@ -61,6 +61,11 @@ that looks quicker.
   re-sequencings and the reasoning for each. The `(A)`/`(B)` and `+pN` tags describe a task, they
   do not re-sort the band it sits in.
 
+`@COMPARE` and `@DECIDE` are exact todo.txt tags, not magic words in prose. An `@COMPARE` task
+builds a neutral review artifact and does not choose a winner. Only take an `@DECIDE` task when
+the request includes the human's answer (zdloop supplies it from the TUI); otherwise stop and ask
+for that answer without implementing the task.
+
 **A task you cannot do is a written decision, not a skip.** Append to its line, in the surrounding
 style, what blocks it and what would unblock it. Commit that, then take the next line in the band.
 The next session then reads the reasoning instead of re-deriving it, and a skip nobody wrote down

@@ -38,6 +38,8 @@ For each line below the rule:
      class.
    - Add `+p<N>` for the phase, `@ctx` for the area, `vis:N.N` for the direction section, and
      `ref:F##` if it matches evidence in either formal archive.
+   - Add the exact `@COMPARE` or `@DECIDE` tag when the task is a comparison artifact or a human
+     decision gate. Those words in prose do not activate the workflow.
 
 4. **Put the line in the band where it will actually be done.** `CHECKPOINT` lines cut the file
    into bands and `/session` only ever picks from the one it is in, so placement decides when the
