@@ -1,0 +1,4 @@
+interface:
+  display_name: "Antiky ZD Status"
+  short_description: "Report Antiky objective status and health"
+  default_prompt: "Use $zd-status to report Antiky's current objective phase, next task, feedback, and health."

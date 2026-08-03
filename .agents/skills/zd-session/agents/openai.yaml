@@ -1,0 +1,4 @@
+interface:
+  display_name: "Antiky ZD Session"
+  short_description: "Run one scoped Antiky development session"
+  default_prompt: "Use $zd-session to run the next open Antiky objective task."

@@ -12,13 +12,24 @@
     "dev:demos": "node scripts/dev.mjs demos",
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "shaders": "npm run shaders --workspace @antiky/demos"
+    "shaders": "npm run shaders --workspace @antiky/demos",
+    "test": "npm test --workspaces --if-present",
+    "test:zdloop": "npm test --workspace @antiky/zdloop",
+    "check": "npm run typecheck && npm test",
+    "zdarchive": "node packages/zdloop/archive-tasks.mjs",
+    "zdloop": "node packages/zdloop/session-loop.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "3.8.1",
+    "next": "15.5.22",
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
   },
   "engines": {
     "node": ">=22"
   },
   "overrides": {
-    "postcss": "8.5.25",
-    "sharp": "0.35.3"
+    "postcss": "$postcss",
+    "sharp": "$sharp"
   }
 }
