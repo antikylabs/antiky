@@ -129,14 +129,14 @@ the Framework story.
 
 Confirmed source material and working evidence include:
 
-- the reviewed Antiky Labs product documents under `../../../docs/antikylabs/`;
+- the reviewed Antiky Labs product documents under `../../docs/_internal/antikylabs/`;
 - the runnable website workspace under this directory;
 - the live demo harness, backend controls, demo registry, renderers, art helpers, and BroMetal shaders
   under `../demos/`;
 - the scaffolded framework workspace under `../framework/`;
-- active voxel-art research under `../../../docs/lab-research/voxel-art/`;
-- active engine-composition and physics research under `../../../docs/lab-research/`; and
-- documented BroMetal contributions under `../../../docs/PRs-To-Brometal/`.
+- active voxel-art research under `../../docs/_internal/lab-research/voxel-art/`;
+- active engine-composition and physics research under `../../docs/_internal/lab-research/`; and
+- documented BroMetal contributions under `../../docs/_internal/PRs-To-Brometal/`.
 
 The existing technical demos are available as implementation evidence and salvage material. They are
 not automatically the approved initial public demo program or the creative direction for the new

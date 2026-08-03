@@ -3,27 +3,10 @@ import type { CompiledShader } from 'brometal';
 
 const townShadowShader: CompiledShader<{ aPosition: 'vec3' }, Record<string, never>, { uLightViewProj: 'mat4' }> = {
   vertexSrc: `#version 300 es
-layout(location = 0) in vec3 aPosition;
-uniform mat4 uLightViewProj;
-out vec3 vWorld;
-void main() {
-  vWorld = aPosition;
-  gl_Position = uLightViewProj * vec4(aPosition, 1.0);
-}
+layout(location=0)in vec3 aPosition;uniform mat4 uLightViewProj;out vec3 vWorld;void main(){vWorld=aPosition;gl_Position=uLightViewProj*vec4(aPosition,1.0);}
 `,
   fragmentSrc: `#version 300 es
-precision highp float;
-uniform mat4 uLightViewProj;
-in vec3 vWorld;
-out vec4 fragColor;
-void main() {
-  vec4 clip = uLightViewProj * vec4(vWorld, 1.0);
-  float depth = clamp(clip.z / clip.w * 0.5 + 0.5, 0.0, 1.0);
-  float scaled = depth * 255.0;
-  float high = floor(scaled) / 255.0;
-  float low = fract(scaled);
-  fragColor = vec4(high, low, depth, 1.0);
-}
+precision highp float;uniform mat4 uLightViewProj;in vec3 vWorld;out vec4 fragColor;void main(){vec4 clip=uLightViewProj*vec4(vWorld,1.0);float depth=clamp(clip.z/clip.w*0.5 + 0.5,0.0,1.0);float scaled=depth*255.0;float high=floor(scaled)/255.0;float low=fract(scaled);fragColor=vec4(high,low,depth,1.0);}
 `,
   wgslSrc: `struct BmUniforms {
   uLightViewProj : mat4x4f,

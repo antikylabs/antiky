@@ -3,32 +3,10 @@ import type { CompiledShader } from 'brometal';
 
 const groundShader: CompiledShader<{ aPosition: 'vec3' }, Record<string, never>, { uViewProj: 'mat4'; uModel: 'mat4'; uFog: 'vec3'; uCamPos: 'vec3'; uFogDist: 'float'; uBase: 'vec3'; uLine: 'vec3' }> = {
   vertexSrc: `#version 300 es
-layout(location = 0) in vec3 aPosition;
-uniform mat4 uViewProj;
-uniform mat4 uModel;
-out vec3 vWorld;
-void main() {
-  vec4 world = uModel * vec4(aPosition, 1.0);
-  vWorld = world.xyz;
-  gl_Position = uViewProj * world;
-}
+layout(location=0)in vec3 aPosition;uniform mat4 uViewProj;uniform mat4 uModel;out vec3 vWorld;void main(){vec4 world=uModel*vec4(aPosition,1.0);vWorld=world.xyz;gl_Position=uViewProj*world;}
 `,
   fragmentSrc: `#version 300 es
-precision highp float;
-uniform vec3 uFog;
-uniform vec3 uCamPos;
-uniform float uFogDist;
-uniform vec3 uBase;
-uniform vec3 uLine;
-in vec3 vWorld;
-out vec4 fragColor;
-void main() {
-  float gx = abs(fract(vWorld.x) - 0.5);
-  float gz = abs(fract(vWorld.z) - 0.5);
-  float grid = smoothstep(0.44, 0.5, max(gx, gz));
-  float fog = clamp(length(vWorld - uCamPos) / uFogDist, 0.0, 1.0);
-  fragColor = vec4(mix(mix(uBase, uLine, grid * 0.7), uFog, fog * 0.95), 1.0);
-}
+precision highp float;uniform vec3 uFog;uniform vec3 uCamPos;uniform float uFogDist;uniform vec3 uBase;uniform vec3 uLine;in vec3 vWorld;out vec4 fragColor;void main(){float gx=abs(fract(vWorld.x)- 0.5);float gz=abs(fract(vWorld.z)- 0.5);float grid=smoothstep(0.44,0.5,max(gx,gz));float fog=clamp(length(vWorld - uCamPos)/uFogDist,0.0,1.0);fragColor=vec4(mix(mix(uBase,uLine,grid*0.7),uFog,fog*0.95),1.0);}
 `,
   wgslSrc: `struct BmUniforms {
   uViewProj : mat4x4f,

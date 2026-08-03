@@ -3,56 +3,10 @@ import type { CompiledShader } from 'brometal';
 
 const townSpriteShadowShader: CompiledShader<{ aPosition: 'vec3'; aUv: 'vec2'; aShell: 'float' }, { iCenter: 'vec3'; iSize: 'vec2'; iUvRect: 'vec4'; iTint: 'vec4'; iFacing: 'vec3' }, { uLightViewProj: 'mat4'; uRight: 'vec3'; uUp: 'vec3'; uAtlas: 'sampler2D'; uCutoff: 'float'; uColorKey: 'vec3'; uUseColorKey: 'float'; uStandeeThickness: 'float' }> = {
   vertexSrc: `#version 300 es
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec2 aUv;
-layout(location = 2) in float aShell;
-layout(location = 3) in vec3 iCenter;
-layout(location = 4) in vec2 iSize;
-layout(location = 5) in vec4 iUvRect;
-layout(location = 6) in vec4 iTint;
-layout(location = 7) in vec3 iFacing;
-uniform mat4 uLightViewProj;
-uniform vec3 uRight;
-uniform vec3 uUp;
-uniform float uStandeeThickness;
-out vec2 vUv;
-out float vTintAlpha;
-out vec3 vWorld;
-void main() {
-  vec3 billboardNormal = normalize(cross(uRight, uUp));
-  float facingNoop = iFacing.x * 0.0;
-  vec3 world = iCenter + uRight * (aPosition.x * iSize.x + facingNoop) + uUp * (aPosition.y * iSize.y) + billboardNormal * (aShell * uStandeeThickness * 0.5);
-  vUv = iUvRect.xy + aUv * iUvRect.zw;
-  vTintAlpha = iTint.w;
-  vWorld = world;
-  gl_Position = uLightViewProj * vec4(world, 1.0);
-}
+layout(location=0)in vec3 aPosition;layout(location=1)in vec2 aUv;layout(location=2)in float aShell;layout(location=3)in vec3 iCenter;layout(location=4)in vec2 iSize;layout(location=5)in vec4 iUvRect;layout(location=6)in vec4 iTint;layout(location=7)in vec3 iFacing;uniform mat4 uLightViewProj;uniform vec3 uRight;uniform vec3 uUp;uniform float uStandeeThickness;out vec2 vUv;out float vTintAlpha;out vec3 vWorld;void main(){vec3 billboardNormal=normalize(cross(uRight,uUp));float facingNoop=iFacing.x*0.0;vec3 world=iCenter + uRight*(aPosition.x*iSize.x + facingNoop)+ uUp*(aPosition.y*iSize.y)+ billboardNormal*(aShell*uStandeeThickness*0.5);vUv=iUvRect.xy + aUv*iUvRect.zw;vTintAlpha=iTint.w;vWorld=world;gl_Position=uLightViewProj*vec4(world,1.0);}
 `,
   fragmentSrc: `#version 300 es
-precision highp float;
-uniform mat4 uLightViewProj;
-uniform sampler2D uAtlas;
-uniform float uCutoff;
-uniform vec3 uColorKey;
-uniform float uUseColorKey;
-in vec2 vUv;
-in float vTintAlpha;
-in vec3 vWorld;
-out vec4 fragColor;
-void main() {
-  vec4 texel = texture(uAtlas, vUv);
-  float keyed = (1.0 - smoothstep(0.015, 0.075, length(texel.xyz - uColorKey))) * clamp(uUseColorKey, 0.0, 1.0);
-  float alpha = texel.w * (1.0 - keyed) * vTintAlpha;
-  if (alpha < uCutoff) {
-    discard;
-  }
-  vec4 clip = uLightViewProj * vec4(vWorld, 1.0);
-  float depth = clamp(clip.z / clip.w * 0.5 + 0.5, 0.0, 1.0);
-  float scaled = depth * 255.0;
-  float high = floor(scaled) / 255.0;
-  float low = fract(scaled);
-  fragColor = vec4(high, low, depth, 1.0);
-}
+precision highp float;uniform mat4 uLightViewProj;uniform sampler2D uAtlas;uniform float uCutoff;uniform vec3 uColorKey;uniform float uUseColorKey;in vec2 vUv;in float vTintAlpha;in vec3 vWorld;out vec4 fragColor;void main(){vec4 texel=texture(uAtlas,vUv);float keyed=(1.0 - smoothstep(0.015,0.075,length(texel.xyz - uColorKey)))*clamp(uUseColorKey,0.0,1.0);float alpha=texel.w*(1.0 - keyed)*vTintAlpha;if(alpha<uCutoff){discard;}vec4 clip=uLightViewProj*vec4(vWorld,1.0);float depth=clamp(clip.z/clip.w*0.5 + 0.5,0.0,1.0);float scaled=depth*255.0;float high=floor(scaled)/255.0;float low=fract(scaled);fragColor=vec4(high,low,depth,1.0);}
 `,
   wgslSrc: `struct BmUniforms {
   uLightViewProj : mat4x4f,

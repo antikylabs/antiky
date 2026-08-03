@@ -3,54 +3,10 @@ import type { CompiledShader } from 'brometal';
 
 const townPropShadowShader: CompiledShader<{ aPosition: 'vec3'; aUv: 'vec2' }, { iCenter: 'vec3'; iSize: 'vec2'; iUvRect: 'vec4'; iYaw: 'float'; iCurvature: 'float'; iTile: 'float' }, { uLightViewProj: 'mat4'; uAtlas: 'sampler2D'; uCutoff: 'float' }> = {
   vertexSrc: `#version 300 es
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec2 aUv;
-layout(location = 2) in vec3 iCenter;
-layout(location = 3) in vec2 iSize;
-layout(location = 4) in vec4 iUvRect;
-layout(location = 5) in float iYaw;
-layout(location = 6) in float iCurvature;
-layout(location = 7) in float iTile;
-uniform mat4 uLightViewProj;
-out vec2 vUv;
-out vec3 vWorld;
-void main() {
-  float bend = max(iCurvature * 2.4, 0.001);
-  float angle = aPosition.x * bend;
-  float lean = 0.12;
-  float localX = sin(angle) / bend * iSize.x;
-  float localY = aPosition.y * iSize.y;
-  float localZ = (cos(angle) - 1.0) / bend * iSize.x - aPosition.y * iSize.y * lean + iTile * 0.0;
-  vec3 frontNormal = normalize(vec3(sin(angle), cos(angle) * lean, cos(angle)));
-  float yawCos = cos(iYaw);
-  float yawSin = sin(iYaw);
-  vec3 rotated = vec3(yawCos * localX + yawSin * localZ, localY, -yawSin * localX + yawCos * localZ);
-  vec3 rotatedFrontNormal = normalize(vec3(yawCos * frontNormal.x + yawSin * frontNormal.z, frontNormal.y, -yawSin * frontNormal.x + yawCos * frontNormal.z));
-  vec3 surfaceNormal = rotatedFrontNormal * aPosition.z;
-  float thickness = 0.012 + iSize.x * 0.012;
-  vec3 world = iCenter + rotated + surfaceNormal * thickness;
-  vUv = iUvRect.xy + aUv * iUvRect.zw;
-  vWorld = world;
-  gl_Position = uLightViewProj * vec4(world, 1.0);
-}
+layout(location=0)in vec3 aPosition;layout(location=1)in vec2 aUv;layout(location=2)in vec3 iCenter;layout(location=3)in vec2 iSize;layout(location=4)in vec4 iUvRect;layout(location=5)in float iYaw;layout(location=6)in float iCurvature;layout(location=7)in float iTile;uniform mat4 uLightViewProj;out vec2 vUv;out vec3 vWorld;void main(){float bend=max(iCurvature*2.4,0.001);float angle=aPosition.x*bend;float lean=0.12;float localX=sin(angle)/bend*iSize.x;float localY=aPosition.y*iSize.y;float localZ=(cos(angle)- 1.0)/bend*iSize.x - aPosition.y*iSize.y*lean + iTile*0.0;vec3 frontNormal=normalize(vec3(sin(angle),cos(angle)*lean,cos(angle)));float yawCos=cos(iYaw);float yawSin=sin(iYaw);vec3 rotated=vec3(yawCos*localX + yawSin*localZ,localY,-yawSin*localX + yawCos*localZ);vec3 rotatedFrontNormal=normalize(vec3(yawCos*frontNormal.x + yawSin*frontNormal.z,frontNormal.y,-yawSin*frontNormal.x + yawCos*frontNormal.z));vec3 surfaceNormal=rotatedFrontNormal*aPosition.z;float thickness=0.012 + iSize.x*0.012;vec3 world=iCenter + rotated + surfaceNormal*thickness;vUv=iUvRect.xy + aUv*iUvRect.zw;vWorld=world;gl_Position=uLightViewProj*vec4(world,1.0);}
 `,
   fragmentSrc: `#version 300 es
-precision highp float;
-uniform mat4 uLightViewProj;
-uniform sampler2D uAtlas;
-uniform float uCutoff;
-in vec2 vUv;
-in vec3 vWorld;
-out vec4 fragColor;
-void main() {
-  if (texture(uAtlas, vUv).w < uCutoff) {
-    discard;
-  }
-  vec4 clip = uLightViewProj * vec4(vWorld, 1.0);
-  float depth = clamp(clip.z / clip.w * 0.5 + 0.5, 0.0, 1.0);
-  float scaled = depth * 255.0;
-  fragColor = vec4(floor(scaled) / 255.0, fract(scaled), depth, 1.0);
-}
+precision highp float;uniform mat4 uLightViewProj;uniform sampler2D uAtlas;uniform float uCutoff;in vec2 vUv;in vec3 vWorld;out vec4 fragColor;void main(){if(texture(uAtlas,vUv).w<uCutoff){discard;}vec4 clip=uLightViewProj*vec4(vWorld,1.0);float depth=clamp(clip.z/clip.w*0.5 + 0.5,0.0,1.0);float scaled=depth*255.0;fragColor=vec4(floor(scaled)/255.0,fract(scaled),depth,1.0);}
 `,
   wgslSrc: `struct BmUniforms {
   uLightViewProj : mat4x4f,

@@ -3,70 +3,10 @@ import type { CompiledShader } from 'brometal';
 
 const townFoliageShadowShader: CompiledShader<{ aPosition: 'vec3'; aNormalWind: 'vec4'; aUv: 'vec2' }, { iCenter: 'vec3'; iShape: 'vec4'; iUvRect: 'vec4'; iTint: 'vec3'; iWindKind: 'vec3' }, { uLightViewProj: 'mat4'; uAtlas: 'sampler2D'; uCutoff: 'float'; uTime: 'float'; uWindDirection: 'vec2'; uWindStrength: 'float'; uWindSpeed: 'float' }> = {
   vertexSrc: `#version 300 es
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec4 aNormalWind;
-layout(location = 2) in vec2 aUv;
-layout(location = 3) in vec3 iCenter;
-layout(location = 4) in vec4 iShape;
-layout(location = 5) in vec4 iUvRect;
-layout(location = 6) in vec3 iTint;
-layout(location = 7) in vec3 iWindKind;
-uniform mat4 uLightViewProj;
-uniform float uTime;
-uniform vec2 uWindDirection;
-uniform float uWindStrength;
-uniform float uWindSpeed;
-out vec2 vUv;
-out float vKind;
-out vec3 vWorld;
-void main() {
-  float aWindWeight = aNormalWind.w;
-  vec2 iWind = iWindKind.xy;
-  float iKind = iWindKind.z;
-  float width = max(iShape.x, 0.001);
-  float height = max(iShape.y, 0.001);
-  float cosine = cos(iShape.z);
-  float sine = sin(iShape.z);
-  vec3 local = vec3(aPosition.x * width, aPosition.y * height, aPosition.z * width);
-  vec3 rotated = vec3(local.x * cosine - local.z * sine, local.y, local.x * sine + local.z * cosine);
-  float windLength = max(length(uWindDirection), 0.001);
-  vec2 windDirection = uWindDirection * (1.0 / windLength);
-  float anchorWeight = mix(1.0 - clamp(aWindWeight, 0.0, 1.0), clamp(aWindWeight, 0.0, 1.0), clamp(iWind.y, 0.0, 1.0));
-  float phase = iShape.w * 6.2831853 + iCenter.x * 0.19 + iCenter.z * 0.27;
-  float primary = sin(uTime * uWindSpeed + phase + aWindWeight * 0.8);
-  float flutter = sin(uTime * uWindSpeed * 2.73 + phase * 1.71) * 0.34;
-  float sway = (primary + flutter) * iWind.x * uWindStrength * anchorWeight * anchorWeight;
-  vec3 world = iCenter + rotated + vec3(windDirection.x * sway, 0.0, windDirection.y * sway);
-  float interfaceNoop = aNormalWind.x * 0.0 + iTint.x * 0.0;
-  vUv = iUvRect.xy + aUv * iUvRect.zw + vec3(interfaceNoop, interfaceNoop, 0.0).xy;
-  vKind = iKind;
-  vWorld = world;
-  gl_Position = uLightViewProj * vec4(world, 1.0);
-}
+layout(location=0)in vec3 aPosition;layout(location=1)in vec4 aNormalWind;layout(location=2)in vec2 aUv;layout(location=3)in vec3 iCenter;layout(location=4)in vec4 iShape;layout(location=5)in vec4 iUvRect;layout(location=6)in vec3 iTint;layout(location=7)in vec3 iWindKind;uniform mat4 uLightViewProj;uniform float uTime;uniform vec2 uWindDirection;uniform float uWindStrength;uniform float uWindSpeed;out vec2 vUv;out float vKind;out vec3 vWorld;void main(){float aWindWeight=aNormalWind.w;vec2 iWind=iWindKind.xy;float iKind=iWindKind.z;float width=max(iShape.x,0.001);float height=max(iShape.y,0.001);float cosine=cos(iShape.z);float sine=sin(iShape.z);vec3 local=vec3(aPosition.x*width,aPosition.y*height,aPosition.z*width);vec3 rotated=vec3(local.x*cosine - local.z*sine,local.y,local.x*sine + local.z*cosine);float windLength=max(length(uWindDirection),0.001);vec2 windDirection=uWindDirection*(1.0/windLength);float anchorWeight=mix(1.0 - clamp(aWindWeight,0.0,1.0),clamp(aWindWeight,0.0,1.0),clamp(iWind.y,0.0,1.0));float phase=iShape.w*6.2831853 + iCenter.x*0.19 + iCenter.z*0.27;float primary=sin(uTime*uWindSpeed + phase + aWindWeight*0.8);float flutter=sin(uTime*uWindSpeed*2.73 + phase*1.71)*0.34;float sway=(primary + flutter)*iWind.x*uWindStrength*anchorWeight*anchorWeight;vec3 world=iCenter + rotated + vec3(windDirection.x*sway,0.0,windDirection.y*sway);float interfaceNoop=aNormalWind.x*0.0 + iTint.x*0.0;vUv=iUvRect.xy + aUv*iUvRect.zw + vec3(interfaceNoop,interfaceNoop,0.0).xy;vKind=iKind;vWorld=world;gl_Position=uLightViewProj*vec4(world,1.0);}
 `,
   fragmentSrc: `#version 300 es
-precision highp float;
-uniform mat4 uLightViewProj;
-uniform sampler2D uAtlas;
-uniform float uCutoff;
-in vec2 vUv;
-in float vKind;
-in vec3 vWorld;
-out vec4 fragColor;
-void main() {
-  vec4 atlasSample = texture(uAtlas, vUv);
-  if (vKind < 0.5) {
-    if (atlasSample.w < uCutoff) {
-      discard;
-    }
-  }
-  vec4 clip = uLightViewProj * vec4(vWorld, 1.0);
-  float depth = clamp(clip.z / clip.w * 0.5 + 0.5, 0.0, 1.0);
-  float scaled = depth * 255.0;
-  float high = floor(scaled) / 255.0;
-  float low = fract(scaled);
-  fragColor = vec4(high, low, depth, 1.0);
-}
+precision highp float;uniform mat4 uLightViewProj;uniform sampler2D uAtlas;uniform float uCutoff;in vec2 vUv;in float vKind;in vec3 vWorld;out vec4 fragColor;void main(){vec4 atlasSample=texture(uAtlas,vUv);if(vKind<0.5){if(atlasSample.w<uCutoff){discard;}}vec4 clip=uLightViewProj*vec4(vWorld,1.0);float depth=clamp(clip.z/clip.w*0.5 + 0.5,0.0,1.0);float scaled=depth*255.0;float high=floor(scaled)/255.0;float low=fract(scaled);fragColor=vec4(high,low,depth,1.0);}
 `,
   wgslSrc: `struct BmUniforms {
   uLightViewProj : mat4x4f,

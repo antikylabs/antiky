@@ -3,63 +3,10 @@ import type { CompiledShader } from 'brometal';
 
 const auroraShader: CompiledShader<{ aPosition: 'vec3'; aUv: 'vec2' }, Record<string, never>, { uTime: 'float'; uAspect: 'float' }> = {
   vertexSrc: `#version 300 es
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec2 aUv;
-out vec2 vUv;
-void main() {
-  vUv = aUv;
-  gl_Position = vec4(aPosition, 1.0);
-}
+layout(location=0)in vec3 aPosition;layout(location=1)in vec2 aUv;out vec2 vUv;void main(){vUv=aUv;gl_Position=vec4(aPosition,1.0);}
 `,
   fragmentSrc: `#version 300 es
-precision highp float;
-uniform float uTime;
-uniform float uAspect;
-in vec2 vUv;
-out vec4 fragColor;
-vec3 cosinePalette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
-  vec3 phase = (c * t + d) * 6.28318;
-  return a + vec3(cos(phase.x), cos(phase.y), cos(phase.z)) * b;
-}
-float hash21(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-}
-float vnoise2(vec2 p) {
-  vec2 cell = vec2(floor(p.x), floor(p.y));
-  vec2 f = p - cell;
-  vec2 u = vec2(f.x * f.x * (3.0 - 2.0 * f.x), f.y * f.y * (3.0 - 2.0 * f.y));
-  float a = hash21(cell);
-  float b = hash21(cell + vec2(1.0, 0.0));
-  float c = hash21(cell + vec2(0.0, 1.0));
-  float d = hash21(cell + vec2(1.0, 1.0));
-  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-}
-float fbm2(vec2 p, float octaves) {
-  float total = 0.0;
-  float amplitude = 0.5;
-  float frequency = 1.0;
-  float norm = 0.0;
-  for (float i = 0.0; i < octaves; i = i + 1.0) {
-    total = total + amplitude * vnoise2(p * frequency);
-    norm = norm + amplitude;
-    amplitude = amplitude * 0.5;
-    frequency = frequency * 2.0;
-  }
-  return total / norm;
-}
-vec3 tonemapACES(vec3 color) {
-  vec3 num = color * (color * 2.51 + vec3(0.03, 0.03, 0.03));
-  vec3 den = color * (color * 2.43 + vec3(0.59, 0.59, 0.59)) + vec3(0.14, 0.14, 0.14);
-  return clamp(num / den, 0.0, 1.0);
-}
-void main() {
-  vec2 p = vec2((vUv.x - 0.5) * uAspect, vUv.y - 0.5) * 2.6;
-  vec2 drift = vec2(fbm2(p + vec2(uTime * 0.05, 0.0), 4.0), fbm2(p + vec2(4.7, 1.3) + vec2(0.0, uTime * 0.04), 4.0));
-  float n = fbm2(p + drift * 1.7, 5.0);
-  float core = 0.75 / (0.42 + length(p) * 0.85);
-  vec3 tint = cosinePalette(n + uTime * 0.03, vec3(0.26, 0.14, 0.2), vec3(0.58, 0.34, 0.36), vec3(1.0, 1.0, 0.9), vec3(0.0, 0.17, 0.42));
-  fragColor = vec4(tonemapACES(tint * (core * (0.35 + n))), 1.0);
-}
+precision highp float;uniform float uTime;uniform float uAspect;in vec2 vUv;out vec4 fragColor;vec3 cosinePalette(float t,vec3 a,vec3 b,vec3 c,vec3 d){vec3 phase=(c*t + d)*6.28318;return a + vec3(cos(phase.x),cos(phase.y),cos(phase.z))*b;}float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float vnoise2(vec2 p){vec2 cell=vec2(floor(p.x),floor(p.y));vec2 f=p - cell;vec2 u=vec2(f.x*f.x*(3.0 - 2.0*f.x),f.y*f.y*(3.0 - 2.0*f.y));float a=hash21(cell);float b=hash21(cell + vec2(1.0,0.0));float c=hash21(cell + vec2(0.0,1.0));float d=hash21(cell + vec2(1.0,1.0));return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}float fbm2(vec2 p,float octaves){float total=0.0;float amplitude=0.5;float frequency=1.0;float norm=0.0;for(float i=0.0;i<octaves;i=i + 1.0){total=total + amplitude*vnoise2(p*frequency);norm=norm + amplitude;amplitude=amplitude*0.5;frequency=frequency*2.0;}return total/norm;}vec3 tonemapACES(vec3 color){vec3 num=color*(color*2.51 + vec3(0.03,0.03,0.03));vec3 den=color*(color*2.43 + vec3(0.59,0.59,0.59))+ vec3(0.14,0.14,0.14);return clamp(num/den,0.0,1.0);}void main(){vec2 p=vec2((vUv.x - 0.5)*uAspect,vUv.y - 0.5)*2.6;vec2 drift=vec2(fbm2(p + vec2(uTime*0.05,0.0),4.0),fbm2(p + vec2(4.7,1.3)+ vec2(0.0,uTime*0.04),4.0));float n=fbm2(p + drift*1.7,5.0);float core=0.75/(0.42 + length(p)*0.85);vec3 tint=cosinePalette(n + uTime*0.03,vec3(0.26,0.14,0.2),vec3(0.58,0.34,0.36),vec3(1.0,1.0,0.9),vec3(0.0,0.17,0.42));fragColor=vec4(tonemapACES(tint*(core*(0.35 + n))),1.0);}
 `,
   wgslSrc: `struct BmUniforms {
   uTime : f32,

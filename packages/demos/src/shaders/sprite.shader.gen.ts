@@ -3,40 +3,10 @@ import type { CompiledShader } from 'brometal';
 
 const spriteShader: CompiledShader<{ aPosition: 'vec3'; aUv: 'vec2' }, { iPos: 'vec3'; iSize: 'vec2'; iCell: 'float'; iTint: 'vec3' }, { uViewProj: 'mat4'; uRight: 'vec3'; uAtlas: 'sampler2D'; uCells: 'float'; uFog: 'vec3'; uCamPos: 'vec3'; uFogDist: 'float' }> = {
   vertexSrc: `#version 300 es
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec2 aUv;
-layout(location = 2) in vec3 iPos;
-layout(location = 3) in vec2 iSize;
-layout(location = 4) in float iCell;
-layout(location = 5) in vec3 iTint;
-uniform mat4 uViewProj;
-uniform vec3 uRight;
-uniform float uCells;
-uniform vec3 uCamPos;
-uniform float uFogDist;
-out vec2 vUv;
-out vec3 vTint;
-out float vFog;
-void main() {
-  vec3 world = iPos + uRight * (aPosition.x * iSize.x) + vec3(0.0, 1.0, 0.0) * ((aPosition.y + 0.5) * iSize.y);
-  vUv = vec2((aUv.x + iCell) / uCells, aUv.y);
-  vTint = iTint;
-  vFog = clamp(length(world - uCamPos) / uFogDist, 0.0, 1.0);
-  gl_Position = uViewProj * vec4(world, 1.0);
-}
+layout(location=0)in vec3 aPosition;layout(location=1)in vec2 aUv;layout(location=2)in vec3 iPos;layout(location=3)in vec2 iSize;layout(location=4)in float iCell;layout(location=5)in vec3 iTint;uniform mat4 uViewProj;uniform vec3 uRight;uniform float uCells;uniform vec3 uCamPos;uniform float uFogDist;out vec2 vUv;out vec3 vTint;out float vFog;void main(){vec3 world=iPos + uRight*(aPosition.x*iSize.x)+ vec3(0.0,1.0,0.0)*((aPosition.y + 0.5)*iSize.y);vUv=vec2((aUv.x + iCell)/uCells,aUv.y);vTint=iTint;vFog=clamp(length(world - uCamPos)/uFogDist,0.0,1.0);gl_Position=uViewProj*vec4(world,1.0);}
 `,
   fragmentSrc: `#version 300 es
-precision highp float;
-uniform sampler2D uAtlas;
-uniform vec3 uFog;
-in vec2 vUv;
-in vec3 vTint;
-in float vFog;
-out vec4 fragColor;
-void main() {
-  vec4 texel = texture(uAtlas, vUv);
-  fragColor = vec4(mix(texel.xyz * vTint, uFog, vFog * 0.85), texel.w);
-}
+precision highp float;uniform sampler2D uAtlas;uniform vec3 uFog;in vec2 vUv;in vec3 vTint;in float vFog;out vec4 fragColor;void main(){vec4 texel=texture(uAtlas,vUv);fragColor=vec4(mix(texel.xyz*vTint,uFog,vFog*0.85),texel.w);}
 `,
   wgslSrc: `struct BmUniforms {
   uViewProj : mat4x4f,
