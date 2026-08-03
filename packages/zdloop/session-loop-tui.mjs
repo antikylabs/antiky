@@ -10,10 +10,12 @@ const ANSI = {
   underlineCyan: "\u001b[4;36m",
   yellow: "\u001b[38;5;220m",
 };
-const TUI_ENTER = "\u001b[?1049h\u001b[?25l";
-const TUI_EXIT = "\u001b[?25h\u001b[?1049l";
+const TUI_ENTER = "\u001b[?1049h\u001b[?25l\u001b[?1000h\u001b[?1006h";
+const TUI_EXIT = "\u001b[?1006l\u001b[?1000l\u001b[?25h\u001b[?1049l";
 const TUI_CLEAR = "\u001b[2J\u001b[H";
 const MAX_RAW_LOG_CHARS = 20_000;
+const MOUSE_EVENT = new RegExp(`${String.fromCharCode(27)}\\[<(\\d+);\\d+;\\d+[Mm]`, "g");
+const MOUSE_SCROLL_LINES = 3;
 
 export class LoopKilledError extends Error {
   constructor() {
@@ -182,6 +184,7 @@ export function createTui(control) {
     phase: "starting",
     rawActivity: [],
     sessionCount: 0,
+    streamScroll: 0,
     streamView: "summary",
     streamStatus: "Starting Gemma…",
     summary: "",
@@ -264,15 +267,26 @@ export function createTui(control) {
 
     const fixedLines = lines.length + 3;
     const activityHeight = Math.max(3, height - fixedLines);
-    const activity =
+    const allActivity =
       state.streamView === "raw"
-        ? rawActivityLines(taskWidth).slice(-activityHeight)
-        : activityLines(taskWidth).slice(-activityHeight);
+        ? rawActivityLines(taskWidth)
+        : activityLines(taskWidth);
+    const maxScroll = Math.max(0, allActivity.length - activityHeight);
+    state.streamScroll = Math.min(state.streamScroll, maxScroll);
+    const activityEnd = allActivity.length - state.streamScroll;
+    const activityStart = Math.max(0, activityEnd - activityHeight);
+    const activity = allActivity.slice(activityStart, activityEnd);
     if (activity.length === 0) lines.push(color("  Waiting for Codex output…", "2"));
     else for (const entry of activity) lines.push(`  ${entry}`);
 
     const streamToggle = state.streamView === "raw" ? "summaries" : "raw logs";
-    lines.push("", color(`[l] ${streamToggle}   [s] graceful stop   [x] kill now / Ctrl+C`, "2"));
+    lines.push(
+      "",
+      color(
+        `[mouse] scroll   [l] ${streamToggle}   [s] graceful stop   [x] kill now / Ctrl+C`,
+        "2",
+      ),
+    );
     return lines;
   }
 
@@ -292,7 +306,7 @@ export function createTui(control) {
     if (recapLines.length > available) {
       lines.push(
         color(
-          `Showing lines ${state.summaryScroll + 1}-${Math.min(recapLines.length, state.summaryScroll + available)} of ${recapLines.length} • j/k scroll`,
+          `Showing lines ${state.summaryScroll + 1}-${Math.min(recapLines.length, state.summaryScroll + available)} of ${recapLines.length} • mouse or j/k scroll`,
           "2",
         ),
       );
@@ -316,7 +330,28 @@ export function createTui(control) {
       return;
     }
 
-    for (const key of chunk) {
+    let sawMouseEvent = false;
+    const keyboardInput = chunk.replace(MOUSE_EVENT, (_event, button) => {
+      if (button === "64") {
+        if (state.phase === "summary") {
+          state.summaryScroll = Math.max(0, state.summaryScroll - MOUSE_SCROLL_LINES);
+        } else {
+          state.streamScroll += MOUSE_SCROLL_LINES;
+        }
+        sawMouseEvent = true;
+      } else if (button === "65") {
+        if (state.phase === "summary") {
+          state.summaryScroll += MOUSE_SCROLL_LINES;
+        } else {
+          state.streamScroll = Math.max(0, state.streamScroll - MOUSE_SCROLL_LINES);
+        }
+        sawMouseEvent = true;
+      }
+      return "";
+    });
+    if (sawMouseEvent) render();
+
+    for (const key of keyboardInput) {
       if (state.phase === "summary") {
         if (key === "c") summaryAction?.("continue");
         else if (key === "q" || key === "x") summaryAction?.("quit");
@@ -338,6 +373,7 @@ export function createTui(control) {
         control.requestKill();
       } else if (key === "l" || key === "L") {
         state.streamView = state.streamView === "raw" ? "summary" : "raw";
+        state.streamScroll = 0;
         render();
       }
     }
@@ -388,6 +424,7 @@ export function createTui(control) {
       if (phase === "running") {
         state.activity = [];
         state.rawActivity = [];
+        state.streamScroll = 0;
       }
       render();
     },
