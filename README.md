@@ -5,7 +5,7 @@
     <img src="packages/website/public/brand/antiky-labs-wordmark-and-text-black.png" alt="Antiky Labs" width="372">
   </picture>
 
-  [Join our Discord!](https://discord.gg/3Qs2uejUf9)
+  [Vision & Direction](docs/VISION_DIRECTION_H.md) &nbsp;·&nbsp; [Join our Discord!](https://discord.gg/3Qs2uejUf9)
 </p>
 
 
@@ -41,8 +41,6 @@ there is no graphics fallback or runtime selector.
 
 The public documentation index is [`docs/README.md`](docs/README.md).
 
-- [Vision & Direction](docs/VISION_DIRECTION_H.md) describes the direction for Antiky Labs, the
-  game, Antiky Framework, and Antiky Studio.
 - [Antiky Improvement Proposals](docs/aip/README.md) are contributor-authored proposals for
   meaningful product, feature, process, governance, architecture, or other improvements.
 - [Architecture Decision Records](docs/adr/README.md) are written and owned by Core Contributors
