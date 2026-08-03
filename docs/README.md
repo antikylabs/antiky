@@ -1,8 +1,8 @@
-# Ankity Docs
+# Antiky Docs
 
-Welcome to the Ankity Docs!
+Welcome to the Antiky docs.
 
-You'll find everything you need to know about Ankity here, but here are some high level things to know whats going on.
+These documents describe Antiky's direction, decisions, architecture, proposals, and active work.
 
 
 ## Table of Contents (Agent Maintained)
@@ -12,6 +12,7 @@ You'll find everything you need to know about Ankity here, but here are some hig
 | [Direction](VISION_DIRECTION_H.md) | The current human-owned product and engineering direction. |
 | [Antiky Improvement Proposals](aip/README.md) | Contributor proposals for product, feature, process, governance, architecture, and other improvements. |
 | [Architecture Decision Records](adr/README.md) | Core Contributor-owned records of accepted architectural decisions. |
+| [Architecture Guides](architecture/README.md) | Agent-authored explanations of the target Framework and Studio architecture. |
 | [Objectives](objectives/README.md) | The agent work loop and its goals, feedback, findings, sessions, archives, and reports. |
 
 ## Document types

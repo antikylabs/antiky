@@ -6,20 +6,28 @@ Accepted
 
 ## Context
 
-For right now the Studio will not bring in it's own definition of AI systems and services, and will run completely locally. If an AI feature is added to the stuido it will be optional and local by default. Users should not have to purchase yet another AI subscription to use the studio.
+Studio needs to work with coding agents without making one model vendor or another usage subscription
+a prerequisite. Local AI can consume substantial machine resources, while cloud models require the
+user's own trust and billing relationship.
 
 ## Decision
 
-- We will allow use of AI via integrated terminal, allowing users to use the AI harness of their choice.
-- We will provide visibility and integration points for AI to use the studio and all aspects of it.
-- We will not provide a hosted AI service that forces users to subscribe to tokens, usage, etc.
-- We will provide optional AI systems that run locally, and let the users know what is required to do so.
-- We will provide byok to features that require more powerful AI.
+We will let users run the coding-agent harness of their choice through an integrated terminal and
+connect it to Studio's structured engine surface. Studio will not require an Antiky-hosted AI token
+service or subscription.
+
+Optional built-in AI features will run locally by default and will state their hardware and software
+requirements. Features that need hosted models will use bring-your-own-key configuration and remain
+optional.
 
 ## Consequences
 
-- Users do not need yet another AI subscription.
-- Antiky can stay as a neutral application, and uplevel users existing setups.
-- Antiky will not generate revenue from ai services.
-- Antiky will require more resources of a machine if local AI is enabled.
-- Users get functionality over hype.
+- Users can keep their existing agent, provider, account, and billing relationship.
+- Antiky remains vendor-neutral and does not rely on AI-service revenue.
+- Studio must maintain provider-independent integration points and secure secret handling.
+- Local AI features may require substantial memory, compute, downloads, and setup.
+- Hosted capabilities may differ by provider and by the user's account.
+
+## Revision history
+
+- `d5512a91c2c6719a7488b03feebe01bd24eaf93b` — Clarified local-first, vendor-neutral AI integration.

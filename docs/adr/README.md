@@ -12,6 +12,31 @@ architectural decision, each resulting ADR links that AIP while remaining unders
 An accepted AIP may produce zero, one, or several ADRs. Improvements without an architectural
 decision need no ADR, while a broad proposal may require several independent architectural records.
 
+## Records
+
+### Framework
+
+- [0001: Use semantic entities and components](framework/0001-entity-component-system_H.md)
+- [0002: Selectively event-source durable state](framework/0002-event-sourcing_H.md)
+- [0003: Give humans and agents one engine surface](framework/0003-agent-native_H.md)
+- [0004: Support 2D, 3D, and 2.3D as first-class modes](framework/0004-23d_H.md)
+- [0005: Build a reusable Antiky Ability System](framework/0005-game-ability-system_H.md)
+- [0006: Keep BroMetal behind an Antiky render driver](framework/0006-brometal-render-driver_H.md)
+- [0007: Use commands as the mutation boundary](framework/0007-commands-as-mutation-boundary_H.md)
+- [0008: Put EngineSession above World](framework/0008-engine-session-owns-worlds_H.md)
+- [0009: Separate authoring, runtime, and render state](framework/0009-separate-state-projections_H.md)
+- [0010: Serialize only at real boundaries](framework/0010-serialize-at-boundaries_H.md)
+- [0011: Use stable IDs and disposable runtime aliases](framework/0011-stable-ids-and-runtime-aliases_H.md)
+- [0012: Make online simulation server-authoritative](framework/0012-server-authoritative-simulation_H.md)
+- [0013: Make simulation inputs explicit](framework/0013-explicit-simulation-inputs_H.md)
+- [0014: Promote sandbox changes through commands](framework/0014-promote-sandbox-commands_H.md)
+
+### Studio
+
+- [0001: AI Integration](studio/0001-ai-integrations_H.md)
+- [0002: Host a portable web editor in Tauri](studio/0002-tauri-portable-web-editor_H.md)
+- [0003: Attach queued feedback to specific targets](studio/0003-contextual-feedback-queue_H.md)
+
 ## Minimal format
 
 This format is a small adaptation of Michael Nygard's original ADR format. Nygard identifies five
