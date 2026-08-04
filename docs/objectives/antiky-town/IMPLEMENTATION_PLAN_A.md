@@ -1,6 +1,6 @@
 # Antiky Town Implementation Plan
 
-**Status: Slice 00 direction approved**
+**Status: Slices 00 and 01 direction approved**
 
 ## Goal
 
@@ -60,20 +60,20 @@ scope.
 - State the reload effect for every changed source, shader, asset, or configuration boundary.
 - Finish and commit one slice before the next slice starts.
 
-## Decisions requested
+## Slice directions
 
 Each slice puts its plan, owner input, and delivery outputs in a separate `slice-NN/` folder. The
 slice plan links its `owner-input_H.md` file as required reading.
 
-Choose one direction for each feature slice. The recommended sequence is `1A, 2A, 3A, 4A, 5A,
-6A`. Slice 0 uses the smaller choices in its [owner-input file](slice-00/owner-input_H.md).
+The owner approved the Slice 00 harness direction and the Slice 01 reusable point-light direction.
+For Slices 2 through 6, the recommended sequence is `2A, 3A, 4A, 5A, 6A`.
 
 The choices are starting directions. A later measured need can justify a different implementation.
 
-| Slice | Recommended | Other choices |
+| Slice | Selected or recommended | Other choices |
 | --- | --- | --- |
-| 0. Development harness | Current host plus `@antiky/cli` and framework inspection | Dedicated Vite host; framework-owned web server |
-| 1. First complete object | 1A. Feature-first market lamp | 1B. Small generic registry; 1C. Full ECS first |
+| 0. Development harness | Selected: current host plus `@antiky/cli` and native framework inspection | Dedicated Vite host; framework-owned web server |
+| 1. First complete object | Selected: reusable point-light feature with one visible lamp | 1B. Small generic registry; 1C. Full ECS first |
 | 2. Session and clock | 2A. Minimal fixed-step session | 2B. General scheduler; 2C. Demo-owned clock |
 | 3. Character simulation | 3A. Move the reusable motor | 3B. Add a demo adapter; 3C. Define physics services first |
 | 4. Town content | 4A. Compiled town asset with owner entities | 4B. Entity-rich town; 4C. One opaque town entity |
@@ -235,14 +235,17 @@ Costs:
 
 ## Slice 1: First complete object
 
-The executable contract is [`slice-01/plan.md`](slice-01/plan.md). Answer its short
-[`slice-01/owner-input_H.md`](slice-01/owner-input_H.md) file first. Slice 01 remains blocked until
+The executable contract is [`slice-01/plan.md`](slice-01/plan.md). The accepted owner decisions are
+in [`slice-01/owner-input_H.md`](slice-01/owner-input_H.md). Slice 01 remains blocked only until
 Slice 0 is complete.
 
 ### Outcome
 
 Move one market lamp through the complete framework path. Give the lamp a stable `EntityId`, a
 label, a transform, and a point-light component.
+
+Build a reusable point-light service that supports multiple lamps by stable ID. Use the market lamp
+as its first visible consumer.
 
 Add one command that changes its power. Validate identity, permission, value limits, request ID,
 and expected revision. Record an accepted in-memory event. Support inspection and correction-based
@@ -251,21 +254,22 @@ undo.
 Project the accepted value into runtime and render state. Update the matching practical-light slot
 without rebuilding town geometry.
 
-### 1A. Feature-first market lamp — Recommended
+### 1A. Reusable point-light feature — Selected
 
-Build only the types and stores that the lamp needs. Use typed maps and explicit functions. Keep
-the implementation private until a second feature proves a reusable shape.
+Build the point-light types, commands, and service needed to add more lamps. Let the service own
+multiple lamp records by stable ID. Use typed maps and explicit functions. Keep storage private.
+Wait for another feature type before adding a generic registry or entity-component-system.
 
 Benefits:
 
-- Smallest complete architecture proof.
+- Supports more lamps without a new service for each lamp.
 - Easy to compare with the current practical-light uniforms.
 - Avoids choosing final component storage too early.
 
 Costs:
 
-- Some code can change after the second component type arrives.
-- Early APIs will be intentionally narrow.
+- Some code can change after a non-light feature proves a broader boundary.
+- Early APIs remain intentionally specific to point lights.
 
 ### 1B. Small generic registry
 
@@ -302,6 +306,7 @@ Costs:
 
 - A headless test accepts one valid command and rejects invalid, duplicate, stale, and unauthorized
   commands without changing state.
+- A second headless point light uses the same service. Changing one light does not change the other.
 - Replay and correction-based undo produce the expected authoring state.
 - A complete state rebuild matches the small state updates.
 - Inspection returns the lamp ID, label, components, revision, and render binding.

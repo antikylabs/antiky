@@ -1,17 +1,17 @@
 # Slice 01: Change One Market Lamp Through Antiky
 
-This plan is the implementation contract. For a short review, answer the two questions in
+This plan is the implementation contract. The accepted owner decisions are in
 [`owner-input_H.md`](owner-input_H.md).
 
 ## Control
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` — owner input and Slice 00 are pending |
+| Status | `NOT READY` — Slice 00 must complete |
 | Outcome | One command changes one market lamp through the complete framework path |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Depends on | [`../slice-00/plan.md`](../slice-00/plan.md) completed |
-| Alignment revision | `35091e0883253c89ad27bf840c42d1a9dc4c6c7f` |
+| Alignment revision | `4504b2f364ae19f970875ea54226d7a84b1e55b1` |
 | Complete check | `npm run verify:slice-01 --workspace @antiky/demos` |
 | Evidence | `docs/objectives/antiky-town/slice-01/outputs/{run-id}/receipt.json` |
 
@@ -26,7 +26,7 @@ After both gates pass, use:
 
 ## Review summary
 
-- Give one market lamp stable authored identity and data.
+- Build reusable point-light parts and use one market lamp as the first visible consumer.
 - Change its base power through one authorized command.
 - Project the accepted value into the existing town renderer.
 - Inspect and undo the change through the shared framework services.
@@ -48,6 +48,9 @@ At completion:
 
 The current flicker remains presentation behavior. It does not change authoring state or create an
 event on each frame.
+
+The framework point-light service supports multiple lamps by stable ID. Slice 01 ports one lamp to
+the visible town. A second headless lamp proves that the service is not a single-object special case.
 
 ### Non-goals
 
@@ -85,7 +88,7 @@ and resource count before code work. It keeps `town-study` runnable.
 test, CLI, Studio, or MCP
   -> SetPointLightPower command
   -> trusted context and validation
-  -> lamp authoring service
+  -> point-light authoring service
   -> PointLightPowerSet accepted fact
   -> runtime lamp projection
   -> render entry and dirty slot 0
@@ -123,12 +126,14 @@ slot `0` before the frame loop.
 
 ## Framework deliverable
 
-Add only the framework behavior that this lamp uses:
+Add only the framework behavior that this lamp proves and later point lights can reuse:
 
 - Branded UUIDv7 `WorldId`, `EntityId`, and `CommandId` creation and validation.
 - Versioned `Transform` and `PointLight` records with explicit validation.
-- A narrow lamp authoring service with immutable reads and one writer.
-- `SetPointLightPower` validation, authority, duplicate detection, revision checks, and results.
+- A point-light authoring service with private storage, immutable reads, and one writer.
+- More than one point-light record keyed by stable `EntityId` values.
+- `SetPointLightPower` behavior for any registered point light, with validation, authority,
+  duplicate detection, revision checks, and stable results.
 - A bounded in-memory `PointLightPowerSet` history with replay and correction-based undo.
 - Runtime and render projections that apply each accepted revision once.
 - Lamp inspection through the Slice 00 inspection source.
@@ -167,6 +172,9 @@ Use these stable result codes:
 
 A rejected request changes no authoring, history, runtime, render, or GPU-resource state.
 
+The framework service must not contain `Market Lamp West 01`, render slot `0`, or another
+town-specific value. The Antiky Town adapter owns that mapping.
+
 ## Demo and render deliverable
 
 Add a town-local seam that can supply slot `0` base power. Keep the existing default values for
@@ -192,7 +200,8 @@ Slice 01 must not claim a four-byte GPU write. A power change must:
 
 ## User-facing documentation deliverable
 
-- Update framework guidance for lamp identity, light data, commands, results, and inspection.
+- Update framework guidance for adding point lights, light identity, commands, results, and
+  inspection.
 - Include one valid example that changes and then corrects the market lamp power.
 - Update CLI or Studio guidance if this slice changes either workflow. Otherwise, record `N/A` and
   the reason for that area.
@@ -233,6 +242,7 @@ Add headless and integration tests for:
 
 - UUIDv7 validation and fixed fixture identity.
 - Component defaults, finite values, units, bounds, and immutable reads.
+- Two registered point lights that use the same service without shared state or special-case code.
 - Accepted, same-value, malformed, missing, unauthorized, duplicate, stale, and out-of-range
   commands.
 - Capacity rejection, ordered replay, sequence gaps, correction, and complete rebuild parity.
@@ -256,6 +266,7 @@ event sequence `1`. Correction restores `1.05` at revision `3` and event sequenc
 - [ ] The owner-input file is `ANSWERED` and Slice 00 is complete.
 - [ ] The Antiky Town route shows the reference town and lamp.
 - [ ] The fixed lamp ID, data, revision, history, and render binding are inspectable.
+- [ ] The same framework service supports a second headless point light without town-specific code.
 - [ ] The accepted fixture reaches authoring, runtime, render, and the next frame.
 - [ ] Every rejected fixture changes no state copy, history, dirty range, or GPU resource.
 - [ ] Replay, complete rebuild, and correction produce the required state.

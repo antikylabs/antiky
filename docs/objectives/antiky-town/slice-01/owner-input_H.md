@@ -2,7 +2,7 @@
 
 ## Status
 
-`WAITING FOR OWNER`
+`ANSWERED`
 
 ## Purpose
 
@@ -43,7 +43,7 @@ through `4`. Require correction-based undo and no unrelated visual change.
 
 ### Owner answer
 
-`PENDING`
+`APPROVE`
 
 ## Question 2: How much general framework structure should Slice 01 add?
 
@@ -62,7 +62,11 @@ after another feature proves the shared boundary.
 
 ### Owner answer
 
-`PENDING`
+`REPLACE`
+
+Build reusable point-light parts that support more lamps. Use `Market Lamp West 01` as the first
+visible consumer. Do not hard-code the framework to one lamp. Add broader framework abstractions
+only after another feature proves the shared boundary.
 
 ## Work that does not need owner input
 
