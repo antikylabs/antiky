@@ -24,6 +24,7 @@ type Phase = Exclude<DemoRuntimePhase, 'stopped'>;
 
 type InspectionPublisher = Readonly<{
   publish(input: DemoInspectionInput): Promise<void>;
+  disconnect(input: DemoInspectionInput): Promise<void>;
   close(): void;
 }>;
 
@@ -301,7 +302,22 @@ export default function LiveDemoStage({
     void import('./development-inspection').then(async ({
       connectDevelopmentInspectionPublisher,
     }) => {
-      const publisher = await connectDevelopmentInspectionPublisher();
+      const publisher = await connectDevelopmentInspectionPublisher({
+        reload: () => window.location.reload(),
+        async captureFrame() {
+          const canvas = canvasRef.current;
+          if (!canvas) throw new Error('The demo canvas is unavailable.');
+          const dataUrl = canvas.toDataURL('image/png');
+          const prefix = 'data:image/png;base64,';
+          if (!dataUrl.startsWith(prefix)) throw new Error('The demo canvas did not produce a PNG.');
+          return {
+            mimeType: 'image/png',
+            canvasWidth: canvas.width,
+            canvasHeight: canvas.height,
+            dataBase64: dataUrl.slice(prefix.length),
+          };
+        },
+      });
       if (disposed) {
         publisher?.close();
         return;
@@ -319,7 +335,7 @@ export default function LiveDemoStage({
       inspectionPublisherRef.current = null;
       const input = inspectionInputRef.current;
       if (publisher && input) {
-        void publisher.publish({ ...input, phase: 'stopped' }).finally(() => publisher.close());
+        void publisher.disconnect(input).finally(() => publisher.close());
       } else {
         publisher?.close();
       }

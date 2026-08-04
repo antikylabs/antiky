@@ -113,6 +113,8 @@ test('development session starts both children, publishes health, and cleans up'
     assert.equal(snapshot.processes.shaders.state, 'running');
     assert.equal(snapshot.connection.state, 'waiting');
     assert.equal(snapshot.cleanup.state, 'active');
+    assert.equal(snapshot.build.owner, 'cli');
+    assert.equal(snapshot.build.result, 'pending');
     assert.equal(snapshot.measurements.owner, 'cli');
     assert.equal(snapshot.inspection, null);
     assert.doesNotMatch(JSON.stringify(snapshot), /credential/i);
@@ -317,6 +319,7 @@ test('browser publication, direct reads, CLI inspection, and a typed client shar
       body: JSON.stringify({
         schemaVersion: 1,
         developmentSessionId: session.id,
+        publicationSequence: 1,
         snapshot: frameworkSnapshot,
       }),
     });
@@ -340,6 +343,216 @@ test('browser publication, direct reads, CLI inspection, and a typed client shar
     assert.deepEqual(cliInspection.inspection, frameworkSnapshot);
     assert.deepEqual(studioCompatible.inspection, frameworkSnapshot);
     assert.deepEqual(cliInspection, studioCompatible);
+  } finally {
+    await session.stop('normal');
+  }
+});
+
+test('browser boundary rejects unauthorized, wrong-origin, stale, malformed, and oversized messages', async () => {
+  const project = await makeProject();
+  const config = await loadAntikyConfig(project.configPath);
+  const session = await startDevelopmentSession(config, { writeOutput: () => {} });
+  const origin = new URL(config.game.url).origin;
+  const snapshot = createInspectionSnapshot({
+    schemaVersion: 1,
+    runtime: { instanceId: 'runtime-security-001', lifecycle: 'ready' },
+    diagnostics: [],
+    measurements: {
+      runtime: { owner: 'framework', frameCount: 2 },
+      render: { owner: 'framework', canvasWidth: 640, canvasHeight: 480 },
+    },
+  });
+
+  try {
+    const bootstrapResponse = await fetch(`${session.inspectionUrl}/v1/browser/bootstrap`, {
+      headers: { origin },
+    });
+    const bootstrap = await bootstrapResponse.json() as { credential: string };
+    const validEnvelope = {
+      schemaVersion: 1,
+      developmentSessionId: session.id,
+      publicationSequence: 1,
+      snapshot,
+    };
+
+    const unauthorized = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin },
+      body: JSON.stringify(validEnvelope),
+    });
+    assert.equal(unauthorized.status, 401);
+
+    const wrongOrigin = await fetch(`${session.inspectionUrl}/v1/browser/bootstrap`, {
+      headers: { origin: 'http://127.0.0.1:49999' },
+    });
+    assert.equal(wrongOrigin.status, 403);
+
+    const malformed = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${bootstrap.credential}`,
+        'content-type': 'application/json',
+        origin,
+      },
+      body: '{',
+    });
+    assert.equal(malformed.status, 400);
+
+    const oversized = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${bootstrap.credential}`,
+        'content-type': 'application/json',
+        origin,
+      },
+      body: ' '.repeat(256 * 1024 + 1),
+    });
+    assert.equal(oversized.status, 413);
+
+    const stale = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${bootstrap.credential}`,
+        'content-type': 'application/json',
+        origin,
+      },
+      body: JSON.stringify({ ...validEnvelope, developmentSessionId: 'development-stale' }),
+    });
+    assert.equal(stale.status, 409);
+    assert.equal(session.snapshot().connection.state, 'waiting');
+    assert.equal(session.snapshot().inspection, null);
+  } finally {
+    await session.stop('normal');
+  }
+});
+
+test('disconnect, reconnect, controlled reload, and capture preserve related identities', async () => {
+  const project = await makeProject();
+  const config = await loadAntikyConfig(project.configPath);
+  const session = await startDevelopmentSession(config, {
+    writeOutput: () => {},
+    actionTimeoutMilliseconds: 1000,
+  });
+  const origin = new URL(config.game.url).origin;
+
+  try {
+    const bootstrapResponse = await fetch(`${session.inspectionUrl}/v1/browser/bootstrap`, {
+      headers: { origin },
+    });
+    const bootstrap = await bootstrapResponse.json() as { credential: string };
+    const browserHeaders = {
+      authorization: `Bearer ${bootstrap.credential}`,
+      'content-type': 'application/json',
+      origin,
+    };
+    const publish = async (runtimeInstanceId: string, publicationSequence: number) => {
+      const response = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+        method: 'POST',
+        headers: browserHeaders,
+        body: JSON.stringify({
+          schemaVersion: 1,
+          developmentSessionId: session.id,
+          publicationSequence,
+          snapshot: createInspectionSnapshot({
+            schemaVersion: 1,
+            runtime: { instanceId: runtimeInstanceId, lifecycle: 'ready' },
+            diagnostics: [],
+            measurements: {
+              runtime: { owner: 'framework', frameCount: 2 },
+              render: { owner: 'framework', canvasWidth: 1, canvasHeight: 1 },
+            },
+          }),
+        }),
+      });
+      assert.equal(response.status, 202, JSON.stringify(await response.json()));
+    };
+    const disconnect = async (runtimeInstanceId: string, publicationSequence: number) => {
+      const response = await fetch(`${session.inspectionUrl}/v1/runtime/disconnect`, {
+        method: 'POST',
+        headers: browserHeaders,
+        body: JSON.stringify({
+          schemaVersion: 1,
+          developmentSessionId: session.id,
+          runtimeInstanceId,
+          publicationSequence,
+        }),
+      });
+      assert.equal(response.status, 202);
+    };
+    const pollAction = async (runtimeInstanceId: string) => {
+      const deadline = Date.now() + 500;
+      while (true) {
+        const response = await fetch(
+          `${session.inspectionUrl}/v1/runtime/action?runtimeInstanceId=${runtimeInstanceId}`,
+          { headers: { authorization: `Bearer ${bootstrap.credential}`, origin } },
+        );
+        if (response.status === 200) {
+          return await response.json() as { actionId: string; kind: 'reload' | 'capture' };
+        }
+        assert.equal(response.status, 204);
+        if (Date.now() >= deadline) throw new Error('Timed out waiting for development action.');
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+    };
+
+    await publish('runtime-reconnect-001', 1);
+    const developmentSessionId = session.id;
+    await disconnect('runtime-reconnect-001', 2);
+    assert.equal(session.snapshot().connection.state, 'unavailable');
+    await publish('runtime-reconnect-002', 1);
+    assert.equal(session.snapshot().connection.state, 'connected');
+    assert.equal(session.snapshot().developmentSessionId, developmentSessionId);
+    assert.equal(session.snapshot().acceptedBuildRevision, 1);
+
+    const client = await connectDevelopmentClient(project.configPath);
+    const reloadPromise = client.requestReload();
+    const reloadAction = await pollAction('runtime-reconnect-002');
+    assert.equal(reloadAction.kind, 'reload');
+    await disconnect('runtime-reconnect-002', 2);
+    await publish('runtime-reconnect-003', 1);
+    assert.deepEqual(await reloadPromise, {
+      schemaVersion: 1,
+      actionId: reloadAction.actionId,
+      developmentSessionId,
+      buildRevision: 1,
+      oldRuntimeInstanceId: 'runtime-reconnect-002',
+      newRuntimeInstanceId: 'runtime-reconnect-003',
+      result: 'reloaded',
+    });
+
+    const capturePromise = client.captureFrame();
+    const captureAction = await pollAction('runtime-reconnect-003');
+    assert.equal(captureAction.kind, 'capture');
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64',
+    );
+    const captureResponse = await fetch(`${session.inspectionUrl}/v1/runtime/action-result`, {
+      method: 'POST',
+      headers: browserHeaders,
+      body: JSON.stringify({
+        schemaVersion: 1,
+        developmentSessionId,
+        runtimeInstanceId: 'runtime-reconnect-003',
+        actionId: captureAction.actionId,
+        result: {
+          kind: 'capture',
+          mimeType: 'image/png',
+          canvasWidth: 1,
+          canvasHeight: 1,
+          dataBase64: png.toString('base64'),
+        },
+      }),
+    });
+    assert.equal(captureResponse.status, 202);
+    const capture = await capturePromise;
+    assert.equal(capture.developmentSessionId, developmentSessionId);
+    assert.equal(capture.runtimeInstanceId, 'runtime-reconnect-003');
+    assert.equal(capture.buildRevision, 1);
+    assert.equal(capture.actionId, captureAction.actionId);
+    assert.equal(capture.byteLength, png.length);
+    assert.deepEqual(await readFile(capture.path), png);
+    assert.doesNotMatch(JSON.stringify(capture), /credential/i);
   } finally {
     await session.stop('normal');
   }

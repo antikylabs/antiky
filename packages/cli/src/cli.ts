@@ -1,13 +1,15 @@
 import { resolve } from 'node:path';
 
-import { inspectDevelopmentSession } from './client.ts';
+import { connectDevelopmentClient, inspectDevelopmentSession } from './client.ts';
 import { loadAntikyConfig } from './config.ts';
 import { startDevelopmentSession } from './development-session.ts';
 import { AntikyCliError } from './errors.ts';
+import { runMcpServer } from './mcp-server.ts';
 
 export const CLI_USAGE = `Usage:
   antiky dev [--config path]
-  antiky inspect [--config path]`;
+  antiky inspect [--config path]
+  antiky mcp [--config path]`;
 
 export type CliIo = Readonly<{
   stdout: (text: string) => void;
@@ -28,7 +30,7 @@ export async function runCli(
   },
 ): Promise<number> {
   const [command, ...commandArgs] = args;
-  if (command !== 'dev' && command !== 'inspect') {
+  if (command !== 'dev' && command !== 'inspect' && command !== 'mcp') {
     throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
   }
   const configPath = parseConfigPath(commandArgs);
@@ -36,6 +38,11 @@ export async function runCli(
   if (command === 'inspect') {
     const snapshot = await inspectDevelopmentSession(configPath);
     io.stdout(`${JSON.stringify(snapshot, null, 2)}\n`);
+    return 0;
+  }
+  if (command === 'mcp') {
+    const client = await connectDevelopmentClient(configPath);
+    await runMcpServer(client, process.stdin, io.stdout);
     return 0;
   }
 

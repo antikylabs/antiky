@@ -8,6 +8,7 @@
     "prebuild": "npm run shaders:prod --workspace @antiky/demos",
     "build": "next build",
     "start": "next start -p 3010",
+    "test": "npm run build && node --test tests/production-inspection-boundary.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

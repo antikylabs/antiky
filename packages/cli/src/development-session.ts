@@ -1,10 +1,11 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { createServer as createNetServer, type Server as NetServer } from 'node:net';
-
-import type { InspectionSnapshot } from '@antiky/framework';
+import { join } from 'node:path';
 
 import type { AntikyConfig } from './config.ts';
+import { createBuildTracker } from './build-tracker.ts';
+import { createDevelopmentActionBroker } from './development-actions.ts';
 import {
   DEVELOPMENT_SCHEMA_VERSION,
   type DevelopmentCleanupState,
@@ -15,6 +16,7 @@ import {
 } from './development-types.ts';
 import { AntikyCliError } from './errors.ts';
 import { createInspectionServer } from './inspection-server.ts';
+import { createRuntimeConnection } from './runtime-connection.ts';
 import {
   getSessionDescriptorPath,
   removeSessionDescriptor,
@@ -37,6 +39,10 @@ type ManagedChild = {
 
 export type DevelopmentSessionOptions = Readonly<{
   writeOutput?: (line: string) => void;
+  watchPaths?: readonly string[];
+  buildFailureTimeoutMilliseconds?: number;
+  actionTimeoutMilliseconds?: number;
+  runtimeConnectionTimeoutMilliseconds?: number;
 }>;
 
 export interface DevelopmentSession {
@@ -169,8 +175,13 @@ export async function startDevelopmentSession(
   const startedAtMilliseconds = Date.now();
   const startedAt = new Date(startedAtMilliseconds).toISOString();
   let launchMilliseconds: number | undefined;
-  let acceptedBuildRevision = 0;
-  let latestInspection: InspectionSnapshot | null = null;
+  const buildTracker = createBuildTracker({
+    developmentSessionId: id,
+    rootDirectory: config.game.workingDirectory,
+    ...(options.buildFailureTimeoutMilliseconds === undefined
+      ? {}
+      : { failureTimeoutMilliseconds: options.buildFailureTimeoutMilliseconds }),
+  });
   const processRecords = {
     game: { state: 'starting' } as ProcessRecord,
     shaders: { state: 'starting' } as ProcessRecord,
@@ -183,32 +194,60 @@ export async function startDevelopmentSession(
   let resolveStopped!: (result: DevelopmentStopResult) => void;
   const stopped = new Promise<DevelopmentStopResult>((resolve) => { resolveStopped = resolve; });
 
-  const snapshot = (): DevelopmentSnapshot => Object.freeze({
-    schemaVersion: DEVELOPMENT_SCHEMA_VERSION,
-    developmentSessionId: id,
-    acceptedBuildRevision,
-    startedAt,
-    config: Object.freeze({
-      path: config.path,
-      gameUrl: config.game.url,
-      host: config.network.host,
-      gamePort: config.network.gamePort,
-      inspectionPort: config.network.inspectionPort,
-    }),
-    processes: Object.freeze({
-      game: processSnapshot(processRecords.game),
-      shaders: processSnapshot(processRecords.shaders),
-    }),
-    connection: Object.freeze({ state: latestInspection === null ? 'waiting' as const : 'connected' as const }),
-    cleanup: Object.freeze({ state: cleanupState }),
-    diagnostics: Object.freeze([]),
-    measurements: Object.freeze({
-      owner: 'cli' as const,
-      launchMilliseconds: launchMilliseconds ?? Math.max(0, Date.now() - startedAtMilliseconds),
-      ...(cleanupMilliseconds === undefined ? {} : { cleanupMilliseconds }),
-    }),
-    inspection: latestInspection,
+  const runtimeConnection = createRuntimeConnection({
+    acceptBuild: (inspection) => buildTracker.acceptRuntime(inspection),
+    ...(options.runtimeConnectionTimeoutMilliseconds === undefined
+      ? {}
+      : { timeoutMilliseconds: options.runtimeConnectionTimeoutMilliseconds }),
   });
+
+  const actionBroker = createDevelopmentActionBroker({
+    developmentSessionId: id,
+    rootDirectory: config.game.workingDirectory,
+    readRuntimeContext: () => {
+      const runtime = runtimeConnection.read();
+      return {
+        runtimeInstanceId: runtime.runtimeInstanceId,
+        buildRevision: buildTracker.snapshot().revision,
+        connected: runtime.state === 'connected',
+      };
+    },
+    ...(options.actionTimeoutMilliseconds === undefined
+      ? {}
+      : { timeoutMilliseconds: options.actionTimeoutMilliseconds }),
+  });
+
+  const snapshot = (): DevelopmentSnapshot => {
+    const runtime = runtimeConnection.read();
+    const build = buildTracker.snapshot();
+    return Object.freeze({
+      schemaVersion: DEVELOPMENT_SCHEMA_VERSION,
+      developmentSessionId: id,
+      acceptedBuildRevision: build.revision,
+      startedAt,
+      config: Object.freeze({
+        path: config.path,
+        gameUrl: config.game.url,
+        host: config.network.host,
+        gamePort: config.network.gamePort,
+        inspectionPort: config.network.inspectionPort,
+      }),
+      processes: Object.freeze({
+        game: processSnapshot(processRecords.game),
+        shaders: processSnapshot(processRecords.shaders),
+      }),
+      connection: Object.freeze({ state: runtime.state }),
+      cleanup: Object.freeze({ state: cleanupState }),
+      build,
+      diagnostics: buildTracker.diagnostics(),
+      measurements: Object.freeze({
+        owner: 'cli' as const,
+        launchMilliseconds: launchMilliseconds ?? Math.max(0, Date.now() - startedAtMilliseconds),
+        ...(cleanupMilliseconds === undefined ? {} : { cleanupMilliseconds }),
+      }),
+      inspection: runtime.inspection,
+    });
+  };
 
   const inspectionServer = createInspectionServer({
     host: config.network.host,
@@ -217,11 +256,23 @@ export async function startDevelopmentSession(
     gameUrl: config.game.url,
     credential,
     readDevelopmentSnapshot: snapshot,
-    acceptInspection(inspection) {
-      latestInspection = inspection;
-      acceptedBuildRevision = Math.max(acceptedBuildRevision, 1);
+    acceptInspection(inspection, publicationSequence) {
+      const acceptedBuildRevision = runtimeConnection.accept(inspection, publicationSequence);
+      if (
+        inspection.runtime.lifecycle === 'ready'
+        || inspection.runtime.lifecycle === 'running'
+        || inspection.runtime.lifecycle === 'paused'
+      ) actionBroker.noteRuntimeConnected(inspection.runtime.instanceId);
       return acceptedBuildRevision;
     },
+    disconnectRuntime: (runtimeInstanceId, publicationSequence) => (
+      runtimeConnection.disconnect(runtimeInstanceId, publicationSequence)
+    ),
+    touchRuntime: (runtimeInstanceId) => runtimeConnection.touch(runtimeInstanceId),
+    nextAction: (runtimeInstanceId) => actionBroker.nextAction(runtimeInstanceId),
+    completeCapture: (input) => actionBroker.completeCapture(input),
+    requestReload: () => actionBroker.requestReload(),
+    captureFrame: () => actionBroker.captureFrame(),
   });
 
   const stop = (
@@ -233,6 +284,8 @@ export async function startDevelopmentSession(
       stopping = true;
       cleanupState = 'stopping';
       const cleanupStarted = Date.now();
+      actionBroker.stop();
+      await buildTracker.stop();
       await Promise.all(children.map(stopChild));
       await inspectionServer.stop();
       await removeSessionDescriptor(descriptorPath);
@@ -306,6 +359,12 @@ export async function startDevelopmentSession(
     gameReservation = undefined;
     await spawnManaged('game', config.game.command);
     launchMilliseconds = Date.now() - startedAtMilliseconds;
+    await buildTracker.watch(options.watchPaths ?? [
+      config.path,
+      join(config.game.workingDirectory, 'packages', 'demos', 'src'),
+      join(config.game.workingDirectory, 'packages', 'website', 'src'),
+      join(config.game.workingDirectory, 'src'),
+    ]);
   } catch (cause) {
     await closeNetServer(gameReservation);
     await closeNetServer(inspectionReservation);

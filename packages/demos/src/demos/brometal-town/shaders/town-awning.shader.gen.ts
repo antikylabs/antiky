@@ -126,7 +126,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let indirect = bm_u.uSkyColor * (bm_u.uSkyIntensity * (0.34 + up * 0.66)) + bm_u.uGroundColor * (bm_u.uGroundIntensity * (0.28 + (1.0 - up) * 0.72)) + vec3f(0.04, 0.052, 0.078);
   let warmKey = mix(vec3f(1.0, 0.94, 0.84), bm_u.uSunColor, 0.46);
   let direct = warmKey * (bm_u.uSunIntensity * 0.5 * ndotl * shadow * shadow);
-  let transmission = pow(max(dot(normal * -1.0, light), 0.0), 2.0) * shadow * 0.07;
+  let transmission = pow(max(0.0 - dot(normal, light), 0.0), 2.0) * shadow * 0.07;
   var color = albedo * (indirect + direct) + albedo * warmKey * transmission;
   let clothEdge = pow(1.0 - abs(dot(normal, view)), 3.0) * 0.025;
   color = color + bm_u.uSkyColor * clothEdge;

@@ -12,9 +12,19 @@ import {
   type InspectionSnapshot,
 } from '@antiky/framework';
 
-import type { DevelopmentSnapshot } from './development-types.ts';
+import type {
+  BrowserDevelopmentAction,
+  CaptureActionInput,
+} from './development-actions.ts';
+import type {
+  DevelopmentCaptureResult,
+  DevelopmentReloadResult,
+  DevelopmentSnapshot,
+} from './development-types.ts';
+import { AntikyCliError } from './errors.ts';
 
 const MAX_BROWSER_MESSAGE_BYTES = 256 * 1024;
+const MAX_CAPTURE_MESSAGE_BYTES = 7 * 1024 * 1024;
 
 type InspectionServerOptions = Readonly<{
   host: '127.0.0.1';
@@ -23,7 +33,13 @@ type InspectionServerOptions = Readonly<{
   gameUrl: string;
   credential: string;
   readDevelopmentSnapshot(): DevelopmentSnapshot;
-  acceptInspection(snapshot: InspectionSnapshot): number;
+  acceptInspection(snapshot: InspectionSnapshot, publicationSequence: number): number;
+  disconnectRuntime(runtimeInstanceId: string, publicationSequence: number): void;
+  touchRuntime(runtimeInstanceId: string): void;
+  nextAction(runtimeInstanceId: string): BrowserDevelopmentAction | null;
+  completeCapture(input: CaptureActionInput): Promise<void>;
+  requestReload(): Promise<DevelopmentReloadResult>;
+  captureFrame(): Promise<DevelopmentCaptureResult>;
 }>;
 
 export interface InspectionServer {
@@ -31,14 +47,21 @@ export interface InspectionServer {
   stop(): Promise<void>;
 }
 
-class BrowserMessageError extends Error {
+export class InspectionServiceError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
     message: string,
   ) {
     super(message);
+    this.name = 'InspectionServiceError';
   }
+}
+
+type UnknownRecord = Record<string, unknown>;
+
+function serviceError(status: number, code: string, message: string): never {
+  throw new InspectionServiceError(status, code, message);
 }
 
 function hasCredential(header: string | undefined, credential: string): boolean {
@@ -54,6 +77,7 @@ function writeJson(
   body: unknown,
   allowedOrigin?: string,
 ): void {
+  if (response.destroyed || response.writableEnded) return;
   const bodyText = JSON.stringify(body);
   response.writeHead(status, {
     'cache-control': 'no-store',
@@ -69,29 +93,60 @@ function writeJson(
 
 function requireExactOrigin(request: IncomingMessage, expectedOrigin: string): void {
   if (request.headers.origin !== expectedOrigin) {
-    throw new BrowserMessageError(403, 'ANTIKY_ORIGIN_INVALID', 'Invalid Origin header.');
+    serviceError(403, 'ANTIKY_ORIGIN_INVALID', 'Invalid Origin header.');
   }
 }
 
-function readBody(request: IncomingMessage): Promise<string> {
+function readObject(value: unknown): UnknownRecord {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Expected a message object.');
+  }
+  return value as UnknownRecord;
+}
+
+function hasExactKeys(record: UnknownRecord, keys: readonly string[]): boolean {
+  const actual = Object.keys(record).sort();
+  const expected = [...keys].sort();
+  return actual.length === expected.length
+    && actual.every((key, index) => key === expected[index]);
+}
+
+function requireSession(record: UnknownRecord, developmentSessionId: string): void {
+  if (record.schemaVersion !== 1) {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid browser message version.');
+  }
+  if (record.developmentSessionId !== developmentSessionId) {
+    serviceError(409, 'ANTIKY_SESSION_STALE', 'Development session is stale.');
+  }
+}
+
+function readSequence(value: unknown): number {
+  if (!Number.isSafeInteger(value) || (value as number) <= 0) {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Publication sequence must be a positive integer.');
+  }
+  return value as number;
+}
+
+function readBody(request: IncomingMessage, maximumBytes: number): Promise<string> {
   const declaredLength = Number(request.headers['content-length']);
   if (
     request.headers['content-length'] !== undefined
     && (!Number.isSafeInteger(declaredLength) || declaredLength < 0)
-  ) {
-    throw new BrowserMessageError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid Content-Length header.');
-  }
-  if (declaredLength > MAX_BROWSER_MESSAGE_BYTES) {
-    throw new BrowserMessageError(413, 'ANTIKY_MESSAGE_TOO_LARGE', 'Browser message is too large.');
+  ) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid Content-Length header.');
+  if (declaredLength > maximumBytes) {
+    serviceError(413, 'ANTIKY_MESSAGE_TOO_LARGE', 'Browser message is too large.');
   }
 
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     let size = 0;
+    let rejected = false;
     request.on('data', (chunk: Buffer) => {
+      if (rejected) return;
       size += chunk.length;
-      if (size > MAX_BROWSER_MESSAGE_BYTES) {
-        reject(new BrowserMessageError(
+      if (size > maximumBytes) {
+        rejected = true;
+        reject(new InspectionServiceError(
           413,
           'ANTIKY_MESSAGE_TOO_LARGE',
           'Browser message is too large.',
@@ -101,40 +156,110 @@ function readBody(request: IncomingMessage): Promise<string> {
       }
       chunks.push(chunk);
     });
-    request.once('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    request.once('end', () => {
+      if (!rejected) resolve(Buffer.concat(chunks).toString('utf8'));
+    });
     request.once('error', reject);
   });
+}
+
+async function readJson(request: IncomingMessage, maximumBytes: number): Promise<unknown> {
+  if (request.headers['content-type']?.split(';', 1)[0]?.trim() !== 'application/json') {
+    serviceError(415, 'ANTIKY_CONTENT_TYPE_INVALID', 'Content-Type must be application/json.');
+  }
+  try {
+    return JSON.parse(await readBody(request, maximumBytes));
+  } catch (cause: unknown) {
+    if (cause instanceof InspectionServiceError) throw cause;
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Malformed JSON message.');
+  }
 }
 
 function readSnapshotEnvelope(
   value: unknown,
   developmentSessionId: string,
-): InspectionSnapshot {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new BrowserMessageError(400, 'ANTIKY_MESSAGE_INVALID', 'Expected a message object.');
-  }
-  const record = value as Record<string, unknown>;
-  const keys = Object.keys(record).sort();
-  if (
-    keys.length !== 3
-    || keys[0] !== 'developmentSessionId'
-    || keys[1] !== 'schemaVersion'
-    || keys[2] !== 'snapshot'
-    || record.schemaVersion !== 1
-  ) {
-    throw new BrowserMessageError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid browser message fields.');
-  }
-  if (record.developmentSessionId !== developmentSessionId) {
-    throw new BrowserMessageError(409, 'ANTIKY_SESSION_STALE', 'Development session is stale.');
-  }
+): { snapshot: InspectionSnapshot; publicationSequence: number } {
+  const record = readObject(value);
+  if (!hasExactKeys(record, [
+    'schemaVersion',
+    'developmentSessionId',
+    'publicationSequence',
+    'snapshot',
+  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid browser message fields.');
+  requireSession(record, developmentSessionId);
   try {
-    return createInspectionSnapshot(record.snapshot);
+    return {
+      snapshot: createInspectionSnapshot(record.snapshot),
+      publicationSequence: readSequence(record.publicationSequence),
+    };
   } catch (cause: unknown) {
     if (cause instanceof InspectionValidationError) {
-      throw new BrowserMessageError(400, cause.code, cause.message);
+      serviceError(400, cause.code, cause.message);
     }
     throw cause;
   }
+}
+
+function readDisconnectEnvelope(
+  value: unknown,
+  developmentSessionId: string,
+): { runtimeInstanceId: string; publicationSequence: number } {
+  const record = readObject(value);
+  if (!hasExactKeys(record, [
+    'schemaVersion',
+    'developmentSessionId',
+    'runtimeInstanceId',
+    'publicationSequence',
+  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid disconnect message fields.');
+  requireSession(record, developmentSessionId);
+  if (typeof record.runtimeInstanceId !== 'string' || record.runtimeInstanceId.length > 128) {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid runtime instance ID.');
+  }
+  return {
+    runtimeInstanceId: record.runtimeInstanceId,
+    publicationSequence: readSequence(record.publicationSequence),
+  };
+}
+
+function readCaptureEnvelope(value: unknown, developmentSessionId: string): CaptureActionInput {
+  const record = readObject(value);
+  if (!hasExactKeys(record, [
+    'schemaVersion', 'developmentSessionId', 'runtimeInstanceId', 'actionId', 'result',
+  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result fields.');
+  requireSession(record, developmentSessionId);
+  const result = readObject(record.result);
+  if (!hasExactKeys(result, [
+    'kind', 'mimeType', 'canvasWidth', 'canvasHeight', 'dataBase64',
+  ]) || result.kind !== 'capture' || result.mimeType !== 'image/png') {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid capture result fields.');
+  }
+  if (
+    typeof record.actionId !== 'string'
+    || typeof record.runtimeInstanceId !== 'string'
+    || typeof result.dataBase64 !== 'string'
+  ) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid capture result values.');
+  return {
+    actionId: record.actionId,
+    runtimeInstanceId: record.runtimeInstanceId,
+    mimeType: 'image/png',
+    canvasWidth: result.canvasWidth as number,
+    canvasHeight: result.canvasHeight as number,
+    dataBase64: result.dataBase64,
+  };
+}
+
+function readActionRequest(value: unknown): void {
+  const record = readObject(value);
+  if (!hasExactKeys(record, ['schemaVersion']) || record.schemaVersion !== 1) {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action request.');
+  }
+}
+
+function actionStatus(cause: AntikyCliError): number {
+  if (cause.code === 'ANTIKY_ACTION_TIMEOUT') return 504;
+  if (cause.code === 'ANTIKY_RUNTIME_UNAVAILABLE') return 503;
+  if (cause.code === 'ANTIKY_CAPTURE_INVALID') return 400;
+  return 409;
 }
 
 export function createInspectionServer(options: InspectionServerOptions): InspectionServer {
@@ -142,19 +267,20 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
   const expectedHost = `${options.host}:${options.port}`;
   const server: HttpServer = createHttpServer((request, response) => {
     void (async () => {
+      let browserRequest = false;
       try {
         if (request.headers.host !== expectedHost) {
-          throw new BrowserMessageError(400, 'ANTIKY_HOST_INVALID', 'Invalid Host header.');
+          serviceError(400, 'ANTIKY_HOST_INVALID', 'Invalid Host header.');
         }
-
-        const isBrowserRoute = request.url === '/v1/browser/bootstrap'
-          || request.url === '/v1/runtime/snapshot';
-        if (isBrowserRoute) requireExactOrigin(request, gameOrigin);
+        const requestUrl = new URL(request.url ?? '/', `http://${expectedHost}`);
+        browserRequest = requestUrl.pathname === '/v1/browser/bootstrap'
+          || requestUrl.pathname.startsWith('/v1/runtime/');
+        if (browserRequest) requireExactOrigin(request, gameOrigin);
         else if (request.headers.origin && request.headers.origin !== gameOrigin) {
-          throw new BrowserMessageError(403, 'ANTIKY_ORIGIN_INVALID', 'Invalid Origin header.');
+          serviceError(403, 'ANTIKY_ORIGIN_INVALID', 'Invalid Origin header.');
         }
 
-        if (request.method === 'OPTIONS' && isBrowserRoute) {
+        if (request.method === 'OPTIONS' && browserRequest) {
           response.writeHead(204, {
             'access-control-allow-origin': gameOrigin,
             'access-control-allow-methods': 'GET, POST, OPTIONS',
@@ -167,7 +293,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           return;
         }
 
-        if (request.method === 'GET' && request.url === '/v1/browser/bootstrap') {
+        if (request.method === 'GET' && requestUrl.pathname === '/v1/browser/bootstrap') {
           writeJson(response, 200, {
             schemaVersion: 1,
             developmentSessionId: options.developmentSessionId,
@@ -176,46 +302,96 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           }, gameOrigin);
           return;
         }
-
         if (!hasCredential(request.headers.authorization, options.credential)) {
-          throw new BrowserMessageError(401, 'ANTIKY_UNAUTHORIZED', 'Authorization is required.');
+          serviceError(401, 'ANTIKY_UNAUTHORIZED', 'Authorization is required.');
         }
-        if (request.method === 'GET' && request.url === '/v1/development') {
+
+        if (request.method === 'GET' && requestUrl.pathname === '/v1/development') {
           writeJson(response, 200, options.readDevelopmentSnapshot());
           return;
         }
-        if (request.method === 'POST' && request.url === '/v1/runtime/snapshot') {
-          if (request.headers['content-type']?.split(';', 1)[0]?.trim() !== 'application/json') {
-            throw new BrowserMessageError(
-              415,
-              'ANTIKY_CONTENT_TYPE_INVALID',
-              'Content-Type must be application/json.',
-            );
-          }
-          let message: unknown;
-          try {
-            message = JSON.parse(await readBody(request));
-          } catch (cause: unknown) {
-            if (cause instanceof BrowserMessageError) throw cause;
-            throw new BrowserMessageError(400, 'ANTIKY_MESSAGE_INVALID', 'Malformed JSON message.');
-          }
-          const snapshot = readSnapshotEnvelope(message, options.developmentSessionId);
-          const acceptedBuildRevision = options.acceptInspection(snapshot);
+        if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/snapshot') {
+          const envelope = readSnapshotEnvelope(
+            await readJson(request, MAX_BROWSER_MESSAGE_BYTES),
+            options.developmentSessionId,
+          );
+          const acceptedBuildRevision = options.acceptInspection(
+            envelope.snapshot,
+            envelope.publicationSequence,
+          );
           writeJson(response, 202, {
             schemaVersion: 1,
             accepted: true,
             developmentSessionId: options.developmentSessionId,
-            runtimeInstanceId: snapshot.runtime.instanceId,
+            runtimeInstanceId: envelope.snapshot.runtime.instanceId,
             acceptedBuildRevision,
           }, gameOrigin);
           return;
         }
-        throw new BrowserMessageError(404, 'ANTIKY_NOT_FOUND', 'Resource does not exist.');
+        if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/disconnect') {
+          const envelope = readDisconnectEnvelope(
+            await readJson(request, MAX_BROWSER_MESSAGE_BYTES),
+            options.developmentSessionId,
+          );
+          options.disconnectRuntime(envelope.runtimeInstanceId, envelope.publicationSequence);
+          writeJson(response, 202, { schemaVersion: 1, accepted: true }, gameOrigin);
+          return;
+        }
+        if (request.method === 'GET' && requestUrl.pathname === '/v1/runtime/action') {
+          if ([...requestUrl.searchParams.keys()].some((key) => key !== 'runtimeInstanceId')) {
+            serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action poll query.');
+          }
+          const runtimeInstanceId = requestUrl.searchParams.get('runtimeInstanceId');
+          if (!runtimeInstanceId || runtimeInstanceId.length > 128) {
+            serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid runtime instance ID.');
+          }
+          options.touchRuntime(runtimeInstanceId);
+          const action = options.nextAction(runtimeInstanceId);
+          if (!action) {
+            response.writeHead(204, {
+              'access-control-allow-origin': gameOrigin,
+              'cache-control': 'no-store',
+              vary: 'Origin',
+            });
+            response.end();
+          } else {
+            writeJson(response, 200, action, gameOrigin);
+          }
+          return;
+        }
+        if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/action-result') {
+          const capture = readCaptureEnvelope(
+            await readJson(request, MAX_CAPTURE_MESSAGE_BYTES),
+            options.developmentSessionId,
+          );
+          await options.completeCapture(capture);
+          writeJson(response, 202, { schemaVersion: 1, accepted: true }, gameOrigin);
+          return;
+        }
+        if (
+          request.method === 'POST'
+          && (requestUrl.pathname === '/v1/actions/reload'
+            || requestUrl.pathname === '/v1/actions/capture')
+        ) {
+          readActionRequest(await readJson(request, MAX_BROWSER_MESSAGE_BYTES));
+          const result = requestUrl.pathname.endsWith('/reload')
+            ? await options.requestReload()
+            : await options.captureFrame();
+          writeJson(response, 200, result);
+          return;
+        }
+        serviceError(404, 'ANTIKY_NOT_FOUND', 'Resource does not exist.');
       } catch (cause: unknown) {
-        if (cause instanceof BrowserMessageError) {
+        if (cause instanceof InspectionServiceError) {
           writeJson(response, cause.status, {
             error: { code: cause.code, message: cause.message },
-          }, request.headers.origin === gameOrigin ? gameOrigin : undefined);
+          }, browserRequest && request.headers.origin === gameOrigin ? gameOrigin : undefined);
+          return;
+        }
+        if (cause instanceof AntikyCliError) {
+          writeJson(response, actionStatus(cause), {
+            error: { code: cause.code, message: cause.message },
+          }, browserRequest && request.headers.origin === gameOrigin ? gameOrigin : undefined);
           return;
         }
         writeJson(response, 500, {

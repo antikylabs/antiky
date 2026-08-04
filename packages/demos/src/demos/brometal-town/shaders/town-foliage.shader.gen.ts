@@ -128,7 +128,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let wrappedDiffuse = 0.16 + baseNdotL * 0.84;
   let direct = bm_u.uSunColor * (bm_u.uSunIntensity * wrappedDiffuse * shadow);
   let cardWeight = 1.0 - clamp(bm_in.vKind, 0.0, 1.0);
-  let transmission = max(dot(normal * -1.0, light), 0.0) * cardWeight;
+  let transmission = max(0.0 - dot(normal, light), 0.0) * cardWeight;
   let transmitted = bm_u.uSunColor * (bm_u.uSunIntensity * transmission * 0.22 * shadow);
   let halfVector = normalize(light + view);
   let specular = pow(max(dot(normal, halfVector), 0.0), mix(18.0, 8.0, clamp(bm_in.vKind, 0.0, 1.0)));

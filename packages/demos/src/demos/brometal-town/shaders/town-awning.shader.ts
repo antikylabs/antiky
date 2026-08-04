@@ -196,7 +196,7 @@ export default shader({
       .add(vec3(0.04, 0.052, 0.078));
     const warmKey = mix(vec3(1, 0.94, 0.84), uSunColor, 0.46);
     const direct = warmKey.scale(uSunIntensity * 0.5 * ndotl * shadow * shadow);
-    const transmission = pow(max(dot(normal.scale(-1), light), 0), 2) * shadow * 0.07;
+    const transmission = pow(max(0 - dot(normal, light), 0), 2) * shadow * 0.07;
     let color = albedo.mul(indirect.add(direct))
       .add(albedo.mul(warmKey).scale(transmission));
     const clothEdge = pow(1 - abs(dot(normal, view)), 3) * 0.025;

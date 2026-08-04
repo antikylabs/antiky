@@ -210,7 +210,7 @@ export default shader({
     const wrappedDiffuse = 0.16 + baseNdotL * 0.84;
     const direct = uSunColor.scale(uSunIntensity * wrappedDiffuse * shadow);
     const cardWeight = 1 - clamp(vKind, 0, 1);
-    const transmission = max(dot(normal.scale(-1), light), 0) * cardWeight;
+    const transmission = max(0 - dot(normal, light), 0) * cardWeight;
     const transmitted = uSunColor.scale(uSunIntensity * transmission * 0.22 * shadow);
 
     const halfVector = normalize(light.add(view));

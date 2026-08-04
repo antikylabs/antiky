@@ -85,6 +85,7 @@ The command prints the current `DevelopmentSnapshot` as JSON. It contains:
 - The development-session ID and accepted build revision.
 - The resolved config and local addresses.
 - Game and shader process health.
+- The latest build kind, result, changed path, and duration when available.
 - Runtime connection and cleanup health.
 - CLI-owned launch measurements and development diagnostics.
 - The latest framework `InspectionSnapshot`, or `null` before a runtime connects.
@@ -108,6 +109,59 @@ const development = await client.readDevelopmentSnapshot();
 This is the Slice 00 Studio-compatible boundary. It does not create a Studio UI or a second engine
 service.
 
+## Track development updates
+
+Antiky watches the selected project's existing source, shader, asset, and config files. A revision
+is accepted only after a changed build reaches a newer ready browser runtime. A browser reload can
+change the runtime-instance ID without changing the development-session ID.
+
+For a shader change, Antiky waits for the matching generated shader before it accepts a ready
+runtime. A failed update leaves the accepted revision and generated shader unchanged and adds a
+structured CLI build diagnostic. Fixing the file clears that active diagnostic after the next ready
+runtime.
+
+## Connect an MCP client
+
+Run the newline-delimited standard-input/output adapter while `antiky dev` is active:
+
+```sh
+antiky mcp
+```
+
+Use `--config path/to/antiky.config.json` when the development command used that config. The adapter
+implements MCP protocol version `2025-11-25`. It writes protocol JSON only to standard output and
+uses the same typed development client as `antiky inspect`.
+
+The adapter publishes these JSON resources:
+
+- `antiky://dev/status`
+- `antiky://build/latest`
+- `antiky://runtime/status`
+- `antiky://render/stats`
+- `antiky://diagnostics`
+
+It publishes two controlled tools:
+
+- `dev_reload` asks the connected browser to reload. The result relates the development session,
+  build revision, old runtime instance, new runtime instance, and action ID.
+- `capture_frame` captures the game canvas as a PNG under `.antiky/captures/`. The result contains
+  the path, digest, byte count, capture ID, action ID, development session, runtime instance, and
+  build revision.
+
+Screenshots support visual review. Runtime and render facts still come from the framework inspection
+snapshot, not from image analysis.
+
+## Local bridge security
+
+The inspection service accepts only the configured `127.0.0.1` host and exact game origin. Browser
+messages are authenticated, versioned, field-checked, ordered, and size-bounded. A retired runtime
+cannot replace a newer runtime's facts. The per-session credential remains inside the browser
+adapter closure and the mode-`0600` session descriptor.
+
+Production website builds replace the complete local browser adapter with a no-op module. The
+production artifact test rejects local endpoints, the development environment key, and credential
+bootstrap code in deployable server or client chunks.
+
 ## Stop and cleanup
 
 Press `Ctrl-C` in the `antiky dev` terminal. Antiky sends a normal stop to every owned process,
@@ -125,5 +179,10 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_CHILD_START_FAILED`: an owned process could not start. Any partial start is cleaned up.
 - `ANTIKY_SESSION_UNAVAILABLE`: `antiky inspect` cannot find or reach the selected session.
 - `ANTIKY_UNAUTHORIZED`: the inspection service rejected the session credential.
+- `ANTIKY_RUNTIME_UNAVAILABLE`: reload or capture needs a connected browser runtime.
+- `ANTIKY_ACTION_BUSY`: another controlled development action is still active.
+- `ANTIKY_ACTION_TIMEOUT`: the connected runtime did not finish the action in time.
+- `ANTIKY_ACTION_STALE`: an action result belongs to an inactive request or runtime.
+- `ANTIKY_CAPTURE_INVALID`: the browser returned invalid or oversized PNG data.
 
 Fix a config or port error and run the command again. Do not edit the local session descriptor.
