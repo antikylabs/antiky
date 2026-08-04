@@ -11,7 +11,7 @@ This plan is the implementation contract. The accepted owner decisions are in
 | Outcome | One command changes one market lamp through the complete framework path |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Depends on | [`../slice-00/plan.md`](../slice-00/plan.md) completed |
-| Alignment revision | `8244f9aa132d5fbec7ddc17114e7949a2c884fab` |
+| Alignment revision | `614b130e72b808bf58fbf69d5a32eb80c4b011d8` |
 | Complete check | `npm run verify:slice-01 --workspace @antiky/demos` |
 | Evidence | `docs/objectives/antiky-town/slice-01/outputs/{run-id}/receipt.json` |
 

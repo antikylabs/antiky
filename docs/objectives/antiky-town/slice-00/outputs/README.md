@@ -12,3 +12,7 @@ the plan creates, such as:
 - `captures/` and `logs/` when the plan requires them.
 
 The receipt must list each stored output and its digest. Do not store credentials or other secrets.
+
+The Evidence field in [`../plan.md`](../plan.md) identifies the authoritative receipt. Run
+`s00-20260804T185103Z` remains immutable historical evidence and is superseded by
+`s00-20260804T205140Z`, which records and corrects its browser-network evidence failure.

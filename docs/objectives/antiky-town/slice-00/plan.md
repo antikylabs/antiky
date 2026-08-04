@@ -14,7 +14,7 @@ This plan is the implementation contract. The accepted owner decisions are in
 | Depends on | None |
 | Alignment revision | `441563bcce94abd76fb6813869e603e13f116b5a` |
 | Complete check | `npm run verify:slice-00` |
-| Evidence | [`outputs/s00-20260804T185103Z/receipt.json`](outputs/s00-20260804T185103Z/receipt.json) |
+| Evidence | [`outputs/s00-20260804T205140Z/receipt.json`](outputs/s00-20260804T205140Z/receipt.json) |
 
 The goal runner must read the owner-input file before implementation. It must stop if the file has a
 `PENDING` answer. It must use the inline answers as part of this contract.

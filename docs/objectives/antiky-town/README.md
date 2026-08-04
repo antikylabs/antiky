@@ -28,7 +28,7 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 
 1. Read [`slice-list.md`](slice-list.md) for the short active sequence.
 2. Read the development-harness research if you need the design background.
-3. Review the completed [Slice 00 receipt](slice-00/outputs/s00-20260804T185103Z/receipt.json).
+3. Review the completed [Slice 00 receipt](slice-00/outputs/s00-20260804T205140Z/receipt.json).
 4. Review the accepted decisions in [`slice-01/owner-input_H.md`](slice-01/owner-input_H.md).
 5. Run the ready Slice 01 goal.
 

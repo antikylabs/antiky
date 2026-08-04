@@ -1,0 +1,18 @@
+
+DevTools listening on ws://127.0.0.1:9322/devtools/browser/2011635d-863c-49a8-b70c-96ef35d30c81
+[98186:45094259:0804/155219.614927:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155219.771591:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155219.882052:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155221.906195:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155222.008245:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155222.113425:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155222.216512:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155222.513346:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+Trying to load the allocator multiple times. This is *not* supported.
+[98186:45094259:0804/155222.678643:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155222.766970:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155223.016697:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155223.151315:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155223.168306:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155223.290566:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
+[98186:45094259:0804/155223.326089:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.212 s for first_image_paint 0.202 s
