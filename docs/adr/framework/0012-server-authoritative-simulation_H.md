@@ -1,4 +1,4 @@
-# 0012: Make online simulation server-authoritative
+# 0012: Let the server decide online game state
 
 ## Status
 
@@ -6,26 +6,38 @@ Accepted
 
 ## Context
 
-Emberwyrd has online and MMO ambitions. A client-controlled state model would allow clients to claim
-positions, damage, inventory, ownership, or cooldown outcomes and would make later authority a
-fundamental rewrite.
+Emberwyrd is intended to support online play and large multiplayer worlds.
+
+Clients cannot control the true game state. A modified client could claim false positions, damage,
+inventory, ownership, or cooldown results. Moving control to a server later would require a large
+rewrite.
 
 ## Decision
 
-We will run authoritative gameplay decisions and simulation in server-hosted `EngineSession`
-instances. Clients send bounded input batches and gameplay intent. The authenticated gateway derives
-the actor and policy context; the session validates rules, simulates outcomes, and publishes
-interest-filtered replication.
+Server-hosted `EngineSession` instances will make the final gameplay decisions and run the true
+simulation.
 
-Clients may predict presentation and local movement, then reconcile with server state. Replication
-is a purpose-built projection of relevant current state and cues, not a broadcast of the durable
-event log.
+Clients will send limited groups of inputs and intended actions. An authenticated gateway will use
+trusted data to identify the player and the player's permissions.
+
+The session will check the game rules and calculate the result. It will send each client only the
+updates that are relevant to that client.
+
+A client can show predicted movement before the server responds. When the server state arrives, the
+client must correct an incorrect prediction.
+
+The server will send relevant current state and presentation cues, such as visual or audio effects,
+to each client. It will not send the durable event log as the network update.
 
 ## Consequences
 
-- Clients cannot directly establish authoritative position, damage, inventory, or ownership.
-- Server and client must share compatible gameplay semantics, build metadata, and input contracts.
-- Prediction and reconciliation improve responsiveness but add implementation and testing cost.
-- Interest management, session placement, checkpoints, and cross-session handoff become server
-  responsibilities.
-- Durable event history remains selective; per-frame replication stays transient.
+- Clients cannot directly set the true position, damage, inventory, or ownership.
+- The server and clients must use compatible gameplay rules, build information, and input formats.
+- Prediction makes controls feel more responsive. Prediction and correction add code and tests.
+- The server must decide which updates each client needs. It must also manage session placement,
+  checkpoints, and movement between sessions.
+- Durable event history stays selective. Network updates for each frame stay temporary.
+
+## Revision history
+
+- `6facfccaf4614340a4181b4361f77117e59a5e76` — Prior version before the plain-language rewrite.

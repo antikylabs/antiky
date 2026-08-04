@@ -1,4 +1,4 @@
-# 0013: Make simulation inputs explicit
+# 0013: Give the simulation all inputs explicitly
 
 ## Status
 
@@ -6,25 +6,44 @@ Accepted
 
 ## Context
 
-Hidden wall clocks, randomness, environment reads, and unordered system execution make simulation
-difficult to test, step, replay, predict, or reproduce. Rendering cadence also varies independently
-from gameplay timing.
+Simulation code can get data from hidden sources. Examples include the system clock, random values,
+the environment, and systems that run in an undefined order.
+
+Hidden data makes the simulation difficult to test, pause, replay, predict, or reproduce. The
+renderer can also run at a different speed from the simulation.
 
 ## Decision
 
-We will run authoritative simulation on a fixed timestep with explicit clocks, random seeds or
-streams, external inputs, and system ordering. Each world will have one ordered writer for a tick.
-Concurrent worker results will be applied at a safe boundary only when their source revision still
-matches.
+The authoritative simulation will use a fixed time step. It will receive these inputs explicitly:
 
-Rendering may interpolate between simulation states and run at a different cadence. Exact
-cross-platform bitwise determinism is not assumed unless a subsystem explicitly guarantees and tests
-it.
+- The simulation clock
+- Random seeds or random streams
+- External inputs
+- The system order.
+
+During a simulation step, only one writer can change each world. This writer will apply changes in a
+defined order.
+
+Workers can calculate results at the same time. The session will apply a worker result at a safe
+point only if its source revision still matches. It will reject a stale result.
+
+The renderer can estimate positions between two simulation states. It can also run at a different
+rate from the simulation.
+
+Antiky does not promise identical binary results on all platforms. A subsystem can make this promise
+only if tests verify it.
 
 ## Consequences
 
-- Pause, frame stepping, headless tests, replay, prediction, and debugging share one time model.
-- Systems cannot read ambient time or randomness when making authoritative decisions.
-- Long frames require bounded catch-up and over-budget diagnostics.
-- Stable ordering and injected inputs add discipline to system APIs.
-- Reproducibility claims must name the build, content, physics version, and determinism boundary.
+- Pause, single-step controls, headless tests, replay, prediction, and debugging use one time model.
+- A system cannot read the system clock or hidden random values when it makes an authoritative
+  decision.
+- After a long frame, catch-up work must have a limit. Diagnostics must report work that exceeds its
+  time budget.
+- System APIs must receive their inputs and use a stable order.
+- A reproducibility claim must identify the build, content, physics version, and parts that promise
+  the same results.
+
+## Revision history
+
+- `6facfccaf4614340a4181b4361f77117e59a5e76` — Prior version before the plain-language rewrite.

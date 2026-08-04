@@ -26,10 +26,10 @@ decision need no ADR, while a broad proposal may require several independent arc
 - [0008: Let EngineSession own worlds](framework/0008-engine-session-owns-worlds_H.md)
 - [0009: Keep authoring, runtime, and render state separate](framework/0009-separate-state-projections_H.md)
 - [0010: Serialize data only when it crosses a real boundary](framework/0010-serialize-at-boundaries_H.md)
-- [0011: Use stable IDs and disposable runtime aliases](framework/0011-stable-ids-and-runtime-aliases_H.md)
-- [0012: Make online simulation server-authoritative](framework/0012-server-authoritative-simulation_H.md)
-- [0013: Make simulation inputs explicit](framework/0013-explicit-simulation-inputs_H.md)
-- [0014: Promote sandbox changes through commands](framework/0014-promote-sandbox-commands_H.md)
+- [0011: Use stable IDs and temporary numeric aliases](framework/0011-stable-ids-and-runtime-aliases_H.md)
+- [0012: Let the server decide online game state](framework/0012-server-authoritative-simulation_H.md)
+- [0013: Give the simulation all inputs explicitly](framework/0013-explicit-simulation-inputs_H.md)
+- [0014: Apply approved sandbox changes through commands](framework/0014-promote-sandbox-commands_H.md)
 
 ### Studio
 

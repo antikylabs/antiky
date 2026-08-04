@@ -1,4 +1,4 @@
-# 0014: Promote sandbox changes through commands
+# 0014: Apply approved sandbox changes through commands
 
 ## Status
 
@@ -6,23 +6,40 @@ Accepted
 
 ## Context
 
-Agents, previews, and tests need to experiment without risking the primary world. Copying live
-sandbox objects or replacing the primary state would bypass current permissions, revisions, and
-authority and could overwrite changes made after the sandbox was created.
+Agents, previews, and tests need a safe place to experiment. Their experiments must not put the
+primary world at risk.
+
+Antiky must not copy live sandbox objects into the primary world. It must not replace the primary
+state with sandbox state. These operations could bypass current permissions, revisions, and
+authority rules.
+
+These operations could also overwrite changes that occurred after Antiky created the sandbox.
 
 ## Decision
 
-We will represent a sandbox as an isolated world or session fork at a known base revision. A sandbox
-may run bounded commands and simulation and produce a proposed change set with validation evidence.
+A sandbox will be an isolated world or session that starts at a known base revision. The sandbox can
+run limited commands and simulation. It can produce a proposed set of changes and validation
+results.
 
-Promotion will re-authorize and re-dispatch the proposed commands against the primary session. The
-primary session will revalidate current revisions and invariants. Sandbox runtime objects, event
-sequence numbers, and mutable stores will never be copied into the primary world as authority.
+To apply the proposed changes, the primary session will check permissions again and run the proposed
+commands. It will check the current revisions and world rules again.
+
+Antiky will not copy these sandbox items into the primary world as true state:
+
+- Runtime objects
+- Event sequence numbers
+- Storage that the sandbox can change.
 
 ## Consequences
 
-- Agent and preview experiments can be compared, discarded, or reviewed safely.
-- Promotion detects stale or conflicting work instead of silently overwriting it.
-- Sandboxes need explicit budgets, capabilities, asset-sharing rules, and lifecycle cleanup.
-- Large forks may require copy-on-write or partial-world strategies later.
-- A successful sandbox is evidence for a change, not permission to apply it.
+- Users can safely compare, discard, or review agent and preview experiments.
+- The apply process detects old or conflicting work. It does not silently overwrite that work.
+- Each sandbox needs limits, permissions, asset-sharing rules, and cleanup rules.
+- Large sandboxes can later use copy-on-write, which copies only changed data. They can also copy
+  only part of a world.
+- A successful sandbox supplies evidence for a change. It does not give permission to apply the
+  change.
+
+## Revision history
+
+- `6facfccaf4614340a4181b4361f77117e59a5e76` — Prior version before the plain-language rewrite.
