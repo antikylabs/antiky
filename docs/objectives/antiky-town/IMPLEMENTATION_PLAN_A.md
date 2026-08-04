@@ -28,11 +28,15 @@ intent
 ```
 
 The early event history can stay in memory. The early connection can use typed values in one
-process. Database, network, and Studio work are outside the first slices.
+process. Database and production network work are outside the first slices. Studio is a later
+visual client of the same engine services.
 
-The minimum development MCP belongs in Slice 0. It reports development, build, runtime, render, and
-diagnostic state. Later slices extend the same inspection source with world, entity, asset, clock,
-selection, command, and history operations.
+Slice 0 starts `@antiky/cli` and the framework inspection service. The CLI reports development and
+build facts. The framework reports runtime, render, and diagnostic facts. MCP adapts the same
+service surface that CLI, Studio, and tests use.
+
+Later slices extend the framework service with world, entity, asset, clock, selection, command, and
+history operations.
 
 Read [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) for the engine research, WebGPU
 Inspector assessment, and Slice 0 design.
@@ -47,23 +51,24 @@ Inspector assessment, and Slice 0 design.
 - Do not serialize data between normal modules in one process.
 - Preserve the current town appearance unless a selected slice explicitly changes it.
 - Record measurements before an optimization changes data structures.
-- Supply machine-readable evidence through the development inspection service. A screenshot is
+- Supply machine-readable evidence through the shared framework service. A screenshot is
   supporting evidence, not the only evidence.
 - State the reload effect for every changed source, shader, asset, or configuration boundary.
 - Finish and commit one slice before the next slice starts.
 
 ## Decisions requested
 
-Choose one direction for each slice. The recommended sequence is `0A, 1A, 2A, 3A, 4A, 5A, 6A`.
+Each slice puts owner questions and context in a separate `slice-NN-owner-input_H.md` file. The
+slice plan links that file as required reading.
 
-Slice 0 also recommends configuration choice `C1`, private package choice `0P-A`, and authenticated
-push-bridge choice `0T-A`. The executable Slice 00 plan lists the alternatives and approval gates.
+Choose one direction for each feature slice. The recommended sequence is `1A, 2A, 3A, 4A, 5A,
+6A`. Slice 0 uses the smaller choices in its [owner-input file](slice-00-owner-input_H.md).
 
 The choices are starting directions. A later measured need can justify a different implementation.
 
 | Slice | Recommended | Other choices |
 | --- | --- | --- |
-| 0. Development harness | 0A. Current Next.js host plus Antiky supervisor | 0B. Dedicated Vite host; 0C. Framework-owned server |
+| 0. Development harness | Current host plus `@antiky/cli` and framework inspection | Dedicated Vite host; framework-owned web server |
 | 1. First complete object | 1A. Feature-first market lamp | 1B. Small generic registry; 1C. Full ECS first |
 | 2. Session and clock | 2A. Minimal fixed-step session | 2B. General scheduler; 2C. Demo-owned clock |
 | 3. Character simulation | 3A. Move the reusable motor | 3B. Add a demo adapter; 3C. Define physics services first |
@@ -75,7 +80,7 @@ The choices are starting directions. A later measured need can justify a differe
 
 Do not start a slice until all of these statements are true:
 
-- The owner selected the slice alternative or approved a documented replacement.
+- The slice owner-input file is answered when the slice needs owner judgment.
 - All earlier slices pass their completion criteria.
 - The reference behavior and measurements for this slice are recorded.
 - The visible outcome, structured inspection evidence, and failure behavior are explicit.
@@ -109,12 +114,11 @@ checks.
 ## Slice readiness and inspection growth
 
 The names below are proposed MCP names. The stable requirement is the meaning of each operation.
-MCP read resources and tools must call the same typed inspection and command services as tests and
-future Studio UI.
+CLI, Studio, MCP, and tests must call the same typed inspection and command services.
 
 | Slice | Required before work starts | Structured interface required by completion |
 | --- | --- | --- |
-| 0 | Node 22, installed workspaces, a supported WebGPU browser, a working reference route, and selected host and config choices | Development, build, runtime, render-stat, and diagnostic resources; controlled reload and frame-capture tools |
+| 0 | Answered owner input, Node 22, installed workspaces, a supported WebGPU browser, and a working reference route | Development, build, runtime, render-stat, and diagnostic resources; controlled reload and frame-capture tools |
 | 1 | Slice 0 is green; lamp baseline, stable-ID rules, component schema, command limits, and permission test identities exist | Entity list and entity inspection; command result, revision, render binding, and undo evidence |
 | 2 | Slice 1 is green; fixed step, long-frame limit, and pause rules are approved | Session and clock state; pause, resume, and single-step tools |
 | 3 | Slice 2 is green; recorded movement input, collision baseline, and actor IDs exist | Actor state, simulation step, state digest, and active simulation diagnostics |
@@ -130,22 +134,28 @@ Chrome or Edge is required only when the selected WebGPU Inspector path uses its
 
 ## Slice 0: Development harness and minimum inspection
 
-The executable contract is [`slice-00-plan.md`](slice-00-plan.md). Do not start implementation
-until every readiness row in that plan passes.
+The executable contract is [`slice-00-plan.md`](slice-00-plan.md). The owner answers only the
+questions in [`slice-00-owner-input_H.md`](slice-00-owner-input_H.md). Do not start implementation
+while an answer is pending.
 
 ### Outcome
 
 Run the selected game with `antiky dev`. Read a versioned configuration file, use strict local
-ports, watch source and shaders, keep one development session alive across browser reloads, and
-publish structured state through a local MCP endpoint.
+ports, watch source and shaders, and keep one development session alive across browser reloads.
+
+Publish engine facts through the framework inspection service. Publish process and build facts
+through the CLI development host. Give CLI, Studio, MCP, and tests one service surface.
 
 Slice 0 does not add the Antiky world model. It reports only facts that the current host and demo can
 truthfully supply.
 
-### 0A. Current Next.js host plus Antiky supervisor — Recommended
+### Current Next.js host plus Antiky CLI — Recommended
 
-Keep the current demo route and Next.js host. Add a small supervisor for configuration validation,
-shader watching, service health, runtime connections, inspection, and child-process cleanup.
+Keep the current demo route and Next.js host. Add `@antiky/cli` for configuration validation,
+shader watching, service health, runtime connections, and child-process cleanup.
+
+Add the first headless inspection contract and service to `@antiky/framework`. The CLI reads the
+framework facts. It does not calculate game facts itself.
 
 Benefits:
 
@@ -158,7 +168,7 @@ Costs:
 - The first harness remains coupled to the website host.
 - Source updates can restart the complete browser runtime.
 
-### 0B. Dedicated Vite game host plus Antiky supervisor
+### Dedicated Vite game host plus Antiky CLI
 
 Move Antiky Town to a canvas-only Vite entry. Keep the same supervisor and inspection contracts.
 
@@ -172,7 +182,7 @@ Costs:
 - Adds a host migration before the first framework behavior.
 - Requires a new boundary between the website and game host.
 
-### 0C. Framework-owned server and reload system
+### Framework-owned web server and reload system
 
 Build Antiky-specific file serving, dependency watching, reload messaging, asset invalidation, and
 error display.
@@ -205,6 +215,8 @@ Costs:
   ten seconds. The integration test reports median and slowest update-to-ready time.
 - MCP resources report service health, latest build, runtime state, render statistics, and active
   diagnostics without a screenshot or DOM query.
+- Direct framework inspection, CLI inspection, MCP, and a Studio-compatible client report the same
+  engine facts.
 - At least one selected agent client can discover the running session and read every Slice 0
   resource. If that client does not support Streamable HTTP, Slice 0 supplies a stdio adapter.
 - The controlled-reload tool returns the old and new runtime-instance IDs or a structured failure.
@@ -222,8 +234,9 @@ Costs:
 
 ## Slice 1: First complete object
 
-The executable contract is [`slice-01-plan.md`](slice-01-plan.md). It remains blocked until Slice 0
-is complete.
+The executable contract is [`slice-01-plan.md`](slice-01-plan.md). Answer its short
+[`slice-01-owner-input_H.md`](slice-01-owner-input_H.md) file first. Slice 01 remains blocked until
+Slice 0 is complete.
 
 ### Outcome
 

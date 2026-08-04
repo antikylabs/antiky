@@ -1,6 +1,6 @@
 # Development Harness Research
 
-**Status: Proposed; owner choices are required before implementation**
+**Status: Research; owner questions are in `slice-00-owner-input_H.md`**
 
 **Research date: 2026-08-04**
 
@@ -9,18 +9,18 @@
 Antiky Town should start with a development-harness slice.
 
 Use [`slice-00-plan.md`](slice-00-plan.md) as the executable contract. This document supplies the
-research. It does not replace the plan's readiness gate, tests, checkpoints, or acceptance ledger.
+research. It does not replace the plan, owner input, tests, checkpoints, or completion checks.
 
 The first version should use the current Next.js demo host. It should not build a new bundler or a
-new hot-module-reload system. A small Antiky supervisor should read project configuration, start the
-existing host and shader watcher, keep one inspection session alive, and stop all child processes.
+new hot-module-reload system. `@antiky/cli` should read project configuration, start the existing
+host and shader watcher, keep one inspection session alive, and stop all child processes.
 
 The browser runtime can restart after a source change. State-preserving code replacement is not a
 Slice 0 requirement. The supervisor and inspection endpoint must stay available while the browser
 reconnects.
 
-Antiky also needs its own structured inspection API. A screenshot can confirm appearance, but it
-cannot prove entity identity, state revisions, reload results, render counts, or diagnostics.
+Antiky Framework also needs its own structured inspection API. A screenshot can confirm appearance,
+but it cannot prove entity identity, state revisions, reload results, render counts, or diagnostics.
 
 [`webgpu_inspector`](https://github.com/brendan-duncan/webgpu_inspector) is a strong optional GPU
 inspection layer. It does not replace Antiky inspection because it sees GPU objects and commands,
@@ -207,25 +207,33 @@ not installed.
 files and config
       |
       v
-Antiky dev supervisor --------------------+
+@antiky/cli development host -------------+
   | starts host and shader watcher         |
-  | owns session and build revisions       |
-  | owns diagnostics and cleanup           |
+  | owns build and process facts           |
+  | owns local connections and cleanup     |
   v                                        |
 current Next.js game host                  |
   |                                        |
   v                                        |
-browser runtime -> local inspection bridge+
+framework inspection -> browser bridge ---+
                          |
+                         +-> CLI and Studio clients
                          +-> Streamable HTTP MCP
-                         +-> test and CLI queries
+                         +-> direct tests
 
 optional WebGPU Inspector -> GPU captures and validation details
 ```
 
-The supervisor is a development tool. It does not belong in framework core. The framework and demo
-publish typed inspection snapshots to it. The MCP adapter reads the same snapshots. It does not
-read React state, simulate clicks, or expose BroMetal objects.
+The development host belongs in `@antiky/cli`. It does not belong in framework core. It owns local
+launch, process, build, connection, and cleanup facts.
+
+The framework owns semantic inspection, runtime diagnostics, and engine or render measurements.
+The demo publishes its current runtime facts through this framework contract.
+
+CLI, Studio, MCP, and tests read the same service surface. They do not read React state, simulate
+clicks, or expose BroMetal objects.
+
+See [ADR 0004: Make CLI and Studio use the same engine services](../../adr/studio/0004-share-engine-services-with-cli_H.md).
 
 The MCP specification permits an independently running Streamable HTTP server. A local server must
 bind to localhost, validate `Origin`, and authenticate connections. If a required agent client
@@ -307,8 +315,8 @@ This example defines intent. The implementation slice must publish the final JSO
 {
   "schemaVersion": 1,
   "game": {
-    "id": "antiky-town",
-    "route": "/demos/antiky-town"
+    "id": "town-study",
+    "route": "/demos/town-study"
   },
   "dev": {
     "host": "127.0.0.1",
@@ -337,7 +345,8 @@ Sources:
 
 ## Minimum structured inspection
 
-The internal inspection service is the source of truth. MCP is one adapter over it.
+The framework inspection service is the source of truth for engine and game facts. The CLI
+development host adds process and build facts. MCP is one adapter over the combined service.
 
 All records must be versioned, bounded, and valid at runtime. They must use stable IDs, revisions,
 units, and machine-readable diagnostic codes. Large lists need pagination. The service must not
@@ -347,13 +356,13 @@ return live JavaScript, DOM, BroMetal, or GPU objects.
 
 The exact MCP names can change before implementation. These meanings cannot:
 
-| Proposed resource | Required information |
-| --- | --- |
-| `antiky://dev/status` | Config, URLs, service health, session ID, and start time |
-| `antiky://build/latest` | Build revision, change kind, result, duration, and diagnostics |
-| `antiky://runtime/status` | Connection, runtime-instance ID, game ID, phase, and WebGPU status |
-| `antiky://render/stats` | Canvas size, frame count, FPS sample, draw calls, instances, and upload bytes when known |
-| `antiky://diagnostics` | Bounded active diagnostics with codes, severity, source, revision, and related IDs |
+| Proposed resource | Owner | Required information |
+| --- | --- | --- |
+| `antiky://dev/status` | CLI development host | Config, URLs, service health, session ID, and start time |
+| `antiky://build/latest` | CLI development host | Build revision, change kind, result, duration, and diagnostics |
+| `antiky://runtime/status` | Framework | Connection, runtime-instance ID, game ID, phase, and WebGPU status |
+| `antiky://render/stats` | Framework | Canvas size, frame count, FPS sample, draw calls, instances, and upload bytes when known |
+| `antiky://diagnostics` | Source owner | Bounded diagnostics with codes, severity, source, revision, and related IDs |
 
 ### Slice 0 tools
 
@@ -370,7 +379,7 @@ Later slices add world, entity, asset, clock, selection, command, and history op
 
 ## Host choices for Slice 0
 
-### 0A. Current Next.js host plus Antiky supervisor — Recommended
+### 0A. Current Next.js host plus Antiky CLI — Recommended
 
 Keep the current website and demo route. Add configuration, a shader watcher, the local inspection
 bridge, MCP, reload events, and child-process cleanup around it.
@@ -386,7 +395,7 @@ Costs:
 - The game harness remains temporarily coupled to the website host.
 - Next.js reload behavior is broader than a game-only Vite host.
 
-### 0B. Dedicated Vite game host plus Antiky supervisor
+### 0B. Dedicated Vite game host plus Antiky CLI
 
 Move Antiky Town to a small canvas-only Vite host. Keep the same supervisor and inspection bridge.
 
@@ -400,7 +409,7 @@ Costs:
 - It adds a host migration before the first framework feature.
 - The website and game host need a clear integration boundary.
 
-### 0C. Framework-owned server and reload implementation
+### 0C. Framework-owned web server and reload implementation
 
 Build HTTP serving, dependency watching, module updates, error overlays, and asset invalidation in
 Antiky.
@@ -414,17 +423,14 @@ Costs:
 - It recreates mature web-tool behavior.
 - It delays visible framework work and adds a large maintenance surface.
 
-Do not select 0C without a proven requirement that Next.js or Vite cannot meet.
+Do not select the framework-owned web server without a proven requirement that Next.js or Vite
+cannot meet.
 
-## Decision requested
+## Owner decisions
 
-Approve or change this starting set before implementation:
+Answer the short questions in [`slice-00-owner-input_H.md`](slice-00-owner-input_H.md). That file
+contains the context and recommendation for the launch target, required clients, and WebGPU
+Inspector.
 
-- Host: **0A**, current Next.js host plus the Antiky supervisor.
-- Configuration: **C1**, `antiky.config.json` with a versioned JSON Schema.
-- Inspection: built-in Antiky semantic inspection and Streamable HTTP MCP.
-- GPU evidence: optional, pinned WebGPU Inspector; required for the Slice 5 GPU evidence pass.
-- Reload: safe browser reconstruction in Slice 0; no promise of state-preserving module replacement.
-
-This choice makes the development loop observable without forcing the world model, renderer API, or
-Studio to exist first.
+The implementation agent selects exact dependencies, tools, ports, profiles, and measurement
+fixtures. These are implementation tasks, not owner questions.

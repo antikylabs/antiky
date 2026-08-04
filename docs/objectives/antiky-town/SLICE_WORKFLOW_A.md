@@ -15,6 +15,7 @@ This guide has these companion documents:
 
 - [`SLICE_PLAN_TEMPLATE_A.md`](SLICE_PLAN_TEMPLATE_A.md) is the copyable plan contract.
 - [`slice-00-plan.md`](slice-00-plan.md) applies the contract to the development harness.
+- [`slice-00-owner-input_H.md`](slice-00-owner-input_H.md) is a real owner-input example.
 - [`slice-01-plan.md`](slice-01-plan.md) applies the contract to the first market lamp.
 
 Update this guide and the template when the framework adds a new feature area that later slices
@@ -35,15 +36,49 @@ Use a table only when it makes an exact comparison or mapping easier to read. Ex
 a large table before it starts. A new team member must be able to read the plan without knowing the
 implementation first.
 
-## The three document roles
+Keep a real slice plan at 300 lines or fewer. If it becomes longer, move shared rules to this
+workflow. Record run-specific facts in the evidence receipt. Put owner questions in the separate
+owner-input file.
+
+An owner can approve a longer plan when the slice has an unusual safety or migration need. Record
+the reason in the plan.
+
+## The document roles
 
 | Document | Purpose | When it changes |
 | --- | --- | --- |
 | This workflow | Defines how the team plans, runs, and closes all slices | When the shared way of working changes |
-| Slice plan template | Defines every required plan section and evidence table | When every future slice must answer a new question |
+| Slice plan template | Defines the short structure of a real slice plan | When every future slice must answer a new implementation question |
 | One real slice plan | Defines one outcome, its work, its gates, and its proof | During planning and implementation of that slice |
+| Owner-input file | Gives the owner only the questions that need human judgment | When a product, visual, scope, or public-contract question changes |
 
 The workflow and template are rules. A real slice plan is an executable contract.
+
+## Owner input
+
+If a slice needs owner judgment, create `slice-NN-owner-input_H.md`. Link it in the plan control
+block and make it the first required-reading item.
+
+The owner-input file must contain:
+
+- One short summary of the slice.
+- The direction that the owner already supplied.
+- One section for each open question.
+- Enough context to understand the effect without reading the plan.
+- One recommendation and the relevant trade-off.
+- One `Owner answer` block directly below each question.
+- One status that is `WAITING FOR OWNER` or `ANSWERED`.
+
+The owner answers each question inline. The answer can be `APPROVE` or a replacement direction. The
+goal runner must read the complete file and apply the answers. A `PENDING` answer blocks
+implementation that depends on it.
+
+Do not put implementation chores in the owner-input file. The implementation agent captures
+baselines, selects exact tool versions, pins dependencies, allocates ports and worktrees, runs
+tests, and records evidence.
+
+An agent can add a new question and its context. It must not write the owner's answer. If the slice
+needs no owner decision, state that fact in the plan and do not create an empty owner-input file.
 
 ## Terms
 
@@ -54,6 +89,7 @@ The workflow and template are rules. A real slice plan is an executable contract
 | Capability | Code that exists now and has a test or a working consumer |
 | Hypothesis | A claim that a capability is missing; the team must test the claim |
 | Gate | A condition that must pass; points cannot offset a failed gate |
+| Owner input | A human-owned file with the decisions that an implementation goal must consume |
 | Evidence | A repeatable result that proves a claim |
 | Checkpoint | A small implementation stage that leaves the repository in a valid state |
 | Drift | A change to the framework, architecture, or slice scope after the plan snapshot |
@@ -88,27 +124,28 @@ For Slice 01, the intended goal command is:
 
 The agent that runs this goal must follow these rules:
 
-1. Read the whole plan and every document in its required-reading table.
+1. Read the whole plan, its owner-input file when one exists, and every required-reading document.
 2. Create a run ID and freeze the run setup before the first implementation change.
 3. Use a dedicated worktree, ports, runtime, and artifact location when another run can overlap.
-4. Stop at the readiness gate if a required choice or earlier slice is not complete.
-5. Do not select an owner choice without approval.
-6. Do not weaken an acceptance criterion to make the result pass.
-7. Treat each `REQUIRED` row as a hard gate.
-8. Use programmatic controls for routine work and repeatable evidence.
-9. Use the named framework capabilities before creating replacements.
-10. Test a missing-capability hypothesis before adding framework code.
-11. Keep work inside the slice scope.
-12. Add a failing regression test first for a reported error.
-13. Keep the reference available until parity or an approved difference is proved.
-14. Link direct evidence to the run, attempt, checkpoint, and relevant product IDs.
-15. Classify a failure before a retry. Use only the retry rule in the plan.
-16. Keep a tested path to the last-known-good revision.
-17. Commit small, working checkpoints.
-18. Mark the goal complete only after the receipt validates and the final audit passes.
+4. Stop when the owner-input status or a required answer is pending.
+5. Stop at the readiness gate if a required earlier slice is not complete.
+6. Do not select or rewrite an owner answer.
+7. Do not weaken an acceptance criterion to make the result pass.
+8. Treat each required completion statement as a hard gate.
+9. Use programmatic controls for routine work and repeatable evidence.
+10. Use the named framework capabilities before creating replacements.
+11. Test a missing-capability hypothesis before adding framework code.
+12. Keep work inside the slice scope.
+13. Add a failing regression test first for a reported error.
+14. Keep the reference available until parity or an approved difference is proved.
+15. Link direct evidence to the run, attempt, checkpoint, and relevant product IDs.
+16. Classify a failure before a retry. Use only the retry rule in the plan.
+17. Keep a tested path to the last-known-good revision.
+18. Commit small, working checkpoints.
+19. Mark the goal complete only after the receipt validates and the final audit passes.
 
-If a gate needs new authority, the agent must report the exact gate and ask for the missing choice.
-It must not invent permission to continue.
+If work needs new owner authority, the agent adds one question with context to the owner-input file.
+It reports the exact blocked work. It must not invent permission to continue.
 
 An owner can make a product or visual judgment. Record the reviewer, decision, and supporting
 artifact. A routine click that has no programmatic form is a missing tool capability. Record it as a
@@ -121,11 +158,14 @@ hypothesis. Do not hide it as a human review step.
 Copy `SLICE_PLAN_TEMPLATE_A.md` to `slice-NN-plan.md`. Replace every placeholder. Remove all template
 instructions that do not describe the real slice.
 
+If the slice needs owner judgment, also create `slice-NN-owner-input_H.md`. Link it from the control
+block and required-reading list. Do not copy the questions into the plan.
+
 The real plan must name:
 
 - One owner.
 - One outcome.
-- One selected implementation option.
+- One selected implementation option or one linked owner question.
 - One reference.
 - One complete verification command.
 - The current repository revision and review date.
@@ -155,7 +195,8 @@ capability. Use `DEFER` when the slice does not need it.
 Define how one agent can run the plan without sharing hidden state with another run. Freeze the
 contract before the first implementation change.
 
-Record:
+State the slice-specific isolation, permission, retry, and rollback rules in the plan. Record these
+run-specific values in the evidence receipt instead of pre-filling a large plan table:
 
 - A unique run ID and attempt IDs that increase.
 - The source revision, worktree, branch, dependency lock hash, and configuration hash.
@@ -167,8 +208,8 @@ Record:
 - Failure classes, retry limits, checkpoint resume rules, and software rollback.
 - The version and location of the machine-readable evidence receipt.
 
-Use `N/A` with a reason when a field cannot affect the slice. Do not omit the field. Do not record a
-secret in a digest input, log, receipt, or artifact.
+Use `N/A` with a reason in the receipt when a field cannot affect the slice. Do not record a secret
+in a digest input, log, receipt, or artifact.
 
 ### 4. State one outcome
 
@@ -241,7 +282,8 @@ a second use proves a stable public shape.
 Write at least two credible options when the choice affects ownership, public contracts, data
 layout, or long-term cost. State benefits, costs, and evidence that would justify the larger option.
 
-Record the selected option and its approver. A recommendation is not an approval.
+Put an owner choice and its context in the owner-input file. Record an engineering choice in the
+plan. A recommendation is not an approval.
 
 ### 10. Draw the data and authority path
 
@@ -287,11 +329,11 @@ If the slice cannot name a repeatable way to prove a claim, the claim is not rea
 
 ### 12. Run the readiness gate
 
-Every required readiness row must be `PASS`. `BLOCKED` means that an external choice or earlier
-slice prevents work. `FAIL` means that the team can do the work now but has not done it. `N/A`
-requires a written reason.
+The owner-input file must be `ANSWERED`. Every required earlier slice must be complete. The plan
+must name all code, proof, security, and recovery work that the outcome needs.
 
-Do not start feature implementation while a required row is `BLOCKED` or `FAIL`.
+Baseline capture, dependency selection, tool selection, resource allocation, and run setup can be
+the first implementation checkpoint. These tasks do not require owner action.
 
 ### 13. Implement checkpoints
 
@@ -308,8 +350,8 @@ Do not start the next checkpoint when the current checkpoint has an unexplained 
 
 ### 14. Close with evidence
 
-Run the complete verification command. Fill every acceptance row and rubric row. Record command,
-inspection, measurement, and visual evidence at the point where each claim appears.
+Run the complete verification command. Record each completion check and rubric result in the
+evidence receipt. Keep a short completion checklist in the plan.
 
 Run the goal audit after the normal tests. The audit asks whether the completed result satisfies the
 original outcome, not only whether all task boxes have checks.
@@ -412,17 +454,21 @@ removed. Record the rollback and its proof in the receipt.
 
 ### Delivery permissions
 
-The plan must list each operation that can change the repository, runtime, network, deployment, or
-external system. For each operation, record the required capability, allowed scope, grant source,
-expiry, revocation method, and audit evidence.
+The evidence receipt must list each operation that changes the repository, runtime, network,
+deployment, or an external system. The plan must name unusual or high-risk authority that is
+specific to the slice.
+
+For each changing operation, record the required capability, allowed scope, grant source, expiry,
+revocation method, and audit evidence.
 
 Start with no production, secret, network, deployment, or external-message authority. Add only the
 authority that the approved slice needs. Product permissions do not grant delivery permissions, and
 delivery permissions do not grant product permissions.
 
-## Standard matrices
+## Standard evidence shapes
 
-Every real plan uses these matrices. The template supplies their full forms.
+Every run records these shapes in its evidence receipt. A real plan includes a table only when the
+table helps a reviewer understand a slice-specific relationship.
 
 ### Run setup
 
@@ -531,9 +577,9 @@ same typed inspection service. They must not each rebuild world facts in a diffe
 
 ## Readiness hard gates
 
-Every plan must include these gates when they apply:
+Every plan or evidence receipt must cover these gates when they apply:
 
-- The owner approved the implementation option.
+- The owner-input file is answered and the goal uses its answers.
 - Every earlier slice is complete.
 - The framework alignment snapshot is current.
 - The reference and allowed differences are recorded.
@@ -591,13 +637,14 @@ missing work.
 
 A slice is complete only when all of these statements are true:
 
-1. Every required readiness and acceptance row is `PASS`.
+1. Every required completion check and receipt gate is `PASS`.
 2. Every applicable rubric dimension scores `3`.
 3. Every `N/A` row has an accepted reason.
 4. The complete verification command passes from a clean start.
 5. The evidence names the final Git revision or final patch state.
 6. The reference remains available.
-7. The plan has no unresolved placeholder, blocker, or owner choice.
+7. The plan has no unresolved placeholder or blocker. Its owner-input file has no pending answer
+   when that file exists.
 8. The run state is `CLOSED`.
 9. The evidence receipt validates and links every required result.
 10. Every failed attempt has a resolved classification and disposition.
