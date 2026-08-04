@@ -52,6 +52,7 @@ import {
   assertCaptureHasContent,
   assertReadySnapshot,
   assertSnapshotParity,
+  capturePageAtViewport,
   comparePageCaptures,
   parseWorkingTreePaths,
   selectRunId,
@@ -61,6 +62,7 @@ export {
   assertCaptureHasContent,
   assertReadySnapshot,
   assertSnapshotParity,
+  capturePageAtViewport,
   comparePageCaptures,
   parseWorkingTreePaths,
   selectRunId,
@@ -347,11 +349,9 @@ export async function runSlice00Verification() {
     const captureBytes = await readFile(canvasCapture);
     assert.equal(hash(captureBytes), capture.sha256);
 
-    const screenshot = await cdp.send('Page.captureScreenshot', {
-      format: 'png', fromSurface: true, captureBeyondViewport: false,
-    });
     const pageCapture = path.join(captureDirectory, 'town-ready.png');
-    await writeFile(pageCapture, Buffer.from(screenshot.data, 'base64'), { flag: 'wx', mode: 0o600 });
+    const screenshot = await capturePageAtViewport(cdp, 756, 469);
+    await writeFile(pageCapture, Buffer.from(screenshot, 'base64'), { flag: 'wx', mode: 0o600 });
     const pageMetadata = await sharp(pageCapture).metadata();
     assert.deepEqual({ width: pageMetadata.width, height: pageMetadata.height }, { width: 756, height: 469 });
     const visual = await comparePageCaptures(

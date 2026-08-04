@@ -10,6 +10,7 @@ import {
   assertCaptureHasContent,
   assertReadySnapshot,
   assertSnapshotParity,
+  capturePageAtViewport,
   comparePageCaptures,
   parseWorkingTreePaths,
   selectRunId,
@@ -117,4 +118,25 @@ test('Git porcelain parsing preserves the leading worktree status column', () =>
     parseWorkingTreePaths(' M docs/adr/UNDER_REVIEW_A.md\n?? docs/user-facing-docs/studio/.gitkeep\n'),
     ['docs/adr/UNDER_REVIEW_A.md', 'docs/user-facing-docs/studio/.gitkeep'],
   );
+});
+
+test('page capture requests an explicit baseline-sized CDP clip', async () => {
+  const calls = [];
+  const cdp = {
+    async send(method, params) {
+      calls.push({ method, params });
+      return { data: 'fixture-base64' };
+    },
+  };
+
+  assert.equal(await capturePageAtViewport(cdp, 756, 469), 'fixture-base64');
+  assert.deepEqual(calls, [{
+    method: 'Page.captureScreenshot',
+    params: {
+      format: 'png',
+      fromSurface: true,
+      captureBeyondViewport: true,
+      clip: { x: 0, y: 0, width: 756, height: 469, scale: 1 },
+    },
+  }]);
 });

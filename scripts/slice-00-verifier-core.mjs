@@ -18,6 +18,16 @@ export function parseWorkingTreePaths(status) {
     .map((line) => line.slice(3).split(' -> ').at(-1));
 }
 
+export async function capturePageAtViewport(cdp, width, height) {
+  const screenshot = await cdp.send('Page.captureScreenshot', {
+    format: 'png',
+    fromSurface: true,
+    captureBeyondViewport: true,
+    clip: { x: 0, y: 0, width, height, scale: 1 },
+  });
+  return screenshot.data;
+}
+
 export async function selectRunId(outputs, now = new Date()) {
   const entries = await readdir(outputs, { withFileTypes: true }).catch(() => []);
   const open = [];

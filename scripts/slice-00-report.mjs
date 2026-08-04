@@ -76,6 +76,14 @@ const historicalAttempts = Object.freeze([
     cause: 'The verifier trimmed the leading Git porcelain status column and misread an allowed unrelated edit.',
     disposition: 'A failing parser regression preserved both status columns before the verifier retry.',
   },
+  {
+    id: 'attempt-015',
+    checkpoint: 'CP-05',
+    result: 'FAIL',
+    failureClass: 'DEFECT',
+    cause: 'Chrome interpreted the requested window height as an outer window and returned a 756x326 page capture.',
+    disposition: 'A failing CDP regression led to an explicit 756x469 capture clip.',
+  },
 ]);
 
 function evidence(status, detail) {
@@ -216,7 +224,7 @@ export function createMeasurements(context) {
     },
     process: {
       retries: 2,
-      defectCorrections: 7,
+      defectCorrections: 8,
       flakyChecks: 1,
       ownerInterventions: 0,
       blockedMilliseconds: 0,
@@ -233,7 +241,7 @@ export function createConfirmation(context, acceptance) {
 export function createReceipt(context, artifacts, acceptance) {
   const attempts = [
     ...historicalAttempts,
-    { id: 'attempt-015', checkpoint: 'CP-05', result: 'PASS', failureClass: null, correlationId: context.correlationId },
+    { id: 'attempt-016', checkpoint: 'CP-05', result: 'PASS', failureClass: null, correlationId: context.correlationId },
   ];
   return {
     schemaVersion: 1,
