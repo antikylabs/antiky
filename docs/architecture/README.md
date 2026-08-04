@@ -2,54 +2,68 @@
 
 **In Progress**
 
-These guides explain how Antiky's accepted architectural decisions fit together. They describe the
-target system and the boundaries that incremental implementation must preserve. They do not claim
-that every described capability exists today.
+These guides explain how the accepted Antiky architecture decisions work together. They describe
+the target system and the boundaries that new code must keep.
 
-Architecture guides are fully agent-authored and use the `_A` ownership suffix. Humans review them,
-and human-owned [Architecture Decision Records](../adr/README.md) remain the authority for accepted
-decisions. This README stays unsuffixed so GitHub recognizes it as the directory index.
+Some features in these guides do not exist yet. Each guide tells readers about the intended system,
+not only the current code.
+
+Agents write architecture guides, and humans review them. Guide file names use the `_A` ownership
+suffix. Human-owned [Architecture Decision Records (ADRs)](../adr/README.md) contain the accepted
+decisions.
+
+This README has no ownership suffix because GitHub uses it as the directory index.
 
 ## Reading order
 
-1. [Framework system overview](framework/overview_A.md) — the complete runtime in one pass.
-2. [World and session model](framework/world-and-session-model_A.md) — identity, entities, worlds, projections,
-   clocks, and sandboxes.
-3. [Commands, events, and persistence](framework/commands-events-and-persistence_A.md) — mutation, selective
-   event sourcing, undo, snapshots, and projection safety.
-4. [Protocols and serialization](framework/protocols-and-serialization_A.md) — where encoding occurs and how
-   contracts cross boundaries.
-5. [Rendering and assets](framework/rendering-and-assets_A.md) — render extraction, BroMetal, assets, hot reload,
-   and inspection.
-6. [Authoritative online runtime](framework/authoritative-online-runtime_A.md) — server authority,
-   replication, persistence, prediction, and MMO scaling.
-7. [Studio and agent workflows](studio/overview_A.md) — the portable editor, MCP, modes,
+1. [Framework system overview](framework/overview_A.md) gives a short view of the complete runtime.
+2. [World and session model](framework/world-and-session-model_A.md) explains IDs, entities, worlds,
+   state copies, clocks, and sandboxes.
+3. [Commands, events, and persistence](framework/commands-events-and-persistence_A.md) explains state
+   changes, stored events, undo, snapshots, and state-copy safety.
+4. [Protocols and serialization](framework/protocols-and-serialization_A.md) explains when Antiky
+   encodes data and how data crosses boundaries.
+5. [Rendering and assets](framework/rendering-and-assets_A.md) explains BroMetal, render data, assets,
+   live resource updates, and inspection.
+6. [Authoritative online runtime](framework/authoritative-online-runtime_A.md) explains server
+   authority, client updates, stored state, prediction, and large online games.
+7. [Studio and agent workflows](studio/overview_A.md) explains the portable editor, MCP, modes,
    selection, feedback, and agent safety.
-8. [Contextual feedback](studio/contextual-feedback_A.md) — comments bound to selected targets and
-   queued for human or agent review.
+8. [Contextual feedback](studio/contextual-feedback_A.md) explains comments that identify an exact
+   target and enter a review queue.
 
 ## Document authority
 
 When sources disagree, use this order:
 
-1. [Vision and direction](../VISION_DIRECTION_H.md) defines product intent.
-2. Accepted [ADRs](../adr/README.md) define architectural choices.
-3. These guides explain how those choices compose.
-4. Source code and tests show what is implemented now.
+1. [Vision and direction](../VISION_DIRECTION_H.md) defines the product goals.
+2. Accepted [ADRs](../adr/README.md) define architecture decisions.
+3. These guides explain how the decisions work together.
+4. Source code and tests show the current implementation.
 
-Open questions in a guide are not accepted decisions. Resolve a significant question through an AIP
-or Core Contributor decision, then add or supersede the relevant ADR before rewriting the guide as
-settled architecture.
+An open question in a guide is not an accepted decision. Resolve an important question through an
+AIP or a Core Contributor decision. Then, add or replace the related ADR before you describe the
+decision as settled architecture.
+
+## Writing standard
+
+All architecture guides must use
+[ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/). Use the current issue of the
+standard.
+
+Follow the practical rules in the [ADR writing standard](../adr/README.md#writing-standard). Keep
+necessary architecture terms, but explain an uncommon term when it first occurs.
 
 ## Shared constraints
 
 Every guide assumes these rules:
 
-- Antiky Framework remains useful without Studio.
-- BroMetal remains the rendering backend, not the game-domain authority.
-- External actors mutate authoritative state through commands.
-- Authoring, runtime, and render representations have distinct owners.
-- Serialization occurs at real boundaries, not between ordinary in-process modules.
-- Durable history contains meaningful facts, not every live update.
-- Stable public identity is separate from dense runtime indexes.
-- Current demos provide the migration workload; the framework grows through working vertical slices.
+- Antiky Framework must work without Studio.
+- BroMetal controls rendering. It does not control game rules or true world state.
+- An external caller must use a command to change authoritative state.
+- Authoring, runtime, and render state have different owners.
+- Antiky serializes data at real boundaries. It does not serialize data between normal modules in one
+  process.
+- Durable history stores important facts. It does not store every live update.
+- Stable public IDs are different from compact runtime numbers.
+- Current demos supply real migration work. The framework grows through complete working features.

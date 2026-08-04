@@ -4,15 +4,16 @@
 
 ## Purpose
 
-Antiky is a game framework and development runtime built on BroMetal. Its primary workloads are
-Antiky Labs' 2D, 3D, and 2.3D games, while its interfaces remain reusable by other games. Studio is
-a visual client of the framework, not a requirement for running or building a game.
+Antiky is a game framework and development runtime that uses BroMetal. Antiky Labs' 2D, 3D, and 2.3D
+games are its primary use cases. Other games can also use its interfaces.
 
-The architectural center is a structured, authoritative simulation that humans, agents, clients,
-tests, and services can all inspect and influence through the same command and query surface.
+Studio is a visual client of the framework. A game can run and build without Studio.
 
-This guide summarizes the target. The present demos still own several responsibilities that will be
-extracted incrementally; the target is not permission for a broad rewrite.
+An authoritative simulation contains the true world state and makes final game decisions. Humans,
+agents, clients, tests, and services use the same commands and queries to work with this simulation.
+
+This guide summarizes the target system. Current demos still control some features that will move to
+the framework in small steps. This target does not permit a broad rewrite.
 
 ## System shape
 
@@ -39,77 +40,80 @@ Studio          AI / MCP          Game client          Tests / services
                             WebGPU
 ```
 
-Durable events and snapshots sit beside the session. They preserve accepted history and accelerate
-recovery; they are not traversed during each frame. A headless session omits the render world and
-driver while retaining the same commands, systems, and authority.
+Durable events record accepted history. Snapshots make recovery faster. The session does not process
+the complete event history during each frame.
+
+A headless session runs without a render world or render driver. It still uses the same commands,
+systems, and authority rules.
 
 ## Responsibilities
 
-| Area | Owns | Does not own |
+| Area | Controls | Does not control |
 | --- | --- | --- |
-| Studio | Panels, selection, editor camera, previews, workspace, user intent | Live world mutation, game authority, GPU resources |
-| MCP adapter | Translation between agent tools/resources and the shared engine surface | Independent engine rules or UI automation |
-| Command ingress | Decode where needed, validation, trusted identity, authorization, deduplication, revision and tick checks | Gameplay outcomes or rendering |
-| EngineSession | Lifecycle, ordered command admission, clocks, worlds, systems, projections, assets, diagnostics, sandbox forks | Account-wide services or UI state |
-| Authoring world | Stable semantic entities, authored components, relationships, asset references, durable revision | Dense hot-loop indexes or GPU handles |
-| Runtime world | Current simulation, fixed-tick systems, physics, navigation, AI, cooldowns, specialized stores | External schema promises or render resources |
-| Render world | Visible items, cameras, lights, draw lists, batches, dirty ranges, frame data | Authoritative gameplay decisions |
-| RenderDriver | Renderer resources, pipeline lookup, uploads, pass execution, disposal | World truth or persistent identity rules |
-| BroMetal | Shader compilation and typed GPU runtime | Entities, gameplay, networking, persistence, Studio, AI policy |
-| World host | Placement and coordination of authoritative sessions and shared online services | Direct rendering or client-trusted outcomes |
+| Studio | Panels, selection, the editor camera, previews, the workspace, and user intent | True world state, game decisions, or GPU resources |
+| Model Context Protocol (MCP) adapter | Translation between agent requests and the shared engine API | Engine rules or UI control |
+| Command ingress | Decoding, validation, trusted identity, permissions, duplicate detection, and revision checks | Gameplay results or rendering |
+| EngineSession | Lifecycle, command order, clocks, worlds, systems, state copies, assets, diagnostics, and sandboxes | Account services or UI state |
+| Authoring world | Stable entities, authored components, relationships, asset references, and the durable revision | Compact runtime indexes or GPU handles |
+| Runtime world | The current simulation, fixed-step systems, physics, navigation, AI, cooldowns, and specialized storage | External schemas or render resources |
+| Render world | Visible items, cameras, lights, draw lists, batches, changed ranges, and frame data | Final gameplay decisions |
+| RenderDriver | GPU resources, pipeline lookup, uploads, render passes, and resource disposal | True world state or persistent IDs |
+| BroMetal | Shader compilation and the typed GPU runtime | Entities, gameplay, networking, stored data, Studio, or AI rules |
+| WorldHost | Placement and coordination of sessions and shared online services | Direct rendering or results that clients decide |
 
 ## Core data flow
 
-Normal mutation flows in one direction:
+Normal state changes move in one direction:
 
 ```text
 intent
   -> command
   -> validation and decision
-  -> accepted durable event and/or runtime delta
-  -> authoring/runtime projections
-  -> render extraction
+  -> accepted durable event and/or runtime update
+  -> authoring/runtime state updates
+  -> prepared render state
   -> BroMetal resource updates and draws
 ```
 
-Read models, diagnostics, metrics, and command results flow back to clients. Those outward views do
-not give a lower layer a mutable reference to its source.
+Read-only views, diagnostics, measurements, and command results flow back to clients. These outputs
+do not give clients direct write access to their source state.
 
 ## Authority model
 
-An `EngineSession` is the unit of ordered authority. Requests may arrive concurrently, but each
-world is changed by one command-and-tick loop. Heavy work may run in workers and return versioned
-results; the session applies a result only at a safe boundary and only if its source revision remains
-valid.
+An `EngineSession` controls the order of changes. Requests can arrive at the same time, but one
+command-and-tick loop changes each world.
+
+Workers can do expensive work and return versioned results. The session applies a result at a safe
+point only if its source revision is still valid.
 
 Authority depends on the caller:
 
-- Studio authoring commands require edit capabilities and expected revisions.
-- Agent commands normally target bounded sandbox worlds.
-- Gameplay clients send input and intent; the server derives actor identity and decides outcomes.
-- Internal commands are not addressable by untrusted transports.
-- Read access is scoped separately from mutation access.
+- Studio authoring commands require edit permission and the expected revision.
+- Agent commands usually target sandbox worlds with defined limits.
+- Gameplay clients send inputs and intended actions. The server identifies the player and decides
+  the result.
+- Untrusted connections cannot call internal commands.
+- Read permission is separate from change permission.
 
-"Everything uses commands" means one mutation language, not universal permission.
+"Everything uses commands" means that all callers use one method to request changes. It does not
+mean that all callers have the same permissions.
 
 ## State model
 
-Antiky maintains three representations because they optimize for different questions:
+Antiky keeps three forms of state. Each form answers different questions:
 
-- **Authoring state:** What did a creator intend, and what can be saved, diffed, inspected, and
-  replayed?
-- **Runtime state:** What is happening in the simulation now, and how can systems process it
-  efficiently?
-- **Render state:** What must be drawn this frame, in which batches and passes, with which dirty
-  ranges?
+- **Authoring state.** What did a creator intend? What can Antiky save, compare, inspect, and replay?
+- **Runtime state.** What is occurring in the simulation now? How can systems process it quickly?
+- **Render state.** What must Antiky draw in this frame? Which batches, passes, and changed ranges
+  does it need?
 
-Typed incremental projections connect them. Serialization is unnecessary while the representations
-share a process. GPU resources are disposable implementation state and never become the world model.
+Small typed updates connect the three forms. Antiky does not serialize these updates when the forms
+are in one process. GPU resources are temporary implementation data, not world state.
 
 ## Identity model
 
-Persistent objects use opaque UUIDv7 identifiers. Runtime, network, and render representations map
-those IDs to dense indexes scoped to their own lifetimes.
+Persistent objects use UUIDv7 IDs. The ID text does not contain information about the object.
+Runtime, network, and render state can map these IDs to compact numeric aliases.
 
 ```text
 persistent EntityId
@@ -118,47 +122,47 @@ persistent EntityId
       -> batch-scoped RenderInstanceIndex
 ```
 
-Only the persistent ID may cross saves, durable history, tools, and servers. A name or hierarchy path
-is a human label and can change without changing identity.
+Only the persistent ID can enter saved data, durable history, tools, and servers. A name or hierarchy
+path is a label. The label can change without a change to the ID.
 
 ## Event model
 
-Antiky uses selective event sourcing:
+Antiky records only events that need durable history:
 
-- Authored changes, ownership, inventory, economy, quests, important gameplay outcomes, and
-  administrative changes are candidates for durable events.
+- Antiky can store authored changes, ownership, inventory, economy, quests, important gameplay
+  results, and administration changes as durable events.
 - Movement samples, physics contacts, animation frames, camera motion, particles, render batches,
-  presence, and replication deltas remain transient by default.
-- Snapshots and runtime checkpoints shorten recovery but do not silently replace durable facts.
-- Undo issues another command and records the compensating fact.
+  presence, and client updates stay temporary by default.
+- Snapshots and runtime checkpoints make recovery faster. They do not replace durable facts.
+- Undo sends a new command and records the correction.
 
-This keeps history useful without turning the event store into the render or physics loop.
+This rule keeps history useful. It also keeps event storage out of the render and physics loops.
 
 ## Runtime forms
 
-The same architecture supports several compositions:
+The same architecture supports several uses:
 
-| Composition | Session | Renderer | Transport |
+| Use | Session | Renderer | Connection |
 | --- | --- | --- | --- |
-| Browser development | Local | BroMetal present | Direct local objects plus development-host boundary |
-| Tauri Studio | Local or detached | BroMetal where needed | Direct, IPC, or local network through one protocol |
-| Headless server | Authoritative | Absent | Network commands and replication |
-| Game client | Predictive projection | BroMetal present | Input upstream, replication downstream |
-| Automated test | Local deterministic | Usually absent | Direct strict test transport |
-| Agent sandbox | Forked and capability-bounded | Optional | MCP over the shared session surface |
+| Browser development | Local | BroMetal is present | Local objects and a development-host boundary |
+| Tauri Studio | Local or separate | BroMetal is present when necessary | Direct calls, process messages, or a local network |
+| Headless server | Authoritative | None | Network commands and client updates |
+| Game client | Predictive state copy | BroMetal is present | Inputs to the server and updates from the server |
+| Automated test | Local and repeatable | Usually none | Direct strict test connection |
+| Agent sandbox | Isolated and permission-limited | Optional | MCP through the shared session API |
 
-The exact process placement and transport are deployment choices. They do not change domain
-commands or authority.
+Process locations and connection methods are deployment choices. They do not change game commands
+or authority rules.
 
 ## Package direction
 
-The current monorepo direction remains:
+Code dependencies in the repository point in this direction:
 
 ```text
 website -> demos -> framework
 ```
 
-As new boundaries prove necessary, dependencies should continue to point toward stable contracts:
+When a new boundary becomes necessary, dependencies must continue to point toward stable contracts:
 
 ```text
 Studio / MCP / server / demos -> framework and protocol contracts
@@ -166,36 +170,45 @@ BroMetal driver              -> framework render interfaces + BroMetal
 framework core               -X-> BroMetal, React, Tauri, Node filesystem, or website
 ```
 
-These are dependency constraints, not a requirement to create every possible package now. A package
-should be extracted only when it traps real complexity or needs independent versioning.
+These rules do not require the project to create all possible packages now. Create a package only
+when it contains real complexity or needs its own version.
 
 ## Migration posture
 
-Architecture is proved through complete slices of the working town rather than horizontal platform
-construction. The first useful path should demonstrate one semantic object moving through identity,
-command validation, accepted history, projections, a dirty render update, inspection, and undo.
+Complete features in the working town must prove the architecture. Do not build broad platform
+layers before a feature needs them.
+
+The first complete feature must move one meaningful object through:
+
+- A stable ID
+- Command validation
+- Accepted history
+- Authoring, runtime, and render state
+- A small render update
+- Inspection
+- Undo.
 
 Each slice must:
 
-- retain the working demo and its validation evidence;
-- introduce only the boundary needed by its consumer;
-- keep the repository runnable;
-- add tests at the new system cut points;
-- avoid coupling an engine migration to unrelated dependency or desktop-shell work; and
-- leave implementation details private until another real use case needs them.
+- Keep the demo working and keep its validation evidence.
+- Add only the boundary that the feature needs.
+- Keep the repository runnable.
+- Add tests at each new system boundary.
+- Keep engine migration separate from unrelated dependency or desktop work.
+- Keep implementation details private until another real use case needs them.
 
 ## Deliberately open
 
 The accepted architecture does not yet choose:
 
-- the final component-store or query implementation;
-- the runtime schema library;
-- the event-store database and snapshot cadence;
-- exact process placement or transport for Studio and the engine;
-- the web UI framework inside Studio;
-- the first picking implementation;
-- sandbox asset sharing and fork mechanics;
-- the package split beyond currently proven dependencies; or
-- when a binary network codec becomes necessary.
+- The final component storage or query implementation
+- The runtime schema library
+- The event database and snapshot schedule
+- The process locations and connection method for Studio and the engine
+- The Studio web UI framework
+- The first selection method for the game canvas
+- Sandbox asset sharing and copy behavior
+- New packages beyond the current proven dependencies
+- The need for a binary network format.
 
-Those decisions should follow measured vertical slices rather than precede them.
+Measurements from complete working features must guide these decisions.
