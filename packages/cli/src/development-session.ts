@@ -48,6 +48,7 @@ export type DevelopmentSessionOptions = Readonly<{
 export interface DevelopmentSession {
   readonly id: string;
   readonly inspectionUrl: string;
+  readonly mcpUrl: string;
   readonly descriptorPath: string;
   readonly stopped: Promise<DevelopmentStopResult>;
   snapshot(): DevelopmentSnapshot;
@@ -171,6 +172,7 @@ export async function startDevelopmentSession(
   const id = randomUUID();
   const credential = randomBytes(32).toString('base64url');
   const inspectionUrl = `http://${config.network.host}:${config.network.inspectionPort}`;
+  const mcpUrl = `${inspectionUrl}/mcp`;
   const descriptorPath = getSessionDescriptorPath(config.path);
   const startedAtMilliseconds = Date.now();
   const startedAt = new Date(startedAtMilliseconds).toISOString();
@@ -312,6 +314,7 @@ export async function startDevelopmentSession(
         ANTIKY_GAME_PORT: String(config.network.gamePort),
         ANTIKY_INSPECTION_PORT: String(config.network.inspectionPort),
         ANTIKY_GAME_URL: config.game.url,
+        ANTIKY_MCP_URL: mcpUrl,
         NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN: inspectionUrl,
       },
       shell: false,
@@ -380,11 +383,13 @@ export async function startDevelopmentSession(
   writeOutput(`Config: ${config.path}`);
   writeOutput(`Game: ${config.game.url}`);
   writeOutput(`Inspection: ${inspectionUrl}`);
-  writeOutput('Services: game, shaders, inspection');
+  writeOutput(`MCP: ${mcpUrl}`);
+  writeOutput('Services: game, shaders, inspection, mcp');
 
   return Object.freeze({
     id,
     inspectionUrl,
+    mcpUrl,
     descriptorPath,
     stopped,
     snapshot,

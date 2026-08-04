@@ -4,7 +4,13 @@ import type { Readable } from 'node:stream';
 import type { DevelopmentSnapshot } from './development-types.ts';
 import { AntikyCliError } from './errors.ts';
 
-const MCP_PROTOCOL_VERSION = '2025-11-25';
+export const MCP_PROTOCOL_VERSION = '2025-11-25';
+export const MCP_HTTP_PATH = '/mcp';
+export const MCP_HTTP_PROTOCOL_VERSIONS = Object.freeze([
+  '2025-03-26',
+  '2025-06-18',
+  MCP_PROTOCOL_VERSION,
+] as const);
 const MAX_MCP_LINE_BYTES = 256 * 1024;
 
 export const MCP_RESOURCE_URIS = Object.freeze([

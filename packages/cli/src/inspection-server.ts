@@ -22,6 +22,11 @@ import type {
   DevelopmentSnapshot,
 } from './development-types.ts';
 import { AntikyCliError } from './errors.ts';
+import {
+  MCP_HTTP_PATH,
+  MCP_HTTP_PROTOCOL_VERSIONS,
+  processMcpRequest,
+} from './mcp-server.ts';
 
 const MAX_BROWSER_MESSAGE_BYTES = 256 * 1024;
 const MAX_CAPTURE_MESSAGE_BYTES = 7 * 1024 * 1024;
@@ -89,6 +94,31 @@ function writeJson(
     }),
   });
   response.end(bodyText);
+}
+
+function writeEmpty(
+  response: ServerResponse,
+  status: number,
+  headers: Readonly<Record<string, string>> = {},
+): void {
+  if (response.destroyed || response.writableEnded) return;
+  response.writeHead(status, { 'cache-control': 'no-store', ...headers });
+  response.end();
+}
+
+function acceptsMcpResponse(header: string | undefined): boolean {
+  const mediaTypes = new Set(
+    header?.split(',').map((value) => value.split(';', 1)[0]!.trim().toLowerCase()),
+  );
+  return mediaTypes.has('application/json') && mediaTypes.has('text/event-stream');
+}
+
+function isMcpNotification(value: unknown): boolean {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const record = value as UnknownRecord;
+  return record.jsonrpc === '2.0'
+    && typeof record.method === 'string'
+    && !Object.hasOwn(record, 'id');
 }
 
 function requireExactOrigin(request: IncomingMessage, expectedOrigin: string): void {
@@ -265,6 +295,11 @@ function actionStatus(cause: AntikyCliError): number {
 export function createInspectionServer(options: InspectionServerOptions): InspectionServer {
   const gameOrigin = new URL(options.gameUrl).origin;
   const expectedHost = `${options.host}:${options.port}`;
+  const mcpClient = Object.freeze({
+    async readDevelopmentSnapshot() { return options.readDevelopmentSnapshot(); },
+    requestReload: options.requestReload,
+    captureFrame: options.captureFrame,
+  });
   const server: HttpServer = createHttpServer((request, response) => {
     void (async () => {
       let browserRequest = false;
@@ -278,6 +313,43 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         if (browserRequest) requireExactOrigin(request, gameOrigin);
         else if (request.headers.origin && request.headers.origin !== gameOrigin) {
           serviceError(403, 'ANTIKY_ORIGIN_INVALID', 'Invalid Origin header.');
+        }
+
+        // MCP clients need a stable URL across development sessions. This route relies on the
+        // loopback bind plus the Host and Origin checks above; every inspection REST route below
+        // remains protected by the per-session credential.
+        if (requestUrl.pathname === MCP_HTTP_PATH) {
+          if (request.method !== 'POST') {
+            writeEmpty(response, 405, { allow: 'POST' });
+            return;
+          }
+          if (!acceptsMcpResponse(request.headers.accept)) {
+            serviceError(
+              406,
+              'ANTIKY_MCP_ACCEPT_INVALID',
+              'MCP clients must accept application/json and text/event-stream.',
+            );
+          }
+          const protocolVersion = request.headers['mcp-protocol-version'];
+          if (
+            protocolVersion !== undefined
+            && (
+              typeof protocolVersion !== 'string'
+              || !MCP_HTTP_PROTOCOL_VERSIONS.includes(
+                protocolVersion as typeof MCP_HTTP_PROTOCOL_VERSIONS[number],
+              )
+            )
+          ) {
+            serviceError(400, 'ANTIKY_MCP_VERSION_UNSUPPORTED', 'Unsupported MCP protocol version.');
+          }
+          const message = await readJson(request, MAX_BROWSER_MESSAGE_BYTES);
+          const reply = await processMcpRequest(mcpClient, message);
+          if (isMcpNotification(message)) {
+            writeEmpty(response, 202);
+          } else {
+            writeJson(response, 200, reply);
+          }
+          return;
         }
 
         if (request.method === 'OPTIONS' && browserRequest) {

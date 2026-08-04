@@ -137,6 +137,112 @@ test('development session starts both children, publishes health, and cleans up'
   assert.equal(await portIsFree(INSPECTION_PORT), true);
 });
 
+test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
+  const project = await makeProject();
+  const config = await loadAntikyConfig(project.configPath);
+  const lines: string[] = [];
+  const session = await startDevelopmentSession(config, {
+    writeOutput: (line) => lines.push(line),
+  });
+
+  try {
+    assert.equal(session.mcpUrl, `${session.inspectionUrl}/mcp`);
+    assert.ok(lines.includes(`MCP: ${session.mcpUrl}`));
+    assert.ok(lines.includes('Services: game, shaders, inspection, mcp'));
+
+    const initialize = await fetch(session.mcpUrl, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2025-11-25',
+          capabilities: {},
+          clientInfo: { name: 'development-test', version: '1' },
+        },
+      }),
+    });
+    assert.equal(initialize.status, 200);
+    assert.match(initialize.headers.get('content-type') ?? '', /^application\/json/);
+    const initialized = await initialize.json() as {
+      result: { protocolVersion: string; capabilities: unknown };
+    };
+    assert.equal(initialized.result.protocolVersion, '2025-11-25');
+    assert.deepEqual(initialized.result.capabilities, { resources: {}, tools: {} });
+
+    const tools = await fetch(session.mcpUrl, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+        'mcp-protocol-version': '2025-11-25',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }),
+    });
+    assert.equal(tools.status, 200);
+    const toolList = await tools.json() as { result: { tools: Array<{ name: string }> } };
+    assert.deepEqual(toolList.result.tools.map((tool) => tool.name), [
+      'get_dev_status',
+      'get_latest_build',
+      'get_runtime_status',
+      'get_render_stats',
+      'get_diagnostics',
+      'dev_reload',
+      'capture_frame',
+    ]);
+
+    const notification = await fetch(session.mcpUrl, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+        'mcp-protocol-version': '2025-11-25',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0', method: 'notifications/initialized', params: {},
+      }),
+    });
+    assert.equal(notification.status, 202);
+    assert.equal(await notification.text(), '');
+
+    const eventStream = await fetch(session.mcpUrl);
+    assert.equal(eventStream.status, 405);
+    assert.equal(eventStream.headers.get('allow'), 'POST');
+
+    const wrongOrigin = await fetch(session.mcpUrl, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+        origin: 'https://example.com',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'tools/list', params: {} }),
+    });
+    assert.equal(wrongOrigin.status, 403);
+
+    const unsupportedVersion = await fetch(session.mcpUrl, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+        'mcp-protocol-version': '2026-07-28',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 4, method: 'tools/list', params: {} }),
+    });
+    assert.equal(unsupportedVersion.status, 400);
+
+    const protectedInspection = await fetch(`${session.inspectionUrl}/v1/development`);
+    assert.equal(protectedInspection.status, 401);
+  } finally {
+    await session.stop('normal');
+  }
+});
+
 test('busy ports reject before either child starts', async () => {
   const project = await makeProject();
   const blocker = createServer();
