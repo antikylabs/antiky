@@ -22,7 +22,7 @@ decision need no ADR, while a broad proposal may require several independent arc
 - [0004: Support 2D, 3D, and 2.3D as first-class modes](framework/0004-23d_H.md)
 - [0005: Build a reusable Antiky Ability System](framework/0005-game-ability-system_H.md)
 - [0006: Keep BroMetal behind an Antiky render driver](framework/0006-brometal-render-driver_H.md)
-- [0007: Use commands as the mutation boundary](framework/0007-commands-as-mutation-boundary_H.md)
+- [0007: Use commands to change world state](framework/0007-commands-as-mutation-boundary_H.md)
 - [0008: Put EngineSession above World](framework/0008-engine-session-owns-worlds_H.md)
 - [0009: Separate authoring, runtime, and render state](framework/0009-separate-state-projections_H.md)
 - [0010: Serialize only at real boundaries](framework/0010-serialize-at-boundaries_H.md)
