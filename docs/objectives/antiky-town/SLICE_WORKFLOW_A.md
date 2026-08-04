@@ -76,7 +76,7 @@ of truth.
 For Slice 01, the intended goal command is:
 
 ```text
-/goal implement packages/demos/src/demos/antiky-town/slice-01-plan.md until complete
+/goal implement docs/objectives/antiky-town/slice-01-plan.md until complete
 ```
 
 The agent that runs this goal must follow these rules:

@@ -16,7 +16,7 @@
 | Complete verification command | `npm run verify:slice-01 --workspace @antiky/demos` |
 | Run state | `NOT STARTED` |
 | Evidence receipt format | `antiky.slice-receipt/v1` |
-| Evidence receipt path | `packages/demos/src/demos/antiky-town/evidence/slice-01/{runId}/receipt.json` |
+| Evidence receipt path | `docs/objectives/antiky-town/evidence/slice-01/{runId}/receipt.json` |
 
 The plan is ready for review. Feature implementation is not ready. The project owner must approve
 the Slice 0 choices and option `1A`. Slice 0 must then pass. The readiness table names the remaining
@@ -25,7 +25,7 @@ prework.
 After those gates pass, use:
 
 ```text
-/goal implement packages/demos/src/demos/antiky-town/slice-01-plan.md until complete
+/goal implement docs/objectives/antiky-town/slice-01-plan.md until complete
 ```
 
 The goal must stop at any failed readiness gate. It must not implement Slice 0 as hidden Slice 01
@@ -38,17 +38,17 @@ work.
 | [`SLICE_WORKFLOW_A.md`](SLICE_WORKFLOW_A.md) | Defines the shared gates, evidence rules, and success rubric |
 | [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) | Defines the first-object outcome, options, and evidence |
 | [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) | Defines the Slice 0 host, inspection, MCP, reload, and GPU-tool boundary |
-| [`README.md`](README.md) | Defines Antiky Town ownership and reference rules |
-| [`../brometal-town/index.ts`](../brometal-town/index.ts) | Contains the reference practical lights and BroMetal update path |
-| [`../../../../../docs/GOOD_ENGINEERING_H.md`](../../../../../docs/GOOD_ENGINEERING_H.md) | Requires small, proved changes and deep modules |
-| [`../../../../../docs/architecture/framework/world-and-session-model_A.md`](../../../../../docs/architecture/framework/world-and-session-model_A.md) | Defines stable IDs, component runtime data, and state copies |
-| [`../../../../../docs/architecture/framework/commands-events-and-persistence_A.md`](../../../../../docs/architecture/framework/commands-events-and-persistence_A.md) | Defines commands, trusted context, events, replay, and correction |
-| [`../../../../../docs/architecture/framework/rendering-and-assets_A.md`](../../../../../docs/architecture/framework/rendering-and-assets_A.md) | Defines render preparation, changed ranges, BroMetal ownership, and diagnostics |
-| [`../../../../../docs/architecture/framework/protocols-and-serialization_A.md`](../../../../../docs/architecture/framework/protocols-and-serialization_A.md) | Defines local typed calls and encoded boundaries |
-| [`../../../../../docs/adr/framework/0006-brometal-render-driver_H.md`](../../../../../docs/adr/framework/0006-brometal-render-driver_H.md) | Keeps BroMetal out of framework core |
-| [`../../../../../docs/adr/framework/0007-commands-as-mutation-boundary_H.md`](../../../../../docs/adr/framework/0007-commands-as-mutation-boundary_H.md) | Requires commands for authoritative changes |
-| [`../../../../../docs/adr/framework/0009-separate-state-projections_H.md`](../../../../../docs/adr/framework/0009-separate-state-projections_H.md) | Keeps authoring, runtime, and render state separate |
-| [`../../../../../docs/adr/framework/0011-stable-ids-and-runtime-aliases_H.md`](../../../../../docs/adr/framework/0011-stable-ids-and-runtime-aliases_H.md) | Selects UUIDv7 stable IDs and temporary numeric aliases |
+| [`Antiky Town README`](../../../packages/demos/src/demos/antiky-town/README.md) | Defines Antiky Town ownership and reference rules |
+| [`brometal-town/index.ts`](../../../packages/demos/src/demos/brometal-town/index.ts) | Contains the reference practical lights and BroMetal update path |
+| [`GOOD_ENGINEERING_H.md`](../../GOOD_ENGINEERING_H.md) | Requires small, proved changes and deep modules |
+| [`world-and-session-model_A.md`](../../architecture/framework/world-and-session-model_A.md) | Defines stable IDs, component runtime data, and state copies |
+| [`commands-events-and-persistence_A.md`](../../architecture/framework/commands-events-and-persistence_A.md) | Defines commands, trusted context, events, replay, and correction |
+| [`rendering-and-assets_A.md`](../../architecture/framework/rendering-and-assets_A.md) | Defines render preparation, changed ranges, BroMetal ownership, and diagnostics |
+| [`protocols-and-serialization_A.md`](../../architecture/framework/protocols-and-serialization_A.md) | Defines local typed calls and encoded boundaries |
+| [`ADR 0006`](../../adr/framework/0006-brometal-render-driver_H.md) | Keeps BroMetal out of framework core |
+| [`ADR 0007`](../../adr/framework/0007-commands-as-mutation-boundary_H.md) | Requires commands for authoritative changes |
+| [`ADR 0009`](../../adr/framework/0009-separate-state-projections_H.md) | Keeps authoring, runtime, and render state separate |
+| [`ADR 0011`](../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md) | Selects UUIDv7 stable IDs and temporary numeric aliases |
 
 ## Goal
 

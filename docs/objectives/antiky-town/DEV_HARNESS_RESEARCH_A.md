@@ -32,7 +32,7 @@ The repository already has part of this loop:
 - The website and demo scripts hard-code port `3010`.
 - The website compiles demo shaders once before it starts Next.js. It does not keep a shader
   compiler running.
-- [`LiveDemoStage`](../../react/LiveDemoStage.tsx) owns WebGPU renderer creation, the browser frame
+- [`LiveDemoStage`](../../../packages/demos/src/react/LiveDemoStage.tsx) owns WebGPU renderer creation, the browser frame
   loop, pause state, disposal, FPS, draw-call count, instance count, and upload-byte statistics.
 - Those browser values stay in React state. An external agent cannot query them through a stable
   contract.

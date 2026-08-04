@@ -4,6 +4,9 @@ This folder is the system of record for the Antiky agent loop. It turns human di
 feedback into small, checkpoint-bounded sessions without mixing human evidence, agent findings,
 or script output.
 
+The numbered files at this level control the formal work loop. A project can keep detailed plans in
+its own subfolder. These plans do not replace tasks in `03-TODO_A.txt`.
+
 Before planning or implementing work, read:
 
 - [`../VISION_DIRECTION_H.md`](../VISION_DIRECTION_H.md) for human-owned product direction.
@@ -27,6 +30,12 @@ Before planning or implementing work, read:
 | [`07-DONE_S.txt`](07-DONE_S.txt)                         | Script        | Completed task lines moved by `npm run zdarchive`.                    |
 | [`08-REPORT_S.txt`](08-REPORT_S.txt)                     | Script        | Reports produced by the configured todo.txt tooling.                  |
 | [`todo.cfg`](todo.cfg)                                   | Script config | Makes todo.txt CLI commands use the formal filenames from any cwd.    |
+
+## Project plans
+
+| Project | Purpose |
+| --- | --- |
+| [Antiky Town](antiky-town/README.md) | Holds the port plan, development research, slice workflow, template, and executable slice plans. |
 
 ## Commands
 

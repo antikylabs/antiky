@@ -5,11 +5,13 @@
 Antiky Town will port the existing [`brometal-town`](../brometal-town/) through Antiky Framework.
 The old demo remains the reference until the new demo matches its required behavior and appearance.
 
-Read [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) and
-[`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) before adding implementation code. The
-research supports a proposed development-harness Slice 0. The plan contains alternatives,
-preconditions, structured inspection requirements, and acceptance criteria for each early slice.
-The project owner will select the direction.
+Planning and slice documents live in the
+[Antiky Town objectives](../../../../../docs/objectives/antiky-town/README.md) folder. Read the
+[development-harness research](../../../../../docs/objectives/antiky-town/DEV_HARNESS_RESEARCH_A.md)
+and [implementation plan](../../../../../docs/objectives/antiky-town/IMPLEMENTATION_PLAN_A.md)
+before you add implementation code. The research supports a proposed development-harness Slice 0.
+The plan contains alternatives, preconditions, inspection requirements, and acceptance criteria
+for each early slice. The project owner will select the direction.
 
 ## Scaffold
 

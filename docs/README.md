@@ -13,7 +13,7 @@ These documents describe Antiky's direction, decisions, architecture, proposals,
 | [Antiky Improvement Proposals](aip/README.md) | Contributor proposals for product, feature, process, governance, architecture, and other improvements. |
 | [Architecture Decision Records](adr/README.md) | Core Contributor-owned records of accepted architectural decisions. |
 | [Architecture Guides](architecture/README.md) | Agent-authored explanations of the target Framework and Studio architecture. |
-| [Objectives](objectives/README.md) | The agent work loop and its goals, feedback, findings, sessions, archives, and reports. |
+| [Objectives](objectives/README.md) | The agent work loop, project plans, goals, feedback, findings, sessions, archives, and reports. |
 
 ## Document types
 
