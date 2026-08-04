@@ -1,7 +1,7 @@
 # Slice 00: Start the Antiky Development Runtime
 
 This plan is the implementation contract. For a short review, answer the three questions in
-[`slice-00-owner-input_H.md`](slice-00-owner-input_H.md).
+[`owner-input_H.md`](owner-input_H.md).
 
 ## Control
 
@@ -9,12 +9,12 @@ This plan is the implementation contract. For a short review, answer the three q
 | --- | --- |
 | Status | `NOT READY` — owner input has three pending answers |
 | Outcome | One command starts, inspects, and stops the current town through Antiky |
-| Owner input | [`slice-00-owner-input_H.md`](slice-00-owner-input_H.md) |
-| Architecture decision | [ADR 0004: Make CLI and Studio use the same engine services](../../adr/studio/0004-share-engine-services-with-cli_H.md) |
+| Owner input | [`owner-input_H.md`](owner-input_H.md) |
+| Architecture decision | [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | None |
-| Alignment revision | `611e993cdf5bd1261d0b7c8cc19f8507f96b7f50` |
+| Alignment revision | `35091e0883253c89ad27bf840c42d1a9dc4c6c7f` |
 | Complete check | `npm run verify:slice-00` |
-| Evidence | `docs/objectives/antiky-town/evidence/slice-00/{run-id}/receipt.json` |
+| Evidence | `docs/objectives/antiky-town/slice-00/outputs/{run-id}/receipt.json` |
 
 The goal runner must read the owner-input file before implementation. It must stop if the file has a
 `PENDING` answer. It must use the inline answers as part of this contract.
@@ -22,7 +22,7 @@ The goal runner must read the owner-input file before implementation. It must st
 After the owner-input status is `ANSWERED`, use:
 
 ```text
-/goal implement docs/objectives/antiky-town/slice-00-plan.md until complete
+/goal implement docs/objectives/antiky-town/slice-00/plan.md until complete
 ```
 
 ## Review summary
@@ -84,15 +84,15 @@ process health, or cleanup time. The CLI development host owns these meanings.
 
 ## Required reading
 
-- [`slice-00-owner-input_H.md`](slice-00-owner-input_H.md)
-- [`SLICE_WORKFLOW_A.md`](SLICE_WORKFLOW_A.md)
-- [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md)
-- [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md)
-- [ADR 0003: Use one engine API for humans and agents](../../adr/framework/0003-agent-native_H.md)
-- [ADR 0004: Make CLI and Studio use the same engine services](../../adr/studio/0004-share-engine-services-with-cli_H.md)
-- [`framework/overview_A.md`](../../architecture/framework/overview_A.md)
-- [`studio/overview_A.md`](../../architecture/studio/overview_A.md)
-- [`GOOD_ENGINEERING_H.md`](../../GOOD_ENGINEERING_H.md)
+- [`owner-input_H.md`](owner-input_H.md)
+- [`SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
+- [`DEV_HARNESS_RESEARCH_A.md`](../DEV_HARNESS_RESEARCH_A.md)
+- [`IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
+- [ADR 0003: Use one engine API for humans and agents](../../../adr/framework/0003-agent-native_H.md)
+- [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md)
+- [`framework/overview_A.md`](../../../architecture/framework/overview_A.md)
+- [`studio/overview_A.md`](../../../architecture/studio/overview_A.md)
+- [`GOOD_ENGINEERING_H.md`](../../../GOOD_ENGINEERING_H.md)
 
 ## Current state
 
@@ -171,6 +171,14 @@ a Studio-compatible connection contract without building a Studio panel or deskt
 WebGPU Inspector follows the owner-input answer. The recommendation is to keep it optional because
 it cannot supply Antiky semantic state.
 
+## User-facing documentation deliverable
+
+- Add framework guidance for inspection snapshots, subscriptions, diagnostics, and measurements.
+- Add CLI guidance for config, `antiky dev`, `antiky inspect`, `antiky mcp`, errors, and cleanup.
+- Update Studio guidance if the owner-approved work changes a Studio workflow. Otherwise, record
+  `N/A` and the reason.
+- Check every command, config example, and local link that these pages contain.
+
 ## Safe behavior
 
 | Event | Required result |
@@ -200,7 +208,8 @@ local bridge, credentials, and MCP server from production website output.
 | `CP-05` | Add the complete verifier and evidence receipt | Clean end-to-end run | `Verify Slice 00` |
 
 Each checkpoint must include its tests. Each checkpoint must leave the repository in a working
-state.
+state. A checkpoint that changes public framework, CLI, or Studio behavior must update the matching
+page under `docs/user-facing-docs/`.
 
 ## Test plan
 
@@ -214,6 +223,7 @@ The implementation must add tests for these boundaries:
 - Direct, CLI, MCP, and Studio-compatible client results from one service source.
 - Unauthorized, wrong-origin, stale, malformed, and oversized messages.
 - Production output that contains no local inspection server or session credential.
+- User-facing CLI commands, config examples, and framework links.
 - Ten valid source updates and ten valid shader updates. Each update must reach a ready runtime in
   ten seconds or less on the recorded test system.
 
@@ -234,6 +244,7 @@ Slice 00 is complete only when all these statements are true:
 - [ ] A bad update keeps the last valid result and reports a diagnostic.
 - [ ] Reload and capture operations return related structured IDs.
 - [ ] Security, payload, production-exclusion, and cleanup tests pass.
+- [ ] Framework, CLI, and applicable Studio docs match the shipped behavior and pass their checks.
 - [ ] The update timing test passes on the recorded system.
 - [ ] The current town reference remains available and has no unapproved visual change.
 - [ ] `npm run check` passes.
@@ -246,6 +257,10 @@ Slice 00 is complete only when all these statements are true:
 The shared slice workflow controls isolation, retries, rollback, permissions, and evidence. The
 implementation agent records the run-specific values in the evidence receipt. This plan does not
 repeat empty operational tables.
+
+Each run writes `receipt.json`, `confirmation-checks.md`, `facts.json`, and `measurements.json` in
+this slice's `outputs/{run-id}/` directory. Store captures and logs there only when a check needs
+them.
 
 Use a clean revision and isolated resources. Record failed attempts. Retry only a classified
 transient failure. Restore the latest passing checkpoint when a change makes the harness unsafe.

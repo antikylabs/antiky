@@ -1,7 +1,7 @@
 # Slice 01: Change One Market Lamp Through Antiky
 
 This plan is the implementation contract. For a short review, answer the two questions in
-[`slice-01-owner-input_H.md`](slice-01-owner-input_H.md).
+[`owner-input_H.md`](owner-input_H.md).
 
 ## Control
 
@@ -9,11 +9,11 @@ This plan is the implementation contract. For a short review, answer the two que
 | --- | --- |
 | Status | `NOT READY` — owner input and Slice 00 are pending |
 | Outcome | One command changes one market lamp through the complete framework path |
-| Owner input | [`slice-01-owner-input_H.md`](slice-01-owner-input_H.md) |
-| Depends on | [`slice-00-plan.md`](slice-00-plan.md) completed |
-| Alignment revision | `611e993cdf5bd1261d0b7c8cc19f8507f96b7f50` |
+| Owner input | [`owner-input_H.md`](owner-input_H.md) |
+| Depends on | [`../slice-00/plan.md`](../slice-00/plan.md) completed |
+| Alignment revision | `35091e0883253c89ad27bf840c42d1a9dc4c6c7f` |
 | Complete check | `npm run verify:slice-01 --workspace @antiky/demos` |
-| Evidence | `docs/objectives/antiky-town/evidence/slice-01/{run-id}/receipt.json` |
+| Evidence | `docs/objectives/antiky-town/slice-01/outputs/{run-id}/receipt.json` |
 
 The goal runner must read the owner-input file and the completed Slice 00 evidence. It must stop on
 a `PENDING` answer or an incomplete Slice 00.
@@ -21,7 +21,7 @@ a `PENDING` answer or an incomplete Slice 00.
 After both gates pass, use:
 
 ```text
-/goal implement docs/objectives/antiky-town/slice-01-plan.md until complete
+/goal implement docs/objectives/antiky-town/slice-01/plan.md until complete
 ```
 
 ## Review summary
@@ -111,15 +111,15 @@ slot `0` before the frame loop.
 
 ## Required reading
 
-- [`slice-01-owner-input_H.md`](slice-01-owner-input_H.md)
-- [`slice-00-plan.md`](slice-00-plan.md) and its completed evidence
-- [`SLICE_WORKFLOW_A.md`](SLICE_WORKFLOW_A.md)
-- [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md)
-- [ADR 0007: Use commands to change world state](../../adr/framework/0007-commands-as-mutation-boundary_H.md)
-- [ADR 0009: Keep authoring, runtime, and render state separate](../../adr/framework/0009-separate-state-projections_H.md)
-- [ADR 0011: Use stable IDs and temporary numeric aliases](../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
-- [`rendering-and-assets_A.md`](../../architecture/framework/rendering-and-assets_A.md)
-- [`GOOD_ENGINEERING_H.md`](../../GOOD_ENGINEERING_H.md)
+- [`owner-input_H.md`](owner-input_H.md)
+- [`../slice-00/plan.md`](../slice-00/plan.md) and its completed outputs
+- [`SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
+- [`IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
+- [ADR 0007: Use commands to change world state](../../../adr/framework/0007-commands-as-mutation-boundary_H.md)
+- [ADR 0009: Keep authoring, runtime, and render state separate](../../../adr/framework/0009-separate-state-projections_H.md)
+- [ADR 0011: Use stable IDs and temporary numeric aliases](../../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
+- [`rendering-and-assets_A.md`](../../../architecture/framework/rendering-and-assets_A.md)
+- [`GOOD_ENGINEERING_H.md`](../../../GOOD_ENGINEERING_H.md)
 
 ## Framework deliverable
 
@@ -190,6 +190,13 @@ Slice 01 must not claim a four-byte GPU write. A power change must:
 - Keep the last valid state and resources after failure.
 - Dispose each owned resource and listener once.
 
+## User-facing documentation deliverable
+
+- Update framework guidance for lamp identity, light data, commands, results, and inspection.
+- Include one valid example that changes and then corrects the market lamp power.
+- Update CLI or Studio guidance if this slice changes either workflow. Otherwise, record `N/A` and
+  the reason for that area.
+
 ## Safe lifecycle and security
 
 | Event | Required result |
@@ -217,6 +224,8 @@ BroMetal resources, or GPU resources.
 | `CP-05` | Add complete verifier and receipt mapping | Clean end-to-end run | `Verify Antiky Town slice one` |
 
 Each checkpoint includes tests and leaves the repository in a working state.
+A checkpoint that changes public framework, CLI, or Studio behavior also updates the matching page
+under `docs/user-facing-docs/`.
 
 ## Test plan
 
@@ -234,6 +243,7 @@ Add headless and integration tests for:
 - Reload, reconnect, invalid replacement, shutdown, and reference-route parity.
 - Before, changed, and corrected fixed-camera captures.
 - Import boundaries that keep BroMetal, DOM, React, website, and Node.js host code out of framework.
+- User-facing framework examples, links, and any affected CLI or Studio workflow.
 
 For every rejection, compare value, revision, fact count, runtime value, render value, and dirty
 count before and after. All six values must stay unchanged.
@@ -254,6 +264,7 @@ event sequence `1`. Correction restores `1.05` at revision `3` and event sequenc
 - [ ] Actual BroMetal writes are measured without a false partial-write claim.
 - [ ] The normal path has zero GPU readback, new resources, extra draws, and extra submissions.
 - [ ] Reload, reconnect, failure, disposal, shutdown, and security tests pass.
+- [ ] Framework and applicable CLI or Studio docs match the shipped behavior and pass their checks.
 - [ ] `town-study` remains available with no unapproved visual change.
 - [ ] Framework tests and `npm run check` pass.
 - [ ] `npm run verify:slice-01 --workspace @antiky/demos` passes from one clean start.
@@ -265,6 +276,10 @@ event sequence `1`. Correction restores `1.05` at revision `3` and event sequenc
 The shared workflow controls isolation, permissions, retries, rollback, and receipt content. Record
 actual run values in the receipt. Do not put production, deployment, secrets, or external messages
 in this slice.
+
+Each run writes `receipt.json`, `confirmation-checks.md`, `facts.json`, and `measurements.json` in
+this slice's `outputs/{run-id}/` directory. Store captures and logs there only when a check needs
+them.
 
 Use a clean revision and isolated resources. Record all attempts. Restore the latest passing
 checkpoint when a regression or unsafe behavior cannot be fixed forward.

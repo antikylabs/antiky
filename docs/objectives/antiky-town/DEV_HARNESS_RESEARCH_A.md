@@ -1,6 +1,6 @@
 # Development Harness Research
 
-**Status: Research; owner questions are in `slice-00-owner-input_H.md`**
+**Status: Research; owner questions are in `slice-00/owner-input_H.md`**
 
 **Research date: 2026-08-04**
 
@@ -8,7 +8,7 @@
 
 Antiky Town should start with a development-harness slice.
 
-Use [`slice-00-plan.md`](slice-00-plan.md) as the executable contract. This document supplies the
+Use [`slice-00/plan.md`](slice-00/plan.md) as the executable contract. This document supplies the
 research. It does not replace the plan, owner input, tests, checkpoints, or completion checks.
 
 The first version should use the current Next.js demo host. It should not build a new bundler or a
@@ -428,7 +428,7 @@ cannot meet.
 
 ## Owner decisions
 
-Answer the short questions in [`slice-00-owner-input_H.md`](slice-00-owner-input_H.md). That file
+Answer the short questions in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md). That file
 contains the context and recommendation for the launch target, required clients, and WebGPU
 Inspector.
 

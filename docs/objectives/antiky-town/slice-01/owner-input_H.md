@@ -7,7 +7,7 @@
 ## Purpose
 
 This file contains the Slice 01 questions that need product-owner judgment. You do not need to read
-the complete [Slice 01 plan](slice-01-plan.md) to answer them.
+the complete [Slice 01 plan](plan.md) to answer them.
 
 The Slice 01 goal reads this file before it changes code. A `PENDING` answer stops the goal.
 

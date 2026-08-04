@@ -7,7 +7,7 @@
 ## Purpose
 
 This file contains the Slice 00 questions that need product-owner judgment. You do not need to read
-the complete [Slice 00 plan](slice-00-plan.md) to answer them.
+the complete [Slice 00 plan](plan.md) to answer them.
 
 The Slice 00 goal reads this file before it changes code. A `PENDING` answer stops the goal.
 
@@ -28,7 +28,7 @@ Your review on 2026-08-04 supplied these requirements:
 - The CLI owns local launch, process, build, connection, and cleanup work.
 - CLI and Studio are separate clients of the same engine services.
 
-[ADR 0004](../../adr/studio/0004-share-engine-services-with-cli_H.md) records the CLI and Studio
+[ADR 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) records the CLI and Studio
 decision.
 
 ## Question 1: Which town must the CLI launch first?

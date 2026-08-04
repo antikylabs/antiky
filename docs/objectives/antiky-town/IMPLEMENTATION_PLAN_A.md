@@ -9,6 +9,9 @@ working reference during the port.
 
 The port must grow through complete features. It must not begin with a broad engine rewrite.
 
+Use [`slice-list.md`](slice-list.md) for the short active sequence. Update that list after every
+slice run. This document keeps the design context and alternatives.
+
 ## Baseline
 
 The current `brometal-town` implementation owns all simulation, town data, render preparation, and
@@ -58,11 +61,11 @@ Inspector assessment, and Slice 0 design.
 
 ## Decisions requested
 
-Each slice puts owner questions and context in a separate `slice-NN-owner-input_H.md` file. The
-slice plan links that file as required reading.
+Each slice puts its plan, owner input, and delivery outputs in a separate `slice-NN/` folder. The
+slice plan links its `owner-input_H.md` file as required reading.
 
 Choose one direction for each feature slice. The recommended sequence is `1A, 2A, 3A, 4A, 5A,
-6A`. Slice 0 uses the smaller choices in its [owner-input file](slice-00-owner-input_H.md).
+6A`. Slice 0 uses the smaller choices in its [owner-input file](slice-00/owner-input_H.md).
 
 The choices are starting directions. A later measured need can justify a different implementation.
 
@@ -134,8 +137,8 @@ Chrome or Edge is required only when the selected WebGPU Inspector path uses its
 
 ## Slice 0: Development harness and minimum inspection
 
-The executable contract is [`slice-00-plan.md`](slice-00-plan.md). The owner answers only the
-questions in [`slice-00-owner-input_H.md`](slice-00-owner-input_H.md). Do not start implementation
+The executable contract is [`slice-00/plan.md`](slice-00/plan.md). The owner answers only the
+questions in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md). Do not start implementation
 while an answer is pending.
 
 ### Outcome
@@ -234,8 +237,8 @@ Costs:
 
 ## Slice 1: First complete object
 
-The executable contract is [`slice-01-plan.md`](slice-01-plan.md). Answer its short
-[`slice-01-owner-input_H.md`](slice-01-owner-input_H.md) file first. Slice 01 remains blocked until
+The executable contract is [`slice-01/plan.md`](slice-01/plan.md). Answer its short
+[`slice-01/owner-input_H.md`](slice-01/owner-input_H.md) file first. Slice 01 remains blocked until
 Slice 0 is complete.
 
 ### Outcome

@@ -8,7 +8,10 @@ short human-readable contract. It is not a blank execution ledger.
 Keep the real plan at 300 lines or fewer. Remove all template instructions and unused sections.
 Record run-specific facts in the evidence receipt.
 
-If the slice needs owner judgment, create `slice-NN-owner-input_H.md`. Follow the
+Create the plan as `slice-NN/plan.md`. Create `slice-NN/outputs/README.md` with the output layout
+from the workflow.
+
+If the slice needs owner judgment, create `slice-NN/owner-input_H.md`. Follow the
 [owner-input rules](SLICE_WORKFLOW_A.md#owner-input). Put each question, context, recommendation,
 and inline answer block in that file. Do not copy the questions into the plan.
 
@@ -24,12 +27,12 @@ and inline answer block in that file. Do not copy the questions into the plan.
 | --- | --- |
 | Status | `<NOT READY, READY, IN PROGRESS, NOT COMPLETE, or COMPLETE>` |
 | Outcome | `<one useful result>` |
-| Owner input | `<link to slice-NN-owner-input_H.md, or NONE>` |
+| Owner input | `<link to owner-input_H.md, or NONE>` |
 | Architecture decisions | `<links or NONE>` |
 | Depends on | `<earlier slice or NONE>` |
 | Alignment revision | `<full Git revision>` |
 | Complete check | `<one command>` |
-| Evidence | `<path with run ID>` |
+| Evidence | `docs/objectives/<objective>/slice-<NN>/outputs/{run-id}/receipt.json` |
 
 `<State that the goal runner must read the owner-input file and stop on a pending answer. Remove
 this text when no owner-input file exists.>`
@@ -37,7 +40,7 @@ this text when no owner-input file exists.>`
 Goal command:
 
 ```text
-/goal implement docs/objectives/<objective>/slice-<NN>-plan.md until complete
+/goal implement docs/objectives/<objective>/slice-<NN>/plan.md until complete
 ```
 
 ## Review summary
@@ -83,7 +86,7 @@ cost.
 ## Required reading
 
 - `<owner-input link first, when it exists>`
-- [`SLICE_WORKFLOW_A.md`](SLICE_WORKFLOW_A.md)
+- `<relative link to SLICE_WORKFLOW_A.md>`
 - `<relevant ADR, architecture guide, reference source, and engineering guide>`
 
 ## Current state and reference
@@ -111,6 +114,11 @@ capture is not owner work.
 
 - `<host, demo, CLI, Studio, MCP, or test adapter work>`
 - `<versioned contract or config>`
+
+### User-facing documentation
+
+- `<affected page under docs/user-facing-docs/framework, cli, or studio>`
+- `<documentation check, or N/A with a reason when public use does not change>`
 
 For each fact, name one source of truth. UI, CLI, MCP, and tests can adapt the fact. They must not
 calculate different versions of it.
@@ -169,6 +177,7 @@ Name the concrete boundaries and cases. Use a table only when exact mapping help
 - `<integration success and failure cases>`
 - `<reload, recovery, security, and cleanup cases>`
 - `<reference and performance cases>`
+- `<user-facing documentation links, commands, and examples>`
 - `<complete repository and slice verification commands>`
 
 For a reported error, add a failing regression test before the fix.
@@ -181,6 +190,7 @@ For a reported error, add a failing regression test before the fix.
 - [ ] `<invalid input leaves safe state>`
 - [ ] `<reference and performance limits pass>`
 - [ ] `<security, lifecycle, and cleanup pass>`
+- [ ] `<affected user-facing documentation matches the shipped behavior, or N/A has a reason>`
 - [ ] `<repository check passes>`
 - [ ] `<complete slice check passes from one clean start>`
 - [ ] `<evidence receipt validates and links all required proof>`
@@ -198,3 +208,11 @@ content. Add only rules that are special to this slice.
 
 Record actual revisions, environment values, ports, identities, dependency versions, attempts,
 measurements, and artifacts in the evidence receipt. Do not pre-fill empty tables in the plan.
+
+List every changed page under `docs/user-facing-docs/` in the receipt. If none changed, record `N/A`
+and the reason.
+
+Write `receipt.json`, `confirmation-checks.md`, and `facts.json` under this slice's
+`outputs/{run-id}/` directory. Add measurements, captures, and logs only when the plan needs them.
+
+Update `../slice-list.md` from the run's facts before closeout.

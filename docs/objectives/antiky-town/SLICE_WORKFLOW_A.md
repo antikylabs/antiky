@@ -9,14 +9,16 @@ process for each slice.
 
 A slice is a small, complete change that a person can see or use. It must also prove the framework
 path that supports the change. A slice is not complete when the code only compiles. It is complete
-when its behavior, tests, inspection data, failure handling, and measurements all pass.
+when its behavior, tests, inspection data, failure handling, measurements, and affected user-facing
+documentation all pass.
 
 This guide has these companion documents:
 
 - [`SLICE_PLAN_TEMPLATE_A.md`](SLICE_PLAN_TEMPLATE_A.md) is the copyable plan contract.
-- [`slice-00-plan.md`](slice-00-plan.md) applies the contract to the development harness.
-- [`slice-00-owner-input_H.md`](slice-00-owner-input_H.md) is a real owner-input example.
-- [`slice-01-plan.md`](slice-01-plan.md) applies the contract to the first market lamp.
+- [`slice-list.md`](slice-list.md) is the short, changeable slice roadmap.
+- [`slice-00/plan.md`](slice-00/plan.md) applies the contract to the development harness.
+- [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md) is a real owner-input example.
+- [`slice-01/plan.md`](slice-01/plan.md) applies the contract to the first market lamp.
 
 Update this guide and the template when the framework adds a new feature area that later slices
 must check. Do not rewrite the process only because one slice needs a special task.
@@ -51,12 +53,48 @@ the reason in the plan.
 | Slice plan template | Defines the short structure of a real slice plan | When every future slice must answer a new implementation question |
 | One real slice plan | Defines one outcome, its work, its gates, and its proof | During planning and implementation of that slice |
 | Owner-input file | Gives the owner only the questions that need human judgment | When a product, visual, scope, or public-contract question changes |
+| Slice outputs | Stores run receipts, confirmation checks, facts, measurements, and supporting artifacts | During one named slice run |
+| Slice list | Gives the next short slice sequence | After every slice run |
+| User-facing documentation | Explains how to use the shipped framework, CLI, and Studio behavior | In the same checkpoint that changes that behavior |
 
 The workflow and template are rules. A real slice plan is an executable contract.
 
+## Slice folder
+
+Keep each slice contract and its delivery outputs together:
+
+```text
+slice-NN/
+  plan.md
+  owner-input_H.md       optional; only when owner judgment is required
+  outputs/
+    README.md
+    {run-id}/
+      receipt.json
+      confirmation-checks.md
+      facts.json
+      measurements.json  when measurements apply
+      captures/           when captures apply
+      logs/               when logs apply
+```
+
+Keep product and framework implementation in `packages/`. Do not copy implementation files into the
+slice folder.
+
+Keep durable usage guidance in `docs/user-facing-docs/`. It is product documentation, not a slice
+output. The slice receipt links each page that the run changed.
+
+Each run writes to a new output directory. It must not overwrite an earlier run. The receipt lists
+each stored output and its digest.
+
+`confirmation-checks.md` gives a short human summary. `facts.json` contains machine-readable facts.
+The other outputs exist only when the plan needs them.
+
+Do not store credentials, tokens, private keys, or other secrets in a slice output.
+
 ## Owner input
 
-If a slice needs owner judgment, create `slice-NN-owner-input_H.md`. Link it in the plan control
+If a slice needs owner judgment, create `slice-NN/owner-input_H.md`. Link it in the plan control
 block and make it the first required-reading item.
 
 The owner-input file must contain:
@@ -91,6 +129,7 @@ needs no owner decision, state that fact in the plan and do not create an empty 
 | Gate | A condition that must pass; points cannot offset a failed gate |
 | Owner input | A human-owned file with the decisions that an implementation goal must consume |
 | Evidence | A repeatable result that proves a claim |
+| Slice output | A confirmation, fact, measurement, receipt, capture, or log that one run creates outside product code |
 | Checkpoint | A small implementation stage that leaves the repository in a valid state |
 | Drift | A change to the framework, architecture, or slice scope after the plan snapshot |
 | Run | One named execution of an approved slice plan |
@@ -113,13 +152,13 @@ of truth.
 For Slice 00, the intended goal command is:
 
 ```text
-/goal implement docs/objectives/antiky-town/slice-00-plan.md until complete
+/goal implement docs/objectives/antiky-town/slice-00/plan.md until complete
 ```
 
 For Slice 01, the intended goal command is:
 
 ```text
-/goal implement docs/objectives/antiky-town/slice-01-plan.md until complete
+/goal implement docs/objectives/antiky-town/slice-01/plan.md until complete
 ```
 
 The agent that runs this goal must follow these rules:
@@ -142,7 +181,9 @@ The agent that runs this goal must follow these rules:
 16. Classify a failure before a retry. Use only the retry rule in the plan.
 17. Keep a tested path to the last-known-good revision.
 18. Commit small, working checkpoints.
-19. Mark the goal complete only after the receipt validates and the final audit passes.
+19. Update affected pages in `docs/user-facing-docs/` with the checkpoint that changes behavior.
+20. Update `slice-list.md` from the run's facts before closeout.
+21. Mark the goal complete only after the receipt validates and the final audit passes.
 
 If work needs new owner authority, the agent adds one question with context to the owner-input file.
 It reports the exact blocked work. It must not invent permission to continue.
@@ -153,13 +194,15 @@ hypothesis. Do not hide it as a human review step.
 
 ## How to prepare a slice
 
-### 1. Copy the template
+### 1. Create the slice folder
 
-Copy `SLICE_PLAN_TEMPLATE_A.md` to `slice-NN-plan.md`. Replace every placeholder. Remove all template
-instructions that do not describe the real slice.
+Create `slice-NN/`. Copy `SLICE_PLAN_TEMPLATE_A.md` to `slice-NN/plan.md`. Replace every placeholder.
+Remove all template instructions that do not describe the real slice.
 
-If the slice needs owner judgment, also create `slice-NN-owner-input_H.md`. Link it from the control
+If the slice needs owner judgment, also create `slice-NN/owner-input_H.md`. Link it from the control
 block and required-reading list. Do not copy the questions into the plan.
+
+Create `slice-NN/outputs/README.md`. The goal writes each run to `slice-NN/outputs/{run-id}/`.
 
 The real plan must name:
 
@@ -169,8 +212,9 @@ The real plan must name:
 - One reference.
 - One complete verification command.
 - The current repository revision and review date.
-- One evidence receipt format and location.
+- One receipt at `slice-NN/outputs/{run-id}/receipt.json`.
 - One isolation rule and one software rollback rule.
+- Each affected user-facing documentation area, or `N/A` with a reason.
 
 ### 2. Take a framework alignment snapshot
 
@@ -324,6 +368,7 @@ Name tests and evidence before code work starts. Include:
 - Evidence-receipt validation and end-to-end correlation.
 - Retry, resume, and software rollback behavior.
 - Delivery permissions and after-completion ownership.
+- User-facing documentation links, examples, and checks when public behavior changes.
 
 If the slice cannot name a repeatable way to prove a claim, the claim is not ready.
 
@@ -344,6 +389,7 @@ Each checkpoint must:
 - Leave the repository buildable.
 - Record new evidence.
 - Record the run, attempt, correlation, and checkpoint IDs for the evidence.
+- Update affected user-facing documentation in the same checkpoint as the behavior.
 - Use a short one-line commit message.
 
 Do not start the next checkpoint when the current checkpoint has an unexplained failure.
@@ -358,6 +404,22 @@ original outcome, not only whether all task boxes have checks.
 
 Validate the machine-readable receipt. Resolve each recorded failure. Complete the learning and
 after-completion records. A final green run does not erase an earlier unexplained failure.
+
+## User-facing documentation rule
+
+Update `docs/user-facing-docs/` when a slice changes a public API, command, configuration, workflow,
+or visible behavior. Use the matching area:
+
+- `framework/` for framework APIs, concepts, examples, and integration guidance.
+- `cli/` for commands, configuration, output, errors, startup, and cleanup.
+- `studio/` for Studio workflows, controls, state, and CLI or framework integration.
+
+The plan names the expected pages. If implementation discovers another affected page, update it and
+record the drift. Describe only behavior that the slice ships. Keep commands and examples valid.
+Update or remove stale guidance when behavior changes.
+
+If no user-facing documentation changes, record `N/A` and the reason in the receipt. A slice cannot
+use `N/A` when it changes how a person uses the framework, CLI, or Studio.
 
 ## Evidence rules
 
@@ -383,7 +445,15 @@ Evidence must include enough context to repeat it:
 - Actual result.
 - Artifact or output location, when one exists.
 
-The complete verifier must write one versioned evidence receipt. The receipt must contain:
+The complete verifier writes its outputs to `slice-NN/outputs/{run-id}/`. Every run writes:
+
+- `receipt.json` with the versioned output manifest and completion result.
+- `confirmation-checks.md` with the short human-readable verification result.
+- `facts.json` with stable machine-readable facts learned or confirmed by the run.
+
+Write `measurements.json`, `captures/`, and `logs/` only when the plan needs them.
+
+The receipt must contain:
 
 - The slice ID, run ID, source revision, final revision, and checkpoint commits.
 - The run-setup values or their hashes.
@@ -598,6 +668,7 @@ Every plan or evidence receipt must cover these gates when they apply:
   supply the base tool before other implementation work starts.
 - After-completion ownership, feedback, and retirement rules are defined.
 - Open ADR work that changes this slice is resolved.
+- Affected user-facing documentation and its checks are named, or `N/A` has a valid reason.
 
 Unrelated ADR research does not block a slice.
 
@@ -626,7 +697,7 @@ Score these dimensions:
 | Failure and recovery | Invalid input and failed replacement preserve safe state and return stable errors |
 | Lifecycle and security | Authority is explicit; start, reconnect, reload, dispose, and shutdown are safe |
 | Reference and performance | Appearance and measured budgets match the reference or an approved difference |
-| Reproduction and handoff | One command runs verification; evidence, docs, and commits let another person repeat it |
+| Reproduction and handoff | One command runs verification; user-facing docs, evidence, and commits let another person repeat it |
 | Autonomous execution | The run is isolated, permissioned, traceable, resumable, and free of unexplained retries |
 | Operation and learning | Health, feedback, rollback, retirement, and unexpected-result dispositions are recorded |
 
@@ -650,6 +721,9 @@ A slice is complete only when all of these statements are true:
 10. Every failed attempt has a resolved classification and disposition.
 11. The after-completion contract names its owner and feedback path.
 12. The final goal audit confirms the original outcome.
+13. The run outputs are inside the slice folder and the receipt lists them.
+14. Affected pages in `docs/user-facing-docs/` match the shipped behavior and pass their checks.
+15. `slice-list.md` reflects the facts learned during the run.
 
 If any statement is false, the status stays `NOT COMPLETE`.
 
@@ -661,10 +735,11 @@ Framework work is expected during these slices. Use this update loop:
 2. Test the missing-capability hypothesis.
 3. Add the smallest capability that makes the slice work.
 4. Add its direct tests and one consumer test.
-5. Update the capability inventory and alignment revision.
-6. Add a template question only if all later slices must answer it.
-7. Update this workflow only if the shared process or rubric changes.
-8. Record the change in the plan drift log.
+5. Update `docs/user-facing-docs/framework/` when public use or behavior changes.
+6. Update the capability inventory and alignment revision.
+7. Add a template question only if all later slices must answer it.
+8. Update this workflow only if the shared process or rubric changes.
+9. Record the change in the plan drift log.
 
 Do not edit a completed slice plan to claim that it used a later API. Its evidence is a historical
 record. Add a short note that names the later replacement when necessary.
@@ -682,6 +757,10 @@ Record unplanned interventions, retries, flaky checks, permission escalations, m
 blocked time. Use the completed receipt as an evaluation case for later delivery runs. Change the
 shared workflow only when the lesson applies to later slices. Do not add a global rule for one local
 exception.
+
+Update `slice-list.md` after each slice run. A new fact can add an unknown slice, reorder planned
+slices, remove unnecessary work, or change a later slice direction. Keep each list item to one short
+sentence or name.
 
 Each completed plan must also name:
 
