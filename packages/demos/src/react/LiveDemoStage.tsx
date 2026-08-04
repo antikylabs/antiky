@@ -18,6 +18,8 @@ type Props = {
   label?: string;
   poster?: string;
   controlMode?: 'move' | 'orbit';
+  autoStart?: boolean;
+  inspectionOrigin?: string;
 };
 
 type Phase = Exclude<DemoRuntimePhase, 'stopped'>;
@@ -46,6 +48,8 @@ export default function LiveDemoStage({
   label,
   poster,
   controlMode = 'orbit',
+  autoStart = false,
+  inspectionOrigin,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runningRef = useRef(false);
@@ -216,7 +220,7 @@ export default function LiveDemoStage({
         let lastReport = 0;
         let previewFrames = 2;
         const built = demo;
-        const autoplay = variant === 'hero' && !reducedMotion;
+        const autoplay = autoStart || (variant === 'hero' && !reducedMotion);
         const stop = renderer.loop((time) => {
           if (!visible || document.hidden) return;
           if (!runningRef.current && previewFrames > 0) {
@@ -227,6 +231,7 @@ export default function LiveDemoStage({
               if (autoplay) {
                 runningRef.current = true;
                 setPhase('running');
+                if (autoStart) canvas.focus({ preventScroll: true });
               } else {
                 setPhase('ready');
               }
@@ -270,7 +275,11 @@ export default function LiveDemoStage({
           runningRef.current = false;
           pausedByVisibility = true;
           setPhase('paused');
-        } else if (visible && pausedByVisibility && variant === 'hero' && !reducedMotion) {
+        } else if (
+          visible
+          && pausedByVisibility
+          && (autoStart || (variant === 'hero' && !reducedMotion))
+        ) {
           pausedByVisibility = false;
           runningRef.current = true;
           setPhase('running');
@@ -294,15 +303,15 @@ export default function LiveDemoStage({
       window.removeEventListener('blur', onBlur);
       teardown?.();
     };
-  }, [slug, variant, poster, controlMode, retry]);
+  }, [slug, variant, poster, controlMode, autoStart, retry]);
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'development') return;
+    if (process.env.NODE_ENV !== 'development' || !inspectionOrigin) return;
     let disposed = false;
     void import('./development-inspection').then(async ({
       connectDevelopmentInspectionPublisher,
     }) => {
-      const publisher = await connectDevelopmentInspectionPublisher({
+      const publisher = await connectDevelopmentInspectionPublisher(inspectionOrigin, {
         reload: () => window.location.reload(),
         async captureFrame() {
           const canvas = canvasRef.current;
@@ -340,7 +349,7 @@ export default function LiveDemoStage({
         publisher?.close();
       }
     };
-  }, []);
+  }, [inspectionOrigin]);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;

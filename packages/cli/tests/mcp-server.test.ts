@@ -29,6 +29,7 @@ const developmentSnapshot = {
     host: '127.0.0.1',
     gamePort: 3010,
     inspectionPort: 3011,
+    viewport: { width: 1280, height: 720 },
   },
   processes: { game: { state: 'running' }, shaders: { state: 'running' } },
   connection: { state: 'connected' },

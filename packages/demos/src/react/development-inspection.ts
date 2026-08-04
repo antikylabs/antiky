@@ -111,9 +111,9 @@ function delay(milliseconds: number, signal: AbortSignal): Promise<void> {
 }
 
 export async function connectDevelopmentInspectionPublisher(
+  inspectionOrigin?: string,
   handlers?: DevelopmentInspectionHandlers,
 ): Promise<DevelopmentInspectionPublisher | null> {
-  const inspectionOrigin = process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN;
   if (!inspectionOrigin) return null;
   const parsedOrigin = new URL(inspectionOrigin);
   if (parsedOrigin.protocol !== 'http:' || parsedOrigin.hostname !== '127.0.0.1') {

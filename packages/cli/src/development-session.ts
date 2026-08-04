@@ -233,6 +233,7 @@ export async function startDevelopmentSession(
         host: config.network.host,
         gamePort: config.network.gamePort,
         inspectionPort: config.network.inspectionPort,
+        viewport: config.game.viewport,
       }),
       processes: Object.freeze({
         game: processSnapshot(processRecords.game),
@@ -314,8 +315,10 @@ export async function startDevelopmentSession(
         ANTIKY_GAME_PORT: String(config.network.gamePort),
         ANTIKY_INSPECTION_PORT: String(config.network.inspectionPort),
         ANTIKY_GAME_URL: config.game.url,
+        ANTIKY_GAME_WIDTH: String(config.game.viewport.width),
+        ANTIKY_GAME_HEIGHT: String(config.game.viewport.height),
+        ANTIKY_INSPECTION_URL: inspectionUrl,
         ANTIKY_MCP_URL: mcpUrl,
-        NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN: inspectionUrl,
       },
       shell: false,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -365,7 +368,7 @@ export async function startDevelopmentSession(
     await buildTracker.watch(options.watchPaths ?? [
       config.path,
       join(config.game.workingDirectory, 'packages', 'demos', 'src'),
-      join(config.game.workingDirectory, 'packages', 'website', 'src'),
+      join(config.game.workingDirectory, 'packages', 'demos', 'dev-host'),
       join(config.game.workingDirectory, 'src'),
     ]);
   } catch (cause) {

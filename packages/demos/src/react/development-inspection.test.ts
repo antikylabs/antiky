@@ -12,9 +12,7 @@ test('browser publications cannot overtake an earlier snapshot', async () => {
   const globals = globalThis as unknown as Record<string, unknown>;
   const originalWindow = globals.window;
   const originalFetch = globalThis.fetch;
-  const originalInspectionOrigin = process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN;
   globals.window = { location: { origin: gameOrigin } };
-  process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN = inspectionOrigin;
 
   let releaseFirst!: () => void;
   const firstRelease = new Promise<void>((resolve) => { releaseFirst = resolve; });
@@ -35,7 +33,7 @@ test('browser publications cannot overtake an earlier snapshot', async () => {
     return new Response('{}', { status: 202 });
   }) as typeof fetch;
 
-  const publisher = await connectDevelopmentInspectionPublisher();
+  const publisher = await connectDevelopmentInspectionPublisher(inspectionOrigin);
   assert.ok(publisher);
   const common = {
     runtimeInstanceId: 'runtime-ordering-001',
@@ -65,11 +63,6 @@ test('browser publications cannot overtake an earlier snapshot', async () => {
     globalThis.fetch = originalFetch;
     if (originalWindow === undefined) delete globals.window;
     else globals.window = originalWindow;
-    if (originalInspectionOrigin === undefined) {
-      delete process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN;
-    } else {
-      process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN = originalInspectionOrigin;
-    }
   }
 });
 
@@ -77,9 +70,7 @@ test('browser action polling captures a frame and disconnects with the next sequ
   const globals = globalThis as unknown as Record<string, unknown>;
   const originalWindow = globals.window;
   const originalFetch = globalThis.fetch;
-  const originalInspectionOrigin = process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN;
   globals.window = { location: { origin: gameOrigin } };
-  process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN = inspectionOrigin;
   const captureId = 'capture-browser-001';
   let servedAction = false;
   let captureEnvelope: Record<string, unknown> | null = null;
@@ -123,7 +114,7 @@ test('browser action polling captures a frame and disconnects with the next sequ
     throw new Error(`Unexpected request: ${url}`);
   }) as typeof fetch;
 
-  const publisher = await connectDevelopmentInspectionPublisher({
+  const publisher = await connectDevelopmentInspectionPublisher(inspectionOrigin, {
     async captureFrame() {
       return {
         mimeType: 'image/png' as const,
@@ -166,10 +157,9 @@ test('browser action polling captures a frame and disconnects with the next sequ
     globalThis.fetch = originalFetch;
     if (originalWindow === undefined) delete globals.window;
     else globals.window = originalWindow;
-    if (originalInspectionOrigin === undefined) {
-      delete process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN;
-    } else {
-      process.env.NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN = originalInspectionOrigin;
-    }
   }
+});
+
+test('ordinary game hosts do not connect without an explicit inspection origin', async () => {
+  assert.equal(await connectDevelopmentInspectionPublisher(), null);
 });

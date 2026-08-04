@@ -6,12 +6,17 @@
       "run",
       "dev",
       "--workspace",
-      "@antiky/website",
+      "@antiky/demos",
       "--",
-      "--hostname",
+      "town-study",
+      "--host",
       "{host}",
       "--port",
-      "{gamePort}"
+      "{gamePort}",
+      "--width",
+      "{gameWidth}",
+      "--height",
+      "{gameHeight}"
     ],
     "shaderCommand": [
       "npm",
@@ -21,7 +26,11 @@
       "@antiky/demos"
     ],
     "workingDirectory": ".",
-    "url": "http://127.0.0.1:3010/demos/town-study"
+    "url": "http://127.0.0.1:3010/",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    }
   },
   "network": {
     "host": "127.0.0.1",

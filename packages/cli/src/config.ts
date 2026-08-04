@@ -17,6 +17,10 @@ export type AntikyConfig = Readonly<{
     shaderCommand: readonly string[];
     workingDirectory: string;
     url: string;
+    viewport: Readonly<{
+      width: number;
+      height: number;
+    }>;
   }>;
   network: Readonly<{
     host: typeof LOOPBACK_HOST;
@@ -42,8 +46,9 @@ function checkKeys(
   value: UnknownRecord,
   required: readonly string[],
   path: string,
+  optional: readonly string[] = [],
 ): void {
-  const allowed = new Set(required);
+  const allowed = new Set([...required, ...optional]);
   for (const key of Object.keys(value)) {
     if (!allowed.has(key)) invalid('Unknown field', `${path}.${key}`);
   }
@@ -71,6 +76,23 @@ function readPort(value: unknown, path: string): number {
     invalid('Expected an integer from 1 through 65535', path);
   }
   return value;
+}
+
+function readGameDimension(value: unknown, path: string): number {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > 16_384) {
+    invalid('Expected an integer from 1 through 16384', path);
+  }
+  return value;
+}
+
+function readViewport(value: unknown): Readonly<{ width: number; height: number }> {
+  if (value === undefined) return Object.freeze({ width: 1280, height: 720 });
+  const viewport = readObject(value, '$.game.viewport');
+  checkKeys(viewport, ['width', 'height'], '$.game.viewport');
+  return Object.freeze({
+    width: readGameDimension(viewport.width, '$.game.viewport.width'),
+    height: readGameDimension(viewport.height, '$.game.viewport.height'),
+  });
 }
 
 function expandCommand(
@@ -175,14 +197,22 @@ export async function loadAntikyConfig(configPath = 'antiky.config.json'): Promi
   if (gamePort === inspectionPort) invalid('Inspection port must differ from the game port', '$.network.inspectionPort');
 
   const game = readObject(root.game, '$.game');
-  checkKeys(game, ['command', 'shaderCommand', 'workingDirectory', 'url'], '$.game');
+  checkKeys(
+    game,
+    ['command', 'shaderCommand', 'workingDirectory', 'url'],
+    '$.game',
+    ['viewport'],
+  );
   const workingDirectory = await resolveWorkingDirectory(absolutePath, game.workingDirectory);
   const url = validateGameUrl(game.url, LOOPBACK_HOST, gamePort);
+  const viewport = readViewport(game.viewport);
   const replacements = {
     host: LOOPBACK_HOST,
     gamePort: String(gamePort),
     inspectionPort: String(inspectionPort),
     gameUrl: url,
+    gameWidth: String(viewport.width),
+    gameHeight: String(viewport.height),
   };
 
   return Object.freeze({
@@ -194,6 +224,7 @@ export async function loadAntikyConfig(configPath = 'antiky.config.json'): Promi
       shaderCommand: expandCommand(game.shaderCommand, '$.game.shaderCommand', replacements),
       workingDirectory,
       url,
+      viewport,
     }),
     network: Object.freeze({
       host: LOOPBACK_HOST,

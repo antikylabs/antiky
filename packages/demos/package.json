@@ -12,10 +12,11 @@
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "host:dev": "vite dev-host --strictPort",
     "shaders": "brometal dev --once",
     "shaders:watch": "brometal dev",
     "shaders:prod": "brometal prod",
-    "test": "node --experimental-strip-types --experimental-transform-types --test src/demos/brometal-town/physics/character-motor.test.ts src/runtime-inspection.test.ts src/react/development-inspection.test.ts tests/shader-output-parity.test.mjs && vitest run src/demos/brometal-town/art/town-validation.test.ts",
+    "test": "node --experimental-strip-types --experimental-transform-types --test src/demos/brometal-town/physics/character-motor.test.ts src/runtime-inspection.test.ts src/react/development-inspection.test.ts tests/dev-host.test.mjs tests/shader-output-parity.test.mjs && vitest run src/demos/brometal-town/art/town-validation.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -28,8 +29,11 @@
   "devDependencies": {
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
     "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "typescript": "^5.8.3",
+    "vite": "8.2.0",
     "vitest": "4.1.10"
   }
 }

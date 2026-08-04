@@ -64,6 +64,7 @@ test('user-facing development docs are standalone and match the shipped interfac
       shaderCommand: string[];
       workingDirectory: string;
       url: string;
+      viewport: { width: number; height: number };
     };
     network: { host: string; gamePort: number; inspectionPort: number };
   };
@@ -71,6 +72,8 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.ok(config.game.command.length > 0);
   assert.ok(config.game.shaderCommand.length > 0);
   assert.equal(config.game.workingDirectory, '.');
+  assert.ok(config.game.viewport.width > 0);
+  assert.ok(config.game.viewport.height > 0);
   assert.equal(config.network.host, '127.0.0.1');
   assert.notEqual(config.network.gamePort, config.network.inspectionPort);
   const gameUrl = new URL(config.game.url);

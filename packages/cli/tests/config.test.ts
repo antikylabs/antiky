@@ -12,10 +12,11 @@ import { AntikyCliError, loadAntikyConfig } from '../src/index.ts';
 const validConfig = {
   schemaVersion: 1,
   game: {
-    command: ['node', 'game.mjs', '{host}', '{gamePort}'],
+    command: ['node', 'game.mjs', '{host}', '{gamePort}', '{gameWidth}', '{gameHeight}'],
     shaderCommand: ['node', 'shaders.mjs'],
     workingDirectory: '.',
     url: 'http://127.0.0.1:43100/demos/town-study',
+    viewport: { width: 960, height: 540 },
   },
   network: {
     host: '127.0.0.1',
@@ -51,9 +52,13 @@ test('strict config resolves commands, working directory, URL, and loopback port
 
   assert.equal(config.schemaVersion, 1);
   assert.equal(config.game.workingDirectory, await realpath(dirname(configPath)));
-  assert.deepEqual(config.game.command, ['node', 'game.mjs', '127.0.0.1', '43100']);
+  assert.deepEqual(
+    config.game.command,
+    ['node', 'game.mjs', '127.0.0.1', '43100', '960', '540'],
+  );
   assert.deepEqual(config.game.shaderCommand, ['node', 'shaders.mjs']);
   assert.equal(config.game.url, 'http://127.0.0.1:43100/demos/town-study');
+  assert.deepEqual(config.game.viewport, { width: 960, height: 540 });
   assert.equal(config.network.host, '127.0.0.1');
   assert.equal(config.network.gamePort, 43100);
   assert.equal(config.network.inspectionPort, 43101);
@@ -62,21 +67,27 @@ test('strict config resolves commands, working directory, URL, and loopback port
   assert.ok(Object.isFrozen(config.game.command));
 });
 
-test('the repository config launches town-study and its shader watcher on fixed loopback ports', async () => {
+test('the repository config launches town-study in its focused host on fixed loopback ports', async () => {
   const config = await loadAntikyConfig(repositoryConfig);
 
-  assert.equal(config.game.url, 'http://127.0.0.1:3010/demos/town-study');
+  assert.equal(config.game.url, 'http://127.0.0.1:3010/');
+  assert.deepEqual(config.game.viewport, { width: 1280, height: 720 });
   assert.deepEqual(config.game.command, [
     'npm',
     'run',
     'dev',
     '--workspace',
-    '@antiky/website',
+    '@antiky/demos',
     '--',
-    '--hostname',
+    'town-study',
+    '--host',
     '127.0.0.1',
     '--port',
     '3010',
+    '--width',
+    '1280',
+    '--height',
+    '720',
   ]);
   assert.deepEqual(config.game.shaderCommand, [
     'npm',
@@ -88,18 +99,18 @@ test('the repository config launches town-study and its shader watcher on fixed 
   assert.equal(config.network.inspectionPort, 3011);
 });
 
-test('the legacy development shortcuts keep the same fixed loopback route', async () => {
+test('the demo development shortcut uses the focused host rather than the website', async () => {
   const root = dirname(repositoryConfig);
-  const websitePackage = JSON.parse(
-    await readFile(join(root, 'packages/website/package.json'), 'utf8'),
-  ) as { scripts: { dev: string } };
+  const demoPackage = JSON.parse(
+    await readFile(join(root, 'packages/demos/package.json'), 'utf8'),
+  ) as { scripts: Record<string, string> };
   const rootDispatcher = await readFile(join(root, 'scripts/dev.mjs'), 'utf8');
   const demoDispatcher = await readFile(join(root, 'packages/demos/scripts/dev.mjs'), 'utf8');
 
-  assert.equal(websitePackage.scripts.dev, 'next dev');
-  assert.match(rootDispatcher, /'--hostname', '127\.0\.0\.1', '--port', '3010'/);
-  assert.match(demoDispatcher, /http:\/\/127\.0\.0\.1:3010/);
-  assert.match(demoDispatcher, /'--hostname',[\s\S]*'127\.0\.0\.1',[\s\S]*'--port',[\s\S]*'3010'/);
+  assert.equal(demoPackage.scripts['host:dev'], 'vite dev-host --strictPort');
+  assert.match(rootDispatcher, /demos: '@antiky\/demos'/);
+  assert.match(demoDispatcher, /Starting the focused/);
+  assert.doesNotMatch(demoDispatcher, /@antiky\/website|next dev/);
 });
 
 test('config rejects unknown root and nested fields', async () => {
@@ -144,6 +155,10 @@ test('config rejects unsafe hosts, invalid ports, and URL mismatches', async () 
     ...validConfig,
     game: { ...validConfig.game, url: 'http://127.0.0.1:9999/demos/town-study' },
   }, '$.game.url');
+  await expectInvalid({
+    ...validConfig,
+    game: { ...validConfig.game, viewport: { width: 0, height: 540 } },
+  }, '$.game.viewport.width');
 });
 
 test('config host errors use general product language', async () => {

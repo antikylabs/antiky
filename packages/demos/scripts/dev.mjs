@@ -1,41 +1,38 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const args = process.argv.slice(2).filter((arg) => arg !== '--');
-const [slug, ...extra] = args;
+import { createDemoHostEnvironment, parseDemoHostOptions } from './dev-options.mjs';
 
-if (extra.length > 0) {
-  console.error('Usage: npm run dev -- demos [demo-slug]');
+let options;
+try {
+  options = parseDemoHostOptions(process.argv.slice(2));
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  console.error('Usage: npm run dev -- [demo-slug] [--host 127.0.0.1] [--port N] [--width N] [--height N]');
   process.exit(1);
 }
 
-if (slug && !/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
-  console.error(`Invalid demo slug: ${slug}`);
-  process.exit(1);
-}
-
-const root = fileURLToPath(new URL('../../../', import.meta.url));
+const packageRoot = fileURLToPath(new URL('../', import.meta.url));
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const path = slug ? `/demos/${slug}` : '/demos';
 
-console.log(`Starting the demo host at http://127.0.0.1:3010${path}`);
+console.log(
+  `Starting the focused ${options.slug} game host at http://${options.host}:${options.port}/ `
+  + `(${options.width}x${options.height}).`,
+);
 
 const child = spawn(
   npmCommand,
   [
-    'run',
-    'dev',
-    '--workspace',
-    '@antiky/website',
+    'run', 'host:dev',
     '--',
-    '--hostname',
-    '127.0.0.1',
+    '--host',
+    options.host,
     '--port',
-    '3010',
+    String(options.port),
   ],
   {
-    cwd: root,
-    env: { ...process.env, ANTIKY_DEMO_SLUG: slug ?? '' },
+    cwd: packageRoot,
+    env: createDemoHostEnvironment(options),
     stdio: 'inherit',
   },
 );

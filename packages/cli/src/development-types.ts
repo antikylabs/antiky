@@ -39,6 +39,10 @@ export type DevelopmentSnapshot = Readonly<{
     host: '127.0.0.1';
     gamePort: number;
     inspectionPort: number;
+    viewport: Readonly<{
+      width: number;
+      height: number;
+    }>;
   }>;
   processes: Readonly<{
     game: Readonly<{

@@ -28,7 +28,11 @@ unknown fields before starting a process. Adapt the commands and game route to y
       "shaders:watch"
     ],
     "workingDirectory": ".",
-    "url": "http://127.0.0.1:3010/game"
+    "url": "http://127.0.0.1:3010/game",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    }
   },
   "network": {
     "host": "127.0.0.1",
@@ -39,8 +43,11 @@ unknown fields before starting a process. Adapt the commands and game route to y
 ```
 
 `workingDirectory` is relative to the config file and must stay inside its directory. Command
-arguments can use `{host}`, `{gamePort}`, `{inspectionPort}`, and `{gameUrl}` placeholders. Antiky
-expands each argument directly without invoking a shell.
+arguments can use `{host}`, `{gamePort}`, `{inspectionPort}`, `{gameUrl}`, `{gameWidth}`, and
+`{gameHeight}` placeholders. Antiky expands each argument directly without invoking a shell. The
+optional `viewport` declares the game's intended canvas width and height; it defaults to `1280x720`
+when omitted and is available to the game process through `ANTIKY_GAME_WIDTH` and
+`ANTIKY_GAME_HEIGHT`.
 
 The game URL must use HTTP at the configured game address. Antiky binds development services to the
 IPv4 loopback address `127.0.0.1`; it does not accept a LAN or wildcard host.
@@ -53,7 +60,9 @@ From the project root, run:
 antiky dev
 ```
 
-The `antiky dev` command starts the shader watcher, game host, inspection service, and MCP service.
+The `antiky dev` command starts the shader watcher, your configured game host, inspection service,
+and MCP service. The game command should open a focused development surface for the game itself;
+Antiky does not require or add a marketing site, navigation shell, or documentation UI.
 It prints the resolved config path, game URL, inspection URL, MCP URL, development-session ID, and
 service names after startup. The MCP URL is the inspection origin followed by `/mcp`, such as
 `http://127.0.0.1:3011/mcp`.
