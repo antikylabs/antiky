@@ -1,17 +1,21 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
 import sharp from 'sharp';
 
+import { copyBaselineArtifacts } from './slice-00-verifier-core.mjs';
+
 import {
   assertCaptureHasContent,
+  assertChromeNetworkIsolation,
   assertReadySnapshot,
   assertSnapshotParity,
   capturePageAtViewport,
   comparePageCaptures,
+  createChromeArguments,
   parseWorkingTreePaths,
   selectRunId,
 } from './verify-slice-00.mjs';
@@ -139,4 +143,36 @@ test('page capture requests an explicit baseline-sized CDP clip', async () => {
       clip: { x: 0, y: 0, width: 756, height: 469, scale: 1 },
     },
   }]);
+});
+
+test('Chrome is constrained to loopback and a successful external response fails evidence', () => {
+  const args = createChromeArguments({
+    profile: '/tmp/antiky-s00-chrome-fixture',
+    gameUrl: 'http://127.0.0.1:3010/demos/town-study',
+  });
+  assert.ok(args.includes('--proxy-server=http://127.0.0.1:9'));
+  assert.ok(args.includes('--proxy-bypass-list=127.0.0.1'));
+  assert.ok(args.includes('--host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1'));
+  assert.doesNotThrow(() => assertChromeNetworkIsolation('net::ERR_PROXY_CONNECTION_FAILED'));
+  assert.throws(
+    () => assertChromeNetworkIsolation('Registration response error message: DEPRECATED_ENDPOINT'),
+    /external endpoint response/,
+  );
+});
+
+test('a replacement run receives immutable copies of the canonical baseline', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'antiky-baseline-copy-'));
+  const source = path.join(directory, 'source');
+  const destination = path.join(directory, 'destination');
+  await mkdir(path.join(source, 'captures'), { recursive: true });
+  await mkdir(path.join(destination, 'captures'), { recursive: true });
+  await writeFile(path.join(source, 'baseline.md'), '# baseline\n');
+  await writeFile(path.join(source, 'captures/baseline-town-ready.png'), 'ready');
+  await writeFile(path.join(source, 'captures/baseline-town.png'), 'town');
+
+  await copyBaselineArtifacts(source, destination);
+
+  assert.equal(await readFile(path.join(destination, 'baseline.md'), 'utf8'), '# baseline\n');
+  assert.equal(await readFile(path.join(destination, 'captures/baseline-town-ready.png'), 'utf8'), 'ready');
+  await assert.rejects(copyBaselineArtifacts(source, destination), { code: 'EEXIST' });
 });

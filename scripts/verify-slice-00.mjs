@@ -50,20 +50,26 @@ import {
 } from './slice-00-runtime.mjs';
 import {
   assertCaptureHasContent,
+  assertChromeNetworkIsolation,
   assertReadySnapshot,
   assertSnapshotParity,
   capturePageAtViewport,
   comparePageCaptures,
+  copyBaselineArtifacts,
+  copyTreeExclusive,
+  createChromeArguments,
   parseWorkingTreePaths,
   selectRunId,
 } from './slice-00-verifier-core.mjs';
 
 export {
   assertCaptureHasContent,
+  assertChromeNetworkIsolation,
   assertReadySnapshot,
   assertSnapshotParity,
   capturePageAtViewport,
   comparePageCaptures,
+  createChromeArguments,
   parseWorkingTreePaths,
   selectRunId,
 };
@@ -71,6 +77,8 @@ export {
 const executeFile = promisify(execFile);
 const root = path.resolve(import.meta.dirname, '..');
 const outputRoot = path.join(root, 'docs/objectives/antiky-town/slice-00/outputs');
+const canonicalBaselineRunId = 's00-20260804T185103Z';
+const canonicalBaselineDirectory = path.join(outputRoot, canonicalBaselineRunId);
 const gameUrl = 'http://127.0.0.1:3010/demos/town-study';
 const chromePath = process.env.ANTIKY_CHROME_PATH
   ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -176,20 +184,6 @@ async function filesUnder(directory, prefix = '') {
   return files;
 }
 
-async function copyTree(source, destination) {
-  for (const entry of await readdir(source, { withFileTypes: true }).catch(() => [])) {
-    const from = path.join(source, entry.name);
-    const to = path.join(destination, entry.name);
-    if (entry.isDirectory()) {
-      await mkdir(to, { recursive: true, mode: 0o700 });
-      await copyTree(from, to);
-    } else if (entry.isFile()) {
-      await copyFile(from, to, constants.COPYFILE_EXCL);
-      await chmod(to, 0o600);
-    }
-  }
-}
-
 async function collectEnvironment() {
   const packageVersion = async (file) => JSON.parse(await readFile(file, 'utf8')).version;
   return {
@@ -219,6 +213,9 @@ export async function runSlice00Verification() {
   const logDirectory = path.join(staging, 'logs');
   const captureDirectory = path.join(staging, 'captures');
   await mkdir(captureDirectory, { recursive: true, mode: 0o700 });
+  if (runId !== canonicalBaselineRunId) {
+    await copyBaselineArtifacts(canonicalBaselineDirectory, staging);
+  }
 
   let dev;
   let chrome;
@@ -265,13 +262,7 @@ export async function runSlice00Verification() {
     chromeProfile = await createChromeProfile();
     chrome = await startLoggedProcess({
       command: chromePath,
-      args: [
-        '--headless=new', '--no-first-run', '--no-default-browser-check',
-        '--disable-background-networking', '--disable-component-update', '--disable-sync',
-        '--disable-gpu-sandbox', '--enable-unsafe-webgpu', '--use-angle=metal',
-        '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=9322',
-        `--user-data-dir=${chromeProfile}`, '--window-size=756,469', gameUrl,
-      ],
+      args: createChromeArguments({ profile: chromeProfile, gameUrl }),
       cwd: root,
       logFile: path.join(logDirectory, 'chrome.log'),
     });
@@ -355,7 +346,7 @@ export async function runSlice00Verification() {
     const pageMetadata = await sharp(pageCapture).metadata();
     assert.deepEqual({ width: pageMetadata.width, height: pageMetadata.height }, { width: 756, height: 469 });
     const visual = await comparePageCaptures(
-      path.join(outputDirectory, 'captures/baseline-town-ready.png'),
+      path.join(canonicalBaselineDirectory, 'captures/baseline-town-ready.png'),
       pageCapture,
     );
     const minimumSimilarity = 0.72;
@@ -405,6 +396,14 @@ export async function runSlice00Verification() {
     if (cleanupErrors.length > 0 && !verificationError) verificationError = new AggregateError(cleanupErrors, 'Cleanup failed.');
   }
 
+  if (!verificationError) {
+    try {
+      assertChromeNetworkIsolation(await readFile(path.join(logDirectory, 'chrome.log'), 'utf8'));
+    } catch (error) {
+      verificationError = error;
+    }
+  }
+
   if (verificationError) {
     await rm(staging, { recursive: true, force: true });
     throw verificationError;
@@ -435,7 +434,7 @@ export async function runSlice00Verification() {
     locale: environment.locale,
     timeZone: environment.timeZone,
     seed: 'N/A; Slice 00 adds no random game state.',
-    network: 'Loopback only; no deployment or external messages.',
+    network: 'Loopback only; Chrome maps non-loopback names to 0.0.0.0 and routes its proxy to closed 127.0.0.1:9. No deployment or external messages.',
     isolation: 'One open run, fixed free ports, one dedicated browser profile, and one unique staging directory.',
     retryRule: 'One retry only for a classified transient failure after unchanged health.',
     rollbackRevision: '2259d7b8c81aeb42d9513a95538e5109a886882e',
@@ -464,7 +463,7 @@ export async function runSlice00Verification() {
   };
 
   await assertImplementationTreeClean();
-  await copyTree(staging, outputDirectory);
+  await copyTreeExclusive(staging, outputDirectory);
   const acceptance = createAcceptance(context);
   await writeJsonAtomic(path.join(outputDirectory, 'facts.json'), createFacts(context));
   await writeJsonAtomic(path.join(outputDirectory, 'measurements.json'), createMeasurements(context));

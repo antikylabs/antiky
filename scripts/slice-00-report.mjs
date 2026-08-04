@@ -84,6 +84,14 @@ const historicalAttempts = Object.freeze([
     cause: 'Chrome interpreted the requested window height as an outer window and returned a 756x326 page capture.',
     disposition: 'A failing CDP regression led to an explicit 756x469 capture clip.',
   },
+  {
+    id: 'attempt-016',
+    checkpoint: 'CP-05',
+    result: 'FAIL',
+    failureClass: 'EVIDENCE_FAILURE',
+    cause: 'The closed run log proved Chrome received an external GCM endpoint response despite its loopback-only run claim.',
+    disposition: 'A failing isolation regression added a closed loopback proxy, non-loopback name mapping, and a post-cleanup external-response log gate; the prior receipt is superseded.',
+  },
 ]);
 
 function evidence(status, detail) {
@@ -176,6 +184,7 @@ export function createFacts(context) {
     },
     security: {
       bindAddress: '127.0.0.1',
+      externalBrowserNetworkBlocked: true,
       sensitiveSessionValue: 'random for each session and never recorded in evidence',
       productionBridgeExcluded: true,
       boundaryRegressionsPassed: true,
@@ -189,6 +198,7 @@ export function createFacts(context) {
     learned: [
       'Mode-stable authored shader expressions keep development and production output deterministic.',
       'Capture acceptance must enter the running town and reject a visually uniform PNG.',
+      'Browser verification must block external traffic explicitly and reject evidence of any endpoint response.',
       'Bounded polling of discovered authored files avoids platform watcher exhaustion.',
       'Slice 01 can use the shared service after this receipt closes.',
     ],
@@ -225,6 +235,7 @@ export function createMeasurements(context) {
     process: {
       retries: 2,
       defectCorrections: 8,
+      evidenceFailures: 1,
       flakyChecks: 1,
       ownerInterventions: 0,
       blockedMilliseconds: 0,
@@ -241,7 +252,7 @@ export function createConfirmation(context, acceptance) {
 export function createReceipt(context, artifacts, acceptance) {
   const attempts = [
     ...historicalAttempts,
-    { id: 'attempt-016', checkpoint: 'CP-05', result: 'PASS', failureClass: null, correlationId: context.correlationId },
+    { id: 'attempt-017', checkpoint: 'CP-05', result: 'PASS', failureClass: null, correlationId: context.correlationId },
   ];
   return {
     schemaVersion: 1,

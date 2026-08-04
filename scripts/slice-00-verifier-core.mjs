@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, readdir } from 'node:fs/promises';
+import { access, chmod, constants, copyFile, mkdir, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
 import sharp from 'sharp';
@@ -26,6 +26,60 @@ export async function capturePageAtViewport(cdp, width, height) {
     clip: { x: 0, y: 0, width, height, scale: 1 },
   });
   return screenshot.data;
+}
+
+export function createChromeArguments({ profile, gameUrl }) {
+  return [
+    '--headless=new',
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--disable-background-networking',
+    '--disable-component-update',
+    '--disable-sync',
+    '--disable-quic',
+    '--disable-gpu-sandbox',
+    '--enable-unsafe-webgpu',
+    '--use-angle=metal',
+    '--proxy-server=http://127.0.0.1:9',
+    '--proxy-bypass-list=127.0.0.1',
+    '--host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1',
+    '--remote-debugging-address=127.0.0.1',
+    '--remote-debugging-port=9322',
+    `--user-data-dir=${profile}`,
+    '--window-size=756,469',
+    gameUrl,
+  ];
+}
+
+export function assertChromeNetworkIsolation(log) {
+  assert.doesNotMatch(
+    log,
+    /Registration response/i,
+    'Chrome received an external endpoint response during isolated verification',
+  );
+}
+
+export async function copyBaselineArtifacts(source, destination) {
+  await copyFile(path.join(source, 'baseline.md'), path.join(destination, 'baseline.md'), constants.COPYFILE_EXCL);
+  for (const file of ['baseline-town-ready.png', 'baseline-town.png']) {
+    const target = path.join(destination, 'captures', file);
+    await copyFile(path.join(source, 'captures', file), target, constants.COPYFILE_EXCL);
+    await chmod(target, 0o600);
+  }
+}
+
+export async function copyTreeExclusive(source, destination) {
+  for (const entry of await readdir(source, { withFileTypes: true }).catch(() => [])) {
+    const from = path.join(source, entry.name);
+    const to = path.join(destination, entry.name);
+    if (entry.isDirectory()) {
+      await mkdir(to, { recursive: true, mode: 0o700 });
+      await copyTreeExclusive(from, to);
+    } else if (entry.isFile()) {
+      await copyFile(from, to, constants.COPYFILE_EXCL);
+      await chmod(to, 0o600);
+    }
+  }
 }
 
 export async function selectRunId(outputs, now = new Date()) {
