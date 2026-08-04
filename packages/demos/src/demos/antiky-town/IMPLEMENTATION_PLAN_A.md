@@ -1,0 +1,451 @@
+# Antiky Town Implementation Plan
+
+**Status: Awaiting owner choices**
+
+## Goal
+
+Port the current BroMetal Town into a real Antiky Framework consumer. Keep the current demo as a
+working reference during the port.
+
+The port must grow through complete features. It must not begin with a broad engine rewrite.
+
+## Baseline
+
+The current `brometal-town` implementation owns all simulation, town data, render preparation, and
+BroMetal calls. It remains available through the `town-study` route.
+
+The first complete framework feature must prove this path:
+
+```text
+intent
+  -> validated command
+  -> accepted event or temporary update
+  -> authoring state
+  -> runtime state
+  -> render state
+  -> BroMetal update
+  -> inspection and undo
+```
+
+The early event history can stay in memory. The early connection can use typed values in one
+process. Database, network, Studio, and MCP work are outside the first slices.
+
+## Rules for every slice
+
+- Keep `brometal-town` runnable as the reference.
+- Add a complete behavior before a general abstraction.
+- Add tests at each new boundary.
+- Keep framework core free of DOM, React, BroMetal, and website imports.
+- Keep stable IDs out of compact runtime and render indexes.
+- Do not serialize data between normal modules in one process.
+- Preserve the current town appearance unless a selected slice explicitly changes it.
+- Record measurements before an optimization changes data structures.
+- Finish and commit one slice before the next slice starts.
+
+## Decisions requested
+
+Choose one direction for each slice. The recommended sequence is `1A, 2A, 3A, 4A, 5A, 6A`.
+
+The choices are starting directions. A later measured need can justify a different implementation.
+
+| Slice | Recommended | Other choices |
+| --- | --- | --- |
+| 1. First complete object | 1A. Feature-first market lamp | 1B. Small generic registry; 1C. Full ECS first |
+| 2. Session and clock | 2A. Minimal fixed-step session | 2B. General scheduler; 2C. Demo-owned clock |
+| 3. Character simulation | 3A. Move the reusable motor | 3B. Add a demo adapter; 3C. Define physics services first |
+| 4. Town content | 4A. Compiled town asset with owner entities | 4B. Entity-rich town; 4C. One opaque town entity |
+| 5. Rendering | 5A. Town-specific BroMetal adapter | 5B. Generic render lists; 5C. General render graph |
+| 6. Selection workflow | 6A. CPU selection with stable owner mapping | 6B. GPU ID pass; 6C. Hierarchy-only selection |
+
+## Slice 1: First complete object
+
+### Outcome
+
+Move one market lamp through the complete framework path. Give the lamp a stable `EntityId`, a
+label, a transform, and a point-light component.
+
+Add one command that changes its power. Validate identity, permission, value limits, request ID,
+and expected revision. Record an accepted in-memory event. Support inspection and correction-based
+undo.
+
+Project the accepted value into runtime and render state. Update the matching practical-light slot
+without rebuilding town geometry.
+
+### 1A. Feature-first market lamp — Recommended
+
+Build only the types and stores that the lamp needs. Use typed maps and explicit functions. Keep
+the implementation private until a second feature proves a reusable shape.
+
+Benefits:
+
+- Smallest complete architecture proof.
+- Easy to compare with the current practical-light uniforms.
+- Avoids choosing final component storage too early.
+
+Costs:
+
+- Some code can change after the second component type arrives.
+- Early APIs will be intentionally narrow.
+
+### 1B. Small generic registry
+
+Create generic entity, component, command, event, and state-copy registries before the lamp feature.
+Use the lamp as their first consumer.
+
+Benefits:
+
+- The second feature can reuse more infrastructure.
+- Public concepts appear early.
+
+Costs:
+
+- The first slice has more code and more unproven interfaces.
+- Generic types can hide feature behavior.
+
+### 1C. Full ECS first
+
+Select or build component storage, queries, archetypes, scheduling, and change tracking before the
+lamp feature.
+
+Benefits:
+
+- Establishes a data-oriented base immediately.
+- Can support later high-volume entities.
+
+Costs:
+
+- Chooses an open architecture question without measurements.
+- Delays the first visible framework result.
+- Creates the highest rework risk.
+
+### Slice 1 evidence
+
+- A headless test accepts one valid command and rejects invalid, duplicate, stale, and unauthorized
+  commands without changing state.
+- Replay and correction-based undo produce the expected authoring state.
+- A complete state rebuild matches the small state updates.
+- Inspection returns the lamp ID, label, components, revision, and render binding.
+- The default lamp value matches `brometal-town`.
+- One accepted change marks only the lamp render entry as changed.
+
+## Slice 2: Session and fixed-step clock
+
+### Outcome
+
+Introduce `EngineSession` ownership of command order, revisions, clocks, state copies, and system
+execution. Pause, resume, and single-step operations must preserve state.
+
+### 2A. Minimal fixed-step session — Recommended
+
+Use one ordered list of typed system functions. Give each function explicit time, inputs, and state.
+Add dependency ordering only when a real conflict appears.
+
+Benefits:
+
+- Simple execution order.
+- Easy repeatability tests.
+- Low framework surface area.
+
+Costs:
+
+- Later systems might require a richer scheduler.
+
+### 2B. General system scheduler
+
+Add phases, priorities, dependencies, and automatic ordering before moving actor simulation.
+
+Benefits:
+
+- Makes complex ordering explicit.
+- Can support parallel or conditional systems later.
+
+Costs:
+
+- Solves needs that the current town does not have.
+- Scheduler rules can become a second programming model.
+
+### 2C. Keep the clock in the demo
+
+Let the demo continue to calculate elapsed time. Use the framework only for commands and authored
+state.
+
+Benefits:
+
+- Lowest immediate migration cost.
+
+Costs:
+
+- Does not prove session authority.
+- Makes pause, replay, headless tests, and online simulation harder later.
+
+### Slice 2 evidence
+
+- Fixed inputs and step counts produce the same state digest.
+- Long frames have a tested step limit.
+- Pause and single-step do not reset or rebuild the world.
+- Render timing can differ from simulation timing.
+- Headless framework tests do not import browser or BroMetal code.
+
+## Slice 3: Character simulation
+
+### Outcome
+
+Move hero and NPC movement under `EngineSession`. Keep input temporary. Do not add movement frames
+to durable history.
+
+### 3A. Move the reusable character motor — Recommended
+
+Move the generic character motor and its tests into the framework. Keep the town ground and
+collider adapter in `antiky-town`.
+
+Benefits:
+
+- Reuses a tested deep module.
+- Separates generic motion from town geometry.
+- Gives the framework a real fixed-step consumer.
+
+Costs:
+
+- The existing motor API becomes an early framework API candidate.
+- Imports and ownership need careful review.
+
+### 3B. Keep the motor private and add a session adapter
+
+Copy or move the motor into `antiky-town`. Let the framework call it through one system function.
+
+Benefits:
+
+- Avoids a public framework commitment.
+- Keeps the first session integration narrow.
+
+Costs:
+
+- Reusable physics stays in a demo.
+- A later move can cause more import changes.
+
+### 3C. Define physics services first
+
+Create framework interfaces for queries, bodies, contacts, and character control. Adapt the current
+motor to those interfaces.
+
+Benefits:
+
+- Creates an explicit physics boundary.
+- Can support another physics implementation later.
+
+Costs:
+
+- The town supplies only one proven implementation.
+- A broad interface can expose the wrong concepts.
+
+### Slice 3 evidence
+
+- The hero follows the same input and collision rules as `brometal-town`.
+- NPC paths remain repeatable for fixed inputs and step counts.
+- Runtime indexes do not enter durable events or inspection output as persistent IDs.
+- The renderer reads prepared actor state and does not update actor simulation.
+- Existing character-motor regression tests remain effective after the move.
+
+## Slice 4: Town content and compilation
+
+### Outcome
+
+Move the static town through framework-owned asset and authoring concepts. Keep individual voxels
+and generated triangles out of the entity model.
+
+### 4A. Compiled town asset with owner entities — Recommended
+
+Keep the deterministic town builder as a compiler. Store its mesh, collision, foliage, water, and
+prop outputs as compiled asset data. Create entities only for meaningful selectable owners.
+
+Benefits:
+
+- Preserves current deterministic generation.
+- Matches the architecture rule for specialized high-volume data.
+- Supports selection without one entity per voxel.
+
+Costs:
+
+- Requires an explicit map from compiled ranges to owner entities.
+- Some current builder output needs clearer ownership metadata.
+
+### 4B. Entity-rich town
+
+Represent each building, stall, bridge section, lamp, prop, and vegetation group as an entity before
+compilation.
+
+Benefits:
+
+- Strong inspection and editing detail.
+- Clear ownership before compilation.
+
+Costs:
+
+- Large migration before visual parity.
+- Can create many low-value entities and component types.
+
+### 4C. One opaque town entity
+
+Treat the complete generated town as one asset on one entity. Add finer owners only when another
+slice needs them.
+
+Benefits:
+
+- Fastest path to framework ownership.
+- Smallest initial authoring model.
+
+Costs:
+
+- Weak selection and editing.
+- Defers the most important ownership questions.
+
+### Slice 4 evidence
+
+- The compiled geometry and validation results match the reference baseline.
+- A complete rebuild produces the same content hash.
+- Stable owner IDs map to selected compiled objects.
+- No individual voxel, vertex, triangle, or GPU resource becomes an entity.
+- Static asset data uploads only when its version changes.
+
+## Slice 5: Render preparation and BroMetal adapter
+
+### Outcome
+
+Move render preparation out of gameplay code. Keep BroMetal resource creation, updates, draw calls,
+and disposal behind an adapter.
+
+### 5A. Town-specific BroMetal adapter — Recommended
+
+Create the smallest adapter that can draw the current town from prepared render state. Preserve the
+existing programs and pass order.
+
+Benefits:
+
+- Keeps visual risk low.
+- Lets real shadow, scene, and post passes shape future interfaces.
+- Avoids a general renderer before a second game exists.
+
+Costs:
+
+- Some adapter code remains town-specific.
+- Reuse appears only after later extraction.
+
+### 5B. Generic render lists
+
+Define common sprite, mesh, voxel, light, and pass records first. Convert the complete town to those
+records.
+
+Benefits:
+
+- Gives later demos reusable render inputs.
+- Makes render state easy to inspect.
+
+Costs:
+
+- Requires more conversion work.
+- Can force unrelated draw types into shallow common records.
+
+### 5C. General render graph
+
+Build pass declarations, resource dependencies, ordering, inspection, and lifecycle management
+before the town adapter.
+
+Benefits:
+
+- Makes pass and resource relationships explicit.
+- Prepares advanced inspection and hot replacement.
+
+Costs:
+
+- Highest implementation and migration cost.
+- The first API would come from only one real pass graph.
+
+### Slice 5 evidence
+
+- Framework core compiles without BroMetal, DOM, or React imports.
+- Shadow, scene, and post output stay within the selected visual baseline.
+- Draw count and per-frame upload measurements do not regress without approval.
+- Failed resource creation preserves the last valid resources.
+- Disposal releases each owned resource exactly once.
+
+## Slice 6: Selection and editing workflow
+
+### Outcome
+
+Select a stable entity in the running town. Inspect it, change it through a command, undo the
+change, and resume simulation without resetting the session.
+
+### 6A. CPU selection with stable owner mapping — Recommended
+
+Use existing collision or simple bounds where possible. Map the hit to the stable owner of the
+compiled data.
+
+Benefits:
+
+- Reuses CPU data that the town already needs.
+- Easy to test without a GPU.
+- Supplies hit position and surface information.
+
+Costs:
+
+- Detailed mesh and transparent-object selection can need more work.
+
+### 6B. GPU object-ID pass
+
+Render a stable selection alias for each selectable draw. Read one pixel when the user selects the
+canvas.
+
+Benefits:
+
+- Matches visible geometry closely.
+- Works across many render shapes.
+
+Costs:
+
+- Adds a render pass and readback behavior.
+- Headless selection needs a separate method.
+
+### 6C. Hierarchy-only selection first
+
+Allow selection through inspection queries or a future hierarchy. Add canvas selection later.
+
+Benefits:
+
+- Proves command and inspection workflows with little render work.
+
+Costs:
+
+- Does not complete the intended in-scene workflow.
+- Delays validation of compiled-data owner mapping.
+
+### Slice 6 evidence
+
+- Canvas and query selection return the same stable entity when both methods apply.
+- Inspection shows components, assets, state-copy revisions, and render dependencies.
+- A command from the selected entity follows the same validation path as a direct API command.
+- Undo creates a correction event and restores the intended value.
+- Pause, edit, undo, and resume preserve simulation state.
+
+## Work after the first six slices
+
+Continue in this order unless measurements or new ADRs change the priority:
+
+1. Port the remaining authored lights, props, awnings, water, foliage, and actor definitions.
+2. Add complete rebuild and small-update parity tests for every state copy.
+3. Add versioned asset manifests, dependency tracking, and safe resource replacement.
+4. Add durable event-store and snapshot adapters behind the proven in-memory contracts.
+5. Add schema conversion tests for supported old command, event, and snapshot versions.
+6. Add Studio hierarchy, inspectors, pause controls, and editor-camera ownership.
+7. Add contextual feedback targets and the shared review queue.
+8. Add the MCP adapter over the same query, command, inspection, and feedback APIs.
+9. Add sandbox creation, validation evidence, conflict detection, and command-based promotion.
+10. Add online session hosting only after local session authority and replay tests are stable.
+11. Replace maps with compact storage only where profiles show a measured problem.
+12. Retire or rename the `town-study` route only after Antiky Town reaches agreed parity.
+
+## Completion definition
+
+Antiky Town replaces the reference only when it meets the selected behavior, visual, performance,
+inspection, replay, and lifecycle gates. Until then, both demos remain separate and runnable.
+
+Record each selected direction in this file or a linked decision before implementation starts.

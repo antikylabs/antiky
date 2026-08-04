@@ -1,9 +1,9 @@
 import { createCamera, createCube, createPlane, createProgram, createTexture, mat4 } from 'brometal';
-import { buildSpriteAtlas, SPRITE_CELLS } from '../art/sprites';
-import type { DemoFactory } from '../runtime';
-import groundShader from '../shaders/ground.shader.gen';
-import spriteShader from '../shaders/sprite.shader.gen';
-import voxelShader from '../shaders/voxel.shader.gen';
+import { buildSpriteAtlas, SPRITE_CELLS } from './art/sprites';
+import type { DemoFactory } from '../../runtime';
+import groundShader from './shaders/ground.shader.gen';
+import spriteShader from './shaders/sprite.shader.gen';
+import voxelShader from '../../shared/shaders/voxel.shader.gen';
 
 /* Sprites in a depth buffer — the 2.3D premise, drawn with the real pieces.
  *

@@ -1,7 +1,7 @@
 import { createCamera, createCube, createProgram } from 'brometal';
-import { forgeVoxelModel, type VoxelModel } from '../art/voxel-forge';
-import type { DemoFactory } from '../runtime';
-import voxelShader from '../shaders/voxel.shader.gen';
+import { forgeVoxelModel, type VoxelModel } from './art/voxel-forge';
+import type { DemoFactory } from '../../runtime';
+import voxelShader from '../../shared/shaders/voxel.shader.gen';
 
 /* The output of a deterministic voxel compiler, drawn as instanced cubes.
  *

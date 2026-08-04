@@ -1,6 +1,6 @@
 import { createCamera, createCube, createProgram } from 'brometal';
-import type { DemoFactory } from '../runtime';
-import stormShader from '../shaders/storm.shader.gen';
+import type { DemoFactory } from '../../runtime';
+import stormShader from './shaders/storm.shader.gen';
 
 /* Residency, demonstrated. 120,000 cubes, one geometry, one draw call, and a
  * per-instance seed uploaded exactly once. Every frame after the first sends a

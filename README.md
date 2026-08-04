@@ -94,11 +94,13 @@ The website's development and production commands compile the demo shaders befor
 
 ## Adding a demo
 
-1. Add shader sources under `packages/demos/src/shaders/` and run `npm run shaders`.
-2. Add the renderer under `packages/demos/src/render/`.
-3. Register its loader in `packages/demos/src/registry.ts`.
-4. Add its public metadata to `packages/demos/src/catalog.ts`.
-5. Run it with `npm run dev -- demos <slug>`.
+1. Create `packages/demos/src/demos/<demo-name>/`.
+2. Keep the demo entry point, owned helpers, tests, and shaders in that folder.
+3. Put code used by more than one demo under `packages/demos/src/shared/`.
+4. Run `npm run shaders` after you add or change a shader source.
+5. Register its loader in `packages/demos/src/registry.ts`.
+6. Add its public metadata to `packages/demos/src/catalog.ts`.
+7. Run it with `npm run dev -- demos <slug>`.
 
 `DemoStage` owns WebGPU renderer creation, the frame loop, visibility pausing, pointer
 state, and teardown. Individual demos only build their rendering resources and draw.

@@ -65,7 +65,7 @@ test('dependencies and generated shaders use the WebGPU-only contract', async ()
   );
   assert.equal(manifest.dependencies.brometal, '0.14.0');
 
-  const generated = (await filesUnder('packages/demos/src/shaders'))
+  const generated = (await filesUnder('packages/demos/src'))
     .filter((file) => file.endsWith('.shader.gen.ts'));
   assert.ok(generated.length > 0);
   for (const file of generated) {
@@ -81,4 +81,49 @@ test('dependencies and generated shaders use the WebGPU-only contract', async ()
 
   const vendorFiles = await readdir(path.join(root, 'vendor')).catch(() => []);
   assert.deepEqual(vendorFiles, []);
+});
+
+test('each demo implementation has one owned folder', async () => {
+  const demosRoot = path.join(root, 'packages/demos/src/demos');
+  const entries = await readdir(demosRoot, { withFileTypes: true });
+  const directories = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+
+  assert.deepEqual(directories, [
+    'antiky-town',
+    'brometal-town',
+    'instance-storm',
+    'shader-study',
+    'sprite-depth',
+    'voxel-forge',
+  ]);
+
+  const registry = await readFile(path.join(root, 'packages/demos/src/registry.ts'), 'utf8');
+  assert.match(registry, /'town-study': \(\) => import\('\.\/demos\/brometal-town'\)/);
+  assert.match(registry, /'shader-study': \(\) => import\('\.\/demos\/shader-study'\)/);
+
+  for (const legacyDirectory of ['art', 'physics', 'render', 'shaders']) {
+    await assert.rejects(access(path.join(root, 'packages/demos/src', legacyDirectory)));
+  }
+});
+
+test('the shader study reads the authored source from its owned folder', async () => {
+  const sourcePath = path.join(
+    root,
+    'packages/demos/src/demos/shader-study/shaders/aurora.shader.ts',
+  );
+  await access(sourcePath);
+
+  const page = await readFile(
+    path.join(root, 'packages/website/src/app/demos/[slug]/page.tsx'),
+    'utf8',
+  );
+  const normalizedPage = page.replace(/\s+/g, ' ');
+  assert.match(
+    normalizedPage,
+    /'demos', 'src', 'demos', 'shader-study', 'shaders', 'aurora\.shader\.ts'/,
+  );
+  assert.doesNotMatch(normalizedPage, /'demos', 'src', 'shaders', 'aurora\.shader\.ts'/);
 });

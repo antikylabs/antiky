@@ -1,6 +1,6 @@
 import { createPlane, createProgram } from 'brometal';
-import auroraShader from '../shaders/aurora.shader.gen';
-import type { DemoFactory } from '../runtime';
+import auroraShader from './shaders/aurora.shader.gen';
+import type { DemoFactory } from '../../runtime';
 
 /* One TypeScript function compiled ahead of time to WGSL. The demo page shows
  * the authored source and generated output; this file only has to hand the

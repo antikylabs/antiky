@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DEMOS, findDemo, neighbours } from '@antiky/demos/catalog';
 import type { ShaderSources } from '@antiky/demos/react';
-import auroraShader from '@antiky/demos/shaders/aurora.shader.gen';
+import auroraShader from '@antiky/demos/shader-study/shaders/aurora.shader.gen';
 import DemoDeck from '@/components/DemoDeck';
 
 type Params = { params: Promise<{ slug: string }> };
@@ -32,7 +32,16 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
  */
 function auroraSources(): ShaderSources {
   const typescript = readFileSync(
-    join(process.cwd(), '..', 'demos', 'src', 'shaders', 'aurora.shader.ts'),
+    join(
+      process.cwd(),
+      '..',
+      'demos',
+      'src',
+      'demos',
+      'shader-study',
+      'shaders',
+      'aurora.shader.ts',
+    ),
     'utf8',
   );
   return {
