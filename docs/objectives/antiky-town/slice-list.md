@@ -3,6 +3,7 @@
 Update this list after every slice run. New facts can add a slice, reorder slices, or change a slice
 direction.
 
+- Slice 01 — Change one market lamp through the shared framework service.
 - Slice 02 — Add the fixed-step `EngineSession` clock.
 - Slice 03 — Move character simulation into the framework.
 - Slice 04 — Compile town content through framework-owned assets.

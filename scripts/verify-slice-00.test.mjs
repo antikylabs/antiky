@@ -1,0 +1,112 @@
+import assert from 'node:assert/strict';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+
+import sharp from 'sharp';
+
+import {
+  assertCaptureHasContent,
+  assertReadySnapshot,
+  assertSnapshotParity,
+  comparePageCaptures,
+  selectRunId,
+} from './verify-slice-00.mjs';
+
+function readySnapshot(runtimeInstanceId = 'runtime-001') {
+  return {
+    schemaVersion: 1,
+    developmentSessionId: 'development-001',
+    acceptedBuildRevision: 1,
+    processes: {
+      game: { state: 'running', pid: 101 },
+      shaders: { state: 'running', pid: 102 },
+    },
+    connection: { state: 'connected' },
+    cleanup: { state: 'active' },
+    diagnostics: [],
+    inspection: {
+      schemaVersion: 1,
+      runtime: { instanceId: runtimeInstanceId, lifecycle: 'running' },
+      diagnostics: [],
+      measurements: {
+        runtime: { owner: 'framework', frameCount: 120, framesPerSecond: 60 },
+        render: {
+          owner: 'framework',
+          canvasWidth: 694,
+          canvasHeight: 512,
+          drawCalls: 16,
+          instances: 1247,
+          uploadBytesPerFrame: 1152,
+        },
+      },
+    },
+  };
+}
+
+test('ready-state validation requires the running town and exact reference measurements', () => {
+  assert.doesNotThrow(() => assertReadySnapshot(readySnapshot()));
+  const blankPreview = structuredClone(readySnapshot());
+  blankPreview.inspection.runtime.lifecycle = 'ready';
+  blankPreview.inspection.measurements.runtime.frameCount = 2;
+  blankPreview.inspection.measurements.runtime.framesPerSecond = 0;
+
+  assert.throws(
+    () => assertReadySnapshot(blankPreview),
+    /running lifecycle/,
+  );
+});
+
+test('client parity compares the shared identities and complete inspection snapshot', () => {
+  const direct = readySnapshot();
+  assert.doesNotThrow(() => assertSnapshotParity(direct, structuredClone(direct), 'CLI'));
+  const stale = structuredClone(direct);
+  stale.acceptedBuildRevision = 2;
+  assert.throws(() => assertSnapshotParity(direct, stale, 'MCP'), /MCP/);
+});
+
+test('capture validation rejects a valid but visually blank PNG', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'antiky-capture-test-'));
+  const blank = path.join(directory, 'blank.png');
+  const varied = path.join(directory, 'varied.png');
+  await sharp({
+    create: { width: 32, height: 32, channels: 4, background: '#0d0a0cff' },
+  }).png().toFile(blank);
+  const pixels = Buffer.alloc(32 * 32 * 4);
+  for (let index = 0; index < pixels.length; index += 4) {
+    const value = (index / 4) % 2 === 0 ? 20 : 230;
+    pixels[index] = value;
+    pixels[index + 1] = 120;
+    pixels[index + 2] = 255 - value;
+    pixels[index + 3] = 255;
+  }
+  await sharp(pixels, { raw: { width: 32, height: 32, channels: 4 } }).png().toFile(varied);
+
+  await assert.rejects(assertCaptureHasContent(blank), /visually blank/);
+  await assert.doesNotReject(assertCaptureHasContent(varied));
+});
+
+test('page comparison reports identical captures as one and unrelated captures below threshold', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'antiky-page-test-'));
+  const dark = path.join(directory, 'dark.png');
+  const light = path.join(directory, 'light.png');
+  await sharp({ create: { width: 64, height: 40, channels: 3, background: '#101010' } }).png().toFile(dark);
+  await sharp({ create: { width: 64, height: 40, channels: 3, background: '#f0f0f0' } }).png().toFile(light);
+
+  assert.equal((await comparePageCaptures(dark, dark)).similarity, 1);
+  assert.ok((await comparePageCaptures(dark, light)).similarity < 0.2);
+});
+
+test('run selection resumes one open baseline and rejects ambiguous open runs', async () => {
+  const outputs = await mkdtemp(path.join(os.tmpdir(), 'antiky-runs-'));
+  const first = 's00-20260804T185103Z';
+  await mkdir(path.join(outputs, first));
+  await writeFile(path.join(outputs, first, 'baseline.md'), '# baseline\n');
+  assert.equal(await selectRunId(outputs, new Date('2026-08-04T21:00:00Z')), first);
+
+  const second = 's00-20260804T190000Z';
+  await mkdir(path.join(outputs, second));
+  await writeFile(path.join(outputs, second, 'baseline.md'), '# baseline\n');
+  await assert.rejects(selectRunId(outputs, new Date()), /multiple open Slice 00 runs/);
+});

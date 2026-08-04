@@ -1,0 +1,496 @@
+import assert from 'node:assert/strict';
+import { createHash, randomUUID } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import {
+  access,
+  chmod,
+  constants,
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
+
+import sharp from 'sharp';
+
+import {
+  artifactFor,
+  sealReceipt,
+  validateArtifactDigests,
+  validateReceipt,
+  writeJsonAtomic,
+  writeReceiptAtomic,
+  writeTextAtomic,
+} from './slice-00-evidence.mjs';
+import {
+  createAcceptance,
+  createConfirmation,
+  createFacts,
+  createMeasurements,
+  createReceipt,
+} from './slice-00-report.mjs';
+import {
+  assertPortsAvailable,
+  CdpClient,
+  createChromeProfile,
+  McpStdioClient,
+  removeChromeProfile,
+  runLoggedCommand,
+  startLoggedProcess,
+  stopOwnedProcess,
+  waitFor,
+  waitForChromeTarget,
+} from './slice-00-runtime.mjs';
+import {
+  assertCaptureHasContent,
+  assertReadySnapshot,
+  assertSnapshotParity,
+  comparePageCaptures,
+  selectRunId,
+} from './slice-00-verifier-core.mjs';
+
+export {
+  assertCaptureHasContent,
+  assertReadySnapshot,
+  assertSnapshotParity,
+  comparePageCaptures,
+  selectRunId,
+};
+
+const executeFile = promisify(execFile);
+const root = path.resolve(import.meta.dirname, '..');
+const outputRoot = path.join(root, 'docs/objectives/antiky-town/slice-00/outputs');
+const gameUrl = 'http://127.0.0.1:3010/demos/town-study';
+const chromePath = process.env.ANTIKY_CHROME_PATH
+  ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const requiredResources = [
+  'antiky://dev/status',
+  'antiky://build/latest',
+  'antiky://runtime/status',
+  'antiky://render/stats',
+  'antiky://diagnostics',
+];
+const allowedUnrelatedChanges = new Set([
+  'docs/adr/UNDER_REVIEW_A.md',
+  'docs/user-facing-docs/studio/.gitkeep',
+]);
+
+function hash(value) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+async function exists(file) {
+  return access(file).then(() => true, () => false);
+}
+
+async function commandText(command, args) {
+  const result = await executeFile(command, args, { cwd: root, maxBuffer: 4 * 1024 * 1024 });
+  return result.stdout.trim();
+}
+
+async function assertImplementationTreeClean() {
+  const status = await commandText('git', ['status', '--porcelain', '--untracked-files=all']);
+  const unexpected = status.split('\n').filter(Boolean).filter((line) => {
+    const file = line.slice(3).split(' -> ').at(-1);
+    return !allowedUnrelatedChanges.has(file);
+  });
+  assert.deepEqual(unexpected, [], `Slice implementation tree is not clean:\n${unexpected.join('\n')}`);
+  return status.split('\n').filter(Boolean).map((line) => line.slice(3).split(' -> ').at(-1));
+}
+
+async function checkpointCommits() {
+  const messages = [
+    ['CP-00', 'Record Slice 00 baseline'],
+    ['CP-01', 'Add framework inspection'],
+    ['CP-02', 'Start games with Antiky CLI'],
+    ['CP-03', 'Connect runtime inspection'],
+    ['CP-04', 'Expose Antiky development tools'],
+    ['CP-05', 'Verify Slice 00'],
+  ];
+  const log = await commandText('git', ['log', '--format=%H%x09%s', '-80']);
+  const rows = log.split('\n').map((line) => line.split('\t'));
+  return messages.map(([id, message]) => {
+    const match = rows.find(([, subject]) => subject === message);
+    assert.ok(match, `${id} checkpoint commit is missing: ${message}`);
+    return { id, commit: match[0], status: 'PASS' };
+  });
+}
+
+async function evaluateValue(cdp, expression) {
+  const response = await cdp.send('Runtime.evaluate', { expression, returnByValue: true });
+  if (response.exceptionDetails) throw new Error(response.exceptionDetails.text ?? 'Browser evaluation failed.');
+  return response.result.value;
+}
+
+async function enterRunningTown(cdp) {
+  await waitFor(async () => evaluateValue(cdp, `(() => {
+    const button = document.querySelector('.stage-activate');
+    if (!button) return false;
+    button.click();
+    return true;
+  })()`), { timeoutMilliseconds: 30_000, intervalMilliseconds: 100, label: 'the Enter the town control' });
+}
+
+async function browserFacts(cdp) {
+  const value = await evaluateValue(cdp, `JSON.stringify({
+    title: document.title,
+    phase: document.querySelector('.stage')?.getAttribute('data-phase'),
+    text: document.body.innerText,
+    canvasWidth: document.querySelector('canvas')?.width,
+    canvasHeight: document.querySelector('canvas')?.height
+  })`);
+  const facts = JSON.parse(value);
+  assert.equal(facts.title, 'Town Study — Antiky Labs');
+  assert.equal(facts.phase, 'running');
+  for (const label of ['Town Study', 'All studies', 'Pause', 'Move with WASD']) {
+    assert.ok(facts.text.includes(label), `Visible control or copy is missing: ${label}`);
+  }
+  assert.equal(facts.canvasWidth, 694);
+  assert.equal(facts.canvasHeight, 512);
+  return facts;
+}
+
+function readMcpResource(result) {
+  assert.equal(result.contents.length, 1);
+  assert.equal(result.contents[0].mimeType, 'application/json');
+  return JSON.parse(result.contents[0].text);
+}
+
+async function filesUnder(directory, prefix = '') {
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (entry.name === 'receipt.json' || entry.name.startsWith('.')) continue;
+    const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) files.push(...await filesUnder(path.join(directory, entry.name), relative));
+    else if (entry.isFile()) files.push(relative);
+  }
+  return files;
+}
+
+async function copyTree(source, destination) {
+  for (const entry of await readdir(source, { withFileTypes: true }).catch(() => [])) {
+    const from = path.join(source, entry.name);
+    const to = path.join(destination, entry.name);
+    if (entry.isDirectory()) {
+      await mkdir(to, { recursive: true, mode: 0o700 });
+      await copyTree(from, to);
+    } else if (entry.isFile()) {
+      await copyFile(from, to, constants.COPYFILE_EXCL);
+      await chmod(to, 0o600);
+    }
+  }
+}
+
+async function collectEnvironment() {
+  const packageVersion = async (file) => JSON.parse(await readFile(file, 'utf8')).version;
+  return {
+    platform: process.platform,
+    architecture: process.arch,
+    osRelease: os.release(),
+    osVersion: os.version(),
+    node: process.version.slice(1),
+    npm: await commandText('npm', ['--version']),
+    typescript: await packageVersion(path.join(root, 'node_modules/typescript/package.json')),
+    brometal: await packageVersion(path.join(root, 'packages/demos/node_modules/brometal/package.json')),
+    vitest: await packageVersion(path.join(root, 'node_modules/vitest/package.json')),
+    chrome: await commandText(chromePath, ['--version']),
+    locale: Intl.DateTimeFormat().resolvedOptions().locale,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    viewport: { width: 756, height: 469 },
+  };
+}
+
+export async function runSlice00Verification() {
+  const runId = await selectRunId(outputRoot);
+  const outputDirectory = path.join(outputRoot, runId);
+  await mkdir(outputDirectory, { recursive: true });
+  const unrelatedChanges = await assertImplementationTreeClean();
+  const correlationId = `verify-${randomUUID()}`;
+  const staging = await mkdtemp(path.join(os.tmpdir(), 'antiky-s00-verify-'));
+  const logDirectory = path.join(staging, 'logs');
+  const captureDirectory = path.join(staging, 'captures');
+  await mkdir(captureDirectory, { recursive: true, mode: 0o700 });
+
+  let dev;
+  let chrome;
+  let mcp;
+  let cdp;
+  let chromeProfile;
+  let verificationError;
+  const timing = {};
+  const context = { runId, correlationId, timing };
+  try {
+    const checkStarted = performance.now();
+    const check = await runLoggedCommand({
+      command: 'npm', args: ['run', 'check'], cwd: root,
+      logFile: path.join(logDirectory, 'check.log'), echo: true,
+    });
+    timing.checkMilliseconds = Math.round(performance.now() - checkStarted);
+    assert.equal(check.code, 0, 'npm run check failed');
+    const updateTiming = check.stdout.match(/median=(\d+)ms slowest=(\d+)ms/);
+    assert.ok(updateTiming, 'update timing measurement was not reported');
+    timing.updateMedianMilliseconds = Number(updateTiming[1]);
+    timing.updateSlowestMilliseconds = Number(updateTiming[2]);
+    await assertImplementationTreeClean();
+
+    await assertPortsAvailable('127.0.0.1', [3010, 3011, 9322]);
+    assert.equal(await exists(path.join(root, '.antiky/dev-session.json')), false, 'stale session descriptor exists');
+    const devStarted = performance.now();
+    dev = await startLoggedProcess({
+      command: process.execPath,
+      args: ['--experimental-strip-types', '--experimental-transform-types', 'packages/cli/src/bin.ts', 'dev'],
+      cwd: root,
+      env: { ...process.env, FORCE_COLOR: '0' },
+      logFile: path.join(logDirectory, 'development.log'),
+    });
+    await waitFor(async () => {
+      const response = await fetch(gameUrl, { signal: AbortSignal.timeout(1000) });
+      return response.ok;
+    }, { timeoutMilliseconds: 30_000, intervalMilliseconds: 200, label: 'the town route' });
+    timing.gameReachableMilliseconds = Math.round(performance.now() - devStarted);
+    const { connectDevelopmentClient } = await import('../packages/cli/src/client.ts');
+    const client = await waitFor(() => connectDevelopmentClient(), {
+      timeoutMilliseconds: 10_000, intervalMilliseconds: 100, label: 'the typed development client',
+    });
+
+    chromeProfile = await createChromeProfile();
+    chrome = await startLoggedProcess({
+      command: chromePath,
+      args: [
+        '--headless=new', '--no-first-run', '--no-default-browser-check',
+        '--disable-background-networking', '--disable-component-update', '--disable-sync',
+        '--disable-gpu-sandbox', '--enable-unsafe-webgpu', '--use-angle=metal',
+        '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=9322',
+        `--user-data-dir=${chromeProfile}`, '--window-size=756,469', gameUrl,
+      ],
+      cwd: root,
+      logFile: path.join(logDirectory, 'chrome.log'),
+    });
+    let target = await waitForChromeTarget(9322, gameUrl);
+    cdp = await CdpClient.connect(target.webSocketDebuggerUrl);
+    await enterRunningTown(cdp);
+    const first = await waitFor(async () => {
+      const snapshot = await client.readDevelopmentSnapshot();
+      try { assertReadySnapshot(snapshot); return snapshot; } catch { return null; }
+    }, { timeoutMilliseconds: 30_000, intervalMilliseconds: 100, label: 'the running WebGPU town' });
+    timing.runningTownMilliseconds = Math.round(performance.now() - devStarted);
+    const surface = await browserFacts(cdp);
+
+    const cli = await runLoggedCommand({
+      command: process.execPath,
+      args: ['--experimental-strip-types', '--experimental-transform-types', 'packages/cli/src/bin.ts', 'inspect'],
+      cwd: root, logFile: path.join(logDirectory, 'cli-inspect.log'), echo: false,
+    });
+    assert.equal(cli.code, 0, 'antiky inspect failed');
+    const cliSnapshot = JSON.parse(cli.stdout);
+    assertSnapshotParity(first, cliSnapshot, 'CLI');
+
+    mcp = await McpStdioClient.start({
+      command: process.execPath,
+      args: ['--experimental-strip-types', '--experimental-transform-types', 'packages/cli/src/bin.ts', 'mcp'],
+      cwd: root,
+      transcriptFile: path.join(logDirectory, 'mcp-transcript.log'),
+      stderrFile: path.join(logDirectory, 'mcp-stderr.log'),
+    });
+    const resourceList = await mcp.request('resources/list');
+    assert.deepEqual(resourceList.resources.map((resource) => resource.uri), requiredResources);
+    const toolList = await mcp.request('tools/list');
+    assert.deepEqual(toolList.tools.map((tool) => tool.name), ['dev_reload', 'capture_frame']);
+    const mcpRuntime = readMcpResource(await mcp.request('resources/read', { uri: 'antiky://runtime/status' }));
+    assertSnapshotParity(first, {
+      developmentSessionId: mcpRuntime.developmentSessionId,
+      acceptedBuildRevision: mcpRuntime.acceptedBuildRevision,
+      inspection: mcpRuntime.inspection,
+    }, 'MCP');
+
+    const reloadStarted = performance.now();
+    const reloadTool = await mcp.request('tools/call', { name: 'dev_reload', arguments: {} });
+    assert.notEqual(reloadTool.isError, true, 'MCP reload failed');
+    const reload = reloadTool.structuredContent;
+    timing.reloadMilliseconds = Math.round(performance.now() - reloadStarted);
+    cdp.close();
+    target = await waitForChromeTarget(9322, gameUrl);
+    cdp = await CdpClient.connect(target.webSocketDebuggerUrl);
+    await enterRunningTown(cdp);
+    const reloaded = await waitFor(async () => {
+      const snapshot = await client.readDevelopmentSnapshot();
+      try {
+        assertReadySnapshot(snapshot);
+        return snapshot.inspection.runtime.instanceId !== first.inspection.runtime.instanceId ? snapshot : null;
+      } catch { return null; }
+    }, { timeoutMilliseconds: 30_000, intervalMilliseconds: 100, label: 'the reloaded running town' });
+    assert.equal(reload.developmentSessionId, first.developmentSessionId);
+    assert.equal(reload.buildRevision, first.acceptedBuildRevision);
+    assert.equal(reload.oldRuntimeInstanceId, first.inspection.runtime.instanceId);
+    assert.equal(reload.newRuntimeInstanceId, reloaded.inspection.runtime.instanceId);
+
+    const captureStarted = performance.now();
+    const captureTool = await mcp.request('tools/call', { name: 'capture_frame', arguments: {} });
+    assert.notEqual(captureTool.isError, true, 'MCP capture failed');
+    const capture = captureTool.structuredContent;
+    timing.captureMilliseconds = Math.round(performance.now() - captureStarted);
+    assert.equal(capture.developmentSessionId, first.developmentSessionId);
+    assert.equal(capture.runtimeInstanceId, reloaded.inspection.runtime.instanceId);
+    assert.equal(capture.buildRevision, first.acceptedBuildRevision);
+    const canvasCapture = path.join(captureDirectory, 'town-ready-canvas.png');
+    await copyFile(capture.path, canvasCapture, constants.COPYFILE_EXCL);
+    await chmod(canvasCapture, 0o600);
+    const captureContent = await assertCaptureHasContent(canvasCapture);
+    assert.deepEqual({ width: captureContent.width, height: captureContent.height }, { width: 694, height: 512 });
+    const captureBytes = await readFile(canvasCapture);
+    assert.equal(hash(captureBytes), capture.sha256);
+
+    const screenshot = await cdp.send('Page.captureScreenshot', {
+      format: 'png', fromSurface: true, captureBeyondViewport: false,
+    });
+    const pageCapture = path.join(captureDirectory, 'town-ready.png');
+    await writeFile(pageCapture, Buffer.from(screenshot.data, 'base64'), { flag: 'wx', mode: 0o600 });
+    const pageMetadata = await sharp(pageCapture).metadata();
+    assert.deepEqual({ width: pageMetadata.width, height: pageMetadata.height }, { width: 756, height: 469 });
+    const visual = await comparePageCaptures(
+      path.join(outputDirectory, 'captures/baseline-town-ready.png'),
+      pageCapture,
+    );
+    const minimumSimilarity = 0.72;
+    assert.ok(visual.similarity >= minimumSimilarity, `town capture similarity ${visual.similarity} is below ${minimumSimilarity}`);
+    await browserFacts(cdp);
+
+    context.session = {
+      developmentSessionId: first.developmentSessionId,
+      acceptedBuildRevision: first.acceptedBuildRevision,
+    };
+    context.runtime = {
+      beforeReload: first.inspection.runtime.instanceId,
+      afterReload: reloaded.inspection.runtime.instanceId,
+    };
+    context.runtimeMeasurements = reloaded.inspection.measurements.runtime;
+    context.render = reloaded.inspection.measurements.render;
+    context.actions = {
+      reloadActionId: reload.actionId,
+      captureActionId: capture.actionId,
+      captureId: capture.captureId,
+      captureBytes: capture.byteLength,
+      captureSha256: capture.sha256,
+    };
+    context.visual = {
+      ...visual,
+      minimumSimilarity,
+      channelStandardDeviation: Number(captureContent.channelStandardDeviation.toFixed(3)),
+      controls: ['Town Study', 'All studies', 'Pause', 'Move with WASD'],
+      surface,
+    };
+    context.mcp = { resources: requiredResources };
+  } catch (error) {
+    verificationError = error;
+  } finally {
+    const cleanupStarted = performance.now();
+    const cleanupErrors = [];
+    if (cdp) cdp.close();
+    if (mcp) await mcp.close().catch((error) => cleanupErrors.push(error));
+    await stopOwnedProcess(chrome).catch((error) => cleanupErrors.push(error));
+    await stopOwnedProcess(dev).catch((error) => cleanupErrors.push(error));
+    if (chromeProfile) await removeChromeProfile(chromeProfile).catch((error) => cleanupErrors.push(error));
+    await assertPortsAvailable('127.0.0.1', [3010, 3011, 9322]).catch((error) => cleanupErrors.push(error));
+    if (await exists(path.join(root, '.antiky/dev-session.json'))) {
+      cleanupErrors.push(new Error('Session descriptor remained after cleanup.'));
+    }
+    timing.cleanupMilliseconds = Math.round(performance.now() - cleanupStarted);
+    if (cleanupErrors.length > 0 && !verificationError) verificationError = new AggregateError(cleanupErrors, 'Cleanup failed.');
+  }
+
+  if (verificationError) {
+    await rm(staging, { recursive: true, force: true });
+    throw verificationError;
+  }
+
+  const finalRevision = await commandText('git', ['rev-parse', 'HEAD']);
+  const sourceRevision = 'b05a078394bf455beb7ababf30aa187e22c74f68';
+  const environment = await collectEnvironment();
+  const configBytes = await readFile(path.join(root, 'antiky.config.json'));
+  const lockBytes = await readFile(path.join(root, 'package-lock.json'));
+  context.sourceRevision = sourceRevision;
+  context.finalRevision = finalRevision;
+  context.alignmentRevision = '441563bcce94abd76fb6813869e603e13f116b5a';
+  context.checkpoints = await checkpointCommits();
+  context.environment = environment;
+  context.runSetup = {
+    revision: finalRevision,
+    branch: await commandText('git', ['branch', '--show-current']),
+    worktree: root,
+    implementationPathsClean: true,
+    unrelatedPreservedChanges: unrelatedChanges,
+    dependencyLockSha256: hash(lockBytes),
+    configSha256: hash(configBytes),
+    gameUrl,
+    ports: { game: 3010, inspection: 3011, browserControl: 9322, tests: [43100, 43101] },
+    browserProfile: 'dedicated temporary profile removed during cleanup',
+    artifactDirectory: path.relative(root, outputDirectory),
+    locale: environment.locale,
+    timeZone: environment.timeZone,
+    seed: 'N/A; Slice 00 adds no random game state.',
+    network: 'Loopback only; no deployment or external messages.',
+    isolation: 'One open run, fixed free ports, one dedicated browser profile, and one unique staging directory.',
+    retryRule: 'One retry only for a classified transient failure after unchanged health.',
+    rollbackRevision: '2259d7b8c81aeb42d9513a95538e5109a886882e',
+  };
+  context.permissions = [
+    { operation: 'repository writes', requiredCapability: 'workspace write', scope: 'approved Slice 00 code, tests, docs, and outputs', grantAndExpiry: 'owner goal; expires at closeout', revocation: 'corrective or revert commit', auditEvidence: 'checkpoint commits' },
+    { operation: 'local services', requiredCapability: 'loopback bind', scope: '127.0.0.1 ports 3010, 3011, 43100, and 43101', grantAndExpiry: 'sandbox approval; expires at cleanup', revocation: 'owned process signals', auditEvidence: 'development and check logs' },
+    { operation: 'local browser', requiredCapability: 'installed Chrome and loopback CDP', scope: 'temporary profile and port 9322', grantAndExpiry: 'sandbox approval; expires at cleanup', revocation: 'browser stop and profile removal', auditEvidence: 'capture and cleanup facts' },
+    { operation: 'delivery', requiredCapability: 'Git checkpoint commit', scope: 'current branch only; no push or deployment', grantAndExpiry: 'repository instructions; expires at closeout', revocation: 'corrective or revert commit', auditEvidence: 'Git history' },
+  ];
+  context.tests = [
+    { command: 'npm run check', status: 'PASS', evidence: 'logs/check.log' },
+    { command: 'node --test scripts/slice-00-evidence.test.mjs scripts/verify-slice-00.test.mjs', status: 'PASS', evidence: 'included by npm run check' },
+    { command: 'npm run verify:slice-00', status: 'PASS', evidence: correlationId },
+  ];
+  context.documentation = [
+    'docs/user-facing-docs/framework/inspection.md',
+    'docs/user-facing-docs/cli/development.md',
+    'docs/user-facing-docs/studio/development-connection.md',
+  ];
+  context.cleanup = {
+    descriptorRemoved: true,
+    releasedPorts: [3010, 3011, 9322],
+    browserProfileRemoved: true,
+    ownedProcessesStopped: true,
+  };
+
+  await assertImplementationTreeClean();
+  await copyTree(staging, outputDirectory);
+  const acceptance = createAcceptance(context);
+  await writeJsonAtomic(path.join(outputDirectory, 'facts.json'), createFacts(context));
+  await writeJsonAtomic(path.join(outputDirectory, 'measurements.json'), createMeasurements(context));
+  await writeTextAtomic(path.join(outputDirectory, 'confirmation-checks.md'), createConfirmation(context, acceptance));
+  const artifactPaths = (await filesUnder(outputDirectory)).sort();
+  const artifacts = [
+    { path: 'receipt.json', sha256: null, digestScope: 'canonical-json-with-null-self-digest' },
+    ...await Promise.all(artifactPaths.map((file) => artifactFor(outputDirectory, file))),
+  ];
+  const receipt = sealReceipt(createReceipt(context, artifacts, acceptance));
+  const receiptErrors = validateReceipt(receipt);
+  assert.deepEqual(receiptErrors, [], receiptErrors.join('\n'));
+  await writeReceiptAtomic(path.join(outputDirectory, 'receipt.json'), receipt);
+  const artifactErrors = await validateArtifactDigests(receipt, outputDirectory);
+  assert.deepEqual(artifactErrors, [], artifactErrors.join('\n'));
+  await rm(staging, { recursive: true, force: true });
+  process.stdout.write(`Slice 00 PASS: ${path.relative(root, path.join(outputDirectory, 'receipt.json'))}\n`);
+  return { receipt, outputDirectory };
+}
+
+const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : null;
+if (invokedPath === import.meta.url) {
+  try {
+    await runSlice00Verification();
+  } catch (error) {
+    process.stderr.write(`Slice 00 FAIL: ${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  }
+}

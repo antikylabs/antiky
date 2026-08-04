@@ -15,10 +15,11 @@
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "shaders": "npm run shaders --workspace @antiky/demos",
-    "test": "npm test --workspaces --if-present",
+    "test": "node --test scripts/slice-00-evidence.test.mjs scripts/verify-slice-00.test.mjs && npm test --workspaces --if-present",
     "test:webgpu-only": "node --test scripts/webgpu-only.test.mjs",
     "test:zdloop": "npm test --workspace @antiky/zdloop",
     "check": "npm run typecheck && npm test && npm run test:webgpu-only",
+    "verify:slice-00": "node --experimental-strip-types --experimental-transform-types scripts/verify-slice-00.mjs",
     "zdarchive": "node packages/zdloop/archive-tasks.mjs",
     "zdloop": "node packages/zdloop/session-loop.mjs"
   },
