@@ -12,7 +12,7 @@ delivery plan or demo projects.
 - Lead with the normal development path, then explain integration details, security boundaries,
   failure behavior, and cleanup where they matter.
 - Prefer public names, stable errors, and observable behavior over internal implementation details.
-- Keep command, config, MCP tool, MCP resource, and API names synchronized with the source.
+- Keep command, config, MCP tool, and API names synchronized with the source.
 
 ## Keep planning language internal
 

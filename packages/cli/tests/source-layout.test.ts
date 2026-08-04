@@ -39,6 +39,7 @@ test('CLI source groups implementation files by responsibility', async () => {
     'host/session-descriptor.ts',
     'host/session.ts',
     'mcp/server.ts',
+    'mcp/tools.ts',
   ]);
 });
 

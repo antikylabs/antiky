@@ -173,7 +173,7 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
       result: { protocolVersion: string; capabilities: unknown };
     };
     assert.equal(initialized.result.protocolVersion, '2025-11-25');
-    assert.deepEqual(initialized.result.capabilities, { resources: {}, tools: {} });
+    assert.deepEqual(initialized.result.capabilities, { tools: {} });
 
     const tools = await fetch(session.mcpUrl, {
       method: 'POST',

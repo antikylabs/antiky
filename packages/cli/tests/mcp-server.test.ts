@@ -6,7 +6,9 @@ import { AntikyCliError } from '../src/errors.ts';
 
 // Node 22's strip-types test runner requires the source extension.
 // @ts-ignore explicit TypeScript extension is for the direct test runner
-import { MCP_RESOURCE_URIS, processMcpRequest, runMcpServer } from '../src/mcp/server.ts';
+import { processMcpRequest, runMcpServer } from '../src/mcp/server.ts';
+// @ts-ignore explicit TypeScript extension is for the direct test runner
+import { MCP_TOOL_NAMES } from '../src/mcp/tools.ts';
 
 const frameworkInspection = {
   schemaVersion: 1,
@@ -56,7 +58,7 @@ const developmentSnapshot = {
   inspection: frameworkInspection,
 } as const;
 
-test('MCP exposes development reads as both resources and model-callable tools', async () => {
+test('MCP exposes one well-described tools-only development surface', async () => {
   const calls: string[] = [];
   const client = {
     async readDevelopmentSnapshot() {
@@ -99,28 +101,12 @@ test('MCP exposes development reads as both resources and model-callable tools',
     params: { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'fixture', version: '1' } },
   });
   assert.equal(initialized.result.protocolVersion, '2025-11-25');
-  assert.deepEqual(initialized.result.capabilities, { resources: {}, tools: {} });
+  assert.deepEqual(initialized.result.capabilities, { tools: {} });
 
-  const listed = await processMcpRequest(client, {
+  const resources = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 2, method: 'resources/list', params: {},
   });
-  assert.deepEqual(
-    listed.result.resources.map((resource: { uri: string }) => resource.uri),
-    MCP_RESOURCE_URIS,
-  );
-
-  for (const [index, uri] of MCP_RESOURCE_URIS.entries()) {
-    const response = await processMcpRequest(client, {
-      jsonrpc: '2.0', id: 10 + index, method: 'resources/read', params: { uri },
-    });
-    const content = response.result.contents[0];
-    assert.equal(content.uri, uri);
-    assert.equal(content.mimeType, 'application/json');
-    assert.doesNotMatch(content.text, /credential/i);
-    const value = JSON.parse(content.text);
-    assert.equal(value.schemaVersion, 1);
-    if (uri === 'antiky://runtime/status') assert.deepEqual(value.inspection, frameworkInspection);
-  }
+  assert.equal(resources.error.code, -32601);
 
   const tools = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 30, method: 'tools/list', params: {},
@@ -134,16 +120,41 @@ test('MCP exposes development reads as both resources and model-callable tools',
   ];
   assert.deepEqual(
     tools.result.tools.map((tool: { name: string }) => tool.name),
-    [...readToolNames, 'dev_reload', 'capture_frame'],
+    MCP_TOOL_NAMES,
   );
+  assert.doesNotMatch(JSON.stringify(tools), /antiky:\/\//);
+
+  const descriptionGuidance: Record<string, readonly RegExp[]> = {
+    get_dev_status: [/call this first/i, /takes no arguments/i],
+    get_latest_build: [/after a source, shader, asset, or config change/i, /accepted revision/i],
+    get_runtime_status: [/before .*dev_reload.*capture_frame/i, /null inspection/i],
+    get_render_stats: [/renderer health or performance/i, /does not capture/i],
+    get_diagnostics: [/build is not ready/i, /stable code/i],
+    dev_reload: [/after .*accepted revision/i, /does not start a development session/i],
+    capture_frame: [/exact pixels/i, /get_render_stats/i],
+  };
+  for (const definition of tools.result.tools as Array<{
+    name: string;
+    description: string;
+    inputSchema: unknown;
+    annotations: Record<string, boolean>;
+  }>) {
+    assert.ok(definition.description.length >= 120, `${definition.name} needs richer guidance`);
+    for (const pattern of descriptionGuidance[definition.name] ?? []) {
+      assert.match(definition.description, pattern);
+    }
+    assert.deepEqual(definition.inputSchema, {
+      type: 'object',
+      properties: {},
+      additionalProperties: false,
+    });
+    assert.equal(definition.annotations.destructiveHint, false);
+    assert.equal(definition.annotations.openWorldHint, false);
+  }
   for (const name of readToolNames) {
     const definition = tools.result.tools.find((tool: { name: string }) => tool.name === name);
-    assert.deepEqual(definition.annotations, {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: false,
-    });
+    assert.equal(definition.annotations.readOnlyHint, true);
+    assert.equal(definition.annotations.idempotentHint, true);
   }
 
   for (const [index, name] of readToolNames.entries()) {
@@ -167,12 +178,11 @@ test('MCP exposes development reads as both resources and model-callable tools',
   assert.equal(capture.result.structuredContent.captureId, 'capture-001');
   assert.deepEqual(calls, [
     'read', 'read', 'read', 'read', 'read',
-    'read', 'read', 'read', 'read', 'read',
     'reload', 'capture',
   ]);
 });
 
-test('MCP returns bounded protocol errors for unknown resources, tools, and methods', async () => {
+test('MCP returns bounded protocol errors for Resource methods, unknown tools, and unknown methods', async () => {
   const client = {
     async readDevelopmentSnapshot() { return developmentSnapshot; },
     async requestReload() { throw new Error('not reached'); },
@@ -181,7 +191,7 @@ test('MCP returns bounded protocol errors for unknown resources, tools, and meth
   const missingResource = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 'a', method: 'resources/read', params: { uri: 'antiky://unknown' },
   });
-  assert.equal(missingResource.error.code, -32602);
+  assert.equal(missingResource.error.code, -32601);
   const missingTool = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 'b', method: 'tools/call', params: { name: 'unknown', arguments: {} },
   });
@@ -205,7 +215,7 @@ test('the MCP stdio adapter emits one JSON-RPC response per request line', async
   input.end([
     JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} }),
     JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized', params: {} }),
-    JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'resources/list', params: {} }),
+    JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }),
     '{',
     '',
   ].join('\n'));

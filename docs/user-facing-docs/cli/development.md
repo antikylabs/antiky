@@ -163,29 +163,33 @@ The MCP client owns this `antiky mcp` subprocess; you do not need to run it in a
 The adapter connects to the development session already started by `antiky dev` and writes protocol
 JSON only to standard output.
 
-### State tools and resources
+### Development state tools
 
-Read-only tools are the primary model-facing state interface. Matching resources remain available
-for clients that support browsing or explicitly attaching resources:
+The endpoint advertises a tools-only model-facing interface so every supported operation is directly
+callable by an agent. It does not duplicate the same values as MCP Resources. The state tools take
+no arguments and are marked read-only, non-destructive, idempotent, and closed-world:
 
-| Read-only tool | Matching resource | State returned |
+| Tool | Use it when | State returned |
 | --- | --- | --- |
-| `get_dev_status` | `antiky://dev/status` | Session, config, service health, and CLI measurements |
-| `get_latest_build` | `antiky://build/latest` | Accepted revision and latest build attempt |
-| `get_runtime_status` | `antiky://runtime/status` | Runtime connection and framework inspection snapshot |
-| `get_render_stats` | `antiky://render/stats` | Available framework-owned runtime and render measurements |
-| `get_diagnostics` | `antiky://diagnostics` | Development and framework diagnostics |
+| `get_dev_status` | Start here to orient to a session | Session, config, service health, connection, cleanup, and CLI measurements |
+| `get_latest_build` | Source, shader, asset, or config files changed | Accepted revision and latest build attempt |
+| `get_runtime_status` | Before reload or capture, or when runtime facts are missing | Runtime connection and framework inspection snapshot |
+| `get_render_stats` | Check renderer health or performance without capturing pixels | Available framework-owned runtime and render measurements |
+| `get_diagnostics` | A build is not ready, a runtime is unavailable, or an action failed | Development and framework diagnostics with stable codes |
 
-The read-only tools take no arguments and are marked read-only, non-destructive, idempotent, and
-closed-world in their MCP annotations.
+Each tool description carries this selection and sequencing guidance in the MCP discovery response,
+so an agent does not need this guide in its context to choose the safe next call.
 
 ### Development action tools
 
-- `dev_reload` asks the connected browser runtime to reload. The result relates the development
-  session, build revision, old and new runtime instances, and action ID.
-- `capture_frame` captures the game canvas as a PNG under `.antiky/captures/`. The result contains
-  the path, digest, byte count, capture ID, action ID, development session, runtime instance, and
-  build revision.
+- `dev_reload` is appropriate after `get_latest_build` reports a ready accepted revision and
+  `get_runtime_status` reports a connected runtime. It reloads that runtime without starting a new
+  development session or rebuilding source. The result relates the development session, build
+  revision, old and new runtime instances, and action ID.
+- `capture_frame` captures the exact game-canvas pixels as a PNG under `.antiky/captures/`. Use it
+  after `get_runtime_status` confirms a connected runtime, and use `get_render_stats` for canvas and
+  renderer measurements. The result contains the path, digest, byte count, capture ID, action ID,
+  development session, runtime instance, and build revision.
 
 Frame captures support visual review. Runtime and render facts still come from the framework
 inspection snapshot, not from image analysis.

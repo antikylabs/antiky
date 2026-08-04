@@ -10,9 +10,9 @@ import { CLI_USAGE } from '../src/cli.ts';
 // @ts-ignore explicit TypeScript extension is for the direct test runner
 import {
   MCP_HTTP_PATH,
-  MCP_RESOURCE_URIS,
-  MCP_TOOL_NAMES,
 } from '../src/mcp/server.ts';
+// @ts-ignore explicit TypeScript extension is for the direct test runner
+import { MCP_TOOL_NAMES } from '../src/mcp/tools.ts';
 
 const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const userDocsRoot = join(repositoryRoot, 'docs', 'user-facing-docs');
@@ -48,8 +48,8 @@ test('user-facing development docs are standalone and match the shipped interfac
     assert.match(CLI_USAGE, new RegExp(`antiky ${command}`));
     assert.match(cliGuide, new RegExp(`antiky ${command}`));
   }
-  for (const uri of MCP_RESOURCE_URIS) assert.ok(cliGuide.includes(uri));
   for (const tool of MCP_TOOL_NAMES) assert.ok(cliGuide.includes(tool));
+  assert.doesNotMatch(cliGuide, /antiky:\/\//);
 
   assert.ok(cliGuide.includes(MCP_HTTP_PATH));
   assert.match(cliGuide, /Streamable HTTP/);
