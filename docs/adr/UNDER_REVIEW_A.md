@@ -6,6 +6,8 @@ Artificial intelligence (AI) produced the suggested directions from architecture
 
 This document can grow faster than the accepted ADR set. An entry stays here until project owners reject it or make and record a decision.
 
+- webgpu only?
+
 ## Draft candidates
 
 ### 1. Authoritative physics
