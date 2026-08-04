@@ -3,9 +3,9 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { createServer as createNetServer, type Server as NetServer } from 'node:net';
 import { join } from 'node:path';
 
-import type { AntikyConfig } from './config.ts';
+import type { AntikyConfig } from '../config.ts';
 import { createBuildTracker } from './build-tracker.ts';
-import { createDevelopmentActionBroker } from './development-actions.ts';
+import { createDevelopmentActionBroker } from './actions.ts';
 import {
   DEVELOPMENT_SCHEMA_VERSION,
   type DevelopmentCleanupState,
@@ -13,8 +13,8 @@ import {
   type DevelopmentSnapshot,
   type DevelopmentStopReason,
   type DevelopmentStopResult,
-} from './development-types.ts';
-import { AntikyCliError } from './errors.ts';
+} from '../development/types.ts';
+import { AntikyCliError } from '../errors.ts';
 import { createInspectionServer } from './inspection-server.ts';
 import { createRuntimeConnection } from './runtime-connection.ts';
 import {

@@ -1,10 +1,10 @@
 import { resolve } from 'node:path';
 
-import { connectDevelopmentClient, inspectDevelopmentSession } from './client.ts';
 import { loadAntikyConfig } from './config.ts';
-import { startDevelopmentSession } from './development-session.ts';
+import { connectDevelopmentClient, inspectDevelopmentSession } from './development/client.ts';
 import { AntikyCliError } from './errors.ts';
-import { runMcpServer } from './mcp-server.ts';
+import { startDevelopmentSession } from './host/session.ts';
+import { runMcpServer } from './mcp/server.ts';
 
 export const CLI_USAGE = `Usage:
   antiky dev [--config path]

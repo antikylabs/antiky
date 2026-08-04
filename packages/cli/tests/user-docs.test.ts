@@ -12,7 +12,7 @@ import {
   MCP_HTTP_PATH,
   MCP_RESOURCE_URIS,
   MCP_TOOL_NAMES,
-} from '../src/mcp-server.ts';
+} from '../src/mcp/server.ts';
 
 const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const userDocsRoot = join(repositoryRoot, 'docs', 'user-facing-docs');

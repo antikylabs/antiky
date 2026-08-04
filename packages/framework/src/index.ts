@@ -1,2 +1,2 @@
 /** Public Antiky Framework entry point. */
-export * from './inspection.ts';
+export * from './inspection/snapshot.ts';

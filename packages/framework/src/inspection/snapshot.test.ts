@@ -9,7 +9,7 @@ import {
   createInspectionSnapshot,
   createInspectionStore,
   type InspectionSnapshotInput,
-} from './index.ts';
+} from './snapshot.ts';
 
 function snapshotInput(instanceId = 'runtime-001'): InspectionSnapshotInput {
   return {

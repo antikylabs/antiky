@@ -1,7 +1,7 @@
 import type { InspectionSnapshot } from '@antiky/framework';
 
-import type { DevelopmentConnectionState } from './development-types.ts';
-import { AntikyCliError } from './errors.ts';
+import type { DevelopmentConnectionState } from '../development/types.ts';
+import { AntikyCliError } from '../errors.ts';
 
 const DEFAULT_RUNTIME_TIMEOUT_MILLISECONDS = 3000;
 const MAX_RETIRED_RUNTIME_IDS = 32;

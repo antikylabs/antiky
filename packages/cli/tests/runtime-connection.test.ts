@@ -7,7 +7,7 @@ import { createInspectionSnapshot } from '@antiky/framework';
 // @ts-ignore explicit TypeScript extension is for the direct test runner
 import { AntikyCliError } from '../src/errors.ts';
 // @ts-ignore explicit TypeScript extension is for the direct test runner
-import { createRuntimeConnection } from '../src/runtime-connection.ts';
+import { createRuntimeConnection } from '../src/host/runtime-connection.ts';
 
 function runtime(instanceId: string) {
   return createInspectionSnapshot({

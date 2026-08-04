@@ -6,7 +6,7 @@ import { AntikyCliError } from '../src/errors.ts';
 
 // Node 22's strip-types test runner requires the source extension.
 // @ts-ignore explicit TypeScript extension is for the direct test runner
-import { MCP_RESOURCE_URIS, processMcpRequest, runMcpServer } from '../src/mcp-server.ts';
+import { MCP_RESOURCE_URIS, processMcpRequest, runMcpServer } from '../src/mcp/server.ts';
 
 const frameworkInspection = {
   schemaVersion: 1,

@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { chmod, mkdir, readFile, rename, rm, rmdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-import type { AntikyConfig } from './config.ts';
-import { AntikyCliError } from './errors.ts';
+import type { AntikyConfig } from '../config.ts';
+import { AntikyCliError } from '../errors.ts';
 
 const SESSION_DIRECTORY = '.antiky';
 const SESSION_FILE = 'dev-session.json';

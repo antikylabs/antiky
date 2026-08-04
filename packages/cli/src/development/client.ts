@@ -1,11 +1,11 @@
-import { loadAntikyConfig } from './config.ts';
+import { loadAntikyConfig } from '../config.ts';
 import type {
   DevelopmentCaptureResult,
   DevelopmentReloadResult,
   DevelopmentSnapshot,
-} from './development-types.ts';
-import { AntikyCliError } from './errors.ts';
-import { readSessionDescriptor } from './session-descriptor.ts';
+} from './types.ts';
+import { AntikyCliError } from '../errors.ts';
+import { readSessionDescriptor } from '../host/session-descriptor.ts';
 
 export interface DevelopmentClient {
   readDevelopmentSnapshot(): Promise<DevelopmentSnapshot>;

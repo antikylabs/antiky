@@ -5,8 +5,8 @@ import { join } from 'node:path';
 import type {
   DevelopmentCaptureResult,
   DevelopmentReloadResult,
-} from './development-types.ts';
-import { AntikyCliError } from './errors.ts';
+} from '../development/types.ts';
+import { AntikyCliError } from '../errors.ts';
 
 const DEFAULT_ACTION_TIMEOUT_MILLISECONDS = 10_000;
 const MAX_CAPTURE_BYTES = 5 * 1024 * 1024;

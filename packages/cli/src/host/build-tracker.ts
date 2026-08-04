@@ -8,7 +8,7 @@ import type {
   DevelopmentBuildSnapshot,
   DevelopmentChangeKind,
   DevelopmentDiagnostic,
-} from './development-types.ts';
+} from '../development/types.ts';
 
 const DEFAULT_FAILURE_TIMEOUT_MILLISECONDS = 10_000;
 const ignoredSegments = new Set(['.antiky', '.git', '.next', 'build', 'node_modules', 'out']);

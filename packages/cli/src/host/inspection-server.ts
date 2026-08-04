@@ -15,18 +15,18 @@ import {
 import type {
   BrowserDevelopmentAction,
   CaptureActionInput,
-} from './development-actions.ts';
+} from './actions.ts';
 import type {
   DevelopmentCaptureResult,
   DevelopmentReloadResult,
   DevelopmentSnapshot,
-} from './development-types.ts';
-import { AntikyCliError } from './errors.ts';
+} from '../development/types.ts';
+import { AntikyCliError } from '../errors.ts';
 import {
   MCP_HTTP_PATH,
   MCP_HTTP_PROTOCOL_VERSIONS,
   processMcpRequest,
-} from './mcp-server.ts';
+} from '../mcp/server.ts';
 
 const MAX_BROWSER_MESSAGE_BYTES = 256 * 1024;
 const MAX_CAPTURE_MESSAGE_BYTES = 7 * 1024 * 1024;

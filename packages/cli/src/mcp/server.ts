@@ -1,8 +1,8 @@
 import { createInterface } from 'node:readline';
 import type { Readable } from 'node:stream';
 
-import type { DevelopmentSnapshot } from './development-types.ts';
-import { AntikyCliError } from './errors.ts';
+import type { DevelopmentSnapshot } from '../development/types.ts';
+import { AntikyCliError } from '../errors.ts';
 
 export const MCP_PROTOCOL_VERSION = '2025-11-25';
 export const MCP_HTTP_PATH = '/mcp';

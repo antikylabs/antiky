@@ -8,7 +8,7 @@ import { createInspectionSnapshot } from '@antiky/framework';
 
 // Node 22's strip-types test runner requires the source extension.
 // @ts-ignore explicit TypeScript extension is for the direct test runner
-import { createBuildTracker } from '../src/build-tracker.ts';
+import { createBuildTracker } from '../src/host/build-tracker.ts';
 
 function readyRuntime(instanceId: string) {
   return createInspectionSnapshot({
