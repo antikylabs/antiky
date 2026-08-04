@@ -56,8 +56,8 @@ Inspector assessment, and Slice 0 design.
 
 Choose one direction for each slice. The recommended sequence is `0A, 1A, 2A, 3A, 4A, 5A, 6A`.
 
-Slice 0 also recommends configuration choice `C1`, `antiky.config.json`. The research document lists
-the configuration alternatives.
+Slice 0 also recommends configuration choice `C1`, private package choice `0P-A`, and authenticated
+push-bridge choice `0T-A`. The executable Slice 00 plan lists the alternatives and approval gates.
 
 The choices are starting directions. A later measured need can justify a different implementation.
 
@@ -129,6 +129,9 @@ supply the low-level GPU evidence for Slice 5.
 Chrome or Edge is required only when the selected WebGPU Inspector path uses its CDP controller.
 
 ## Slice 0: Development harness and minimum inspection
+
+The executable contract is [`slice-00-plan.md`](slice-00-plan.md). Do not start implementation
+until every readiness row in that plan passes.
 
 ### Outcome
 
@@ -218,6 +221,9 @@ Costs:
   release both ports.
 
 ## Slice 1: First complete object
+
+The executable contract is [`slice-01-plan.md`](slice-01-plan.md). It remains blocked until Slice 0
+is complete.
 
 ### Outcome
 

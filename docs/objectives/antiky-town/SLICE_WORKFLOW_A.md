@@ -11,9 +11,10 @@ A slice is a small, complete change that a person can see or use. It must also p
 path that supports the change. A slice is not complete when the code only compiles. It is complete
 when its behavior, tests, inspection data, failure handling, and measurements all pass.
 
-This guide has two companion documents:
+This guide has these companion documents:
 
 - [`SLICE_PLAN_TEMPLATE_A.md`](SLICE_PLAN_TEMPLATE_A.md) is the copyable plan contract.
+- [`slice-00-plan.md`](slice-00-plan.md) applies the contract to the development harness.
 - [`slice-01-plan.md`](slice-01-plan.md) applies the contract to the first market lamp.
 
 Update this guide and the template when the framework adds a new feature area that later slices
@@ -72,6 +73,12 @@ describe intent. It does not prove that the API exists.
 
 Write the complete slice plan before feature implementation starts. Then run the plan as the source
 of truth.
+
+For Slice 00, the intended goal command is:
+
+```text
+/goal implement docs/objectives/antiky-town/slice-00-plan.md until complete
+```
 
 For Slice 01, the intended goal command is:
 

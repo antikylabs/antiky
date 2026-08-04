@@ -9,7 +9,7 @@
 | Plan approver | Antiky project owner |
 | Selected option | `1A. Feature-first market lamp` — recommended, not approved |
 | Selection state | `PROPOSED` |
-| Depends on | Slice 0: development harness and minimum inspection |
+| Depends on | [`slice-00-plan.md`](slice-00-plan.md): development harness and minimum inspection |
 | Framework alignment date | 2026-08-04 |
 | Framework alignment revision | `840c606d7aca894f22f2e033ffa3e33e7ca71ab4` |
 | Evidence revision | `PENDING` |
@@ -38,6 +38,7 @@ work.
 | [`SLICE_WORKFLOW_A.md`](SLICE_WORKFLOW_A.md) | Defines the shared gates, evidence rules, and success rubric |
 | [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) | Defines the first-object outcome, options, and evidence |
 | [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) | Defines the Slice 0 host, inspection, MCP, reload, and GPU-tool boundary |
+| [`slice-00-plan.md`](slice-00-plan.md) | Defines the required harness implementation, contracts, proof, and completion gate |
 | [`Antiky Town README`](../../../packages/demos/src/demos/antiky-town/README.md) | Defines Antiky Town ownership and reference rules |
 | [`brometal-town/index.ts`](../../../packages/demos/src/demos/brometal-town/index.ts) | Contains the reference practical lights and BroMetal update path |
 | [`GOOD_ENGINEERING_H.md`](../../GOOD_ENGINEERING_H.md) | Requires small, proved changes and deep modules |
@@ -136,7 +137,7 @@ This snapshot describes code at revision `840c606d7aca894f22f2e033ffa3e33e7ca71a
 | Framework exports | `@antiky/framework` exports no capability | `packages/framework/src/index.ts` contains only `export {}` |
 | Framework tests | The package has no test script or test files | `packages/framework/package.json` has only `dev` and `typecheck` scripts |
 | Antiky Town | The demo is scaffolded and unregistered | `antiky-town/index.ts` contains only `export {}`; the registry has no Antiky Town loader |
-| Slice 0 | Research and a plan exist; implementation and owner choices do not | `DEV_HARNESS_RESEARCH_A.md` and `IMPLEMENTATION_PLAN_A.md` |
+| Slice 0 | An executable plan exists; implementation, baselines, and owner choices do not | `slice-00-plan.md` and `DEV_HARNESS_RESEARCH_A.md` |
 | Reference town | The current town is a working `DemoFactory` with eight fixed practical lights | `brometal-town/index.ts` and the `town-study` loader |
 | BroMetal | Version `0.14.0` supplies typed programs and `UniformHandle.set` | `packages/demos/package.json`, lock file, and installed type declarations |
 | Uniform writes | BroMetal marks uniform data dirty on each new frame and writes a program's complete uniform block before its first draw | Installed BroMetal `runtime/webgpu.js` at the alignment revision |
@@ -234,7 +235,7 @@ Do not start feature implementation until every applicable row is `PASS`.
 | ID | REQUIRED condition | Status | Direct evidence or exact blocker |
 | --- | --- | --- | --- |
 | `PRE-01` | The owner approved option `1A` or a documented replacement | `BLOCKED` | Option `1A` is recommended but not approved |
-| `PRE-02` | Slice 0 is complete | `BLOCKED` | The harness and inspection service have not been implemented |
+| `PRE-02` | Slice 0 is complete | `BLOCKED` | [`slice-00-plan.md`](slice-00-plan.md) is `NOT READY` and not implemented |
 | `PRE-03` | The alignment snapshot matches the implementation start revision | `PASS` | Snapshot recorded on 2026-08-04; rerun after any drift |
 | `PRE-04` | The lamp visual, draw, upload, and resource baseline is stored | `FAIL` | Source values are known; visual and runtime measurement artifacts are missing |
 | `PRE-05` | The outcome, non-goals, and failure behavior are explicit | `PASS` | This plan defines them |
@@ -253,7 +254,7 @@ Do not start feature implementation until every applicable row is `PASS`.
 
 ### Owner action before the goal can run
 
-1. Approve or replace Slice 0 choices `0A` and `C1`.
+1. Approve or replace Slice 0 choices `0A`, `C1`, `0P-A`, and `0T-A`.
 2. Complete Slice 0 and its evidence.
 3. Approve or replace Slice 01 option `1A`.
 4. Capture `REF-01` and `REF-06` through the Slice 0 tools.

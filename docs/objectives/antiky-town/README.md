@@ -16,15 +16,21 @@ this objective folder.
 | [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) | Defines the staged Antiky Town port and its owner choices. |
 | [`SLICE_WORKFLOW_A.md`](SLICE_WORKFLOW_A.md) | Defines how to plan, run, and close each slice. |
 | [`SLICE_PLAN_TEMPLATE_A.md`](SLICE_PLAN_TEMPLATE_A.md) | Supplies the copyable contract for a new slice. |
+| [`slice-00-plan.md`](slice-00-plan.md) | Applies the contract to the development harness and minimum inspection. |
 | [`slice-01-plan.md`](slice-01-plan.md) | Applies the contract to the first complete market-lamp object. |
 
 ## Start here
 
 1. Read the development-harness research.
 2. Review the implementation plan and resolve its owner choices.
-3. Complete Slice 0.
+3. Review the Slice 00 plan and resolve every readiness blocker.
 4. Review the slice workflow and Slice 01 plan.
-5. Run the Slice 01 goal only after every readiness gate passes.
+5. Run the Slice 00 goal only after its readiness gate passes.
+6. Run the Slice 01 goal only after Slice 00 is complete and every Slice 01 readiness gate passes.
+
+```text
+/goal implement docs/objectives/antiky-town/slice-00-plan.md until complete
+```
 
 ```text
 /goal implement docs/objectives/antiky-town/slice-01-plan.md until complete

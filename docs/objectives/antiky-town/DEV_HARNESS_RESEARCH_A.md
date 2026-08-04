@@ -8,6 +8,9 @@
 
 Antiky Town should start with a development-harness slice.
 
+Use [`slice-00-plan.md`](slice-00-plan.md) as the executable contract. This document supplies the
+research. It does not replace the plan's readiness gate, tests, checkpoints, or acceptance ledger.
+
 The first version should use the current Next.js demo host. It should not build a new bundler or a
 new hot-module-reload system. A small Antiky supervisor should read project configuration, start the
 existing host and shader watcher, keep one inspection session alive, and stop all child processes.
