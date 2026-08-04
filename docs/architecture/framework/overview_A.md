@@ -7,7 +7,8 @@
 Antiky is a game framework and development runtime that uses BroMetal. Antiky Labs' 2D, 3D, and 2.3D
 games are its primary use cases. Other games can also use its interfaces.
 
-Studio is a visual client of the framework. A game can run and build without Studio.
+Studio is a visual client of the framework. The Antiky CLI is a command-line client and local
+development host. A game can run and build without Studio.
 
 An authoritative simulation contains the true world state and makes final game decisions. Humans,
 agents, clients, tests, and services use the same commands and queries to work with this simulation.
@@ -18,9 +19,9 @@ the framework in small steps. This target does not permit a broad rewrite.
 ## System shape
 
 ```text
-Studio          AI / MCP          Game client          Tests / services
-   \               |                  |                       /
-    +------- commands, queries, events, diagnostics --------+
+Studio          CLI / AI / MCP          Game client          Tests / services
+   \                   |                    |                       /
+    +----------- commands, queries, events, diagnostics ----------+
                               |
                   command entry point and policy
                               |
@@ -51,6 +52,7 @@ systems, and authority rules.
 | Area | Controls | Does not control |
 | --- | --- | --- |
 | Studio | Panels, selection, the editor camera, previews, the workspace, and user intent | True world state, game decisions, or GPU resources |
+| Antiky CLI | Local configuration, development processes, build state, connections, and terminal output | Engine rules, true world state, or Studio panels |
 | Model Context Protocol (MCP) adapter | Translation between agent requests and the shared engine API | Engine rules or UI control |
 | Command entry point | Decoding, validation, trusted identity, permissions, duplicate detection, and revision checks | Gameplay results or rendering |
 | EngineSession | Lifecycle, command order, clocks, worlds, systems, state copies, assets, diagnostics, and sandboxes | Account services or UI state |
@@ -60,6 +62,19 @@ systems, and authority rules.
 | RenderDriver | GPU resources, pipeline lookup, uploads, render passes, and resource disposal | True world state or persistent IDs |
 | BroMetal | Shader compilation and the typed GPU runtime | Entities, gameplay, networking, stored data, Studio, or AI rules |
 | WorldHost | Placement and coordination of sessions and shared online services | Direct rendering or results that clients decide |
+
+## CLI and Studio
+
+The CLI and Studio are separate clients. They use the same framework commands, queries, events,
+diagnostics, captures, and semantic measurements.
+
+`antiky dev` starts and supervises a local development host. Studio attaches to that host. Studio
+does not create a second engine control path.
+
+The development host reports process and build facts. The framework reports game and engine facts.
+CLI output, Studio panels, MCP, and tests adapt these facts for their users.
+
+See [ADR 0004: Make CLI and Studio use the same engine services](../../adr/studio/0004-share-engine-services-with-cli_H.md).
 
 ## Core data flow
 
@@ -165,7 +180,7 @@ website -> demos -> framework
 When a new boundary becomes necessary, dependencies must continue to point toward stable contracts:
 
 ```text
-Studio / MCP / server / demos -> framework and protocol contracts
+Studio / CLI / MCP / server / demos -> framework and protocol contracts
 BroMetal driver              -> framework render interfaces + BroMetal
 framework core               -X-> BroMetal, React, Tauri, Node filesystem, or website
 ```

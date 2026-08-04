@@ -16,6 +16,7 @@ It expands these ADRs:
 - [Studio 0001: Let users choose their AI coding tools](../../adr/studio/0001-ai-integrations_H.md)
 - [Studio 0002: Keep the Studio web editor independent from Tauri](../../adr/studio/0002-tauri-portable-web-editor_H.md)
 - [Studio 0003: Attach each feedback comment to its exact target](../../adr/studio/0003-contextual-feedback-queue_H.md)
+- [Studio 0004: Make CLI and Studio use the same engine services](../../adr/studio/0004-share-engine-services-with-cli_H.md)
 - [Framework 0003: Use one engine API for humans and agents](../../adr/framework/0003-agent-native_H.md).
 
 ## What Studio does
@@ -36,9 +37,10 @@ If Studio can change engine or project state, an authorized agent or test must b
 same service. Studio components do not directly change world storage, GPU resources, or event stores.
 
 ```text
-Studio UI ----+
-              +-> EditorSession -> commands / queries / updates -> EngineSession
-MCP adapter --+
+Studio UI -> EditorSession --+
+CLI -------------------------+-> commands / queries / updates -> EngineSession
+MCP adapter -----------------+
+Tests -----------------------+
 ```
 
 The UI and MCP adapter can present operations in different ways. They must use the same engine
@@ -48,6 +50,19 @@ Screenshots and captures help users make visual judgments. They add to structure
 entities, components, assets, dependencies, passes, events, and diagnostics.
 
 An agent must not need to infer all state from image pixels.
+
+## CLI and Studio
+
+The CLI and Studio have different presentations. They do not have different engine behavior.
+
+`antiky dev` starts and supervises the local development host and game process. Studio connects to
+the same host. It uses structured engine services instead of terminal text.
+
+The Studio host can start an approved local CLI process. It can later use the same launch service
+directly if a real use case needs this integration. It must not implement a second launcher.
+
+The framework owns semantic inspection and measurements. The development host owns process, build,
+connection, and cleanup facts. Studio can show both sources without becoming their owner.
 
 ## Web and desktop hosts
 
