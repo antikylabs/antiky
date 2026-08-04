@@ -4,202 +4,211 @@
 
 ## Purpose
 
-This guide defines how Antiky moves data without confusing module mapping with wire encoding. It
-expands framework ADR
-[0010](../../adr/framework/0010-serialize-at-boundaries_H.md) and supports the command and projection
-architecture described elsewhere.
+This guide explains how Antiky moves data inside one process and across system boundaries. It keeps
+in-process state mapping separate from data encoding.
 
-## Four distinct operations
+It expands framework ADR
+[0010: Serialize data only when it crosses a real boundary](../../adr/framework/0010-serialize-at-boundaries_H.md).
+It also supports the command and state-copy architecture in the other guides.
+
+## Four ways to move data
 
 | Operation | Meaning | Example |
 | --- | --- | --- |
-| Projection or mapping | Convert one in-process representation into another with typed code | Apply an authored transform delta to the runtime transform store |
-| Serialization | Encode a versioned value contract as text or bytes | Encode a command as JSON for a detached Studio connection |
-| Deserialization | Decode and validate text or bytes into a trusted data-transfer value | Validate a gameplay input batch at the gateway |
-| Marshalling | Move data across an ownership or memory boundary and adapt layout or handles | Transfer an `ArrayBuffer` to an asset worker |
+| Projection or mapping | Copy data from one in-process form to another with typed code | Apply an authoring transform update to runtime transform storage |
+| Serialization | Encode versioned data as text or bytes | Encode a command as JSON for a separate Studio process |
+| Deserialization | Decode and validate text or bytes as a data-transfer value | Validate a group of gameplay inputs at the gateway |
+| Marshalling | Move data across a memory or ownership boundary and change its layout or handles | Transfer an `ArrayBuffer` to an asset worker |
 
-Module separation does not require serialization. Interfaces, ownership, package dependencies, and
-tests enforce in-process boundaries without paying encode/decode cost.
+Separate modules do not require serialization. Interfaces, ownership, package dependencies, and
+tests enforce boundaries in one process. They do not add encoding and decoding work.
 
-## Boundary rule
+## When to serialize
 
-Serialize when the receiver cannot safely share the sender's memory, trust, or type system. This
-normally includes:
+Serialize data when the receiver cannot safely share the memory, trust level, or type system of the
+sender. This rule usually applies at:
 
-- process and worker boundaries;
-- network boundaries;
-- untrusted tool and client ingress;
-- durable storage;
-- import and export formats; and
-- independent services or languages.
+- Process and worker boundaries
+- Network boundaries
+- Entry points for untrusted tools and clients
+- Durable storage
+- Import and export formats
+- Independent services or programming languages.
 
-Do not serialize merely because data moves from authoring to runtime, runtime to rendering, or the
-render world to the local BroMetal driver.
+Do not serialize data only because it moves between authoring, runtime, and render state. Do not
+serialize data between the local render state and BroMetal driver.
 
-## Boundary matrix
+## Default format at each boundary
 
 | Boundary | Default representation | Encoding |
 | --- | --- | --- |
 | Studio panel to local session | Validated typed command object | None |
-| Detached Studio to engine host | Versioned DTO | JSON initially |
-| MCP to sandbox | Capability-scoped tool input and command DTO | JSON |
-| Browser main thread to worker | Structured DTO plus transferable buffers | Structured clone or transfer |
-| Command handler to projections | Native events and typed deltas | None |
-| Runtime to render extraction | Dense indexes, typed arrays, dirty lists | None |
-| Render world to local driver | Typed frame and resource deltas | None |
-| Gameplay client to gateway | Input or intent contract | JSON in prototypes; compact binary when measured |
-| Server replication to client | Interest-filtered snapshot and delta contract | Compact binary when scale requires it |
-| Durable event store | Versioned event envelope | Canonical JSON or binary behind the store interface |
-| Asset storage or transfer | Manifest and content-addressed blob | Binary blob |
+| Separate Studio process to engine host | Versioned data-transfer object | JSON at first |
+| MCP to sandbox | Permission-limited tool input and command object | JSON |
+| Browser main thread to worker | Structured data object and transferable buffers | Structured clone or transfer |
+| Command handler to state copies | Native events and typed updates | None |
+| Runtime state to render preparation | Compact indexes, typed arrays, and changed-item lists | None |
+| Render state to local driver | Typed frame and resource updates | None |
+| Gameplay client to gateway | Input or intended-action contract | JSON for prototypes, then measured compact binary |
+| Server updates to client | Relevant snapshot and update contract | Compact binary when scale requires it |
+| Durable event store | Versioned event envelope | Standard JSON or binary behind the storage interface |
+| Asset storage or transfer | Manifest and content-addressed data | Binary data |
 
-The table selects defaults, not permanent transport products. The semantic contract remains the same
-when a codec changes.
+The table gives default choices, not permanent products. A data-format change must not change the
+meaning of the data.
 
-## Contract layers
+## Parts of a data contract
 
-Antiky separates four concerns:
+Antiky separates four parts of a data contract:
 
-1. **Semantic schema:** field meaning, units, identity, invariants, and compatibility.
-2. **Codec:** typed object, JSON, Protocol Buffers, structured clone, or another measured encoding.
-3. **Transport:** direct call, IPC, worker message, WebSocket, HTTP, or durable adapter.
-4. **Policy:** who may send the message, to which target, at what rate and size.
+1. **Schema.** This defines field meanings, units, IDs, rules, and compatibility.
+2. **Data format.** Examples include typed objects, JSON, Protocol Buffers, and structured clones.
+3. **Connection method.** Examples include direct calls, process messages, WebSockets, HTTP, and
+   storage adapters.
+4. **Permission rules.** These define who can send a message, its target, its rate, and its size.
 
-A transport or codec cannot change the meaning of a command. Local and remote clients should receive
-equivalent accept/reject behavior for equivalent trusted contexts.
+A connection method or data format cannot change the meaning of a command. Local and remote clients
+must get the same result when their trusted context is the same.
 
-## One vocabulary, multiple codecs
+## One vocabulary, multiple data formats
 
-Versioned command, event, component, snapshot, diagnostic, and replication definitions form the
-shared vocabulary.
+Versioned definitions for commands, events, components, snapshots, diagnostics, and client updates
+form one shared vocabulary.
 
 JSON is the default for:
 
-- Studio and browser development;
-- MCP and agent tools;
-- diagnostics and inspectable logs;
-- compatibility fixtures; and
-- early external protocols where throughput is not yet a bottleneck.
+- Studio and browser development
+- MCP and agent tools
+- Diagnostics and readable logs
+- Compatibility test examples
+- Early external protocols that do not have a measured speed problem.
 
-Protocol Buffers are the preferred binary option when high-volume, cross-language MMO networking or
-snapshots demonstrate the need. Adopting them does not require local TypeScript callers to encode a
-message, and it does not make Protobuf field layout the internal world model.
+Protocol Buffers are the preferred binary format for large network workloads that use different
+programming languages. Measurements from online games or snapshots must first show the need.
 
-Compression, quantization, and delta encoding are additional measured choices. They belong to the
-specific high-volume path rather than every protocol.
+Local TypeScript callers do not need to encode messages because Antiky uses Protocol Buffers
+elsewhere. Protocol Buffer fields also do not become the internal world model.
 
-## Local and strict transports
+Compression, lower-precision numbers, and change-only encoding are separate choices. Use them only
+on a high-volume path that measurements identify.
 
-A direct local transport passes validated immutable values to the command handler. A strict test
-transport should encode, decode, validate, and freeze the same payload before dispatch.
+## Local and strict test connections
+
+A direct local connection sends validated values to the command handler. Callers cannot change these
+values. A strict test connection encodes, decodes, validates, and freezes the same data before use.
 
 The strict path catches accidental boundary leaks such as:
 
-- functions;
-- class instances;
-- `Map` and `Set` values without a declared representation;
-- `undefined`, `NaN`, or infinity;
-- ambient filesystem or process handles;
-- GPU resources; and
-- runtime or render aliases used as persistent identity.
+- Functions
+- Class objects
+- `Map` and `Set` values without a defined data form
+- `undefined`, `NaN`, or infinity
+- File-system or process handles
+- GPU resources
+- Runtime or render aliases used as persistent IDs.
 
-Protocol tests use the strict path. Production local calls avoid its parsing cost after equivalent
-validation has been established.
+Protocol tests use the strict connection. Production local calls do not parse encoded data after
+tests prove equivalent validation.
 
-## Schema identity and evolution
+## Schema versions and changes
 
-The protocol version describes connection-level compatibility. Each payload type has its own schema
-version. Builds and snapshots additionally identify engine, physics, schema set, and asset manifest
-when behavior depends on them.
+The protocol version describes compatibility for a connection. Each message type has its own schema
+version.
+
+Builds and snapshots also identify the engine, physics version, schema set, and asset manifest when
+these items affect behavior.
 
 Rules:
 
-- use stable string tags for durable and external types;
-- brand IDs internally and validate their external string form;
-- define units and coordinate conventions in the contract;
-- use additive evolution with defaults where practical;
-- reject unknown commands;
-- stop durable projection on unknown event types;
-- retain golden fixtures for supported old versions; and
-- sort unordered collections before canonical hashing.
+- Use stable text tags for durable and external types.
+- Use branded IDs internally and validate their external text form.
+- Define units and coordinate rules in the contract.
+- Add optional fields with defaults when practical.
+- Reject unknown commands.
+- Stop durable state updates when an event type is unknown.
+- Keep test examples for supported old versions.
+- Sort unordered collections before Antiky calculates a repeatable hash.
 
-The runtime schema implementation may generate JSON-compatible descriptions for tools, but no
-specific validation library is yet architectural authority.
+The runtime schema code can generate JSON-compatible descriptions for tools. The project has not
+selected a required validation library yet.
 
 ## Large and binary data
 
-Commands and events carry semantic edits and asset references, not megabytes of mesh, texture,
-audio, animation, or voxel data.
+Commands and events contain meaningful changes and asset references. They do not contain large mesh,
+texture, audio, animation, or voxel data.
 
 Large artifacts use:
 
-- an `AssetId` and content hash;
-- a versioned manifest;
-- compiler identity and settings;
-- an independent binary blob; and
-- validation diagnostics.
+- An `AssetId` and content hash
+- A versioned manifest
+- Compiler ID and settings
+- Independent binary data
+- Validation diagnostics.
 
-Workers receive transferable buffers where possible. Networks and stores cache or stream blobs
-separately. An accepted event points to the asset version that became authoritative.
+Workers receive transferable buffers when possible. Networks and storage systems cache or stream
+binary data separately. An accepted event identifies the asset version that became authoritative.
 
-## Hot-path representations
+## Data for frequent operations
 
-External clarity and internal performance use different representations:
+External contracts and frequent internal operations use different data forms:
 
 | Semantic value | Hot representation |
 | --- | --- |
-| Persistent UUIDv7 entity ID | Dense runtime, connection, or render alias |
-| Transform in named world units | Numeric component arrays and origin-relative `Float32` render data |
-| Component string type and schema | Registry code scoped to a compatible build or negotiated protocol |
-| Voxel region edit | Chunk-local compact patch and deterministic compile job |
+| Persistent UUIDv7 entity ID | Compact runtime, connection, or render alias |
+| Transform in defined world units | Numeric component arrays and origin-relative `Float32` render data |
+| Component text type and schema | Registry code for a compatible build or agreed protocol |
+| Voxel region change | Compact chunk change and repeatable compile job |
 | Compiled geometry asset | Transferable typed arrays and GPU buffers |
-| Replication meaning | Interest-filtered, quantized delta against an acknowledged baseline |
+| Client-update meaning | Relevant, lower-precision change from an acknowledged baseline |
 
-Mappings are explicit. A hot representation is never persisted as though it had the semantic value's
-lifetime or scope.
+Each mapping is explicit. Antiky does not store an internal data form as if it had the lifetime or
+scope of the public value.
 
 ## Trust and safety
 
-Deserialization creates untrusted data, not trusted authority. At ingress Antiky must:
+Decoded data is still untrusted. At each external entry point, Antiky must:
 
-- cap message, collection, string, and blob-reference sizes;
-- validate schemas and finite numeric ranges;
-- derive identity and capabilities outside the payload;
-- enforce rate, sequence, revision, and tick windows;
-- reject unknown message types;
-- avoid leaking secrets or sensitive internals in diagnostics; and
-- log safe correlation identifiers for traceability.
+- Limit message, collection, text, and binary-reference sizes.
+- Validate schemas and finite number ranges.
+- Get identity and permissions from outside the message.
+- Enforce rate, sequence, revision, and simulation-step limits.
+- Reject unknown message types.
+- Keep secrets and sensitive internal data out of diagnostics.
+- Log safe IDs that link related operations.
 
-Studio IPC and local MCP still cross trust boundaries. Local does not mean trusted by default.
+Studio process messages and local MCP still cross trust boundaries. Local data is not trusted by
+default.
 
 ## Performance rules
 
-- No JSON encode/decode in fixed-tick or render inner loops.
-- No whole-world clone for Studio, AI, persistence, networking, or rendering updates.
-- No persistent UUID comparison inside a hot loop after resolution.
-- No per-entity per-frame allocation where a reusable buffer or stable slot works.
-- No large blob embedded in routine command or event payloads.
-- No synchronous durable write or asset compile on the render-submission path.
-- No binary codec introduced without measurements from the path it improves.
+- Fixed-step and render loops must not encode or decode JSON.
+- Do not copy the complete world for Studio, AI, storage, networking, or render updates.
+- After ID resolution, a frequent loop must not compare persistent UUIDs.
+- Reuse a buffer or stable slot instead of allocating data for each entity in each frame.
+- Do not put large binary data in a normal command or event.
+- Render submission must not wait for a durable write or asset compilation.
+- Do not add a binary data format without measurements from the path that needs it.
 
 Diagnostics should measure payload bytes, decode and validation time, queue depth, persistence append
-latency, replication bytes, snapshot size, transfer copies, and render upload bytes.
+time, client-update bytes, snapshot size, transfer copies, and render-upload bytes.
 
 ## Verification
 
-- Golden fixtures cover every supported payload and previous schema version.
-- Local, strict local, and external transports produce equivalent semantic outcomes.
-- Fuzz and property tests reject malformed IDs, non-finite numbers, oversized collections, and
-  unsupported values.
-- Cross-language fixtures are required before a Protobuf contract is relied on by another runtime.
-- Canonical manifests and snapshots hash identically regardless of map insertion order.
+- Standard test examples cover each supported message and previous schema version.
+- Local, strict local, and external connections produce the same results.
+- Generated-input tests reject malformed IDs, nonfinite numbers, large collections, and unsupported
+  values.
+- Cross-language test examples are necessary before another runtime depends on a Protocol Buffer
+  contract.
+- Standard manifests and snapshots have the same hash for every map insertion order.
 - Import rules prevent GPU and UI types from entering protocol definitions.
-- Performance tests confirm that no encoder is invoked by fixed-tick systems or render extraction.
+- Performance tests confirm that fixed-step systems and render preparation do not call an encoder.
 
 ## Open decisions
 
-- Exact schema and validation tooling.
-- Studio-to-engine transport and process placement.
-- The first path that warrants Protocol Buffers.
-- Network quantization and compression rules.
-- Durable event encoding and database adapter.
-- Worker transfer versus shared-memory strategy for large buffers.
+- Exact schema and validation tools
+- Studio-to-engine connection and process locations
+- The first path that needs Protocol Buffers
+- Network precision and compression rules
+- Durable event format and database adapter
+- Worker transfer or shared-memory design for large buffers.
