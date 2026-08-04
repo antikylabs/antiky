@@ -9,6 +9,7 @@ import {
   type MovementInput,
   type Pointer,
 } from '../runtime';
+import type { DemoInspectionInput, DemoRuntimePhase } from '../runtime-inspection';
 import { loadDemo } from '../registry';
 
 type Props = {
@@ -19,7 +20,12 @@ type Props = {
   controlMode?: 'move' | 'orbit';
 };
 
-type Phase = 'poster' | 'loading' | 'ready' | 'running' | 'paused' | 'error';
+type Phase = Exclude<DemoRuntimePhase, 'stopped'>;
+
+type InspectionPublisher = Readonly<{
+  publish(input: DemoInspectionInput): Promise<void>;
+  close(): void;
+}>;
 
 const MOVE_KEYS = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']);
 
@@ -42,6 +48,10 @@ export default function LiveDemoStage({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runningRef = useRef(false);
+  const frameCountRef = useRef(0);
+  const runtimeInstanceIdRef = useRef('runtime-pending');
+  const inspectionPublisherRef = useRef<InspectionPublisher | null>(null);
+  const inspectionInputRef = useRef<DemoInspectionInput | null>(null);
   const movementRef = useRef<MovementInput>({ x: 0, z: 0, active: false });
   const pressedRef = useRef(new Set<string>());
   const touchRef = useRef({ x: 0, z: 0 });
@@ -50,6 +60,7 @@ export default function LiveDemoStage({
   const [fps, setFps] = useState(0);
   const [phase, setPhase] = useState<Phase>(poster ? 'poster' : 'loading');
   const [retry, setRetry] = useState(0);
+  const [inspectionTick, setInspectionTick] = useState(0);
 
   const syncMovement = () => {
     const keys = pressedRef.current;
@@ -83,10 +94,13 @@ export default function LiveDemoStage({
     const mode: DemoMode = variant === 'full' ? 'interactive' : variant === 'thumb' ? 'thumbnail' : 'ambient';
 
     runningRef.current = false;
+    frameCountRef.current = 0;
+    runtimeInstanceIdRef.current = crypto.randomUUID();
     movementRef.current = { x: 0, z: 0, active: false };
     pressedRef.current.clear();
     touchRef.current = { x: 0, z: 0 };
     setError(null);
+    setStats({});
     setFps(0);
     setPhase(poster ? 'poster' : 'loading');
 
@@ -186,7 +200,10 @@ export default function LiveDemoStage({
           pointer,
           movement: movementRef.current,
           mode,
-          report: setStats,
+          report: (nextStats) => {
+            setStats(nextStats);
+            setInspectionTick((value) => value + 1);
+          },
         });
         if (cancelled) {
           demo.dispose();
@@ -203,6 +220,7 @@ export default function LiveDemoStage({
           if (!visible || document.hidden) return;
           if (!runningRef.current && previewFrames > 0) {
             built.frame(0.8);
+            frameCountRef.current += 1;
             previewFrames -= 1;
             if (previewFrames === 0) {
               if (autoplay) {
@@ -217,8 +235,10 @@ export default function LiveDemoStage({
           if (!runningRef.current) return;
           built.frame(time);
           frames += 1;
+          frameCountRef.current += 1;
           if (time - lastReport >= 0.5) {
             setFps(Math.round(frames / Math.max(time - lastReport, 0.001)));
+            setInspectionTick((value) => value + 1);
             frames = 0;
             lastReport = time;
           }
@@ -274,6 +294,56 @@ export default function LiveDemoStage({
       teardown?.();
     };
   }, [slug, variant, poster, controlMode, retry]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
+    let disposed = false;
+    void import('./development-inspection').then(async ({
+      connectDevelopmentInspectionPublisher,
+    }) => {
+      const publisher = await connectDevelopmentInspectionPublisher();
+      if (disposed) {
+        publisher?.close();
+        return;
+      }
+      inspectionPublisherRef.current = publisher;
+      const input = inspectionInputRef.current;
+      if (publisher && input) await publisher.publish(input);
+    }).catch(() => {
+      // Inspection is optional for ordinary website development.
+    });
+
+    return () => {
+      disposed = true;
+      const publisher = inspectionPublisherRef.current;
+      inspectionPublisherRef.current = null;
+      const input = inspectionInputRef.current;
+      if (publisher && input) {
+        void publisher.publish({ ...input, phase: 'stopped' }).finally(() => publisher.close());
+      } else {
+        publisher?.close();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
+    const canvas = canvasRef.current;
+    const input: DemoInspectionInput = Object.freeze({
+      runtimeInstanceId: runtimeInstanceIdRef.current,
+      phase,
+      frameCount: frameCountRef.current,
+      framesPerSecond: fps,
+      canvasWidth: canvas?.width ?? 0,
+      canvasHeight: canvas?.height ?? 0,
+      stats: Object.freeze({ ...stats }),
+      error,
+    });
+    inspectionInputRef.current = input;
+    void inspectionPublisherRef.current?.publish(input).catch(() => {
+      // The development host reports connection health; the demo stays usable.
+    });
+  }, [error, fps, inspectionTick, phase, retry, stats]);
 
   const toggleRunning = () => {
     const next = !runningRef.current;

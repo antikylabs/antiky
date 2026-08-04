@@ -1,9 +1,8 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
-import { chmod, mkdir, rename, rm, rmdir, writeFile } from 'node:fs/promises';
-import { createServer as createHttpServer, type Server as HttpServer } from 'node:http';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { createServer as createNetServer, type Server as NetServer } from 'node:net';
-import { dirname, join } from 'node:path';
+
+import type { InspectionSnapshot } from '@antiky/framework';
 
 import type { AntikyConfig } from './config.ts';
 import {
@@ -15,9 +14,13 @@ import {
   type DevelopmentStopResult,
 } from './development-types.ts';
 import { AntikyCliError } from './errors.ts';
+import { createInspectionServer } from './inspection-server.ts';
+import {
+  getSessionDescriptorPath,
+  removeSessionDescriptor,
+  writeSessionDescriptor,
+} from './session-descriptor.ts';
 
-const SESSION_DIRECTORY = '.antiky';
-const SESSION_FILE = 'dev-session.json';
 const CHILD_STOP_TIMEOUT_MILLISECONDS = 1500;
 
 type ProcessRecord = {
@@ -45,15 +48,6 @@ export interface DevelopmentSession {
   stop(reason?: DevelopmentStopReason, exitCode?: number): Promise<DevelopmentStopResult>;
 }
 
-type SessionDescriptor = Readonly<{
-  schemaVersion: 1;
-  developmentSessionId: string;
-  configHash: string;
-  inspectionUrl: string;
-  credential: string;
-  ownerPid: number;
-}>;
-
 function processSnapshot(record: ProcessRecord): Readonly<ProcessRecord> {
   return Object.freeze({
     state: record.state,
@@ -64,12 +58,6 @@ function processSnapshot(record: ProcessRecord): Readonly<ProcessRecord> {
 
 function closeNetServer(server: NetServer | undefined): Promise<void> {
   if (!server?.listening) return Promise.resolve();
-  return new Promise((resolve) => server.close(() => resolve()));
-}
-
-function closeHttpServer(server: HttpServer): Promise<void> {
-  if (!server.listening) return Promise.resolve();
-  server.closeAllConnections();
   return new Promise((resolve) => server.close(() => resolve()));
 }
 
@@ -90,62 +78,6 @@ async function reservePort(
     server.listen({ host, port, exclusive: true }, resolve);
   });
   return server;
-}
-
-function hasCredential(header: string | undefined, credential: string): boolean {
-  if (!header?.startsWith('Bearer ')) return false;
-  const supplied = Buffer.from(header.slice('Bearer '.length));
-  const expected = Buffer.from(credential);
-  return supplied.length === expected.length && timingSafeEqual(supplied, expected);
-}
-
-function writeJson(
-  response: import('node:http').ServerResponse,
-  status: number,
-  body: unknown,
-): void {
-  const text = JSON.stringify(body);
-  response.writeHead(status, {
-    'cache-control': 'no-store',
-    'content-type': 'application/json; charset=utf-8',
-    'content-length': Buffer.byteLength(text),
-  });
-  response.end(text);
-}
-
-async function listenHttp(server: HttpServer, host: string, port: number): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    server.once('error', reject);
-    server.listen({ host, port, exclusive: true }, resolve);
-  });
-}
-
-async function writeDescriptor(path: string, descriptor: SessionDescriptor): Promise<void> {
-  const directory = dirname(path);
-  await mkdir(directory, { recursive: true, mode: 0o700 });
-  await chmod(directory, 0o700);
-  const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
-  try {
-    await writeFile(temporaryPath, `${JSON.stringify(descriptor, null, 2)}\n`, {
-      encoding: 'utf8',
-      flag: 'wx',
-      mode: 0o600,
-    });
-    await rename(temporaryPath, path);
-    await chmod(path, 0o600);
-  } finally {
-    await rm(temporaryPath, { force: true });
-  }
-}
-
-async function removeDescriptor(path: string): Promise<void> {
-  await rm(path, { force: true });
-  try {
-    await rmdir(dirname(path));
-  } catch (cause: unknown) {
-    const code = (cause as NodeJS.ErrnoException).code;
-    if (code !== 'ENOENT' && code !== 'ENOTEMPTY') throw cause;
-  }
 }
 
 function sendSignal(child: ManagedChild, signal: NodeJS.Signals): void {
@@ -233,10 +165,12 @@ export async function startDevelopmentSession(
   const id = randomUUID();
   const credential = randomBytes(32).toString('base64url');
   const inspectionUrl = `http://${config.network.host}:${config.network.inspectionPort}`;
-  const descriptorPath = join(dirname(config.path), SESSION_DIRECTORY, SESSION_FILE);
+  const descriptorPath = getSessionDescriptorPath(config.path);
   const startedAtMilliseconds = Date.now();
   const startedAt = new Date(startedAtMilliseconds).toISOString();
   let launchMilliseconds: number | undefined;
+  let acceptedBuildRevision = 0;
+  let latestInspection: InspectionSnapshot | null = null;
   const processRecords = {
     game: { state: 'starting' } as ProcessRecord,
     shaders: { state: 'starting' } as ProcessRecord,
@@ -252,7 +186,7 @@ export async function startDevelopmentSession(
   const snapshot = (): DevelopmentSnapshot => Object.freeze({
     schemaVersion: DEVELOPMENT_SCHEMA_VERSION,
     developmentSessionId: id,
-    acceptedBuildRevision: 0,
+    acceptedBuildRevision,
     startedAt,
     config: Object.freeze({
       path: config.path,
@@ -265,7 +199,7 @@ export async function startDevelopmentSession(
       game: processSnapshot(processRecords.game),
       shaders: processSnapshot(processRecords.shaders),
     }),
-    connection: Object.freeze({ state: 'waiting' as const }),
+    connection: Object.freeze({ state: latestInspection === null ? 'waiting' as const : 'connected' as const }),
     cleanup: Object.freeze({ state: cleanupState }),
     diagnostics: Object.freeze([]),
     measurements: Object.freeze({
@@ -273,29 +207,21 @@ export async function startDevelopmentSession(
       launchMilliseconds: launchMilliseconds ?? Math.max(0, Date.now() - startedAtMilliseconds),
       ...(cleanupMilliseconds === undefined ? {} : { cleanupMilliseconds }),
     }),
-    inspection: null,
+    inspection: latestInspection,
   });
 
-  const gameOrigin = new URL(config.game.url).origin;
-  const expectedHost = `${config.network.host}:${config.network.inspectionPort}`;
-  const httpServer = createHttpServer((request, response) => {
-    if (request.headers.host !== expectedHost) {
-      writeJson(response, 400, { error: { code: 'ANTIKY_HOST_INVALID', message: 'Invalid Host header.' } });
-      return;
-    }
-    if (request.headers.origin && request.headers.origin !== gameOrigin) {
-      writeJson(response, 403, { error: { code: 'ANTIKY_ORIGIN_INVALID', message: 'Invalid Origin header.' } });
-      return;
-    }
-    if (!hasCredential(request.headers.authorization, credential)) {
-      writeJson(response, 401, { error: { code: 'ANTIKY_UNAUTHORIZED', message: 'Authorization is required.' } });
-      return;
-    }
-    if (request.method === 'GET' && request.url === '/v1/development') {
-      writeJson(response, 200, snapshot());
-      return;
-    }
-    writeJson(response, 404, { error: { code: 'ANTIKY_NOT_FOUND', message: 'Resource does not exist.' } });
+  const inspectionServer = createInspectionServer({
+    host: config.network.host,
+    port: config.network.inspectionPort,
+    developmentSessionId: id,
+    gameUrl: config.game.url,
+    credential,
+    readDevelopmentSnapshot: snapshot,
+    acceptInspection(inspection) {
+      latestInspection = inspection;
+      acceptedBuildRevision = Math.max(acceptedBuildRevision, 1);
+      return acceptedBuildRevision;
+    },
   });
 
   const stop = (
@@ -308,8 +234,8 @@ export async function startDevelopmentSession(
       cleanupState = 'stopping';
       const cleanupStarted = Date.now();
       await Promise.all(children.map(stopChild));
-      await closeHttpServer(httpServer);
-      await removeDescriptor(descriptorPath);
+      await inspectionServer.stop();
+      await removeSessionDescriptor(descriptorPath);
       cleanupMilliseconds = Date.now() - cleanupStarted;
       cleanupState = 'stopped';
       const result = Object.freeze({ reason, exitCode, cleanupMilliseconds });
@@ -333,6 +259,7 @@ export async function startDevelopmentSession(
         ANTIKY_GAME_PORT: String(config.network.gamePort),
         ANTIKY_INSPECTION_PORT: String(config.network.inspectionPort),
         ANTIKY_GAME_URL: config.game.url,
+        NEXT_PUBLIC_ANTIKY_INSPECTION_ORIGIN: inspectionUrl,
       },
       shell: false,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -365,8 +292,8 @@ export async function startDevelopmentSession(
   try {
     await closeNetServer(inspectionReservation);
     inspectionReservation = undefined;
-    await listenHttp(httpServer, config.network.host, config.network.inspectionPort);
-    await writeDescriptor(descriptorPath, {
+    await inspectionServer.start();
+    await writeSessionDescriptor(descriptorPath, {
       schemaVersion: 1,
       developmentSessionId: id,
       configHash: config.hash,

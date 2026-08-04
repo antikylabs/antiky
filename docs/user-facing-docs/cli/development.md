@@ -92,6 +92,22 @@ The command prints the current `DevelopmentSnapshot` as JSON. It contains:
 Framework measurements and CLI development measurements remain separate. Each measurement record
 has its owner.
 
+When `antiky dev` starts the website, its development-only browser adapter connects to the
+loopback inspection service and publishes the stage's real lifecycle, frame count, canvas size, and
+available render statistics. The adapter does not infer facts from terminal text or the DOM.
+
+Code that needs the same service contract can use the exported typed client:
+
+```ts
+import { connectDevelopmentClient } from '@antiky/cli';
+
+const client = await connectDevelopmentClient('antiky.config.json');
+const development = await client.readDevelopmentSnapshot();
+```
+
+This is the Slice 00 Studio-compatible boundary. It does not create a Studio UI or a second engine
+service.
+
 ## Stop and cleanup
 
 Press `Ctrl-C` in the `antiky dev` terminal. Antiky sends a normal stop to every owned process,

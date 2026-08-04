@@ -7,10 +7,13 @@ import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { createInspectionSnapshot } from '@antiky/framework';
+
 // Node 22's strip-types test runner requires the source extension.
 // @ts-ignore explicit TypeScript extension is for the direct test runner
 import {
   AntikyCliError,
+  connectDevelopmentClient,
   inspectDevelopmentSession,
   loadAntikyConfig,
   startDevelopmentSession,
@@ -265,4 +268,79 @@ test('SIGINT stops the CLI session and releases both ports', async () => {
   assert.equal(result?.code, 130, stderr);
   assert.equal(await portIsFree(GAME_PORT), true);
   assert.equal(await portIsFree(INSPECTION_PORT), true);
+});
+
+test('browser publication, direct reads, CLI inspection, and a typed client share one snapshot', async () => {
+  const project = await makeProject();
+  const config = await loadAntikyConfig(project.configPath);
+  const session = await startDevelopmentSession(config, { writeOutput: () => {} });
+  const origin = new URL(config.game.url).origin;
+
+  try {
+    const bootstrapResponse = await fetch(`${session.inspectionUrl}/v1/browser/bootstrap`, {
+      headers: { origin },
+    });
+    assert.equal(bootstrapResponse.status, 200);
+    const bootstrap = await bootstrapResponse.json() as {
+      schemaVersion: number;
+      developmentSessionId: string;
+      gameUrl: string;
+      credential: string;
+    };
+    assert.equal(bootstrap.schemaVersion, 1);
+    assert.equal(bootstrap.developmentSessionId, session.id);
+    assert.equal(bootstrap.gameUrl, config.game.url);
+
+    const frameworkSnapshot = createInspectionSnapshot({
+      schemaVersion: 1,
+      runtime: { instanceId: 'runtime-parity-001', lifecycle: 'running' },
+      diagnostics: [],
+      measurements: {
+        runtime: { owner: 'framework', frameCount: 42, framesPerSecond: 60 },
+        render: {
+          owner: 'framework',
+          canvasWidth: 1280,
+          canvasHeight: 720,
+          drawCalls: 16,
+          instances: 1247,
+          uploadBytesPerFrame: 320,
+        },
+      },
+    });
+    const publishResponse = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${bootstrap.credential}`,
+        'content-type': 'application/json',
+        origin,
+      },
+      body: JSON.stringify({
+        schemaVersion: 1,
+        developmentSessionId: session.id,
+        snapshot: frameworkSnapshot,
+      }),
+    });
+    assert.equal(publishResponse.status, 202);
+    assert.deepEqual(await publishResponse.json(), {
+      schemaVersion: 1,
+      accepted: true,
+      developmentSessionId: session.id,
+      runtimeInstanceId: 'runtime-parity-001',
+      acceptedBuildRevision: 1,
+    });
+
+    const direct = session.snapshot();
+    const cliInspection = await inspectDevelopmentSession(project.configPath);
+    const client = await connectDevelopmentClient(project.configPath);
+    const studioCompatible = await client.readDevelopmentSnapshot();
+
+    assert.equal(direct.connection.state, 'connected');
+    assert.equal(direct.acceptedBuildRevision, 1);
+    assert.deepEqual(direct.inspection, frameworkSnapshot);
+    assert.deepEqual(cliInspection.inspection, frameworkSnapshot);
+    assert.deepEqual(studioCompatible.inspection, frameworkSnapshot);
+    assert.deepEqual(cliInspection, studioCompatible);
+  } finally {
+    await session.stop('normal');
+  }
 });
