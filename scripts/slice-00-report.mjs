@@ -92,6 +92,14 @@ const historicalAttempts = Object.freeze([
     cause: 'The closed run log proved Chrome received an external GCM endpoint response despite its loopback-only run claim.',
     disposition: 'A failing isolation regression added a closed loopback proxy, non-loopback name mapping, and a post-cleanup external-response log gate; the prior receipt is superseded.',
   },
+  {
+    id: 'attempt-017',
+    checkpoint: 'CP-05',
+    result: 'FAIL',
+    failureClass: 'DEFECT',
+    cause: 'A replacement run timestamp retained milliseconds and failed the strict receipt run-ID schema after live checks passed.',
+    disposition: 'A failing timestamp regression led to deterministic second-precision run IDs; the invalid unsealed output was quarantined.',
+  },
 ]);
 
 function evidence(status, detail) {
@@ -234,7 +242,7 @@ export function createMeasurements(context) {
     },
     process: {
       retries: 2,
-      defectCorrections: 8,
+      defectCorrections: 9,
       evidenceFailures: 1,
       flakyChecks: 1,
       ownerInterventions: 0,
@@ -252,7 +260,7 @@ export function createConfirmation(context, acceptance) {
 export function createReceipt(context, artifacts, acceptance) {
   const attempts = [
     ...historicalAttempts,
-    { id: 'attempt-017', checkpoint: 'CP-05', result: 'PASS', failureClass: null, correlationId: context.correlationId },
+    { id: 'attempt-018', checkpoint: 'CP-05', result: 'PASS', failureClass: null, correlationId: context.correlationId },
   ];
   return {
     schemaVersion: 1,

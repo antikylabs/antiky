@@ -117,6 +117,15 @@ test('run selection resumes one open baseline and rejects ambiguous open runs', 
   await assert.rejects(selectRunId(outputs, new Date()), /multiple open Slice 00 runs/);
 });
 
+test('new run IDs discard timestamp milliseconds', async () => {
+  const outputs = await mkdtemp(path.join(os.tmpdir(), 'antiky-run-id-'));
+
+  assert.equal(
+    await selectRunId(outputs, new Date('2026-08-04T21:00:00.321Z')),
+    's00-20260804T210000Z',
+  );
+});
+
 test('Git porcelain parsing preserves the leading worktree status column', () => {
   assert.deepEqual(
     parseWorkingTreePaths(' M docs/adr/UNDER_REVIEW_A.md\n?? docs/user-facing-docs/studio/.gitkeep\n'),

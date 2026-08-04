@@ -9,7 +9,7 @@ async function exists(file) {
 }
 
 function formatRunId(date) {
-  return `s00-${date.toISOString().replaceAll('-', '').replaceAll(':', '').replace('.000', '')}`;
+  return `s00-${date.toISOString().replaceAll('-', '').replaceAll(':', '').replace(/\.\d{3}Z$/, 'Z')}`;
 }
 
 export function parseWorkingTreePaths(status) {
