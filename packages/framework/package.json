@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "tsc --noEmit --watch --preserveWatchOutput",
+    "test": "node --experimental-strip-types --experimental-transform-types --test src/inspection.test.ts tests/import-boundary.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
