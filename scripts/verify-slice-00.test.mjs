@@ -11,6 +11,7 @@ import {
   assertReadySnapshot,
   assertSnapshotParity,
   comparePageCaptures,
+  parseWorkingTreePaths,
   selectRunId,
 } from './verify-slice-00.mjs';
 
@@ -109,4 +110,11 @@ test('run selection resumes one open baseline and rejects ambiguous open runs', 
   await mkdir(path.join(outputs, second));
   await writeFile(path.join(outputs, second, 'baseline.md'), '# baseline\n');
   await assert.rejects(selectRunId(outputs, new Date()), /multiple open Slice 00 runs/);
+});
+
+test('Git porcelain parsing preserves the leading worktree status column', () => {
+  assert.deepEqual(
+    parseWorkingTreePaths(' M docs/adr/UNDER_REVIEW_A.md\n?? docs/user-facing-docs/studio/.gitkeep\n'),
+    ['docs/adr/UNDER_REVIEW_A.md', 'docs/user-facing-docs/studio/.gitkeep'],
+  );
 });

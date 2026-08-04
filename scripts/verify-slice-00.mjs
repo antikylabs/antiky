@@ -53,6 +53,7 @@ import {
   assertReadySnapshot,
   assertSnapshotParity,
   comparePageCaptures,
+  parseWorkingTreePaths,
   selectRunId,
 } from './slice-00-verifier-core.mjs';
 
@@ -61,6 +62,7 @@ export {
   assertReadySnapshot,
   assertSnapshotParity,
   comparePageCaptures,
+  parseWorkingTreePaths,
   selectRunId,
 };
 
@@ -90,19 +92,17 @@ async function exists(file) {
   return access(file).then(() => true, () => false);
 }
 
-async function commandText(command, args) {
+async function commandText(command, args, trim = true) {
   const result = await executeFile(command, args, { cwd: root, maxBuffer: 4 * 1024 * 1024 });
-  return result.stdout.trim();
+  return trim ? result.stdout.trim() : result.stdout;
 }
 
 async function assertImplementationTreeClean() {
-  const status = await commandText('git', ['status', '--porcelain', '--untracked-files=all']);
-  const unexpected = status.split('\n').filter(Boolean).filter((line) => {
-    const file = line.slice(3).split(' -> ').at(-1);
-    return !allowedUnrelatedChanges.has(file);
-  });
+  const status = await commandText('git', ['status', '--porcelain', '--untracked-files=all'], false);
+  const paths = parseWorkingTreePaths(status);
+  const unexpected = paths.filter((file) => !allowedUnrelatedChanges.has(file));
   assert.deepEqual(unexpected, [], `Slice implementation tree is not clean:\n${unexpected.join('\n')}`);
-  return status.split('\n').filter(Boolean).map((line) => line.slice(3).split(' -> ').at(-1));
+  return paths;
 }
 
 async function checkpointCommits() {

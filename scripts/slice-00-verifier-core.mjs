@@ -12,6 +12,12 @@ function formatRunId(date) {
   return `s00-${date.toISOString().replaceAll('-', '').replaceAll(':', '').replace('.000', '')}`;
 }
 
+export function parseWorkingTreePaths(status) {
+  return status.split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => line.slice(3).split(' -> ').at(-1));
+}
+
 export async function selectRunId(outputs, now = new Date()) {
   const entries = await readdir(outputs, { withFileTypes: true }).catch(() => []);
   const open = [];

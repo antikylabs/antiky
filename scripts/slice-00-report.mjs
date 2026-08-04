@@ -68,6 +68,14 @@ const historicalAttempts = Object.freeze([
     disposition: 'The existing test passed in isolation and the single allowed full-check retry passed.',
   },
   { id: 'attempt-013', checkpoint: 'CP-04', result: 'PASS', failureClass: null },
+  {
+    id: 'attempt-014',
+    checkpoint: 'CP-05',
+    result: 'FAIL',
+    failureClass: 'DEFECT',
+    cause: 'The verifier trimmed the leading Git porcelain status column and misread an allowed unrelated edit.',
+    disposition: 'A failing parser regression preserved both status columns before the verifier retry.',
+  },
 ]);
 
 function evidence(status, detail) {
@@ -208,7 +216,7 @@ export function createMeasurements(context) {
     },
     process: {
       retries: 2,
-      defectCorrections: 6,
+      defectCorrections: 7,
       flakyChecks: 1,
       ownerInterventions: 0,
       blockedMilliseconds: 0,
@@ -225,7 +233,7 @@ export function createConfirmation(context, acceptance) {
 export function createReceipt(context, artifacts, acceptance) {
   const attempts = [
     ...historicalAttempts,
-    { id: 'attempt-014', checkpoint: 'CP-05', result: 'PASS', failureClass: null, correlationId: context.correlationId },
+    { id: 'attempt-015', checkpoint: 'CP-05', result: 'PASS', failureClass: null, correlationId: context.correlationId },
   ];
   return {
     schemaVersion: 1,
