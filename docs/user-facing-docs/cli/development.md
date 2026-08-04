@@ -1,12 +1,12 @@
 # Antiky Development CLI
 
-The `antiky` command starts and inspects one local game development session. Slice 00 uses the
-existing `town-study` route.
+The `antiky` command runs and inspects one local development session for your game. It keeps the
+game process, shader watcher, runtime inspection, and AI tooling behind one project-level command.
 
-## Configure the session
+## Configure your project
 
-Put `antiky.config.json` at the project root. The schema is versioned and strict. Antiky rejects an
-unknown field before it starts a process.
+Put `antiky.config.json` at the project root. The schema is versioned and strict, so Antiky rejects
+unknown fields before starting a process. Adapt the commands and game route to your project:
 
 ```json
 {
@@ -15,11 +15,9 @@ unknown field before it starts a process.
     "command": [
       "npm",
       "run",
-      "dev",
-      "--workspace",
-      "@antiky/website",
+      "game:dev",
       "--",
-      "--hostname",
+      "--host",
       "{host}",
       "--port",
       "{gamePort}"
@@ -27,12 +25,10 @@ unknown field before it starts a process.
     "shaderCommand": [
       "npm",
       "run",
-      "shaders:watch",
-      "--workspace",
-      "@antiky/demos"
+      "shaders:watch"
     ],
     "workingDirectory": ".",
-    "url": "http://127.0.0.1:3010/demos/town-study"
+    "url": "http://127.0.0.1:3010/game"
   },
   "network": {
     "host": "127.0.0.1",
@@ -42,21 +38,25 @@ unknown field before it starts a process.
 }
 ```
 
-`workingDirectory` is relative to the config file and must stay inside that directory. The command
-can use `{host}`, `{gamePort}`, `{inspectionPort}`, and `{gameUrl}` placeholders. Antiky expands each
-placeholder without a shell.
+`workingDirectory` is relative to the config file and must stay inside its directory. Command
+arguments can use `{host}`, `{gamePort}`, `{inspectionPort}`, and `{gameUrl}` placeholders. Antiky
+expands each argument directly without invoking a shell.
 
-The game URL must use HTTP on the configured game address. Slice 00 accepts only `127.0.0.1`.
+The game URL must use HTTP at the configured game address. Antiky binds development services to the
+IPv4 loopback address `127.0.0.1`; it does not accept a LAN or wildcard host.
 
-## Start the town
+## Start the development session
 
-From the repository root, run:
+From the project root, run:
 
 ```sh
 antiky dev
 ```
 
-The workspace-local executable is `./node_modules/.bin/antiky` after `npm install`.
+The `antiky dev` command starts the shader watcher, game host, inspection service, and MCP service.
+It prints the resolved config path, game URL, inspection URL, MCP URL, development-session ID, and
+service names after startup. The MCP URL is the inspection origin followed by `/mcp`, such as
+`http://127.0.0.1:3011/mcp`.
 
 To use another config path, run:
 
@@ -64,9 +64,8 @@ To use another config path, run:
 antiky dev --config path/to/antiky.config.json
 ```
 
-Antiky validates the complete config and reserves the game and inspection ports before it starts a
-child. It then starts the shader watcher, game host, and inspection service. The command prints the
-resolved config path, game URL, inspection URL, development-session ID, and service names.
+Antiky validates the complete config and reserves both ports before starting a child. If validation
+or reservation fails, no configured process starts.
 
 The session credential is random. Antiky stores it only in `.antiky/dev-session.json` with mode
 `0600`. The credential does not appear in command output, the game URL, diagnostics, or inspection
@@ -90,12 +89,10 @@ The command prints the current `DevelopmentSnapshot` as JSON. It contains:
 - CLI-owned launch measurements and development diagnostics.
 - The latest framework `InspectionSnapshot`, or `null` before a runtime connects.
 
-Framework measurements and CLI development measurements remain separate. Each measurement record
-has its owner.
-
-When `antiky dev` starts the website, its development-only browser adapter connects to the
-loopback inspection service and publishes the stage's real lifecycle, frame count, canvas size, and
-available render statistics. The adapter does not infer facts from terminal text or the DOM.
+Framework measurements and CLI development measurements remain separate, and every measurement
+record identifies its owner. A game runtime that publishes Antiky inspection snapshots supplies the
+real lifecycle, frame, canvas, and render facts; the CLI does not infer them from terminal output or
+the DOM.
 
 Code that needs the same service contract can use the exported typed client:
 
@@ -106,67 +103,104 @@ const client = await connectDevelopmentClient('antiky.config.json');
 const development = await client.readDevelopmentSnapshot();
 ```
 
-This is the Slice 00 Studio-compatible boundary. It does not create a Studio UI or a second engine
-service.
+This client is also the supported boundary for a Studio integration. It reads the same state and
+exposes the same reload and frame-capture actions as the CLI and MCP adapters.
 
 ## Track development updates
 
-Antiky watches the selected project's existing source, shader, asset, and config files. A revision
-is accepted only after a changed build reaches a newer ready browser runtime. A browser reload can
-change the runtime-instance ID without changing the development-session ID.
+Antiky watches source, shader, asset, and config files under the configured working directory. It
+accepts a revision only after the changed build reaches a newer ready browser runtime. A browser
+reload can change the runtime-instance ID without changing the development-session ID.
 
-For a shader change, Antiky waits for the matching generated shader before it accepts a ready
+For a shader change, Antiky waits for the matching generated shader before accepting a ready
 runtime. A failed update leaves the accepted revision and generated shader unchanged and adds a
-structured CLI build diagnostic. Fixing the file clears that active diagnostic after the next ready
+structured build diagnostic. Fixing the file clears that active diagnostic after the next ready
 runtime.
 
 ## Connect an MCP client
 
-Run the newline-delimited standard-input/output adapter while `antiky dev` is active:
+Prefer the Streamable HTTP endpoint that `antiky dev` starts. Point an MCP client that supports a
+remote URL at the printed MCP URL. A representative client entry looks like this, although the
+outer configuration keys vary by client:
 
-```sh
-antiky mcp
+```json
+{
+  "mcpServers": {
+    "antiky": {
+      "type": "http",
+      "url": "http://127.0.0.1:3011/mcp"
+    }
+  }
+}
 ```
 
-Use `--config path/to/antiky.config.json` when the development command used that config. The adapter
-implements MCP protocol version `2025-11-25`. It writes protocol JSON only to standard output and
-uses the same typed development client as `antiky inspect`.
+The endpoint is stateless and implements MCP protocol version `2025-11-25`. It returns JSON for
+requests and does not keep an SSE session open.
 
-The adapter publishes these JSON resources:
+For a client that supports only standard input/output, configure that client to launch the adapter:
 
-- `antiky://dev/status`
-- `antiky://build/latest`
-- `antiky://runtime/status`
-- `antiky://render/stats`
-- `antiky://diagnostics`
+```json
+{
+  "mcpServers": {
+    "antiky": {
+      "command": "antiky",
+      "args": ["mcp", "--config", "/absolute/path/to/antiky.config.json"]
+    }
+  }
+}
+```
 
-It publishes two controlled tools:
+The MCP client owns this `antiky mcp` subprocess; you do not need to run it in a separate terminal.
+The adapter connects to the development session already started by `antiky dev` and writes protocol
+JSON only to standard output.
 
-- `dev_reload` asks the connected browser to reload. The result relates the development session,
-  build revision, old runtime instance, new runtime instance, and action ID.
+### State tools and resources
+
+Read-only tools are the primary model-facing state interface. Matching resources remain available
+for clients that support browsing or explicitly attaching resources:
+
+| Read-only tool | Matching resource | State returned |
+| --- | --- | --- |
+| `get_dev_status` | `antiky://dev/status` | Session, config, service health, and CLI measurements |
+| `get_latest_build` | `antiky://build/latest` | Accepted revision and latest build attempt |
+| `get_runtime_status` | `antiky://runtime/status` | Runtime connection and framework inspection snapshot |
+| `get_render_stats` | `antiky://render/stats` | Available framework-owned runtime and render measurements |
+| `get_diagnostics` | `antiky://diagnostics` | Development and framework diagnostics |
+
+The read-only tools take no arguments and are marked read-only, non-destructive, idempotent, and
+closed-world in their MCP annotations.
+
+### Development action tools
+
+- `dev_reload` asks the connected browser runtime to reload. The result relates the development
+  session, build revision, old and new runtime instances, and action ID.
 - `capture_frame` captures the game canvas as a PNG under `.antiky/captures/`. The result contains
   the path, digest, byte count, capture ID, action ID, development session, runtime instance, and
   build revision.
 
-Screenshots support visual review. Runtime and render facts still come from the framework inspection
-snapshot, not from image analysis.
+Frame captures support visual review. Runtime and render facts still come from the framework
+inspection snapshot, not from image analysis.
 
 ## Local bridge security
 
-The inspection service accepts only the configured `127.0.0.1` host and exact game origin. Browser
-messages are authenticated, versioned, field-checked, ordered, and size-bounded. A retired runtime
-cannot replace a newer runtime's facts. The per-session credential remains inside the browser
-adapter closure and the mode-`0600` session descriptor.
+The development listener accepts only the configured `127.0.0.1` host and exact Host header. It
+rejects a supplied browser Origin unless it matches the configured game origin. Inspection REST
+requests use the per-session bearer credential and versioned, field-checked, size-bounded messages.
+A retired runtime cannot replace a newer runtime's facts.
 
-Production website builds replace the complete local browser adapter with a no-op module. The
-production artifact test rejects local endpoints, the development environment key, and credential
-bootstrap code in deployable server or client chunks.
+The `/mcp` route deliberately does not require the rotating inspection credential so MCP clients can
+keep one stable local URL across restarts. Its trust boundary is the loopback bind plus the Host and
+Origin checks. Any local process can reach that endpoint, so do not expose the inspection port
+through a LAN bind, tunnel, or reverse proxy.
+
+A production game build must exclude the local browser adapter, inspection endpoint, development
+environment key, and credential bootstrap code.
 
 ## Stop and cleanup
 
-Press `Ctrl-C` in the `antiky dev` terminal. Antiky sends a normal stop to every owned process,
-waits for it, closes the inspection service, removes the session descriptor, and releases both
-ports. An owned child failure performs the same cleanup and returns a nonzero status.
+Press `Ctrl-C` in the `antiky dev` terminal. Antiky sends a normal stop to every owned process, waits
+for it, closes the inspection and MCP listener, removes the session descriptor, and releases both
+configured ports. An owned child failure performs the same cleanup and returns a nonzero status.
 
 ## Stable errors
 

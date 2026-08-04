@@ -168,7 +168,7 @@ export async function loadAntikyConfig(configPath = 'antiky.config.json'): Promi
   const network = readObject(root.network, '$.network');
   checkKeys(network, ['host', 'gamePort', 'inspectionPort'], '$.network');
   if (network.host !== LOOPBACK_HOST) {
-    invalid(`Expected the Slice 00 loopback host ${LOOPBACK_HOST}`, '$.network.host');
+    invalid(`Expected the loopback host ${LOOPBACK_HOST}`, '$.network.host');
   }
   const gamePort = readPort(network.gamePort, '$.network.gamePort');
   const inspectionPort = readPort(network.inspectionPort, '$.network.inspectionPort');

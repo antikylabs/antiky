@@ -146,6 +146,24 @@ test('config rejects unsafe hosts, invalid ports, and URL mismatches', async () 
   }, '$.game.url');
 });
 
+test('config host errors use general product language', async () => {
+  const configPath = await writeConfig({
+    ...validConfig,
+    network: { ...validConfig.network, host: '0.0.0.0' },
+  });
+
+  await assert.rejects(
+    () => loadAntikyConfig(configPath),
+    (error: unknown) => {
+      assert.ok(error instanceof AntikyCliError);
+      assert.equal(error.code, 'ANTIKY_CONFIG_INVALID');
+      assert.match(error.message, /Expected the loopback host 127\.0\.0\.1/);
+      assert.doesNotMatch(error.message, /Slice/);
+      return true;
+    },
+  );
+});
+
 test('config rejects malformed JSON with one stable error', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'antiky-config-json-'));
   const path = join(directory, 'antiky.config.json');

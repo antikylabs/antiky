@@ -1,7 +1,8 @@
 # Runtime Inspection
 
 `@antiky/framework` supplies one structured source for runtime diagnostics and semantic measurements.
-Direct tests, the Antiky CLI, MCP, and future Studio clients use the same facts.
+Your game can publish those facts once and let direct tests, the Antiky CLI, MCP clients, and Studio
+integrations read the same state.
 
 ## Create a snapshot
 
