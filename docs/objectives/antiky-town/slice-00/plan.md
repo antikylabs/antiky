@@ -1,18 +1,18 @@
 # Slice 00: Start the Antiky Development Runtime
 
-This plan is the implementation contract. For a short review, answer the three questions in
+This plan is the implementation contract. The accepted owner decisions are in
 [`owner-input_H.md`](owner-input_H.md).
 
 ## Control
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` — owner input has three pending answers |
+| Status | `READY` |
 | Outcome | One command starts, inspects, and stops the current town through Antiky |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Architecture decision | [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | None |
-| Alignment revision | `35091e0883253c89ad27bf840c42d1a9dc4c6c7f` |
+| Alignment revision | `441563bcce94abd76fb6813869e603e13f116b5a` |
 | Complete check | `npm run verify:slice-00` |
 | Evidence | `docs/objectives/antiky-town/slice-00/outputs/{run-id}/receipt.json` |
 
@@ -43,8 +43,7 @@ incorrect.
 One command starts the current town in a local development session. A person or agent can inspect
 the session through structured Antiky data. The same command can stop all owned resources safely.
 
-The first launch target is the answer in the owner-input file. The recommendation is the existing
-`town-study` route in the current Next.js host.
+The first launch target is the existing `town-study` route in the current Next.js host.
 
 ## One service, different clients
 
@@ -87,6 +86,7 @@ process health, or cleanup time. The CLI development host owns these meanings.
 - [`owner-input_H.md`](owner-input_H.md)
 - [`SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
 - [`DEV_HARNESS_RESEARCH_A.md`](../DEV_HARNESS_RESEARCH_A.md)
+- [`INSPECTION_TOOLING_A.md`](../INSPECTION_TOOLING_A.md)
 - [`IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
 - [ADR 0003: Use one engine API for humans and agents](../../../adr/framework/0003-agent-native_H.md)
 - [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md)
@@ -165,11 +165,11 @@ inspection contract. It sends a validated snapshot to the local development host
 The MCP adapter reads the same service used by `antiky inspect`. It contains transport and
 permission logic only. It does not contain game or engine rules.
 
-Studio work in this slice follows the answer in the owner-input file. The recommendation is to prove
-a Studio-compatible connection contract without building a Studio panel or desktop host.
+Slice 00 proves a Studio-compatible connection contract. It does not build a Studio panel or
+desktop host. Studio implementation starts after the first town port.
 
-WebGPU Inspector follows the owner-input answer. The recommendation is to keep it optional because
-it cannot supply Antiky semantic state.
+Do not integrate WebGPU Inspector. Use it only as a design reference. Antiky's native inspection
+scope is defined in [`INSPECTION_TOOLING_A.md`](../INSPECTION_TOOLING_A.md).
 
 ## User-facing documentation deliverable
 

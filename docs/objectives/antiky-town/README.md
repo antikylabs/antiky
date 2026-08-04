@@ -16,6 +16,7 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 | Document | Purpose |
 | --- | --- |
 | [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) | Researches the development host, inspection, reload, and GPU tools. |
+| [`INSPECTION_TOOLING_A.md`](INSPECTION_TOOLING_A.md) | Defines the native inspection scope and the ideas kept from WebGPU Inspector. |
 | [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) | Defines the staged Antiky Town port and its feature choices. |
 | [`SLICE_WORKFLOW_A.md`](SLICE_WORKFLOW_A.md) | Defines how to plan, run, and close each slice. |
 | [`SLICE_PLAN_TEMPLATE_A.md`](SLICE_PLAN_TEMPLATE_A.md) | Supplies the copyable contract for a new slice. |
@@ -27,8 +28,8 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 
 1. Read [`slice-list.md`](slice-list.md) for the short active sequence.
 2. Read the development-harness research if you need the design background.
-3. Answer the three questions in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md).
-4. Run the Slice 00 goal after its owner-input status is `ANSWERED`.
+3. Review the accepted decisions in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md).
+4. Run the ready Slice 00 goal.
 5. Answer the two questions in [`slice-01/owner-input_H.md`](slice-01/owner-input_H.md).
 6. Run the Slice 01 goal after Slice 00 is complete.
 

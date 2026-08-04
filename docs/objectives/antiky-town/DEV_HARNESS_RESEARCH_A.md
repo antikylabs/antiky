@@ -1,6 +1,6 @@
 # Development Harness Research
 
-**Status: Research; owner questions are in `slice-00/owner-input_H.md`**
+**Status: Research; owner direction is answered and applied**
 
 **Research date: 2026-08-04**
 
@@ -22,9 +22,9 @@ reconnects.
 Antiky Framework also needs its own structured inspection API. A screenshot can confirm appearance,
 but it cannot prove entity identity, state revisions, reload results, render counts, or diagnostics.
 
-[`webgpu_inspector`](https://github.com/brendan-duncan/webgpu_inspector) is a strong optional GPU
-inspection layer. It does not replace Antiky inspection because it sees GPU objects and commands,
-not Antiky entities, assets, sessions, or commands.
+[`webgpu_inspector`](https://github.com/brendan-duncan/webgpu_inspector) is a design reference only.
+Antiky does not integrate it. The accepted native inspection direction is in
+[`INSPECTION_TOOLING_A.md`](INSPECTION_TOOLING_A.md).
 
 ## Antiky today
 
@@ -192,14 +192,15 @@ The current plugin has limits that matter to Antiky:
 - Immediate capture expects a `requestAnimationFrame` loop.
 - It supplies GPU facts, but it cannot identify an Antiky entity or explain an accepted command.
 
-### Recommended use
+### Accepted use
 
-Use WebGPU Inspector as an optional development dependency or separate tool. Pin a reviewed version
-or commit. Do not load it in production builds.
+Use WebGPU Inspector only to study useful inspection patterns. Do not install, inject, wrap, or
+launch it as part of Antiky. Do not require its extension, plugin, MCP server, or controlled browser
+for delivery evidence.
 
-Use it for Slice 5 render evidence and difficult GPU failures. Do not make it the only Slice 0
-inspection path. Antiky must remain inspectable when the extension, plugin, or controlled browser is
-not installed.
+Antiky owns its inspection schemas and tools. BroMetal and Antiky tests supply low-level render
+evidence. [`INSPECTION_TOOLING_A.md`](INSPECTION_TOOLING_A.md) separates the Slice 00 minimum from
+later candidates.
 
 ## Proposed Slice 0 boundary
 
@@ -221,7 +222,7 @@ framework inspection -> browser bridge ---+
                          +-> Streamable HTTP MCP
                          +-> direct tests
 
-optional WebGPU Inspector -> GPU captures and validation details
+WebGPU Inspector research -> ideas for native Antiky inspection only
 ```
 
 The development host belongs in `@antiky/cli`. It does not belong in framework core. It owns local
@@ -428,9 +429,12 @@ cannot meet.
 
 ## Owner decisions
 
-Answer the short questions in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md). That file
-contains the context and recommendation for the launch target, required clients, and WebGPU
-Inspector.
+[`slice-00/owner-input_H.md`](slice-00/owner-input_H.md) records these accepted decisions:
+
+- Launch `town-study` through the current Next.js host.
+- Prove direct, CLI, and MCP inspection plus a Studio-compatible contract.
+- Build Studio after the first town port.
+- Use WebGPU Inspector as research only and build native Antiky inspection.
 
 The implementation agent selects exact dependencies, tools, ports, profiles, and measurement
 fixtures. These are implementation tasks, not owner questions.

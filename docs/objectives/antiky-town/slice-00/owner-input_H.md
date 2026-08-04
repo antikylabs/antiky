@@ -2,7 +2,7 @@
 
 ## Status
 
-`WAITING FOR OWNER`
+`ANSWERED`
 
 ## Purpose
 
@@ -48,7 +48,7 @@ Use the current `town-study` route and Next.js host for Slice 00. Slice 01 will 
 
 ### Owner answer
 
-`PENDING`
+`APPROVE`
 
 ## Question 2: Which clients must Slice 00 prove?
 
@@ -67,7 +67,7 @@ connection contract for Studio, but do not build a Studio panel or desktop host 
 
 ### Owner answer
 
-`PENDING`
+`APPROVE` — Studio will come after the first town port.
 
 ## Question 3: Is WebGPU Inspector required for completion?
 
@@ -86,7 +86,10 @@ own inspection service for Slice 00 acceptance evidence.
 
 ### Owner answer
 
-`PENDING`
+`REPLACE`
+
+Do not integrate WebGPU Inspector. Use it only as a design reference. Record the useful ideas in a
+separate document. Build the minimum useful inspection capability into Antiky.
 
 ## Work that does not need owner input
 

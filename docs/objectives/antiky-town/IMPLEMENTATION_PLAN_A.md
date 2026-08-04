@@ -1,6 +1,6 @@
 # Antiky Town Implementation Plan
 
-**Status: Awaiting owner choices**
+**Status: Slice 00 direction approved**
 
 ## Goal
 
@@ -41,8 +41,9 @@ service surface that CLI, Studio, and tests use.
 Later slices extend the framework service with world, entity, asset, clock, selection, command, and
 history operations.
 
-Read [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) for the engine research, WebGPU
-Inspector assessment, and Slice 0 design.
+Read [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) for the engine research and Slice 0
+design. Read [`INSPECTION_TOOLING_A.md`](INSPECTION_TOOLING_A.md) for the accepted native inspection
+scope.
 
 ## Rules for every slice
 
@@ -130,16 +131,13 @@ CLI, Studio, MCP, and tests must call the same typed inspection and command serv
 | 6 | Slice 5 is green; selectable bounds or ID-pass input and expected hit records exist | Selection get/set, entity inspection, command submission, and correction-based undo |
 
 Playwright MCP is not a precondition. Browser screenshots remain useful for visual review. Antiky's
-own inspection service supplies the required semantic evidence. A pinned WebGPU Inspector setup can
-supply the low-level GPU evidence for Slice 5.
-
-Chrome or Edge is required only when the selected WebGPU Inspector path uses its CDP controller.
+own inspection service supplies semantic evidence. Native Antiky diagnostics and BroMetal test
+instrumentation supply low-level render evidence.
 
 ## Slice 0: Development harness and minimum inspection
 
-The executable contract is [`slice-00/plan.md`](slice-00/plan.md). The owner answers only the
-questions in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md). Do not start implementation
-while an answer is pending.
+The executable contract is [`slice-00/plan.md`](slice-00/plan.md). The accepted owner decisions are
+in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md). Slice 00 is ready to start.
 
 ### Outcome
 
@@ -559,8 +557,8 @@ Costs:
 - Draw count and per-frame upload measurements do not regress without approval.
 - Render inspection reports pass order, resource dependencies, draw counts, upload bytes, active
   shader revisions, and related diagnostic IDs.
-- A pinned WebGPU Inspector capture, or an approved equivalent, verifies GPU validation results and
-  the expected pass and draw structure without becoming the source of Antiky entity state.
+- Native Antiky diagnostics and BroMetal tests verify GPU validation results and the expected pass
+  and draw structure without making GPU state authoritative.
 - Failed resource creation preserves the last valid resources.
 - Disposal releases each owned resource exactly once.
 

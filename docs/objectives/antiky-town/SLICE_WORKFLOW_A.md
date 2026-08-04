@@ -623,9 +623,9 @@ Do not promise a smaller GPU write than the current BroMetal API can perform. Fi
 actual behavior. If a BroMetal change would help renderers in general, make a separate measured
 proposal. If it only helps Antiky Town, keep the solution in the Antiky adapter.
 
-[`webgpu_inspector`](https://github.com/brendan-duncan/webgpu_inspector) can provide optional GPU
-capture and validation evidence. Pin a reviewed version or commit. Do not load it in production. It
-does not replace Antiky entity, command, revision, or permission inspection.
+[`webgpu_inspector`](https://github.com/brendan-duncan/webgpu_inspector) is a design reference. Do
+not make it an Antiky dependency or a required evidence tool. Build required inspection into Antiky
+and BroMetal. Keep engine meaning in Antiky's typed inspection service.
 
 ## Required tool review
 
@@ -639,7 +639,7 @@ A plan must name the tools that it will use and the claim that each tool proves.
 | Antiky inspection service | Prove stable IDs, values, revisions, diagnostics, and changed ranges |
 | Antiky command tools | Exercise the same command service as tests and future Studio UI |
 | Browser and frame capture | Prove reachability and appearance |
-| BroMetal diagnostics or a pinned GPU inspector | Prove low-level GPU work and validation facts |
+| Native Antiky render diagnostics and BroMetal test instrumentation | Prove low-level GPU work and validation facts |
 | Repository check command | Prove the integrated workspace still passes |
 
 Use one source of truth for each fact. Tests, MCP adapters, and future Studio panels must read the
