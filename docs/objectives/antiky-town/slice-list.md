@@ -14,3 +14,4 @@ direction.
 - Slice 09 — Add versioned asset manifests and safe replacement.
 - Slice 10 — Add durable events and snapshots behind the proven contracts.
 - Slice 11 — Add compatibility tests for older stored schemas.
+- Slice 12 — Add independent product versions and a tested release-promotion path.
