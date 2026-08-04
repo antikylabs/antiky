@@ -32,6 +32,9 @@ terms. Remove guide text after the plan supplies the real answer.
 | Framework alignment revision | `<full Git revision>` |
 | Evidence revision | `<full Git revision or WORKTREE until final commit>` |
 | Complete verification command | `<one command>` |
+| Run state | `<NOT STARTED, ACTIVE, INTERRUPTED, or CLOSED>` |
+| Evidence receipt format | `antiky.slice-receipt/v1` |
+| Evidence receipt path | `<repo-relative path that includes the run ID>` |
 
 `COMPLETE` is permitted only when every rule in the final completion declaration passes.
 
@@ -105,6 +108,68 @@ Before implementation resumes after a framework change:
 3. Record the change in the drift log.
 4. Rerun affected readiness rows.
 
+## Execution contract
+
+Freeze this contract before the first implementation change. Actual IDs can stay `PENDING` while
+the plan is not ready. Record them before the run changes code or state.
+
+### Run setup
+
+| Field | Required value or rule | Run value and direct evidence |
+| --- | --- | --- |
+| Run ID and attempt IDs | `<stable run-ID format; IDs increase and are not reused>` | `<actual values or PENDING>` |
+| Source and final revision | `<clean source rule; final revision rule>` | `<full revisions or PENDING>` |
+| Worktree and branch | `<exclusive writable worktree and branch rule>` | `<paths and names or PENDING>` |
+| Dependency lock | `<lock-file path and digest algorithm>` | `<digest or PENDING>` |
+| Configuration | `<redacted resolved-config digest rule>` | `<digest or PENDING>` |
+| Runtime tools | `<exact Node, package manager, OS, and architecture>` | `<versions or PENDING>` |
+| Browser and GPU | `<supported browser, OS, adapter, and driver rule>` | `<values or PENDING>` |
+| Visual profile | `<viewport, pixel ratio, camera, mode, and capture phase>` | `<values or PENDING>` |
+| Deterministic inputs | `<seed, fixture, locale, time zone, clock, and network rule>` | `<values or accepted N/A>` |
+| Isolated resources | `<explicit ports, services, runtimes, temporary paths, and artifact root>` | `<allocations or PENDING>` |
+| Build and runtime identity | `<required service, build, and runtime IDs>` | `<actual IDs or PENDING>` |
+| Start and resume events | `<events or bounded wait with timeout>` | `<source and evidence or PENDING>` |
+
+If another run can overlap, it must not share a writable worktree, port, service, runtime, temporary
+path, or artifact path. A collision fails readiness. Do not select a new resource silently.
+
+### Delivery permissions
+
+| Operation | Required capability | Allowed scope | Grant source | Expiry or revocation | Audit evidence |
+| --- | --- | --- | --- | --- | --- |
+| `<read, write, commit, local process, product command, network, deploy, or external action>` | `<narrow capability or NONE>` | `<exact files, service, account, or DENIED>` | `<owner, policy, or NONE>` | `<end condition>` | `<receipt field or external record>` |
+
+List denied operations. Do not assume production, secret, network, deployment, or external-message
+authority. Keep product authority separate from delivery permissions.
+
+### Failure, retry, and resume
+
+| Failure class | Detection rule | Maximum automatic retries | Required action and evidence |
+| --- | --- | ---: | --- |
+| `EXPECTED_REJECTION` | `<valid product rejection>` | `0` | `<record proof; do not retry request>` |
+| `TRANSIENT` | `<tool or service failure with no defect evidence>` | `<small bound>` | `<health check, backoff, and receipt entry>` |
+| `DEFECT` | `<repeatable wrong result in the same run setup>` | `0` | `<test or proof, fix, and new attempt>` |
+| `STALE_RUN` | `<source, config, build, runtime, or reference mismatch>` | `0` | `<invalidate evidence and reconstruct or start a new run>` |
+| `AUTHORITY_BLOCK` | `<missing choice or permission>` | `0` | `<stop and request exact authority>` |
+| `EVIDENCE_FAILURE` | `<missing, corrupt, or unlinked required proof>` | `<small bound>` | `<repair evidence path; do not pass claim without proof>` |
+
+Resume from checkpoint: `<checkpoint, digest, and revision match rule>`
+
+An unexplained flaky result is a defect. A later green result does not erase it.
+
+### Software rollback
+
+| Field | Required answer |
+| --- | --- |
+| Last-known-good revision or artifact | `<target>` |
+| Rollback triggers | `<failed checks, unsafe behavior, or other exact triggers>` |
+| Programmatic action | `<revert or compensating operation; do not rewrite shared history>` |
+| State and data effect | `<schema, saved-data, and in-memory compatibility>` |
+| Proof after rollback | `<clean command, reference check, and health evidence>` |
+| Receipt record | `<fields and artifact>` |
+
+Domain correction does not replace software rollback.
+
 ## Readiness gate
 
 Status values are `PASS`, `FAIL`, `BLOCKED`, and `N/A`. `N/A` needs an accepted reason. Do not start
@@ -125,6 +190,10 @@ feature implementation until every applicable row is `PASS`.
 | `PRE-11` | Performance limits and measurement tools are named | `<status>` | `<evidence>` |
 | `PRE-12` | Relevant architecture decisions are resolved | `<status>` | `<evidence>` |
 | `PRE-13` | Required tools and supported environment are available | `<status>` | `<evidence>` |
+| `PRE-14` | The run setup is frozen and its resources are isolated | `<status>` | `<evidence>` |
+| `PRE-15` | Delivery permissions are explicit and sufficient | `<status>` | `<evidence>` |
+| `PRE-16` | Failure, retry, resume, and software rollback rules are testable | `<status>` | `<evidence>` |
+| `PRE-17` | Receipt tools and start or resume events exist, or a bootstrap checkpoint supplies them first | `<status>` | `<evidence>` |
 
 ## Existing capability inventory
 
@@ -245,6 +314,33 @@ encoding only because they cross a module boundary.
 Use the typed inspection service as the source for tests, MCP, and future Studio views. A visual
 capture supports appearance evidence. It does not prove semantic state.
 
+Every routine build, test, inspection, capture, rollback, and cleanup operation needs a command or
+typed tool. Record a manual product or visual judgment with the reviewer, decision, and artifact.
+
+## Evidence receipt
+
+The complete verifier writes and validates one `antiky.slice-receipt/v1` JSON receipt.
+
+| Receipt area | Required content |
+| --- | --- |
+| Identity | Slice ID, run ID, attempt IDs, source revision, final revision, and checkpoint commits |
+| Run setup | Recorded values or hashes for every run-setup row |
+| Correlation | Checkpoint, operation, command, event, projection, build, service, runtime, test, and capture IDs that apply |
+| Decisions | Readiness, acceptance, rubric, owner-review, and final-audit results |
+| Recovery | Failure classes, retries, resumes, rollback actions, and results |
+| Process | Intervention, retry, flaky check, permission escalation, missed check, and blocked duration |
+| Artifacts | Stable locations and hashes when artifacts are stored |
+| Result | Final status and completion time |
+
+Receipt writer: `<command or tool>`
+
+Receipt validator: `<command or tool>`
+
+Evidence chain: `<run -> attempt -> checkpoint -> operation -> product IDs -> artifact>`
+
+Write to a temporary file. Validate the content. Then rename it to the final path. A reader must
+never see a partial receipt. Use `N/A` with a reason when a product ID does not apply.
+
 ## BroMetal and CPU-to-GPU plan
 
 If the slice does not render, mark this section `N/A` and give a reason.
@@ -327,6 +423,8 @@ For a reported error:
 | Inspection disconnect and reconnect | `<behavior>` | `<identity and revision rule>` | `<evidence>` |
 | Runtime disposal | `<behavior>` | `<exactly-once rule>` | `<evidence>` |
 | Invalid or unauthorized request | `<rejection>` | `<no state change>` | `<evidence>` |
+| Run or evidence interruption | `<resume or reconstruct>` | `<checkpoint and run-setup match rule>` | `<evidence>` |
+| Software rollback | `<programmatic action>` | `<last-known-good behavior and data rule>` | `<evidence>` |
 
 List the stable diagnostic or rejection codes that the slice adds:
 
@@ -358,7 +456,11 @@ All applicable rows are hard gates.
 | `AC-08` | Reference and performance limits pass or have approved differences | `<method>` | `PENDING` | `<pending>` |
 | `AC-09` | Package and import boundaries pass | `<method>` | `PENDING` | `<pending>` |
 | `AC-10` | One clean-start verification command passes | `<method>` | `PENDING` | `<pending>` |
-| `AC-11` | `<slice-specific required result>` | `<method>` | `PENDING` | `<pending>` |
+| `AC-11` | The run used the frozen setup and isolated resources | `<method>` | `PENDING` | `<pending>` |
+| `AC-12` | The evidence receipt validates and links every required result | `<method>` | `PENDING` | `<pending>` |
+| `AC-13` | Retries, resume, rollback, and delivery permissions followed the contract | `<method>` | `PENDING` | `<pending>` |
+| `AC-14` | The learning and after-completion records are complete | `<method>` | `PENDING` | `<pending>` |
+| `AC-15` | `<slice-specific required result>` | `<method>` | `PENDING` | `<pending>` |
 
 ## Success rubric
 
@@ -377,12 +479,35 @@ missing edge or proof, `3` complete with repeatable direct evidence. Do not aver
 | `RUB-08` | Lifecycle and security | `3` | `0` | `<gap>` |
 | `RUB-09` | Reference and performance | `3` | `0` | `<gap>` |
 | `RUB-10` | Reproduction and handoff | `3` | `0` | `<gap>` |
+| `RUB-11` | Autonomous execution | `3` | `0` | `<gap>` |
+| `RUB-12` | Operation and learning | `3` | `0` | `<gap>` |
 
 ## Evidence log
 
-| Date | Revision | Evidence ID | Command or operation | Result | Artifact or output |
+| Date | Run ID | Attempt | Revision | Evidence ID | Correlation ID | Command or operation | Result | Artifact or output |
+| --- | --- | ---: | --- | --- | --- | --- | --- | --- |
+| `<date>` | `<run ID or PLAN>` | `<number>` | `<revision>` | `<REF, PRE, TEST, GPU, INS, or AC ID>` | `<ID or N/A>` | `<exact use>` | `<result>` | `<path or inline output>` |
+
+## Delivery failure and learning log
+
+| Date | Run and attempt | Class | Unexpected result or intervention | Disposition | Evidence and status |
 | --- | --- | --- | --- | --- | --- |
-| `<date>` | `<revision>` | `<REF, PRE, TEST, GPU, INS, or AC ID>` | `<exact use>` | `<result>` | `<path or inline output>` |
+| `<date>` | `<IDs or PLAN>` | `<failure class or PROCESS_GAP>` | `<what happened>` | `<test, shared rule, capability hypothesis, or accepted decision>` | `<proof and OPEN or CLOSED>` |
+
+Record unplanned interventions, retries, flaky checks, permission escalations, missed checks, and
+blocked time. Keep every failed attempt. Do not replace it with only the final green result.
+
+## After completion
+
+| Area | Owner | Signal or source | Trigger | Required action |
+| --- | --- | --- | --- | --- |
+| Health | `<owner>` | `<verification, runtime, or diagnostic signal>` | `<failure condition>` | `<triage or recovery>` |
+| Human feedback | `<owner>` | `<inbox or issue path>` | `<new report>` | `<triage path>` |
+| Agent findings | `<owner>` | `<finding path>` | `<new finding>` | `<triage path>` |
+| Regression and rollback | `<owner>` | `<test and last-known-good target>` | `<exact trigger>` | `<fix or rollback>` |
+| Deprecation or retirement | `<owner>` | `<consumer and replacement evidence>` | `<retirement condition>` | `<approval and cleanup>` |
+
+Use `N/A` with a reason when the slice has no deployed service or continuous monitor.
 
 ## Drift and discovery log
 
@@ -402,6 +527,10 @@ The owner can change this declaration to `COMPLETE` only when:
 - [ ] Every `N/A` has an accepted reason.
 - [ ] The complete verification command passes from a clean start.
 - [ ] Evidence names the final revision or final patch state.
+- [ ] The run state is `CLOSED`.
+- [ ] The evidence receipt validates and links every required result.
+- [ ] Every failed attempt has a resolved class and disposition.
+- [ ] The after-completion record names its owner and feedback path.
 - [ ] The reference remains available.
 - [ ] No placeholder, blocker, or owner choice remains.
 - [ ] The final audit confirms the original outcome.

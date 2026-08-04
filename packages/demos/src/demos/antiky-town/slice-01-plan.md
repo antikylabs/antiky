@@ -14,6 +14,9 @@
 | Framework alignment revision | `840c606d7aca894f22f2e033ffa3e33e7ca71ab4` |
 | Evidence revision | `PENDING` |
 | Complete verification command | `npm run verify:slice-01 --workspace @antiky/demos` |
+| Run state | `NOT STARTED` |
+| Evidence receipt format | `antiky.slice-receipt/v1` |
+| Evidence receipt path | `packages/demos/src/demos/antiky-town/evidence/slice-01/{runId}/receipt.json` |
 
 The plan is ready for review. Feature implementation is not ready. The project owner must approve
 the Slice 0 choices and option `1A`. Slice 0 must then pass. The readiness table names the remaining
@@ -154,6 +157,76 @@ Before implementation starts or resumes:
 Planned Slice 0 APIs can change before implementation. Slice 01 depends on their meaning, not on the
 proposed MCP names in the research document.
 
+## Execution contract
+
+Freeze the run values before the first implementation change. Slice 0 must supply the base run and
+receipt tools. It must also supply service, build, runtime, and event identities. The Slice 01
+verifier adds the lamp evidence and drives the run.
+
+### Run setup
+
+| Field | Required value or rule | Run value and direct evidence |
+| --- | --- | --- |
+| Run ID and attempt IDs | Use `slice-01-YYYYMMDDTHHMMSSZ-abcdef0`; start attempts at `1` and increment them for every retry | `PENDING` |
+| Source and final revision | Start from one clean full Git revision; record every checkpoint and the final revision | `PENDING` |
+| Worktree and branch | Use one dedicated writable worktree and branch; permit no concurrent writer | `PENDING` |
+| Dependency lock | Record the SHA-256 digest of root `package-lock.json` | `PENDING` |
+| Configuration | Record the digest of the resolved and redacted Slice 0 configuration | `PENDING` |
+| Runtime tools | Record exact Node `22.x` or later, npm, OS, and architecture values | `PENDING` |
+| Browser and GPU | Record the exact supported WebGPU browser, OS, adapter, and driver | `PENDING` |
+| Visual profile | Use the same viewport, pixel ratio, camera, town mode, and flicker capture phase for reference and result | Values are `PENDING` until `REF-01` and `REF-06` pass |
+| Deterministic inputs | Use the fixed lamp fixture; record seed, locale, time zone, clock rule, and network profile | `PENDING`; no external network is permitted during verification |
+| Isolated resources | Reserve explicit host and inspection ports; use run-specific services, runtime, temporary paths, and evidence directory | `PENDING`; an occupied resource fails preflight |
+| Build and runtime identity | Record development-session, service, build, connection, and runtime-instance IDs | `PENDING` |
+| Start and resume events | Use Slice 0 build and runtime revision events; each verifier wait has a recorded timeout | `PENDING` until Slice 0 supplies the events |
+
+The verifier must compare the reference and Antiky result with this one run setup. It must not use
+an artifact from another run unless the artifact records the same required setup values.
+
+### Delivery permissions
+
+| Operation | Required capability | Allowed scope | Grant source | Expiry or revocation | Audit evidence |
+| --- | --- | --- | --- | --- | --- |
+| Read repository files and local inspection data | Workspace read and Slice 0 read session | This repository and the active local runtime | Approved goal and Slice 0 session | Run close or session stop | Receipt operation list and inspection IDs |
+| Create and remove delivery worktrees | Git worktree access | This repository and run-specific worktree paths only | Approved goal after readiness passes | Run close and verified cleanup | Worktree path, revision, branch, and cleanup result |
+| Edit and commit implementation checkpoints | Workspace write and Git commit | Files named by `CP-01` through `CP-05` | Approved option and goal | Run close or goal cancellation | Patch and checkpoint commit IDs |
+| Start or stop development processes | Local process and loopback-port access | Explicit run ports and child processes only | Approved goal after readiness passes | Checkpoint cleanup or run close | Supervisor and process lifecycle records |
+| Submit lamp commands | `world.light.edit` for `slice-01-editor` | One local test world and fixed lamp | Slice 0 trusted test context | Runtime disposal | Command result and related event IDs |
+| Read lamp state | Read permission for test identities | One local test world | Slice 0 trusted test context | Runtime disposal | Inspection records |
+| Install or download dependencies | None by default | `DENIED` until the owner approves an exact package and version | Explicit owner approval only | One approved operation | Approval and lock-file change |
+| Use production, secrets, deployment, or external messages | None | `DENIED` | None in Slice 01 | Always denied | Receipt records no such operation |
+
+Owner approval is for product choices and visual differences. Routine build, test, inspection,
+capture, rollback, and cleanup work must use commands or typed tools.
+
+### Failure, retry, and resume
+
+| Failure class | Detection rule | Maximum automatic retries | Required action and evidence |
+| --- | --- | ---: | --- |
+| `EXPECTED_REJECTION` | The lamp service returns a required stable rejection for invalid, stale, duplicate, or unauthorized input | `0` | Record before and after state proof; do not resubmit the request |
+| `TRANSIENT` | A local tool or service fails and the same run setup has no defect evidence | `2` | Check service health, use recorded bounded backoff, and preserve every attempt |
+| `DEFECT` | The same input and run setup give the same wrong result, or a required test fails | `0` | Add required proof, fix the cause, and start a new attempt |
+| `STALE_RUN` | Source, lock, config, build, runtime, or reference identity does not match the frozen run setup | `0` | Invalidate affected evidence and reconstruct or start a new run |
+| `AUTHORITY_BLOCK` | A step needs an owner choice or capability outside the permissions table | `0` | Stop and request the exact choice or capability |
+| `EVIDENCE_FAILURE` | A required capture, receipt link, hash, or inspection record is missing or invalid | `1` | Validate the unchanged run setup, repair the evidence path, and record both attempts |
+
+Resume only from a passing checkpoint whose commit, lock hash, configuration hash, and receipt
+fragment still match. Start a new run if those values cannot be proved. An unexplained flaky result
+is a defect. A later green attempt does not erase it.
+
+### Software rollback
+
+| Field | Required answer |
+| --- | --- |
+| Last-known-good revision or artifact | The implementation-start revision for `town-study`, then the latest passing Slice 01 checkpoint |
+| Rollback triggers | Reference regression, failed required gate, unsafe authority or lifecycle behavior, corrupt state, or an unrecoverable replacement failure |
+| Programmatic action | Create a corrective or revert commit for the owned checkpoint; restart the isolated services from the last-known-good revision; do not rewrite shared history |
+| State and data effect | Slice 01 has no durable store; restart from the authored fixture, keep stable world and entity IDs, and issue new runtime IDs |
+| Proof after rollback | Run the reference smoke check, affected completed checkpoint tests, and lifecycle health checks in the isolated environment |
+| Receipt record | Record the trigger, reverted and replacement commits, prior and new runtime IDs, commands, results, and artifacts |
+
+Correction-based lamp undo remains a product operation. It does not satisfy software rollback.
+
 ## Readiness gate
 
 Do not start feature implementation until every applicable row is `PASS`.
@@ -173,6 +246,10 @@ Do not start feature implementation until every applicable row is `PASS`.
 | `PRE-11` | Render upload and resource limits have measured reference values | `FAIL` | The source-derived estimate needs a runtime capture; current demo stats omit uniform writes |
 | `PRE-12` | No unresolved architecture choice changes package ownership or the public slice contract | `PASS` | The narrow option avoids selecting a general schema library, ECS, event store, or render graph |
 | `PRE-13` | The supported browser, Slice 0 service, and required measurement operations are available | `BLOCKED` | Slice 0 is not complete |
+| `PRE-14` | The run setup is frozen and its resources are isolated | `BLOCKED` | The worktree, ports, target profile, run ID, and environment hashes are not allocated |
+| `PRE-15` | Delivery permissions are explicit and sufficient | `PASS` | The permissions table grants only local Slice 01 work and denies production and external actions |
+| `PRE-16` | Failure, retry, resume, and software rollback rules are testable | `PASS` | The execution contract defines exact classes, bounds, resume checks, triggers, and proof |
+| `PRE-17` | The receipt writer, validator, path, and start or resume events are available | `BLOCKED` | Slice 0 does not yet supply its base receipt tools or build and runtime events |
 
 ### Owner action before the goal can run
 
@@ -180,7 +257,9 @@ Do not start feature implementation until every applicable row is `PASS`.
 2. Complete Slice 0 and its evidence.
 3. Approve or replace Slice 01 option `1A`.
 4. Capture `REF-01` and `REF-06` through the Slice 0 tools.
-5. Change every readiness row to `PASS` with direct evidence.
+5. Allocate and freeze the run setup. Confirm that no run resource is shared.
+6. Confirm the receipt writer, validator, and build and runtime events.
+7. Change every readiness row to `PASS` with direct evidence.
 
 ## Existing capability inventory
 
@@ -201,6 +280,7 @@ Decision values describe what Slice 01 should do after the readiness gate passes
 | `CAP-11` | Demo host and route | Load a selected `DemoFactory` and dispose it | Demos registry and Slice 0 host | Current `town-study` route; Slice 0 pending | `EXTEND` after the slice passes |
 | `CAP-12` | Framework tests | Run headless unit and contract tests | No framework test script | None | `CREATE` |
 | `CAP-13` | Low-level GPU capture | Inspect GPU objects, writes, passes, and validation | Optional WebGPU Inspector or approved equivalent | Research only | `DEFER` as a hard dependency; use when available |
+| `CAP-14` | Delivery run identity and receipt | Correlate attempts, checkpoints, product IDs, checks, and artifacts | Slice 0 must supply base run IDs, receipt tools, and service, build, and runtime IDs | Planned only | `USE` the Slice 0 base; `EXTEND` with lamp evidence links |
 
 ## Missing-capability hypotheses
 
@@ -247,6 +327,7 @@ or render-graph interfaces in this slice. A second feature must prove those shap
 | `DEMO-04` | Slice 01 inspection and command adapters | Slice 0 service plus `antiky-town` adapter | Use framework queries and command service; do not derive state from DOM or BroMetal | Direct-query/MCP parity test |
 | `DEMO-05` | Antiky Town route registration | Demo registry and catalog, after all other checks pass | Load the complete slice without changing `town-study` | Route test and browser evidence |
 | `DEMO-06` | Complete Slice 01 verifier | Demos package | Run headless, adapter, host, inspection, command, reload, visual, and budget checks from a clean start | `npm run verify:slice-01 --workspace @antiky/demos` |
+| `DEMO-07` | Slice 01 receipt mapping | Demos verifier over the Slice 0 receipt tools | Add lamp commands, events, projections, checks, and artifacts to `antiky.slice-receipt/v1` | Receipt contract tests and final receipt validation |
 
 The town-local render seam is a temporary narrow adapter. Slice 5 can replace it with the approved
 render-driver design. Do not expose BroMetal through the framework to avoid that future work.
@@ -432,10 +513,53 @@ permission data.
 | `TOOL-07` | Render diagnostics | Upload bytes, changed entries, draws, and resource counts meet limits | Render-stat resource and fake-sink counters | Structured measurement record |
 | `TOOL-08` | Optional pinned WebGPU Inspector | Low-level writes and validation agree during an investigation | Local capture or approved equivalent | Capture ID and summarized facts |
 | `TOOL-09` | Complete verifier | All Slice 01 proof runs from a clean start | `npm run verify:slice-01 --workspace @antiky/demos` | Exit code, summary, and artifact index |
+| `TOOL-10` | Receipt validator | The run receipt has valid fields, links, results, and artifact hashes | `npm run verify:slice-01:receipt --workspace @antiky/demos -- "$ANTIKY_SLICE_RECEIPT_PATH"` | Validation result |
+| `TOOL-11` | Isolated rollback rehearsal | The last-known-good revision remains runnable without changing the active worktree | Slice 01 verifier rollback phase in a temporary worktree | Revision, commands, health result, and cleanup record |
 
 WebGPU Inspector is optional for Slice 01. The internal inspection service and adapter counters must
 still produce required semantic and budget evidence. A GPU capture does not prove entity identity,
 authority, revision, or undo.
+
+All routine operations in this table are programmatic. An owner can approve a visual difference.
+The receipt must record the owner, decision, related capture, and approved difference.
+
+## Evidence receipt
+
+The complete verifier writes one `antiky.slice-receipt/v1` JSON receipt at the path in the control
+block. It writes to a temporary file, validates the content, and moves the receipt to its final path
+with one rename. A reader must never see a partial receipt. The verifier sets
+`ANTIKY_SLICE_RECEIPT_PATH` to that final path for `TOOL-10`.
+
+| Receipt area | Slice 01 requirement |
+| --- | --- |
+| Identity | Slice ID, run ID, every attempt ID, source revision, final revision, and all checkpoint commits |
+| Run setup | Every run-setup value or hash and each allocated resource |
+| Correlation | Checkpoint, operation, command, event, authoring, runtime, render, service, build, test, and capture IDs that apply |
+| Decisions | Every readiness, acceptance, rubric, owner-review, and final-audit result |
+| Recovery | Every failed attempt, failure class, retry, resume, rollback trigger, action, and result |
+| Authority | Every changing operation, used capability, target, grant, and denied escalation |
+| Process | Unplanned intervention, retry, flaky check, permission escalation, missed check, and blocked duration |
+| Artifacts | Stable paths and SHA-256 hashes for stored JSON, captures, logs, and measurements |
+| Result | Final status, completion time, and after-completion owner |
+
+Use this correlation path for one accepted lamp change:
+
+```text
+run ID
+  -> attempt ID
+  -> checkpoint ID
+  -> correlation ID
+  -> command ID
+  -> accepted event sequence
+  -> authoring revision
+  -> runtime ID and projection revision
+  -> render slot and projection revision
+  -> build ID and runtime-instance ID
+  -> test, inspection, measurement, or capture artifact
+```
+
+Use `N/A` with a reason when one ID does not apply. Do not store secrets, session tokens, raw
+permissions, or unredacted environment values in the receipt.
 
 ## BroMetal and CPU-to-GPU plan
 
@@ -523,7 +647,7 @@ required.
 | `INS-03` | Command submission | Accepted, rejected, or no-op status; stable code; command, entity, world, revision, event, and runtime IDs as applicable | Version `1`; data at most `4 KiB` | Headless call and MCP tool |
 | `INS-04` | Correction-based undo | Source command and event, correction command and event, prior and resulting values and revisions | Version `1`; current-revision check required | Headless call and MCP tool |
 | `INS-05` | Render binding | Stable entity ID, runtime alias, render slot, dirty field mask, submitted base power, and last applied revision | Version `1`; no BroMetal or GPU object | Integration test, MCP, future Studio |
-| `INS-06` | Diagnostics | Stable code, severity, time, build and runtime IDs, related safe IDs, revision, and bounded details | Version `1`; bounded list and pagination | Tests, MCP, future Studio |
+| `INS-06` | Diagnostics | Stable code, severity, time, run, attempt, correlation, build, and runtime IDs, related safe IDs, revision, and bounded details | Version `1`; bounded list and pagination | Tests, MCP, future Studio |
 
 Read operations are read-only. MCP change tools call the same framework command service as headless
 tests. Adapters must not inspect React state, DOM objects, BroMetal programs, or raw GPU objects to
@@ -547,6 +671,8 @@ The exact file split can become smaller during implementation. The named behavio
 | `TEST-10` | Browser and visual | Slice 01 verifier | Default, changed, corrected, invalid command, and failed reload views at fixed camera/mode | Visible result and last-valid recovery match the contract |
 | `TEST-11` | Performance | Slice 01 verifier with render counters | Budgets `GPU-01` through `GPU-10` | CPU-to-GPU and lifecycle limits pass |
 | `TEST-12` | Boundary | Workspace typecheck and WebGPU-only test | Framework has no BroMetal, DOM, React, website, or host imports; product surfaces stay WebGPU-only | Package ownership is enforced |
+| `TEST-13` | Contract | `packages/demos/src/demos/antiky-town/tests/slice-receipt.test.ts` | Valid receipt, missing correlation, duplicate attempt, stale identity, bad hash, failure history, and partial final file | The receipt preserves a complete and valid delivery record |
+| `TEST-14` | Delivery | Slice 01 verifier fixtures | Port collision, mismatched build or runtime, interruption and resume, retry exhaustion, denied authority, and prior-checkpoint smoke check | Isolation, recovery, rollback, and authority rules are enforced |
 
 ### Required command cases
 
@@ -582,6 +708,8 @@ failure and the passing result in the evidence log.
 | Runtime reconstruction | Create a new runtime instance from authored fixture | Power resets to `1.05`, revision to `1`, history to empty; entity ID stays fixed | Reload test |
 | Invalid or unauthorized command | Return one stable rejection | No authoring, history, projection, render, or GPU-resource change | Command and adapter tests |
 | Projection or adapter failure | Keep last valid authoring and submitted render value | Error is inspectable and does not invent a revision | Failure-injection test |
+| Run or evidence interruption | Stop the active attempt and resume only from a matching passing checkpoint | Prior evidence stays immutable; the next attempt gets a new attempt ID | `TEST-14` and receipt history |
+| Software rollback | Start the last-known-good revision in an isolated worktree and use a corrective or revert commit when needed | Reference behavior returns; durable migration is not required; new runtime IDs identify reconstruction | `TOOL-11`, `TEST-14`, and receipt record |
 | Demo disposal | Remove listeners and dispose each owned BroMetal resource once | No command can reach disposed service; repeated dispose is safe or clearly rejected | Lifecycle counters |
 | Process shutdown | Slice 0 stops child processes and local transports | Port and session lock are released | Slice 0 shutdown test |
 
@@ -595,6 +723,10 @@ failure and the passing result in the evidence log.
   JavaScript objects, DOM state, BroMetal resources, or GPU resources.
 - Command data and history are bounded.
 - A disposed or old runtime-instance ID cannot accept a command.
+- Delivery operations stay inside the permissions table. They cannot use production credentials,
+  deployment access, external messages, or unapproved network access.
+- The receipt and artifacts use redacted configuration values. They never contain secrets or session
+  tokens.
 
 ## Implementation checkpoints
 
@@ -607,7 +739,7 @@ tests and one short commit.
 | `CP-02` | Lamp authoring, command, event, replay, correction, and projections | Feature-first framework module; internal maps/functions stay private | `TEST-03`, `TEST-04`, `TEST-05` | `Add market lamp command flow` | `PENDING` |
 | `CP-03` | Typed lamp inspection and Slice 0 adapters | Framework inspection DTO/query plus Antiky Town harness adapter | `TEST-06`, `TEST-08`, versioned inspection artifacts | `Expose market lamp inspection` | `PENDING` |
 | `CP-04` | Reference renderer seam and Antiky Town render adapter | Town demo and `antiky-town/render`; no BroMetal in framework | `TEST-07`, default route parity, render counters | `Connect market lamp rendering` | `PENDING` |
-| `CP-05` | Antiky Town composition, route, and complete verifier | Antiky Town entry, registry/catalog, scripts, and test artifacts | `TEST-09` through `TEST-12`, all acceptance rows | `Verify Antiky Town slice one` | `PENDING` |
+| `CP-05` | Antiky Town composition, route, verifier, and delivery receipt | Antiky Town entry, registry/catalog, scripts, receipt contract, and test artifacts | `TEST-09` through `TEST-14`, all acceptance rows, and receipt validation | `Verify Antiky Town slice one` | `PENDING` |
 
 Do not begin Slice 2 or generalize the feature facade during these checkpoints.
 
@@ -640,6 +772,12 @@ All rows are required.
 | `AC-21` | `npm run check` passes | Workspace command | `PENDING` | None |
 | `AC-22` | The complete clean-start Slice 01 verifier passes | `npm run verify:slice-01 --workspace @antiky/demos` | `PENDING` | None |
 | `AC-23` | The plan has no blocker, unresolved owner choice, placeholder, or unexplained `N/A` | Final plan audit | `PENDING` | None |
+| `AC-24` | The run uses the frozen setup and no resource from another run | Preflight, allocation records, and receipt validation | `PENDING` | None |
+| `AC-25` | The receipt links each required result through run, attempt, checkpoint, correlation, product, runtime, and artifact IDs | `TEST-13`, `TOOL-10`, and receipt audit | `PENDING` | None |
+| `AC-26` | Every failure, retry, and resume follows its class and bound; no unexplained flaky result is hidden by a later pass | `TEST-14` and complete attempt history | `PENDING` | None |
+| `AC-27` | The last-known-good revision passes its reference and health checks in an isolated rollback rehearsal | `TOOL-11` and `TEST-14` | `PENDING` | None |
+| `AC-28` | Every changing operation stays inside the delivery permissions table and uses no production or external authority | Receipt permissions audit | `PENDING` | None |
+| `AC-29` | Every unexpected result has a disposition, and the after-completion record names its owners and paths | Learning-log and final-plan audit | `PENDING` | None |
 
 ## Success rubric
 
@@ -658,14 +796,38 @@ missing edge or proof, `3` complete with repeatable direct evidence. Do not aver
 | `RUB-08` | Lifecycle and security | `3` | `0` | Authority rules are planned; service and lifecycle proof are absent |
 | `RUB-09` | Reference and performance | `3` | `1` | Source values exist; visual and runtime baselines are missing |
 | `RUB-10` | Reproduction and handoff | `3` | `1` | The command is named but does not exist |
+| `RUB-11` | Autonomous execution | `3` | `1` | The contract exists; isolated run, receipt, retry, resume, rollback, and authority proof are missing |
+| `RUB-12` | Operation and learning | `3` | `1` | Owners and feedback paths are planned; no completed run or disposition evidence exists |
 
 ## Evidence log
 
-| Date | Revision | Evidence ID | Command or operation | Result | Artifact or output |
+| Date | Run ID | Attempt | Revision | Evidence ID | Correlation ID | Command or operation | Result | Artifact or output |
+| --- | --- | ---: | --- | --- | --- | --- | --- | --- |
+| 2026-08-04 | `PLAN` | `0` | `840c606d7aca894f22f2e033ffa3e33e7ca71ab4` | `PRE-03`, `CAP-01` through `CAP-14` | `N/A` | Inspect framework package, demo package, registry, plans, and source | Framework is empty; town and BroMetal seams are recorded | This plan's alignment and inventory tables |
+| 2026-08-04 | `PLAN` | `0` | Same revision | `REF-02` through `REF-05` | `N/A` | Inspect `PRACTICAL_LIGHTS`, light update, shader layouts, and demo stats | Slot `0` values, four affected programs, block sizes, and incomplete stats are recorded | This plan's reference and GPU sections |
+| 2026-08-04 | `PLAN` | `0` | Same revision | `HYP-01` through `HYP-07` | `N/A` | Search manifests/source and inspect installed BroMetal `0.14.0` runtime | Hypotheses resolved as recorded | Missing-capability table |
+
+## Delivery failure and learning log
+
+| Date | Run and attempt | Class | Unexpected result or intervention | Disposition | Evidence and status |
 | --- | --- | --- | --- | --- | --- |
-| 2026-08-04 | `840c606d7aca894f22f2e033ffa3e33e7ca71ab4` | `PRE-03`, `CAP-01` through `CAP-13` | Inspect framework package, demo package, registry, plans, and source | Framework is empty; town and BroMetal seams are recorded | This plan's alignment and inventory tables |
-| 2026-08-04 | Same revision | `REF-02` through `REF-05` | Inspect `PRACTICAL_LIGHTS`, light update, shader layouts, and demo stats | Slot `0` values, four affected programs, block sizes, and incomplete stats are recorded | This plan's reference and GPU sections |
-| 2026-08-04 | Same revision | `HYP-01` through `HYP-07` | Search manifests/source and inspect installed BroMetal `0.14.0` runtime | Hypotheses resolved as recorded | Missing-capability table |
+| 2026-08-04 | `PLAN` | `PROCESS_GAP` | The first workflow did not require isolated run identity, a machine-readable receipt, bounded retries, software rollback, or after-completion ownership | Add enforced shared rules and apply them to Slice 01 without changing its product outcome | Workflow, template, and this execution contract; `CLOSED` |
+
+During implementation, record unplanned interventions, retries, flaky checks, permission
+escalations, missed checks, and blocked time. Keep every failed attempt in the receipt.
+
+## After completion
+
+| Area | Owner | Signal or source | Trigger | Required action |
+| --- | --- | --- | --- | --- |
+| Health | Antiky framework and demo maintainers | Complete Slice 01 verifier, reference route smoke check, diagnostics, and GPU/resource budgets | A required check fails or a stable diagnostic reports unsafe state | Triage the run receipt; add a regression test for a defect; use rollback when safety cannot be restored forward |
+| Human feedback | Antiky project owner | `docs/objectives/01-FEEDBACK_H.txt` | A person reports a Slice 01 behavior, usability, or visual problem | Triage through the formal objective workflow and link the resulting task to Slice 01 evidence |
+| Agent findings | Antiky project owner | `docs/objectives/02-AGENT-FINDINGS_A.txt` | An agent finds a defect, missing proof, or delivery gap | Triage the finding; select a product test, shared rule, capability hypothesis, or accepted decision |
+| Regression and rollback | Antiky framework and demo maintainers | Regression suite and the receipt's last-known-good checkpoint | A deterministic regression, authority breach, corrupt state, or unsafe lifecycle result | Stop affected delivery; fix forward or use the software rollback contract; record direct proof |
+| Deprecation or retirement | Antiky project owner | Consumer inventory and a passing replacement slice | A later proved framework API replaces the lamp-specific facade or the route has no consumer | Approve the replacement, keep the verifier as regression proof, migrate consumers, then remove obsolete code and contracts |
+
+Slice 01 has no production deployment or continuous production monitor. Those operations are `N/A`
+until a later slice adds a hosted runtime.
 
 ## Drift and discovery log
 
@@ -673,6 +835,7 @@ missing edge or proof, `3` complete with repeatable direct evidence. Do not aver
 | --- | --- | --- | --- |
 | 2026-08-04 | BroMetal writes complete program uniform blocks on the first draw of each frame | Slice 01 measures this behavior and does not promise a four-byte GPU write | Proposed in this plan; owner approval pending |
 | 2026-08-04 | Current town `bytesPerFrame` omits uniform uploads | Slice 0/render diagnostics must capture real upload counts before implementation | Proposed in this plan; owner approval pending |
+| 2026-08-04 | The [Agent Development Lifecycle](https://blog.cloudflare.com/agent-development-lifecycle/) review exposed a delivery-execution gap | Add the run setup, receipt, recovery, permission, and after-completion gates; keep the lamp outcome unchanged | Applied to the shared workflow, template, and this plan before implementation |
 
 ## Final completion declaration
 
@@ -685,6 +848,12 @@ The owner can change this declaration to `COMPLETE` only when:
 - [ ] Every rubric row scores `3`.
 - [ ] The complete verifier passes from a clean start.
 - [ ] The evidence names the final implementation revision.
+- [ ] The run state is `CLOSED` and the `antiky.slice-receipt/v1` receipt validates.
+- [ ] The receipt links every required result and preserves every failed attempt.
+- [ ] Every failure has a resolved class and disposition.
+- [ ] The rollback rehearsal passes from the recorded last-known-good revision.
+- [ ] Every changing operation stayed inside the delivery permissions table.
+- [ ] The after-completion record names its owners, signals, feedback paths, and retirement rule.
 - [ ] The `town-study` reference remains available.
 - [ ] No blocker, unresolved owner choice, placeholder, or unexplained `N/A` remains.
 - [ ] The final goal audit confirms the original outcome.
