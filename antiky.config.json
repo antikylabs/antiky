@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "game": {
+    "command": [
+      "npm",
+      "run",
+      "dev",
+      "--workspace",
+      "@antiky/website",
+      "--",
+      "--hostname",
+      "{host}",
+      "--port",
+      "{gamePort}"
+    ],
+    "shaderCommand": [
+      "npm",
+      "run",
+      "shaders:watch",
+      "--workspace",
+      "@antiky/demos"
+    ],
+    "workingDirectory": ".",
+    "url": "http://127.0.0.1:3010/demos/town-study"
+  },
+  "network": {
+    "host": "127.0.0.1",
+    "gamePort": 3010,
+    "inspectionPort": 3011
+  }
+}

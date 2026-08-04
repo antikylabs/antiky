@@ -18,6 +18,9 @@
 # local design workbench
 **/.impeccable/
 
+# local Antiky development sessions
+**/.antiky/
+
 # misc
 .DS_Store
 *.pem

@@ -1,0 +1,23 @@
+{
+  "name": "@antiky/cli",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "antiky": "./src/bin.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --experimental-transform-types --test tests/config.test.ts tests/development-session.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@antiky/framework": "0.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3"
+  }
+}

@@ -18,11 +18,21 @@ const root = fileURLToPath(new URL('../../../', import.meta.url));
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const path = slug ? `/demos/${slug}` : '/demos';
 
-console.log(`Starting the demo host at http://localhost:3010${path}`);
+console.log(`Starting the demo host at http://127.0.0.1:3010${path}`);
 
 const child = spawn(
   npmCommand,
-  ['run', 'dev', '--workspace', '@antiky/website'],
+  [
+    'run',
+    'dev',
+    '--workspace',
+    '@antiky/website',
+    '--',
+    '--hostname',
+    '127.0.0.1',
+    '--port',
+    '3010',
+  ],
   {
     cwd: root,
     env: { ...process.env, ANTIKY_DEMO_SLUG: slug ?? '' },

@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "antiky": "node --experimental-strip-types --experimental-transform-types packages/cli/src/bin.ts",
     "postinstall": "node scripts/patch-brometal.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:website": "node scripts/dev.mjs website",

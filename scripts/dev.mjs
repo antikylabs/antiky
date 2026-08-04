@@ -23,9 +23,12 @@ Shortcuts:
 }
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const defaultArgs = target === 'website' && targetArgs.length === 0
+  ? ['--hostname', '127.0.0.1', '--port', '3010']
+  : targetArgs;
 const child = spawn(
   npmCommand,
-  ['run', 'dev', '--workspace', workspaces[target], '--', ...targetArgs],
+  ['run', 'dev', '--workspace', workspaces[target], '--', ...defaultArgs],
   { stdio: 'inherit' },
 );
 

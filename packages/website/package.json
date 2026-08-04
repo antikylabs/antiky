@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "predev": "npm run shaders --workspace @antiky/demos",
-    "dev": "next dev -p 3010",
+    "dev": "next dev",
     "prebuild": "npm run shaders:prod --workspace @antiky/demos",
     "build": "next build",
     "start": "next start -p 3010",
