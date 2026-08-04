@@ -4,27 +4,30 @@
 
 ## Purpose
 
-This guide defines Antiky's runtime hierarchy, semantic world model, state representations, stable
-identity, simulation timing, and sandbox boundary. It expands the decisions in framework ADRs
-[0001](../../adr/framework/0001-entity-component-system_H.md),
-[0008](../../adr/framework/0008-engine-session-owns-worlds_H.md),
-[0009](../../adr/framework/0009-separate-state-projections_H.md),
-[0011](../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md),
-[0013](../../adr/framework/0013-explicit-simulation-inputs_H.md), and
-[0014](../../adr/framework/0014-promote-sandbox-commands_H.md).
+This guide explains the main runtime objects and how they fit together. It also explains world data,
+state copies, stable IDs, simulation time, and sandboxes.
+
+It expands these framework ADRs:
+
+- [0001: Represent world data with entities and components](../../adr/framework/0001-entity-component-system_H.md)
+- [0008: Let EngineSession own worlds](../../adr/framework/0008-engine-session-owns-worlds_H.md)
+- [0009: Keep authoring, runtime, and render state separate](../../adr/framework/0009-separate-state-projections_H.md)
+- [0011: Use stable IDs and temporary numeric aliases](../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
+- [0013: Give the simulation all inputs explicitly](../../adr/framework/0013-explicit-simulation-inputs_H.md)
+- [0014: Apply approved sandbox changes through commands](../../adr/framework/0014-promote-sandbox-commands_H.md).
 
 ## Runtime hierarchy
 
 ```text
-WorldHost                         online placement and shared services
-└── EngineSession                 one authoritative timeline and lifecycle
+WorldHost                         online session placement and shared services
+└── EngineSession                 one true timeline and lifecycle
     ├── World                     independent simulation state
-    │   ├── Zone / Region         loading, streaming, and spatial organization
-    │   ├── Entity                stable semantic identity
+    │   ├── Zone / Region         loading and spatial organization
+    │   ├── Entity                stable identity
     │   ├── Components            structured data
-    │   ├── Relationships         typed graph edges
+    │   ├── Relationships         typed links
     │   ├── Systems               ordered behavior
-    │   └── Specialized stores    dense or subsystem-owned data
+    │   └── Specialized stores    compact or system-owned data
     ├── World                     preview, test, or sandbox state
     ├── AssetRegistry
     ├── CommandBus / EventBus
@@ -33,64 +36,72 @@ WorldHost                         online placement and shared services
     └── optional RenderDriver
 ```
 
-`WorldHost` is only needed when multiple authoritative sessions must be placed or coordinated. A
-local game or Studio session can start at `EngineSession`.
+A `WorldHost` places and coordinates multiple authoritative sessions. A local game or Studio does
+not need a `WorldHost`. It can start with an `EngineSession`.
 
 ## EngineSession
 
-An `EngineSession` owns everything required to start, run, inspect, fork, and dispose one or more
-worlds. Its conceptual responsibilities are:
+An `EngineSession` owns everything necessary to start, run, inspect, copy, and dispose its worlds.
+The session must:
 
-- assign and expose session identity;
-- admit commands in a defined order;
-- own the fixed simulation clock;
-- run systems in a stable phase order;
-- maintain authoring, runtime, and render projections;
-- own shared asset and diagnostic services;
-- create, compare, and dispose sandbox worlds;
-- render when a driver is present; and
-- release all owned resources on disposal.
+- Supply a stable session ID.
+- Accept commands in a defined order.
+- Own the fixed simulation clock.
+- Run systems in a stable phase order.
+- Maintain authoring, runtime, and render state.
+- Own shared asset and diagnostic services.
+- Create, compare, and dispose sandbox worlds.
+- Render when a render driver is present.
+- Release all owned resources when it stops.
 
-It is not a global service locator. A service belongs on the session only when its lifecycle or
-consistency genuinely spans the session's worlds.
+The session is not a container for every service. A service belongs to the session only when it must
+stay consistent across the session's worlds. Its lifecycle must also match the session lifecycle.
 
 ### Single-writer rule
 
-Each authoritative world has one mutation loop. Network requests, Studio actions, agents, and worker
-results may arrive concurrently, but they join an ordered queue. The session admits work at command
-or tick boundaries.
+Only one change loop writes to each authoritative world. Network requests, Studio actions, agent
+actions, and worker results can arrive at the same time. They enter one ordered queue.
 
-Workers can perform expensive pure or isolated work such as asset compilation, mesh generation,
-path batches, or snapshot compression. Their results include the source revision. A stale result is
-discarded or recomputed rather than applied to a different state.
+The session accepts work only at a command boundary or simulation-step boundary.
+
+Workers can do expensive isolated work. Examples include asset compilation, mesh generation, path
+calculations, and snapshot compression.
+
+Each worker result includes its source revision. If the source revision changed, the session must
+discard or recalculate the result. It must not apply the result to different state.
 
 ## World
 
-A `World` owns one coherent simulation state. It provides semantic operations over:
+A `World` owns one consistent simulation state. It supplies operations for:
 
-- entities;
-- component values;
-- typed relationships;
-- resources scoped to the world;
-- systems and their ordering;
-- queries;
-- revisions; and
-- projection deltas.
+- Entities
+- Component values
+- Typed relationships
+- Resources that belong to the world
+- Systems and their order
+- Queries
+- Revisions
+- State-copy updates.
 
-A world is not synonymous with a map file. It can contain multiple zones or regions, and a session
-can host multiple worlds. Examples include a primary authored world, a material preview, a prefab
-preview, an automated test world, and an agent sandbox.
+A world is not the same as a map file. It can contain multiple zones or regions. A session can also
+contain multiple worlds.
+
+Examples include a primary authoring world, a material preview, a prefab preview, a test world, and
+an agent sandbox.
 
 ## Zones and regions
 
-Zones or regions organize part of a world for loading, streaming, interest management, or gameplay.
-They do not create a new authority model by themselves. A large online game may choose either:
+Zones or regions organize parts of a world. They can support loading, streaming, client visibility,
+or gameplay. A zone does not create new authority rules by itself.
 
-- several zones inside one session when they share one practical simulation timeline; or
-- separate sessions when placement, scaling, failure isolation, or tick independence requires it.
+A large online game can use one of these arrangements:
 
-Moving an entity across session boundaries is an explicit handoff. It is not achieved by sharing a
-mutable entity object between processes.
+- Put several zones in one session when they share one simulation timeline.
+- Use separate sessions when they need different placement, scale, failure isolation, or simulation
+  timing.
+
+Movement between sessions requires a defined handoff. The sessions must not share an entity object
+that both sessions can change.
 
 The exact zone representation and handoff protocol remain open.
 
@@ -98,35 +109,36 @@ The exact zone representation and handoff protocol remain open.
 
 ### Entities
 
-An entity is stable identity for something meaningful to tools, gameplay, or history. Typical
-entities include a hero, camera, light, building, selectable tree, water surface, or world root.
+An entity gives stable identity to something that matters to tools, gameplay, or history. Examples
+include a hero, camera, light, building, selectable tree, water surface, or world root.
 
-Names, paths, and hierarchy positions are mutable labels. The `EntityId` remains stable when they
-change.
+Names, paths, and hierarchy positions are labels that can change. The `EntityId` does not change
+with them.
 
 ### Components
 
-Components are structured data attached to entities. Behavior belongs in systems. Each externally
-visible component definition needs runtime metadata because TypeScript types do not exist at
-runtime. The metadata provides:
+Components are structured data that belong to entities. Systems contain behavior.
 
-- a stable component type ID;
-- a schema version;
-- field types and units;
-- defaults and constraints;
-- editability and visibility metadata;
-- persistence classification; and
-- migration or validation hooks.
+TypeScript type information does not exist while the game runs. Each public component definition
+must supply runtime information for:
 
-This metadata drives command validation, Studio inspectors, MCP descriptions, snapshots, and
-documentation. The library or schema representation used to implement it is not yet chosen.
+- A stable component type ID
+- A schema version
+- Field types and units
+- Default values and limits
+- Rules for editing and visibility
+- Rules that state if Antiky saves the component
+- Migration and validation operations.
+
+This runtime information supports command validation, Studio inspectors, MCP descriptions,
+snapshots, and documentation. The project has not selected the library or schema format yet.
 
 ### Relationships
 
-Relationships are typed edges between stable identities. Examples include `ChildOf`, `Targets`,
+A relationship is a typed link between two stable IDs. Examples include `ChildOf`, `Targets`,
 `Owns`, `Follows`, `UsesAsset`, and `GeneratedBy`.
 
-The scene hierarchy is the `ChildOf` projection:
+`ChildOf` relationships create the scene hierarchy:
 
 ```text
 Town
@@ -141,26 +153,26 @@ Town
     └── Main Camera
 ```
 
-Other relationships remain graph-shaped. A camera following the hero or a material using a shader
-does not belong in the parent-child tree.
+Other relationships do not need a place in this tree. For example, the tree does not show that a
+camera follows the hero. It also does not show that a material uses a shader.
 
 ### Queries
 
-Queries are a first-class semantic interface. They answer questions such as:
+Queries are part of the public world API. They answer questions such as:
 
 - Which entities have `Transform` and `Camera`?
 - Which renderable entities use this material?
 - What is related to the current selection?
 - Which entities fall within this zone or capability scope?
 
-The public query meaning must survive a future storage optimization. Query implementation and
-performance contracts should be chosen from measurements.
+A storage change must not change the meaning of a public query. Performance measurements must guide
+the query implementation and its performance rules.
 
 ## What becomes an entity
 
 Use an entity when stable identity matters to authoring, gameplay, tools, permissions, history, or
-relationships. Keep data specialized when it is dense, uniform, high-volume, or meaningful only to
-one subsystem.
+relationships. Use specialized storage for compact, uniform, or high-volume data. Also use it for
+data that matters to only one system.
 
 | Concept | Default representation |
 | --- | --- |
@@ -174,50 +186,56 @@ one subsystem.
 | Render pass | Render-graph node |
 | GPU buffer | Render-driver resource |
 
-Semantic ownership can bridge the layers. A greedily meshed voxel face, batch slot, or physics body
-may map back to the entity that owns it without becoming the authoritative entity itself.
+A generated voxel face, render batch slot, or physics body can map to its owner entity. The generated
+item does not become an authoritative entity.
 
 ## Three state representations
 
 ### Authoring world
 
-Authoring state is optimized for stable semantics, inspection, versioning, persistence, and human or
-agent editing. It includes entity headers, authored components, relationships, asset references, and
-a durable revision.
+Authoring state is designed for stable meaning, inspection, versions, saved data, and editing. It
+contains entity headers, authored components, relationships, asset references, and a durable
+revision.
 
-It avoids deep graphs of live class instances. References use stable IDs.
+Authoring state does not contain deep graphs of live class objects. It uses stable IDs for
+references.
 
 ### Runtime world
 
-Runtime state is optimized for simulation. It can use dense integer indexes, structures of arrays,
-specialized component stores, physics handles, navigation indexes, cooldown tables, or AI state.
-These structures are private to one session and can be rebuilt from authored state, assets,
+Runtime state is designed for simulation. It can use compact integer indexes, arrays, specialized
+component storage, physics handles, navigation indexes, cooldown tables, or AI state.
+
+These structures are private to one session. Antiky can rebuild them from authoring state, assets,
 checkpoints, and accepted inputs.
 
 ### Render world
 
-Render state is optimized for cameras, lights, visible items, pipeline and material keys, stable batch
-slots, sorting, dirty ranges, and pass execution. It contains no gameplay authority.
+Render state is designed for cameras, lights, visible items, pipeline keys, material keys, stable
+batch slots, sorting, changed ranges, and render passes. It does not control gameplay.
 
 ### Projection rules
 
-Normal data flow is one-way:
+A projection copies necessary data from one form of state to the next. Normal data flow moves in one
+direction:
 
 ```text
 accepted change
-  -> authoring delta
-  -> runtime delta
-  -> render extraction delta
+  -> authoring update
+  -> runtime update
+  -> prepared render update
   -> driver upload
 ```
 
-Projection code must be incremental for normal changes and able to rebuild from a known source when
-drift or incompatibility is detected. A lower representation never fixes an upstream mismatch by
-mutating the upstream object through a shared reference.
+For a normal change, projection code must copy only the changed data. It must also support a complete
+rebuild from a known source.
+
+If state copies do not match, a lower state copy must not change its source through a shared
+reference. A rebuild must correct the error.
 
 ## Identity translation
 
-Persistent identity uses branded UUIDv7 strings. Dense aliases improve hot paths:
+Persistent IDs use TypeScript-branded UUIDv7 strings. Compact numeric aliases make frequent
+operations faster:
 
 | Identity | Scope | Durable? |
 | --- | --- | --- |
@@ -226,39 +244,40 @@ Persistent identity uses branded UUIDv7 strings. Dense aliases improve hot paths
 | `NetworkEntityId` | One session or connection alias table | No |
 | `RenderInstanceIndex` | One render batch or pipeline | No |
 
-Mappings are explicit and rebuilt or negotiated. No dense alias may cross its owning representation
-as if it were persistent identity.
+Antiky explicitly creates or agrees on each mapping. A numeric alias must not leave its state copy as
+if it were a persistent ID.
 
 ## Simulation clock
 
-Simulation advances in fixed ticks. Rendering consumes current and previous presentation state and
-may run at a different cadence.
+The simulation advances in fixed steps. The renderer can use the current and previous display state.
+It can run at a different rate from the simulation.
 
 One frame conceptually performs:
 
-1. Bound real elapsed time and calculate due ticks.
-2. For each tick, admit scheduled commands and inputs.
-3. Run command decisions and apply accepted deltas.
-4. Run deterministic systems in stable order.
-5. Emit transient signals and projection dirtiness.
-6. Interpolate presentation state.
-7. Extract render changes and render once when a driver exists.
-8. Record diagnostics.
+1. The session limits real elapsed time and calculates the necessary simulation steps.
+2. For each step, the session accepts scheduled commands and inputs.
+3. The session decides commands and applies accepted updates.
+4. The session runs repeatable systems in a stable order.
+5. The session sends temporary signals and records changed state ranges.
+6. The session estimates display state between simulation steps.
+7. The session prepares render changes and renders one frame when a driver is present.
+8. The session records diagnostics.
 
-Clocks, random streams, environmental values, and external inputs are injected. Authoritative systems
-do not reach for ambient time or randomness. Exact determinism claims remain scoped to tested
-subsystems and known builds.
+The session gives clocks, random streams, environment values, and external inputs to each system.
+Authoritative systems do not read hidden time or random values.
+
+A promise of identical results applies only to tested systems and known builds.
 
 ## Sandbox worlds
 
-A sandbox begins at an explicit primary-world revision. It can contain the entire world, a region, a
-selection, a prefab, or a synthetic test scene, provided its scope is declared.
+A sandbox starts at a specified revision of the primary world. It can contain the complete world, a
+region, a selection, a prefab, or a test scene. Its scope must be clear.
 
 A safe agent workflow is:
 
 ```text
-fork at base revision
-  -> apply capability-bounded commands
+create sandbox at base revision
+  -> apply permitted commands
   -> run simulation and validation
   -> collect diagnostics, metrics, and captures
   -> prepare ProposedChangeSet
@@ -267,30 +286,31 @@ fork at base revision
   -> re-authorize and revalidate
 ```
 
-The proposed change set carries commands and evidence. It does not carry authoritative live objects,
-runtime indexes, or sandbox event sequence numbers. Conflict is an explicit outcome.
+A `ProposedChangeSet` contains commands and validation evidence. It does not contain live
+authoritative objects, runtime indexes, or sandbox event sequence numbers. The result must report a
+conflict explicitly.
 
 ## Required tests
 
-Implementation should establish these cut-point tests as each capability appears:
+Add these boundary tests as each feature becomes available:
 
-- stable identity survives rename, snapshot, and replay;
-- runtime aliases never appear in durable payloads;
-- hierarchy output matches `ChildOf` relationships;
-- specialized data maps back to semantic owners where selection requires it;
-- one accepted authoring delta updates each projection exactly once;
-- full projection rebuild matches incremental projection state;
-- fixed input, clock, seed, system order, and build produce the declared state digest;
-- pause and stepping do not reconstruct the world;
-- stale worker results are rejected; and
-- sandbox promotion detects a changed primary revision and never imports live state.
+- A stable ID stays the same after a rename, snapshot, and replay.
+- A runtime alias never occurs in durable data.
+- The hierarchy output matches the `ChildOf` relationships.
+- Specialized data maps to its owner entity when selection needs the owner.
+- One accepted authoring update changes each state copy exactly one time.
+- A complete state rebuild matches the result of small state updates.
+- Fixed inputs, clock, seed, system order, and build produce the declared state digest.
+- Pause and single-step operations do not rebuild the world.
+- The session rejects stale worker results.
+- Sandbox promotion detects a changed primary revision and does not import live sandbox state.
 
 ## Open decisions
 
-- Component storage and query layout.
-- Runtime schema library and generated inspector metadata format.
-- Zone and streaming model.
-- Snapshot content for runtime recovery.
-- Asset sharing, copy-on-write, and partial cloning for sandboxes.
-- Which systems guarantee cross-platform determinism.
-- The point at which simple maps should become dense arrays or another measured layout.
+- Component storage and query layout
+- Runtime schema library and generated inspector-data format
+- Zone and streaming model
+- Snapshot content for runtime recovery
+- Asset sharing and copy behavior for sandboxes
+- The systems that promise identical results on different platforms
+- The measurements that justify a change from simple maps to compact arrays or other storage.
