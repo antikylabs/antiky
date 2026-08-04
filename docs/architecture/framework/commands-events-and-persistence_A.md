@@ -192,7 +192,7 @@ On recovery:
 load newest compatible snapshot
   -> rebuild disposable indexes and specialized services
   -> apply ordered event tail
-  -> verify projection sequence and invariants
+  -> verify the state-copy sequence and required rules
 ```
 
 Antiky can discard an incompatible snapshot if it can still read the durable events. Runtime

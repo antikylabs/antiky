@@ -16,20 +16,20 @@ This README has no ownership suffix because GitHub uses it as the directory inde
 
 ## Reading order
 
-1. [Framework system overview](framework/overview_A.md) gives a short view of the complete runtime.
-2. [World and session model](framework/world-and-session-model_A.md) explains IDs, entities, worlds,
+1. [Framework System Overview](framework/overview_A.md) gives a short view of the complete runtime.
+2. [World and Session Model](framework/world-and-session-model_A.md) explains IDs, entities, worlds,
    state copies, clocks, and sandboxes.
-3. [Commands, events, and persistence](framework/commands-events-and-persistence_A.md) explains state
+3. [Commands, Events, and Persistence](framework/commands-events-and-persistence_A.md) explains state
    changes, stored events, undo, snapshots, and state-copy safety.
-4. [Protocols and serialization](framework/protocols-and-serialization_A.md) explains when Antiky
+4. [Protocols and Serialization](framework/protocols-and-serialization_A.md) explains when Antiky
    encodes data and how data crosses boundaries.
-5. [Rendering and assets](framework/rendering-and-assets_A.md) explains BroMetal, render data, assets,
+5. [Rendering and Assets](framework/rendering-and-assets_A.md) explains BroMetal, render data, assets,
    live resource updates, and inspection.
-6. [Authoritative online runtime](framework/authoritative-online-runtime_A.md) explains server
+6. [Authoritative Online Runtime](framework/authoritative-online-runtime_A.md) explains server
    authority, client updates, stored state, prediction, and large online games.
-7. [Studio and agent workflows](studio/overview_A.md) explains the portable editor, MCP, modes,
+7. [Studio and Agent Workflows](studio/overview_A.md) explains the portable editor, MCP, modes,
    selection, feedback, and agent safety.
-8. [Contextual feedback](studio/contextual-feedback_A.md) explains comments that identify an exact
+8. [Contextual Feedback](studio/contextual-feedback_A.md) explains comments that identify an exact
    target and enter a review queue.
 
 ## Document authority

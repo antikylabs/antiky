@@ -28,7 +28,7 @@ direct write access to shared world objects. Direct access can bypass:
 
 An external caller must use a versioned command for each important state change.
 
-The command ingress is the entry point for these commands. It must do these actions:
+The command entry point must do these actions:
 
 - It must validate each command against its schema.
 - It must get the caller identity from a trusted source.
@@ -56,8 +56,10 @@ not need a command for each frame update.
   version.
 - The system validates each local edit and sends it to a handler. It does not serialize the edit
   when the caller and the session are in the same process.
-- Only private runtime code can bypass the command ingress. The session must own this runtime code.
+- Only private runtime code can bypass the command entry point. The session must own this runtime
+  code.
 
 ## Revision history
 
 - `4c35b270f3da017454b12dd75e104b0c50355818` — Prior version before the plain-language rewrite.
+- `a499663145041c601507992a9437438eba2a81d2` — Prior version before the final plain-language cleanup.

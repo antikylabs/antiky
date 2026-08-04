@@ -18,7 +18,7 @@ It also supports the command and state-copy architecture in the other guides.
 | Projection or mapping | Copy data from one in-process form to another with typed code | Apply an authoring transform update to runtime transform storage |
 | Serialization | Encode versioned data as text or bytes | Encode a command as JSON for a separate Studio process |
 | Deserialization | Decode and validate text or bytes as a data-transfer value | Validate a group of gameplay inputs at the gateway |
-| Marshalling | Move data across a memory or ownership boundary and change its layout or handles | Transfer an `ArrayBuffer` to an asset worker |
+| Memory transfer | Move data across a memory or ownership boundary and change its layout or handles | Transfer an `ArrayBuffer` to an asset worker |
 
 Separate modules do not require serialization. Interfaces, ownership, package dependencies, and
 tests enforce boundaries in one process. They do not add encoding and decoding work.
@@ -137,7 +137,7 @@ selected a required validation library yet.
 Commands and events contain meaningful changes and asset references. They do not contain large mesh,
 texture, audio, animation, or voxel data.
 
-Large artifacts use:
+Large asset files use:
 
 - An `AssetId` and content hash
 - A versioned manifest
@@ -152,7 +152,7 @@ binary data separately. An accepted event identifies the asset version that beca
 
 External contracts and frequent internal operations use different data forms:
 
-| Semantic value | Hot representation |
+| Public value | Frequent-use form |
 | --- | --- |
 | Persistent UUIDv7 entity ID | Compact runtime, connection, or render alias |
 | Transform in defined world units | Numeric component arrays and origin-relative `Float32` render data |
@@ -189,7 +189,7 @@ default.
 - Render submission must not wait for a durable write or asset compilation.
 - Do not add a binary data format without measurements from the path that needs it.
 
-Diagnostics should measure payload bytes, decode and validation time, queue depth, persistence append
+Diagnostics should measure message bytes, decode and validation time, queue depth, persistence append
 time, client-update bytes, snapshot size, transfer copies, and render-upload bytes.
 
 ## Verification

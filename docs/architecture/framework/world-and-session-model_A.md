@@ -105,7 +105,7 @@ that both sessions can change.
 
 The exact zone representation and handoff protocol remain open.
 
-## Semantic world data
+## World data with stable meaning
 
 ### Entities
 
@@ -163,7 +163,7 @@ Queries are part of the public world API. They answer questions such as:
 - Which entities have `Transform` and `Camera`?
 - Which renderable entities use this material?
 - What is related to the current selection?
-- Which entities fall within this zone or capability scope?
+- Which entities fall within this zone or permission scope?
 
 A storage change must not change the meaning of a public query. Performance measurements must guide
 the query implementation and its performance rules.
@@ -181,7 +181,7 @@ data that matters to only one system.
 | Voxel world or selectable structure | Entity referencing a voxel asset or volume |
 | Individual voxel | Cell in a chunked voxel store |
 | Individual vertex or triangle | Compiled geometry data |
-| Grass or particle population | Specialized batch or buffer, with semantic owners where needed |
+| Grass or particle population | Specialized batch or buffer, with owner entities where needed |
 | Physics broad phase | Rebuildable physics service state |
 | Render pass | Render-graph node |
 | GPU buffer | Render-driver resource |

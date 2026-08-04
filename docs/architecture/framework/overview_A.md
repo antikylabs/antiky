@@ -22,7 +22,7 @@ Studio          AI / MCP          Game client          Tests / services
    \               |                  |                       /
     +------- commands, queries, events, diagnostics --------+
                               |
-                   command ingress and policy
+                  command entry point and policy
                               |
                         EngineSession
                +--------------+--------------+
@@ -52,7 +52,7 @@ systems, and authority rules.
 | --- | --- | --- |
 | Studio | Panels, selection, the editor camera, previews, the workspace, and user intent | True world state, game decisions, or GPU resources |
 | Model Context Protocol (MCP) adapter | Translation between agent requests and the shared engine API | Engine rules or UI control |
-| Command ingress | Decoding, validation, trusted identity, permissions, duplicate detection, and revision checks | Gameplay results or rendering |
+| Command entry point | Decoding, validation, trusted identity, permissions, duplicate detection, and revision checks | Gameplay results or rendering |
 | EngineSession | Lifecycle, command order, clocks, worlds, systems, state copies, assets, diagnostics, and sandboxes | Account services or UI state |
 | Authoring world | Stable entities, authored components, relationships, asset references, and the durable revision | Compact runtime indexes or GPU handles |
 | Runtime world | The current simulation, fixed-step systems, physics, navigation, AI, cooldowns, and specialized storage | External schemas or render resources |
