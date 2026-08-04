@@ -33,9 +33,9 @@ decision need no ADR, while a broad proposal may require several independent arc
 
 ### Studio
 
-- [0001: AI Integration](studio/0001-ai-integrations_H.md)
-- [0002: Host a portable web editor in Tauri](studio/0002-tauri-portable-web-editor_H.md)
-- [0003: Attach queued feedback to specific targets](studio/0003-contextual-feedback-queue_H.md)
+- [0001: Let users choose their AI coding tools](studio/0001-ai-integrations_H.md)
+- [0002: Keep the Studio web editor independent from Tauri](studio/0002-tauri-portable-web-editor_H.md)
+- [0003: Attach each feedback comment to its exact target](studio/0003-contextual-feedback-queue_H.md)
 
 ## Minimal format
 

@@ -1,4 +1,4 @@
-# 0002: Host a portable web editor in Tauri
+# 0002: Keep the Studio web editor independent from Tauri
 
 ## Status
 
@@ -6,26 +6,44 @@ Accepted
 
 ## Context
 
-Studio needs a native desktop shell for windows, local processes, files, menus, secure IPC, and
-packaging. Its editor UI is web-based and should also remain usable in a browser or a different host.
-Spreading desktop-specific APIs through the UI would turn a future host change into an application
-rewrite.
+Studio needs a desktop application for:
+
+- Application windows
+- Local processes
+- Files
+- Menus
+- Secure communication between processes
+- Installation packages.
+
+The editor user interface uses web technology. It must also work in a browser or a different desktop
+application.
+
+The editor code must not use Tauri APIs throughout the user interface. Otherwise, a future change
+from Tauri would require a rewrite of the application.
 
 ## Decision
 
-We will prove the editor core in a browser-hosted development path and use Tauri as Studio's initial
-desktop shell. The web editor will call a narrow `EditorHost` abstraction instead of importing Tauri
-APIs throughout the application.
+We will first prove the core editor in a browser. Studio will use Tauri as its first desktop
+application.
 
-Tauri will remain a thin native host for operating-system integration and local process boundaries.
-The choice of UI framework, engine-process placement, and transport will remain open until a
-vertical slice establishes their requirements.
+The web editor will use a small `EditorHost` interface for desktop features. Only the Tauri adapter
+will use Tauri APIs directly.
+
+Tauri will connect Studio to operating-system features and local processes. It will not contain
+editor behavior.
+
+The project has not yet selected the UI framework, the engine process location, or the connection
+method. A complete working feature will show what these parts need.
 
 ## Consequences
 
-- Browser development can validate editor behavior before desktop packaging is introduced.
-- The editor can later run in another desktop shell, a browser, or a remote environment.
-- Host capabilities and IPC payloads need explicit, validated contracts.
-- Tauri and Rust integration add a focused native build surface.
-- The host abstraction must remain deep enough to hide platform details without predicting every
-  future host feature.
+- Browser development can test editor behavior before the project adds installation packages.
+- The editor can later run in another desktop application, a browser, or a remote environment.
+- Desktop features and data that cross process boundaries need clear, validated contracts.
+- Tauri and Rust add a small, defined set of native build work.
+- The `EditorHost` interface must hide platform details.
+- The interface must not include future features before a real use case needs them.
+
+## Revision history
+
+- `5ccd6638aa0124b286c5dc7562884f5c2d707f79` — Prior version before the plain-language rewrite.
