@@ -89,6 +89,15 @@ const requiredResources = [
   'antiky://render/stats',
   'antiky://diagnostics',
 ];
+const requiredTools = [
+  'get_dev_status',
+  'get_latest_build',
+  'get_runtime_status',
+  'get_render_stats',
+  'get_diagnostics',
+  'dev_reload',
+  'capture_frame',
+];
 const allowedUnrelatedChanges = new Set([
   'docs/adr/UNDER_REVIEW_A.md',
   'docs/user-facing-docs/studio/.gitkeep',
@@ -295,7 +304,7 @@ export async function runSlice00Verification() {
     const resourceList = await mcp.request('resources/list');
     assert.deepEqual(resourceList.resources.map((resource) => resource.uri), requiredResources);
     const toolList = await mcp.request('tools/list');
-    assert.deepEqual(toolList.tools.map((tool) => tool.name), ['dev_reload', 'capture_frame']);
+    assert.deepEqual(toolList.tools.map((tool) => tool.name), requiredTools);
     const mcpRuntime = readMcpResource(await mcp.request('resources/read', { uri: 'antiky://runtime/status' }));
     assertSnapshotParity(first, {
       developmentSessionId: mcpRuntime.developmentSessionId,

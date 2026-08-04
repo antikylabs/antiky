@@ -55,7 +55,7 @@ const developmentSnapshot = {
   inspection: frameworkInspection,
 } as const;
 
-test('MCP discovers and reads every Slice 00 resource from one typed client', async () => {
+test('MCP exposes development reads as both resources and model-callable tools', async () => {
   const calls: string[] = [];
   const client = {
     async readDevelopmentSnapshot() {
@@ -124,10 +124,37 @@ test('MCP discovers and reads every Slice 00 resource from one typed client', as
   const tools = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 30, method: 'tools/list', params: {},
   });
+  const readToolNames = [
+    'get_dev_status',
+    'get_latest_build',
+    'get_runtime_status',
+    'get_render_stats',
+    'get_diagnostics',
+  ];
   assert.deepEqual(
     tools.result.tools.map((tool: { name: string }) => tool.name),
-    ['dev_reload', 'capture_frame'],
+    [...readToolNames, 'dev_reload', 'capture_frame'],
   );
+  for (const name of readToolNames) {
+    const definition = tools.result.tools.find((tool: { name: string }) => tool.name === name);
+    assert.deepEqual(definition.annotations, {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    });
+  }
+
+  for (const [index, name] of readToolNames.entries()) {
+    const read = await processMcpRequest(client, {
+      jsonrpc: '2.0',
+      id: 40 + index,
+      method: 'tools/call',
+      params: index === 0 ? { name } : { name, arguments: {} },
+    });
+    assert.equal(read.result.structuredContent.schemaVersion, 1);
+    assert.doesNotMatch(JSON.stringify(read), /credential/i);
+  }
 
   const reload = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 31, method: 'tools/call', params: { name: 'dev_reload', arguments: {} },
@@ -137,7 +164,11 @@ test('MCP discovers and reads every Slice 00 resource from one typed client', as
     jsonrpc: '2.0', id: 32, method: 'tools/call', params: { name: 'capture_frame', arguments: {} },
   });
   assert.equal(capture.result.structuredContent.captureId, 'capture-001');
-  assert.deepEqual(calls, ['read', 'read', 'read', 'read', 'read', 'reload', 'capture']);
+  assert.deepEqual(calls, [
+    'read', 'read', 'read', 'read', 'read',
+    'read', 'read', 'read', 'read', 'read',
+    'reload', 'capture',
+  ]);
 });
 
 test('MCP returns bounded protocol errors for unknown resources, tools, and methods', async () => {

@@ -17,6 +17,22 @@ export const MCP_RESOURCE_URIS = Object.freeze([
 
 type McpResourceUri = typeof MCP_RESOURCE_URIS[number];
 
+export const MCP_READ_TOOL_NAMES = Object.freeze([
+  'get_dev_status',
+  'get_latest_build',
+  'get_runtime_status',
+  'get_render_stats',
+  'get_diagnostics',
+] as const);
+
+export const MCP_TOOL_NAMES = Object.freeze([
+  ...MCP_READ_TOOL_NAMES,
+  'dev_reload',
+  'capture_frame',
+] as const);
+
+type McpReadToolName = typeof MCP_READ_TOOL_NAMES[number];
+
 type McpDevelopmentClient = Readonly<{
   readDevelopmentSnapshot(): Promise<DevelopmentSnapshot>;
   requestReload(): Promise<unknown>;
@@ -73,24 +89,67 @@ const resources = Object.freeze([
   },
 ] as const);
 
+const emptyInputSchema = Object.freeze({
+  type: 'object',
+  properties: {},
+  additionalProperties: false,
+} as const);
+
+const readToolAnnotations = Object.freeze({
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+} as const);
+
+const readTools = Object.freeze([
+  {
+    name: 'get_dev_status',
+    resourceUri: 'antiky://dev/status',
+    description: 'Read development session, config, service health, and CLI measurements.',
+  },
+  {
+    name: 'get_latest_build',
+    resourceUri: 'antiky://build/latest',
+    description: 'Read the accepted revision and latest build attempt.',
+  },
+  {
+    name: 'get_runtime_status',
+    resourceUri: 'antiky://runtime/status',
+    description: 'Read runtime connection state and the latest framework inspection snapshot.',
+  },
+  {
+    name: 'get_render_stats',
+    resourceUri: 'antiky://render/stats',
+    description: 'Read available framework-owned frame, canvas, draw, instance, and upload facts.',
+  },
+  {
+    name: 'get_diagnostics',
+    resourceUri: 'antiky://diagnostics',
+    description: 'Read bounded development and framework runtime diagnostics.',
+  },
+] as const satisfies readonly Readonly<{
+  name: McpReadToolName;
+  resourceUri: McpResourceUri;
+  description: string;
+}>[]);
+
 const tools = Object.freeze([
+  ...readTools.map(({ name, description }) => ({
+    name,
+    description,
+    inputSchema: emptyInputSchema,
+    annotations: readToolAnnotations,
+  })),
   {
     name: 'dev_reload',
     description: 'Reload the connected browser runtime without starting a new development session.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-      additionalProperties: false,
-    },
+    inputSchema: emptyInputSchema,
   },
   {
     name: 'capture_frame',
     description: 'Capture the connected game canvas as a PNG with related session and revision IDs.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-      additionalProperties: false,
-    },
+    inputSchema: emptyInputSchema,
   },
 ] as const);
 
@@ -116,8 +175,13 @@ function readRecord(value: unknown): Record<string, unknown> | null {
 }
 
 function emptyArguments(value: unknown): boolean {
+  if (value === undefined) return true;
   const record = readRecord(value);
   return record !== null && Object.keys(record).length === 0;
+}
+
+function readToolUri(name: string): McpResourceUri | null {
+  return readTools.find((tool) => tool.name === name)?.resourceUri ?? null;
 }
 
 function resourceValue(uri: McpResourceUri, snapshot: DevelopmentSnapshot): unknown {
@@ -244,6 +308,15 @@ export async function processMcpRequest(
       || !emptyArguments(params.arguments)
     ) {
       return errorResponse(id, -32602, 'Invalid tool call.');
+    }
+    const readUri = readToolUri(params.name);
+    if (readUri) {
+      try {
+        const snapshot = await client.readDevelopmentSnapshot();
+        return response(id, toolResult(resourceValue(readUri, snapshot)));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
     }
     if (params.name === 'dev_reload') {
       try {
