@@ -1,4 +1,4 @@
-# 0003: Give humans and agents one engine surface
+# 0003: Use one engine API for humans and agents
 
 ## Status
 
@@ -6,29 +6,40 @@ Accepted
 
 ## Context
 
-An agent that can only edit files, click UI controls, and inspect screenshots cannot reliably
-understand a running game. Giving Studio privileged engine access would also create two behaviors to
-maintain and test.
+If an agent can only edit files, use UI controls, and inspect screenshots, it cannot reliably
+understand a game while it runs.
+
+Studio must not use a separate private engine API. A private API would create two sets of behavior
+to maintain and test.
 
 ## Decision
 
-We will expose editor capabilities through shared commands, queries, events, diagnostics, and visual
-capture services. Studio, agents, tests, and other clients will use those same underlying services.
-MCP will be a thin adapter over them and will not contain engine logic or automate Studio controls.
+Studio, agents, tests, and other clients will use the same engine services. These services include:
 
-Agent writes will be capability-scoped and will normally target a sandbox world before promotion.
-Screenshots will supplement structured state rather than replace it.
+- Commands
+- Queries
+- Events
+- Diagnostics
+- Image and video capture.
+
+The Model Context Protocol (MCP) adapter will translate requests for these services. It will not
+contain engine rules. It will not control the Studio UI.
+
+Permissions will limit the changes that an agent can make. An agent will usually make changes in a
+sandbox world first. A separate command can then apply approved changes to the primary world.
+
+Screenshots can add visual information. They will not replace structured world data.
 
 ## Consequences
 
-- A feature is incomplete until its relevant state and operations are available through the shared
-  engine surface.
-- UI and agent behavior can be tested against the same contracts.
-- Engine APIs must provide stable identity, inspection, diagnostics, and structured errors.
-- Permissions, payload budgets, and sandbox policies become part of agent-facing design.
-- Visual-only workflows may still require captures, but normal control will not depend on UI
-  automation.
+- A feature is not complete until clients can inspect and use it through the shared engine API.
+- UI and agent behavior can use tests for the same contracts.
+- Engine APIs must supply stable IDs, inspection, diagnostics, and structured errors.
+- Agent features must define permissions, data-size limits, and sandbox rules.
+- Some visual work will still need images or video.
+- Normal engine control will not depend on UI automation.
 
 ## Revision history
 
 - `d5512a91c2c6719a7488b03feebe01bd24eaf93b` — Formalized the shared human and agent engine surface.
+- `cb8ecc4b54e5607130c94fc64d568b58c9937e96` — Prior version before the plain-language rewrite.

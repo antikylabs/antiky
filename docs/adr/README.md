@@ -16,11 +16,11 @@ decision need no ADR, while a broad proposal may require several independent arc
 
 ### Framework
 
-- [0001: Use semantic entities and components](framework/0001-entity-component-system_H.md)
-- [0002: Selectively event-source durable state](framework/0002-event-sourcing_H.md)
-- [0003: Give humans and agents one engine surface](framework/0003-agent-native_H.md)
-- [0004: Support 2D, 3D, and 2.3D as first-class modes](framework/0004-23d_H.md)
-- [0005: Build a reusable Antiky Ability System](framework/0005-game-ability-system_H.md)
+- [0001: Represent world data with entities and components](framework/0001-entity-component-system_H.md)
+- [0002: Record only events that need durable history](framework/0002-event-sourcing_H.md)
+- [0003: Use one engine API for humans and agents](framework/0003-agent-native_H.md)
+- [0004: Give equal support to 2D, 3D, and 2.3D games](framework/0004-23d_H.md)
+- [0005: Share one ability system across Antiky games](framework/0005-game-ability-system_H.md)
 - [0006: Keep BroMetal behind an Antiky render driver](framework/0006-brometal-render-driver_H.md)
 - [0007: Use commands to change world state](framework/0007-commands-as-mutation-boundary_H.md)
 - [0008: Put EngineSession above World](framework/0008-engine-session-owns-worlds_H.md)
