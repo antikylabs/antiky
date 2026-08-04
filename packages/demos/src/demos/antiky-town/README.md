@@ -5,9 +5,11 @@
 Antiky Town will port the existing [`brometal-town`](../brometal-town/) through Antiky Framework.
 The old demo remains the reference until the new demo matches its required behavior and appearance.
 
-Read [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) before adding implementation code. The
-plan contains two or three alternatives for each early slice. The project owner will select the
-direction.
+Read [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) and
+[`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) before adding implementation code. The
+research supports a proposed development-harness Slice 0. The plan contains alternatives,
+preconditions, structured inspection requirements, and acceptance criteria for each early slice.
+The project owner will select the direction.
 
 ## Scaffold
 

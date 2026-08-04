@@ -28,7 +28,14 @@ intent
 ```
 
 The early event history can stay in memory. The early connection can use typed values in one
-process. Database, network, Studio, and MCP work are outside the first slices.
+process. Database, network, and Studio work are outside the first slices.
+
+The minimum development MCP belongs in Slice 0. It reports development, build, runtime, render, and
+diagnostic state. Later slices extend the same inspection source with world, entity, asset, clock,
+selection, command, and history operations.
+
+Read [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) for the engine research, WebGPU
+Inspector assessment, and Slice 0 design.
 
 ## Rules for every slice
 
@@ -40,22 +47,175 @@ process. Database, network, Studio, and MCP work are outside the first slices.
 - Do not serialize data between normal modules in one process.
 - Preserve the current town appearance unless a selected slice explicitly changes it.
 - Record measurements before an optimization changes data structures.
+- Supply machine-readable evidence through the development inspection service. A screenshot is
+  supporting evidence, not the only evidence.
+- State the reload effect for every changed source, shader, asset, or configuration boundary.
 - Finish and commit one slice before the next slice starts.
 
 ## Decisions requested
 
-Choose one direction for each slice. The recommended sequence is `1A, 2A, 3A, 4A, 5A, 6A`.
+Choose one direction for each slice. The recommended sequence is `0A, 1A, 2A, 3A, 4A, 5A, 6A`.
+
+Slice 0 also recommends configuration choice `C1`, `antiky.config.json`. The research document lists
+the configuration alternatives.
 
 The choices are starting directions. A later measured need can justify a different implementation.
 
 | Slice | Recommended | Other choices |
 | --- | --- | --- |
+| 0. Development harness | 0A. Current Next.js host plus Antiky supervisor | 0B. Dedicated Vite host; 0C. Framework-owned server |
 | 1. First complete object | 1A. Feature-first market lamp | 1B. Small generic registry; 1C. Full ECS first |
 | 2. Session and clock | 2A. Minimal fixed-step session | 2B. General scheduler; 2C. Demo-owned clock |
 | 3. Character simulation | 3A. Move the reusable motor | 3B. Add a demo adapter; 3C. Define physics services first |
 | 4. Town content | 4A. Compiled town asset with owner entities | 4B. Entity-rich town; 4C. One opaque town entity |
 | 5. Rendering | 5A. Town-specific BroMetal adapter | 5B. Generic render lists; 5C. General render graph |
 | 6. Selection workflow | 6A. CPU selection with stable owner mapping | 6B. GPU ID pass; 6C. Hierarchy-only selection |
+
+## Preconditions for all slices
+
+Do not start a slice until all of these statements are true:
+
+- The owner selected the slice alternative or approved a documented replacement.
+- All earlier slices pass their completion criteria.
+- The reference behavior and measurements for this slice are recorded.
+- The visible outcome, structured inspection evidence, and failure behavior are explicit.
+- Required runtime schemas and stable IDs are selected or included as work in the slice.
+- Required MCP resources and tools already exist, or their contracts and implementation are part of
+  the slice.
+- The reload and reconnect effect is defined for every file type that the slice adds.
+- Tests are named before implementation. A reported failure gets a failing regression test first.
+- Any open ADR question that changes ownership or public contracts for this slice is resolved.
+  Unrelated ADR research does not block the slice.
+- The slice has one command that runs its complete verification set.
+
+## Acceptance criteria for all slices
+
+Each slice must meet every applicable category. Its own evidence section adds feature-specific
+checks.
+
+| Category | Required evidence |
+| --- | --- |
+| Visible result | A human can reach the configured URL and observe the intended behavior. |
+| Structured result | An agent can query the relevant IDs, revisions, values, and diagnostics without reading pixels. |
+| Correctness | Unit, contract, and integration tests cover success and failure paths. |
+| Reload | A relevant file change has a defined update, restart, or no-reload result. |
+| Recovery | Invalid input or a failed compile keeps the last valid state when that is safe. |
+| Lifecycle | Start, reconnect, reload, dispose, and process shutdown release owned resources once. |
+| Performance | The slice records its relevant time, count, or byte measurements and checks approved limits. |
+| Security | Local services bind narrowly; reads do not change state; changes use explicit authority. |
+| Reference | Intended parity or an approved difference from `brometal-town` is recorded. |
+| Completion | Documentation, test output, inspection output, and the verification command are available. |
+
+## Slice readiness and inspection growth
+
+The names below are proposed MCP names. The stable requirement is the meaning of each operation.
+MCP read resources and tools must call the same typed inspection and command services as tests and
+future Studio UI.
+
+| Slice | Required before work starts | Structured interface required by completion |
+| --- | --- | --- |
+| 0 | Node 22, installed workspaces, a supported WebGPU browser, a working reference route, and selected host and config choices | Development, build, runtime, render-stat, and diagnostic resources; controlled reload and frame-capture tools |
+| 1 | Slice 0 is green; lamp baseline, stable-ID rules, component schema, command limits, and permission test identities exist | Entity list and entity inspection; command result, revision, render binding, and undo evidence |
+| 2 | Slice 1 is green; fixed step, long-frame limit, and pause rules are approved | Session and clock state; pause, resume, and single-step tools |
+| 3 | Slice 2 is green; recorded movement input, collision baseline, and actor IDs exist | Actor state, simulation step, state digest, and active simulation diagnostics |
+| 4 | Slice 3 is green; town content hash, compile validation, and selectable-owner policy exist | Asset list and inspection, dependency and compile state, and owner-to-compiled-range evidence |
+| 5 | Slice 4 is green; visual, pass, draw, upload, and disposal baselines exist | Render-pass list, resource dependencies, render diagnostics, and GPU capture evidence |
+| 6 | Slice 5 is green; selectable bounds or ID-pass input and expected hit records exist | Selection get/set, entity inspection, command submission, and correction-based undo |
+
+Playwright MCP is not a precondition. Browser screenshots remain useful for visual review. Antiky's
+own inspection service supplies the required semantic evidence. A pinned WebGPU Inspector setup can
+supply the low-level GPU evidence for Slice 5.
+
+Chrome or Edge is required only when the selected WebGPU Inspector path uses its CDP controller.
+
+## Slice 0: Development harness and minimum inspection
+
+### Outcome
+
+Run the selected game with `antiky dev`. Read a versioned configuration file, use strict local
+ports, watch source and shaders, keep one development session alive across browser reloads, and
+publish structured state through a local MCP endpoint.
+
+Slice 0 does not add the Antiky world model. It reports only facts that the current host and demo can
+truthfully supply.
+
+### 0A. Current Next.js host plus Antiky supervisor — Recommended
+
+Keep the current demo route and Next.js host. Add a small supervisor for configuration validation,
+shader watching, service health, runtime connections, inspection, and child-process cleanup.
+
+Benefits:
+
+- Keeps the working reference visible.
+- Adds the smallest new process surface.
+- Proves the development and inspection contracts before a host migration.
+
+Costs:
+
+- The first harness remains coupled to the website host.
+- Source updates can restart the complete browser runtime.
+
+### 0B. Dedicated Vite game host plus Antiky supervisor
+
+Move Antiky Town to a canvas-only Vite entry. Keep the same supervisor and inspection contracts.
+
+Benefits:
+
+- Gives direct game-entry and HMR control.
+- Matches common Phaser and Three.js development workflows.
+
+Costs:
+
+- Adds a host migration before the first framework behavior.
+- Requires a new boundary between the website and game host.
+
+### 0C. Framework-owned server and reload system
+
+Build Antiky-specific file serving, dependency watching, reload messaging, asset invalidation, and
+error display.
+
+Benefit:
+
+- Gives Antiky full control.
+
+Costs:
+
+- Recreates mature web-development features.
+- Delays the first game-framework result and adds long-term maintenance.
+
+### Slice 0 evidence
+
+- `antiky dev` loads `antiky.config.json`, validates its schema, and prints the resolved config path,
+  game URL, inspection URL, and development-session ID.
+- The default host is `127.0.0.1`. Network binding requires an explicit config change.
+- A configured strict port is used exactly. A busy or invalid port produces a stable error code and
+  starts no partial session.
+- The configured game route reaches a canvas and reports WebGPU initialization success or a
+  structured failure.
+- A watched TypeScript change causes a successful host update or browser-runtime restart. The
+  runtime-instance ID changes when the runtime restarts.
+- A valid WGSL change compiles and updates the browser. An invalid WGSL change reports a diagnostic,
+  keeps the last good compiled output, and does not crash the supervisor.
+- The build revision changes only after a successful source, shader, asset, or config update.
+- The development-session ID stays stable when the browser reloads or reconnects.
+- Ten consecutive valid fixture edits each produce a newer build revision and a ready runtime within
+  ten seconds. The integration test reports median and slowest update-to-ready time.
+- MCP resources report service health, latest build, runtime state, render statistics, and active
+  diagnostics without a screenshot or DOM query.
+- At least one selected agent client can discover the running session and read every Slice 0
+  resource. If that client does not support Streamable HTTP, Slice 0 supplies a stdio adapter.
+- The controlled-reload tool returns the old and new runtime-instance IDs or a structured failure.
+- Frame capture includes the development-session ID, runtime-instance ID, and build revision.
+- Structured results are versioned and bounded. Large collections use pagination or summaries.
+- The service does not expose React state, DOM objects, BroMetal objects, or raw GPU objects.
+- An integration test starts the harness on reserved test ports, connects a fixture runtime, changes
+  a watched fixture, observes a new successful revision, and verifies reconnect behavior.
+- Contract tests cover malformed config, unknown fields, occupied ports, invalid runtime messages,
+  shader failure, disconnect, reconnect, and unauthorized MCP requests.
+- The HTTP endpoint validates `Origin` and a per-session credential. The credential does not appear
+  in URLs, logs, diagnostics, or normal inspection results.
+- `Ctrl-C` and normal child failure stop every owned process, close the inspection endpoint, and
+  release both ports.
 
 ## Slice 1: First complete object
 
@@ -125,6 +285,9 @@ Costs:
 - Replay and correction-based undo produce the expected authoring state.
 - A complete state rebuild matches the small state updates.
 - Inspection returns the lamp ID, label, components, revision, and render binding.
+- MCP entity inspection returns the same lamp record as the headless framework query.
+- Command rejection and undo results include stable codes and related request, entity, and revision
+  IDs in the development diagnostics.
 - The default lamp value matches `brometal-town`.
 - One accepted change marks only the lamp render entry as changed.
 
@@ -184,6 +347,9 @@ Costs:
 - Long frames have a tested step limit.
 - Pause and single-step do not reset or rebuild the world.
 - Render timing can differ from simulation timing.
+- Session inspection reports mode, clock state, fixed step, completed step count, world revision, and
+  runtime-instance ID.
+- MCP pause, resume, and single-step tools call the same session operations as headless tests.
 - Headless framework tests do not import browser or BroMetal code.
 
 ## Slice 3: Character simulation
@@ -244,6 +410,8 @@ Costs:
 - NPC paths remain repeatable for fixed inputs and step counts.
 - Runtime indexes do not enter durable events or inspection output as persistent IDs.
 - The renderer reads prepared actor state and does not update actor simulation.
+- Actor inspection reports stable actor IDs, current movement state, simulation step, and the state
+  digest used by repeatability tests.
 - Existing character-motor regression tests remain effective after the move.
 
 ## Slice 4: Town content and compilation
@@ -304,6 +472,8 @@ Costs:
 - The compiled geometry and validation results match the reference baseline.
 - A complete rebuild produces the same content hash.
 - Stable owner IDs map to selected compiled objects.
+- Asset inspection reports source and compiled versions, dependencies, validation results, content
+  hash, and affected stable owners.
 - No individual voxel, vertex, triangle, or GPU resource becomes an entity.
 - Static asset data uploads only when its version changes.
 
@@ -365,6 +535,10 @@ Costs:
 - Framework core compiles without BroMetal, DOM, or React imports.
 - Shadow, scene, and post output stay within the selected visual baseline.
 - Draw count and per-frame upload measurements do not regress without approval.
+- Render inspection reports pass order, resource dependencies, draw counts, upload bytes, active
+  shader revisions, and related diagnostic IDs.
+- A pinned WebGPU Inspector capture, or an approved equivalent, verifies GPU validation results and
+  the expected pass and draw structure without becoming the source of Antiky entity state.
 - Failed resource creation preserves the last valid resources.
 - Disposal releases each owned resource exactly once.
 
@@ -422,11 +596,12 @@ Costs:
 
 - Canvas and query selection return the same stable entity when both methods apply.
 - Inspection shows components, assets, state-copy revisions, and render dependencies.
+- MCP selection and direct query selection return the same stable target and revision.
 - A command from the selected entity follows the same validation path as a direct API command.
 - Undo creates a correction event and restores the intended value.
 - Pause, edit, undo, and resume preserve simulation state.
 
-## Work after the first six slices
+## Work after Slices 0-6
 
 Continue in this order unless measurements or new ADRs change the priority:
 
@@ -435,9 +610,9 @@ Continue in this order unless measurements or new ADRs change the priority:
 3. Add versioned asset manifests, dependency tracking, and safe resource replacement.
 4. Add durable event-store and snapshot adapters behind the proven in-memory contracts.
 5. Add schema conversion tests for supported old command, event, and snapshot versions.
-6. Add Studio hierarchy, inspectors, pause controls, and editor-camera ownership.
-7. Add contextual feedback targets and the shared review queue.
-8. Add the MCP adapter over the same query, command, inspection, and feedback APIs.
+6. Expand the development MCP with any world operations that the first six slices did not need.
+7. Add Studio hierarchy, inspectors, pause controls, and editor-camera ownership.
+8. Add contextual feedback targets and the shared review queue.
 9. Add sandbox creation, validation evidence, conflict detection, and command-based promotion.
 10. Add online session hosting only after local session authority and replay tests are stable.
 11. Replace maps with compact storage only where profiles show a measured problem.
