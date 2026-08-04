@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "runId": "s00-20260804T185103Z",
+  "durationsMilliseconds": {
+    "repositoryCheck": 34941,
+    "gameReachable": 3542,
+    "runningTown": 7159,
+    "reload": 2655,
+    "capture": 155,
+    "cleanup": 150
+  },
+  "updateFixture": {
+    "samples": 20,
+    "maximumAllowedMilliseconds": 10000,
+    "medianMilliseconds": 198,
+    "slowestMilliseconds": 259
+  },
+  "runtime": {
+    "owner": "framework",
+    "frameCount": 61,
+    "framesPerSecond": 118
+  },
+  "render": {
+    "owner": "framework",
+    "canvasWidth": 694,
+    "canvasHeight": 512,
+    "drawCalls": 16,
+    "instances": 1247,
+    "uploadBytesPerFrame": 1152
+  },
+  "capture": {
+    "byteLength": 750549,
+    "sha256": "cbcb663e65cf8559e034f456ed70ca4761f56c601aa55147c3cf1ce63a069a5c",
+    "channelStandardDeviation": 45.339,
+    "pageSimilarity": 0.998169,
+    "minimumPageSimilarity": 0.72
+  },
+  "process": {
+    "retries": 2,
+    "defectCorrections": 8,
+    "flakyChecks": 1,
+    "ownerInterventions": 0,
+    "blockedMilliseconds": 0,
+    "permissionCategories": 4
+  }
+}

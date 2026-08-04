@@ -7,11 +7,11 @@ This plan is the implementation contract. The accepted owner decisions are in
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` — Slice 00 must complete |
+| Status | `READY` |
 | Outcome | One command changes one market lamp through the complete framework path |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Depends on | [`../slice-00/plan.md`](../slice-00/plan.md) completed |
-| Alignment revision | `4504b2f364ae19f970875ea54226d7a84b1e55b1` |
+| Alignment revision | `8244f9aa132d5fbec7ddc17114e7949a2c884fab` |
 | Complete check | `npm run verify:slice-01 --workspace @antiky/demos` |
 | Evidence | `docs/objectives/antiky-town/slice-01/outputs/{run-id}/receipt.json` |
 

@@ -1,0 +1,696 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-00",
+  "runId": "s00-20260804T185103Z",
+  "runState": "CLOSED",
+  "result": "PASS",
+  "sourceRevision": "b05a078394bf455beb7ababf30aa187e22c74f68",
+  "finalRevision": "8244f9aa132d5fbec7ddc17114e7949a2c884fab",
+  "alignmentRevision": "441563bcce94abd76fb6813869e603e13f116b5a",
+  "checkpoints": [
+    {
+      "id": "CP-00",
+      "commit": "47855fbb0be20a0b6bbf720df2fff60b6d99f47a",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-01",
+      "commit": "3b97a5b1a4347e32bf9ddbc0a699f7268e5db9e9",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-02",
+      "commit": "fee5599821497a17906fbf667b30bb67334e55da",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-03",
+      "commit": "4a0f1bae216fa9d5a843749f59a409cc14d6af91",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-04",
+      "commit": "2259d7b8c81aeb42d9513a95538e5109a886882e",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-05",
+      "commit": "f8b18c23108af67890779eb6e6b1221a259b3d83",
+      "status": "PASS"
+    }
+  ],
+  "runSetup": {
+    "revision": "8244f9aa132d5fbec7ddc17114e7949a2c884fab",
+    "branch": "feat/voxel-demo-work",
+    "worktree": "/Users/josephduncan/github/emberwyrd/antikySite",
+    "implementationPathsClean": true,
+    "unrelatedPreservedChanges": [
+      "docs/adr/UNDER_REVIEW_A.md",
+      "docs/user-facing-docs/studio/.gitkeep"
+    ],
+    "dependencyLockSha256": "6653814b3903a367d02725d905198a71620e7ac6e8da632c5322a0600397876d",
+    "configSha256": "de6d6aff6e6b9d4b0326b0fcca977dd6626ec9c4a8d18d66c019d6a2b89530b3",
+    "gameUrl": "http://127.0.0.1:3010/demos/town-study",
+    "ports": {
+      "game": 3010,
+      "inspection": 3011,
+      "browserControl": 9322,
+      "tests": [
+        43100,
+        43101
+      ]
+    },
+    "browserProfile": "dedicated temporary profile removed during cleanup",
+    "artifactDirectory": "docs/objectives/antiky-town/slice-00/outputs/s00-20260804T185103Z",
+    "locale": "en-US",
+    "timeZone": "America/Chicago",
+    "seed": "N/A; Slice 00 adds no random game state.",
+    "network": "Loopback only; no deployment or external messages.",
+    "isolation": "One open run, fixed free ports, one dedicated browser profile, and one unique staging directory.",
+    "retryRule": "One retry only for a classified transient failure after unchanged health.",
+    "rollbackRevision": "2259d7b8c81aeb42d9513a95538e5109a886882e"
+  },
+  "environment": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "osRelease": "25.5.0",
+    "osVersion": "Darwin Kernel Version 25.5.0: Tue Jun  9 22:28:34 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T6041",
+    "node": "22.15.0",
+    "npm": "10.9.2",
+    "typescript": "5.9.3",
+    "brometal": "0.14.0",
+    "vitest": "4.1.10",
+    "chrome": "Google Chrome 150.0.7871.188",
+    "locale": "en-US",
+    "timeZone": "America/Chicago",
+    "viewport": {
+      "width": 756,
+      "height": 469
+    }
+  },
+  "permissions": [
+    {
+      "operation": "repository writes",
+      "requiredCapability": "workspace write",
+      "scope": "approved Slice 00 code, tests, docs, and outputs",
+      "grantAndExpiry": "owner goal; expires at closeout",
+      "revocation": "corrective or revert commit",
+      "auditEvidence": "checkpoint commits"
+    },
+    {
+      "operation": "local services",
+      "requiredCapability": "loopback bind",
+      "scope": "127.0.0.1 ports 3010, 3011, 43100, and 43101",
+      "grantAndExpiry": "sandbox approval; expires at cleanup",
+      "revocation": "owned process signals",
+      "auditEvidence": "development and check logs"
+    },
+    {
+      "operation": "local browser",
+      "requiredCapability": "installed Chrome and loopback CDP",
+      "scope": "temporary profile and port 9322",
+      "grantAndExpiry": "sandbox approval; expires at cleanup",
+      "revocation": "browser stop and profile removal",
+      "auditEvidence": "capture and cleanup facts"
+    },
+    {
+      "operation": "delivery",
+      "requiredCapability": "Git checkpoint commit",
+      "scope": "current branch only; no push or deployment",
+      "grantAndExpiry": "repository instructions; expires at closeout",
+      "revocation": "corrective or revert commit",
+      "auditEvidence": "Git history"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "attempt-001",
+      "checkpoint": "CP-00",
+      "result": "FAIL",
+      "failureClass": "TRANSIENT",
+      "cause": "The execution sandbox rejected the first loopback bind.",
+      "disposition": "Health stayed unchanged; the one allowed retry used approved loopback authority."
+    },
+    {
+      "id": "attempt-002",
+      "checkpoint": "CP-00",
+      "result": "PASS",
+      "failureClass": null
+    },
+    {
+      "id": "attempt-003",
+      "checkpoint": "CP-01",
+      "result": "PASS",
+      "failureClass": null
+    },
+    {
+      "id": "attempt-004",
+      "checkpoint": "CP-02",
+      "result": "PASS",
+      "failureClass": null
+    },
+    {
+      "id": "attempt-005",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "A slower browser publication could overtake a newer snapshot.",
+      "disposition": "A failing ordering regression led to one serialized publication queue."
+    },
+    {
+      "id": "attempt-006",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "The production TypeScript consumer rejected the typed source import.",
+      "disposition": "The website compiler boundary was corrected and the root type check passed."
+    },
+    {
+      "id": "attempt-007",
+      "checkpoint": "CP-03",
+      "result": "PASS",
+      "failureClass": null
+    },
+    {
+      "id": "attempt-008",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "Recursive file watching exhausted the platform watcher allocation.",
+      "disposition": "A failing real-file regression led to bounded polling of discovered authored files."
+    },
+    {
+      "id": "attempt-009",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "The MCP adapter returned an unstructured tool failure.",
+      "disposition": "A failing protocol regression led to stable structured Antiky tool errors."
+    },
+    {
+      "id": "attempt-010",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "The first production build still contained the development inspection bridge.",
+      "disposition": "A failing bundle scan led to a production-only no-op module replacement."
+    },
+    {
+      "id": "attempt-011",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "Development and production shader compilation serialized two equivalent expressions differently.",
+      "disposition": "A failing parity regression led to one mode-stable authored expression."
+    },
+    {
+      "id": "attempt-012",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "TRANSIENT",
+      "cause": "One unrelated zdloop test exceeded its fixed ten-second timeout.",
+      "disposition": "The existing test passed in isolation and the single allowed full-check retry passed."
+    },
+    {
+      "id": "attempt-013",
+      "checkpoint": "CP-04",
+      "result": "PASS",
+      "failureClass": null
+    },
+    {
+      "id": "attempt-014",
+      "checkpoint": "CP-05",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "The verifier trimmed the leading Git porcelain status column and misread an allowed unrelated edit.",
+      "disposition": "A failing parser regression preserved both status columns before the verifier retry."
+    },
+    {
+      "id": "attempt-015",
+      "checkpoint": "CP-05",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "Chrome interpreted the requested window height as an outer window and returned a 756x326 page capture.",
+      "disposition": "A failing CDP regression led to an explicit 756x469 capture clip."
+    },
+    {
+      "id": "attempt-016",
+      "checkpoint": "CP-05",
+      "result": "PASS",
+      "failureClass": null,
+      "correlationId": "verify-fc681346-6ad8-4cf2-861f-590a20d230e1"
+    }
+  ],
+  "failures": [
+    {
+      "id": "attempt-001",
+      "checkpoint": "CP-00",
+      "result": "FAIL",
+      "failureClass": "TRANSIENT",
+      "cause": "The execution sandbox rejected the first loopback bind.",
+      "disposition": "Health stayed unchanged; the one allowed retry used approved loopback authority."
+    },
+    {
+      "id": "attempt-005",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "A slower browser publication could overtake a newer snapshot.",
+      "disposition": "A failing ordering regression led to one serialized publication queue."
+    },
+    {
+      "id": "attempt-006",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "The production TypeScript consumer rejected the typed source import.",
+      "disposition": "The website compiler boundary was corrected and the root type check passed."
+    },
+    {
+      "id": "attempt-008",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "Recursive file watching exhausted the platform watcher allocation.",
+      "disposition": "A failing real-file regression led to bounded polling of discovered authored files."
+    },
+    {
+      "id": "attempt-009",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "The MCP adapter returned an unstructured tool failure.",
+      "disposition": "A failing protocol regression led to stable structured Antiky tool errors."
+    },
+    {
+      "id": "attempt-010",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "The first production build still contained the development inspection bridge.",
+      "disposition": "A failing bundle scan led to a production-only no-op module replacement."
+    },
+    {
+      "id": "attempt-011",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "Development and production shader compilation serialized two equivalent expressions differently.",
+      "disposition": "A failing parity regression led to one mode-stable authored expression."
+    },
+    {
+      "id": "attempt-012",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "TRANSIENT",
+      "cause": "One unrelated zdloop test exceeded its fixed ten-second timeout.",
+      "disposition": "The existing test passed in isolation and the single allowed full-check retry passed."
+    },
+    {
+      "id": "attempt-014",
+      "checkpoint": "CP-05",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "The verifier trimmed the leading Git porcelain status column and misread an allowed unrelated edit.",
+      "disposition": "A failing parser regression preserved both status columns before the verifier retry."
+    },
+    {
+      "id": "attempt-015",
+      "checkpoint": "CP-05",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "cause": "Chrome interpreted the requested window height as an outer window and returned a 756x326 page capture.",
+      "disposition": "A failing CDP regression led to an explicit 756x469 capture clip."
+    }
+  ],
+  "identities": {
+    "correlationId": "verify-fc681346-6ad8-4cf2-861f-590a20d230e1",
+    "developmentSessionId": "5c27e388-f429-4259-96bb-433fc59d1aa2",
+    "acceptedBuildRevision": 1,
+    "runtimeBeforeReload": "57ca6386-f7b4-47e7-ba1b-1d69f5be3e1d",
+    "runtimeAfterReload": "6449f58e-f943-46ce-afef-e9034da52c17",
+    "reloadActionId": "action-19fb5a6c-2acf-4a02-a9e0-8c749159696c",
+    "captureActionId": "action-fe6ad737-87a7-4e91-85c7-2afbbedaecf6",
+    "captureId": "capture-eed3ef6b-bb48-4ebc-b78d-04cc09872200"
+  },
+  "tests": [
+    {
+      "command": "npm run check",
+      "status": "PASS",
+      "evidence": "logs/check.log"
+    },
+    {
+      "command": "node --test scripts/slice-00-evidence.test.mjs scripts/verify-slice-00.test.mjs",
+      "status": "PASS",
+      "evidence": "included by npm run check"
+    },
+    {
+      "command": "npm run verify:slice-00",
+      "status": "PASS",
+      "evidence": "verify-fc681346-6ad8-4cf2-861f-590a20d230e1"
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "AC-01",
+      "requiredResult": "Owner input is answered.",
+      "status": "PASS",
+      "evidence": "slice-00/owner-input_H.md"
+    },
+    {
+      "id": "AC-02",
+      "requiredResult": "One strict command starts the selected town.",
+      "status": "PASS",
+      "evidence": "session 5c27e388-f429-4259-96bb-433fc59d1aa2"
+    },
+    {
+      "id": "AC-03",
+      "requiredResult": "The town reaches a running WebGPU canvas.",
+      "status": "PASS",
+      "evidence": "694x512, runtime 6449f58e-f943-46ce-afef-e9034da52c17"
+    },
+    {
+      "id": "AC-04",
+      "requiredResult": "Framework inspection reports semantic facts.",
+      "status": "PASS",
+      "evidence": "InspectionSnapshot schema 1 and framework-owned measurements"
+    },
+    {
+      "id": "AC-05",
+      "requiredResult": "Direct, CLI, MCP, and Studio-compatible clients agree.",
+      "status": "PASS",
+      "evidence": "Exact session, revision, and inspection parity"
+    },
+    {
+      "id": "AC-06",
+      "requiredResult": "Framework and development measurements keep their owners.",
+      "status": "PASS",
+      "evidence": "framework and cli owner fields"
+    },
+    {
+      "id": "AC-07",
+      "requiredResult": "Reload keeps the session and replaces the runtime.",
+      "status": "PASS",
+      "evidence": "57ca6386-f7b4-47e7-ba1b-1d69f5be3e1d -> 6449f58e-f943-46ce-afef-e9034da52c17"
+    },
+    {
+      "id": "AC-08",
+      "requiredResult": "A bad update preserves the last valid build.",
+      "status": "PASS",
+      "evidence": "build-tracker and development-session regressions in npm run check"
+    },
+    {
+      "id": "AC-09",
+      "requiredResult": "Reload and capture return related structured IDs.",
+      "status": "PASS",
+      "evidence": "actions action-19fb5a6c-2acf-4a02-a9e0-8c749159696c and action-fe6ad737-87a7-4e91-85c7-2afbbedaecf6"
+    },
+    {
+      "id": "AC-10",
+      "requiredResult": "Security, payload, production, and cleanup boundaries pass.",
+      "status": "PASS",
+      "evidence": "npm run check plus released ports and removed descriptor"
+    },
+    {
+      "id": "AC-11",
+      "requiredResult": "Framework, CLI, and Studio guidance matches behavior.",
+      "status": "PASS",
+      "evidence": "user-docs regression and shipped pages"
+    },
+    {
+      "id": "AC-12",
+      "requiredResult": "Twenty fixture updates meet the ten-second budget.",
+      "status": "PASS",
+      "evidence": "median 198ms; slowest 259ms"
+    },
+    {
+      "id": "AC-13",
+      "requiredResult": "The town reference and controls remain available.",
+      "status": "PASS",
+      "evidence": "captures/town-ready.png (0.998169 similarity)"
+    },
+    {
+      "id": "AC-14",
+      "requiredResult": "The integrated repository check passes.",
+      "status": "PASS",
+      "evidence": "logs/check.log"
+    },
+    {
+      "id": "AC-15",
+      "requiredResult": "The complete verifier passes from one clean service start.",
+      "status": "PASS",
+      "evidence": "correlation verify-fc681346-6ad8-4cf2-861f-590a20d230e1"
+    },
+    {
+      "id": "AC-16",
+      "requiredResult": "The evidence receipt is complete and validated.",
+      "status": "PASS",
+      "evidence": "canonical self digest and artifact digests"
+    }
+  ],
+  "rubric": [
+    {
+      "dimension": "Outcome and scope",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Framework alignment",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Framework design",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Correctness",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Inspectability",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Render efficiency",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Failure and recovery",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Lifecycle and security",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Reference and performance",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Reproduction and handoff",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Autonomous execution",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    },
+    {
+      "dimension": "Operation and learning",
+      "score": 3,
+      "evidence": "Acceptance ledger, automated checks, structured facts, measurements, and stored captures."
+    }
+  ],
+  "completionChecks": [
+    {
+      "id": "COMPLETE-01",
+      "status": "PASS",
+      "evidence": "AC-01: slice-00/owner-input_H.md"
+    },
+    {
+      "id": "COMPLETE-02",
+      "status": "PASS",
+      "evidence": "AC-02: session 5c27e388-f429-4259-96bb-433fc59d1aa2"
+    },
+    {
+      "id": "COMPLETE-03",
+      "status": "PASS",
+      "evidence": "AC-03: 694x512, runtime 6449f58e-f943-46ce-afef-e9034da52c17"
+    },
+    {
+      "id": "COMPLETE-04",
+      "status": "PASS",
+      "evidence": "AC-04: InspectionSnapshot schema 1 and framework-owned measurements"
+    },
+    {
+      "id": "COMPLETE-05",
+      "status": "PASS",
+      "evidence": "AC-05: Exact session, revision, and inspection parity"
+    },
+    {
+      "id": "COMPLETE-06",
+      "status": "PASS",
+      "evidence": "AC-06: framework and cli owner fields"
+    },
+    {
+      "id": "COMPLETE-07",
+      "status": "PASS",
+      "evidence": "AC-07: 57ca6386-f7b4-47e7-ba1b-1d69f5be3e1d -> 6449f58e-f943-46ce-afef-e9034da52c17"
+    },
+    {
+      "id": "COMPLETE-08",
+      "status": "PASS",
+      "evidence": "AC-08: build-tracker and development-session regressions in npm run check"
+    },
+    {
+      "id": "COMPLETE-09",
+      "status": "PASS",
+      "evidence": "AC-09: actions action-19fb5a6c-2acf-4a02-a9e0-8c749159696c and action-fe6ad737-87a7-4e91-85c7-2afbbedaecf6"
+    },
+    {
+      "id": "COMPLETE-10",
+      "status": "PASS",
+      "evidence": "AC-10: npm run check plus released ports and removed descriptor"
+    },
+    {
+      "id": "COMPLETE-11",
+      "status": "PASS",
+      "evidence": "AC-11: user-docs regression and shipped pages"
+    },
+    {
+      "id": "COMPLETE-12",
+      "status": "PASS",
+      "evidence": "AC-12: median 198ms; slowest 259ms"
+    },
+    {
+      "id": "COMPLETE-13",
+      "status": "PASS",
+      "evidence": "AC-13: captures/town-ready.png (0.998169 similarity)"
+    },
+    {
+      "id": "COMPLETE-14",
+      "status": "PASS",
+      "evidence": "AC-14: logs/check.log"
+    },
+    {
+      "id": "COMPLETE-15",
+      "status": "PASS",
+      "evidence": "AC-15: correlation verify-fc681346-6ad8-4cf2-861f-590a20d230e1"
+    },
+    {
+      "id": "COMPLETE-16",
+      "status": "PASS",
+      "evidence": "AC-16: canonical self digest and artifact digests"
+    }
+  ],
+  "processMeasures": {
+    "retries": 2,
+    "defectCorrections": 8,
+    "flakyChecks": 1,
+    "ownerInterventions": 0,
+    "blockedMilliseconds": 0,
+    "permissionCategories": 4
+  },
+  "documentation": [
+    "docs/user-facing-docs/framework/inspection.md",
+    "docs/user-facing-docs/cli/development.md",
+    "docs/user-facing-docs/studio/development-connection.md"
+  ],
+  "goalAudit": {
+    "status": "PASS",
+    "outcome": "The CLI owns one safe local session; every client reads the same framework inspection facts; reload, capture, and cleanup work from one command."
+  },
+  "afterCompletion": {
+    "owner": "@antiky/framework owns semantic inspection; @antiky/cli owns the development host; the demo owns its browser adapter.",
+    "health": "Run npm run verify:slice-00 and inspect the versioned development snapshot.",
+    "feedback": "Use docs/objectives/01-FEEDBACK_H.txt and docs/objectives/02-AGENT-FINDINGS_A.txt.",
+    "rollback": "Stop owned processes, then use a tested corrective or revert commit without rewriting shared history.",
+    "retirement": "Replace the versioned service only through a tested migration that updates CLI, MCP, Studio-compatible clients, and docs together."
+  },
+  "artifacts": [
+    {
+      "path": "receipt.json",
+      "sha256": "3f06358376345ada9bb473fb64c4c422f2c497050fd49ac45b5b30d9506c25b7",
+      "digestScope": "canonical-json-with-null-self-digest"
+    },
+    {
+      "path": "baseline.md",
+      "sha256": "c8a728ba4bea27ebef4628d5fc833e9d77dc8fd737ce3e5bb2b65a60e0e9383a",
+      "bytes": 7440
+    },
+    {
+      "path": "captures/baseline-town-ready.png",
+      "sha256": "f467cdf38f1804aad11ed66fbf294612354dae6e1f7e7796d7dac093a13024d9",
+      "bytes": 117288
+    },
+    {
+      "path": "captures/baseline-town.png",
+      "sha256": "7ac4058bacb806e12f33c7163802f1669b063378f561602ff932f28118f447aa",
+      "bytes": 372427
+    },
+    {
+      "path": "captures/town-ready-canvas.png",
+      "sha256": "cbcb663e65cf8559e034f456ed70ca4761f56c601aa55147c3cf1ce63a069a5c",
+      "bytes": 750549
+    },
+    {
+      "path": "captures/town-ready.png",
+      "sha256": "a5047b011decad0c1b84edb36493e7515afa3edafb99970bafc6fa2bbe50989e",
+      "bytes": 117451
+    },
+    {
+      "path": "confirmation-checks.md",
+      "sha256": "07db02aa77f11b98e44578faa24d2d18c1ea6b73136530eedfd418a39dba7aad",
+      "bytes": 1998
+    },
+    {
+      "path": "facts.json",
+      "sha256": "d736b7cb74e6cc0ed240ff3207ffb3ebe4eff97bd5f7befd4c0995049003f4d9",
+      "bytes": 2609
+    },
+    {
+      "path": "logs/check.log",
+      "sha256": "2352c4084a899ba50e8e8c2d3bf63955690466ba047ebc59d463ea339f6a3e7e",
+      "bytes": 24422
+    },
+    {
+      "path": "logs/chrome.log",
+      "sha256": "882b7e256e8d1311501eac50d06df860f9a99b1e4d4be3cf46633d1b11ea54d1",
+      "bytes": 317
+    },
+    {
+      "path": "logs/cli-inspect.log",
+      "sha256": "f2c1af125db463534031b5947a965792bd5ea540f0d281632e699e464fe504ab",
+      "bytes": 1548
+    },
+    {
+      "path": "logs/development.log",
+      "sha256": "4adf8372592c3f90bde9f0888d94040c52fc13e00d22871dae0aaded1ab9cb9a",
+      "bytes": 5083
+    },
+    {
+      "path": "logs/mcp-stderr.log",
+      "sha256": "79e42577690b0cc39f58b39f47dd5bd4b93c51ce0935f40ec3928e1de25184c0",
+      "bytes": 177
+    },
+    {
+      "path": "logs/mcp-transcript.log",
+      "sha256": "0c33354ece32a5384e7870408d09ec0ffd678df98dda2c2c337a08821b03058b",
+      "bytes": 4731
+    },
+    {
+      "path": "measurements.json",
+      "sha256": "adc3360e5ff3b83ccbebcc27b63fd5738c6e2b50256cf1de3537645c03483e08",
+      "bytes": 1059
+    }
+  ]
+}

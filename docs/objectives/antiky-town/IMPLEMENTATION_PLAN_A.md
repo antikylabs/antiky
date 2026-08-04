@@ -137,7 +137,8 @@ instrumentation supply low-level render evidence.
 ## Slice 0: Development harness and minimum inspection
 
 The executable contract is [`slice-00/plan.md`](slice-00/plan.md). The accepted owner decisions are
-in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md). Slice 00 is ready to start.
+in [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md). Slice 00 is complete. Its verified
+result is in the [Slice 00 receipt](slice-00/outputs/s00-20260804T185103Z/receipt.json).
 
 ### Outcome
 

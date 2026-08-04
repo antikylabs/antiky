@@ -7,14 +7,14 @@ This plan is the implementation contract. The accepted owner decisions are in
 
 | Field | Value |
 | --- | --- |
-| Status | `READY` |
+| Status | `COMPLETE` |
 | Outcome | One command starts, inspects, and stops the current town through Antiky |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Architecture decision | [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | None |
 | Alignment revision | `441563bcce94abd76fb6813869e603e13f116b5a` |
 | Complete check | `npm run verify:slice-00` |
-| Evidence | `docs/objectives/antiky-town/slice-00/outputs/{run-id}/receipt.json` |
+| Evidence | [`outputs/s00-20260804T185103Z/receipt.json`](outputs/s00-20260804T185103Z/receipt.json) |
 
 The goal runner must read the owner-input file before implementation. It must stop if the file has a
 `PENDING` answer. It must use the inline answers as part of this contract.
@@ -233,23 +233,23 @@ Run `npm run check` before the complete Slice 00 verifier.
 
 Slice 00 is complete only when all these statements are true:
 
-- [ ] The owner-input file has status `ANSWERED` and no pending answer.
-- [ ] `antiky dev` starts the selected town from one strict config.
-- [ ] The selected town reaches a ready WebGPU canvas.
-- [ ] `@antiky/framework` supplies the semantic inspection snapshot and measurements.
-- [ ] `@antiky/cli` supplies launch, development state, inspection, and safe cleanup.
-- [ ] Direct, CLI, MCP, and Studio-compatible clients use the same service facts.
-- [ ] Framework and development measurements remain separate and identify their owner.
-- [ ] Reload creates the correct development and runtime identities.
-- [ ] A bad update keeps the last valid result and reports a diagnostic.
-- [ ] Reload and capture operations return related structured IDs.
-- [ ] Security, payload, production-exclusion, and cleanup tests pass.
-- [ ] Framework, CLI, and applicable Studio docs match the shipped behavior and pass their checks.
-- [ ] The update timing test passes on the recorded system.
-- [ ] The current town reference remains available and has no unapproved visual change.
-- [ ] `npm run check` passes.
-- [ ] `npm run verify:slice-00` passes from one clean start.
-- [ ] The evidence receipt records the revision, environment, dependencies, checkpoints, attempts,
+- [x] The owner-input file has status `ANSWERED` and no pending answer.
+- [x] `antiky dev` starts the selected town from one strict config.
+- [x] The selected town reaches a ready WebGPU canvas.
+- [x] `@antiky/framework` supplies the semantic inspection snapshot and measurements.
+- [x] `@antiky/cli` supplies launch, development state, inspection, and safe cleanup.
+- [x] Direct, CLI, MCP, and Studio-compatible clients use the same service facts.
+- [x] Framework and development measurements remain separate and identify their owner.
+- [x] Reload creates the correct development and runtime identities.
+- [x] A bad update keeps the last valid result and reports a diagnostic.
+- [x] Reload and capture operations return related structured IDs.
+- [x] Security, payload, production-exclusion, and cleanup tests pass.
+- [x] Framework, CLI, and applicable Studio docs match the shipped behavior and pass their checks.
+- [x] The update timing test passes on the recorded system.
+- [x] The current town reference remains available and has no unapproved visual change.
+- [x] `npm run check` passes.
+- [x] `npm run verify:slice-00` passes from one clean start.
+- [x] The evidence receipt records the revision, environment, dependencies, checkpoints, attempts,
   failures, tests, measurements, and artifacts.
 
 ## Run and evidence rule

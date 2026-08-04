@@ -1,0 +1,72 @@
+(node:77789) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Antiky development session 5c27e388-f429-4259-96bb-433fc59d1aa2
+Config: /Users/josephduncan/github/emberwyrd/antikySite/antiky.config.json
+Game: http://127.0.0.1:3010/demos/town-study
+Inspection: http://127.0.0.1:3011
+Services: game, shaders, inspection
+[shaders] 
+> @antiky/demos@0.0.0 shaders:watch
+> brometal dev
+[game] 
+> @antiky/website@0.0.0 predev
+> npm run shaders --workspace @antiky/demos
+[game] 
+> @antiky/demos@0.0.0 shaders
+> brometal dev --once
+[shaders] ✓ src/demos/brometal-town/shaders/town-awning-shadow.shader.ts → town-awning-shadow.shader.gen.ts (10ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-awning.shader.ts → town-awning.shader.gen.ts (5ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-foliage-shadow.shader.ts → town-foliage-shadow.shader.gen.ts (3ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-foliage.shader.ts → town-foliage.shader.gen.ts (5ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-post.shader.ts → town-post.shader.gen.ts (4ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-prop-shadow.shader.ts → town-prop-shadow.shader.gen.ts (1ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-prop.shader.ts → town-prop.shader.gen.ts (2ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-shadow.shader.ts → town-shadow.shader.gen.ts (0ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-sprite-shadow.shader.ts → town-sprite-shadow.shader.gen.ts (1ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-sprite.shader.ts → town-sprite.shader.gen.ts (2ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-voxel.shader.ts → town-voxel.shader.gen.ts (4ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-water-features.shader.ts → town-water-features.shader.gen.ts (2ms)
+[shaders] ✓ src/demos/brometal-town/shaders/town-water.shader.ts → town-water.shader.gen.ts (1ms)
+[shaders] ✓ src/demos/instance-storm/shaders/storm.shader.ts → storm.shader.gen.ts (1ms)
+[shaders] ✓ src/demos/shader-study/shaders/aurora.shader.ts → aurora.shader.gen.ts (2ms)
+[shaders] ✓ src/demos/sprite-depth/shaders/ground.shader.ts → ground.shader.gen.ts (0ms)
+[shaders] ✓ src/demos/sprite-depth/shaders/sprite.shader.ts → sprite.shader.gen.ts (1ms)
+[shaders] ✓ src/shared/shaders/voxel.shader.ts → voxel.shader.gen.ts (0ms)
+[shaders] Watching /Users/josephduncan/github/emberwyrd/antikySite/packages/demos for shader changes...
+[game] ✓ src/demos/brometal-town/shaders/town-awning-shadow.shader.ts → town-awning-shadow.shader.gen.ts (8ms)
+[game] ✓ src/demos/brometal-town/shaders/town-awning.shader.ts → town-awning.shader.gen.ts (5ms)
+[game] ✓ src/demos/brometal-town/shaders/town-foliage-shadow.shader.ts → town-foliage-shadow.shader.gen.ts (2ms)
+[game] ✓ src/demos/brometal-town/shaders/town-foliage.shader.ts → town-foliage.shader.gen.ts (3ms)
+[game] ✓ src/demos/brometal-town/shaders/town-post.shader.ts → town-post.shader.gen.ts (3ms)
+[game] ✓ src/demos/brometal-town/shaders/town-prop-shadow.shader.ts → town-prop-shadow.shader.gen.ts (1ms)
+[game] ✓ src/demos/brometal-town/shaders/town-prop.shader.ts → town-prop.shader.gen.ts (2ms)
+[game] ✓ src/demos/brometal-town/shaders/town-shadow.shader.ts → town-shadow.shader.gen.ts (0ms)
+[game] ✓ src/demos/brometal-town/shaders/town-sprite-shadow.shader.ts → town-sprite-shadow.shader.gen.ts (1ms)
+[game] ✓ src/demos/brometal-town/shaders/town-sprite.shader.ts → town-sprite.shader.gen.ts (1ms)
+[game] ✓ src/demos/brometal-town/shaders/town-voxel.shader.ts → town-voxel.shader.gen.ts (3ms)
+[game] ✓ src/demos/brometal-town/shaders/town-water-features.shader.ts → town-water-features.shader.gen.ts (2ms)
+[game] ✓ src/demos/brometal-town/shaders/town-water.shader.ts → town-water.shader.gen.ts (1ms)
+[game] ✓ src/demos/instance-storm/shaders/storm.shader.ts → storm.shader.gen.ts (1ms)
+[game] ✓ src/demos/shader-study/shaders/aurora.shader.ts → aurora.shader.gen.ts (1ms)
+[game] ✓ src/demos/sprite-depth/shaders/ground.shader.ts → ground.shader.gen.ts (1ms)
+[game] ✓ src/demos/sprite-depth/shaders/sprite.shader.ts → sprite.shader.gen.ts (0ms)
+[game] ✓ src/shared/shaders/voxel.shader.ts → voxel.shader.gen.ts (0ms)
+[game] 
+> @antiky/website@0.0.0 dev
+> next dev --hostname 127.0.0.1 --port 3010
+[game]    ▲ Next.js 15.5.22
+[game]    - Local:        http://127.0.0.1:3010
+[game]    - Network:      http://127.0.0.1:3010
+[game] 
+[game]  ✓ Starting...
+[game]  ✓ Ready in 1009ms
+[game]  ○ Compiling /demos/[slug] ...
+[game]  ✓ Compiled /demos/[slug] in 566ms (760 modules)
+[game]  GET /demos/town-study 200 in 694ms
+[game]  GET /demos/town-study 200 in 57ms
+[game]  ✓ Compiled /icon.svg in 127ms (485 modules)
+[game]  GET /icon.svg?9d833201845ab8ca 200 in 216ms
+[game]  GET /demos/town-study 200 in 152ms
+[game]  GET /icon.svg?9d833201845ab8ca 200 in 4ms
+[game] [?25h
+[game] 
