@@ -13,7 +13,7 @@ These callers must request changes to shared world state:
 - Gameplay clients
 - Services
 - Tests
-- Future administrative tools.
+- Future administration tools.
 
 An authoritative session owns this state and controls changes to it. External callers must not have
 direct write access to shared world objects. Direct access can bypass:
@@ -41,6 +41,8 @@ A command handler must accept or reject the command. The command handler must re
 in a structured result. If necessary, the handler must emit a durable event, a transient delta, or
 both.
 
+A durable event records accepted history. A transient delta reports a temporary update.
+
 Internal fixed-tick systems can update runtime state through session-owned APIs. These systems do
 not need a command for each frame update.
 
@@ -50,7 +52,12 @@ not need a command for each frame update.
 - Undo and audits use the command path.
 - Conflict detection and sandbox promotion use the same command path.
 - Authoritative networking also uses this command path.
-- Commands and rejection codes are public contracts. Each public contract has a version.
-- The system validates and dispatches a local edit. It does not serialize the edit when the caller
-  and the session are in the same process.
+- External clients can depend on command formats and rejection codes. Each format and code has a
+  version.
+- The system validates each local edit and sends it to a handler. It does not serialize the edit
+  when the caller and the session are in the same process.
 - Only private runtime code can bypass the command ingress. The session must own this runtime code.
+
+## Revision history
+
+- `4c35b270f3da017454b12dd75e104b0c50355818` — Prior version before the plain-language rewrite.
