@@ -1,16 +1,16 @@
 # Architecture Decision Records
 
-Architecture Decision Records (ADRs) capture the important architectural choices that shape Antiky.
-Each record preserves one decision, the forces behind it, and the effects future contributors need
-to understand.
+An Architecture Decision Record (ADR) records one important decision about the Antiky architecture.
+It explains why the decision was necessary and what results we expect.
 
-ADRs are short systems of record, not proposals, design specifications, or implementation plans.
-Core Contributors write and own ADRs after making an architectural decision. Contributors propose
-changes through an [Antiky Improvement Proposal](../aip/README.md); when an accepted AIP produces an
-architectural decision, each resulting ADR links that AIP while remaining understandable on its own.
+An ADR is a short, permanent record. It is not a proposal, a design specification, or an
+implementation plan.
 
-An accepted AIP may produce zero, one, or several ADRs. Improvements without an architectural
-decision need no ADR, while a broad proposal may require several independent architectural records.
+Core Contributors write and own ADRs after they make an architecture decision. Contributors propose
+changes through an [Antiky Improvement Proposal (AIP)](../aip/README.md).
+
+An accepted AIP can produce no ADR, one ADR, or more than one ADR. Each ADR must make sense without
+the AIP. When applicable, the ADR must also link to the AIP.
 
 ## Records
 
@@ -39,12 +39,20 @@ decision need no ADR, while a broad proposal may require several independent arc
 
 ## Minimal format
 
-This format is a small adaptation of Michael Nygard's original ADR format. Nygard identifies five
-essential parts: title, status, context, decision, and consequences. His guidance also recommends one
-significant decision per short record, monotonically increasing numbers, and preserving superseded
-records. The [MADR minimal template](https://github.com/adr/madr/blob/4.0.0/template/adr-template-minimal.md)
-adds considered options; Antiky normally keeps that analysis in the originating AIP and repeats it in
-an ADR only when it is necessary to understand the decision.
+This format is based on the original ADR format from Michael Nygard. Each ADR has five parts:
+
+- Title
+- Status
+- Context
+- Decision
+- Consequences.
+
+Each short record contains one important decision. Record numbers always increase. The project keeps
+records after a new decision replaces them.
+
+The [MADR minimal template](https://github.com/adr/madr/blob/4.0.0/template/adr-template-minimal.md)
+also includes the options that authors considered. Antiky usually keeps that analysis in the related
+AIP. An ADR includes it only when readers need it to understand the decision.
 
 Use this template:
 
@@ -57,45 +65,64 @@ Accepted
 
 ## Context
 
-Describe the facts, constraints, and competing forces that make a decision necessary.
+Describe the facts, limits, and needs that make the decision necessary.
 
 ## Decision
 
-State the decision in active voice: "We will ..."
+State the decision in active voice. For example, write "We will..."
 
 ## Consequences
 
-Describe the positive, negative, and neutral results of the decision.
+Describe the benefits, costs, and other results of the decision.
 ```
 
-The format is intentionally small. Add links or a brief list of considered options only when they
-preserve rationale that is not available in the context or originating proposal.
+Keep the format small. Add links or a short list of options only when the context or AIP does not
+contain necessary information.
 
 ## Status values
 
-- **Accepted:** The decision governs the project.
-- **Deprecated:** The decision is retained for history but should no longer guide new work.
-- **Superseded:** A newer ADR replaces this decision; name and link the replacement in the status.
+- **Accepted.** The decision controls new work.
+- **Deprecated.** The project keeps the decision for history, but it does not control new work.
+- **Superseded.** A newer ADR replaces the decision. Name and link the new ADR in the status.
 
-ADRs normally enter the repository as `Accepted` because Core Contributors have already made the
-decision. Proposal and review state belongs in the originating AIP or pull request, not in the
-permanent ADR lifecycle.
+New ADRs usually have the `Accepted` status. Core Contributors make the decision before they add the
+ADR. Proposal and review information belongs in the AIP or pull request.
 
 ## File and writing rules
 
 - Name records `NNNN-short-title_H.md`, using the next four-digit number. Numbers are never reused.
-- Core Contributors author, approve, and own ADRs; the `_H` suffix follows the ownership convention
-  in the [docs index](../README.md#document-ownership).
-- Keep one architecturally significant decision in each record.
-- Write context neutrally, state the decision in full sentences, and include drawbacks as well as
-  benefits under consequences.
-- Link the originating AIP in the context when one exists. Link other evidence when it materially
-  explains the decision.
+- Core Contributors write, approve, and own ADRs. The `_H` suffix follows the ownership rule in the
+  [documentation index](../README.md#document-ownership).
+- Keep one important architecture decision in each record.
+- Link the related AIP in the context when one exists.
+- Link other evidence only when it helps readers understand the decision.
+
+## Writing standard
+
+All ADRs must use
+[ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/). Use the current issue of the
+standard.
+
+These rules are especially important for Antiky ADRs:
+
+- Use approved words and established technical terms.
+- Give one meaning to each term. Use the same term each time.
+- Explain an uncommon Antiky or software term when it first occurs.
+- Use active voice.
+- Keep one topic in each sentence.
+- Use no more than 25 words in a descriptive sentence.
+- Use a vertical list when it makes complex text easier to understand.
+- Do not use a semicolon.
+- Use an `-ing` word only when the standard approves it or it is a technical term.
+- Put a condition before the result when the reader must know the condition first.
+
+Do not remove a necessary technical detail only to make a sentence shorter. Explain the detail with
+short sentences and consistent terms.
 
 ## Changing a decision
 
-Accepted ADRs are historical records. When a decision changes, normally create a new ADR and mark
-the old one `Superseded by` the new record. Do not delete the old record or reuse its number.
+An accepted ADR is a historical record. When a decision changes, create a new ADR. Change the old
+status to `Superseded by` and link the new ADR. Do not delete the old ADR or reuse its number.
 
 For a clarification that must be made in place, tag the committed version before editing it:
 
@@ -103,14 +130,16 @@ For a clarification that must be made in place, tag the committed version before
 ./docs/adr/tag-hash.sh docs/adr/0001-example.md "Clarified the boundary of the decision."
 ```
 
-The script appends a revision-history entry containing the current full Git commit hash and the
-optional explanation. Run it while `HEAD` still represents the previous version, then make the edit.
+The script adds a revision-history entry. The entry contains the current full Git commit hash and an
+optional explanation. Run the script while `HEAD` still contains the previous text. Then, edit the
+ADR.
 
 ## Research sources
 
+- [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/), the required writing
+  standard for Antiky ADRs.
 - [Documenting Architecture Decisions](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions),
-  Michael Nygard's original lightweight ADR proposal.
-- [ADR Templates](https://adr.github.io/adr-templates/), a comparison of the Nygard, MADR, and
-  Y-statement formats maintained by the ADR organization.
-- [MADR 4.0 minimal template](https://github.com/adr/madr/blob/4.0.0/template/adr-template-minimal.md),
-  a compact alternative that makes considered options explicit.
+  the original short ADR format from Michael Nygard.
+- [ADR Templates](https://adr.github.io/adr-templates/), a comparison of common ADR formats.
+- [MADR 4.0 minimal template](https://github.com/adr/madr/blob/4.0.0/template/adr-template-minimal.md).
+  This short format includes the options that authors considered.
