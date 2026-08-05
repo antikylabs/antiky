@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-02",
+  "runId": "s02-20260805T131434Z",
+  "checkpoint": "CP-00",
+  "status": "PASS",
+  "sourceRevision": "acc8ab4aceaab34844821c7326fb59252ffc4350",
+  "runSetup": {
+    "branch": "feat/voxel-demo-work",
+    "worktree": "/Users/josephduncan/github/emberwyrd/antikySite",
+    "dependencyLockSha256": "1f77697b649afb6ebe98e4452bbe6b00817271182b4cbf0e282521f3e2ee5bd0",
+    "configSha256": "d956f75153e3e64257f2585a3585edc6bdb5a308127a0dbd1138348bccc6e186",
+    "ports": {
+      "game": 3010,
+      "inspectionAndMcp": 3011
+    },
+    "artifactDirectory": "docs/objectives/antiky-town/slice-02/outputs/s02-20260805T131434Z",
+    "locale": "en-US",
+    "timeZone": "America/Chicago",
+    "network": "Loopback services only. The npm registry supplied current BroMetal package metadata."
+  },
+  "environment": {
+    "node": "22.15.0",
+    "npm": "10.9.2",
+    "brometalInstalled": "0.15.0",
+    "brometalLatest": "0.15.0",
+    "brometalRegistryIntegrity": "sha512-em7LThtMOhqetdhWugpl75JdiZdwbrU4KU94XPV+Du6xyODyEXGj1HB1gQi2pytB/7TWqDFwIoNj8td5PHpCZA=="
+  },
+  "reference": {
+    "townStudyCapture": {
+      "path": "docs/objectives/antiky-town/slice-01/outputs/s01-20260805T014602Z/captures/corrected-host.png",
+      "sha256": "193eee4aed58f6320734c95da008a6ec68c8c949a54043ebd15d94dcb463c1ef",
+      "sourceRevision": "3381c800ca2ee1eed07ded3e52c936d2e77abd54",
+      "currentUse": "Retained visual reference. Town render and host source did not change after this capture.",
+      "limitation": "No browser-control surface was available for a new CP-00 capture. Final runtime verification must supply direct browser evidence."
+    },
+    "timing": {
+      "browserCallback": "BroMetal supplies cumulative elapsed seconds to DemoInstance.frame.",
+      "firstOrResetDeltaSeconds": 0.016666666666666666,
+      "maximumOuterDeltaSeconds": 0.05,
+      "characterMotorFixedStepSeconds": 0.016666666666666666,
+      "currentOwner": "The Town demo derives simulation delta inside its render callback."
+    },
+    "render": {
+      "drawCallsPerFrame": 16,
+      "instances": 1247,
+      "reportedUploadBytesPerFrame": 1152,
+      "measuredQueueSubmissionsPerFrame": 3,
+      "normalGpuReadbackOperationsPerFrame": 0,
+      "measurementSource": "Slice 01 closed receipt and unchanged Town render source"
+    },
+    "errorBehavior": {
+      "rendererCreation": "The host disposes partial resources and publishes ANTIKY_RUNTIME_ERROR.",
+      "shaderCompilation": "The guarded BroMetal compiler keeps tracked development and production output equal.",
+      "pause": "The current host stops the BroMetal loop and starts at most one replacement loop."
+    }
+  },
+  "checks": [
+    {
+      "command": "npm ls brometal --all",
+      "result": "PASS",
+      "fact": "brometal@0.15.0"
+    },
+    {
+      "command": "curl https://registry.npmjs.org/brometal/latest",
+      "result": "PASS",
+      "fact": "latest is 0.15.0"
+    },
+    {
+      "command": "npm run shaders",
+      "result": "PASS",
+      "fact": "all tracked shaders regenerated with no repository diff"
+    },
+    {
+      "command": "npm test --workspace @antiky/demos",
+      "result": "PASS",
+      "fact": "36 Node tests and one Vitest file passed"
+    },
+    {
+      "command": "npm run check",
+      "result": "PASS",
+      "fact": "type checks, package tests, shader parity, website build, and production boundary passed with loopback permission"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "attempt-001",
+      "result": "FAIL",
+      "failureClass": "TRANSIENT",
+      "cause": "The default sandbox denied the CLI test suite permission to bind loopback ports.",
+      "disposition": "The unchanged check ran with loopback permission."
+    },
+    {
+      "id": "attempt-002",
+      "result": "PASS",
+      "failureClass": null
+    }
+  ]
+}

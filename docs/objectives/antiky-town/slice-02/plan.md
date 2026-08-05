@@ -6,11 +6,11 @@ For a short review, answer the questions in [`owner-input_H.md`](owner-input_H.m
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` |
+| Status | `IN PROGRESS` |
 | Owner | Antiky Framework maintainers |
 | Outcome | One `EngineSession` advances Antiky Town in bounded fixed steps and supports pause, resume, and one-step control |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
-| Architecture decisions | Accepted framework ADRs below; [game-client host candidate](../../../adr/UNDER_REVIEW_A.md#13-game-client-host-lifecycle-and-semantic-input) must become an accepted ADR |
+| Architecture decisions | Accepted framework ADRs below, including [ADR 0016](../../../adr/framework/0016-give-platform-work-to-game-host_H.md) |
 | Depends on | [`../slice-01/plan.md`](../slice-01/plan.md) completed |
 | Alignment revision | `0556f436e5d8eaf68aff19df2347520ca4a49332` |
 | Review date | `2026-08-04` |
@@ -31,7 +31,7 @@ Goal command:
 - Add a headless `EngineSession` with one fixed clock and one immutable system order.
 - Run Town-owned update code through the session and render once for each browser frame.
 - Give the UI, CLI, MCP, Studio-compatible client, and tests the same session controls.
-- Add the requested `antiky generate id <kind>` command while `SessionId` is introduced.
+- Add Framework-owned ID generation and let `antiky generate id <kind>` reuse it.
 - Do not add an ECS, public scheduler, render graph, physics service, or scripting interface.
 
 ## Outcome
@@ -149,7 +149,7 @@ across the browser-host boundary. Candidates 1, 6, and 15 do not block this fixe
 
 | Capability | Decision | Source and proof under `packages/`, or required result |
 | --- | --- | --- |
-| Stable IDs | `EXTEND` | `framework/src/identity/ids.ts` and `ids.test.ts`; add `SessionId`. |
+| Stable IDs | `EXTEND` | `framework/src/identity/ids.ts` and `ids.test.ts`; add `SessionId` and Framework-owned ID generation. |
 | Point-light service | `EXTEND` | `framework/src/point-light/service.ts` and `service.test.ts`; add session order and disposal. |
 | Inspection | `EXTEND` | `framework/src/inspection/snapshot.ts` and `snapshot.test.ts`; add session and clock facts. |
 | Development client and action broker | `EXTEND` | `cli/src/development/client.ts`, `host/actions.ts`, `mcp/tools.ts`, and their CLI tests. |
@@ -157,13 +157,15 @@ across the browser-host boundary. Candidates 1, 6, and 15 do not block this fixe
 | Town host and update/render seam | `EXTEND` | `demos/src/react/LiveDemoStage.tsx`, `brometal-town/index.ts`, and current loop and motor tests. |
 | General scheduler, ECS storage, and scripting | `DEFER` | No proved need in this slice. |
 | General RenderDriver and GPU compute integration | `DEFER` | Slice 05 owns the boundary. |
-| CLI ID generation | `CREATE` | `cli/src/cli.ts` has no generator; resolve feedback with Framework factories. |
+| CLI ID generation | `CREATE` | `cli/src/cli.ts` has no generator; keep it as an adapter over Framework ID generation. |
 
 ## Deliverables
 
 ### Framework
 
 - Add branded UUIDv7 `SessionId` creation and parsing beside the existing ID factories.
+- Add one supported Framework ID-generation function for games. Let the specific factories and CLI
+  reuse that implementation.
 - Add a headless `EngineSession` with one world, one fixed clock, one immutable ordered system list,
   explicit per-step input, pause, resume, single-step, inspection, and exactly-once disposal.
 - Let the session own a small list of typed disposable services. Do not add a service locator.
@@ -269,7 +271,7 @@ shared script folder. Delete it after the final outputs pass.
 
 ## Completion checks
 
-- [ ] Owner input is `ANSWERED` and the required host-lifecycle ADR is accepted.
+- [x] Owner input is `ANSWERED` and the required host-lifecycle ADR is accepted.
 - [x] Slice 01 remains complete and BroMetal is locked at the current published version.
 - [ ] Antiky Town uses one session clock and one immutable system order.
 - [ ] Equal inputs and steps produce the tested equal state digest.
