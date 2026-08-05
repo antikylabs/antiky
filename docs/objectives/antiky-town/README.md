@@ -1,7 +1,8 @@
 # Antiky Town Objectives
 
-This folder is the system of record for the Antiky Town port. It holds project research, the short
-slice roadmap, the shared workflow, and one folder for each executable slice.
+This folder is the system of record for the Antiky Town port. It holds the short slice roadmap, the
+shared workflow, and one folder for each executable slice. It links shared research from
+[`../general-stuff`](../general-stuff/).
 
 The implementation stays in
 [`packages/demos/src/demos/antiky-town`](../../../packages/demos/src/demos/antiky-town/README.md).
@@ -24,18 +25,22 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 | [`slice-list.md`](slice-list.md) | Lists the short active slice sequence. |
 | [`slice-00/`](slice-00/plan.md) | Contains the Slice 00 plan, owner input, and run outputs. |
 | [`slice-01/`](slice-01/plan.md) | Contains the Slice 01 plan, owner input, and run outputs. |
+| [`slice-02/`](slice-02/plan.md) | Contains the fixed-step EngineSession plan and owner input. |
 
 ## Start here
 
 1. Read [`slice-list.md`](slice-list.md) for the short active sequence.
-2. Read the development-harness research if you need the design background.
-3. Review the current [Slice 00 compatibility receipt](slice-00/outputs/s00-20260805T012759Z/receipt.json).
-4. Review the accepted decisions in [`slice-01/owner-input_H.md`](slice-01/owner-input_H.md).
-5. Run the ready Slice 01 goal.
+2. Read the [shared development-harness research](../general-stuff/DEV_HARNESS_RESEARCH_A.md) when
+   you need the design background.
+3. Review the completed [Slice 01 receipt](slice-01/outputs/s01-20260805T014602Z/receipt.json).
+4. Answer the open questions in [`slice-02/owner-input_H.md`](slice-02/owner-input_H.md).
+5. Accept the required host-lifecycle ADR before you run Slice 02.
 
 ```text
-/goal implement docs/objectives/antiky-town/slice-01/plan.md until complete
+/goal implement docs/objectives/antiky-town/slice-02/plan.md until complete
 ```
+
+Slice 02 is `NOT READY` while an owner answer or its required ADR is pending.
 
 Agents maintain the workflow and plans in ASD-STE100 style. The project owner controls the inline
 answers in each `_H` owner-input file.

@@ -1,0 +1,140 @@
+# Slice 02 Owner Input
+
+## Status
+
+`WAITING FOR OWNER`
+
+## Purpose
+
+Slice 02 adds the first fixed-step `EngineSession`. It connects Antiky Town, the development UI,
+the CLI, MCP, and future Studio clients to the same session clock and controls.
+
+The Slice 02 goal reads this file before it changes code. A `PENDING` answer stops the goal.
+
+## How to answer
+
+Replace each `PENDING` value with `APPROVE` or your preferred direction. Add a short note when you
+change the recommendation. Change the status to `ANSWERED` after all answers are complete.
+
+## Inherited direction
+
+- Slice 01 is complete.
+- Use the minimal fixed-step session option from the implementation plan.
+- CLI, Studio, MCP, the Town UI, and tests use the same Framework services.
+- MCP exposes Tools. It does not duplicate the operations as Resources.
+- BroMetal `0.15.0` is the current, verified feature baseline.
+- Keep `town-study` runnable as the reference.
+
+## Question 1: Should we accept a narrow game-host lifecycle ADR now?
+
+### Context
+
+[`UNDER_REVIEW_A.md` candidate 13](../../../adr/UNDER_REVIEW_A.md#13-game-client-host-lifecycle-and-semantic-input)
+is necessary for this slice. The browser currently owns input, pause, visibility, and the render
+loop. `EngineSession` must own fixed simulation time and step assignment.
+
+Implementation needs an accepted ownership boundary before it moves this work.
+
+### Recommendation
+
+Approve a narrow ADR before implementation. Let a thin host own canvas and browser events. Let
+`EngineSession` own the fixed clock, system order, lifecycle, and step IDs. Keep the first semantic
+movement-input adapter private to Antiky Town. Promote it only after another game host or prediction
+feature proves a public contract.
+
+This adds one transitional adapter. It avoids publishing a general input framework from one game.
+
+### Owner answer
+
+`PENDING`
+
+## Question 2: What fixed-step and long-frame policy should the session use?
+
+### Context
+
+Godot and Phaser commonly use 60 fixed updates each second. Unity and Unreal cap catch-up work.
+Antiky Town already limits outer frame time to `0.05` seconds, and its character motor uses
+`1/60`-second steps.
+
+### Recommendation
+
+Use a `1/60`-second fixed step. Accept at most `0.05` seconds from one browser frame. Run at most
+three fixed steps in one frame. After the limit, discard complete excess steps, keep a fractional
+remainder smaller than one step, and report the discarded time.
+
+The simulation slows after a stall instead of spending unbounded CPU time to catch up.
+
+### Owner answer
+
+`PENDING`
+
+## Question 3: What must pause, resume, and single-step do?
+
+### Context
+
+The current pause button stops the BroMetal loop. Browsers also stop frame callbacks in background
+tabs. Development tools need one-step control without rebuilding the world or accidentally
+catching up all paused time.
+
+### Recommendation
+
+Pause the session and stop its render loop while keeping CPU and GPU resources alive. Resume with a
+new browser-time baseline and no catch-up for paused time. Allow single-step only while paused.
+Single-step runs exactly one fixed tick, keeps the session paused, and renders one frame so the
+result is visible. An explicit user or tool pause prevents visibility recovery from auto-resuming.
+
+This preserves current GPU-saving behavior. The host needs a small paused-frame render path.
+
+### Owner answer
+
+`PENDING`
+
+## Question 4: Which session Tools should humans and agents use?
+
+### Context
+
+The required meanings are session and clock inspection, pause, resume, and one fixed step. A lost
+response must not cause an automatic retry to step twice.
+
+### Recommendation
+
+Add `get_session_status`, `pause_simulation`, `resume_simulation`, and `step_simulation` to the
+existing typed development client. Make pause and resume idempotent. Require
+`expectedCompletedStepCount` for single-step and reject a stale value. Expose the same names through
+MCP and `antiky tool`.
+
+The expected count adds one read before a scripted step. It makes retries safe and the result
+unambiguous.
+
+### Owner answer
+
+`PENDING`
+
+## Question 5: Should Slice 02 add the requested CLI ID generator?
+
+### Context
+
+The feedback file requests one supported way to make IDs so projects do not encode the current
+UUID structure themselves. Slice 02 adds `SessionId` beside world, entity, and command IDs.
+
+### Recommendation
+
+Add `antiky generate id <world|entity|command|session>`. Print the ID alone by default for easy
+copying. Add `--json` for scripts. Call Framework ID factories instead of generating IDs in CLI
+code.
+
+This adds a small public CLI command. It avoids four separate commands and keeps future ID-format
+changes behind Framework.
+
+### Owner answer
+
+`PENDING`
+
+## Work that does not need owner input
+
+The implementation agent confirms the BroMetal baseline and guarded shader patch, selects exact
+test fixtures, allocates run resources, measures clock and render behavior, regenerates shaders,
+and records evidence.
+
+The agent must add a new owner question only if a finding changes product scope, visible behavior,
+a public contract, or an accepted architecture decision.

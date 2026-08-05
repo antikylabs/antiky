@@ -324,6 +324,9 @@ Costs:
 
 ## Slice 2: Session and fixed-step clock
 
+The executable contract is [`slice-02/plan.md`](slice-02/plan.md). Its open product and architecture
+choices are in [`slice-02/owner-input_H.md`](slice-02/owner-input_H.md).
+
 ### Outcome
 
 Introduce `EngineSession` ownership of command order, revisions, clocks, state copies, and system
