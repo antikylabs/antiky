@@ -62,8 +62,9 @@ not require one model provider.
   structured JSON.
 - `antiky tool` calls the same MCP tools that coding agents use, including game reload, frame
   capture, runtime inspection, and point-light authoring.
-- `@antiky/framework` supplies stable UUIDv7 identities, immutable runtime inspection snapshots,
-  and the first framework-owned point-light command and correction flow.
+- `@antiky/framework` supplies the fixed-step `EngineSession`, stable UUIDv7 identities, immutable
+  runtime inspection snapshots, and the first framework-owned point-light command and correction
+  flow.
 - Antiky Town uses that framework path while the original BroMetal town remains available as its
   visual and behavioral reference.
 - Browser studies exercise the current 2.3D, shader, sprite, voxel, and WebGPU work.
@@ -89,8 +90,8 @@ person / coding agent / future Studio
 ```
 
 The CLI owns local configuration, child processes, builds, connections, and cleanup. The framework
-owns semantic game facts and engine rules. MCP and Studio adapt those shared services for their
-users; they do not implement a second engine control path.
+owns semantic game facts and engine rules. MCP adapts those shared services today. The future
+Studio will use the same boundary instead of implementing a second engine control path.
 
 ## Quick start from source
 
@@ -138,26 +139,31 @@ security boundary.
 Use `antiky-town`, `town-study`, or `shader-study` as a focused demo slug. The
 [demo source guide](packages/demos/src/demos/README.md) lists the registered and internal studies.
 
-## Repository layout
+## Workspace packages
 
-| Path | Role | Current state |
+The repository currently contains four npm workspace packages:
+
+| Package | Path | Role |
 | --- | --- | --- |
-| [`packages/framework`](packages/framework) | Headless game-framework contracts and systems | Implemented, pre-release |
-| [`packages/cli`](packages/cli) | Local development host, CLI, typed client, inspection, and MCP adapters | Implemented, pre-release |
-| [`packages/demos`](packages/demos) | Browser studies, focused game host, and Antiky Town migration | Runnable |
-| [`packages/website`](packages/website) | Antiky Labs website and public demo presentation | Active |
-| [`packages/studio`](packages/studio) | Future visual development application | Planned |
+| `@antiky/framework` | [`packages/framework`](packages/framework) | Headless engine sessions, identities, inspection contracts, and reusable game systems |
+| `@antiky/cli` | [`packages/cli`](packages/cli) | The `antiky` command, development-session host, typed development client, inspection transport, and MCP adapters |
+| `@antiky/demos` | [`packages/demos`](packages/demos) | Standalone browser studies, the focused Vite game host, Antiky Town, and the original BroMetal Town reference |
+| `@antiky/website` | [`packages/website`](packages/website) | The Antiky Labs website and public presentation of runnable demos |
 
-The main code dependencies point toward the framework:
+All four packages are private and pre-release. [`packages/studio`](packages/studio) reserves the
+future Studio source location, but it is not an npm package or runnable application yet.
+
+The current package dependencies are:
 
 ```text
-website -> demos -> framework
-cli ----------------> framework
-future Studio ------> shared development and framework services
+@antiky/website -> @antiky/demos -> @antiky/framework
+                               \-> BroMetal
+@antiky/cli --------------------> @antiky/framework
 ```
 
 Framework core stays free of React, Next.js, browser DOM, Node.js host, Studio, MCP, and BroMetal
-imports. Adapters keep those concerns at the system boundaries.
+imports. The CLI, demo host, website, and future Studio keep those concerns at the system
+boundaries.
 
 ## Documentation
 
