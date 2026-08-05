@@ -16,7 +16,8 @@
     "shaders": "brometal dev --once",
     "shaders:watch": "brometal dev",
     "shaders:prod": "brometal prod",
-    "test": "node --experimental-strip-types --experimental-transform-types --test src/demos/antiky-town/tests/composition.test.ts src/demos/antiky-town/tests/point-light-adapter.test.ts src/demos/brometal-town/physics/character-motor.test.ts src/demos/brometal-town/practical-light-input.test.ts src/runtime-inspection.test.ts src/react/development-inspection.test.ts tests/dev-host.test.mjs tests/shader-output-parity.test.mjs tests/slice-01-gpu-probe.test.mjs && vitest run src/demos/brometal-town/art/town-validation.test.ts",
+    "verify:slice-01": "node --experimental-strip-types --experimental-transform-types scripts/verify-slice-01.mjs",
+    "test": "node --experimental-strip-types --experimental-transform-types --test src/demos/antiky-town/tests/composition.test.ts src/demos/antiky-town/tests/point-light-adapter.test.ts src/demos/brometal-town/physics/character-motor.test.ts src/demos/brometal-town/practical-light-input.test.ts src/runtime-inspection.test.ts src/react/development-inspection.test.ts tests/dev-host.test.mjs tests/shader-output-parity.test.mjs tests/slice-01-evidence.test.mjs tests/slice-01-gpu-probe.test.mjs tests/verify-slice-01.test.mjs && vitest run src/demos/brometal-town/art/town-validation.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
