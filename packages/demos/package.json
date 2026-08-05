@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@antiky/framework": "0.0.0",
-    "brometal": "0.14.0"
+    "brometal": "0.15.0"
   },
   "peerDependencies": {
     "react": "^19.1.0"

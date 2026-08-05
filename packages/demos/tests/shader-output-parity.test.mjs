@@ -10,6 +10,17 @@ const packageDirectory = fileURLToPath(new URL('../', import.meta.url));
 const sourceDirectory = new URL('../src/', import.meta.url);
 const compiler = fileURLToPath(new URL('../node_modules/.bin/brometal', import.meta.url));
 
+test('BroMetal version and cut-out shader support match the repository contract', async () => {
+  const [metadataSource, declarations] = await Promise.all([
+    readFile(new URL('../node_modules/brometal/package.json', import.meta.url), 'utf8'),
+    readFile(new URL('../node_modules/brometal/dist/index.d.ts', import.meta.url), 'utf8'),
+  ]);
+  const metadata = JSON.parse(metadataSource);
+
+  assert.equal(metadata.version, '0.15.0');
+  assert.match(declarations, /\bdiscard\b/);
+});
+
 async function generatedFiles(directory) {
   const paths = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {

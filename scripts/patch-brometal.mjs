@@ -4,8 +4,8 @@ import path from 'node:path';
 const packageRoot = path.resolve(import.meta.dirname, '../packages/demos/node_modules/brometal');
 const metadata = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
 
-if (metadata.version !== '0.14.0') {
-  throw new Error(`Expected BroMetal 0.14.0, found ${metadata.version}. Review the cut-out patch before upgrading.`);
+if (metadata.version !== '0.15.0') {
+  throw new Error(`Expected BroMetal 0.15.0, found ${metadata.version}. Review the cut-out patch before upgrading.`);
 }
 
 async function replace(relativePath, before, after) {
