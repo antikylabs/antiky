@@ -4,10 +4,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `READY` |
+| Status | `COMPLETE` |
 | Owner | Antiky Framework and CLI maintainers |
 | Outcome | CLI and Framework lifecycle failures are bounded, observable, retry-safe, and easier to maintain. |
 | Scope | `packages/framework` and `packages/cli` |
+| Completed | August 5, 2026 |
 
 Goal command:
 
@@ -106,24 +107,26 @@ to an existing test suite, observe it fail for the expected reason, and then fix
 
 ## Completion checks
 
-- [ ] An unexpected system, command-handler, input-capture, or digest failure cannot leave a session
+- [x] An unexpected system, command-handler, input-capture, or digest failure cannot leave a session
       runnable with partially applied work and an unchanged logical counter.
-- [ ] New, changed, renamed, and deleted tracked files are observed after the watcher starts.
-- [ ] Cleanup attempts every owned resource, settles exactly once, and leaves test ports,
+- [x] New, changed, renamed, and deleted tracked files are observed after the watcher starts.
+- [x] Cleanup attempts every owned resource, settles exactly once, and leaves test ports,
       descriptors, watchers, and child groups clean even when one cleanup step fails.
-- [ ] A timed-out or stopped capture cannot complete a later action.
-- [ ] Every point-light command path preserves all observable state after disposal.
-- [ ] Unexpected CLI failures produce safe correlated diagnostics.
-- [ ] `sessions/engine-session/runtime.ts` is below the 800-line decomposition threshold and has
+- [x] A timed-out or stopped capture cannot complete a later action.
+- [x] Every point-light command path preserves all observable state after disposal.
+- [x] Unexpected CLI failures produce safe correlated diagnostics.
+- [x] `sessions/engine-session/runtime.ts` is below the 800-line decomposition threshold and has
       one clear runtime responsibility; every remaining production file above 500 lines has a
       documented cohesion judgment in the final handoff.
-- [ ] Brittle source-layout and documentation-prose assertions are gone without losing meaningful
+- [x] Brittle source-layout and documentation-prose assertions are gone without losing meaningful
       behavioral or security coverage.
-- [ ] Framework and CLI typechecks and tests pass, followed by one clean `npm run check`.
-- [ ] One real `antiky dev` start and stop leaves its configured ports free and removes the session
+- [x] Framework and CLI typechecks and tests pass, followed by one clean `npm run check`.
+- [x] One real `antiky dev` start and stop leaves its configured ports free and removes the session
       descriptor.
-- [ ] No temporary verifier, ad hoc test outside the package suites, slice-specific script, or
+- [x] No temporary verifier, ad hoc test outside the package suites, slice-specific script, or
       verification package command remains in the repository.
+
+The implementation details and verification evidence are recorded in [the handoff](handoff.md).
 
 Finish with a short handoff describing behavior changes, file moves, tests run, and any public API
 or ADR changes.
