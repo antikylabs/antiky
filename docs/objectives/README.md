@@ -36,6 +36,7 @@ Before planning or implementing work, read:
 | Project | Purpose |
 | --- | --- |
 | [Antiky Town](antiky-town/README.md) | Holds the port plan, slice workflow, template, and executable slice plans. |
+| [CLI and Framework hardening](cli-framework-hardening/plan.md) | Bounds reviewed lifecycle failures and reduces proven maintenance friction. |
 | [General research](general-stuff/) | Holds research and direction that more than one objective can use. |
 
 ## Commands
