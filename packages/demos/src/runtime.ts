@@ -1,4 +1,5 @@
 import type { Renderer } from 'brometal';
+import type { PointLightAuthoringService } from '@antiky/framework';
 
 /* What a demo is allowed to know about the page it runs in.
  *
@@ -43,6 +44,7 @@ export type DemoStats = {
 
 export type DemoSetup = {
   renderer: Renderer;
+  runtimeInstanceId: string;
   pointer: Pointer;
   movement: MovementInput;
   mode: DemoMode;
@@ -50,6 +52,7 @@ export type DemoSetup = {
 };
 
 export type DemoInstance = {
+  pointLightService?: PointLightAuthoringService;
   frame(elapsedSeconds: number): void;
   dispose(): void;
 };

@@ -47,6 +47,11 @@ import {
   createHeightFieldGroundSampler,
 } from './physics';
 import type { DemoFactory, DemoMode } from '../../runtime';
+import {
+  commitTownSlotZeroPower,
+  readTownSlotZeroPower,
+  type TownDemoOptions,
+} from './practical-light-input';
 import postShader from './shaders/town-post.shader.gen';
 import awningShadowShader from './shaders/town-awning-shadow.shader.gen';
 import awningShader from './shaders/town-awning.shader.gen';
@@ -130,6 +135,8 @@ type ActorAtlasMetadata = {
   pivot: { x: number; y: number };
 };
 
+export type { TownDemoOptions } from './practical-light-input';
+
 function normalize3(value: readonly [number, number, number]): readonly [number, number, number] {
   const length = Math.hypot(value[0], value[1], value[2]) || 1;
   return [value[0] / length, value[1] / length, value[2] / length];
@@ -168,7 +175,10 @@ function cameraPose(mode: DemoMode, aspect: number) {
   };
 }
 
-const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
+async function createTownDemo(
+  { renderer, movement, mode, report }: Parameters<DemoFactory>[0],
+  options: TownDemoOptions,
+) {
   const world = buildTownWorld();
   const materialTexture = await loadTexture(
     renderer,
@@ -510,7 +520,12 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   waterProgram.uniforms.uPracticalPosInvRangeSq2.set(practicalPositions[2]!);
   waterProgram.uniforms.uPracticalPosInvRangeSq3.set(practicalPositions[3]!);
 
-  const updatePracticalLights = (time: number, mobile: boolean): void => {
+  let lastValidSlotZeroPower: number = PRACTICAL_LIGHTS[0].power;
+  const updatePracticalLights = (time: number, mobile: boolean) => {
+    const slotZeroPower = readTownSlotZeroPower(
+      options.slotZeroPower,
+      lastValidSlotZeroPower,
+    );
     const count = mobile ? 4 : mode === 'ambient' ? 8 : 6;
     const strength = mobile ? 0.75 : mode === 'ambient' ? 1.15 : 0.8;
     const flickerAmount = mobile ? 0.025 : mode === 'ambient' ? 0.06 : 0.035;
@@ -525,7 +540,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
         light.color[0],
         light.color[1],
         light.color[2],
-        light.power * flicker,
+        (index === 0 ? slotZeroPower.basePower : light.power) * flicker,
       ]);
     }
     for (const program of practicalPrograms) {
@@ -556,6 +571,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
     waterProgram.uniforms.uPracticalColorPower1.set(practicalColors[1]!);
     waterProgram.uniforms.uPracticalColorPower2.set(practicalColors[2]!);
     waterProgram.uniforms.uPracticalColorPower3.set(practicalColors[3]!);
+    return slotZeroPower;
   };
 
   const fullscreen = createPlane({ width: 2, height: 2 });
@@ -668,7 +684,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
   });
 
   return {
-    frame(time) {
+    frame(time: number) {
       const lastTime = previousTime;
       const resetOrFirst = lastTime === null || time <= lastTime;
       const dt = resetOrFirst ? 1 / 60 : Math.min(time - lastTime, 0.05);
@@ -733,7 +749,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       camera.setLens({ fovY: pose.fovY, near: 0.32, far: FAR_DEPTH });
       const viewProjection = camera.viewProjection(renderer.aspect);
       billboardBasis(camera.view(), billboardRight, billboardUp, 0.32);
-      updatePracticalLights(simulationTime, pose.mobile);
+      const slotZeroPower = updatePracticalLights(simulationTime, pose.mobile);
 
       actorBatch.clear();
       const heroFacing = hero.motor.state.facing;
@@ -928,6 +944,7 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       postProgram.uniforms.uDofStrength.set(mobile ? 0 : mode === 'ambient' ? 0.24 : 0.075);
       postProgram.uniforms.uDepthReject.set(3);
       postProgram.draw();
+      lastValidSlotZeroPower = commitTownSlotZeroPower(options.slotZeroPower, slotZeroPower);
     },
 
     dispose() {
@@ -955,7 +972,13 @@ const factory: DemoFactory = async ({ renderer, movement, mode, report }) => {
       waterFeatureProgram.dispose();
     },
   };
-};
+}
+
+export function createTownDemoFactory(options: TownDemoOptions = {}): DemoFactory {
+  return (setup) => createTownDemo(setup, options);
+}
+
+const factory = createTownDemoFactory();
 
 function buildWaterGrid(
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number },

@@ -10,7 +10,7 @@ host remain directly under [`../`](../).
 
 | Folder | Purpose | Public route |
 | --- | --- | --- |
-| [`antiky-town/`](antiky-town/) | Planned Antiky Framework port of the town | Not registered yet |
+| [`antiky-town/`](antiky-town/) | Town composition with framework-owned point-light authoring | `antiky-town` |
 | [`brometal-town/`](brometal-town/) | Existing town written directly with BroMetal and TypeScript | `town-study` |
 | [`shader-study/`](shader-study/) | Typed shader compilation study | `shader-study` |
 | [`instance-storm/`](instance-storm/) | Internal instance rendering study | Not registered |

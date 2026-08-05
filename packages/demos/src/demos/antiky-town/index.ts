@@ -1,7 +1,13 @@
-/**
- * Future Antiky Framework version of the town demo.
- *
- * This module stays unregistered until the first implementation direction is
- * selected and its complete slice passes the required checks.
- */
-export {};
+import { createTownDemoFactory } from '../brometal-town/index.ts';
+import { createAntikyTownDemoFactory } from './composition.ts';
+
+export {
+  ANTIKY_TOWN_WORLD_ID,
+  MARKET_LAMP_WEST_01_ID,
+  PROOF_POINT_LIGHT_ID,
+} from './content/point-lights.ts';
+export { createAntikyTownDemoFactory } from './composition.ts';
+
+const factory = createAntikyTownDemoFactory(createTownDemoFactory);
+
+export default factory;

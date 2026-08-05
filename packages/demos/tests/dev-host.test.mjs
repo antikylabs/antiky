@@ -62,11 +62,12 @@ test('focused demo host passes only explicit browser configuration to Vite', () 
 });
 
 test('focused demo host is a full-canvas game surface without website chrome', async () => {
-  const [html, entry, styles, dispatcher] = await Promise.all([
+  const [html, entry, styles, dispatcher, stage] = await Promise.all([
     readFile(new URL('../dev-host/index.html', import.meta.url), 'utf8'),
     readFile(new URL('../dev-host/main.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../dev-host/style.css', import.meta.url), 'utf8'),
     readFile(new URL('../scripts/dev.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../src/react/LiveDemoStage.tsx', import.meta.url), 'utf8'),
   ]);
 
   assert.match(html, /viewport-fit=cover/);
@@ -80,6 +81,10 @@ test('focused demo host is a full-canvas game surface without website chrome', a
   assert.match(styles, /100dvh/);
   assert.match(styles, /safe-area-inset/);
   assert.doesNotMatch(dispatcher, /@antiky\/website|next dev/);
+  assert.match(stage, /runtimeInstanceId: runtimeInstanceIdRef\.current/);
+  assert.match(stage, /inspectPointLightService/);
+  assert.match(stage, /submitPointLightPower/);
+  assert.match(stage, /correctPointLightPower/);
 });
 
 test('focused demo host compiles its TSX entry with the package TypeScript config', async () => {

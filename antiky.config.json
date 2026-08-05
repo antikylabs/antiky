@@ -8,7 +8,7 @@
       "--workspace",
       "@antiky/demos",
       "--",
-      "town-study",
+      "antiky-town",
       "--host",
       "{host}",
       "--port",

@@ -8,3 +8,6 @@ in [`../antiky-town/`](../antiky-town/).
 
 Keep this implementation working while the port advances. Do not make it depend on the new port.
 Shared assets can remain shared, but framework behavior must prove itself in `antiky-town` first.
+
+`createTownDemoFactory` accepts one optional slot-zero base-power source. With no source, including
+the `town-study` route, all authored practical-light defaults and presentation flicker are unchanged.

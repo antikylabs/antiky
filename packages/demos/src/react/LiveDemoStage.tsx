@@ -2,6 +2,7 @@
 
 import { createRenderer, type Renderer } from 'brometal';
 import { useEffect, useRef, useState } from 'react';
+import { inspectPointLightService } from '@antiky/framework';
 import {
   type DemoInstance,
   type DemoMode,
@@ -55,6 +56,7 @@ export default function LiveDemoStage({
   const runningRef = useRef(false);
   const frameCountRef = useRef(0);
   const runtimeInstanceIdRef = useRef('runtime-pending');
+  const demoInstanceRef = useRef<DemoInstance | null>(null);
   const inspectionPublisherRef = useRef<InspectionPublisher | null>(null);
   const inspectionInputRef = useRef<DemoInspectionInput | null>(null);
   const movementRef = useRef<MovementInput>({ x: 0, z: 0, active: false });
@@ -101,6 +103,7 @@ export default function LiveDemoStage({
     runningRef.current = false;
     frameCountRef.current = 0;
     runtimeInstanceIdRef.current = crypto.randomUUID();
+    demoInstanceRef.current = null;
     movementRef.current = { x: 0, z: 0, active: false };
     pressedRef.current.clear();
     touchRef.current = { x: 0, z: 0 };
@@ -202,6 +205,7 @@ export default function LiveDemoStage({
         if (!factory) throw new Error(`No demo is registered under "${slug}".`);
         demo = await factory({
           renderer,
+          runtimeInstanceId: runtimeInstanceIdRef.current,
           pointer,
           movement: movementRef.current,
           mode,
@@ -215,6 +219,8 @@ export default function LiveDemoStage({
           renderer.destroy();
           return;
         }
+        demoInstanceRef.current = demo;
+        setInspectionTick((value) => value + 1);
 
         let frames = 0;
         let lastReport = 0;
@@ -252,10 +258,12 @@ export default function LiveDemoStage({
 
         teardown = () => {
           stop();
+          if (demoInstanceRef.current === built) demoInstanceRef.current = null;
           built.dispose();
           renderer?.destroy();
         };
       } catch (cause: unknown) {
+        demoInstanceRef.current = null;
         demo?.dispose();
         renderer?.destroy();
         if (cancelled) return;
@@ -326,6 +334,20 @@ export default function LiveDemoStage({
             dataBase64: dataUrl.slice(prefix.length),
           };
         },
+        setPointLightPower(command, context) {
+          const service = demoInstanceRef.current?.pointLightService;
+          if (!service) throw new Error('The demo point-light service is unavailable.');
+          const result = service.submitPointLightPower(command, context);
+          setInspectionTick((value) => value + 1);
+          return result;
+        },
+        correctPointLightPower(request, context) {
+          const service = demoInstanceRef.current?.pointLightService;
+          if (!service) throw new Error('The demo point-light service is unavailable.');
+          const result = service.correctPointLightPower(request, context);
+          setInspectionTick((value) => value + 1);
+          return result;
+        },
       });
       if (disposed) {
         publisher?.close();
@@ -354,6 +376,7 @@ export default function LiveDemoStage({
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
     const canvas = canvasRef.current;
+    const pointLightService = demoInstanceRef.current?.pointLightService;
     const input: DemoInspectionInput = Object.freeze({
       runtimeInstanceId: runtimeInstanceIdRef.current,
       phase,
@@ -363,6 +386,9 @@ export default function LiveDemoStage({
       canvasHeight: canvas?.height ?? 0,
       stats: Object.freeze({ ...stats }),
       error,
+      ...(pointLightService === undefined
+        ? {}
+        : { pointLights: inspectPointLightService(pointLightService) }),
     });
     inspectionInputRef.current = input;
     void inspectionPublisherRef.current?.publish(input).catch(() => {

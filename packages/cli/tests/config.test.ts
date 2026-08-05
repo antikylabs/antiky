@@ -67,7 +67,7 @@ test('strict config resolves commands, working directory, URL, and loopback port
   assert.ok(Object.isFrozen(config.game.command));
 });
 
-test('the repository config launches town-study in its focused host on fixed loopback ports', async () => {
+test('the repository config launches Antiky Town in its focused host on fixed loopback ports', async () => {
   const config = await loadAntikyConfig(repositoryConfig);
 
   assert.equal(config.game.url, 'http://127.0.0.1:3010/');
@@ -79,7 +79,7 @@ test('the repository config launches town-study in its focused host on fixed loo
     '--workspace',
     '@antiky/demos',
     '--',
-    'town-study',
+    'antiky-town',
     '--host',
     '127.0.0.1',
     '--port',

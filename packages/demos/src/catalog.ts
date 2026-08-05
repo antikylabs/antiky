@@ -14,6 +14,22 @@ export type DemoMeta = {
 
 export const DEMOS: readonly DemoMeta[] = [
   {
+    slug: 'antiky-town',
+    title: 'Antiky Town',
+    pillar: 'Framework',
+    tagline: 'A living town with framework-owned light authoring.',
+    notes:
+      'Explore the golden-hour market while Antiky Framework owns the identity, authoring state, runtime projection, and render update for a visible lamp.',
+    proves: [
+      'One stable light identity from authored content through rendering',
+      'Live command changes without a reload or renderer rebuild',
+      'Structured inspection and correction over the same runtime service',
+    ],
+    tags: ['Antiky Framework', 'WebGPU', 'live authoring'],
+    controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
+    controlMode: 'move',
+  },
+  {
     slug: 'town-study',
     title: 'Town Study',
     pillar: 'Framework',
