@@ -1,6 +1,6 @@
-import { unwatchFile, watchFile } from 'node:fs';
+import { watch as watchDirectory, type Dirent, type FSWatcher } from 'node:fs';
 import { readdir, stat } from 'node:fs/promises';
-import { basename, relative, resolve, sep } from 'node:path';
+import { basename, dirname, relative, resolve, sep } from 'node:path';
 
 import type { InspectionSnapshot } from '@antiky/framework';
 
@@ -68,16 +68,40 @@ function isTrackedFile(path: string): boolean {
   return path.toLowerCase().endsWith('.shader.gen.ts') || classify(path) !== null;
 }
 
-async function collectFiles(root: string): Promise<string[]> {
-  const files: string[] = [];
-  const entries = await readdir(root, { withFileTypes: true });
+type WatchSnapshot = Readonly<{
+  directories: ReadonlySet<string>;
+  files: ReadonlyMap<string, string>;
+}>;
+
+function fileSignature(file: Awaited<ReturnType<typeof stat>>): string {
+  return `${file.mtimeMs}:${file.ctimeMs}:${file.size}:${file.ino}`;
+}
+
+async function collectDirectory(
+  root: string,
+  directories: Set<string>,
+  files: Map<string, string>,
+): Promise<void> {
+  let entries: Dirent[];
+  try {
+    entries = await readdir(root, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  directories.add(root);
   for (const entry of entries) {
     if (entry.isSymbolicLink() || ignoredSegments.has(entry.name)) continue;
     const path = resolve(root, entry.name);
-    if (entry.isDirectory()) files.push(...await collectFiles(path));
-    else if (entry.isFile() && isTrackedFile(path)) files.push(path);
+    if (entry.isDirectory()) {
+      await collectDirectory(path, directories, files);
+    } else if (entry.isFile() && isTrackedFile(path)) {
+      try {
+        files.set(path, fileSignature(await stat(path)));
+      } catch {
+        // A concurrent rename or deletion will be present in the next directory snapshot.
+      }
+    }
   }
-  return files;
 }
 
 export function createBuildTracker(options: BuildTrackerOptions): BuildTracker {
@@ -96,7 +120,16 @@ export function createBuildTracker(options: BuildTrackerOptions): BuildTracker {
   let pending: PendingBuild | null = null;
   let nextToken = 0;
   let failureTimer: NodeJS.Timeout | undefined;
-  const watchedFiles = new Set<string>();
+  const directoryRoots = new Set<string>();
+  const explicitFiles = new Set<string>();
+  const directoryWatchers = new Map<string, FSWatcher>();
+  const pollingDirectories = new Set<string>();
+  let knownFiles: ReadonlyMap<string, string> = new Map();
+  let scanTimer: NodeJS.Timeout | undefined;
+  let pollingTimer: NodeJS.Timeout | undefined;
+  let scanQueue = Promise.resolve();
+  let initializedWatch = false;
+  let stopped = false;
 
   const clearFailureTimer = () => {
     if (failureTimer) clearTimeout(failureTimer);
@@ -228,6 +261,114 @@ export function createBuildTracker(options: BuildTrackerOptions): BuildTracker {
     return revision;
   };
 
+  const collectWatchSnapshot = async (): Promise<WatchSnapshot> => {
+    const directories = new Set<string>();
+    const files = new Map<string, string>();
+    for (const root of directoryRoots) {
+      directories.add(root);
+      await collectDirectory(root, new Set(), files);
+    }
+    for (const path of explicitFiles) {
+      const parent = dirname(path);
+      try {
+        if ((await stat(parent)).isDirectory()) directories.add(parent);
+        const file = await stat(path);
+        if (file.isFile() && isTrackedFile(path)) files.set(path, fileSignature(file));
+      } catch {
+        // A missing explicit file stays registered so its later creation can be observed.
+      }
+    }
+    return Object.freeze({ directories, files });
+  };
+
+  const scheduleScan = (): void => {
+    if (stopped || scanTimer !== undefined) return;
+    scanTimer = setTimeout(() => {
+      scanTimer = undefined;
+      void queueWatchScan(true).catch(() => undefined);
+    }, 10);
+    scanTimer.unref();
+  };
+
+  const synchronizeDirectoryWatchers = (directories: ReadonlySet<string>): boolean => {
+    let addedWatcher = false;
+    for (const [path, watcher] of directoryWatchers) {
+      if (directories.has(path)) continue;
+      watcher.close();
+      directoryWatchers.delete(path);
+      pollingDirectories.delete(path);
+    }
+    for (const path of directories) {
+      if (directoryWatchers.has(path) || pollingDirectories.has(path)) continue;
+      try {
+        const watcher = watchDirectory(path, {
+          persistent: false,
+          recursive: directoryRoots.has(path),
+        }, scheduleScan);
+        watcher.on('error', () => {
+          if (directoryWatchers.get(path) !== watcher) return;
+          watcher.close();
+          directoryWatchers.delete(path);
+          pollingDirectories.add(path);
+          startPolling();
+        });
+        directoryWatchers.set(path, watcher);
+        pollingDirectories.delete(path);
+        addedWatcher = true;
+      } catch {
+        pollingDirectories.add(path);
+        startPolling();
+      }
+    }
+    return addedWatcher;
+  };
+
+  const reconcileWatchState = async (emitChanges: boolean): Promise<void> => {
+    if (stopped) return;
+    const current = await collectWatchSnapshot();
+    if (stopped) return;
+    const addedWatcher = synchronizeDirectoryWatchers(current.directories);
+    if (emitChanges) {
+      const removed = [...knownFiles.keys()]
+        .filter((path) => !current.files.has(path))
+        .sort();
+      for (const path of removed) {
+        if (!path.toLowerCase().endsWith('.shader.gen.ts')) noteFileChange(path);
+      }
+      const changed = [...current.files]
+        .filter(([path, signature]) => knownFiles.get(path) !== signature)
+        .map(([path]) => path)
+        .sort((left, right) => {
+          const leftGenerated = left.toLowerCase().endsWith('.shader.gen.ts');
+          const rightGenerated = right.toLowerCase().endsWith('.shader.gen.ts');
+          if (leftGenerated !== rightGenerated) return leftGenerated ? 1 : -1;
+          return left.localeCompare(right);
+        });
+      for (const path of changed) noteFileChange(path);
+    }
+    knownFiles = current.files;
+    if (addedWatcher) scheduleScan();
+  };
+
+  const queueWatchScan = (emitChanges: boolean): Promise<void> => {
+    const queued = scanQueue.then(() => reconcileWatchState(emitChanges));
+    scanQueue = queued.catch(() => undefined);
+    return queued;
+  };
+
+  const startPolling = (): void => {
+    if (stopped || pollingTimer !== undefined) return;
+    pollingTimer = setInterval(() => {
+      if (pollingDirectories.size === 0) {
+        clearInterval(pollingTimer);
+        pollingTimer = undefined;
+        return;
+      }
+      void queueWatchScan(true).catch(() => undefined);
+    }, 100);
+    pollingTimer.unref();
+  };
+
   return Object.freeze({
     snapshot: () => latest,
     diagnostics: () => activeDiagnostics,
@@ -235,30 +376,43 @@ export function createBuildTracker(options: BuildTrackerOptions): BuildTracker {
     acceptRuntime,
     async watch(paths: readonly string[]): Promise<void> {
       for (const path of paths) {
-        let isDirectory = false;
-        try {
-          isDirectory = (await stat(path)).isDirectory();
-        } catch {
+        const absolutePath = resolve(path);
+        const relativePath = relative(rootDirectory, absolutePath).split(sep).join('/');
+        if (
+          relativePath === '..'
+          || relativePath.startsWith('../')
+          || hasIgnoredSegment(relativePath)
+        ) {
           continue;
         }
-        const targets = isDirectory ? await collectFiles(path) : [path];
-        for (const target of targets) {
-          if (watchedFiles.has(target) || !isTrackedFile(target)) continue;
-          watchFile(target, { interval: 100 }, (current, previous) => {
-            if (
-              current.mtimeMs !== previous.mtimeMs
-              || current.ctimeMs !== previous.ctimeMs
-              || current.size !== previous.size
-            ) noteFileChange(target);
-          });
-          watchedFiles.add(target);
+        try {
+          const file = await stat(absolutePath);
+          if (file.isDirectory()) directoryRoots.add(absolutePath);
+          else if (file.isFile() && isTrackedFile(absolutePath)) explicitFiles.add(absolutePath);
+        } catch {
+          if (isTrackedFile(absolutePath)) explicitFiles.add(absolutePath);
         }
       }
+      if (!initializedWatch) {
+        await queueWatchScan(false);
+        initializedWatch = true;
+      }
+      await queueWatchScan(true);
     },
     async stop(): Promise<void> {
+      stopped = true;
       clearFailureTimer();
-      for (const path of watchedFiles) unwatchFile(path);
-      watchedFiles.clear();
+      if (scanTimer !== undefined) clearTimeout(scanTimer);
+      scanTimer = undefined;
+      if (pollingTimer !== undefined) clearInterval(pollingTimer);
+      pollingTimer = undefined;
+      for (const watcher of directoryWatchers.values()) watcher.close();
+      directoryWatchers.clear();
+      await scanQueue;
+      directoryRoots.clear();
+      explicitFiles.clear();
+      pollingDirectories.clear();
+      knownFiles = new Map();
     },
   });
 }

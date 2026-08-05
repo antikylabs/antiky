@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rename, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -95,6 +95,48 @@ test('the build tracker observes source paths without watching dependency or out
     await waitFor(() => tracker.snapshot().result === 'pending');
     assert.equal(tracker.snapshot().changedPath, 'src/feature.ts');
     assert.equal(tracker.acceptRuntime(readyRuntime('runtime-watch-002')), 2);
+  } finally {
+    await tracker.stop();
+  }
+});
+
+test('the build tracker observes created, renamed, deleted, and newly nested source files', async () => {
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-build-topology-'));
+  const sourceDirectory = join(rootDirectory, 'src');
+  await mkdir(sourceDirectory);
+  const tracker = createBuildTracker({
+    developmentSessionId: 'development-build-topology',
+    rootDirectory,
+    failureTimeoutMilliseconds: 1000,
+  });
+  try {
+    tracker.acceptRuntime(readyRuntime('runtime-topology-001'));
+    await tracker.watch([sourceDirectory]);
+
+    const createdPath = join(sourceDirectory, 'created.ts');
+    await writeFile(createdPath, 'export const created = true;\n');
+    await waitFor(() => tracker.snapshot().changedPath === 'src/created.ts');
+    assert.equal(tracker.snapshot().result, 'pending');
+    assert.equal(tracker.acceptRuntime(readyRuntime('runtime-topology-002')), 2);
+
+    const nestedDirectory = join(sourceDirectory, 'features', 'weather');
+    const nestedPath = join(nestedDirectory, 'rain.ts');
+    await mkdir(nestedDirectory, { recursive: true });
+    await writeFile(nestedPath, 'export const rain = true;\n');
+    await waitFor(() => tracker.snapshot().changedPath === 'src/features/weather/rain.ts');
+    assert.equal(tracker.acceptRuntime(readyRuntime('runtime-topology-003')), 3);
+
+    const renamedPath = join(nestedDirectory, 'storm.ts');
+    await rename(nestedPath, renamedPath);
+    await waitFor(() => tracker.snapshot().changedPath === 'src/features/weather/storm.ts');
+    assert.equal(tracker.acceptRuntime(readyRuntime('runtime-topology-004')), 4);
+
+    await unlink(renamedPath);
+    await waitFor(() => (
+      tracker.snapshot().result === 'pending'
+      && tracker.snapshot().changedPath === 'src/features/weather/storm.ts'
+    ));
+    assert.equal(tracker.acceptRuntime(readyRuntime('runtime-topology-005')), 5);
   } finally {
     await tracker.stop();
   }
