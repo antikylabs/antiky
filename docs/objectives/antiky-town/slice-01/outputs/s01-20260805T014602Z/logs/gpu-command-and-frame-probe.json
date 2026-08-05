@@ -1,0 +1,6589 @@
+{
+  "version": 1,
+  "installError": null,
+  "adapterRequests": 1,
+  "deviceRequests": 1,
+  "queueSubmissions": 360,
+  "writeBufferCalls": 4145,
+  "writeBufferBytes": 188696532,
+  "writeTextureCalls": 32,
+  "readbackOperations": {},
+  "resources": {
+    "textures": 42,
+    "shaderModules": 17,
+    "renderPipelines": 17,
+    "samplers": 23,
+    "bindGroups": 1698,
+    "bindGroupLayouts": 16,
+    "buffers": 165,
+    "pipelineLayouts": 16
+  },
+  "resourceBytes": {
+    "buffers": 15420196
+  },
+  "submissions": [
+    {
+      "index": 121,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1475808,
+      "writeBufferBytesByKind": {
+        "vertex": 1332608,
+        "index": 142656,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95104": 3,
+          "190208": 1,
+          "285312": 3
+        },
+        "index": {
+          "142656": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 122,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 123,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 124,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1475808,
+      "writeBufferBytesByKind": {
+        "vertex": 1332608,
+        "index": 142656,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95104": 3,
+          "190208": 1,
+          "285312": 3
+        },
+        "index": {
+          "142656": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 125,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 126,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 127,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1512512,
+      "writeBufferBytesByKind": {
+        "vertex": 1365760,
+        "index": 146208,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97472": 3,
+          "194944": 1,
+          "292416": 3
+        },
+        "index": {
+          "146208": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 128,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 129,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 130,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1540288,
+      "writeBufferBytesByKind": {
+        "vertex": 1390848,
+        "index": 148896,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "99264": 3,
+          "198528": 1,
+          "297792": 3
+        },
+        "index": {
+          "148896": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 131,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 132,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 133,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1500608,
+      "writeBufferBytesByKind": {
+        "vertex": 1355008,
+        "index": 145056,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "96704": 3,
+          "193408": 1,
+          "290112": 3
+        },
+        "index": {
+          "145056": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 134,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 135,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 136,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1500608,
+      "writeBufferBytesByKind": {
+        "vertex": 1355008,
+        "index": 145056,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "96704": 3,
+          "193408": 1,
+          "290112": 3
+        },
+        "index": {
+          "145056": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 137,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 138,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 139,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1478288,
+      "writeBufferBytesByKind": {
+        "vertex": 1334848,
+        "index": 142896,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95264": 3,
+          "190528": 1,
+          "285792": 3
+        },
+        "index": {
+          "142896": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 140,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 141,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 142,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1465888,
+      "writeBufferBytesByKind": {
+        "vertex": 1323648,
+        "index": 141696,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94464": 3,
+          "188928": 1,
+          "283392": 3
+        },
+        "index": {
+          "141696": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 143,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 144,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 145,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1499120,
+      "writeBufferBytesByKind": {
+        "vertex": 1353664,
+        "index": 144912,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "96608": 3,
+          "193216": 1,
+          "289824": 3
+        },
+        "index": {
+          "144912": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 146,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 147,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 148,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1471840,
+      "writeBufferBytesByKind": {
+        "vertex": 1329024,
+        "index": 142272,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94848": 3,
+          "189696": 1,
+          "284544": 3
+        },
+        "index": {
+          "142272": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 149,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 150,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 151,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1438608,
+      "writeBufferBytesByKind": {
+        "vertex": 1299008,
+        "index": 139056,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "92704": 3,
+          "185408": 1,
+          "278112": 3
+        },
+        "index": {
+          "139056": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 152,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 153,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 154,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1435136,
+      "writeBufferBytesByKind": {
+        "vertex": 1295872,
+        "index": 138720,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "92480": 3,
+          "184960": 1,
+          "277440": 3
+        },
+        "index": {
+          "138720": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 155,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 156,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 157,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1482256,
+      "writeBufferBytesByKind": {
+        "vertex": 1338432,
+        "index": 143280,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95520": 3,
+          "191040": 1,
+          "286560": 3
+        },
+        "index": {
+          "143280": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 158,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 159,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 160,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1511024,
+      "writeBufferBytesByKind": {
+        "vertex": 1364416,
+        "index": 146064,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97376": 3,
+          "194752": 1,
+          "292128": 3
+        },
+        "index": {
+          "146064": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 161,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 162,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 163,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1511024,
+      "writeBufferBytesByKind": {
+        "vertex": 1364416,
+        "index": 146064,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97376": 3,
+          "194752": 1,
+          "292128": 3
+        },
+        "index": {
+          "146064": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 164,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 165,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 166,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1511024,
+      "writeBufferBytesByKind": {
+        "vertex": 1364416,
+        "index": 146064,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97376": 3,
+          "194752": 1,
+          "292128": 3
+        },
+        "index": {
+          "146064": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 167,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 168,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 169,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1554672,
+      "writeBufferBytesByKind": {
+        "vertex": 1403840,
+        "index": 150288,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100192": 3,
+          "200384": 1,
+          "300576": 3
+        },
+        "index": {
+          "150288": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 170,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 171,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 172,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1554672,
+      "writeBufferBytesByKind": {
+        "vertex": 1403840,
+        "index": 150288,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100192": 3,
+          "200384": 1,
+          "300576": 3
+        },
+        "index": {
+          "150288": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 173,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 174,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 175,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1554672,
+      "writeBufferBytesByKind": {
+        "vertex": 1403840,
+        "index": 150288,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100192": 3,
+          "200384": 1,
+          "300576": 3
+        },
+        "index": {
+          "150288": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 176,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 177,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 178,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1554672,
+      "writeBufferBytesByKind": {
+        "vertex": 1403840,
+        "index": 150288,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100192": 3,
+          "200384": 1,
+          "300576": 3
+        },
+        "index": {
+          "150288": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 179,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 180,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 181,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1558144,
+      "writeBufferBytesByKind": {
+        "vertex": 1406976,
+        "index": 150624,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100416": 3,
+          "200832": 1,
+          "301248": 3
+        },
+        "index": {
+          "150624": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "buffers": 8,
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 182,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 183,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 184,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1533344,
+      "writeBufferBytesByKind": {
+        "vertex": 1384576,
+        "index": 148224,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "98816": 3,
+          "197632": 1,
+          "296448": 3
+        },
+        "index": {
+          "148224": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 185,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 186,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 187,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1535824,
+      "writeBufferBytesByKind": {
+        "vertex": 1386816,
+        "index": 148464,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "98976": 3,
+          "197952": 1,
+          "296928": 3
+        },
+        "index": {
+          "148464": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 188,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 189,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 190,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1535824,
+      "writeBufferBytesByKind": {
+        "vertex": 1386816,
+        "index": 148464,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "98976": 3,
+          "197952": 1,
+          "296928": 3
+        },
+        "index": {
+          "148464": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 191,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 192,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 193,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1504080,
+      "writeBufferBytesByKind": {
+        "vertex": 1358144,
+        "index": 145392,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "96928": 3,
+          "193856": 1,
+          "290784": 3
+        },
+        "index": {
+          "145392": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 194,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 195,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 196,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1466880,
+      "writeBufferBytesByKind": {
+        "vertex": 1324544,
+        "index": 141792,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94528": 3,
+          "189056": 1,
+          "283584": 3
+        },
+        "index": {
+          "141792": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 197,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 198,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 199,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1513008,
+      "writeBufferBytesByKind": {
+        "vertex": 1366208,
+        "index": 146256,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97504": 3,
+          "195008": 1,
+          "292512": 3
+        },
+        "index": {
+          "146256": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 200,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 201,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 202,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1547232,
+      "writeBufferBytesByKind": {
+        "vertex": 1397120,
+        "index": 149568,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "99712": 3,
+          "199424": 1,
+          "299136": 3
+        },
+        "index": {
+          "149568": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 203,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 204,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 205,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1559136,
+      "writeBufferBytesByKind": {
+        "vertex": 1407872,
+        "index": 150720,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100480": 3,
+          "200960": 1,
+          "301440": 3
+        },
+        "index": {
+          "150720": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "buffers": 8,
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 206,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 207,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 208,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1559136,
+      "writeBufferBytesByKind": {
+        "vertex": 1407872,
+        "index": 150720,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100480": 3,
+          "200960": 1,
+          "301440": 3
+        },
+        "index": {
+          "150720": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 209,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 210,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 211,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1541280,
+      "writeBufferBytesByKind": {
+        "vertex": 1391744,
+        "index": 148992,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "99328": 3,
+          "198656": 1,
+          "297984": 3
+        },
+        "index": {
+          "148992": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 212,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 213,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 214,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1523424,
+      "writeBufferBytesByKind": {
+        "vertex": 1375616,
+        "index": 147264,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "98176": 3,
+          "196352": 1,
+          "294528": 3
+        },
+        "index": {
+          "147264": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 215,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 216,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 217,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1523424,
+      "writeBufferBytesByKind": {
+        "vertex": 1375616,
+        "index": 147264,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "98176": 3,
+          "196352": 1,
+          "294528": 3
+        },
+        "index": {
+          "147264": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 218,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 219,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 220,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1511520,
+      "writeBufferBytesByKind": {
+        "vertex": 1364864,
+        "index": 146112,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97408": 3,
+          "194816": 1,
+          "292224": 3
+        },
+        "index": {
+          "146112": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 221,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 222,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 223,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1511520,
+      "writeBufferBytesByKind": {
+        "vertex": 1364864,
+        "index": 146112,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97408": 3,
+          "194816": 1,
+          "292224": 3
+        },
+        "index": {
+          "146112": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 224,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 225,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 226,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1509040,
+      "writeBufferBytesByKind": {
+        "vertex": 1362624,
+        "index": 145872,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97248": 3,
+          "194496": 1,
+          "291744": 3
+        },
+        "index": {
+          "145872": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 227,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 228,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 229,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1485728,
+      "writeBufferBytesByKind": {
+        "vertex": 1341568,
+        "index": 143616,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95744": 3,
+          "191488": 1,
+          "287232": 3
+        },
+        "index": {
+          "143616": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 230,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 231,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 232,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1473328,
+      "writeBufferBytesByKind": {
+        "vertex": 1330368,
+        "index": 142416,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94944": 3,
+          "189888": 1,
+          "284832": 3
+        },
+        "index": {
+          "142416": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 233,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 234,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 235,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1473328,
+      "writeBufferBytesByKind": {
+        "vertex": 1330368,
+        "index": 142416,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94944": 3,
+          "189888": 1,
+          "284832": 3
+        },
+        "index": {
+          "142416": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 236,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 237,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 238,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1463904,
+      "writeBufferBytesByKind": {
+        "vertex": 1321856,
+        "index": 141504,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94336": 3,
+          "188672": 1,
+          "283008": 3
+        },
+        "index": {
+          "141504": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 239,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 240,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 241,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1459936,
+      "writeBufferBytesByKind": {
+        "vertex": 1318272,
+        "index": 141120,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94080": 3,
+          "188160": 1,
+          "282240": 3
+        },
+        "index": {
+          "141120": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 242,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 243,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 244,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1452000,
+      "writeBufferBytesByKind": {
+        "vertex": 1311104,
+        "index": 140352,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "93568": 3,
+          "187136": 1,
+          "280704": 3
+        },
+        "index": {
+          "140352": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 245,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 246,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 247,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1450016,
+      "writeBufferBytesByKind": {
+        "vertex": 1309312,
+        "index": 140160,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "93440": 3,
+          "186880": 1,
+          "280320": 3
+        },
+        "index": {
+          "140160": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 248,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 249,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 250,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1450016,
+      "writeBufferBytesByKind": {
+        "vertex": 1309312,
+        "index": 140160,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "93440": 3,
+          "186880": 1,
+          "280320": 3
+        },
+        "index": {
+          "140160": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 251,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 252,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 253,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1433648,
+      "writeBufferBytesByKind": {
+        "vertex": 1294528,
+        "index": 138576,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "92384": 3,
+          "184768": 1,
+          "277152": 3
+        },
+        "index": {
+          "138576": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 254,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 255,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 256,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1433648,
+      "writeBufferBytesByKind": {
+        "vertex": 1294528,
+        "index": 138576,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "92384": 3,
+          "184768": 1,
+          "277152": 3
+        },
+        "index": {
+          "138576": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 257,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 258,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 259,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1433648,
+      "writeBufferBytesByKind": {
+        "vertex": 1294528,
+        "index": 138576,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "92384": 3,
+          "184768": 1,
+          "277152": 3
+        },
+        "index": {
+          "138576": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 260,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 261,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 262,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1448032,
+      "writeBufferBytesByKind": {
+        "vertex": 1307520,
+        "index": 139968,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "93312": 3,
+          "186624": 1,
+          "279936": 3
+        },
+        "index": {
+          "139968": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 263,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 264,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 265,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1448032,
+      "writeBufferBytesByKind": {
+        "vertex": 1307520,
+        "index": 139968,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "93312": 3,
+          "186624": 1,
+          "279936": 3
+        },
+        "index": {
+          "139968": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 266,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 267,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 268,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1476800,
+      "writeBufferBytesByKind": {
+        "vertex": 1333504,
+        "index": 142752,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95168": 3,
+          "190336": 1,
+          "285504": 3
+        },
+        "index": {
+          "142752": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 269,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 270,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 271,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1452000,
+      "writeBufferBytesByKind": {
+        "vertex": 1311104,
+        "index": 140352,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "93568": 3,
+          "187136": 1,
+          "280704": 3
+        },
+        "index": {
+          "140352": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 272,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 273,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 274,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1437616,
+      "writeBufferBytesByKind": {
+        "vertex": 1298112,
+        "index": 138960,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "92640": 3,
+          "185280": 1,
+          "277920": 3
+        },
+        "index": {
+          "138960": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 275,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 276,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 277,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1409840,
+      "writeBufferBytesByKind": {
+        "vertex": 1273024,
+        "index": 136272,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "90848": 3,
+          "181696": 1,
+          "272544": 3
+        },
+        "index": {
+          "136272": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 278,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 279,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 280,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1445552,
+      "writeBufferBytesByKind": {
+        "vertex": 1305280,
+        "index": 139728,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "93152": 3,
+          "186304": 1,
+          "279456": 3
+        },
+        "index": {
+          "139728": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 281,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 282,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 283,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1431664,
+      "writeBufferBytesByKind": {
+        "vertex": 1292736,
+        "index": 138384,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "92256": 3,
+          "184512": 1,
+          "276768": 3
+        },
+        "index": {
+          "138384": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 284,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 285,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 286,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1431664,
+      "writeBufferBytesByKind": {
+        "vertex": 1292736,
+        "index": 138384,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "92256": 3,
+          "184512": 1,
+          "276768": 3
+        },
+        "index": {
+          "138384": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 287,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 288,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 289,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1487216,
+      "writeBufferBytesByKind": {
+        "vertex": 1342912,
+        "index": 143760,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95840": 3,
+          "191680": 1,
+          "287520": 3
+        },
+        "index": {
+          "143760": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 290,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 291,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 292,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1487216,
+      "writeBufferBytesByKind": {
+        "vertex": 1342912,
+        "index": 143760,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95840": 3,
+          "191680": 1,
+          "287520": 3
+        },
+        "index": {
+          "143760": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 293,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 294,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 295,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1504576,
+      "writeBufferBytesByKind": {
+        "vertex": 1358592,
+        "index": 145440,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "96960": 3,
+          "193920": 1,
+          "290880": 3
+        },
+        "index": {
+          "145440": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 296,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 297,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 298,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1504576,
+      "writeBufferBytesByKind": {
+        "vertex": 1358592,
+        "index": 145440,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "96960": 3,
+          "193920": 1,
+          "290880": 3
+        },
+        "index": {
+          "145440": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 299,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 300,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 301,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1469856,
+      "writeBufferBytesByKind": {
+        "vertex": 1327232,
+        "index": 142080,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94720": 3,
+          "189440": 1,
+          "284160": 3
+        },
+        "index": {
+          "142080": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 302,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 303,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 304,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1469856,
+      "writeBufferBytesByKind": {
+        "vertex": 1327232,
+        "index": 142080,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94720": 3,
+          "189440": 1,
+          "284160": 3
+        },
+        "index": {
+          "142080": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 305,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 306,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 307,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1469856,
+      "writeBufferBytesByKind": {
+        "vertex": 1327232,
+        "index": 142080,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94720": 3,
+          "189440": 1,
+          "284160": 3
+        },
+        "index": {
+          "142080": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 308,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 309,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 310,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1469856,
+      "writeBufferBytesByKind": {
+        "vertex": 1327232,
+        "index": 142080,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94720": 3,
+          "189440": 1,
+          "284160": 3
+        },
+        "index": {
+          "142080": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 311,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 312,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 313,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1476304,
+      "writeBufferBytesByKind": {
+        "vertex": 1333056,
+        "index": 142704,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95136": 3,
+          "190272": 1,
+          "285408": 3
+        },
+        "index": {
+          "142704": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 314,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 315,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 316,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1476304,
+      "writeBufferBytesByKind": {
+        "vertex": 1333056,
+        "index": 142704,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95136": 3,
+          "190272": 1,
+          "285408": 3
+        },
+        "index": {
+          "142704": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 317,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 318,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 319,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1483248,
+      "writeBufferBytesByKind": {
+        "vertex": 1339328,
+        "index": 143376,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95584": 3,
+          "191168": 1,
+          "286752": 3
+        },
+        "index": {
+          "143376": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 320,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 321,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 322,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1483248,
+      "writeBufferBytesByKind": {
+        "vertex": 1339328,
+        "index": 143376,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "95584": 3,
+          "191168": 1,
+          "286752": 3
+        },
+        "index": {
+          "143376": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 323,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 324,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 325,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1465888,
+      "writeBufferBytesByKind": {
+        "vertex": 1323648,
+        "index": 141696,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94464": 3,
+          "188928": 1,
+          "283392": 3
+        },
+        "index": {
+          "141696": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 326,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 327,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 328,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1465888,
+      "writeBufferBytesByKind": {
+        "vertex": 1323648,
+        "index": 141696,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "94464": 3,
+          "188928": 1,
+          "283392": 3
+        },
+        "index": {
+          "141696": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 329,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 330,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 331,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1496640,
+      "writeBufferBytesByKind": {
+        "vertex": 1351424,
+        "index": 144672,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "96448": 3,
+          "192896": 1,
+          "289344": 3
+        },
+        "index": {
+          "144672": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 332,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 333,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 334,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1540784,
+      "writeBufferBytesByKind": {
+        "vertex": 1391296,
+        "index": 148944,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "99296": 3,
+          "198592": 1,
+          "297888": 3
+        },
+        "index": {
+          "148944": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 335,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 336,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 337,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1553184,
+      "writeBufferBytesByKind": {
+        "vertex": 1402496,
+        "index": 150144,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100096": 3,
+          "200192": 1,
+          "300288": 3
+        },
+        "index": {
+          "150144": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 338,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 339,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 340,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1553184,
+      "writeBufferBytesByKind": {
+        "vertex": 1402496,
+        "index": 150144,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "100096": 3,
+          "200192": 1,
+          "300288": 3
+        },
+        "index": {
+          "150144": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 341,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 342,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 343,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1519952,
+      "writeBufferBytesByKind": {
+        "vertex": 1372480,
+        "index": 146928,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97952": 3,
+          "195904": 1,
+          "293856": 3
+        },
+        "index": {
+          "146928": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 344,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 345,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 346,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1519952,
+      "writeBufferBytesByKind": {
+        "vertex": 1372480,
+        "index": 146928,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97952": 3,
+          "195904": 1,
+          "293856": 3
+        },
+        "index": {
+          "146928": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 347,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 348,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 349,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1547728,
+      "writeBufferBytesByKind": {
+        "vertex": 1397568,
+        "index": 149616,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "99744": 3,
+          "199488": 1,
+          "299232": 3
+        },
+        "index": {
+          "149616": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 350,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 351,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 352,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1547728,
+      "writeBufferBytesByKind": {
+        "vertex": 1397568,
+        "index": 149616,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "99744": 3,
+          "199488": 1,
+          "299232": 3
+        },
+        "index": {
+          "149616": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 353,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 354,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 355,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1542768,
+      "writeBufferBytesByKind": {
+        "vertex": 1393088,
+        "index": 149136,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "99424": 3,
+          "198848": 1,
+          "298272": 3
+        },
+        "index": {
+          "149136": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 356,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 357,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 358,
+      "commandBuffers": 1,
+      "drawCalls": 6,
+      "drawIndexedCalls": 6,
+      "writeBufferCalls": 24,
+      "writeBufferBytes": 1519456,
+      "writeBufferBytesByKind": {
+        "vertex": 1372032,
+        "index": 146880,
+        "uniform": 544
+      },
+      "writeBufferCallsByKindAndSize": {
+        "vertex": {
+          "72": 2,
+          "108": 4,
+          "144": 4,
+          "97920": 3,
+          "195840": 1,
+          "293760": 3
+        },
+        "index": {
+          "146880": 1
+        },
+        "uniform": {
+          "64": 1,
+          "80": 2,
+          "96": 2,
+          "128": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 4
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 359,
+      "commandBuffers": 1,
+      "drawCalls": 9,
+      "drawIndexedCalls": 9,
+      "writeBufferCalls": 9,
+      "writeBufferBytes": 3520,
+      "writeBufferBytesByKind": {
+        "uniform": 3520
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "256": 1,
+          "272": 1,
+          "288": 2,
+          "304": 1,
+          "416": 1,
+          "544": 2,
+          "608": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 9
+      },
+      "readbackOperations": {}
+    },
+    {
+      "index": 360,
+      "commandBuffers": 1,
+      "drawCalls": 1,
+      "drawIndexedCalls": 1,
+      "writeBufferCalls": 1,
+      "writeBufferBytes": 224,
+      "writeBufferBytesByKind": {
+        "uniform": 224
+      },
+      "writeBufferCallsByKindAndSize": {
+        "uniform": {
+          "224": 1
+        }
+      },
+      "resourcesCreated": {
+        "bindGroups": 1
+      },
+      "readbackOperations": {}
+    }
+  ],
+  "pending": null
+}

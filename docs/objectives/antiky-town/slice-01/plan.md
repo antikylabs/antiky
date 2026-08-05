@@ -7,13 +7,13 @@ This plan is the implementation contract. The accepted owner decisions are in
 
 | Field | Value |
 | --- | --- |
-| Status | `READY` |
+| Status | `COMPLETE` |
 | Outcome | One command changes one market lamp through the complete framework path |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Depends on | [`../slice-00/plan.md`](../slice-00/plan.md) completed |
 | Alignment revision | `c59085bf6f2f887023675b7e1297900862b5177e` |
 | Complete check | `npm run verify:slice-01` |
-| Evidence | `docs/objectives/antiky-town/slice-01/outputs/{run-id}/receipt.json` |
+| Evidence | [`outputs/s01-20260805T014602Z/receipt.json`](outputs/s01-20260805T014602Z/receipt.json) |
 
 The goal runner must read the owner-input file and completed Slice 00 evidence. It must stop on a
 `PENDING` answer or incomplete Slice 00. Run `/goal implement docs/objectives/antiky-town/slice-01/plan.md until complete`.
@@ -264,23 +264,23 @@ event sequence `1`. Correction restores `1.05` at revision `3` and event sequenc
 
 ## Completion checks
 
-- [ ] The owner-input file is `ANSWERED` and Slice 00 is complete.
-- [ ] The focused Antiky Town host shows the reference town and lamp.
-- [ ] The fixed lamp ID, data, revision, history, and render binding are inspectable.
-- [ ] The same framework service supports a second headless point light without town-specific code.
-- [ ] The accepted fixture reaches authoring, runtime, render, and the next frame.
-- [ ] Every rejected fixture changes no state copy, history, dirty range, or GPU resource.
-- [ ] Replay, complete rebuild, and correction produce the required state.
-- [ ] Direct, CLI, Studio-compatible, and MCP clients report the same framework facts.
-- [ ] Only render slot `0` becomes dirty.
-- [ ] Actual BroMetal writes are measured without a false partial-write claim.
-- [ ] The normal path has zero GPU readback, new resources, extra draws, and extra submissions.
-- [ ] Reload, reconnect, failure, disposal, shutdown, and security tests pass.
-- [ ] Framework and applicable CLI or Studio docs match the shipped behavior and pass their checks.
-- [ ] `town-study` remains available with no unapproved visual change.
-- [ ] Framework tests and `npm run check` pass.
-- [ ] `npm run verify:slice-01` passes from one clean start.
-- [ ] The evidence receipt links the run, attempts, checkpoints, commands, facts, revisions,
+- [x] The owner-input file is `ANSWERED` and Slice 00 is complete.
+- [x] The focused Antiky Town host shows the reference town and lamp.
+- [x] The fixed lamp ID, data, revision, history, and render binding are inspectable.
+- [x] The same framework service supports a second headless point light without town-specific code.
+- [x] The accepted fixture reaches authoring, runtime, render, and the next frame.
+- [x] Every rejected fixture changes no state copy, history, dirty range, or GPU resource.
+- [x] Replay, complete rebuild, and correction produce the required state.
+- [x] Direct, CLI, Studio-compatible, and MCP clients report the same framework facts.
+- [x] Only render slot `0` becomes dirty.
+- [x] Actual BroMetal writes are measured without a false partial-write claim.
+- [x] The normal path has zero GPU readback, new resources, extra draws, and extra submissions.
+- [x] Reload, reconnect, failure, disposal, shutdown, and security tests pass.
+- [x] Framework and applicable CLI or Studio docs match the shipped behavior and pass their checks.
+- [x] `town-study` remains available with no unapproved visual change.
+- [x] Framework tests and `npm run check` pass.
+- [x] `npm run verify:slice-01` passes from one clean start.
+- [x] The evidence receipt links the run, attempts, checkpoints, commands, facts, revisions,
   projections, runtimes, measurements, captures, tests, and artifacts.
 
 ## Run and evidence rule

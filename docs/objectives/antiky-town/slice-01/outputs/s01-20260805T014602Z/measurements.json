@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 1,
+  "runId": "s01-20260805T014602Z",
+  "durationsMilliseconds": {
+    "repositoryCheck": 40098,
+    "gameReachable": 1438,
+    "runningTown": 4330,
+    "changeCommand": 255,
+    "correctionCommand": 175,
+    "reload": 1774,
+    "cleanup": 116
+  },
+  "render": {
+    "owner": "framework",
+    "canvasWidth": 579,
+    "canvasHeight": 326,
+    "drawCalls": 16,
+    "instances": 1247,
+    "uploadBytesPerFrame": 1152
+  },
+  "gpu": {
+    "baseline": {
+      "observedFrames": 20,
+      "firstSubmission": 169,
+      "lastSubmission": 228,
+      "queueSubmissionsPerFrame": 3,
+      "commandBuffersPerFrame": 3,
+      "drawCallsPerFrame": 16,
+      "writeBufferBytesPerFrame": {
+        "vertex": {
+          "minimum": 1324544,
+          "median": 1383232,
+          "maximum": 1409216
+        },
+        "index": {
+          "minimum": 141792,
+          "median": 148080,
+          "maximum": 150864
+        },
+        "uniform": {
+          "minimum": 4288,
+          "median": 4288,
+          "maximum": 4288
+        },
+        "total": {
+          "minimum": 1470624,
+          "median": 1535600,
+          "maximum": 1564368
+        }
+      },
+      "uniformWriteCallsBySize": {
+        "64": 1,
+        "80": 2,
+        "96": 2,
+        "128": 1,
+        "224": 1,
+        "256": 1,
+        "272": 1,
+        "288": 2,
+        "304": 1,
+        "416": 1,
+        "544": 2,
+        "608": 1
+      },
+      "affectedUniformBlocks": [
+        {
+          "program": "world",
+          "bytes": 544
+        },
+        {
+          "program": "actor-edges",
+          "bytes": 544
+        },
+        {
+          "program": "actors",
+          "bytes": 608
+        },
+        {
+          "program": "water",
+          "bytes": 416
+        }
+      ],
+      "affectedUniformBytesPerFrame": 2112,
+      "affectedUniformWritesPerFrame": {
+        "416": 1,
+        "544": 2,
+        "608": 1
+      },
+      "resourceCreationsPerFrame": {
+        "buffers": {
+          "minimum": 0,
+          "median": 0,
+          "maximum": 8
+        },
+        "bindGroups": {
+          "minimum": 14,
+          "median": 14,
+          "maximum": 14
+        }
+      },
+      "resourcesCreatedDuringWindow": {
+        "buffers": 8,
+        "bindGroups": 280
+      }
+    },
+    "changed": {
+      "observedFrames": 20,
+      "firstSubmission": 220,
+      "lastSubmission": 279,
+      "queueSubmissionsPerFrame": 3,
+      "commandBuffersPerFrame": 3,
+      "drawCallsPerFrame": 16,
+      "writeBufferBytesPerFrame": {
+        "vertex": {
+          "minimum": 1273024,
+          "median": 1311104,
+          "maximum": 1364864
+        },
+        "index": {
+          "minimum": 136272,
+          "median": 140352,
+          "maximum": 146112
+        },
+        "uniform": {
+          "minimum": 4288,
+          "median": 4288,
+          "maximum": 4288
+        },
+        "total": {
+          "minimum": 1413584,
+          "median": 1455744,
+          "maximum": 1515264
+        }
+      },
+      "uniformWriteCallsBySize": {
+        "64": 1,
+        "80": 2,
+        "96": 2,
+        "128": 1,
+        "224": 1,
+        "256": 1,
+        "272": 1,
+        "288": 2,
+        "304": 1,
+        "416": 1,
+        "544": 2,
+        "608": 1
+      },
+      "readbackOperationsPerFrame": {
+        "total": {
+          "minimum": 0,
+          "median": 0,
+          "maximum": 0
+        }
+      },
+      "resourceCreationsPerFrame": {
+        "bindGroups": {
+          "minimum": 14,
+          "median": 14,
+          "maximum": 14
+        }
+      },
+      "resourcesCreatedDuringWindow": {
+        "bindGroups": 280
+      },
+      "affectedUniformBlocks": [
+        {
+          "program": "world",
+          "bytes": 544
+        },
+        {
+          "program": "actor-edges",
+          "bytes": 544
+        },
+        {
+          "program": "actors",
+          "bytes": 608
+        },
+        {
+          "program": "water",
+          "bytes": 416
+        }
+      ],
+      "affectedUniformBytesPerFrame": 2112,
+      "affectedUniformWritesPerFrame": {
+        "416": 1,
+        "544": 2,
+        "608": 1
+      }
+    },
+    "corrected": {
+      "observedFrames": 20,
+      "firstSubmission": 301,
+      "lastSubmission": 360,
+      "queueSubmissionsPerFrame": 3,
+      "commandBuffersPerFrame": 3,
+      "drawCallsPerFrame": 16,
+      "writeBufferBytesPerFrame": {
+        "vertex": {
+          "minimum": 1323648,
+          "median": 1345376,
+          "maximum": 1402496
+        },
+        "index": {
+          "minimum": 141696,
+          "median": 144024,
+          "maximum": 150144
+        },
+        "uniform": {
+          "minimum": 4288,
+          "median": 4288,
+          "maximum": 4288
+        },
+        "total": {
+          "minimum": 1469632,
+          "median": 1493688,
+          "maximum": 1556928
+        }
+      },
+      "uniformWriteCallsBySize": {
+        "64": 1,
+        "80": 2,
+        "96": 2,
+        "128": 1,
+        "224": 1,
+        "256": 1,
+        "272": 1,
+        "288": 2,
+        "304": 1,
+        "416": 1,
+        "544": 2,
+        "608": 1
+      },
+      "readbackOperationsPerFrame": {
+        "total": {
+          "minimum": 0,
+          "median": 0,
+          "maximum": 0
+        }
+      },
+      "resourceCreationsPerFrame": {
+        "bindGroups": {
+          "minimum": 14,
+          "median": 14,
+          "maximum": 14
+        }
+      },
+      "resourcesCreatedDuringWindow": {
+        "bindGroups": 280
+      },
+      "affectedUniformBlocks": [
+        {
+          "program": "world",
+          "bytes": 544
+        },
+        {
+          "program": "actor-edges",
+          "bytes": 544
+        },
+        {
+          "program": "actors",
+          "bytes": 608
+        },
+        {
+          "program": "water",
+          "bytes": 416
+        }
+      ],
+      "affectedUniformBytesPerFrame": 2112,
+      "affectedUniformWritesPerFrame": {
+        "416": 1,
+        "544": 2,
+        "608": 1
+      }
+    },
+    "pausedChangeCommandDelta": {
+      "queueSubmissions": 0,
+      "drawCalls": 0,
+      "writeBufferCalls": 0,
+      "writeBufferBytes": 0,
+      "writeTextureCalls": 0,
+      "resources": {},
+      "readbackOperations": {}
+    },
+    "pausedRejectedCommandsDelta": {
+      "queueSubmissions": 0,
+      "drawCalls": 0,
+      "writeBufferCalls": 0,
+      "writeBufferBytes": 0,
+      "writeTextureCalls": 0,
+      "resources": {},
+      "readbackOperations": {}
+    },
+    "pausedCorrectionCommandDelta": {
+      "queueSubmissions": 0,
+      "drawCalls": 0,
+      "writeBufferCalls": 0,
+      "writeBufferBytes": 0,
+      "writeTextureCalls": 0,
+      "resources": {},
+      "readbackOperations": {}
+    },
+    "zeroReadback": true,
+    "noNewCommandResources": true,
+    "noAddedDrawsOrSubmissions": true,
+    "affectedUniformBytesPerFrame": 2112,
+    "allUniformBytesPerFrame": {
+      "minimum": 4288,
+      "median": 4288,
+      "maximum": 4288
+    },
+    "falseFourByteClaim": false
+  },
+  "visual": {
+    "baselineSha256": "d94d4e9e9a7f7328941495d8e90643b9495e01a927a87a5ffdd956d0c2f233d1",
+    "changedSha256": "3029b91ce5de9dd90aea29f49bdf5da83b525e13e4f2aa7c751d9c476ca5d972",
+    "correctedSha256": "5c8c66697cb7736e48bb10e83ae45370765a9678392254b6bb2d30dbee27caa2",
+    "correctedToBaseline": {
+      "similarity": 0.998196
+    },
+    "changedToCorrected": {
+      "similarity": 0.998571
+    },
+    "minimumCorrectedToBaselineSimilarity": 0.98,
+    "changedChannelStandardDeviation": 45.088,
+    "correctedChannelStandardDeviation": 45
+  },
+  "process": {
+    "serviceStarts": 1,
+    "currentRunRetries": 0,
+    "historicalDefectCorrections": 5,
+    "historicalTransientFailures": 1,
+    "ownerInterventionsDuringFinalRun": 1,
+    "preservedHumanOwnedChanges": 2
+  }
+}

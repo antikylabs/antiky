@@ -1,0 +1,502 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-01",
+  "runId": "s01-20260805T014602Z",
+  "outcome": "One accepted command changes Market Lamp West 01 through the framework path and one correction restores it.",
+  "identities": {
+    "correlationId": "verify-4781a778-4ac5-475d-9012-6fa51e500d85",
+    "developmentSessionId": "b187a3d4-96ed-4344-a6d4-7b313a8d81f9",
+    "acceptedBuildRevision": 1,
+    "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+    "marketLampEntityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+    "proofPointLightEntityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abe",
+    "initialRuntimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda",
+    "reloadedRuntimeInstanceId": "16f04441-934f-470e-a520-f3ccb1064849"
+  },
+  "pointLights": {
+    "marketLamp": {
+      "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+      "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+      "label": "Market Lamp West 01",
+      "revision": 1,
+      "transform": {
+        "schemaVersion": 1,
+        "position": [
+          -3.565,
+          4.237,
+          6.82
+        ]
+      },
+      "pointLight": {
+        "schemaVersion": 1,
+        "color": [
+          1,
+          0.52,
+          0.22
+        ],
+        "radius": 4,
+        "power": 1.05
+      }
+    },
+    "headlessProof": {
+      "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+      "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abe",
+      "label": "Headless Point Light Proof",
+      "revision": 1,
+      "transform": {
+        "schemaVersion": 1,
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "pointLight": {
+        "schemaVersion": 1,
+        "color": [
+          0.5,
+          0.75,
+          1
+        ],
+        "radius": 2,
+        "power": 0.5
+      }
+    }
+  },
+  "statePath": {
+    "initial": {
+      "authoringPower": 1.05,
+      "revision": 1,
+      "factCount": 0,
+      "runtimePower": 1.05,
+      "renderPower": 1.05,
+      "dirtyCount": 0
+    },
+    "changedBeforeFrame": {
+      "authoringPower": 2,
+      "revision": 2,
+      "factCount": 1,
+      "runtimePower": 2,
+      "renderPower": 2,
+      "dirtyCount": 1
+    },
+    "changedAfterFrame": {
+      "authoringPower": 2,
+      "revision": 2,
+      "factCount": 1,
+      "runtimePower": 2,
+      "renderPower": 2,
+      "dirtyCount": 0
+    },
+    "correctedBeforeFrame": {
+      "authoringPower": 1.05,
+      "revision": 3,
+      "factCount": 2,
+      "runtimePower": 1.05,
+      "renderPower": 1.05,
+      "dirtyCount": 1
+    },
+    "correctedAfterFrame": {
+      "authoringPower": 1.05,
+      "revision": 3,
+      "factCount": 2,
+      "runtimePower": 1.05,
+      "renderPower": 1.05,
+      "dirtyCount": 0
+    },
+    "afterReload": {
+      "authoringPower": 1.05,
+      "revision": 1,
+      "factCount": 0,
+      "runtimePower": 1.05,
+      "renderPower": 1.05,
+      "dirtyCount": 0
+    }
+  },
+  "commands": {
+    "change": {
+      "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad0",
+      "transport": "MCP Tool over the antiky dev HTTP endpoint",
+      "result": {
+        "schemaVersion": 1,
+        "code": "ACCEPTED",
+        "accepted": true,
+        "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad0",
+        "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+        "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+        "currentRevision": 1,
+        "resultingRevision": 2,
+        "eventSequence": 1,
+        "runtimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda",
+        "fact": {
+          "schemaVersion": 1,
+          "type": "antiky.authoring.point-light-power-set",
+          "eventSequence": 1,
+          "sourceCommandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad0",
+          "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+          "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+          "oldPower": 1.05,
+          "newPower": 2,
+          "resultingRevision": 2,
+          "receivedAt": "2026-08-05T03:23:01.622Z"
+        }
+      }
+    },
+    "correction": {
+      "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad1",
+      "transport": "MCP Tool over the antiky dev HTTP endpoint",
+      "result": {
+        "schemaVersion": 1,
+        "code": "ACCEPTED",
+        "accepted": true,
+        "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad1",
+        "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+        "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+        "currentRevision": 2,
+        "resultingRevision": 3,
+        "eventSequence": 2,
+        "runtimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda",
+        "fact": {
+          "schemaVersion": 1,
+          "type": "antiky.authoring.point-light-power-set",
+          "eventSequence": 2,
+          "sourceCommandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad1",
+          "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+          "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+          "oldPower": 2,
+          "newPower": 1.05,
+          "resultingRevision": 3,
+          "receivedAt": "2026-08-05T03:23:04.015Z",
+          "correctionOf": "018f0f3a-7b2c-7a1d-8e2f-123456789ad0"
+        }
+      }
+    },
+    "rejections": [
+      {
+        "fixture": "same value",
+        "code": "NO_OP",
+        "before": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "after": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "result": {
+          "schemaVersion": 1,
+          "code": "NO_OP",
+          "accepted": false,
+          "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad2",
+          "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+          "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+          "currentRevision": 2,
+          "resultingRevision": 2,
+          "eventSequence": 1,
+          "runtimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda"
+        }
+      },
+      {
+        "fixture": "duplicate command",
+        "code": "DUPLICATE_COMMAND",
+        "before": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "after": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "result": {
+          "schemaVersion": 1,
+          "code": "DUPLICATE_COMMAND",
+          "accepted": false,
+          "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad0",
+          "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+          "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+          "currentRevision": 2,
+          "resultingRevision": null,
+          "eventSequence": 1,
+          "runtimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda",
+          "duplicateOfCode": "ACCEPTED"
+        }
+      },
+      {
+        "fixture": "stale revision",
+        "code": "STALE_REVISION",
+        "before": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "after": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "result": {
+          "schemaVersion": 1,
+          "code": "STALE_REVISION",
+          "accepted": false,
+          "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad3",
+          "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+          "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+          "currentRevision": 2,
+          "resultingRevision": null,
+          "eventSequence": 1,
+          "runtimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda"
+        }
+      },
+      {
+        "fixture": "out-of-range value",
+        "code": "VALUE_OUT_OF_RANGE",
+        "before": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "after": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "result": {
+          "schemaVersion": 1,
+          "code": "VALUE_OUT_OF_RANGE",
+          "accepted": false,
+          "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad4",
+          "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+          "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+          "currentRevision": 2,
+          "resultingRevision": null,
+          "eventSequence": 1,
+          "runtimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda"
+        }
+      },
+      {
+        "fixture": "unknown entity",
+        "code": "ENTITY_NOT_FOUND",
+        "before": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "after": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "result": {
+          "schemaVersion": 1,
+          "code": "ENTITY_NOT_FOUND",
+          "accepted": false,
+          "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad5",
+          "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+          "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789aef",
+          "currentRevision": null,
+          "resultingRevision": null,
+          "eventSequence": 1,
+          "runtimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda"
+        }
+      },
+      {
+        "fixture": "unknown world",
+        "code": "WORLD_NOT_FOUND",
+        "before": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "after": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "result": {
+          "schemaVersion": 1,
+          "code": "WORLD_NOT_FOUND",
+          "accepted": false,
+          "commandId": "018f0f3a-7b2c-7a1d-8e2f-123456789ad6",
+          "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789aee",
+          "entityId": "018f0f3a-7b2c-7a1d-8e2f-123456789abd",
+          "currentRevision": null,
+          "resultingRevision": null,
+          "eventSequence": 1,
+          "runtimeInstanceId": "bf1bf920-88bf-4109-935f-cb87f9ff1dda"
+        }
+      },
+      {
+        "fixture": "malformed command",
+        "code": "INVALID_COMMAND",
+        "transportCode": "ANTIKY_ARGUMENT_INVALID",
+        "before": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        },
+        "after": {
+          "authoringPower": 2,
+          "revision": 2,
+          "factCount": 1,
+          "runtimePower": 2,
+          "renderPower": 2,
+          "dirtyCount": 1
+        }
+      },
+      {
+        "fixture": "missing permission",
+        "code": "MISSING_PERMISSION",
+        "stateInvariant": "PASS",
+        "proof": "Framework six-value regression in logs/verification-check.log; the local host intentionally owns trusted capability context."
+      }
+    ]
+  },
+  "projections": {
+    "authoring": "PASS",
+    "runtime": "PASS",
+    "render": "PASS",
+    "dirtySlotsForAcceptedChange": [
+      0
+    ],
+    "dirtySlotsForCorrection": [
+      0
+    ],
+    "acknowledgedAfterCompletedFrame": true
+  },
+  "clients": {
+    "direct": "connectDevelopmentClient",
+    "cli": "antiky inspect",
+    "studioCompatible": "a separately connected typed development client",
+    "mcp": {
+      "transport": "streamable-http",
+      "endpoint": "http://127.0.0.1:3011/mcp",
+      "capabilities": {
+        "tools": {}
+      },
+      "tools": [
+        "get_dev_status",
+        "get_latest_build",
+        "get_runtime_status",
+        "get_render_stats",
+        "get_diagnostics",
+        "list_point_lights",
+        "get_point_light",
+        "dev_reload",
+        "capture_frame",
+        "set_point_light_power",
+        "correct_point_light_power"
+      ],
+      "resourcesUsed": false
+    },
+    "exactPointLightParity": true
+  },
+  "lifecycle": {
+    "reloadActionId": "action-b4b52a50-a9f3-4cc8-a85b-476fc53c412d",
+    "stableEntityIdsAcrossReload": true,
+    "freshRuntimeIdentity": true,
+    "reconnectParity": true,
+    "shutdownExit": {
+      "code": 130,
+      "signal": null
+    },
+    "descriptorRemoved": true,
+    "releasedPorts": [
+      3010,
+      3011,
+      9322
+    ],
+    "disposalAndFailureRegressions": "PASS in logs/verification-check.log"
+  },
+  "reference": {
+    "demoSlug": "antiky-town",
+    "townStudyStillRegistered": true,
+    "baseline": "captures/before.png",
+    "changed": "captures/changed.png",
+    "corrected": "captures/corrected.png",
+    "changedPixelsDiffer": true,
+    "correctedToBaselineSimilarity": 0.998196,
+    "minimumCorrectedToBaselineSimilarity": 0.98,
+    "approvedVisualDifference": "The changed capture raises only the selected lamp base power; correction restores the authored value."
+  },
+  "security": {
+    "bindAddress": "127.0.0.1",
+    "externalBrowserNetworkBlocked": true,
+    "trustedEditCapabilitySuppliedByLocalHost": true,
+    "rawCapabilitiesRecorded": false,
+    "productionInspectionBridgeExcluded": true,
+    "boundaryRegressionsPassed": true
+  },
+  "documentation": [
+    {
+      "path": "docs/user-facing-docs/framework/point-lights.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/user-facing-docs/framework/inspection.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/user-facing-docs/cli/development.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/user-facing-docs/studio/development-connection.md",
+      "status": "N/A",
+      "reason": "The Studio connection workflow and typed client contract did not change in Slice 01."
+    }
+  ],
+  "scope": {
+    "studioPanel": "N/A; no Studio UI was added and the existing typed connection workflow did not change.",
+    "durableHistory": "N/A; the approved slice uses bounded runtime-local history.",
+    "generalRenderDriver": "N/A; the town owns one narrow slot-zero adapter."
+  },
+  "learned": [
+    "A paused mutation window distinguishes command-side allocation from ordinary frame allocation.",
+    "BroMetal writes complete source-derived uniform blocks; the changed scalar is not a four-byte GPU write.",
+    "GPU readback must be instrumented at map and copy boundaries instead of inferred from application code.",
+    "The npm wrapper is part of the tested shutdown boundary because it is the documented entry point."
+  ]
+}

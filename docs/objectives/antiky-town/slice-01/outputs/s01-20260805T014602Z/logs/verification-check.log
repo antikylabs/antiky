@@ -1,0 +1,1178 @@
+
+> antiky@0.0.0 check
+> npm run typecheck && npm test && npm run test:webgpu-only
+
+
+> antiky@0.0.0 typecheck
+> npm run typecheck --workspaces --if-present
+
+
+> @antiky/cli@0.0.0 typecheck
+> tsc --noEmit
+
+
+> @antiky/demos@0.0.0 typecheck
+> tsc --noEmit
+
+
+> @antiky/framework@0.0.0 typecheck
+> tsc --noEmit
+
+
+> @antiky/website@0.0.0 typecheck
+> tsc --noEmit
+
+
+> antiky@0.0.0 test
+> node --experimental-strip-types --experimental-transform-types --test scripts/verification/layout.test.mjs docs/objectives/antiky-town/slice-00/verification/tests/evidence.test.mjs docs/objectives/antiky-town/slice-00/verification/tests/verify.test.mjs docs/objectives/antiky-town/slice-01/verification/tests/evidence.test.mjs docs/objectives/antiky-town/slice-01/verification/tests/town-gpu-profile.test.mjs docs/objectives/antiky-town/slice-01/verification/tests/verify.test.mjs && npm test --workspaces --if-present
+
+TAP version 13
+# Subtest: a sealed Slice 00 receipt validates its own canonical digest and every artifact
+ok 1 - a sealed Slice 00 receipt validates its own canonical digest and every artifact
+  ---
+  duration_ms: 7.168417
+  type: 'test'
+  ...
+# Subtest: receipt validation rejects incomplete gates, unresolved failures, and secret fields
+ok 2 - receipt validation rejects incomplete gates, unresolved failures, and secret fields
+  ---
+  duration_ms: 0.426834
+  type: 'test'
+  ...
+# Subtest: artifact validation detects a file changed after the receipt was sealed
+ok 3 - artifact validation detects a file changed after the receipt was sealed
+  ---
+  duration_ms: 4.709333
+  type: 'test'
+  ...
+# Subtest: ready-state validation requires the running town and exact reference measurements
+ok 4 - ready-state validation requires the running town and exact reference measurements
+  ---
+  duration_ms: 1.160292
+  type: 'test'
+  ...
+# Subtest: the complete verifier uses the focused host and tools-only HTTP MCP surface
+ok 5 - the complete verifier uses the focused host and tools-only HTTP MCP surface
+  ---
+  duration_ms: 2.194417
+  type: 'test'
+  ...
+# Subtest: client parity compares the shared identities and complete inspection snapshot
+ok 6 - client parity compares the shared identities and complete inspection snapshot
+  ---
+  duration_ms: 0.343584
+  type: 'test'
+  ...
+# Subtest: capture validation rejects a valid but visually blank PNG
+ok 7 - capture validation rejects a valid but visually blank PNG
+  ---
+  duration_ms: 15.087
+  type: 'test'
+  ...
+# Subtest: page comparison reports identical captures as one and unrelated captures below threshold
+ok 8 - page comparison reports identical captures as one and unrelated captures below threshold
+  ---
+  duration_ms: 6.627667
+  type: 'test'
+  ...
+# Subtest: run selection resumes one open baseline and rejects ambiguous open runs
+ok 9 - run selection resumes one open baseline and rejects ambiguous open runs
+  ---
+  duration_ms: 1.474208
+  type: 'test'
+  ...
+# Subtest: new run IDs discard timestamp milliseconds
+ok 10 - new run IDs discard timestamp milliseconds
+  ---
+  duration_ms: 0.878833
+  type: 'test'
+  ...
+# Subtest: Git porcelain parsing preserves the leading worktree status column
+ok 11 - Git porcelain parsing preserves the leading worktree status column
+  ---
+  duration_ms: 0.130667
+  type: 'test'
+  ...
+# Subtest: page capture requests an explicit baseline-sized CDP clip
+ok 12 - page capture requests an explicit baseline-sized CDP clip
+  ---
+  duration_ms: 0.368042
+  type: 'test'
+  ...
+# Subtest: Chrome is constrained to loopback and a successful external response fails evidence
+ok 13 - Chrome is constrained to loopback and a successful external response fails evidence
+  ---
+  duration_ms: 0.392084
+  type: 'test'
+  ...
+# Subtest: a replacement run receives immutable copies of the canonical baseline
+ok 14 - a replacement run receives immutable copies of the canonical baseline
+  ---
+  duration_ms: 2.685834
+  type: 'test'
+  ...
+# Subtest: a sealed Slice 01 receipt validates its own digest and required artifacts
+ok 15 - a sealed Slice 01 receipt validates its own digest and required artifacts
+  ---
+  duration_ms: 11.062625
+  type: 'test'
+  ...
+# Subtest: receipt validation rejects missing command/capture links and secret-bearing fields
+ok 16 - receipt validation rejects missing command/capture links and secret-bearing fields
+  ---
+  duration_ms: 0.435708
+  type: 'test'
+  ...
+# (node:1993) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: the source-derived affected uniform blocks total 2,112 bytes
+ok 17 - the source-derived affected uniform blocks total 2,112 bytes
+  ---
+  duration_ms: 0.588625
+  type: 'test'
+  ...
+# Subtest: the probe summarizes only complete steady town frames
+ok 18 - the probe summarizes only complete steady town frames
+  ---
+  duration_ms: 0.660417
+  type: 'test'
+  ...
+# Subtest: the probe rejects an incomplete or wrong affected-program sample
+ok 19 - the probe rejects an incomplete or wrong affected-program sample
+  ---
+  duration_ms: 0.200917
+  type: 'test'
+  ...
+# Subtest: the browser probe installs before the game asks for a WebGPU adapter
+ok 20 - the browser probe installs before the game asks for a WebGPU adapter
+  ---
+  duration_ms: 0.128791
+  type: 'test'
+  ...
+# Subtest: the probe reports GPU-to-CPU readback operations instead of assuming zero
+ok 21 - the probe reports GPU-to-CPU readback operations instead of assuming zero
+  ---
+  duration_ms: 0.177666
+  type: 'test'
+  ...
+# Subtest: the browser probe installs when navigator.gpu is read-only
+ok 22 - the browser probe installs when navigator.gpu is read-only
+  ---
+  duration_ms: 0.540458
+  type: 'test'
+  ...
+# Subtest: the browser probe preserves WebIDL adapter and device identity
+ok 23 - the browser probe preserves WebIDL adapter and device identity
+  ---
+  duration_ms: 0.38675
+  type: 'test'
+  ...
+# Subtest: the baseline uses an immutable run ID and reads practical-light slot zero
+ok 24 - the baseline uses an immutable run ID and reads practical-light slot zero
+  ---
+  duration_ms: 0.8955
+  type: 'test'
+  ...
+# Subtest: a baseline timeout reports the browser and GPU boundary that stalled
+ok 25 - a baseline timeout reports the browser and GPU boundary that stalled
+  ---
+  duration_ms: 0.30475
+  type: 'test'
+  ...
+# Subtest: the state vector compares all six no-change values required for a rejection
+ok 26 - the state vector compares all six no-change values required for a rejection
+  ---
+  duration_ms: 2.303917
+  type: 'test'
+  ...
+# Subtest: the paused command window must have no GPU work, resource creation, or readback
+ok 27 - the paused command window must have no GPU work, resource creation, or readback
+  ---
+  duration_ms: 0.460958
+  type: 'test'
+  ...
+# Subtest: steady changed and corrected frames must match the baseline envelope
+ok 28 - steady changed and corrected frames must match the baseline envelope
+  ---
+  duration_ms: 0.327291
+  type: 'test'
+  ...
+# Subtest: run selection resumes exactly one open Slice 01 baseline
+ok 29 - run selection resumes exactly one open Slice 01 baseline
+  ---
+  duration_ms: 3.832375
+  type: 'test'
+  ...
+# Subtest: the complete verifier uses one Antiky dev start, tools-only MCP, and GPU evidence
+ok 30 - the complete verifier uses one Antiky dev start, tools-only MCP, and GPU evidence
+  ---
+  duration_ms: 0.87075
+  type: 'test'
+  ...
+# Subtest: slice-specific verification code stays with its objective
+ok 31 - slice-specific verification code stays with its objective
+  ---
+  duration_ms: 20.878458
+  type: 'test'
+  ...
+# Subtest: shared verification systems have stable general-purpose homes
+ok 32 - shared verification systems have stable general-purpose homes
+  ---
+  duration_ms: 0.53375
+  type: 'test'
+  ...
+# Subtest: slice verification commands point into their objective folders
+ok 33 - slice verification commands point into their objective folders
+  ---
+  duration_ms: 0.822541
+  type: 'test'
+  ...
+# Subtest: product package metadata does not know the slice schedule
+ok 34 - product package metadata does not know the slice schedule
+  ---
+  duration_ms: 1.915959
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 157.969041
+
+> @antiky/cli@0.0.0 test
+> node --experimental-strip-types --experimental-transform-types --test tests/actions.test.ts tests/build-tracker.test.ts tests/config.test.ts tests/development-session.test.ts tests/mcp-server.test.ts tests/point-light-development.test.ts tests/runtime-connection.test.ts tests/source-layout.test.ts tests/user-docs.test.ts
+
+TAP version 13
+# (node:2041) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: the host relays a set-power command with separate trusted context and validates its result
+ok 1 - the host relays a set-power command with separate trusted context and validates its result
+  ---
+  duration_ms: 1.411667
+  type: 'test'
+  ...
+# Subtest: correction relay rejects a stale or malformed browser result without completing the action
+ok 2 - correction relay rejects a stale or malformed browser result without completing the action
+  ---
+  duration_ms: 0.351291
+  type: 'test'
+  ...
+# (node:2042) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: build revisions advance only when a changed build reaches a newer ready runtime
+ok 3 - build revisions advance only when a changed build reaches a newer ready runtime
+  ---
+  duration_ms: 37.231666
+  type: 'test'
+  ...
+# Subtest: the build tracker observes source paths without watching dependency or output trees
+ok 4 - the build tracker observes source paths without watching dependency or output trees
+  ---
+  duration_ms: 106.632
+  type: 'test'
+  ...
+# Subtest: ten source and ten shader fixture updates each reach a newer ready revision within ten seconds
+ok 5 - ten source and ten shader fixture updates each reach a newer ready revision within ten seconds
+  ---
+  duration_ms: 3077.01425
+  type: 'test'
+  ...
+# 20-update fixture timing: median=195ms slowest=250ms
+# (node:2043) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: strict config resolves commands, working directory, URL, and loopback ports
+ok 6 - strict config resolves commands, working directory, URL, and loopback ports
+  ---
+  duration_ms: 3.830041
+  type: 'test'
+  ...
+# Subtest: the repository config launches Antiky Town in its focused host on fixed loopback ports
+ok 7 - the repository config launches Antiky Town in its focused host on fixed loopback ports
+  ---
+  duration_ms: 0.60475
+  type: 'test'
+  ...
+# Subtest: the demo development shortcut uses the focused host rather than the website
+ok 8 - the demo development shortcut uses the focused host rather than the website
+  ---
+  duration_ms: 0.875959
+  type: 'test'
+  ...
+# Subtest: config rejects unknown root and nested fields
+ok 9 - config rejects unknown root and nested fields
+  ---
+  duration_ms: 1.270334
+  type: 'test'
+  ...
+# Subtest: config rejects unsafe working directories
+ok 10 - config rejects unsafe working directories
+  ---
+  duration_ms: 1.235291
+  type: 'test'
+  ...
+# Subtest: config rejects unsafe hosts, invalid ports, and URL mismatches
+ok 11 - config rejects unsafe hosts, invalid ports, and URL mismatches
+  ---
+  duration_ms: 4.440917
+  type: 'test'
+  ...
+# Subtest: config host errors use general product language
+ok 12 - config host errors use general product language
+  ---
+  duration_ms: 0.572958
+  type: 'test'
+  ...
+# Subtest: config rejects malformed JSON with one stable error
+ok 13 - config rejects malformed JSON with one stable error
+  ---
+  duration_ms: 0.534416
+  type: 'test'
+  ...
+# (node:2044) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: development session starts both children, publishes health, and cleans up
+ok 14 - development session starts both children, publishes health, and cleans up
+  ---
+  duration_ms: 118.833625
+  type: 'test'
+  ...
+# Subtest: antiky dev starts a loopback Streamable HTTP MCP endpoint
+ok 15 - antiky dev starts a loopback Streamable HTTP MCP endpoint
+  ---
+  duration_ms: 31.639583
+  type: 'test'
+  ...
+# Subtest: busy ports reject before either child starts
+ok 16 - busy ports reject before either child starts
+  ---
+  duration_ms: 1.7385
+  type: 'test'
+  ...
+# Subtest: a busy inspection port also rejects before either child starts
+ok 17 - a busy inspection port also rejects before either child starts
+  ---
+  duration_ms: 1.186083
+  type: 'test'
+  ...
+# Subtest: a partial spawn failure stops the first child and releases every resource
+ok 18 - a partial spawn failure stops the first child and releases every resource
+  ---
+  duration_ms: 25.955208
+  type: 'test'
+  ...
+# Antiky development session ab61e08b-db83-4758-8e81-24b0701fc3f2
+# Config: /var/folders/ys/jzx9q4_n6v5739z3brzn534r0000gn/T/antiky-session-wezESl/antiky.config.json
+# Game: http://127.0.0.1:43100/demos/town-study
+# Inspection: http://127.0.0.1:43101
+# MCP: http://127.0.0.1:43101/mcp
+# Services: game, shaders, inspection, mcp
+# [game] fixture game ready
+# Subtest: one child failure stops its sibling and reports the child exit
+ok 19 - one child failure stops its sibling and reports the child exit
+  ---
+  duration_ms: 325.465916
+  type: 'test'
+  ...
+# Antiky development session f2e0b3a1-b19f-4ce9-96e0-fe1200da004b
+# Config: /var/folders/ys/jzx9q4_n6v5739z3brzn534r0000gn/T/antiky-session-ANL13P/antiky.config.json
+# Game: http://127.0.0.1:43100/demos/town-study
+# Inspection: http://127.0.0.1:43101
+# MCP: http://127.0.0.1:43101/mcp
+# Services: game, shaders, inspection, mcp
+# Subtest: cleanup kills a child process group after its leader exits
+ok 20 - cleanup kills a child process group after its leader exits
+  ---
+  duration_ms: 135.4875
+  type: 'test'
+  ...
+# Subtest: SIGINT stops the CLI session and releases both ports
+ok 21 - SIGINT stops the CLI session and releases both ports
+  ---
+  duration_ms: 174.789
+  type: 'test'
+  ...
+# Subtest: terminal SIGINT through the npm antiky wrapper leaves no child group or descriptor
+ok 22 - terminal SIGINT through the npm antiky wrapper leaves no child group or descriptor
+  ---
+  duration_ms: 600.007875
+  type: 'test'
+  ...
+# Subtest: browser publication, direct reads, CLI inspection, and a typed client share one snapshot
+ok 23 - browser publication, direct reads, CLI inspection, and a typed client share one snapshot
+  ---
+  duration_ms: 28.955125
+  type: 'test'
+  ...
+# Subtest: direct, CLI, typed-client, HTTP MCP, and browser command paths share one point-light service
+ok 24 - direct, CLI, typed-client, HTTP MCP, and browser command paths share one point-light service
+  ---
+  duration_ms: 54.575208
+  type: 'test'
+  ...
+# Subtest: browser boundary rejects unauthorized, wrong-origin, stale, malformed, and oversized messages
+ok 25 - browser boundary rejects unauthorized, wrong-origin, stale, malformed, and oversized messages
+  ---
+  duration_ms: 25.995416
+  type: 'test'
+  ...
+# Subtest: disconnect, reconnect, controlled reload, and capture preserve related identities
+ok 26 - disconnect, reconnect, controlled reload, and capture preserve related identities
+  ---
+  duration_ms: 76.09525
+  type: 'test'
+  ...
+# (node:2045) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: MCP exposes one well-described tools-only development surface
+ok 27 - MCP exposes one well-described tools-only development surface
+  ---
+  duration_ms: 1.592417
+  type: 'test'
+  ...
+# Subtest: MCP returns bounded protocol errors for Resource methods, unknown tools, and unknown methods
+ok 28 - MCP returns bounded protocol errors for Resource methods, unknown tools, and unknown methods
+  ---
+  duration_ms: 0.168458
+  type: 'test'
+  ...
+# Subtest: the MCP stdio adapter emits one JSON-RPC response per request line
+ok 29 - the MCP stdio adapter emits one JSON-RPC response per request line
+  ---
+  duration_ms: 5.408667
+  type: 'test'
+  ...
+# Subtest: MCP tool failures remain structured tool results with stable Antiky codes
+ok 30 - MCP tool failures remain structured tool results with stable Antiky codes
+  ---
+  duration_ms: 0.487166
+  type: 'test'
+  ...
+# (node:2046) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: development point-light reads project the shared inspection without copying authority
+ok 31 - development point-light reads project the shared inspection without copying authority
+  ---
+  duration_ms: 3.455667
+  type: 'test'
+  ...
+# Subtest: development point-light reads reject an unavailable runtime-owned inspection source
+ok 32 - development point-light reads reject an unavailable runtime-owned inspection source
+  ---
+  duration_ms: 0.602083
+  type: 'test'
+  ...
+# (node:2047) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: runtime timeouts, explicit disconnects, reconnects, and stale publications are distinct
+ok 33 - runtime timeouts, explicit disconnects, reconnects, and stale publications are distinct
+  ---
+  duration_ms: 38.081125
+  type: 'test'
+  ...
+# (node:2048) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: CLI source groups implementation files by responsibility
+ok 34 - CLI source groups implementation files by responsibility
+  ---
+  duration_ms: 2.533458
+  type: 'test'
+  ...
+# Subtest: framework inspection code has a domain home as the package grows
+ok 35 - framework inspection code has a domain home as the package grows
+  ---
+  duration_ms: 8.859375
+  type: 'test'
+  ...
+# (node:2049) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: user-facing development docs are standalone and match the shipped interfaces
+ok 36 - user-facing development docs are standalone and match the shipped interfaces
+  ---
+  duration_ms: 3.276333
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3458.113375
+
+> @antiky/demos@0.0.0 test
+> node --experimental-strip-types --experimental-transform-types --test src/demos/antiky-town/tests/composition.test.ts src/demos/antiky-town/tests/point-light-adapter.test.ts src/demos/brometal-town/physics/character-motor.test.ts src/demos/brometal-town/practical-light-input.test.ts src/runtime-inspection.test.ts src/react/development-inspection.test.ts src/react/pausable-render-loop.test.ts tests/dev-host.test.mjs tests/shader-output-parity.test.mjs && vitest run src/demos/brometal-town/art/town-validation.test.ts
+
+TAP version 13
+# (node:2281) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Antiky Town composes the shared service, reference renderer seam, and one runtime identity
+ok 1 - Antiky Town composes the shared service, reference renderer seam, and one runtime identity
+  ---
+  duration_ms: 10.351708
+  type: 'test'
+  ...
+# Subtest: the product catalog exposes Antiky Town while keeping Town Study
+ok 2 - the product catalog exposes Antiky Town while keeping Town Study
+  ---
+  duration_ms: 0.938833
+  type: 'test'
+  ...
+# (node:2282) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: authored Antiky Town lights keep the fixed market identity and one slot-zero binding
+ok 3 - authored Antiky Town lights keep the fixed market identity and one slot-zero binding
+  ---
+  duration_ms: 6.705917
+  type: 'test'
+  ...
+# Subtest: the adapter applies only market slot zero on the next frame and acknowledges it afterward
+ok 4 - the adapter applies only market slot zero on the next frame and acknowledges it afterward
+  ---
+  duration_ms: 0.926375
+  type: 'test'
+  ...
+# Subtest: the adapter rejects a town binding that does not resolve the fixed market lamp to slot zero
+ok 5 - the adapter rejects a town binding that does not resolve the fixed market lamp to slot zero
+  ---
+  duration_ms: 0.218084
+  type: 'test'
+  ...
+# Subtest: a runtime rebuild keeps authored IDs and restores authored power in a new runtime
+ok 6 - a runtime rebuild keeps authored IDs and restores authored power in a new runtime
+  ---
+  duration_ms: 0.340959
+  type: 'test'
+  ...
+# (node:2283) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: continuous capsule sweep stops at a wall with skin width
+ok 7 - continuous capsule sweep stops at a wall with skin width
+  ---
+  duration_ms: 3.289833
+  type: 'test'
+  ...
+# Subtest: diagonal movement slides along a wall instead of axis-stopping
+ok 8 - diagonal movement slides along a wall instead of axis-stopping
+  ---
+  duration_ms: 1.367625
+  type: 'test'
+  ...
+# Subtest: two simultaneous contacts settle deterministically in an inside corner
+ok 9 - two simultaneous contacts settle deterministically in an inside corner
+  ---
+  duration_ms: 15.430542
+  type: 'test'
+  ...
+# Subtest: thin walls cannot be tunneled through during a large render delta
+ok 10 - thin walls cannot be tunneled through during a large render delta
+  ---
+  duration_ms: 0.798
+  type: 'test'
+  ...
+# Subtest: a low obstacle is stepped up and its top remains the exact foot height
+ok 11 - a low obstacle is stepped up and its top remains the exact foot height
+  ---
+  duration_ms: 1.794292
+  type: 'test'
+  ...
+# Subtest: a ledge above maxStepUp blocks movement
+ok 12 - a ledge above maxStepUp blocks movement
+  ---
+  duration_ms: 7.477042
+  type: 'test'
+  ...
+# Subtest: missing ground and drops beyond maxStepDown are treated as blocked ledges
+ok 13 - missing ground and drops beyond maxStepDown are treated as blocked ledges
+  ---
+  duration_ms: 1.140917
+  type: 'test'
+  ...
+# Subtest: walkable step-downs snap to a stable support height
+ok 14 - walkable step-downs snap to a stable support height
+  ---
+  duration_ms: 0.258375
+  type: 'test'
+  ...
+# Subtest: an unwalkable ground normal is rejected at the slope threshold
+ok 15 - an unwalkable ground normal is rejected at the slope threshold
+  ---
+  duration_ms: 1.047417
+  type: 'test'
+  ...
+# Subtest: penetration recovery pushes an embedded character out in bounded iterations
+ok 16 - penetration recovery pushes an embedded character out in bounded iterations
+  ---
+  duration_ms: 0.370958
+  type: 'test'
+  ...
+# Subtest: ground support velocity carries a stationary character like a platform
+ok 17 - ground support velocity carries a stationary character like a platform
+  ---
+  duration_ms: 0.502083
+  type: 'test'
+  ...
+# Subtest: identical inputs produce bit-identical state and contact debug data
+ok 18 - identical inputs produce bit-identical state and contact debug data
+  ---
+  duration_ms: 19.040709
+  type: 'test'
+  ...
+# Subtest: one accumulated delta is equivalent to the same fixed ticks subdivided
+ok 19 - one accumulated delta is equivalent to the same fixed ticks subdivided
+  ---
+  duration_ms: 0.136834
+  type: 'test'
+  ...
+# (node:2284) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a valid slot-zero replacement commits only after its frame succeeds
+ok 20 - a valid slot-zero replacement commits only after its frame succeeds
+  ---
+  duration_ms: 0.618
+  type: 'test'
+  ...
+# Subtest: missing, invalid, and throwing replacements preserve the last valid power
+ok 21 - missing, invalid, and throwing replacements preserve the last valid power
+  ---
+  duration_ms: 0.223333
+  type: 'test'
+  ...
+# Subtest: a commit failure keeps the rendered replacement as the next fallback
+ok 22 - a commit failure keeps the rendered replacement as the next fallback
+  ---
+  duration_ms: 0.058209
+  type: 'test'
+  ...
+# (node:2285) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: browser publications cannot overtake an earlier snapshot
+ok 23 - browser publications cannot overtake an earlier snapshot
+  ---
+  duration_ms: 12.05125
+  type: 'test'
+  ...
+# Subtest: browser action polling captures a frame and disconnects with the next sequence
+ok 24 - browser action polling captures a frame and disconnects with the next sequence
+  ---
+  duration_ms: 31.791667
+  type: 'test'
+  ...
+# Subtest: browser action polling relays point-light commands and their exact framework results
+ok 25 - browser action polling relays point-light commands and their exact framework results
+  ---
+  duration_ms: 28.431417
+  type: 'test'
+  ...
+# Subtest: ordinary game hosts do not connect without an explicit inspection origin
+ok 26 - ordinary game hosts do not connect without an explicit inspection origin
+  ---
+  duration_ms: 0.089708
+  type: 'test'
+  ...
+# (node:2286) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: pausing stops the renderer loop and resuming creates only one replacement
+ok 27 - pausing stops the renderer loop and resuming creates only one replacement
+  ---
+  duration_ms: 0.575959
+  type: 'test'
+  ...
+# (node:2287) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: demo inspection maps real runtime and render facts into the framework contract
+ok 28 - demo inspection maps real runtime and render facts into the framework contract
+  ---
+  duration_ms: 8.911833
+  type: 'test'
+  ...
+# Subtest: demo inspection reports a structured runtime diagnostic without inventing measurements
+ok 29 - demo inspection reports a structured runtime diagnostic without inventing measurements
+  ---
+  duration_ms: 0.3195
+  type: 'test'
+  ...
+# Subtest: demo inspection publishes an available runtime-owned point-light view unchanged
+ok 30 - demo inspection publishes an available runtime-owned point-light view unchanged
+  ---
+  duration_ms: 1.099625
+  type: 'test'
+  ...
+# Subtest: focused demo host options preserve the configured game viewport
+ok 31 - focused demo host options preserve the configured game viewport
+  ---
+  duration_ms: 0.7575
+  type: 'test'
+  ...
+# Subtest: focused demo host passes only explicit browser configuration to Vite
+ok 32 - focused demo host passes only explicit browser configuration to Vite
+  ---
+  duration_ms: 0.104167
+  type: 'test'
+  ...
+# Subtest: focused demo host is a full-canvas game surface without website chrome
+ok 33 - focused demo host is a full-canvas game surface without website chrome
+  ---
+  duration_ms: 7.609708
+  type: 'test'
+  ...
+# Subtest: focused demo host compiles its TSX entry with the package TypeScript config
+ok 34 - focused demo host compiles its TSX entry with the package TypeScript config
+  ---
+  duration_ms: 103.831584
+  type: 'test'
+  ...
+# Subtest: development and production shader compilation produce identical tracked output
+ok 35 - development and production shader compilation produce identical tracked output
+  ---
+  duration_ms: 585.80775
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 736.423417
+
+ RUN  v4.1.10 /Users/josephduncan/github/emberwyrd/antikySite/packages/demos
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  22:22:26
+   Duration  3.98s (transform 56ms, setup 0ms, import 66ms, tests 3.85s, environment 0ms)
+
+
+> @antiky/framework@0.0.0 test
+> node --experimental-strip-types --experimental-transform-types --test src/identity/ids.test.ts src/inspection/snapshot.test.ts src/point-light/commands.test.ts src/point-light/command-flow.test.ts src/point-light/inspection.test.ts src/point-light/records.test.ts src/point-light/service.test.ts tests/import-boundary.test.mjs
+
+TAP version 13
+# (node:2362) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: branded IDs create canonical UUIDv7 text from an injected source
+ok 1 - branded IDs create canonical UUIDv7 text from an injected source
+  ---
+  duration_ms: 0.818625
+  type: 'test'
+  ...
+# Subtest: ID parsing accepts canonical UUIDv7 fixtures and rejects other UUID forms
+ok 2 - ID parsing accepts canonical UUIDv7 fixtures and rejects other UUID forms
+  ---
+  duration_ms: 0.796875
+  type: 'test'
+  ...
+# Subtest: ID creation validates timestamp and random-byte inputs
+ok 3 - ID creation validates timestamp and random-byte inputs
+  ---
+  duration_ms: 0.405833
+  type: 'test'
+  ...
+# (node:2363) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: inspection snapshots clone and freeze every caller-owned value
+ok 4 - inspection snapshots clone and freeze every caller-owned value
+  ---
+  duration_ms: 0.91475
+  type: 'test'
+  ...
+# Subtest: inspection subscriptions report newer snapshots in publish order
+ok 5 - inspection subscriptions report newer snapshots in publish order
+  ---
+  duration_ms: 0.265416
+  type: 'test'
+  ...
+# Subtest: diagnostics and semantic measurements retain their framework owner
+ok 6 - diagnostics and semantic measurements retain their framework owner
+  ---
+  duration_ms: 0.070583
+  type: 'test'
+  ...
+# Subtest: snapshot validation rejects unknown fields and invalid measurements
+ok 7 - snapshot validation rejects unknown fields and invalid measurements
+  ---
+  duration_ms: 0.214125
+  type: 'test'
+  ...
+# Subtest: snapshot validation keeps diagnostics and related IDs bounded
+ok 8 - snapshot validation keeps diagnostics and related IDs bounded
+  ---
+  duration_ms: 0.100833
+  type: 'test'
+  ...
+# (node:2364) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: an accepted command reaches authoring, runtime, render, and one dirty slot exactly once
+ok 9 - an accepted command reaches authoring, runtime, render, and one dirty slot exactly once
+  ---
+  duration_ms: 7.420375
+  type: 'test'
+  ...
+# Subtest: same-value and every rejected request preserve all six observable state values
+ok 10 - same-value and every rejected request preserve all six observable state values
+  ---
+  duration_ms: 1.757833
+  type: 'test'
+  ...
+# Subtest: correction records a new fact and restores the prior value
+ok 11 - correction records a new fact and restores the prior value
+  ---
+  duration_ms: 0.236042
+  type: 'test'
+  ...
+# Subtest: render changes remain pending until the adapter acknowledges the current sequence
+ok 12 - render changes remain pending until the adapter acknowledges the current sequence
+  ---
+  duration_ms: 0.13975
+  type: 'test'
+  ...
+# Subtest: a headless light uses the same command and runtime path without a render special case
+ok 13 - a headless light uses the same command and runtime path without a render special case
+  ---
+  duration_ms: 1.110292
+  type: 'test'
+  ...
+# Subtest: history and results stop at 256 entries before another change is accepted
+ok 14 - history and results stop at 256 entries before another change is accepted
+  ---
+  duration_ms: 5.013
+  type: 'test'
+  ...
+# Subtest: ordered replay and a complete rebuild match current state and reject sequence gaps
+ok 15 - ordered replay and a complete rebuild match current state and reject sequence gaps
+  ---
+  duration_ms: 0.635
+  type: 'test'
+  ...
+# Subtest: runtime mismatch and disposal reject later commands without changing the last valid state
+ok 16 - runtime mismatch and disposal reject later commands without changing the last valid state
+  ---
+  duration_ms: 0.106667
+  type: 'test'
+  ...
+# (node:2365) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: set-point-light-power parsing validates, clones, and freezes the command
+ok 17 - set-point-light-power parsing validates, clones, and freezes the command
+  ---
+  duration_ms: 1.372791
+  type: 'test'
+  ...
+# Subtest: command parsing keeps value-range decisions separate from structural validation
+ok 18 - command parsing keeps value-range decisions separate from structural validation
+  ---
+  duration_ms: 0.2835
+  type: 'test'
+  ...
+# Subtest: command parsing rejects unknown fields, invalid IDs, and malformed revisions
+ok 19 - command parsing rejects unknown fields, invalid IDs, and malformed revisions
+  ---
+  duration_ms: 1.007042
+  type: 'test'
+  ...
+# Subtest: encoded command size measures UTF-8 bytes and rejects cyclic values
+ok 20 - encoded command size measures UTF-8 bytes and rejects cyclic values
+  ---
+  duration_ms: 0.0845
+  type: 'test'
+  ...
+# Subtest: command-result parsing validates and freezes the browser transport boundary
+ok 21 - command-result parsing validates and freezes the browser transport boundary
+  ---
+  duration_ms: 0.3895
+  type: 'test'
+  ...
+# (node:2366) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: point-light inspection exposes one immutable authoring, runtime, render, and fact view
+ok 22 - point-light inspection exposes one immutable authoring, runtime, render, and fact view
+  ---
+  duration_ms: 8.048542
+  type: 'test'
+  ...
+# Subtest: point-light inspection validates transport input and cross-projection identity
+ok 23 - point-light inspection validates transport input and cross-projection identity
+  ---
+  duration_ms: 0.584959
+  type: 'test'
+  ...
+# (node:2367) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: versioned component creators apply documented defaults and freeze arrays
+ok 24 - versioned component creators apply documented defaults and freeze arrays
+  ---
+  duration_ms: 0.643
+  type: 'test'
+  ...
+# Subtest: point-light records preserve finite world-unit and linear-RGB values
+ok 25 - point-light records preserve finite world-unit and linear-RGB values
+  ---
+  duration_ms: 0.168292
+  type: 'test'
+  ...
+# Subtest: component validation rejects unknown versions, fields, non-finite values, and bounds
+ok 26 - component validation rejects unknown versions, fields, non-finite values, and bounds
+  ---
+  duration_ms: 0.300958
+  type: 'test'
+  ...
+# (node:2368) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: one private service stores and reads two independent point lights by stable ID
+ok 27 - one private service stores and reads two independent point lights by stable ID
+  ---
+  duration_ms: 6.966125
+  type: 'test'
+  ...
+# Subtest: service construction rejects duplicate IDs and invalid entity data
+ok 28 - service construction rejects duplicate IDs and invalid entity data
+  ---
+  duration_ms: 0.253709
+  type: 'test'
+  ...
+# Subtest: service records are bounded and expose no mutable map or generic writer
+ok 29 - service records are bounded and expose no mutable map or generic writer
+  ---
+  duration_ms: 0.300709
+  type: 'test'
+  ...
+# Subtest: framework source has no Node, React, Next, BroMetal, Studio, or MCP imports
+ok 30 - framework source has no Node, React, Next, BroMetal, Studio, or MCP imports
+  ---
+  duration_ms: 3.125166
+  type: 'test'
+  ...
+# Subtest: framework runtime source does not reference browser globals
+ok 31 - framework runtime source does not reference browser globals
+  ---
+  duration_ms: 2.360458
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 206.111291
+
+> @antiky/website@0.0.0 test
+> npm run build && node --test tests/production-inspection-boundary.test.mjs
+
+
+> @antiky/website@0.0.0 prebuild
+> npm run shaders:prod --workspace @antiky/demos
+
+
+> @antiky/demos@0.0.0 shaders:prod
+> brometal prod
+
+✓ src/demos/brometal-town/shaders/town-awning-shadow.shader.ts → town-awning-shadow.shader.gen.ts (10ms)
+✓ src/demos/brometal-town/shaders/town-awning.shader.ts → town-awning.shader.gen.ts (5ms)
+✓ src/demos/brometal-town/shaders/town-foliage-shadow.shader.ts → town-foliage-shadow.shader.gen.ts (2ms)
+✓ src/demos/brometal-town/shaders/town-foliage.shader.ts → town-foliage.shader.gen.ts (4ms)
+✓ src/demos/brometal-town/shaders/town-post.shader.ts → town-post.shader.gen.ts (4ms)
+✓ src/demos/brometal-town/shaders/town-prop-shadow.shader.ts → town-prop-shadow.shader.gen.ts (1ms)
+✓ src/demos/brometal-town/shaders/town-prop.shader.ts → town-prop.shader.gen.ts (2ms)
+✓ src/demos/brometal-town/shaders/town-shadow.shader.ts → town-shadow.shader.gen.ts (1ms)
+✓ src/demos/brometal-town/shaders/town-sprite-shadow.shader.ts → town-sprite-shadow.shader.gen.ts (1ms)
+✓ src/demos/brometal-town/shaders/town-sprite.shader.ts → town-sprite.shader.gen.ts (2ms)
+✓ src/demos/brometal-town/shaders/town-voxel.shader.ts → town-voxel.shader.gen.ts (4ms)
+✓ src/demos/brometal-town/shaders/town-water-features.shader.ts → town-water-features.shader.gen.ts (2ms)
+✓ src/demos/brometal-town/shaders/town-water.shader.ts → town-water.shader.gen.ts (2ms)
+✓ src/demos/instance-storm/shaders/storm.shader.ts → storm.shader.gen.ts (1ms)
+✓ src/demos/shader-study/shaders/aurora.shader.ts → aurora.shader.gen.ts (1ms)
+✓ src/demos/sprite-depth/shaders/ground.shader.ts → ground.shader.gen.ts (0ms)
+✓ src/demos/sprite-depth/shaders/sprite.shader.ts → sprite.shader.gen.ts (0ms)
+✓ src/shared/shaders/voxel.shader.ts → voxel.shader.gen.ts (1ms)
+
+> @antiky/website@0.0.0 build
+> next build
+
+   ▲ Next.js 15.5.22
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 622ms
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/17) ...
+   Generating static pages (4/17) 
+   Generating static pages (8/17) 
+   Generating static pages (12/17) 
+ ✓ Generating static pages (17/17)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      189 B         123 kB
+├ ○ /_not-found                            989 B         104 kB
+├ ○ /demos                                 189 B         123 kB
+├ ● /demos/[slug]                         2.2 kB         125 kB
+├   ├ /demos/antiky-town
+├   ├ /demos/town-study
+├   └ /demos/shader-study
+├ ○ /framework                             189 B         123 kB
+├ ○ /icon.svg                                0 B            0 B
+├ ○ /labs                                  135 B         103 kB
+├ ○ /research                              164 B         106 kB
+├ ○ /robots.txt                            135 B         103 kB
+├ ○ /sitemap.xml                           135 B         103 kB
+├ ○ /studio                                135 B         103 kB
+├ ○ /upstream                              135 B         103 kB
+└ ○ /worlds                                164 B         106 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/18-6904d02802e458a1.js        46.3 kB
+  ├ chunks/87c73c54-24122e7b92478d00.js  54.2 kB
+  └ other shared chunks (total)          2.03 kB
+
+
+○  (Static)  prerendered as static content
+●  (SSG)     prerendered as static HTML (uses generateStaticParams)
+
+TAP version 13
+# Subtest: production website output excludes the local inspection bridge and credential bootstrap
+ok 1 - production website output excludes the local inspection bridge and credential bootstrap
+  ---
+  duration_ms: 20.634083
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58.235542
+
+> @antiky/zdloop@0.0.0 test
+> node --test tests/integration.test.mjs && vitest run tests/unit
+
+TAP version 13
+# Subtest: the root exposes the zdloop workspace commands
+ok 1 - the root exposes the zdloop workspace commands
+  ---
+  duration_ms: 0.391375
+  type: 'test'
+  ...
+# Subtest: root security anchors keep npm workspace overrides effective
+ok 2 - root security anchors keep npm workspace overrides effective
+  ---
+  duration_ms: 0.08325
+  type: 'test'
+  ...
+# Subtest: the vendored runner targets Antiky's formal objective files
+ok 3 - the vendored runner targets Antiky's formal objective files
+  ---
+  duration_ms: 0.635875
+  type: 'test'
+  ...
+# Subtest: the dependency tree contains no vulnerable sharp or postcss release
+ok 4 - the dependency tree contains no vulnerable sharp or postcss release
+  ---
+  duration_ms: 0.782542
+  type: 'test'
+  ...
+# Subtest: Claude commands are fully specialized for Antiky
+ok 5 - Claude commands are fully specialized for Antiky
+  ---
+  duration_ms: 0.807792
+  type: 'test'
+  ...
+# Subtest: Codex skills delegate to the matching canonical Claude commands
+ok 6 - Codex skills delegate to the matching canonical Claude commands
+  ---
+  duration_ms: 0.777541
+  type: 'test'
+  ...
+# Subtest: the objective scaffolding documents ownership and loop inputs
+ok 7 - the objective scaffolding documents ownership and loop inputs
+  ---
+  duration_ms: 0.230083
+  type: 'test'
+  ...
+# Subtest: the todo.txt-compatible task file contains no legend pseudo-tasks
+ok 8 - the todo.txt-compatible task file contains no legend pseudo-tasks
+  ---
+  duration_ms: 0.2025
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.32975
+
+ RUN  v4.1.10 /Users/josephduncan/github/emberwyrd/antikySite/packages/zdloop
+
+
+ Test Files  5 passed (5)
+      Tests  30 passed (30)
+   Start at  22:22:37
+   Duration  19.19s (transform 107ms, setup 0ms, import 160ms, tests 23.83s, environment 0ms)
+
+
+> antiky@0.0.0 test:webgpu-only
+> node --test scripts/webgpu-only.test.mjs
+
+TAP version 13
+# Subtest: the public-surface scan excludes human-owned architecture decisions
+ok 1 - the public-surface scan excludes human-owned architecture decisions
+  ---
+  duration_ms: 5.544167
+  type: 'test'
+  ...
+# Subtest: public product surfaces stay WebGPU-only
+ok 2 - public product surfaces stay WebGPU-only
+  ---
+  duration_ms: 39.469208
+  type: 'test'
+  ...
+# Subtest: the demo runner creates the renderer directly without selection state
+ok 3 - the demo runner creates the renderer directly without selection state
+  ---
+  duration_ms: 0.60625
+  type: 'test'
+  ...
+# Subtest: dependencies and generated shaders use the WebGPU-only contract
+ok 4 - dependencies and generated shaders use the WebGPU-only contract
+  ---
+  duration_ms: 3.123041
+  type: 'test'
+  ...
+# Subtest: each demo implementation has one owned folder
+ok 5 - each demo implementation has one owned folder
+  ---
+  duration_ms: 0.528375
+  type: 'test'
+  ...
+# Subtest: the shader study reads the authored source from its owned folder
+ok 6 - the shader study reads the authored source from its owned folder
+  ---
+  duration_ms: 0.3215
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 87.053584
