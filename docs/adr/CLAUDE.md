@@ -1,0 +1,3 @@
+@AGENTS.md
+@README.md
+@../GOOD_ENGINEERING_H.md
