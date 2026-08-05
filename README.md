@@ -5,102 +5,175 @@
     <img src="packages/website/public/brand/antiky-labs-wordmark-and-text-black.png" alt="Antiky Labs" width="372">
   </picture>
 
-  [Vision & Direction](docs/VISION_DIRECTION_H.md) &nbsp;·&nbsp; [Join our Discord!](https://discord.gg/3Qs2uejUf9)
+  <br>
+  <strong>Tools for making worlds.</strong>
+  <br><br>
+
+  [Website](https://antikylabs.com) &nbsp;·&nbsp; [Developer docs](docs/user-facing-docs/README.md) &nbsp;·&nbsp; [Vision](docs/VISION_DIRECTION_H.md) &nbsp;·&nbsp; [Discord](https://discord.gg/3Qs2uejUf9)
 </p>
 
+# Antiky
 
+Antiky is an emerging game framework and local development runtime from Antiky Labs. It is built
+for 2D, 3D, and especially **2.3D** games: crisp 2D characters and objects inside spatial,
+depth-aware 3D worlds.
 
-# Antiky monorepo
+The framework runs game rules and exposes structured engine state. The CLI starts and supervises a
+complete local development session. Coding agents connect through Model Context Protocol (MCP), and
+the future Antiky Studio will use the same commands, queries, diagnostics, and measurements.
 
-This repository contains the Antiky Labs website, public demos, and the emerging Antiky Framework as
-npm workspaces.
+Antiky renders through [BroMetal](https://brometal.dev), a typed shader and WebGPU runtime. A game
+does not need Studio, MCP, or a renderer to use the headless framework.
 
-## Packages
+> [!IMPORTANT]
+> Antiky is in active, pre-release development. The Framework and CLI are not published as stable
+> packages, and their APIs can change. Studio is planned but is not yet an application you can
+> install. The browser demos and the source development workflow in this repository work today.
+
+## Why Antiky exists
+
+Antiky Labs is building the framework and tools needed to make Emberwyrd, an online fantasy action
+RPG. We grow the framework through complete game features instead of designing a general engine in
+the abstract.
+
+That approach gives Antiky a few deliberate properties:
+
+- **One engine API.** People, agents, the CLI, Studio, and tests use the same underlying services.
+- **Structured development state.** Agents read stable IDs, revisions, diagnostics, measurements,
+  and command results instead of guessing from screenshots or terminal text.
+- **Framework without editor lock-in.** Games build and run without Studio. Studio is a visual
+  client, not the owner of game state.
+- **Explicit authority.** Validated commands change authoritative state. Inspection stays read-only,
+  and corrections record what happened instead of deleting history.
+- **Rendering below game rules.** BroMetal owns typed GPU work. Antiky owns worlds, simulation,
+  authoring, inspection, and the mapping into rendering.
+- **Incremental scope.** Real demos prove each reusable boundary before Antiky adds another layer or
+  package.
+
+AI-native has a specific meaning here: a coding agent can inspect and operate a live game through
+versioned, permission-aware tools. AI does not become the authority for game state, and Antiky does
+not require one model provider.
+
+## What works today
+
+- `antiky dev` starts the configured game process, shader watcher, inspection service, and MCP
+  server as one development session.
+- `antiky inspect` reads the current build, process, runtime, render, and diagnostic state as
+  structured JSON.
+- `antiky tool` calls the same MCP tools that coding agents use, including game reload, frame
+  capture, runtime inspection, and point-light authoring.
+- `@antiky/framework` supplies stable UUIDv7 identities, immutable runtime inspection snapshots,
+  and the first framework-owned point-light command and correction flow.
+- Antiky Town uses that framework path while the original BroMetal town remains available as its
+  visual and behavioral reference.
+- Browser studies exercise the current 2.3D, shader, sprite, voxel, and WebGPU work.
+
+## How the pieces fit
 
 ```text
-packages/
-├── website/    @antiky/website   Next.js site and site presentation
-├── demos/      @antiky/demos     Demo catalog, runtime, renderers, art, and shaders
-└── framework/  @antiky/framework Reusable framework capabilities extracted from demos
+person / coding agent / future Studio
+                 |
+        CLI / MCP / typed client
+                 |
+        antiky dev development host
+          /                 \
+ process and build facts     game runtime
+                              |
+                       Antiky Framework
+                              |
+                        render adapter
+                              |
+                         BroMetal
+                              |
+                           WebGPU
 ```
 
-The dependency direction is intentional:
+The CLI owns local configuration, child processes, builds, connections, and cleanup. The framework
+owns semantic game facts and engine rules. MCP and Studio adapt those shared services for their
+users; they do not implement a second engine control path.
+
+## Quick start from source
+
+You need Node.js 22 or newer, npm, and a WebGPU-capable browser for the rendered demos.
+
+```bash
+git clone https://github.com/antikylabs/site.git
+cd site
+npm install
+npm run antiky -- dev
+```
+
+The repository's [`antiky.config.json`](antiky.config.json) starts the focused Antiky Town game
+host, shader watcher, inspection service, and Streamable HTTP MCP endpoint. The CLI prints the game,
+inspection, and MCP URLs after startup.
+
+In another terminal, inspect the session or call a shared tool:
+
+```bash
+npm run antiky -- inspect
+npm run antiky -- tool get_dev_status
+npm run antiky -- tool list_point_lights
+```
+
+Press `Ctrl-C` in the development terminal to stop every owned process and release the local ports.
+
+The public command is `antiky dev`. This repository uses `npm run antiky -- dev` until the CLI is
+packaged for installation. See [Run Antiky locally](docs/user-facing-docs/cli/development.md) for
+project configuration, inspection, lifecycle, and stable errors. See
+[Connect an MCP client](docs/user-facing-docs/mcp/overview.md) for agent configuration and the local
+security boundary.
+
+## Common repository commands
+
+| Task | Command |
+| --- | --- |
+| Start the complete Antiky development session | `npm run antiky -- dev` |
+| Start the website | `npm run dev -- website` |
+| Start one focused game or demo | `npm run dev -- demos <slug>` |
+| Watch Framework types | `npm run dev -- framework` |
+| Compile generated shaders | `npm run shaders` |
+| Run type checks and tests | `npm run check` |
+| Build the production website | `npm run build` |
+
+Use `antiky-town`, `town-study`, or `shader-study` as a focused demo slug. The
+[demo source guide](packages/demos/src/demos/README.md) lists the registered and internal studies.
+
+## Repository layout
+
+| Path | Role | Current state |
+| --- | --- | --- |
+| [`packages/framework`](packages/framework) | Headless game-framework contracts and systems | Implemented, pre-release |
+| [`packages/cli`](packages/cli) | Local development host, CLI, typed client, inspection, and MCP adapters | Implemented, pre-release |
+| [`packages/demos`](packages/demos) | Browser studies, focused game host, and Antiky Town migration | Runnable |
+| [`packages/website`](packages/website) | Antiky Labs website and public demo presentation | Active |
+| [`packages/studio`](packages/studio) | Future visual development application | Planned |
+
+The main code dependencies point toward the framework:
 
 ```text
-website → demos → framework
+website -> demos -> framework
+cli ----------------> framework
+future Studio ------> shared development and framework services
 ```
 
-- The website presents demos but does not own their rendering implementation.
-- Demos depend on the framework and expose needs that justify new framework capabilities.
-- The framework never depends on the website or demo packages.
-
-The demos use BroMetal 0.14 and run on WebGPU only. The runner creates the WebGPU renderer directly;
-there is no graphics fallback or runtime selector.
+Framework core stays free of React, Next.js, browser DOM, Node.js host, Studio, MCP, and BroMetal
+imports. Adapters keep those concerns at the system boundaries.
 
 ## Documentation
 
-The public documentation index is [`docs/README.md`](docs/README.md).
+- [Developer documentation](docs/user-facing-docs/README.md) explains the released-style Framework,
+  CLI, MCP, and Studio boundaries without repository planning context.
+- [Vision and direction](docs/VISION_DIRECTION_H.md) explains what Antiky Labs is building and why.
+- [Architecture guides](docs/architecture/README.md) describe the target Framework and Studio
+  system.
+- [Architecture Decision Records](docs/adr/README.md) record accepted engineering decisions.
+- [Antiky Improvement Proposals](docs/aip/README.md) are the path for meaningful contributor
+  proposals.
+- [Objectives](docs/objectives/README.md) contain active implementation plans and delivery records.
+- [Contributing](CONTRIBUTING.md) explains how to propose or submit a change.
 
-- [Antiky Improvement Proposals](docs/aip/README.md) are contributor-authored proposals for
-  meaningful product, feature, process, governance, architecture, or other improvements.
-- [Architecture Decision Records](docs/adr/README.md) are written and owned by Core Contributors
-  after an architectural decision has been made. An accepted AIP may result in zero, one, or several
-  ADRs.
+## License
 
-## Install
-
-```bash
-npm install
-```
-
-Dependencies are installed once at the repository root and linked through npm workspaces.
-
-## Development
-
-Use the root dispatcher to start one workspace:
-
-```bash
-npm run dev -- website
-npm run dev -- framework
-npm run dev -- demos
-npm run dev -- demos sprite-depth
-```
-
-The website and demo host run on `http://localhost:3010`. When a demo slug is supplied, demo mode
-routes the root page directly to `/demos/<slug>`. A future demo such as `demo-pocket-monsters` will use
-the same command after it is registered:
-
-```bash
-npm run dev -- demos demo-pocket-monsters
-```
-
-Equivalent shortcuts are available:
-
-```bash
-npm run dev:website
-npm run dev:framework
-npm run dev:demos -- sprite-depth
-```
-
-## Checks and builds
-
-```bash
-npm run check
-npm run build
-npm run shaders
-```
-
-The website's development and production commands compile the demo shaders before starting Next.js.
-
-## Adding a demo
-
-1. Create `packages/demos/src/demos/<demo-name>/`.
-2. Keep the demo entry point, owned helpers, tests, and shaders in that folder.
-3. Put code used by more than one demo under `packages/demos/src/shared/`.
-4. Run `npm run shaders` after you add or change a shader source.
-5. Register its loader in `packages/demos/src/registry.ts`.
-6. Add its public metadata to `packages/demos/src/catalog.ts`.
-7. Run it with `npm run dev -- demos <slug>`.
-
-`DemoStage` owns WebGPU renderer creation, the frame loop, visibility pausing, pointer
-state, and teardown. Individual demos only build their rendering resources and draw.
+Licensing is package-specific. See [LICENSE.md](LICENSE.md) and the `LICENSE.md` file inside each
+package before you reuse code. The Framework, demos, and future Studio use the MIT License; the
+website is source-available.
