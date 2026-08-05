@@ -28,14 +28,14 @@ import {
   writeJsonAtomic,
   writeReceiptAtomic,
   writeTextAtomic,
-} from './slice-00-evidence.mjs';
+} from './evidence.mjs';
 import {
   createAcceptance,
   createConfirmation,
   createFacts,
   createMeasurements,
   createReceipt,
-} from './slice-00-report.mjs';
+} from './report.mjs';
 import {
   assertPortsAvailable,
   CdpClient,
@@ -46,7 +46,7 @@ import {
   stopOwnedProcess,
   waitFor,
   waitForChromeTarget,
-} from './slice-00-runtime.mjs';
+} from '../../../../../scripts/verification/runtime.mjs';
 import {
   assertCaptureHasContent,
   assertChromeNetworkIsolation,
@@ -59,7 +59,7 @@ import {
   createChromeArguments,
   parseWorkingTreePaths,
   selectRunId,
-} from './slice-00-verifier-core.mjs';
+} from './verifier-core.mjs';
 
 export {
   assertCaptureHasContent,
@@ -74,7 +74,7 @@ export {
 };
 
 const executeFile = promisify(execFile);
-const root = path.resolve(import.meta.dirname, '..');
+const root = path.resolve(import.meta.dirname, '../../../../..');
 const outputRoot = path.join(root, 'docs/objectives/antiky-town/slice-00/outputs');
 const canonicalBaselineRunId = 's00-20260804T205140Z';
 const canonicalBaselineDirectory = path.join(outputRoot, canonicalBaselineRunId);
@@ -273,7 +273,7 @@ export async function runSlice00Verification() {
       return response.ok;
     }, { timeoutMilliseconds: 30_000, intervalMilliseconds: 200, label: 'the town route' });
     timing.gameReachableMilliseconds = Math.round(performance.now() - devStarted);
-    const { connectDevelopmentClient } = await import('../packages/cli/src/development/client.ts');
+    const { connectDevelopmentClient } = await import('../../../../../packages/cli/src/development/client.ts');
     const client = await waitFor(() => connectDevelopmentClient(), {
       timeoutMilliseconds: 10_000, intervalMilliseconds: 100, label: 'the typed development client',
     });
@@ -474,7 +474,7 @@ export async function runSlice00Verification() {
   ];
   context.tests = [
     { command: 'npm run check', status: 'PASS', evidence: 'logs/check.log' },
-    { command: 'node --test scripts/slice-00-evidence.test.mjs scripts/verify-slice-00.test.mjs', status: 'PASS', evidence: 'included by npm run check' },
+    { command: 'npm test', status: 'PASS', evidence: 'includes the Slice 00 verification tests' },
     { command: 'npm run verify:slice-00', status: 'PASS', evidence: correlationId },
   ];
   context.documentation = [

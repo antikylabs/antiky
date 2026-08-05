@@ -36,6 +36,14 @@ const historicalAttempts = Object.freeze([
     disposition: 'The isolated test passed and the one allowed unchanged full-check retry passed.',
   },
   { id: 'attempt-009', checkpoint: 'CP-04', result: 'PASS', failureClass: null },
+  {
+    id: 'attempt-010',
+    checkpoint: 'CP-05',
+    result: 'FAIL',
+    failureClass: 'AUTHORITY_BLOCK',
+    cause: 'The owner rejected placing objective-specific verification implementation inside the demos product package.',
+    disposition: 'The unsealed run stopped before service startup; reusable systems moved to scripts/verification and objective fixtures moved into this slice folder.',
+  },
 ]);
 
 function evidence(status, detail, reason) {
@@ -201,7 +209,7 @@ export function createMeasurements(context) {
       currentRunRetries: 0,
       historicalDefectCorrections: historicalAttempts.filter((entry) => entry.failureClass === 'DEFECT').length,
       historicalTransientFailures: historicalAttempts.filter((entry) => entry.failureClass === 'TRANSIENT').length,
-      ownerInterventionsDuringFinalRun: 0,
+      ownerInterventionsDuringFinalRun: 1,
       preservedHumanOwnedChanges: context.runSetup.preservedHumanOwnedChanges.length,
     },
   };
@@ -249,7 +257,7 @@ export function createReceipt(context, artifacts, acceptance) {
   const attempts = [
     ...historicalAttempts,
     {
-      id: 'attempt-010',
+      id: 'attempt-011',
       checkpoint: 'CP-05',
       result: 'PASS',
       failureClass: null,
@@ -310,7 +318,7 @@ export function createReceipt(context, artifacts, acceptance) {
     },
     afterCompletion: {
       owner: '@antiky/framework owns the service and projections; Antiky Town owns the slot-zero adapter; @antiky/cli owns local transport.',
-      health: 'Run npm run verify:slice-01 --workspace @antiky/demos and inspect the versioned point-light snapshot.',
+      health: 'Run npm run verify:slice-01 and inspect the versioned point-light snapshot.',
       feedback: 'Use the formal human feedback and agent finding inboxes under docs/objectives.',
       rollback: 'Stop owned processes, then use a tested corrective or revert commit without rewriting shared history.',
       retirement: 'Replace the versioned service only through tests that migrate direct, CLI, Studio-compatible, MCP, adapter, and documentation consumers together.',

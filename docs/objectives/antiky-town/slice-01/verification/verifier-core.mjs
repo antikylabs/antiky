@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { access, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
+// Objective fixtures compose the general verification systems without entering product packages.
+
 async function exists(file) {
   return access(file).then(() => true, () => false);
 }
@@ -22,6 +24,27 @@ export async function selectOpenSlice01Run(outputRoot) {
   if (open.length === 0) throw new Error('No open Slice 01 baseline run exists.');
   if (open.length > 1) throw new Error(`Found multiple open Slice 01 runs: ${open.join(', ')}.`);
   return open[0];
+}
+
+export function assertReadyDevelopmentSnapshot(snapshot) {
+  assert.equal(snapshot.schemaVersion, 1, 'development schema must be version 1');
+  assert.equal(snapshot.processes.game.state, 'running', 'game process must be running');
+  assert.equal(snapshot.processes.shaders.state, 'running', 'shader process must be running');
+  assert.equal(snapshot.connection.state, 'connected', 'runtime must be connected');
+  assert.equal(snapshot.cleanup.state, 'active', 'cleanup ownership must be active');
+  assert.equal(snapshot.acceptedBuildRevision, 1, 'initial accepted build revision must be 1');
+  assert.equal(snapshot.inspection?.runtime.lifecycle, 'running', 'town must report a running lifecycle');
+  assert.ok(snapshot.inspection.measurements.runtime.frameCount > 2, 'running town must advance frames');
+  assert.ok(snapshot.inspection.measurements.runtime.framesPerSecond > 0, 'running town must report frame rate');
+  const render = snapshot.inspection.measurements.render;
+  assert.equal(render.owner, 'framework');
+  assert.ok(render.canvasWidth > 0, 'running town must report a positive canvas width');
+  assert.ok(render.canvasHeight > 0, 'running town must report a positive canvas height');
+  assert.equal(render.drawCalls, 16, 'running town draw count differs');
+  assert.equal(render.instances, 1247, 'running town instance count differs');
+  assert.equal(render.uploadBytesPerFrame, 1152, 'running town upload count differs');
+  assert.deepEqual(snapshot.diagnostics, []);
+  assert.deepEqual(snapshot.inspection.diagnostics, []);
 }
 
 export function pointLightStateVector(snapshot, entityId) {

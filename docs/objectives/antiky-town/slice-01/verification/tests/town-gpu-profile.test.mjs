@@ -6,12 +6,12 @@ import {
   affectedUniformBlocks,
   gpuProbeSource,
   summarizeGpuProbe,
-} from '../scripts/slice-01-gpu-probe.mjs';
+} from '../town-gpu-profile.mjs';
 import {
   describeProbeProgress,
   extractReferencePointLight,
   formatSlice01RunId,
-} from '../scripts/capture-slice-01-baseline.mjs';
+} from '../capture-baseline.mjs';
 
 function submission(index, drawCalls, uniformWrites, extra = {}) {
   const uniformBytes = Object.entries(uniformWrites)

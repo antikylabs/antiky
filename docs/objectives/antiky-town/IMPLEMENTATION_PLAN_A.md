@@ -57,13 +57,16 @@ scope.
 - Record measurements before an optimization changes data structures.
 - Supply machine-readable evidence through the shared framework service. A screenshot is
   supporting evidence, not the only evidence.
+- Keep slice-specific verification code, fixtures, and tests in that slice's `verification/`
+  folder. Keep reusable verification systems in `scripts/verification/`.
+- Do not put slice-numbered files or objective schedule knowledge in a product package.
 - State the reload effect for every changed source, shader, asset, or configuration boundary.
 - Finish and commit one slice before the next slice starts.
 
 ## Slice directions
 
-Each slice puts its plan, owner input, and delivery outputs in a separate `slice-NN/` folder. The
-slice plan links its `owner-input_H.md` file as required reading.
+Each slice puts its plan, owner input, verification code, and delivery outputs in a separate
+`slice-NN/` folder. The slice plan links its `owner-input_H.md` file as required reading.
 
 The owner approved the Slice 00 harness direction and the Slice 01 reusable point-light direction.
 For Slices 2 through 6, the recommended sequence is `2A, 3A, 4A, 5A, 6A`.

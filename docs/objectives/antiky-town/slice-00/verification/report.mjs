@@ -1,3 +1,4 @@
+// Slice-specific acceptance history lives beside the plan and its immutable outputs.
 const historicalAttempts = Object.freeze([
   {
     id: 'attempt-001',

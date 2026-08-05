@@ -10,7 +10,7 @@ import {
   validateArtifactDigests,
   validateReceipt,
   writeReceiptAtomic,
-} from './slice-00-evidence.mjs';
+} from '../evidence.mjs';
 
 const revision = 'a'.repeat(40);
 

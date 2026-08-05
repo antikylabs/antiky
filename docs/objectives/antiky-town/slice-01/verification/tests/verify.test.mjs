@@ -11,7 +11,7 @@ import {
   gpuCounterDelta,
   pointLightStateVector,
   selectOpenSlice01Run,
-} from '../scripts/slice-01-verifier-core.mjs';
+} from '../verifier-core.mjs';
 
 const entityId = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';
 
@@ -124,10 +124,16 @@ test('run selection resumes exactly one open Slice 01 baseline', async () => {
 });
 
 test('the complete verifier uses one Antiky dev start, tools-only MCP, and GPU evidence', async () => {
-  const source = await readFile(new URL('../scripts/verify-slice-01.mjs', import.meta.url), 'utf8');
-  const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../verify.mjs', import.meta.url), 'utf8');
+  const packageJson = JSON.parse(await readFile(
+    new URL('../../../../../../package.json', import.meta.url),
+    'utf8',
+  ));
 
-  assert.match(packageJson.scripts['verify:slice-01'], /verify-slice-01\.mjs/);
+  assert.match(
+    packageJson.scripts['verify:slice-01'],
+    /docs\/objectives\/antiky-town\/slice-01\/verification\/verify\.mjs/,
+  );
   assert.match(source, /args: \['run', 'antiky', 'dev'\]/);
   assert.match(source, /set_point_light_power/);
   assert.match(source, /correct_point_light_power/);

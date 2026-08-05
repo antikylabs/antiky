@@ -169,7 +169,7 @@ export class McpStdioClient {
     await client.request('initialize', {
       protocolVersion: '2025-11-25',
       capabilities: {},
-      clientInfo: { name: 'antiky-slice-00-verifier', version: '1' },
+      clientInfo: { name: 'antiky-verifier', version: '1' },
     });
     client.notify('notifications/initialized');
     return client;

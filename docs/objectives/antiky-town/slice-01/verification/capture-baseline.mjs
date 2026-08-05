@@ -23,7 +23,7 @@ import {
   stopOwnedProcess,
   waitFor,
   waitForChromeTarget,
-} from '../../../scripts/slice-00-runtime.mjs';
+} from '../../../../../scripts/verification/runtime.mjs';
 import {
   assertCaptureHasContent,
   assertChromeNetworkIsolation,
@@ -31,11 +31,11 @@ import {
   copyTreeExclusive,
   createChromeArguments,
   parseWorkingTreePaths,
-} from '../../../scripts/slice-00-verifier-core.mjs';
-import { gpuProbeSource, summarizeGpuProbe } from './slice-01-gpu-probe.mjs';
+} from '../../../../../scripts/verification/browser.mjs';
+import { gpuProbeSource, summarizeGpuProbe } from './town-gpu-profile.mjs';
 
 const executeFile = promisify(execFile);
-const root = path.resolve(import.meta.dirname, '../../..');
+const root = path.resolve(import.meta.dirname, '../../../../..');
 const outputRoot = path.join(root, 'docs/objectives/antiky-town/slice-01/outputs');
 const gameUrl = 'http://127.0.0.1:3010/';
 const mcpUrl = 'http://127.0.0.1:3011/mcp';
@@ -248,7 +248,7 @@ export async function captureSlice01Baseline() {
       throw new Error(`${error.message} ${describeProbeProgress(progress)}`, { cause: error });
     }
 
-    const { connectDevelopmentClient } = await import('../../cli/src/development/client.ts');
+    const { connectDevelopmentClient } = await import('../../../../../packages/cli/src/development/client.ts');
     const client = await waitFor(() => connectDevelopmentClient(), {
       timeoutMilliseconds: 10_000,
       intervalMilliseconds: 100,

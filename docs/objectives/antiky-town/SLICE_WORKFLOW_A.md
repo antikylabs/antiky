@@ -67,6 +67,9 @@ Keep each slice contract and its delivery outputs together:
 slice-NN/
   plan.md
   owner-input_H.md       optional; only when owner judgment is required
+  verification/
+    verify.mjs           complete slice check
+    tests/               tests for slice-specific evidence and policy
   outputs/
     README.md
     {run-id}/
@@ -80,6 +83,16 @@ slice-NN/
 
 Keep product and framework implementation in `packages/`. Do not copy implementation files into the
 slice folder.
+
+Keep all slice-specific verification code in the slice `verification/` folder. This code includes
+the complete verifier, evidence contract, report builder, fixtures, probes that encode slice policy,
+and tests for those files. A root project command can point to the verifier. A product package must
+not know the slice schedule.
+
+Keep reusable, schedule-independent verification systems in `scripts/verification/`. These systems
+can control a browser, manage a development process, capture generic GPU facts, or write evidence.
+They must not know a slice number or an objective schedule. Do not put a slice-numbered file in
+`packages/` or `scripts/`.
 
 Keep durable usage guidance in `docs/user-facing-docs/`. It is product documentation, not a slice
 output. The slice receipt links each page that the run changed.
@@ -203,6 +216,10 @@ If the slice needs owner judgment, also create `slice-NN/owner-input_H.md`. Link
 block and required-reading list. Do not copy the questions into the plan.
 
 Create `slice-NN/outputs/README.md`. The goal writes each run to `slice-NN/outputs/{run-id}/`.
+
+Create `slice-NN/verification/` when the slice needs executable verification. Put its verifier,
+fixtures, report code, evidence policy, and verifier tests in that folder. Reuse general systems
+from `scripts/verification/`.
 
 The real plan must name:
 

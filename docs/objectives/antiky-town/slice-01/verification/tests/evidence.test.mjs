@@ -10,7 +10,7 @@ import {
   validateArtifactDigests,
   validateReceipt,
   writeReceiptAtomic,
-} from '../scripts/slice-01-evidence.mjs';
+} from '../evidence.mjs';
 
 const revision = 'a'.repeat(40);
 
@@ -49,7 +49,7 @@ function passingReceipt(runId, artifacts) {
     goalAudit: { status: 'PASS', outcome: 'fixture' },
     afterCompletion: {
       owner: 'Framework and demo maintainers',
-      health: 'npm run verify:slice-01 --workspace @antiky/demos',
+      health: 'npm run verify:slice-01',
       feedback: 'formal objective inboxes',
       rollback: 'tested corrective or revert commit',
       retirement: 'replace only through a tested versioned contract',

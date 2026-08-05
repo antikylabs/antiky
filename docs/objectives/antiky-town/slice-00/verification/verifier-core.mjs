@@ -2,7 +2,15 @@ import assert from 'node:assert/strict';
 import { access, chmod, constants, copyFile, mkdir, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-import sharp from 'sharp';
+export {
+  assertCaptureHasContent,
+  assertChromeNetworkIsolation,
+  capturePageAtViewport,
+  comparePageCaptures,
+  copyTreeExclusive,
+  createChromeArguments,
+  parseWorkingTreePaths,
+} from '../../../../../scripts/verification/browser.mjs';
 
 async function exists(file) {
   return access(file).then(() => true, () => false);
@@ -12,73 +20,17 @@ function formatRunId(date) {
   return `s00-${date.toISOString().replaceAll('-', '').replaceAll(':', '').replace(/\.\d{3}Z$/, 'Z')}`;
 }
 
-export function parseWorkingTreePaths(status) {
-  return status.split(/\r?\n/)
-    .filter(Boolean)
-    .map((line) => line.slice(3).split(' -> ').at(-1));
-}
-
-export async function capturePageAtViewport(cdp, width, height) {
-  const screenshot = await cdp.send('Page.captureScreenshot', {
-    format: 'png',
-    fromSurface: true,
-    captureBeyondViewport: true,
-    clip: { x: 0, y: 0, width, height, scale: 1 },
-  });
-  return screenshot.data;
-}
-
-export function createChromeArguments({ profile, gameUrl }) {
-  return [
-    '--headless=new',
-    '--no-first-run',
-    '--no-default-browser-check',
-    '--disable-background-networking',
-    '--disable-component-update',
-    '--disable-sync',
-    '--disable-quic',
-    '--disable-gpu-sandbox',
-    '--enable-unsafe-webgpu',
-    '--use-angle=metal',
-    '--proxy-server=http://127.0.0.1:9',
-    '--proxy-bypass-list=127.0.0.1',
-    '--host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1',
-    '--remote-debugging-address=127.0.0.1',
-    '--remote-debugging-port=9322',
-    `--user-data-dir=${profile}`,
-    '--window-size=756,469',
-    gameUrl,
-  ];
-}
-
-export function assertChromeNetworkIsolation(log) {
-  assert.doesNotMatch(
-    log,
-    /Registration response/i,
-    'Chrome received an external endpoint response during isolated verification',
-  );
-}
-
 export async function copyBaselineArtifacts(source, destination) {
-  await copyFile(path.join(source, 'baseline.md'), path.join(destination, 'baseline.md'), constants.COPYFILE_EXCL);
+  await copyFile(
+    path.join(source, 'baseline.md'),
+    path.join(destination, 'baseline.md'),
+    constants.COPYFILE_EXCL,
+  );
   for (const file of ['baseline-town-ready.png', 'baseline-town.png']) {
     const target = path.join(destination, 'captures', file);
+    await mkdir(path.dirname(target), { recursive: true });
     await copyFile(path.join(source, 'captures', file), target, constants.COPYFILE_EXCL);
     await chmod(target, 0o600);
-  }
-}
-
-export async function copyTreeExclusive(source, destination) {
-  for (const entry of await readdir(source, { withFileTypes: true }).catch(() => [])) {
-    const from = path.join(source, entry.name);
-    const to = path.join(destination, entry.name);
-    if (entry.isDirectory()) {
-      await mkdir(to, { recursive: true, mode: 0o700 });
-      await copyTreeExclusive(from, to);
-    } else if (entry.isFile()) {
-      await copyFile(from, to, constants.COPYFILE_EXCL);
-      await chmod(to, 0o600);
-    }
   }
 }
 
@@ -125,28 +77,4 @@ export function assertSnapshotParity(direct, other, label) {
   assert.deepEqual(other.inspection?.diagnostics, direct.inspection?.diagnostics, `${label} diagnostics differ`);
   assert.deepEqual(other.inspection?.measurements.render, direct.inspection?.measurements.render, `${label} render facts differ`);
   assert.equal(other.inspection?.measurements.runtime.owner, 'framework', `${label} runtime owner differs`);
-}
-
-export async function assertCaptureHasContent(file) {
-  const metadata = await sharp(file).metadata();
-  const statistics = await sharp(file).stats();
-  const channelStandardDeviation = Math.max(...statistics.channels.slice(0, 3).map((channel) => channel.stdev));
-  assert.ok(metadata.width > 0 && metadata.height > 0, 'capture dimensions must be positive');
-  assert.ok(channelStandardDeviation >= 8, `capture is visually blank (${channelStandardDeviation.toFixed(3)} channel deviation)`);
-  return { width: metadata.width, height: metadata.height, channelStandardDeviation };
-}
-
-export async function comparePageCaptures(referenceFile, resultFile) {
-  const pixels = async (file) => sharp(file)
-    .removeAlpha()
-    .resize(96, 60, { fit: 'fill' })
-    .raw()
-    .toBuffer();
-  const [reference, result] = await Promise.all([pixels(referenceFile), pixels(resultFile)]);
-  assert.equal(result.length, reference.length, 'page capture sample sizes differ');
-  let difference = 0;
-  for (let index = 0; index < reference.length; index += 1) {
-    difference += Math.abs(reference[index] - result[index]);
-  }
-  return { similarity: Number((1 - difference / (reference.length * 255)).toFixed(6)) };
 }

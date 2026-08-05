@@ -26,23 +26,24 @@ import {
   writeJsonAtomic,
   writeReceiptAtomic,
   writeTextAtomic,
-} from './slice-01-evidence.mjs';
-import { gpuProbeSource, summarizeGpuProbe } from './slice-01-gpu-probe.mjs';
+} from './evidence.mjs';
+import { gpuProbeSource, summarizeGpuProbe } from './town-gpu-profile.mjs';
 import {
   createAcceptance,
   createConfirmation,
   createFacts,
   createMeasurements,
   createReceipt,
-} from './slice-01-report.mjs';
+} from './report.mjs';
 import {
   assertIdleGpuDelta,
+  assertReadyDevelopmentSnapshot,
   assertRejectedPointLightState,
   assertSteadyGpuMatchesBaseline,
   gpuCounterDelta,
   pointLightStateVector,
   selectOpenSlice01Run,
-} from './slice-01-verifier-core.mjs';
+} from './verifier-core.mjs';
 import {
   assertPortsAvailable,
   CdpClient,
@@ -53,20 +54,19 @@ import {
   stopOwnedProcess,
   waitFor,
   waitForChromeTarget,
-} from '../../../scripts/slice-00-runtime.mjs';
+} from '../../../../../scripts/verification/runtime.mjs';
 import {
   assertCaptureHasContent,
   assertChromeNetworkIsolation,
-  assertReadySnapshot,
   capturePageAtViewport,
   comparePageCaptures,
   copyTreeExclusive,
   createChromeArguments,
   parseWorkingTreePaths,
-} from '../../../scripts/slice-00-verifier-core.mjs';
+} from '../../../../../scripts/verification/browser.mjs';
 
 const executeFile = promisify(execFile);
-const root = path.resolve(import.meta.dirname, '../../..');
+const root = path.resolve(import.meta.dirname, '../../../../..');
 const outputRoot = path.join(root, 'docs/objectives/antiky-town/slice-01/outputs');
 const gameUrl = 'http://127.0.0.1:3010/';
 const mcpUrl = 'http://127.0.0.1:3011/mcp';
@@ -413,7 +413,7 @@ export async function runSlice01Verification() {
     }, { timeoutMilliseconds: 30_000, intervalMilliseconds: 200, label: 'the focused Antiky Town host' });
     timing.gameReachable = Math.round(performance.now() - devStarted);
 
-    const { connectDevelopmentClient } = await import('../../cli/src/development/client.ts');
+    const { connectDevelopmentClient } = await import('../../../../../packages/cli/src/development/client.ts');
     const client = await waitFor(() => connectDevelopmentClient(), {
       timeoutMilliseconds: 10_000,
       intervalMilliseconds: 100,
@@ -441,7 +441,7 @@ export async function runSlice01Verification() {
 
     const initial = await waitForSnapshot(client, (snapshot) => {
       try {
-        assertReadySnapshot(snapshot);
+        assertReadyDevelopmentSnapshot(snapshot);
         return pointLightStateVector(snapshot, ids.marketLamp).revision === 1;
       } catch {
         return false;
@@ -695,7 +695,7 @@ export async function runSlice01Verification() {
     cdp = await CdpClient.connect(target.webSocketDebuggerUrl);
     const reloaded = await waitForSnapshot(client, (snapshot) => {
       try {
-        assertReadySnapshot(snapshot);
+        assertReadyDevelopmentSnapshot(snapshot);
         const vector = pointLightStateVector(snapshot, ids.marketLamp);
         return snapshot.inspection.runtime.instanceId !== initial.inspection.runtime.instanceId
           && vector.revision === 1
@@ -720,7 +720,7 @@ export async function runSlice01Verification() {
       { flag: 'wx', mode: 0o600 },
     );
 
-    const { findDemo } = await import('../src/catalog.ts');
+    const { findDemo } = await import('../../../../../packages/demos/src/catalog.ts');
     assert.equal(findDemo('antiky-town')?.title, 'Antiky Town');
     assert.equal(findDemo('town-study')?.title, 'Town Study');
 
@@ -870,7 +870,7 @@ export async function runSlice01Verification() {
     { command: 'npm test --workspace @antiky/demos', status: 'PASS', evidence: 'included by npm run check' },
     { command: 'npm test --workspace @antiky/framework', status: 'PASS', evidence: 'included by npm run check' },
     { command: 'npm test --workspace @antiky/cli', status: 'PASS', evidence: 'included by npm run check' },
-    { command: 'npm run verify:slice-01 --workspace @antiky/demos', status: 'PASS', evidence: correlationId },
+    { command: 'npm run verify:slice-01', status: 'PASS', evidence: correlationId },
   ];
   context.documentation = [
     { path: 'docs/user-facing-docs/framework/point-lights.md', status: 'PASS' },

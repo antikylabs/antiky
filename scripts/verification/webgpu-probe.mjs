@@ -1,16 +1,3 @@
-import spriteShader from '../src/demos/brometal-town/shaders/town-sprite.shader.gen.ts';
-import voxelShader from '../src/demos/brometal-town/shaders/town-voxel.shader.gen.ts';
-import waterShader from '../src/demos/brometal-town/shaders/town-water.shader.gen.ts';
-
-const FRAME_DRAW_PATTERN = Object.freeze([6, 9, 1]);
-
-export const affectedUniformBlocks = Object.freeze([
-  Object.freeze({ program: 'world', bytes: voxelShader.layout.uniformBlockSize }),
-  Object.freeze({ program: 'actor-edges', bytes: voxelShader.layout.uniformBlockSize }),
-  Object.freeze({ program: 'actors', bytes: spriteShader.layout.uniformBlockSize }),
-  Object.freeze({ program: 'water', bytes: waterShader.layout.uniformBlockSize }),
-]);
-
 function addRecord(target, source) {
   for (const [key, value] of Object.entries(source ?? {})) {
     target[key] = (target[key] ?? 0) + value;
@@ -21,25 +8,17 @@ function sumRecordValues(record) {
   return Object.values(record).reduce((sum, value) => sum + value, 0);
 }
 
-function expectedAffectedWrites() {
-  const writes = {};
-  for (const block of affectedUniformBlocks) {
-    writes[block.bytes] = (writes[block.bytes] ?? 0) + 1;
-  }
-  return writes;
-}
-
-function completeFrames(submissions) {
+function completeFrames(submissions, drawPattern) {
   const frames = [];
-  for (let index = 0; index <= submissions.length - FRAME_DRAW_PATTERN.length;) {
-    const candidate = submissions.slice(index, index + FRAME_DRAW_PATTERN.length);
+  for (let index = 0; index <= submissions.length - drawPattern.length;) {
+    const candidate = submissions.slice(index, index + drawPattern.length);
     const matches = candidate.every((submission, offset) => (
-      submission.drawCalls === FRAME_DRAW_PATTERN[offset]
+      submission.drawCalls === drawPattern[offset]
       && (offset === 0 || submission.index === candidate[offset - 1].index + 1)
     ));
     if (matches) {
       frames.push(candidate);
-      index += FRAME_DRAW_PATTERN.length;
+      index += drawPattern.length;
     } else {
       index += 1;
     }
@@ -68,16 +47,25 @@ function summarizeNumbers(values) {
   });
 }
 
-export function summarizeGpuProbe(probe, maximumFrames = 20) {
+export function selectCompleteGpuFrames(probe, drawPattern, maximumFrames = 20) {
   if (probe?.version !== 1 || !Array.isArray(probe.submissions)) {
     throw new Error('The GPU probe payload is invalid.');
   }
   if (probe.installError) throw new Error(`The GPU probe did not install: ${probe.installError}`);
+  if (!Array.isArray(drawPattern) || drawPattern.length === 0) {
+    throw new Error('The GPU frame draw pattern is invalid.');
+  }
 
-  const frames = completeFrames(probe.submissions).slice(-maximumFrames);
-  if (frames.length === 0) throw new Error('The GPU probe found no complete [6, 9, 1] town frame.');
+  const frames = completeFrames(probe.submissions, drawPattern).slice(-maximumFrames);
+  if (frames.length === 0) {
+    throw new Error(`The GPU probe found no complete [${drawPattern.join(', ')}] frame.`);
+  }
+  return frames;
+}
 
-  const expected = expectedAffectedWrites();
+export function summarizeGpuFrames(probe, { drawPattern, maximumFrames = 20 }) {
+  const frames = selectCompleteGpuFrames(probe, drawPattern, maximumFrames);
+
   const frameFacts = frames.map((submissions) => {
     const writesByKind = {};
     const writesBySizeAndKind = {};
@@ -97,15 +85,6 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
       }
     }
 
-    const sceneUniformWrites = submissions[1].writeBufferCallsByKindAndSize?.uniform ?? {};
-    for (const [bytes, count] of Object.entries(expected)) {
-      if (sceneUniformWrites[bytes] !== count) {
-        throw new Error(
-          `The scene submission wrote ${sceneUniformWrites[bytes] ?? 0} uniform blocks of ${bytes} bytes; expected ${count}.`,
-        );
-      }
-    }
-
     return {
       draws,
       commandBuffers,
@@ -116,7 +95,6 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
     };
   });
 
-  const affectedBytes = affectedUniformBlocks.reduce((sum, block) => sum + block.bytes, 0);
   const allKinds = new Set(frameFacts.flatMap((frame) => Object.keys(frame.writesByKind)));
   const writeBufferBytesPerFrame = {};
   for (const kind of allKinds) {
@@ -159,7 +137,7 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
     observedFrames: frames.length,
     firstSubmission: frames[0][0].index,
     lastSubmission: frames.at(-1).at(-1).index,
-    queueSubmissionsPerFrame: FRAME_DRAW_PATTERN.length,
+    queueSubmissionsPerFrame: drawPattern.length,
     commandBuffersPerFrame: stableValue(
       frameFacts.map((frame) => frame.commandBuffers),
       'command-buffer count',
@@ -167,16 +145,13 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
     drawCallsPerFrame: stableValue(frameFacts.map((frame) => frame.draws), 'draw count'),
     writeBufferBytesPerFrame,
     uniformWriteCallsBySize: frameFacts[0].writesBySizeAndKind.uniform ?? {},
-    affectedUniformBlocks,
-    affectedUniformBytesPerFrame: affectedBytes,
-    affectedUniformWritesPerFrame: expected,
     readbackOperationsPerFrame,
     resourceCreationsPerFrame,
     resourcesCreatedDuringWindow,
   });
 }
 
-export const gpuProbeSource = String.raw`(() => {
+export const webGpuProbeSource = String.raw`(() => {
   const state = {
     version: 1,
     installError: null,

@@ -12,7 +12,7 @@ This plan is the implementation contract. The accepted owner decisions are in
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Depends on | [`../slice-00/plan.md`](../slice-00/plan.md) completed |
 | Alignment revision | `c59085bf6f2f887023675b7e1297900862b5177e` |
-| Complete check | `npm run verify:slice-01 --workspace @antiky/demos` |
+| Complete check | `npm run verify:slice-01` |
 | Evidence | `docs/objectives/antiky-town/slice-01/outputs/{run-id}/receipt.json` |
 
 The goal runner must read the owner-input file and completed Slice 00 evidence. It must stop on a
@@ -279,7 +279,7 @@ event sequence `1`. Correction restores `1.05` at revision `3` and event sequenc
 - [ ] Framework and applicable CLI or Studio docs match the shipped behavior and pass their checks.
 - [ ] `town-study` remains available with no unapproved visual change.
 - [ ] Framework tests and `npm run check` pass.
-- [ ] `npm run verify:slice-01 --workspace @antiky/demos` passes from one clean start.
+- [ ] `npm run verify:slice-01` passes from one clean start.
 - [ ] The evidence receipt links the run, attempts, checkpoints, commands, facts, revisions,
   projections, runtimes, measurements, captures, tests, and artifacts.
 

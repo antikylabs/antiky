@@ -182,6 +182,11 @@ Name the concrete boundaries and cases. Use a table only when exact mapping help
 
 For a reported error, add a failing regression test before the fix.
 
+Put the complete verifier, slice-specific fixtures, evidence policy, report code, and their tests in
+this slice's `verification/` folder. Import reusable, schedule-independent mechanics from
+`scripts/verification/`. A root project command can point here. Do not put slice-numbered
+verification files or objective schedule knowledge in a product package or in `scripts/`.
+
 ## Completion checks
 
 - [ ] `<owner-input status is ANSWERED, when applicable>`

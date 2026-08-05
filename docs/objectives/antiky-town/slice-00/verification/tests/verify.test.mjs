@@ -6,7 +6,7 @@ import test from 'node:test';
 
 import sharp from 'sharp';
 
-import { copyBaselineArtifacts } from './slice-00-verifier-core.mjs';
+import { copyBaselineArtifacts } from '../verifier-core.mjs';
 
 import {
   assertCaptureHasContent,
@@ -18,7 +18,7 @@ import {
   createChromeArguments,
   parseWorkingTreePaths,
   selectRunId,
-} from './verify-slice-00.mjs';
+} from '../verify.mjs';
 
 function readySnapshot(runtimeInstanceId = 'runtime-001') {
   return {
@@ -65,7 +65,7 @@ test('ready-state validation requires the running town and exact reference measu
 });
 
 test('the complete verifier uses the focused host and tools-only HTTP MCP surface', async () => {
-  const source = await readFile(new URL('./verify-slice-00.mjs', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../verify.mjs', import.meta.url), 'utf8');
 
   assert.match(source, /const gameUrl = 'http:\/\/127\.0\.0\.1:3010\/'/);
   assert.match(source, /packages\/cli\/src\/development\/client\.ts/);
