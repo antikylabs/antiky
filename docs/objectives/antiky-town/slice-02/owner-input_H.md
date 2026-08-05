@@ -27,6 +27,26 @@ change the recommendation. Change the status to `ANSWERED` after all answers are
 - Record important accepted facts as durable domain events. Keep frequent simulation state
   temporary unless a game enables a bounded replay or audit policy.
 
+## Approved framework boundary
+
+The answers in this file select reusable mechanisms. They do not make Antiky Town's current game
+policy a Framework rule.
+
+- Framework supplies the fixed clock, ordered execution, stable IDs, explicit input, revisions,
+  immutable inspection, and a command boundary.
+- Framework does not require a durable event for every step, input, position, velocity, or physics
+  result. It does not select a replay format or a retention period.
+- A game can later attach a bounded input journal, checkpoints, state hashes, or selected traces to
+  its authoritative session. Those features are optional policies with their own proven use cases.
+- A local game can treat its browser session as authoritative. In server-authoritative multiplayer,
+  the server session owns accepted input and canonical history. Client prediction records remain
+  temporary and untrusted.
+- Antiky Town keeps its browser lifecycle, keyboard-to-movement mapping, Town system adapter, and
+  history choices private. Do not promote them to public Framework APIs from this slice alone.
+
+A later slice must prove a second consumer or a broader architecture requirement before it adds a
+general host API, journal API, checkpoint API, or high-frequency event policy to Framework.
+
 ## Question 1: Should we accept a narrow game-host lifecycle ADR now?
 
 ### Context
@@ -182,6 +202,11 @@ This keeps simple games small without preventing competitive games from selectin
 ### Owner answer
 
 `APPROVE`
+
+This approval preserves optional richer history. It does not turn Antiky Town's selective event
+policy into a universal Framework default. Competitive games can record more data at their
+authoritative server session without making every browser-hosted game pay that storage and API
+cost.
 
 ## Work that does not need owner input
 
