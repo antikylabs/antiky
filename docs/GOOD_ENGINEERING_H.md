@@ -2,7 +2,6 @@
 
 What follows are short bullet points on what makes good engineering, will be expanded as best practices for AI Agents to follow
 
-
 ## Complexity is the Enemy
 - Complexity is the #1 threat to software. Fight it relentlessly.
 - Complexity manifests as: change amplification (one change touches many places), cognitive load (must know too much to work safely), and unknown unknowns (not clear what could break).
@@ -133,3 +132,8 @@ What follows are short bullet points on what makes good engineering, will be exp
 - Secrets don't go in code, logs, or error messages. No exceptions.
 - Secure your defaults everywhere — don't run as root, don't commit `.env`, don't connect local to prod.
 - Vulnerabilities cluster. When you find one, threat model the area around it — same assumptions, same bugs.
+
+## Speak like a human
+- Engineers don't have to speak in technical jargon to get things done.
+- Speaking in ways that others can understand helps build collaboration and cooperation.
+- Understand your audience when you write documentation, or talk to people.

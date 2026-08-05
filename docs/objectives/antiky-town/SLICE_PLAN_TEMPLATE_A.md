@@ -220,3 +220,5 @@ Write `receipt.json`, `confirmation-checks.md`, and `facts.json` under this slic
 `outputs/{run-id}/` directory. Add measurements, captures, and logs only when the plan needs them.
 
 Update `../slice-list.md` from the run's facts before closeout.
+
+Write a `slice-summary.md` that tells the owner/human what they need to know about the slice development, what changed in the repo, what was added to CLI/Framework/Studio, and how to test. Keep it simple and straight forward and put it under this slice's directory.
