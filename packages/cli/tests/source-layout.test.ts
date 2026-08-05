@@ -46,7 +46,13 @@ test('CLI source groups implementation files by responsibility', async () => {
 test('framework inspection code has a domain home as the package grows', async () => {
   assert.deepEqual(await topLevelTypeScriptFiles(frameworkSource), ['index.ts']);
   await assertFilesExist(frameworkSource, [
+    'identity/ids.test.ts',
+    'identity/ids.ts',
     'inspection/snapshot.test.ts',
     'inspection/snapshot.ts',
+    'point-light/records.test.ts',
+    'point-light/records.ts',
+    'point-light/service.test.ts',
+    'point-light/service.ts',
   ]);
 });

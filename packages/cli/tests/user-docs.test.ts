@@ -18,6 +18,7 @@ const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const userDocsRoot = join(repositoryRoot, 'docs', 'user-facing-docs');
 const cliGuidePath = join(userDocsRoot, 'cli', 'development.md');
 const frameworkGuidePath = join(userDocsRoot, 'framework', 'inspection.md');
+const pointLightGuidePath = join(userDocsRoot, 'framework', 'point-lights.md');
 const studioGuidePath = join(
   userDocsRoot,
   'studio',
@@ -36,9 +37,10 @@ async function verifyLocalLinks(path: string, source: string): Promise<void> {
 }
 
 test('user-facing development docs are standalone and match the shipped interfaces', async () => {
-  const [cliGuide, frameworkGuide, studioGuide, agentsGuide, claudeGuide] = await Promise.all([
+  const [cliGuide, frameworkGuide, pointLightGuide, studioGuide, agentsGuide, claudeGuide] = await Promise.all([
     readFile(cliGuidePath, 'utf8'),
     readFile(frameworkGuidePath, 'utf8'),
+    readFile(pointLightGuidePath, 'utf8'),
     readFile(studioGuidePath, 'utf8'),
     readFile(agentsGuidePath, 'utf8'),
     readFile(claudeGuidePath, 'utf8'),
@@ -82,9 +84,23 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.doesNotMatch(config.game.url, /town-study/i);
 
   const deliveryLanguage = /Slice \d+|N\/A for Studio UI|acceptance evidence|checkpoint|milestone/i;
-  for (const guide of [cliGuide, frameworkGuide, studioGuide]) {
+  for (const guide of [cliGuide, frameworkGuide, pointLightGuide, studioGuide]) {
     assert.doesNotMatch(guide, deliveryLanguage);
   }
+
+  for (const publicName of [
+    'createWorldId',
+    'parseEntityId',
+    'createTransform',
+    'createPointLight',
+    'createPointLightAuthoringService',
+  ]) {
+    assert.ok(pointLightGuide.includes(publicName), `Point-light guide omits ${publicName}`);
+  }
+  assert.match(pointLightGuide, /UUIDv7/);
+  assert.match(pointLightGuide, /linear RGB/i);
+  assert.match(pointLightGuide, /0[^\n]*through[^\n]*4/);
+  assert.match(pointLightGuide, /immutable/i);
 
   assert.match(studioGuide, /connectDevelopmentClient/);
   assert.match(agentsGuide, /standalone product documentation/i);
@@ -95,5 +111,6 @@ test('user-facing development docs are standalone and match the shipped interfac
 
   await verifyLocalLinks(cliGuidePath, cliGuide);
   await verifyLocalLinks(frameworkGuidePath, frameworkGuide);
+  await verifyLocalLinks(pointLightGuidePath, pointLightGuide);
   await verifyLocalLinks(studioGuidePath, studioGuide);
 });

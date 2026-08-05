@@ -12,16 +12,23 @@ const forbiddenImports = [
   /^@modelcontextprotocol(?:\/|$)/,
 ];
 
+async function sourceFiles(directory) {
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const url = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, directory);
+    if (entry.isDirectory()) files.push(...await sourceFiles(url));
+    else if (entry.isFile() && entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) {
+      files.push(url);
+    }
+  }
+  return files;
+}
+
 test('framework source has no Node, React, Next, BroMetal, Studio, or MCP imports', async () => {
-  const names = await readdir(sourceDirectory);
-  const sources = await Promise.all(
-    names
-      .filter((name) => name.endsWith('.ts') && !name.endsWith('.test.ts'))
-      .map(async (name) => ({
-        name,
-        text: await readFile(new URL(name, sourceDirectory), 'utf8'),
-      })),
-  );
+  const sources = await Promise.all((await sourceFiles(sourceDirectory)).map(async (url) => ({
+    name: url.pathname.slice(sourceDirectory.pathname.length),
+    text: await readFile(url, 'utf8'),
+  })));
 
   for (const source of sources) {
     const specifiers = Array.from(
@@ -38,9 +45,9 @@ test('framework source has no Node, React, Next, BroMetal, Studio, or MCP import
 });
 
 test('framework runtime source does not reference browser globals', async () => {
-  const names = await readdir(sourceDirectory);
-  for (const name of names.filter((entry) => entry.endsWith('.ts') && !entry.endsWith('.test.ts'))) {
-    const source = await readFile(new URL(name, sourceDirectory), 'utf8');
+  for (const url of await sourceFiles(sourceDirectory)) {
+    const source = await readFile(url, 'utf8');
+    const name = url.pathname.slice(sourceDirectory.pathname.length);
     assert.doesNotMatch(source, /\b(?:window|document|navigator)\b/, `${name} uses a browser global`);
   }
 });
