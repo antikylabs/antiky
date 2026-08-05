@@ -106,14 +106,13 @@ export function assertReadySnapshot(snapshot) {
   assert.equal(snapshot.inspection?.runtime.lifecycle, 'running', 'town must report a running lifecycle');
   assert.ok(snapshot.inspection.measurements.runtime.frameCount > 2, 'running town must advance frames');
   assert.ok(snapshot.inspection.measurements.runtime.framesPerSecond > 0, 'running town must report frame rate');
-  assert.deepEqual(snapshot.inspection.measurements.render, {
-    owner: 'framework',
-    canvasWidth: 694,
-    canvasHeight: 512,
-    drawCalls: 16,
-    instances: 1247,
-    uploadBytesPerFrame: 1152,
-  });
+  const render = snapshot.inspection.measurements.render;
+  assert.equal(render.owner, 'framework');
+  assert.ok(render.canvasWidth > 0, 'running town must report a positive canvas width');
+  assert.ok(render.canvasHeight > 0, 'running town must report a positive canvas height');
+  assert.equal(render.drawCalls, 16, 'running town draw count differs');
+  assert.equal(render.instances, 1247, 'running town instance count differs');
+  assert.equal(render.uploadBytesPerFrame, 1152, 'running town upload count differs');
   assert.deepEqual(snapshot.diagnostics, []);
   assert.deepEqual(snapshot.inspection.diagnostics, []);
 }

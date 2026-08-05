@@ -40,8 +40,8 @@ function readySnapshot(runtimeInstanceId = 'runtime-001') {
         runtime: { owner: 'framework', frameCount: 120, framesPerSecond: 60 },
         render: {
           owner: 'framework',
-          canvasWidth: 694,
-          canvasHeight: 512,
+          canvasWidth: 1280,
+          canvasHeight: 720,
           drawCalls: 16,
           instances: 1247,
           uploadBytesPerFrame: 1152,
@@ -62,6 +62,18 @@ test('ready-state validation requires the running town and exact reference measu
     () => assertReadySnapshot(blankPreview),
     /running lifecycle/,
   );
+});
+
+test('the complete verifier uses the focused host and tools-only HTTP MCP surface', async () => {
+  const source = await readFile(new URL('./verify-slice-00.mjs', import.meta.url), 'utf8');
+
+  assert.match(source, /const gameUrl = 'http:\/\/127\.0\.0\.1:3010\/'/);
+  assert.match(source, /packages\/cli\/src\/development\/client\.ts/);
+  assert.match(source, /name: 'get_runtime_status'/);
+  assert.match(source, /mcpUrl/);
+  assert.doesNotMatch(source, /packages\/cli\/src\/client\.ts/);
+  assert.doesNotMatch(source, /resources\/(?:list|read)|requiredResources|antiky:\/\//);
+  assert.doesNotMatch(source, /\/demos\/town-study/);
 });
 
 test('client parity compares the shared identities and complete inspection snapshot', () => {

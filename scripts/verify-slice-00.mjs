@@ -40,7 +40,6 @@ import {
   assertPortsAvailable,
   CdpClient,
   createChromeProfile,
-  McpStdioClient,
   removeChromeProfile,
   runLoggedCommand,
   startLoggedProcess,
@@ -77,18 +76,12 @@ export {
 const executeFile = promisify(execFile);
 const root = path.resolve(import.meta.dirname, '..');
 const outputRoot = path.join(root, 'docs/objectives/antiky-town/slice-00/outputs');
-const canonicalBaselineRunId = 's00-20260804T185103Z';
+const canonicalBaselineRunId = 's00-20260804T205140Z';
 const canonicalBaselineDirectory = path.join(outputRoot, canonicalBaselineRunId);
-const gameUrl = 'http://127.0.0.1:3010/demos/town-study';
+const gameUrl = 'http://127.0.0.1:3010/';
+const mcpUrl = 'http://127.0.0.1:3011/mcp';
 const chromePath = process.env.ANTIKY_CHROME_PATH
   ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const requiredResources = [
-  'antiky://dev/status',
-  'antiky://build/latest',
-  'antiky://runtime/status',
-  'antiky://render/stats',
-  'antiky://diagnostics',
-];
 const requiredTools = [
   'get_dev_status',
   'get_latest_build',
@@ -150,10 +143,11 @@ async function evaluateValue(cdp, expression) {
 
 async function enterRunningTown(cdp) {
   await waitFor(async () => evaluateValue(cdp, `(() => {
+    if (document.querySelector('.stage')?.getAttribute('data-phase') === 'running') return true;
     const button = document.querySelector('.stage-activate');
     if (!button) return false;
     button.click();
-    return true;
+    return false;
   })()`), { timeoutMilliseconds: 30_000, intervalMilliseconds: 100, label: 'the Enter the town control' });
 }
 
@@ -162,24 +156,41 @@ async function browserFacts(cdp) {
     title: document.title,
     phase: document.querySelector('.stage')?.getAttribute('data-phase'),
     text: document.body.innerText,
+    mainLabel: document.querySelector('main')?.getAttribute('aria-label'),
+    hasWebsiteChrome: Boolean(document.querySelector('header, footer, nav')),
     canvasWidth: document.querySelector('canvas')?.width,
     canvasHeight: document.querySelector('canvas')?.height
   })`);
   const facts = JSON.parse(value);
-  assert.equal(facts.title, 'Town Study — Antiky Labs');
+  assert.equal(facts.title, 'Antiky game development');
   assert.equal(facts.phase, 'running');
-  for (const label of ['Town Study', 'All studies', 'Pause', 'Move with WASD']) {
-    assert.ok(facts.text.includes(label), `Visible control or copy is missing: ${label}`);
-  }
-  assert.equal(facts.canvasWidth, 694);
-  assert.equal(facts.canvasHeight, 512);
+  assert.equal(facts.mainLabel, 'Town Study development host');
+  assert.equal(facts.hasWebsiteChrome, false);
+  assert.ok(facts.text.includes('Pause'), 'The focused host pause control is missing.');
+  assert.ok(facts.canvasWidth > 0 && facts.canvasHeight > 0, 'The focused host canvas is empty.');
   return facts;
 }
 
-function readMcpResource(result) {
-  assert.equal(result.contents.length, 1);
-  assert.equal(result.contents[0].mimeType, 'application/json');
-  return JSON.parse(result.contents[0].text);
+let nextMcpRequestId = 1;
+
+async function requestMcp(method, params = {}) {
+  const id = nextMcpRequestId;
+  nextMcpRequestId += 1;
+  const response = await fetch(mcpUrl, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      'mcp-protocol-version': '2025-11-25',
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  assert.equal(response.status, 200, `MCP ${method} returned ${response.status}`);
+  const message = await response.json();
+  assert.equal(message.id, id, `MCP ${method} returned the wrong response ID`);
+  assert.equal(message.error, undefined, `MCP ${method} returned ${JSON.stringify(message.error)}`);
+  return message.result;
 }
 
 async function filesUnder(directory, prefix = '') {
@@ -228,7 +239,6 @@ export async function runSlice00Verification() {
 
   let dev;
   let chrome;
-  let mcp;
   let cdp;
   let chromeProfile;
   let verificationError;
@@ -263,7 +273,7 @@ export async function runSlice00Verification() {
       return response.ok;
     }, { timeoutMilliseconds: 30_000, intervalMilliseconds: 200, label: 'the town route' });
     timing.gameReachableMilliseconds = Math.round(performance.now() - devStarted);
-    const { connectDevelopmentClient } = await import('../packages/cli/src/client.ts');
+    const { connectDevelopmentClient } = await import('../packages/cli/src/development/client.ts');
     const client = await waitFor(() => connectDevelopmentClient(), {
       timeoutMilliseconds: 10_000, intervalMilliseconds: 100, label: 'the typed development client',
     });
@@ -284,6 +294,8 @@ export async function runSlice00Verification() {
     }, { timeoutMilliseconds: 30_000, intervalMilliseconds: 100, label: 'the running WebGPU town' });
     timing.runningTownMilliseconds = Math.round(performance.now() - devStarted);
     const surface = await browserFacts(cdp);
+    assert.equal(surface.canvasWidth, first.inspection.measurements.render.canvasWidth);
+    assert.equal(surface.canvasHeight, first.inspection.measurements.render.canvasHeight);
 
     const cli = await runLoggedCommand({
       command: process.execPath,
@@ -294,18 +306,19 @@ export async function runSlice00Verification() {
     const cliSnapshot = JSON.parse(cli.stdout);
     assertSnapshotParity(first, cliSnapshot, 'CLI');
 
-    mcp = await McpStdioClient.start({
-      command: process.execPath,
-      args: ['--experimental-strip-types', '--experimental-transform-types', 'packages/cli/src/bin.ts', 'mcp'],
-      cwd: root,
-      transcriptFile: path.join(logDirectory, 'mcp-transcript.log'),
-      stderrFile: path.join(logDirectory, 'mcp-stderr.log'),
+    const initialized = await requestMcp('initialize', {
+      protocolVersion: '2025-11-25',
+      capabilities: {},
+      clientInfo: { name: 'slice-00-verifier', version: '1' },
     });
-    const resourceList = await mcp.request('resources/list');
-    assert.deepEqual(resourceList.resources.map((resource) => resource.uri), requiredResources);
-    const toolList = await mcp.request('tools/list');
+    assert.deepEqual(initialized.capabilities, { tools: {} });
+    const toolList = await requestMcp('tools/list');
     assert.deepEqual(toolList.tools.map((tool) => tool.name), requiredTools);
-    const mcpRuntime = readMcpResource(await mcp.request('resources/read', { uri: 'antiky://runtime/status' }));
+    const mcpRuntimeResult = await requestMcp('tools/call', {
+      name: 'get_runtime_status', arguments: {},
+    });
+    assert.notEqual(mcpRuntimeResult.isError, true, 'MCP runtime inspection failed');
+    const mcpRuntime = mcpRuntimeResult.structuredContent;
     assertSnapshotParity(first, {
       developmentSessionId: mcpRuntime.developmentSessionId,
       acceptedBuildRevision: mcpRuntime.acceptedBuildRevision,
@@ -313,7 +326,7 @@ export async function runSlice00Verification() {
     }, 'MCP');
 
     const reloadStarted = performance.now();
-    const reloadTool = await mcp.request('tools/call', { name: 'dev_reload', arguments: {} });
+    const reloadTool = await requestMcp('tools/call', { name: 'dev_reload', arguments: {} });
     assert.notEqual(reloadTool.isError, true, 'MCP reload failed');
     const reload = reloadTool.structuredContent;
     timing.reloadMilliseconds = Math.round(performance.now() - reloadStarted);
@@ -334,7 +347,7 @@ export async function runSlice00Verification() {
     assert.equal(reload.newRuntimeInstanceId, reloaded.inspection.runtime.instanceId);
 
     const captureStarted = performance.now();
-    const captureTool = await mcp.request('tools/call', { name: 'capture_frame', arguments: {} });
+    const captureTool = await requestMcp('tools/call', { name: 'capture_frame', arguments: {} });
     assert.notEqual(captureTool.isError, true, 'MCP capture failed');
     const capture = captureTool.structuredContent;
     timing.captureMilliseconds = Math.round(performance.now() - captureStarted);
@@ -345,7 +358,13 @@ export async function runSlice00Verification() {
     await copyFile(capture.path, canvasCapture, constants.COPYFILE_EXCL);
     await chmod(canvasCapture, 0o600);
     const captureContent = await assertCaptureHasContent(canvasCapture);
-    assert.deepEqual({ width: captureContent.width, height: captureContent.height }, { width: 694, height: 512 });
+    assert.deepEqual(
+      { width: captureContent.width, height: captureContent.height },
+      {
+        width: reloaded.inspection.measurements.render.canvasWidth,
+        height: reloaded.inspection.measurements.render.canvasHeight,
+      },
+    );
     const captureBytes = await readFile(canvasCapture);
     assert.equal(hash(captureBytes), capture.sha256);
 
@@ -355,8 +374,8 @@ export async function runSlice00Verification() {
     const pageMetadata = await sharp(pageCapture).metadata();
     assert.deepEqual({ width: pageMetadata.width, height: pageMetadata.height }, { width: 756, height: 469 });
     const visual = await comparePageCaptures(
-      path.join(canonicalBaselineDirectory, 'captures/baseline-town-ready.png'),
-      pageCapture,
+      path.join(canonicalBaselineDirectory, 'captures/town-ready-canvas.png'),
+      canvasCapture,
     );
     const minimumSimilarity = 0.72;
     assert.ok(visual.similarity >= minimumSimilarity, `town capture similarity ${visual.similarity} is below ${minimumSimilarity}`);
@@ -383,17 +402,16 @@ export async function runSlice00Verification() {
       ...visual,
       minimumSimilarity,
       channelStandardDeviation: Number(captureContent.channelStandardDeviation.toFixed(3)),
-      controls: ['Town Study', 'All studies', 'Pause', 'Move with WASD'],
+      controls: ['Town Study development host', 'Pause', 'Movement controls'],
       surface,
     };
-    context.mcp = { resources: requiredResources };
+    context.mcp = { transport: 'streamable-http', tools: requiredTools };
   } catch (error) {
     verificationError = error;
   } finally {
     const cleanupStarted = performance.now();
     const cleanupErrors = [];
     if (cdp) cdp.close();
-    if (mcp) await mcp.close().catch((error) => cleanupErrors.push(error));
     await stopOwnedProcess(chrome).catch((error) => cleanupErrors.push(error));
     await stopOwnedProcess(dev).catch((error) => cleanupErrors.push(error));
     if (chromeProfile) await removeChromeProfile(chromeProfile).catch((error) => cleanupErrors.push(error));

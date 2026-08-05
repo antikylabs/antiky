@@ -168,7 +168,10 @@ export function createFacts(context) {
     clients: {
       direct: 'connectDevelopmentClient',
       cli: 'antiky inspect',
-      mcp: context.mcp.resources,
+      mcp: {
+        transport: context.mcp.transport,
+        tools: context.mcp.tools,
+      },
       studioCompatible: 'connectDevelopmentClient; no Slice 00 Studio UI',
     },
     identities: {

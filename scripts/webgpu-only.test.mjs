@@ -5,7 +5,15 @@ import test from 'node:test';
 
 const root = path.resolve(import.meta.dirname, '..');
 const roots = ['README.md', 'CONTRIBUTING.md', 'docs', 'packages', 'vendor'];
-const ignoredDirectories = new Set(['.impeccable', '.next', '_internal', 'coverage', 'dist', 'node_modules']);
+const ignoredDirectories = new Set([
+  '.impeccable',
+  '.next',
+  '_internal',
+  'adr',
+  'coverage',
+  'dist',
+  'node_modules',
+]);
 const textExtensions = new Set(['.css', '.js', '.json', '.md', '.mjs', '.ts', '.tsx', '.txt']);
 const forbidden = [
   { label: 'WebGL reference', pattern: /\bwebgl(?:2)?\b/i },
@@ -30,6 +38,14 @@ async function filesUnder(relativePath) {
   }
   return files;
 }
+
+test('the public-surface scan excludes human-owned architecture decisions', async () => {
+  const files = await filesUnder('docs');
+  assert.equal(
+    files.some((file) => file.includes(`${path.sep}docs${path.sep}adr${path.sep}`)),
+    false,
+  );
+});
 
 test('public product surfaces stay WebGPU-only', async () => {
   const violations = [];
