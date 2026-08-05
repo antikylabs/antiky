@@ -250,6 +250,8 @@ Research BroMetal for every slice. Record:
 - The relevant BroMetal APIs, limits, ownership rules, design principles, README guidance, and
   release notes.
 - The upgrade work that the slice needs, or `N/A` with a reason.
+- How Antiky can move suitable work into BroMetal and WebGPU while keeping developer APIs useful,
+  reusable, and convenient.
 
 The installed version must match the latest published version before implementation starts. If an
 upgrade is unsafe or outside the slice, put the exception and its effect in the owner-input file.

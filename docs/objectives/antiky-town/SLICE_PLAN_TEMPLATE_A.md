@@ -93,7 +93,7 @@ cost.
 
 - Relevant frameworks: `<current primary sources, approaches, trade-offs, and Antiky result>`
 - BroMetal: `<installed version, latest published version, check command, relevant design rules,
-  and upgrade result>`
+  suitable GPU work, developer-facing boundary, and upgrade result>`
 - Accepted decisions: `<ADRs and architecture rules that control this slice>`
 - `UNDER_REVIEW_A.md`: `<necessary item and owner-input question, or NONE with a reason>`
 
