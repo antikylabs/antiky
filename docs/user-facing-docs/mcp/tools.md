@@ -16,15 +16,21 @@ the action you need.
 | `get_runtime_status` | You need the game connection or complete framework snapshot | No |
 | `get_render_stats` | You need renderer measurements, not an image | No |
 | `get_diagnostics` | A build, runtime, or action is not working | No |
+| `get_session_status` | You need fixed-clock state or a completed-step count | No |
 | `list_point_lights` | You need to discover point lights and their stable IDs | No |
 | `get_point_light` | You need the complete state and history for one light | No |
 | `dev_reload` | A ready build should reload the connected game runtime | Yes |
 | `capture_frame` | You need the exact current game-canvas pixels | Yes |
+| `pause_simulation` | You need the game rules to stop advancing | Yes |
+| `resume_simulation` | You want to remove the tool pause reason | Yes |
+| `step_simulation` | You need exactly one paused fixed tick | Yes |
 | `set_point_light_power` | You need to change a light's power | Yes |
 | `correct_point_light_power` | You need to restore the value before an accepted power change | Yes |
 
-Read tools are advertised as read-only, non-destructive, idempotent, and closed-world. Action tools
-are non-destructive but are not marked read-only or idempotent.
+Read tools are advertised as read-only, non-destructive, idempotent, and closed-world. All action
+tools are non-destructive. The three session-control actions are also advertised as idempotent:
+pause and resume become `NO_OP`, while a repeated step is rejected by its expected count. Other
+action tools are not marked idempotent.
 
 ## Call tools from a terminal
 
@@ -32,6 +38,7 @@ are non-destructive but are not marked read-only or idempotent.
 
 ```sh
 antiky tool get_dev_status
+antiky tool get_session_status
 antiky tool list_point_lights
 antiky tool get_point_light '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'
 ```
@@ -89,6 +96,74 @@ for recovery; show its `message` to a person.
 ```sh
 antiky tool get_diagnostics
 ```
+
+## Engine-session tools
+
+These tools are available when the connected game publishes an `EngineSession`. They return the
+same status and control results as the typed development client and the game's direct session API.
+
+### `get_session_status`
+
+Call this before changing simulation state. It takes no input:
+
+```sh
+antiky tool get_session_status
+```
+
+The result contains session, world, and runtime IDs; running or paused mode; all pause reasons;
+immutable system order; fixed-clock limits and counters; command, control, and world revisions;
+and the latest completed-step digest.
+
+### `pause_simulation`
+
+This tool adds the `tool` pause reason without rebuilding game state:
+
+```sh
+antiky tool pause_simulation
+```
+
+The first accepted call returns `PAUSED`. Repeating it returns `NO_OP`. A user or visibility pause
+can already be present; all reasons remain in the returned session status.
+
+### `resume_simulation`
+
+This tool removes only the `tool` pause reason:
+
+```sh
+antiky tool resume_simulation
+```
+
+The result can still report `mode: "paused"` when a user or visibility pause remains. Repeating the
+call after the tool reason is gone returns `NO_OP`.
+
+### `step_simulation`
+
+First pause the session and read its current completed-step count. Pass that exact count:
+
+```sh
+antiky tool step_simulation '{"expectedCompletedStepCount":42}'
+```
+
+| Input | Type or range | Meaning |
+| --- | --- | --- |
+| `expectedCompletedStepCount` | Integer, 0 or greater | The count from the latest session status |
+
+An accepted call returns `STEPPED`, advances exactly one fixed tick, and renders one paused frame.
+The count makes a retry safe. If the first call succeeded but its response was lost, retrying with
+the same input returns `STALE_COMPLETED_STEP` and changes nothing.
+
+Session-control results use these stable codes:
+
+- `PAUSED`, `RESUMED`, and `STEPPED` report an accepted control change.
+- `NO_OP` means the requested pause reason was already in the requested state.
+- `STALE_COMPLETED_STEP` means the expected count no longer matches.
+- `SESSION_RUNNING` means a step was requested while the session was running.
+- `SESSION_DISPOSED`, `SESSION_BUSY`, and `COUNTER_LIMIT` report an unavailable session state.
+- `INVALID_EXPECTED_STEP` and `INVALID_INPUT` report invalid direct API input. MCP rejects malformed
+  tool arguments before it calls the session.
+
+Every action result includes the action ID, development-session ID, control result, and resulting
+session status. Use the stable code for control flow and the returned status for the next request.
 
 ## Point-light read tools
 
@@ -202,4 +277,5 @@ Use the stable code for control flow. The accompanying message is for a person.
 If a tool cannot run because the game or build is not ready, call `get_runtime_status`,
 `get_latest_build`, and `get_diagnostics` before retrying.
 
+See [Engine sessions](../framework/engine-sessions.md) for the Framework API and host lifecycle.
 See [Point lights](../framework/point-lights.md) for the framework API behind the point-light tools.

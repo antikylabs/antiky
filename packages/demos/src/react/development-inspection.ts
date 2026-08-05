@@ -1,9 +1,14 @@
 import {
+  EngineSessionValidationError,
+  parseEngineControlResult,
+  parseEngineSessionStatus,
   parseCorrectPointLightPowerRequest,
   parsePointLightCommandContext,
   parsePointLightCommandResult,
   parseSetPointLightPowerCommand,
   type CorrectPointLightPowerRequest,
+  type EngineControlResult,
+  type EngineSessionStatus,
   type PointLightCommandContext,
   type PointLightCommandResult,
   type SetPointLightPowerCommand,
@@ -41,6 +46,12 @@ type BrowserAction =
     kind: 'correct-point-light-power';
     request: CorrectPointLightPowerRequest;
     context: PointLightCommandContext;
+  }>)
+  | (BrowserActionBase & Readonly<{ kind: 'pause-simulation' }>)
+  | (BrowserActionBase & Readonly<{ kind: 'resume-simulation' }>)
+  | (BrowserActionBase & Readonly<{
+    kind: 'step-simulation';
+    expectedCompletedStepCount: number;
   }>);
 
 export type BrowserFrameCapture = Readonly<{
@@ -48,6 +59,11 @@ export type BrowserFrameCapture = Readonly<{
   canvasWidth: number;
   canvasHeight: number;
   dataBase64: string;
+}>;
+
+export type BrowserSessionControlResult = Readonly<{
+  result: EngineControlResult;
+  session: EngineSessionStatus;
 }>;
 
 export type DevelopmentInspectionHandlers = Readonly<{
@@ -61,6 +77,11 @@ export type DevelopmentInspectionHandlers = Readonly<{
     request: CorrectPointLightPowerRequest,
     context: PointLightCommandContext,
   ): PointLightCommandResult | Promise<PointLightCommandResult>;
+  pauseSimulation?(): BrowserSessionControlResult | Promise<BrowserSessionControlResult>;
+  resumeSimulation?(): BrowserSessionControlResult | Promise<BrowserSessionControlResult>;
+  stepSimulation?(
+    expectedCompletedStepCount: number,
+  ): BrowserSessionControlResult | Promise<BrowserSessionControlResult>;
 }>;
 
 export interface DevelopmentInspectionPublisher {
@@ -111,6 +132,8 @@ function readAction(value: unknown, bootstrap: BrowserBootstrap): BrowserAction 
       ? ['actionId', 'buildRevision', 'command', 'context', 'developmentSessionId', 'kind', 'runtimeInstanceId', 'schemaVersion']
       : kind === 'correct-point-light-power'
         ? ['actionId', 'buildRevision', 'context', 'developmentSessionId', 'kind', 'request', 'runtimeInstanceId', 'schemaVersion']
+        : kind === 'step-simulation'
+          ? ['actionId', 'buildRevision', 'developmentSessionId', 'expectedCompletedStepCount', 'kind', 'runtimeInstanceId', 'schemaVersion']
         : ['actionId', 'buildRevision', 'developmentSessionId', 'kind', 'runtimeInstanceId', 'schemaVersion'];
   const keys = Object.keys(record).sort();
   if (
@@ -122,12 +145,20 @@ function readAction(value: unknown, bootstrap: BrowserBootstrap): BrowserAction 
       && kind !== 'capture'
       && kind !== 'set-point-light-power'
       && kind !== 'correct-point-light-power'
+      && kind !== 'pause-simulation'
+      && kind !== 'resume-simulation'
+      && kind !== 'step-simulation'
     )
     || record.developmentSessionId !== bootstrap.developmentSessionId
     || typeof record.actionId !== 'string'
     || typeof record.runtimeInstanceId !== 'string'
     || !Number.isSafeInteger(record.buildRevision)
     || (kind === 'capture' && typeof record.captureId !== 'string')
+    || (
+      kind === 'step-simulation'
+      && (!Number.isSafeInteger(record.expectedCompletedStepCount)
+        || (record.expectedCompletedStepCount as number) < 0)
+    )
   ) throw new Error('Antiky development action is incompatible.');
   const base = {
     schemaVersion: 1,
@@ -163,7 +194,49 @@ function readAction(value: unknown, bootstrap: BrowserBootstrap): BrowserAction 
       context,
     });
   }
+  if (kind === 'pause-simulation' || kind === 'resume-simulation') {
+    return Object.freeze({ ...base, kind });
+  }
+  if (kind === 'step-simulation') {
+    return Object.freeze({
+      ...base,
+      kind,
+      expectedCompletedStepCount: record.expectedCompletedStepCount as number,
+    });
+  }
   return Object.freeze({ ...base, kind: 'reload' });
+}
+
+function readSessionControlResult(
+  value: unknown,
+  runtimeInstanceId: string,
+): BrowserSessionControlResult {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Session-control handler returned an invalid result.');
+  }
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record).sort();
+  if (keys.length !== 2 || keys[0] !== 'result' || keys[1] !== 'session') {
+    throw new Error('Session-control handler returned incompatible fields.');
+  }
+  try {
+    const result = parseEngineControlResult(record.result);
+    const session = parseEngineSessionStatus(record.session);
+    if (
+      session.runtimeInstanceId !== runtimeInstanceId
+      || result.mode !== session.mode
+      || result.completedStepCount !== session.clock.completedStepCount
+      || result.controlRevision !== session.revisions.controlRevision
+      || result.pauseReasons.length !== session.pauseReasons.length
+      || result.pauseReasons.some((reason, index) => reason !== session.pauseReasons[index])
+    ) throw new Error('Session-control handler returned stale state.');
+    return Object.freeze({ result, session });
+  } catch (cause: unknown) {
+    if (cause instanceof EngineSessionValidationError) {
+      throw new Error('Session-control handler returned invalid state.');
+    }
+    throw cause;
+  }
 }
 
 function delay(milliseconds: number, signal: AbortSignal): Promise<void> {
@@ -228,6 +301,24 @@ export async function connectDevelopmentInspectionPublisher(
         let result: unknown;
         if (action.kind === 'capture') {
           result = { kind: 'capture', ...await handlers.captureFrame() };
+        } else if (
+          action.kind === 'pause-simulation'
+          || action.kind === 'resume-simulation'
+          || action.kind === 'step-simulation'
+        ) {
+          const control = readSessionControlResult(
+            action.kind === 'pause-simulation'
+              ? await handlers.pauseSimulation?.()
+              : action.kind === 'resume-simulation'
+                ? await handlers.resumeSimulation?.()
+                : await handlers.stepSimulation?.(action.expectedCompletedStepCount),
+            action.runtimeInstanceId,
+          );
+          result = {
+            kind: 'session-control',
+            controlResult: control.result,
+            session: control.session,
+          };
         } else {
           const commandResult = parsePointLightCommandResult(
             action.kind === 'set-point-light-power'

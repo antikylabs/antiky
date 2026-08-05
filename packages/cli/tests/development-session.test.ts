@@ -8,11 +8,13 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  createEngineSession,
   createInspectionSnapshot,
   createPointLightAuthoringService,
   inspectPointLightService,
   parseCommandId,
   parseEntityId,
+  parseSessionId,
   parseWorldId,
   type PointLightCommandResult,
 } from '@antiky/framework';
@@ -212,10 +214,14 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
       'get_runtime_status',
       'get_render_stats',
       'get_diagnostics',
+      'get_session_status',
       'list_point_lights',
       'get_point_light',
       'dev_reload',
       'capture_frame',
+      'pause_simulation',
+      'resume_simulation',
+      'step_simulation',
       'set_point_light_power',
       'correct_point_light_power',
     ]);
@@ -878,6 +884,185 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
   }
 });
 
+test('direct, typed-client, HTTP, MCP, and human CLI session controls share one result', async () => {
+  const project = await makeProject();
+  const config = await loadAntikyConfig(project.configPath);
+  const development = await startDevelopmentSession(config, {
+    writeOutput: () => {},
+    actionTimeoutMilliseconds: 1000,
+  });
+  const origin = new URL(config.game.url).origin;
+  const runtimeInstanceId = 'runtime-session-controls-001';
+  const engine = createEngineSession({
+    sessionId: parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0'),
+    worldId: parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc'),
+    runtimeInstanceId,
+    systems: [{ id: 'town-update', run: () => undefined }],
+    captureInput: () => Object.freeze({}),
+    getStateDigest: () => 'town:test-session-controls',
+  });
+  let publicationSequence = 0;
+
+  try {
+    const bootstrapResponse = await fetch(`${development.inspectionUrl}/v1/browser/bootstrap`, {
+      headers: { origin },
+    });
+    const bootstrap = await bootstrapResponse.json() as { credential: string };
+    const browserHeaders = {
+      authorization: `Bearer ${bootstrap.credential}`,
+      'content-type': 'application/json',
+      origin,
+    };
+    const publish = async () => {
+      publicationSequence += 1;
+      const response = await fetch(`${development.inspectionUrl}/v1/runtime/snapshot`, {
+        method: 'POST',
+        headers: browserHeaders,
+        body: JSON.stringify({
+          schemaVersion: 1,
+          developmentSessionId: development.id,
+          publicationSequence,
+          snapshot: createInspectionSnapshot({
+            schemaVersion: 1,
+            runtime: {
+              instanceId: runtimeInstanceId,
+              lifecycle: engine.readStatus().mode === 'paused' ? 'paused' : 'running',
+            },
+            diagnostics: [],
+            measurements: {
+              runtime: { owner: 'framework', frameCount: publicationSequence },
+              render: { owner: 'framework', drawCalls: 1 },
+            },
+            session: engine.readStatus(),
+          }),
+        }),
+      });
+      assert.equal(response.status, 202, await response.text());
+    };
+    type SessionAction = {
+      actionId: string;
+      kind: 'pause-simulation' | 'resume-simulation' | 'step-simulation';
+      expectedCompletedStepCount?: number;
+    };
+    const completeNext = async () => {
+      const deadline = Date.now() + 500;
+      let action: SessionAction;
+      while (true) {
+        const response = await fetch(
+          `${development.inspectionUrl}/v1/runtime/action?runtimeInstanceId=${runtimeInstanceId}`,
+          { headers: { authorization: `Bearer ${bootstrap.credential}`, origin } },
+        );
+        if (response.status === 200) {
+          action = await response.json() as SessionAction;
+          break;
+        }
+        assert.equal(response.status, 204);
+        if (Date.now() >= deadline) throw new Error('Timed out waiting for session action.');
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      const result = action.kind === 'pause-simulation'
+        ? engine.pause('tool')
+        : action.kind === 'resume-simulation'
+          ? engine.resume('tool')
+          : engine.step(action.expectedCompletedStepCount!, Object.freeze({}));
+      const status = engine.readStatus();
+      const completion = await fetch(`${development.inspectionUrl}/v1/runtime/action-result`, {
+        method: 'POST',
+        headers: browserHeaders,
+        body: JSON.stringify({
+          schemaVersion: 1,
+          developmentSessionId: development.id,
+          runtimeInstanceId,
+          actionId: action.actionId,
+          result: { kind: 'session-control', controlResult: result, session: status },
+        }),
+      });
+      assert.equal(completion.status, 202, await completion.text());
+      await publish();
+      return {
+        schemaVersion: 1 as const,
+        actionId: action.actionId,
+        developmentSessionId: development.id,
+        result,
+        session: status,
+      };
+    };
+    const callMcp = async (id: number, name: string, argumentsValue: object = {}) => {
+      const response = await fetch(development.mcpUrl, {
+        method: 'POST',
+        headers: {
+          accept: 'application/json, text/event-stream',
+          'content-type': 'application/json',
+          'mcp-protocol-version': '2025-11-25',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id,
+          method: 'tools/call',
+          params: { name, arguments: argumentsValue },
+        }),
+      });
+      assert.equal(response.status, 200);
+      return await response.json() as {
+        result: { structuredContent: Record<string, unknown> };
+      };
+    };
+
+    await publish();
+    const client = await connectDevelopmentClient(project.configPath);
+    assert.deepEqual((await client.getSessionStatus()).session, engine.readStatus());
+
+    const typedPending = client.pauseSimulation();
+    void typedPending.catch(() => {});
+    const directPause = await completeNext();
+    assert.deepEqual(await typedPending, directPause);
+
+    const httpPending = fetch(`${development.inspectionUrl}/v1/actions/step-simulation`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${bootstrap.credential}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ schemaVersion: 1, expectedCompletedStepCount: 99 }),
+    });
+    void httpPending.catch(() => {});
+    const directStale = await completeNext();
+    const httpResponse = await httpPending;
+    assert.equal(httpResponse.status, 200);
+    assert.deepEqual(await httpResponse.json(), directStale);
+    assert.equal(directStale.result.code, 'STALE_COMPLETED_STEP');
+
+    const mcpPending = callMcp(1, 'step_simulation', { expectedCompletedStepCount: 0 });
+    void mcpPending.catch(() => {});
+    const directStep = await completeNext();
+    const mcpStep = await mcpPending;
+    assert.deepEqual(mcpStep.result.structuredContent, directStep);
+    assert.equal(directStep.result.code, 'STEPPED');
+
+    const humanOutput: string[] = [];
+    const humanPending = runCli([
+      'tool',
+      'resume_simulation',
+      '--config',
+      project.configPath,
+    ], {
+      stdout: (text) => humanOutput.push(text),
+      stderr: () => {},
+    });
+    void humanPending.catch(() => {});
+    const directResume = await completeNext();
+    assert.equal(await humanPending, 0);
+    assert.deepEqual(JSON.parse(humanOutput[0]!), directResume);
+    assert.equal(directResume.result.code, 'RESUMED');
+
+    const mcpStatus = await callMcp(2, 'get_session_status');
+    assert.deepEqual(mcpStatus.result.structuredContent, await client.getSessionStatus());
+  } finally {
+    engine.dispose();
+    await development.stop('normal');
+  }
+});
+
 test('browser boundary rejects unauthorized, wrong-origin, stale, malformed, and oversized messages', async () => {
   const project = await makeProject();
   const config = await loadAntikyConfig(project.configPath);
@@ -952,6 +1137,24 @@ test('browser boundary rejects unauthorized, wrong-origin, stale, malformed, and
       }),
     });
     assert.equal(invalidPointLights.status, 400);
+
+    const invalidSession = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${bootstrap.credential}`,
+        'content-type': 'application/json',
+        origin,
+      },
+      body: JSON.stringify({
+        ...validEnvelope,
+        snapshot: { ...snapshot, session: {} },
+      }),
+    });
+    assert.equal(invalidSession.status, 400);
+    assert.equal(
+      ((await invalidSession.json()) as { error: { code: string } }).error.code,
+      'ANTIKY_ENGINE_SESSION_INVALID',
+    );
 
     const stale = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
       method: 'POST',

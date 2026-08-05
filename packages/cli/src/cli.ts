@@ -1,5 +1,7 @@
 import { resolve } from 'node:path';
 
+import { ID_KINDS, generateId, type IdKind } from '@antiky/framework';
+
 import { loadAntikyConfig } from './config.ts';
 import { connectDevelopmentClient, inspectDevelopmentSession } from './development/client.ts';
 import { AntikyCliError } from './errors.ts';
@@ -11,7 +13,8 @@ export const CLI_USAGE = `Usage:
   antiky dev [--config path]
   antiky inspect [--config path]
   antiky mcp [--config path]
-  antiky tool <name> [json] [--config path]`;
+  antiky tool <name> [json] [--config path]
+  antiky generate id <world|entity|command|session> [--json]`;
 
 const MAX_TOOL_INPUT_BYTES = 64 * 1024;
 
@@ -31,6 +34,25 @@ type ToolInvocation = Readonly<{
   input: Readonly<Record<string, unknown>>;
   configPath: string;
 }>;
+
+type GenerateIdInvocation = Readonly<{
+  kind: IdKind;
+  json: boolean;
+}>;
+
+function parseGenerateIdInvocation(args: readonly string[]): GenerateIdInvocation {
+  const [noun, kind, option, ...rest] = args;
+  if (
+    noun !== 'id'
+    || typeof kind !== 'string'
+    || !ID_KINDS.includes(kind as IdKind)
+    || (option !== undefined && option !== '--json')
+    || rest.length > 0
+  ) {
+    throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+  return Object.freeze({ kind: kind as IdKind, json: option === '--json' });
+}
 
 function invalidToolInvocation(message: string): never {
   throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', `${message}\n\n${CLI_USAGE}`);
@@ -104,8 +126,22 @@ export async function runCli(
   },
 ): Promise<number> {
   const [command, ...commandArgs] = args;
-  if (command !== 'dev' && command !== 'inspect' && command !== 'mcp' && command !== 'tool') {
+  if (
+    command !== 'dev'
+    && command !== 'inspect'
+    && command !== 'mcp'
+    && command !== 'tool'
+    && command !== 'generate'
+  ) {
     throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+  if (command === 'generate') {
+    const invocation = parseGenerateIdInvocation(commandArgs);
+    const id = generateId(invocation.kind);
+    io.stdout(invocation.json
+      ? `${JSON.stringify({ kind: invocation.kind, id }, null, 2)}\n`
+      : `${id}\n`);
+    return 0;
   }
   if (command === 'tool') {
     const invocation = parseToolInvocation(commandArgs);

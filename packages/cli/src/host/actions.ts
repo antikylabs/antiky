@@ -4,7 +4,10 @@ import { join } from 'node:path';
 
 import {
   POINT_LIGHT_EDIT_PERMISSION,
+  EngineSessionValidationError,
   PointLightCommandValidationError,
+  parseEngineControlResult,
+  parseEngineSessionStatus,
   parsePointLightCommandContext,
   parsePointLightCommandResult,
   type CorrectPointLightPowerRequest,
@@ -16,6 +19,7 @@ import {
 import type {
   DevelopmentCaptureResult,
   DevelopmentReloadResult,
+  DevelopmentSessionControlResult,
 } from '../development/types.ts';
 import { AntikyCliError } from '../errors.ts';
 
@@ -46,6 +50,12 @@ export type BrowserDevelopmentAction =
     kind: 'correct-point-light-power';
     request: CorrectPointLightPowerRequest;
     context: PointLightCommandContext;
+  }>)
+  | (BrowserDevelopmentActionBase & Readonly<{ kind: 'pause-simulation' }>)
+  | (BrowserDevelopmentActionBase & Readonly<{ kind: 'resume-simulation' }>)
+  | (BrowserDevelopmentActionBase & Readonly<{
+    kind: 'step-simulation';
+    expectedCompletedStepCount: number;
   }>);
 
 export type CaptureActionInput = Readonly<{
@@ -61,6 +71,13 @@ export type PointLightActionResultInput = Readonly<{
   actionId: string;
   runtimeInstanceId: string;
   result: unknown;
+}>;
+
+export type SessionControlActionResultInput = Readonly<{
+  actionId: string;
+  runtimeInstanceId: string;
+  result: unknown;
+  session: unknown;
 }>;
 
 type RuntimeContext = Readonly<{
@@ -81,7 +98,11 @@ type PendingAction = {
   action: BrowserDevelopmentAction;
   delivered: boolean;
   resolve(
-    value: DevelopmentReloadResult | DevelopmentCaptureResult | PointLightCommandResult,
+    value:
+      | DevelopmentReloadResult
+      | DevelopmentCaptureResult
+      | PointLightCommandResult
+      | DevelopmentSessionControlResult,
   ): void;
   reject(cause: Error): void;
   timer: NodeJS.Timeout;
@@ -94,10 +115,14 @@ export interface DevelopmentActionBroker {
   correctPointLightPower(
     request: CorrectPointLightPowerRequest,
   ): Promise<PointLightCommandResult>;
+  pauseSimulation(): Promise<DevelopmentSessionControlResult>;
+  resumeSimulation(): Promise<DevelopmentSessionControlResult>;
+  stepSimulation(expectedCompletedStepCount: number): Promise<DevelopmentSessionControlResult>;
   nextAction(runtimeInstanceId: string): BrowserDevelopmentAction | null;
   noteRuntimeConnected(runtimeInstanceId: string): void;
   completeCapture(input: CaptureActionInput): Promise<void>;
   completePointLightCommand(input: PointLightActionResultInput): Promise<void>;
+  completeSessionControl(input: SessionControlActionResultInput): Promise<void>;
   stop(): void;
 }
 
@@ -132,7 +157,10 @@ export function createDevelopmentActionBroker(
   let pending: PendingAction | null = null;
 
   const createPending = <T extends
-    DevelopmentReloadResult | DevelopmentCaptureResult | PointLightCommandResult>(
+    | DevelopmentReloadResult
+    | DevelopmentCaptureResult
+    | PointLightCommandResult
+    | DevelopmentSessionControlResult>(
     kind: BrowserDevelopmentAction['kind'],
     payload: Readonly<Record<string, unknown>> = {},
   ): Promise<T> => {
@@ -179,7 +207,11 @@ export function createDevelopmentActionBroker(
   };
 
   const complete = (
-    value: DevelopmentReloadResult | DevelopmentCaptureResult | PointLightCommandResult,
+    value:
+      | DevelopmentReloadResult
+      | DevelopmentCaptureResult
+      | PointLightCommandResult
+      | DevelopmentSessionControlResult,
   ) => {
     const active = pending;
     if (!active) return;
@@ -197,6 +229,23 @@ export function createDevelopmentActionBroker(
     correctPointLightPower: (request: CorrectPointLightPowerRequest) => (
       createPending<PointLightCommandResult>('correct-point-light-power', { request })
     ),
+    pauseSimulation: () => (
+      createPending<DevelopmentSessionControlResult>('pause-simulation')
+    ),
+    resumeSimulation: () => (
+      createPending<DevelopmentSessionControlResult>('resume-simulation')
+    ),
+    stepSimulation: (expectedCompletedStepCount: number) => {
+      if (!Number.isSafeInteger(expectedCompletedStepCount) || expectedCompletedStepCount < 0) {
+        throw new AntikyCliError(
+          'ANTIKY_ARGUMENT_INVALID',
+          'Expected completed-step count must be a non-negative safe integer.',
+        );
+      }
+      return createPending<DevelopmentSessionControlResult>('step-simulation', {
+        expectedCompletedStepCount,
+      });
+    },
     nextAction(runtimeInstanceId: string): BrowserDevelopmentAction | null {
       if (
         !pending
@@ -309,6 +358,54 @@ export function createDevelopmentActionBroker(
         );
       }
       complete(result);
+    },
+    async completeSessionControl(input: SessionControlActionResultInput): Promise<void> {
+      const active = pending;
+      if (
+        !active
+        || (
+          active.action.kind !== 'pause-simulation'
+          && active.action.kind !== 'resume-simulation'
+          && active.action.kind !== 'step-simulation'
+        )
+        || !active.delivered
+        || active.action.actionId !== input.actionId
+        || active.action.runtimeInstanceId !== input.runtimeInstanceId
+      ) {
+        throw new AntikyCliError('ANTIKY_ACTION_STALE', 'The session-control action is stale.');
+      }
+      try {
+        const result = parseEngineControlResult(input.result);
+        const session = parseEngineSessionStatus(input.session);
+        if (
+          session.runtimeInstanceId !== active.action.runtimeInstanceId
+          || result.mode !== session.mode
+          || result.completedStepCount !== session.clock.completedStepCount
+          || result.controlRevision !== session.revisions.controlRevision
+          || result.pauseReasons.length !== session.pauseReasons.length
+          || result.pauseReasons.some((reason, index) => reason !== session.pauseReasons[index])
+        ) {
+          throw new EngineSessionValidationError(
+            'Session-control result does not match session status',
+            '$.result',
+          );
+        }
+        complete(Object.freeze({
+          schemaVersion: 1,
+          actionId: active.action.actionId,
+          developmentSessionId: options.developmentSessionId,
+          result,
+          session,
+        }));
+      } catch (cause: unknown) {
+        if (cause instanceof EngineSessionValidationError) {
+          throw new AntikyCliError(
+            'ANTIKY_ACTION_STALE',
+            'The session-control action returned invalid or stale state.',
+          );
+        }
+        throw cause;
+      }
     },
     stop(): void {
       if (!pending) return;

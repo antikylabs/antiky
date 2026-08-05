@@ -15,6 +15,7 @@ export const MCP_POINT_LIGHT_READ_TOOL_NAMES = Object.freeze([
 
 export const MCP_READ_TOOL_NAMES = Object.freeze([
   ...MCP_SNAPSHOT_READ_TOOL_NAMES,
+  'get_session_status',
   ...MCP_POINT_LIGHT_READ_TOOL_NAMES,
 ] as const);
 
@@ -22,6 +23,9 @@ export const MCP_TOOL_NAMES = Object.freeze([
   ...MCP_READ_TOOL_NAMES,
   'dev_reload',
   'capture_frame',
+  'pause_simulation',
+  'resume_simulation',
+  'step_simulation',
   'set_point_light_power',
   'correct_point_light_power',
 ] as const);
@@ -70,6 +74,15 @@ const correctPointLightPowerInputSchema = Object.freeze({
   additionalProperties: false,
 } as const);
 
+const stepSimulationInputSchema = Object.freeze({
+  type: 'object',
+  properties: {
+    expectedCompletedStepCount: { type: 'integer', minimum: 0 },
+  },
+  required: ['expectedCompletedStepCount'],
+  additionalProperties: false,
+} as const);
+
 const readToolAnnotations = Object.freeze({
   readOnlyHint: true,
   destructiveHint: false,
@@ -82,6 +95,11 @@ const actionToolAnnotations = Object.freeze({
   destructiveHint: false,
   idempotentHint: false,
   openWorldHint: false,
+} as const);
+
+const retrySafeActionToolAnnotations = Object.freeze({
+  ...actionToolAnnotations,
+  idempotentHint: true,
 } as const);
 
 export const MCP_TOOL_DEFINITIONS = Object.freeze([
@@ -116,6 +134,12 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
     annotations: readToolAnnotations,
   },
   {
+    name: 'get_session_status',
+    description: 'Call to inspect the connected engine session and its fixed clock before changing simulation state. It returns session, world, and runtime identities; mode and pause reasons; immutable system order; completed-step and elapsed-time counters; revisions; and the latest state digest. It takes no arguments and does not change the session.',
+    inputSchema: emptyInputSchema,
+    annotations: readToolAnnotations,
+  },
+  {
     name: 'list_point_lights',
     description: 'Call to discover the point lights published by the connected runtime through the shared point-light inspection source. It returns stable world and entity identities, authored data, revisions, and the current event sequence. It does not change runtime or authoring state and takes no arguments.',
     inputSchema: emptyInputSchema,
@@ -138,6 +162,24 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
     description: 'Call when you need the exact pixels from the connected game canvas after get_runtime_status confirms a runtime. It writes a PNG capture and returns its path, hash, byte length, session identity, runtime identity, and build revision. Use get_render_stats for canvas and renderer measurements. It takes no arguments.',
     inputSchema: emptyInputSchema,
     annotations: actionToolAnnotations,
+  },
+  {
+    name: 'pause_simulation',
+    description: 'Call to add the local tool pause reason to the connected engine session. It does not rebuild or replace session state. Repeating the call is safe and returns NO_OP when that reason is already present. Other independent pause reasons remain visible in the returned session status. It takes no arguments.',
+    inputSchema: emptyInputSchema,
+    annotations: retrySafeActionToolAnnotations,
+  },
+  {
+    name: 'resume_simulation',
+    description: 'Call to remove only the local tool pause reason from the connected engine session. The session runs only when no other pause reasons remain, so a user or visibility pause is preserved. Repeating the call is safe and can return NO_OP. It takes no arguments and does not rebuild state.',
+    inputSchema: emptyInputSchema,
+    annotations: retrySafeActionToolAnnotations,
+  },
+  {
+    name: 'step_simulation',
+    description: 'Call while the session is paused with the expected completed-step count from get_session_status. One accepted call advances exactly one fixed tick and requests one paused render. The expected completed-step count makes a retry safe: a repeated or stale request returns STALE_COMPLETED_STEP and changes no state.',
+    inputSchema: stepSimulationInputSchema,
+    annotations: retrySafeActionToolAnnotations,
   },
   {
     name: 'set_point_light_power',

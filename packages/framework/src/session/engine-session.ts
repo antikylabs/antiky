@@ -188,6 +188,20 @@ export class EngineSessionDisposalError extends Error {
 }
 
 const PAUSE_REASONS = ['user', 'tool', 'visibility'] as const;
+const CONTROL_RESULT_CODES = [
+  'PAUSED',
+  'RESUMED',
+  'STEPPED',
+  'NO_OP',
+  'INVALID_PAUSE_REASON',
+  'INVALID_EXPECTED_STEP',
+  'INVALID_INPUT',
+  'STALE_COMPLETED_STEP',
+  'SESSION_RUNNING',
+  'SESSION_DISPOSED',
+  'SESSION_BUSY',
+  'COUNTER_LIMIT',
+] as const satisfies readonly EngineControlResultCode[];
 const SYSTEM_ID_PATTERN = /^[a-z][a-z0-9.-]{0,63}$/;
 const RUNTIME_ID_PATTERN = /^[A-Za-z0-9._:-]+$/;
 const MAX_RUNTIME_ID_LENGTH = 128;
@@ -337,6 +351,76 @@ function readStatusId<Id>(operation: () => Id, path: string): Id {
   }
 }
 
+function readPauseReasons(
+  value: unknown,
+  mode: EngineSessionMode,
+  path: string,
+): readonly EnginePauseReason[] {
+  if (!Array.isArray(value)) fail('Expected an array', path);
+  const pauseReasonSet = new Set<EnginePauseReason>();
+  for (const [index, reason] of value.entries()) {
+    const parsed = readStatusLiteral(reason, PAUSE_REASONS, `${path}[${index}]`);
+    if (pauseReasonSet.has(parsed)) fail('Pause reasons must be unique', `${path}[${index}]`);
+    pauseReasonSet.add(parsed);
+  }
+  if (mode === 'paused' && pauseReasonSet.size === 0) {
+    fail('A paused session needs a pause reason', path);
+  }
+  if (mode !== 'paused' && pauseReasonSet.size > 0) {
+    fail('Only a paused session can have pause reasons', path);
+  }
+  return sortedPauseReasons(pauseReasonSet);
+}
+
+/** Validate and freeze a control result received through a development boundary. */
+export function parseEngineControlResult(
+  value: unknown,
+  path = '$',
+): EngineControlResult {
+  const record = readStatusObject(value, path);
+  checkStatusKeys(record, [
+    'code',
+    'mode',
+    'completedStepCount',
+    'controlRevision',
+    'pauseReasons',
+    'renderRequested',
+  ], path);
+  const code = readStatusLiteral(record.code, CONTROL_RESULT_CODES, `${path}.code`);
+  const mode = readStatusLiteral(
+    record.mode,
+    ['running', 'paused', 'disposed'] as const,
+    `${path}.mode`,
+  );
+  const pauseReasons = readPauseReasons(record.pauseReasons, mode, `${path}.pauseReasons`);
+  if (typeof record.renderRequested !== 'boolean') {
+    fail('Expected a boolean', `${path}.renderRequested`);
+  }
+  if (record.renderRequested !== (code === 'STEPPED')) {
+    fail('Only a completed single-step requests a render', `${path}.renderRequested`);
+  }
+  if ((code === 'PAUSED' || code === 'STEPPED') && mode !== 'paused') {
+    fail(`${code} requires paused mode`, `${path}.mode`);
+  }
+  if (code === 'SESSION_RUNNING' && mode !== 'running') {
+    fail('SESSION_RUNNING requires running mode', `${path}.mode`);
+  }
+  if (code === 'SESSION_DISPOSED' && mode !== 'disposed') {
+    fail('SESSION_DISPOSED requires disposed mode', `${path}.mode`);
+  }
+  return Object.freeze({
+    code,
+    mode,
+    completedStepCount: readSafeCount(
+      record.completedStepCount,
+      `${path}.completedStepCount`,
+    ),
+    controlRevision: readSafeCount(record.controlRevision, `${path}.controlRevision`),
+    pauseReasons,
+    renderRequested: record.renderRequested,
+  });
+}
+
 /** Validate and freeze session status received through an inspection boundary. */
 export function parseEngineSessionStatus(
   value: unknown,
@@ -364,20 +448,7 @@ export function parseEngineSessionStatus(
     ['running', 'paused', 'disposed'] as const,
     `${path}.mode`,
   );
-  if (!Array.isArray(record.pauseReasons)) fail('Expected an array', `${path}.pauseReasons`);
-  const pauseReasonSet = new Set<EnginePauseReason>();
-  for (const [index, reason] of record.pauseReasons.entries()) {
-    const parsed = readStatusLiteral(reason, PAUSE_REASONS, `${path}.pauseReasons[${index}]`);
-    if (pauseReasonSet.has(parsed)) fail('Pause reasons must be unique', `${path}.pauseReasons[${index}]`);
-    pauseReasonSet.add(parsed);
-  }
-  if (mode === 'paused' && pauseReasonSet.size === 0) {
-    fail('A paused session needs a pause reason', `${path}.pauseReasons`);
-  }
-  if (mode !== 'paused' && pauseReasonSet.size > 0) {
-    fail('Only a paused session can have pause reasons', `${path}.pauseReasons`);
-  }
-  const pauseReasons = sortedPauseReasons(pauseReasonSet);
+  const pauseReasons = readPauseReasons(record.pauseReasons, mode, `${path}.pauseReasons`);
 
   if (!Array.isArray(record.systemOrder) || record.systemOrder.length === 0) {
     fail('Expected at least one system ID', `${path}.systemOrder`);

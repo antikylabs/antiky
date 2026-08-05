@@ -275,10 +275,16 @@ export async function startDevelopmentSession(
     nextAction: (runtimeInstanceId) => actionBroker.nextAction(runtimeInstanceId),
     completeCapture: (input) => actionBroker.completeCapture(input),
     completePointLightCommand: (input) => actionBroker.completePointLightCommand(input),
+    completeSessionControl: (input) => actionBroker.completeSessionControl(input),
     requestReload: () => actionBroker.requestReload(),
     captureFrame: () => actionBroker.captureFrame(),
     setPointLightPower: (command) => actionBroker.setPointLightPower(command),
     correctPointLightPower: (request) => actionBroker.correctPointLightPower(request),
+    pauseSimulation: () => actionBroker.pauseSimulation(),
+    resumeSimulation: () => actionBroker.resumeSimulation(),
+    stepSimulation: (expectedCompletedStepCount) => (
+      actionBroker.stepSimulation(expectedCompletedStepCount)
+    ),
   });
 
   const stop = (

@@ -4,7 +4,10 @@ import test from 'node:test';
 import {
   parseCommandId,
   parseEntityId,
+  parseSessionId,
   parseWorldId,
+  type EngineControlResult,
+  type EngineSessionStatus,
   type PointLightCommandResult,
 } from '@antiky/framework';
 
@@ -16,6 +19,7 @@ const WORLD_ID = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
 const LIGHT_ID = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abd');
 const SET_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac0');
 const CORRECTION_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac1');
+const SESSION_ID = parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
 
 const setCommand = Object.freeze({
   protocolVersion: 1 as const,
@@ -66,6 +70,41 @@ function createBroker() {
     now: () => '2026-08-05T03:00:00.000Z',
   });
 }
+
+const pausedSessionStatus: EngineSessionStatus = Object.freeze({
+  schemaVersion: 1,
+  sessionId: SESSION_ID,
+  worldId: WORLD_ID,
+  runtimeInstanceId: 'runtime-actions-001',
+  mode: 'paused',
+  pauseReasons: Object.freeze(['tool'] as const),
+  systemOrder: Object.freeze(['town-update']),
+  clock: Object.freeze({
+    fixedStepSeconds: 1 / 60,
+    maximumFrameElapsedSeconds: 0.05,
+    maximumStepsPerFrame: 3,
+    accumulatorSeconds: 0,
+    completedStepCount: 4,
+    inputSequence: 4,
+    totalAcceptedElapsedSeconds: 4 / 60,
+    totalDiscardedSeconds: 0,
+  }),
+  revisions: Object.freeze({ commandSequence: 0, controlRevision: 1, worldRevision: 0 }),
+  lastCompletedStep: Object.freeze({
+    completedStepId: 4,
+    inputSequence: 4,
+    stateDigest: 'town:fixture',
+  }),
+});
+
+const pausedControlResult: EngineControlResult = Object.freeze({
+  code: 'PAUSED',
+  mode: 'paused',
+  completedStepCount: 4,
+  controlRevision: 1,
+  pauseReasons: Object.freeze(['tool'] as const),
+  renderRequested: false,
+});
 
 test('the host relays a set-power command with separate trusted context and validates its result', async () => {
   const broker = createBroker();
@@ -137,3 +176,69 @@ test('correction relay rejects a stale or malformed browser result without compl
   );
 });
 
+test('session controls relay one exact action and reject stale browser state', async () => {
+  const broker = createBroker();
+  const pending = broker.stepSimulation(4);
+  void pending.catch(() => {});
+  const action = broker.nextAction('runtime-actions-001');
+
+  assert.deepEqual(action && {
+    kind: action.kind,
+    expectedCompletedStepCount: 'expectedCompletedStepCount' in action
+      ? action.expectedCompletedStepCount
+      : undefined,
+  }, { kind: 'step-simulation', expectedCompletedStepCount: 4 });
+
+  await assert.rejects(
+    () => broker.completeSessionControl({
+      actionId: action!.actionId,
+      runtimeInstanceId: 'runtime-actions-001',
+      result: pausedControlResult,
+      session: { ...pausedSessionStatus, runtimeInstanceId: 'runtime-stale-001' },
+    }),
+    (error: unknown) => (
+      error instanceof AntikyCliError
+      && error.code === 'ANTIKY_ACTION_STALE'
+    ),
+  );
+
+  const steppedResult = Object.freeze({
+    ...pausedControlResult,
+    code: 'STEPPED' as const,
+    completedStepCount: 5,
+    controlRevision: 2,
+    renderRequested: true,
+  });
+  const steppedStatus = Object.freeze({
+    ...pausedSessionStatus,
+    clock: Object.freeze({
+      ...pausedSessionStatus.clock,
+      completedStepCount: 5,
+      inputSequence: 5,
+    }),
+    revisions: Object.freeze({
+      ...pausedSessionStatus.revisions,
+      controlRevision: 2,
+    }),
+    lastCompletedStep: Object.freeze({
+      completedStepId: 5,
+      inputSequence: 5,
+      stateDigest: 'town:stepped',
+    }),
+  });
+  await broker.completeSessionControl({
+    actionId: action!.actionId,
+    runtimeInstanceId: 'runtime-actions-001',
+    result: steppedResult,
+    session: steppedStatus,
+  });
+
+  assert.deepEqual(await pending, {
+    schemaVersion: 1,
+    actionId: action!.actionId,
+    developmentSessionId: 'development-actions-001',
+    result: steppedResult,
+    session: steppedStatus,
+  });
+  broker.stop();
+});

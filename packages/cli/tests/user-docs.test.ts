@@ -21,6 +21,7 @@ const cliGuidePath = join(userDocsRoot, 'cli', 'development.md');
 const mcpOverviewPath = join(userDocsRoot, 'mcp', 'overview.md');
 const mcpToolsPath = join(userDocsRoot, 'mcp', 'tools.md');
 const frameworkGuidePath = join(userDocsRoot, 'framework', 'inspection.md');
+const engineSessionGuidePath = join(userDocsRoot, 'framework', 'engine-sessions.md');
 const pointLightGuidePath = join(userDocsRoot, 'framework', 'point-lights.md');
 const studioGuidePath = join(
   userDocsRoot,
@@ -46,6 +47,7 @@ test('user-facing development docs are standalone and match the shipped interfac
     mcpOverview,
     mcpTools,
     frameworkGuide,
+    engineSessionGuide,
     pointLightGuide,
     studioGuide,
     agentsGuide,
@@ -56,6 +58,7 @@ test('user-facing development docs are standalone and match the shipped interfac
     readFile(mcpOverviewPath, 'utf8'),
     readFile(mcpToolsPath, 'utf8'),
     readFile(frameworkGuidePath, 'utf8'),
+    readFile(engineSessionGuidePath, 'utf8'),
     readFile(pointLightGuidePath, 'utf8'),
     readFile(studioGuidePath, 'utf8'),
     readFile(agentsGuidePath, 'utf8'),
@@ -68,12 +71,18 @@ test('user-facing development docs are standalone and match the shipped interfac
   }
   assert.match(CLI_USAGE, /antiky mcp/);
   assert.match(mcpOverview, /antiky mcp/);
+  assert.match(CLI_USAGE, /antiky generate id/);
+  assert.match(cliGuide, /antiky generate id entity/);
   for (const tool of MCP_TOOL_NAMES) assert.ok(mcpTools.includes(tool));
   for (const method of [
     'listPointLights',
     'getPointLight',
     'setPointLightPower',
     'correctPointLightPower',
+    'getSessionStatus',
+    'pauseSimulation',
+    'resumeSimulation',
+    'stepSimulation',
   ]) assert.ok(cliGuide.includes(method), `CLI guide omits ${method}`);
   assert.doesNotMatch(cliGuide, /antiky:\/\//);
 
@@ -110,12 +119,13 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.equal(Number(gameUrl.port), config.network.gamePort);
   assert.doesNotMatch(config.game.url, /town-study/i);
 
-  const deliveryLanguage = /Slice \d+|N\/A for Studio UI|acceptance evidence|checkpoint|milestone/i;
+  const deliveryLanguage = /Slice \d+|N\/A for Studio UI|acceptance evidence|implementation checkpoint|delivery milestone/i;
   for (const guide of [
     cliGuide,
     mcpOverview,
     mcpTools,
     frameworkGuide,
+    engineSessionGuide,
     pointLightGuide,
     studioGuide,
   ]) {
@@ -144,6 +154,20 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.match(pointLightGuide, /4 KiB/);
   assert.match(frameworkGuide, /pointLights/);
   assert.match(frameworkGuide, /inspectPointLightService/);
+  for (const publicName of [
+    'createEngineSession',
+    'createSessionId',
+    'createWorldId',
+    'advance',
+    'readStatus',
+    'executeCommand',
+    'dispose',
+  ]) {
+    assert.ok(engineSessionGuide.includes(publicName), `Engine-session guide omits ${publicName}`);
+  }
+  assert.match(engineSessionGuide, /STALE_COMPLETED_STEP/);
+  assert.match(engineSessionGuide, /1 \/ 60/);
+  assert.match(frameworkGuide, /session\.readStatus/);
 
   assert.match(studioGuide, /connectDevelopmentClient/);
   assert.match(agentsGuide, /standalone product documentation/i);
@@ -156,6 +180,7 @@ test('user-facing development docs are standalone and match the shipped interfac
   await verifyLocalLinks(mcpOverviewPath, mcpOverview);
   await verifyLocalLinks(mcpToolsPath, mcpTools);
   await verifyLocalLinks(frameworkGuidePath, frameworkGuide);
+  await verifyLocalLinks(engineSessionGuidePath, engineSessionGuide);
   await verifyLocalLinks(pointLightGuidePath, pointLightGuide);
   await verifyLocalLinks(studioGuidePath, studioGuide);
   await verifyLocalLinks(userDocsIndexPath, userDocsIndex);

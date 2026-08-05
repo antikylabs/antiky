@@ -32,6 +32,7 @@ test('CLI source groups implementation files by responsibility', async () => {
   await assertFilesExist(cliSource, [
     'development/client.ts',
     'development/point-lights.ts',
+    'development/sessions.ts',
     'development/types.ts',
     'host/actions.ts',
     'host/build-tracker.ts',

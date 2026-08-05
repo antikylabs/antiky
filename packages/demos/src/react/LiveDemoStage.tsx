@@ -401,6 +401,36 @@ export default function LiveDemoStage({
           setInspectionTick((value) => value + 1);
           return result;
         },
+        pauseSimulation() {
+          const host = getAntikyTownGameHost(demoInstanceRef.current);
+          if (!host) throw new Error('The demo engine session is unavailable.');
+          const result = host.pause('tool');
+          runningRef.current = false;
+          frameLoopRef.current?.pause();
+          setPhase('paused');
+          setInspectionTick((value) => value + 1);
+          return { result, session: host.readStatus() };
+        },
+        resumeSimulation() {
+          const host = getAntikyTownGameHost(demoInstanceRef.current);
+          if (!host) throw new Error('The demo engine session is unavailable.');
+          const result = host.resume('tool');
+          const running = result.mode === 'running';
+          runningRef.current = running;
+          if (running) frameLoopRef.current?.start();
+          else frameLoopRef.current?.pause();
+          setPhase(running ? 'running' : 'paused');
+          setInspectionTick((value) => value + 1);
+          return { result, session: host.readStatus() };
+        },
+        stepSimulation(expectedCompletedStepCount) {
+          const host = getAntikyTownGameHost(demoInstanceRef.current);
+          if (!host) throw new Error('The demo engine session is unavailable.');
+          const result = host.step(expectedCompletedStepCount);
+          if (result.renderRequested) frameCountRef.current += 1;
+          setInspectionTick((value) => value + 1);
+          return { result, session: host.readStatus() };
+        },
       });
       if (disposed) {
         publisher?.close();
@@ -468,6 +498,15 @@ export default function LiveDemoStage({
     if (next) canvasRef.current?.focus({ preventScroll: true });
   };
 
+  const stepOnce = () => {
+    const host = getAntikyTownGameHost(demoInstanceRef.current);
+    if (!host) return;
+    const expectedCompletedStepCount = host.readStatus().clock.completedStepCount;
+    const result = host.step(expectedCompletedStepCount);
+    if (result.renderRequested) frameCountRef.current += 1;
+    setInspectionTick((value) => value + 1);
+  };
+
   const beginTouch = (x: number, z: number) => (event: React.PointerEvent<HTMLButtonElement>) => {
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setTouchMove(x, z);
@@ -516,6 +555,7 @@ export default function LiveDemoStage({
             {stats.drawCalls !== undefined ? <span className="hud-chip"><b>{stats.drawCalls}</b> draw calls</span> : null}
           </div>
           {phase === 'running' ? <button type="button" className="stage-pause" onClick={toggleRunning}>Pause</button> : null}
+          {phase === 'paused' ? <button type="button" className="stage-pause" onClick={stepOnce}>Step once</button> : null}
         </div>
       ) : null}
 

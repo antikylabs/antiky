@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseCommandId, parseEntityId, parseWorldId } from '@antiky/framework';
+import {
+  parseCommandId,
+  parseEntityId,
+  parseSessionId,
+  parseWorldId,
+  type EngineControlResult,
+  type EngineSessionStatus,
+} from '@antiky/framework';
 
 // Node 22's strip-types test runner requires the source extension.
 // @ts-ignore explicit TypeScript extension is for the direct test runner
@@ -334,6 +341,162 @@ test('browser action polling relays point-light commands and their exact framewo
     for (const envelope of resultEnvelopes) {
       assert.equal((envelope.result as { kind?: string }).kind, 'point-light-command');
       assert.doesNotMatch(JSON.stringify(envelope.result), /permission|principal/);
+    }
+  } finally {
+    publisher.close();
+    globalThis.fetch = originalFetch;
+    if (originalWindow === undefined) delete globals.window;
+    else globals.window = originalWindow;
+  }
+});
+
+test('browser action polling relays pause, resume, and retry-safe step controls', async () => {
+  const globals = globalThis as unknown as Record<string, unknown>;
+  const originalWindow = globals.window;
+  const originalFetch = globalThis.fetch;
+  globals.window = { location: { origin: gameOrigin } };
+  const sessionId = parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
+  const worldId = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
+  const runtimeInstanceId = 'runtime-browser-session-001';
+  const actions = [
+    {
+      schemaVersion: 1,
+      actionId: 'action-pause-session-001',
+      kind: 'pause-simulation',
+      developmentSessionId: 'development-session-actions-001',
+      runtimeInstanceId,
+      buildRevision: 4,
+    },
+    {
+      schemaVersion: 1,
+      actionId: 'action-resume-session-001',
+      kind: 'resume-simulation',
+      developmentSessionId: 'development-session-actions-001',
+      runtimeInstanceId,
+      buildRevision: 4,
+    },
+    {
+      schemaVersion: 1,
+      actionId: 'action-step-session-001',
+      kind: 'step-simulation',
+      developmentSessionId: 'development-session-actions-001',
+      runtimeInstanceId,
+      buildRevision: 4,
+      expectedCompletedStepCount: 0,
+    },
+  ] as const;
+  const resultEnvelopes: Array<Record<string, unknown>> = [];
+  let resolveResults!: () => void;
+  const resultsPublished = new Promise<void>((resolve) => { resolveResults = resolve; });
+
+  const sessionStatus = (
+    mode: 'running' | 'paused',
+    controlRevision: number,
+  ): EngineSessionStatus => Object.freeze({
+    schemaVersion: 1,
+    sessionId,
+    worldId,
+    runtimeInstanceId,
+    mode,
+    pauseReasons: mode === 'paused' ? Object.freeze(['tool'] as const) : Object.freeze([]),
+    systemOrder: Object.freeze(['town-update']),
+    clock: Object.freeze({
+      fixedStepSeconds: 1 / 60,
+      maximumFrameElapsedSeconds: 0.05,
+      maximumStepsPerFrame: 3,
+      accumulatorSeconds: 0,
+      completedStepCount: 0,
+      inputSequence: 0,
+      totalAcceptedElapsedSeconds: 0,
+      totalDiscardedSeconds: 0,
+    }),
+    revisions: Object.freeze({ commandSequence: 0, controlRevision, worldRevision: 0 }),
+    lastCompletedStep: null,
+  });
+  const control = (
+    code: EngineControlResult['code'],
+    mode: 'running' | 'paused',
+    controlRevision: number,
+  ): EngineControlResult => Object.freeze({
+    code,
+    mode,
+    completedStepCount: 0,
+    controlRevision,
+    pauseReasons: mode === 'paused' ? Object.freeze(['tool'] as const) : Object.freeze([]),
+    renderRequested: false,
+  });
+
+  globalThis.fetch = (async (input, init) => {
+    const url = String(input);
+    if (url.endsWith('/v1/browser/bootstrap')) {
+      return new Response(JSON.stringify({
+        schemaVersion: 1,
+        developmentSessionId: 'development-session-actions-001',
+        gameUrl: `${gameOrigin}/game`,
+        credential: 'd'.repeat(43),
+      }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    if (url.endsWith('/v1/runtime/snapshot')) return new Response('{}', { status: 202 });
+    if (url.includes('/v1/runtime/action?')) {
+      const action = actions[resultEnvelopes.length];
+      return action
+        ? new Response(JSON.stringify(action), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+        : new Response(null, { status: 204 });
+    }
+    if (url.endsWith('/v1/runtime/action-result')) {
+      resultEnvelopes.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+      if (resultEnvelopes.length === actions.length) resolveResults();
+      return new Response('{}', { status: 202 });
+    }
+    throw new Error(`Unexpected request: ${url}`);
+  }) as typeof fetch;
+
+  const publisher = await connectDevelopmentInspectionPublisher(inspectionOrigin, {
+    reload() { assert.fail('session action requested a reload'); },
+    async captureFrame() { throw new Error('session action requested a frame capture'); },
+    pauseSimulation() {
+      return { result: control('PAUSED', 'paused', 1), session: sessionStatus('paused', 1) };
+    },
+    resumeSimulation() {
+      return { result: control('RESUMED', 'running', 2), session: sessionStatus('running', 2) };
+    },
+    stepSimulation(expectedCompletedStepCount) {
+      assert.equal(expectedCompletedStepCount, 0);
+      return {
+        result: control('SESSION_RUNNING', 'running', 2),
+        session: sessionStatus('running', 2),
+      };
+    },
+  });
+  assert.ok(publisher);
+
+  try {
+    await publisher.publish({
+      runtimeInstanceId,
+      phase: 'running',
+      frameCount: 2,
+      framesPerSecond: 60,
+      canvasWidth: 1,
+      canvasHeight: 1,
+      stats: {},
+      error: null,
+    });
+    await Promise.race([
+      resultsPublished,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Action poll timed out.')), 500)),
+    ]);
+    assert.deepEqual(resultEnvelopes.map((envelope) => (
+      (envelope.result as { controlResult: EngineControlResult }).controlResult.code
+    )), ['PAUSED', 'RESUMED', 'SESSION_RUNNING']);
+    for (const envelope of resultEnvelopes) {
+      assert.equal((envelope.result as { kind?: string }).kind, 'session-control');
+      assert.equal(
+        (envelope.result as { session: EngineSessionStatus }).session.runtimeInstanceId,
+        runtimeInstanceId,
+      );
     }
   } finally {
     publisher.close();

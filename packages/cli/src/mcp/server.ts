@@ -37,6 +37,10 @@ type McpDevelopmentClient = Pick<DevelopmentClient,
   | 'getPointLight'
   | 'setPointLightPower'
   | 'correctPointLightPower'
+  | 'getSessionStatus'
+  | 'pauseSimulation'
+  | 'resumeSimulation'
+  | 'stepSimulation'
 >;
 
 type JsonRpcRequest = Readonly<{
@@ -92,6 +96,15 @@ function hasExactKeys(record: Record<string, unknown>, expected: readonly string
 
 function readRevision(value: unknown): number | null {
   return Number.isSafeInteger(value) && (value as number) >= 0 ? value as number : null;
+}
+
+function readStepSimulationArguments(
+  value: unknown,
+): { expectedCompletedStepCount: number } | null {
+  const record = readRecord(value);
+  if (!record || !hasExactKeys(record, ['expectedCompletedStepCount'])) return null;
+  const expectedCompletedStepCount = readRevision(record.expectedCompletedStepCount);
+  return expectedCompletedStepCount === null ? null : { expectedCompletedStepCount };
 }
 
 function readGetPointLightArguments(value: unknown): { entityId: string } | null {
@@ -234,6 +247,14 @@ export async function processMcpRequest(
         return response(id, toolFailure(cause));
       }
     }
+    if (params.name === 'get_session_status') {
+      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        return response(id, toolResult(await client.getSessionStatus()));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
     if (params.name === 'get_point_light') {
       const argumentsValue = readGetPointLightArguments(params.arguments);
       if (!argumentsValue) return errorResponse(id, -32602, 'Invalid tool call.');
@@ -255,6 +276,29 @@ export async function processMcpRequest(
       if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
         return response(id, toolResult(await client.captureFrame()));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
+    if (params.name === 'pause_simulation' || params.name === 'resume_simulation') {
+      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        return response(id, toolResult(
+          params.name === 'pause_simulation'
+            ? await client.pauseSimulation()
+            : await client.resumeSimulation(),
+        ));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
+    if (params.name === 'step_simulation') {
+      const argumentsValue = readStepSimulationArguments(params.arguments);
+      if (!argumentsValue) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        return response(id, toolResult(await client.stepSimulation(
+          argumentsValue.expectedCompletedStepCount,
+        )));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }

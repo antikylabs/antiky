@@ -6,6 +6,7 @@ import {
   createInspectionSnapshot,
   parseCommandId,
   parseEntityId,
+  parseSessionId,
   parseWorldId,
 } from '@antiky/framework';
 
@@ -21,6 +22,33 @@ const WORLD_ID = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
 const LIGHT_ID = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abd');
 const SET_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac0');
 const CORRECTION_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac1');
+const SESSION_ID = parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
+
+const runningSession = {
+  schemaVersion: 1 as const,
+  sessionId: SESSION_ID,
+  worldId: WORLD_ID,
+  runtimeInstanceId: 'runtime-mcp-001',
+  mode: 'running' as const,
+  pauseReasons: [] as const,
+  systemOrder: ['town-update'] as const,
+  clock: {
+    fixedStepSeconds: 1 / 60,
+    maximumFrameElapsedSeconds: 0.05,
+    maximumStepsPerFrame: 3,
+    accumulatorSeconds: 0,
+    completedStepCount: 4,
+    inputSequence: 4,
+    totalAcceptedElapsedSeconds: 4 / 60,
+    totalDiscardedSeconds: 0,
+  },
+  revisions: { commandSequence: 0, controlRevision: 0, worldRevision: 0 },
+  lastCompletedStep: {
+    completedStepId: 4,
+    inputSequence: 4,
+    stateDigest: 'town:mcp-fixture',
+  },
+} as const;
 
 const authoringLight = {
   worldId: WORLD_ID,
@@ -39,6 +67,7 @@ const frameworkInspection = createInspectionSnapshot({
     runtime: { owner: 'framework', frameCount: 42, framesPerSecond: 60 },
     render: { owner: 'framework', canvasWidth: 640, canvasHeight: 480, drawCalls: 16 },
   },
+  session: runningSession,
   pointLights: {
     schemaVersion: 1,
     owner: 'framework',
@@ -102,6 +131,10 @@ const unusedPointLightMethods = {
   async getPointLight(): Promise<never> { throw new Error('not reached'); },
   async setPointLightPower(): Promise<never> { throw new Error('not reached'); },
   async correctPointLightPower(): Promise<never> { throw new Error('not reached'); },
+  async getSessionStatus(): Promise<never> { throw new Error('not reached'); },
+  async pauseSimulation(): Promise<never> { throw new Error('not reached'); },
+  async resumeSimulation(): Promise<never> { throw new Error('not reached'); },
+  async stepSimulation(): Promise<never> { throw new Error('not reached'); },
 };
 
 test('MCP exposes one well-described tools-only development surface', async () => {
@@ -195,6 +228,65 @@ test('MCP exposes one well-described tools-only development surface', async () =
         runtimeInstanceId: 'runtime-mcp-001',
       } as const;
     },
+    async getSessionStatus() {
+      calls.push('get-session-status');
+      return {
+        schemaVersion: 1,
+        developmentSessionId: 'development-mcp-001',
+        session: runningSession,
+      } as const;
+    },
+    async pauseSimulation() {
+      calls.push('pause-simulation');
+      return {
+        schemaVersion: 1,
+        actionId: 'action-pause-001',
+        developmentSessionId: 'development-mcp-001',
+        result: {
+          code: 'PAUSED',
+          mode: 'paused',
+          completedStepCount: 4,
+          controlRevision: 1,
+          pauseReasons: ['tool'],
+          renderRequested: false,
+        },
+        session: { ...runningSession, mode: 'paused', pauseReasons: ['tool'] },
+      } as const;
+    },
+    async resumeSimulation() {
+      calls.push('resume-simulation');
+      return {
+        schemaVersion: 1,
+        actionId: 'action-resume-001',
+        developmentSessionId: 'development-mcp-001',
+        result: {
+          code: 'RESUMED',
+          mode: 'running',
+          completedStepCount: 4,
+          controlRevision: 2,
+          pauseReasons: [],
+          renderRequested: false,
+        },
+        session: runningSession,
+      } as const;
+    },
+    async stepSimulation(expectedCompletedStepCount: number) {
+      calls.push(`step-simulation:${expectedCompletedStepCount}`);
+      return {
+        schemaVersion: 1,
+        actionId: 'action-step-001',
+        developmentSessionId: 'development-mcp-001',
+        result: {
+          code: 'STEPPED',
+          mode: 'paused',
+          completedStepCount: 5,
+          controlRevision: 2,
+          pauseReasons: ['tool'],
+          renderRequested: true,
+        },
+        session: { ...runningSession, mode: 'paused', pauseReasons: ['tool'] },
+      } as const;
+    },
   };
 
   const initialized = await processMcpRequest(client, {
@@ -220,6 +312,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
     'get_runtime_status',
     'get_render_stats',
     'get_diagnostics',
+    'get_session_status',
     'list_point_lights',
     'get_point_light',
   ];
@@ -235,12 +328,16 @@ test('MCP exposes one well-described tools-only development surface', async () =
     get_runtime_status: [/before .*dev_reload.*capture_frame/i, /null inspection/i],
     get_render_stats: [/renderer health or performance/i, /does not capture/i],
     get_diagnostics: [/build is not ready/i, /stable code/i],
+    get_session_status: [/fixed clock/i, /takes no arguments/i],
     list_point_lights: [/point-light inspection/i, /does not change/i],
     get_point_light: [/stable entity id/i, /accepted facts/i],
     dev_reload: [/after .*accepted revision/i, /does not start a development session/i],
     capture_frame: [/exact pixels/i, /get_render_stats/i],
     set_point_light_power: [/expected revision/i, /world\.light\.edit/i],
     correct_point_light_power: [/new accepted fact/i, /corrected command/i],
+    pause_simulation: [/tool pause reason/i, /does not rebuild/i],
+    resume_simulation: [/tool pause reason/i, /other pause reasons/i],
+    step_simulation: [/expected completed-step count/i, /retry/i],
   };
   for (const definition of tools.result.tools as Array<{
     name: string;
@@ -327,6 +424,25 @@ test('MCP exposes one well-described tools-only development surface', async () =
     },
   });
   assert.equal(corrected.result.structuredContent.resultingRevision, 3);
+  const sessionStatus = await processMcpRequest(client, {
+    jsonrpc: '2.0', id: 35, method: 'tools/call', params: { name: 'get_session_status' },
+  });
+  assert.equal(sessionStatus.result.structuredContent.session.sessionId, SESSION_ID);
+  const paused = await processMcpRequest(client, {
+    jsonrpc: '2.0', id: 36, method: 'tools/call', params: { name: 'pause_simulation' },
+  });
+  assert.equal(paused.result.structuredContent.result.code, 'PAUSED');
+  const resumed = await processMcpRequest(client, {
+    jsonrpc: '2.0', id: 37, method: 'tools/call', params: { name: 'resume_simulation' },
+  });
+  assert.equal(resumed.result.structuredContent.result.code, 'RESUMED');
+  const stepped = await processMcpRequest(client, {
+    jsonrpc: '2.0',
+    id: 38,
+    method: 'tools/call',
+    params: { name: 'step_simulation', arguments: { expectedCompletedStepCount: 4 } },
+  });
+  assert.equal(stepped.result.structuredContent.result.code, 'STEPPED');
   assert.deepEqual(calls, [
     'read', 'read', 'read', 'read', 'read',
     'list-point-lights', `get-point-light:${LIGHT_ID}`,
@@ -348,6 +464,10 @@ test('MCP exposes one well-described tools-only development surface', async () =
       correctedCommandId: SET_COMMAND_ID,
       expectedRevision: 2,
     })}`,
+    'get-session-status',
+    'pause-simulation',
+    'resume-simulation',
+    'step-simulation:4',
   ]);
 });
 
@@ -383,6 +503,16 @@ test('MCP returns bounded protocol errors for Resource methods, unknown tools, a
     },
   });
   assert.equal(invalidPointLightArguments.error.code, -32602);
+  const invalidStepArguments = await processMcpRequest(client, {
+    jsonrpc: '2.0',
+    id: 'invalid-step',
+    method: 'tools/call',
+    params: {
+      name: 'step_simulation',
+      arguments: { expectedCompletedStepCount: -1 },
+    },
+  });
+  assert.equal(invalidStepArguments.error.code, -32602);
   const missingMethod = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 'c', method: 'unknown', params: {},
   });

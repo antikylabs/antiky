@@ -8,6 +8,7 @@ import {
 
 import {
   MAX_POINT_LIGHT_COMMAND_BYTES,
+  EngineSessionValidationError,
   PointLightCommandValidationError,
   PointLightInspectionValidationError,
   createInspectionSnapshot,
@@ -26,10 +27,12 @@ import {
   type BrowserDevelopmentAction,
   type CaptureActionInput,
   type PointLightActionResultInput,
+  type SessionControlActionResultInput,
 } from './actions.ts';
 import type {
   DevelopmentCaptureResult,
   DevelopmentReloadResult,
+  DevelopmentSessionControlResult,
   DevelopmentSnapshot,
 } from '../development/types.ts';
 import { AntikyCliError } from '../errors.ts';
@@ -37,6 +40,7 @@ import {
   projectDevelopmentPointLight,
   projectDevelopmentPointLightList,
 } from '../development/point-lights.ts';
+import { projectDevelopmentSessionStatus } from '../development/sessions.ts';
 import {
   MCP_HTTP_PATH,
   MCP_HTTP_PROTOCOL_VERSIONS,
@@ -58,12 +62,16 @@ type InspectionServerOptions = Readonly<{
   nextAction(runtimeInstanceId: string): BrowserDevelopmentAction | null;
   completeCapture(input: CaptureActionInput): Promise<void>;
   completePointLightCommand(input: PointLightActionResultInput): Promise<void>;
+  completeSessionControl(input: SessionControlActionResultInput): Promise<void>;
   requestReload(): Promise<DevelopmentReloadResult>;
   captureFrame(): Promise<DevelopmentCaptureResult>;
   setPointLightPower(command: SetPointLightPowerCommand): Promise<PointLightCommandResult>;
   correctPointLightPower(
     request: CorrectPointLightPowerRequest,
   ): Promise<PointLightCommandResult>;
+  pauseSimulation(): Promise<DevelopmentSessionControlResult>;
+  resumeSimulation(): Promise<DevelopmentSessionControlResult>;
+  stepSimulation(expectedCompletedStepCount: number): Promise<DevelopmentSessionControlResult>;
 }>;
 
 export interface InspectionServer {
@@ -245,6 +253,7 @@ function readSnapshotEnvelope(
     if (
       cause instanceof InspectionValidationError
       || cause instanceof PointLightInspectionValidationError
+      || cause instanceof EngineSessionValidationError
     ) {
       serviceError(400, cause.code, cause.message);
     }
@@ -323,11 +332,47 @@ function readPointLightResultEnvelope(
   };
 }
 
+function readSessionControlResultEnvelope(
+  value: unknown,
+  developmentSessionId: string,
+): SessionControlActionResultInput {
+  const record = readObject(value);
+  if (!hasExactKeys(record, [
+    'schemaVersion', 'developmentSessionId', 'runtimeInstanceId', 'actionId', 'result',
+  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result fields.');
+  requireSession(record, developmentSessionId);
+  const result = readObject(record.result);
+  if (
+    !hasExactKeys(result, ['kind', 'controlResult', 'session'])
+    || result.kind !== 'session-control'
+  ) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid session-control result fields.');
+  if (typeof record.actionId !== 'string' || typeof record.runtimeInstanceId !== 'string') {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid session-control result values.');
+  }
+  return {
+    actionId: record.actionId,
+    runtimeInstanceId: record.runtimeInstanceId,
+    result: result.controlResult,
+    session: result.session,
+  };
+}
+
 function readActionRequest(value: unknown): void {
   const record = readObject(value);
   if (!hasExactKeys(record, ['schemaVersion']) || record.schemaVersion !== 1) {
     serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action request.');
   }
+}
+
+function readStepActionRequest(value: unknown): number {
+  const record = readObject(value);
+  if (
+    !hasExactKeys(record, ['schemaVersion', 'expectedCompletedStepCount'])
+    || record.schemaVersion !== 1
+    || !Number.isSafeInteger(record.expectedCompletedStepCount)
+    || (record.expectedCompletedStepCount as number) < 0
+  ) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid step-simulation request.');
+  return record.expectedCompletedStepCount as number;
 }
 
 function readPointLightActionRequest(
@@ -378,6 +423,12 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
     },
     setPointLightPower: options.setPointLightPower,
     correctPointLightPower: options.correctPointLightPower,
+    async getSessionStatus() {
+      return projectDevelopmentSessionStatus(options.readDevelopmentSnapshot());
+    },
+    pauseSimulation: options.pauseSimulation,
+    resumeSimulation: options.resumeSimulation,
+    stepSimulation: options.stepSimulation,
   });
   const server: HttpServer = createHttpServer((request, response) => {
     void (async () => {
@@ -523,6 +574,11 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
               input,
               options.developmentSessionId,
             ));
+          } else if (result.kind === 'session-control') {
+            await options.completeSessionControl(readSessionControlResultEnvelope(
+              input,
+              options.developmentSessionId,
+            ));
           } else {
             serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result kind.');
           }
@@ -532,13 +588,33 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         if (
           request.method === 'POST'
           && (requestUrl.pathname === '/v1/actions/reload'
-            || requestUrl.pathname === '/v1/actions/capture')
+            || requestUrl.pathname === '/v1/actions/capture'
+            || requestUrl.pathname === '/v1/actions/pause-simulation'
+            || requestUrl.pathname === '/v1/actions/resume-simulation')
         ) {
           readActionRequest(await readJson(request, MAX_BROWSER_MESSAGE_BYTES));
           const result = requestUrl.pathname.endsWith('/reload')
             ? await options.requestReload()
-            : await options.captureFrame();
+            : requestUrl.pathname.endsWith('/capture')
+              ? await options.captureFrame()
+              : requestUrl.pathname.endsWith('/pause-simulation')
+                ? await options.pauseSimulation()
+                : await options.resumeSimulation();
           writeJson(response, 200, result);
+          return;
+        }
+        if (
+          request.method === 'POST'
+          && requestUrl.pathname === '/v1/actions/step-simulation'
+        ) {
+          const expectedCompletedStepCount = readStepActionRequest(
+            await readJson(request, MAX_BROWSER_MESSAGE_BYTES),
+          );
+          writeJson(
+            response,
+            200,
+            await options.stepSimulation(expectedCompletedStepCount),
+          );
           return;
         }
         if (

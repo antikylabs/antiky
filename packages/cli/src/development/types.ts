@@ -1,5 +1,7 @@
 import type {
   CorrectPointLightPowerRequest,
+  EngineControlResult,
+  EngineSessionStatus,
   InspectionSnapshot,
   PointLightAuthoringRecord,
   PointLightCommandResult,
@@ -139,3 +141,17 @@ export type DevelopmentPointLightDetails = Readonly<{
 export type DevelopmentSetPointLightPowerInput = SetPointLightPowerCommand;
 export type DevelopmentCorrectPointLightPowerInput = CorrectPointLightPowerRequest;
 export type DevelopmentPointLightCommandResult = PointLightCommandResult;
+
+export type DevelopmentSessionStatus = Readonly<{
+  schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
+  developmentSessionId: string;
+  session: EngineSessionStatus;
+}>;
+
+export type DevelopmentSessionControlResult = Readonly<{
+  schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
+  actionId: string;
+  developmentSessionId: string;
+  result: EngineControlResult;
+  session: EngineSessionStatus;
+}>;

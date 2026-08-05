@@ -2,7 +2,7 @@
 
 Runtime inspection lets development tools see what your game is doing while it runs. Publish one
 snapshot to expose the game's lifecycle, diagnostics, performance measurements, and optional
-point-light state to the CLI, MCP clients, Studio, and your tests.
+engine-session or point-light state to the CLI, MCP clients, Studio, and your tests.
 
 ## Publish a snapshot
 
@@ -50,6 +50,7 @@ data, and returns an immutable snapshot.
 | `diagnostics` | Problems or useful notices from the framework or renderer |
 | `measurements.runtime` | Frame count and an optional frames-per-second sample |
 | `measurements.render` | Canvas size, draw calls, instance count, and upload bytes per frame |
+| `session` | Optional engine-session identity, clock, controls, order, and revisions |
 | `pointLights` | Optional point-light state and accepted change history |
 
 Report only measurements that your game can obtain truthfully. Omit an optional value instead of
@@ -119,6 +120,10 @@ The point-light runtime ID must match the runtime ID on the enclosing snapshot. 
 use the point-light service leave `pointLights` out.
 
 See [Point lights](point-lights.md) for creation, live changes, and renderer integration.
+
+If your game uses an `EngineSession`, include `session.readStatus()` as `session`. Its runtime ID
+must match the enclosing snapshot. See [Run a fixed-step game session](engine-sessions.md) for the
+clock and control workflow.
 
 ## Report diagnostics
 

@@ -6,6 +6,8 @@ import type {
   DevelopmentPointLightDetails,
   DevelopmentPointLightList,
   DevelopmentReloadResult,
+  DevelopmentSessionControlResult,
+  DevelopmentSessionStatus,
   DevelopmentSetPointLightPowerInput,
   DevelopmentSnapshot,
 } from './types.ts';
@@ -15,6 +17,7 @@ import {
   projectDevelopmentPointLight,
   projectDevelopmentPointLightList,
 } from './point-lights.ts';
+import { projectDevelopmentSessionStatus } from './sessions.ts';
 
 export interface DevelopmentClient {
   readDevelopmentSnapshot(): Promise<DevelopmentSnapshot>;
@@ -28,6 +31,10 @@ export interface DevelopmentClient {
   correctPointLightPower(
     request: DevelopmentCorrectPointLightPowerInput,
   ): Promise<DevelopmentPointLightCommandResult>;
+  getSessionStatus(): Promise<DevelopmentSessionStatus>;
+  pauseSimulation(): Promise<DevelopmentSessionControlResult>;
+  resumeSimulation(): Promise<DevelopmentSessionControlResult>;
+  stepSimulation(expectedCompletedStepCount: number): Promise<DevelopmentSessionControlResult>;
 }
 
 export async function connectDevelopmentClient(
@@ -41,7 +48,10 @@ export async function connectDevelopmentClient(
       | '/v1/actions/reload'
       | '/v1/actions/capture'
       | '/v1/actions/set-point-light-power'
-      | '/v1/actions/correct-point-light-power',
+      | '/v1/actions/correct-point-light-power'
+      | '/v1/actions/pause-simulation'
+      | '/v1/actions/resume-simulation'
+      | '/v1/actions/step-simulation',
     body: unknown = { schemaVersion: 1 },
   ): Promise<T> => {
     let response: Response;
@@ -142,6 +152,21 @@ export async function connectDevelopmentClient(
       requestAction<DevelopmentPointLightCommandResult>(
         '/v1/actions/correct-point-light-power',
         { schemaVersion: 1, request },
+      )
+    ),
+    async getSessionStatus(): Promise<DevelopmentSessionStatus> {
+      return projectDevelopmentSessionStatus(await readDevelopmentSnapshot());
+    },
+    pauseSimulation: () => requestAction<DevelopmentSessionControlResult>(
+      '/v1/actions/pause-simulation',
+    ),
+    resumeSimulation: () => requestAction<DevelopmentSessionControlResult>(
+      '/v1/actions/resume-simulation',
+    ),
+    stepSimulation: (expectedCompletedStepCount: number) => (
+      requestAction<DevelopmentSessionControlResult>(
+        '/v1/actions/step-simulation',
+        { schemaVersion: 1, expectedCompletedStepCount },
       )
     ),
   });

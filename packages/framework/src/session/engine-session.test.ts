@@ -11,6 +11,7 @@ import {
   EngineSessionDisposalError,
   EngineSessionValidationError,
   createEngineSession,
+  parseEngineControlResult,
   type EngineSession,
   type EngineSessionOptions,
   type EngineSystem,
@@ -167,6 +168,29 @@ test('single-step is paused, retry-safe, and leaves pause reasons in place', () 
   session.resume('tool');
   assert.equal(session.step(1, { amount: 9 }).code, 'SESSION_RUNNING');
   assert.equal(state.total, 4);
+});
+
+test('control results are strictly validated and frozen at transport boundaries', () => {
+  const { session } = createHarness();
+  const result = session.pause('tool');
+
+  const parsed = parseEngineControlResult(JSON.parse(JSON.stringify(result)));
+  assert.deepEqual(parsed, result);
+  assert.ok(Object.isFrozen(parsed));
+  assert.ok(Object.isFrozen(parsed.pauseReasons));
+
+  assert.throws(
+    () => parseEngineControlResult({ ...result, credential: 'must-not-cross' }),
+    (error: unknown) => error instanceof EngineSessionValidationError,
+  );
+  assert.throws(
+    () => parseEngineControlResult({ ...result, mode: 'running' }),
+    (error: unknown) => error instanceof EngineSessionValidationError,
+  );
+  assert.throws(
+    () => parseEngineControlResult({ ...result, completedStepCount: -1 }),
+    (error: unknown) => error instanceof EngineSessionValidationError,
+  );
 });
 
 test('equal systems, inputs, and steps produce equal step records and digests', () => {
