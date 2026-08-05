@@ -5,10 +5,13 @@ import test from 'node:test';
 import {
   createCommandId,
   createEntityId,
+  createSessionId,
   createWorldId,
+  generateId,
   isUuidV7,
   parseCommandId,
   parseEntityId,
+  parseSessionId,
   parseWorldId,
 } from './ids.ts';
 
@@ -21,16 +24,20 @@ test('branded IDs create canonical UUIDv7 text from an injected source', () => {
   assert.equal(createWorldId(deterministicSource), '018e23f1-4c00-7001-8203-040506070809');
   assert.equal(createEntityId(deterministicSource), '018e23f1-4c00-7001-8203-040506070809');
   assert.equal(createCommandId(deterministicSource), '018e23f1-4c00-7001-8203-040506070809');
+  assert.equal(createSessionId(deterministicSource), '018e23f1-4c00-7001-8203-040506070809');
+  assert.equal(generateId('session', deterministicSource), '018e23f1-4c00-7001-8203-040506070809');
 });
 
 test('ID parsing accepts canonical UUIDv7 fixtures and rejects other UUID forms', () => {
   const world = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
   const entity = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';
   const command = '018f0f3a-7b2c-7a1d-8e2f-123456789abe';
+  const session = '018f0f3a-7b2c-7a1d-8e2f-123456789abf';
 
   assert.equal(parseWorldId(world), world);
   assert.equal(parseEntityId(entity), entity);
   assert.equal(parseCommandId(command), command);
+  assert.equal(parseSessionId(session), session);
   assert.equal(isUuidV7(world), true);
 
   for (const invalid of [
@@ -44,6 +51,16 @@ test('ID parsing accepts canonical UUIDv7 fixtures and rejects other UUID forms'
     assert.equal(isUuidV7(invalid), false);
     assert.throws(() => parseWorldId(invalid), /UUIDv7/);
   }
+});
+
+test('the supported Framework generator covers each stable ID kind', () => {
+  for (const kind of ['world', 'entity', 'command', 'session'] as const) {
+    assert.equal(generateId(kind, deterministicSource), '018e23f1-4c00-7001-8203-040506070809');
+  }
+  assert.throws(
+    () => generateId('asset' as 'world', deterministicSource),
+    /ID kind/i,
+  );
 });
 
 test('ID creation validates timestamp and random-byte inputs', () => {

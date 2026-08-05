@@ -6,3 +6,4 @@ export * from './point-light/inspection.ts';
 export * from './point-light/projections.ts';
 export * from './point-light/records.ts';
 export * from './point-light/service.ts';
+export * from './session/engine-session.ts';

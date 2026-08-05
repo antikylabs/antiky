@@ -5,10 +5,20 @@ const RANDOM_BYTE_COUNT = 10;
 declare const worldIdBrand: unique symbol;
 declare const entityIdBrand: unique symbol;
 declare const commandIdBrand: unique symbol;
+declare const sessionIdBrand: unique symbol;
 
 export type WorldId = string & { readonly [worldIdBrand]: 'WorldId' };
 export type EntityId = string & { readonly [entityIdBrand]: 'EntityId' };
 export type CommandId = string & { readonly [commandIdBrand]: 'CommandId' };
+export type SessionId = string & { readonly [sessionIdBrand]: 'SessionId' };
+
+export const ID_KINDS = ['world', 'entity', 'command', 'session'] as const;
+export type IdKind = typeof ID_KINDS[number];
+export type IdForKind<Kind extends IdKind> =
+  Kind extends 'world' ? WorldId
+    : Kind extends 'entity' ? EntityId
+      : Kind extends 'command' ? CommandId
+        : SessionId;
 
 export type UuidV7CreationSource = Readonly<{
   timestampMilliseconds: number;
@@ -25,12 +35,14 @@ export class IdValidationError extends Error {
 }
 
 function systemSource(): UuidV7CreationSource {
+  const randomBytes = new Uint8Array(RANDOM_BYTE_COUNT);
+  if (globalThis.crypto?.getRandomValues === undefined) {
+    throw new IdValidationError('UUIDv7 creation requires a secure random-value source.');
+  }
+  globalThis.crypto.getRandomValues(randomBytes);
   return {
     timestampMilliseconds: Date.now(),
-    randomBytes: Array.from(
-      { length: RANDOM_BYTE_COUNT },
-      () => Math.floor(Math.random() * 256),
-    ),
+    randomBytes: Array.from(randomBytes),
   };
 }
 
@@ -80,15 +92,29 @@ export function isUuidV7(value: unknown): value is string {
 }
 
 export function createWorldId(source?: UuidV7CreationSource): WorldId {
-  return createUuidV7(source) as WorldId;
+  return generateId('world', source);
 }
 
 export function createEntityId(source?: UuidV7CreationSource): EntityId {
-  return createUuidV7(source) as EntityId;
+  return generateId('entity', source);
 }
 
 export function createCommandId(source?: UuidV7CreationSource): CommandId {
-  return createUuidV7(source) as CommandId;
+  return generateId('command', source);
+}
+
+export function createSessionId(source?: UuidV7CreationSource): SessionId {
+  return generateId('session', source);
+}
+
+export function generateId<Kind extends IdKind>(
+  kind: Kind,
+  source?: UuidV7CreationSource,
+): IdForKind<Kind> {
+  if (!ID_KINDS.includes(kind)) {
+    throw new IdValidationError(`ID kind must be one of: ${ID_KINDS.join(', ')}.`);
+  }
+  return createUuidV7(source) as IdForKind<Kind>;
 }
 
 export function parseWorldId(value: unknown): WorldId {
@@ -101,4 +127,8 @@ export function parseEntityId(value: unknown): EntityId {
 
 export function parseCommandId(value: unknown): CommandId {
   return parseUuidV7(value, 'CommandId') as CommandId;
+}
+
+export function parseSessionId(value: unknown): SessionId {
+  return parseUuidV7(value, 'SessionId') as SessionId;
 }
