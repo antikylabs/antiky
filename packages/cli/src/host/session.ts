@@ -37,12 +37,26 @@ type ManagedChild = {
   detached: boolean;
 };
 
+export type DevelopmentCleanupOperation =
+  | 'action-broker'
+  | 'game-port-reservation'
+  | 'inspection-port-reservation'
+  | 'session-descriptor'
+  | 'build-watcher'
+  | 'game-child'
+  | 'shaders-child'
+  | 'inspection-server';
+
 export type DevelopmentSessionOptions = Readonly<{
   writeOutput?: (line: string) => void;
   watchPaths?: readonly string[];
   buildFailureTimeoutMilliseconds?: number;
   actionTimeoutMilliseconds?: number;
   runtimeConnectionTimeoutMilliseconds?: number;
+  runCleanupOperation?: (
+    name: DevelopmentCleanupOperation,
+    operation: () => Promise<void>,
+  ) => Promise<void>;
 }>;
 
 export interface DevelopmentSession {
@@ -127,7 +141,12 @@ async function stopChild(child: ManagedChild): Promise<void> {
   sendSignal(child, 'SIGTERM');
   if (await waitForChildExit(child, CHILD_STOP_TIMEOUT_MILLISECONDS)) return;
   sendSignal(child, 'SIGKILL');
-  await waitForChildExit(child, CHILD_STOP_TIMEOUT_MILLISECONDS);
+  if (!await waitForChildExit(child, CHILD_STOP_TIMEOUT_MILLISECONDS)) {
+    throw new AntikyCliError(
+      'ANTIKY_CHILD_STOP_FAILED',
+      `The ${child.name} process group did not stop.`,
+    );
+  }
 }
 
 function waitForSpawn(child: ChildProcess): Promise<void> {
@@ -150,6 +169,8 @@ export async function startDevelopmentSession(
   options: DevelopmentSessionOptions = {},
 ): Promise<DevelopmentSession> {
   const writeOutput = options.writeOutput ?? ((line: string) => process.stdout.write(`${line}\n`));
+  const runCleanupOperation = options.runCleanupOperation
+    ?? ((_name: DevelopmentCleanupOperation, operation: () => Promise<void>) => operation());
   let gameReservation: NetServer | undefined;
   let inspectionReservation: NetServer | undefined;
   try {
@@ -164,8 +185,10 @@ export async function startDevelopmentSession(
       '$.network.inspectionPort',
     );
   } catch (cause) {
-    await closeNetServer(gameReservation);
-    await closeNetServer(inspectionReservation);
+    await Promise.allSettled([
+      closeNetServer(gameReservation),
+      closeNetServer(inspectionReservation),
+    ]);
     throw cause;
   }
 
@@ -296,15 +319,54 @@ export async function startDevelopmentSession(
       stopping = true;
       cleanupState = 'stopping';
       const cleanupStarted = Date.now();
-      actionBroker.stop();
-      const childStops = children.map(stopChild);
-      await removeSessionDescriptor(descriptorPath);
-      await buildTracker.stop();
-      await Promise.all(childStops);
-      await inspectionServer.stop();
+      const cleanupOperations: ReadonlyArray<Readonly<{
+        name: DevelopmentCleanupOperation;
+        operation: () => Promise<void>;
+      }>> = [
+        {
+          name: 'action-broker',
+          operation: async () => { actionBroker.stop(); },
+        },
+        {
+          name: 'game-port-reservation',
+          operation: () => closeNetServer(gameReservation),
+        },
+        {
+          name: 'inspection-port-reservation',
+          operation: () => closeNetServer(inspectionReservation),
+        },
+        {
+          name: 'session-descriptor',
+          operation: () => removeSessionDescriptor(descriptorPath),
+        },
+        {
+          name: 'build-watcher',
+          operation: () => buildTracker.stop(),
+        },
+        ...children.map((child) => ({
+          name: `${child.name}-child` as const,
+          operation: () => stopChild(child),
+        })),
+        {
+          name: 'inspection-server',
+          operation: () => inspectionServer.stop(),
+        },
+      ];
+      const cleanupResults = await Promise.allSettled(cleanupOperations.map(({ name, operation }) => (
+        Promise.resolve().then(() => runCleanupOperation(name, operation))
+      )));
+      const cleanupFailureCount = cleanupResults.reduce(
+        (count, result) => count + (result.status === 'rejected' ? 1 : 0),
+        0,
+      );
       cleanupMilliseconds = Date.now() - cleanupStarted;
-      cleanupState = 'stopped';
-      const result = Object.freeze({ reason, exitCode, cleanupMilliseconds });
+      cleanupState = cleanupFailureCount === 0 ? 'stopped' : 'failed';
+      const result = Object.freeze({
+        reason,
+        exitCode: cleanupFailureCount > 0 && exitCode === 0 ? 1 : exitCode,
+        cleanupMilliseconds,
+        cleanupFailureCount,
+      });
       resolveStopped(result);
       return result;
     })();
@@ -382,8 +444,6 @@ export async function startDevelopmentSession(
       join(config.game.workingDirectory, 'src'),
     ]);
   } catch (cause) {
-    await closeNetServer(gameReservation);
-    await closeNetServer(inspectionReservation);
     await stop('start-failure', 1);
     if (cause instanceof AntikyCliError) throw cause;
     throw new AntikyCliError(

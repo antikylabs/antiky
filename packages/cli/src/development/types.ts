@@ -16,7 +16,7 @@ export const DEVELOPMENT_SCHEMA_VERSION = 1 as const;
 
 export type DevelopmentProcessState = 'starting' | 'running' | 'stopped' | 'failed';
 export type DevelopmentConnectionState = 'waiting' | 'connected' | 'unavailable';
-export type DevelopmentCleanupState = 'active' | 'stopping' | 'stopped';
+export type DevelopmentCleanupState = 'active' | 'stopping' | 'stopped' | 'failed';
 export type DevelopmentChangeKind = 'initial' | 'source' | 'shader' | 'asset' | 'config';
 export type DevelopmentBuildResult = 'pending' | 'ready' | 'failed';
 
@@ -90,6 +90,7 @@ export type DevelopmentStopResult = Readonly<{
   reason: DevelopmentStopReason;
   exitCode: number;
   cleanupMilliseconds: number;
+  cleanupFailureCount: number;
 }>;
 
 export type DevelopmentReloadResult = Readonly<{

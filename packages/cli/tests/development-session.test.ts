@@ -436,6 +436,57 @@ test('cleanup kills a child process group after its leader exits', async () => {
   }
 });
 
+test('cleanup attempts every resource and settles when one cleanup operation fails', async () => {
+  const project = await makeProject();
+  const config = await loadAntikyConfig(project.configPath);
+  const attempted: string[] = [];
+  const session = await startDevelopmentSession(config, {
+    writeOutput: () => {},
+    async runCleanupOperation(name, operation) {
+      attempted.push(name);
+      if (name === 'session-descriptor') throw new Error('injected descriptor cleanup failure');
+      await operation();
+    },
+  });
+  const descriptorPath = session.descriptorPath;
+  const childProcessIds = [
+    session.snapshot().processes.game.pid,
+    session.snapshot().processes.shaders.pid,
+  ].filter((processId): processId is number => processId !== undefined);
+
+  try {
+    const result = await session.stop('normal');
+    assert.equal(await session.stopped, result);
+    assert.equal(result.cleanupFailureCount, 1);
+    assert.equal(result.exitCode, 1);
+    assert.equal(session.snapshot().cleanup.state, 'failed');
+    assert.deepEqual(new Set(attempted), new Set([
+      'action-broker',
+      'game-port-reservation',
+      'inspection-port-reservation',
+      'session-descriptor',
+      'build-watcher',
+      'shaders-child',
+      'game-child',
+      'inspection-server',
+    ]));
+    assert.equal(await canRead(descriptorPath), true);
+    assert.equal(await portIsFree(GAME_PORT), true);
+    assert.equal(await portIsFree(INSPECTION_PORT), true);
+    assert.equal(childProcessIds.some(processExists), false);
+  } finally {
+    await rm(descriptorPath, { force: true });
+    for (const processId of childProcessIds) {
+      if (!processExists(processId)) continue;
+      try {
+        process.kill(-processId, 'SIGKILL');
+      } catch (cause: unknown) {
+        if ((cause as NodeJS.ErrnoException).code !== 'ESRCH') throw cause;
+      }
+    }
+  }
+});
+
 test('SIGINT stops the CLI session and releases both ports', async () => {
   const project = await makeProject();
   const child = spawn(process.execPath, [

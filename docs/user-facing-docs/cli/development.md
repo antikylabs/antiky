@@ -257,6 +257,10 @@ Press `Ctrl-C` in the `antiky dev` terminal. Antiky asks every owned process to 
 inspection and MCP listener, removes the session descriptor, and releases both ports. An owned
 child failure performs the same cleanup and returns a nonzero status.
 
+Antiky attempts every cleanup operation even when one operation fails. A failed operation sets the
+cleanup state to `failed` and makes a normal stop return a nonzero status instead of reporting that
+cleanup finished successfully.
+
 Antiky stores the random session credential in `.antiky/dev-session.json` with mode `0600`.
 It does not print the credential or put it in the game URL, diagnostics, or inspection results.
 Antiky removes the descriptor when the session stops.
