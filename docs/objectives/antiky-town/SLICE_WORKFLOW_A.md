@@ -232,7 +232,53 @@ The real plan must name:
 - One isolation rule and one software rollback rule.
 - Each affected user-facing documentation area, or `N/A` with a reason.
 
-### 2. Take a framework alignment snapshot
+### 2. Research the feature area
+
+Do significant research before you select the slice design. Compare the approaches in relevant
+game frameworks. Include Phaser, Godot, Bevy, Unity, Unreal Engine, and another applicable
+framework when they have useful prior work.
+
+Use current primary sources. Prefer official manuals, API references, source code, release notes,
+and maintainers' design documents. A list of framework names is not research. Explain each relevant
+approach, its trade-offs, and the part that does or does not fit Antiky.
+
+Research BroMetal for every slice. Record:
+
+- The installed BroMetal version and the command that reports it.
+- The latest published BroMetal version and the source that reports it.
+- Whether the installed version is current.
+- The relevant BroMetal APIs, limits, ownership rules, design principles, README guidance, and
+  release notes.
+- The upgrade work that the slice needs, or `N/A` with a reason.
+
+The installed version must match the latest published version before implementation starts. If an
+upgrade is unsafe or outside the slice, put the exception and its effect in the owner-input file.
+An approved exception must name the version that the slice will use.
+
+Put the concise research result in the slice plan. Link the sources that support its design. Do not
+create a separate research document unless the result will help more than one slice.
+
+### 3. Review architecture decisions
+
+Read the accepted ADRs and architecture guides that affect the slice. Also read
+[`UNDER_REVIEW_A.md`](../../adr/UNDER_REVIEW_A.md) in full. Do not review only the items that a
+search result finds.
+
+Record these results in the slice plan:
+
+- The accepted decisions that control ownership, public contracts, safety, and scope.
+- Each relevant item in `UNDER_REVIEW_A.md`, or a statement that no item is necessary for the
+  slice.
+- The effect of each necessary decision on the slice.
+
+If an item in `UNDER_REVIEW_A.md` is necessary, add a question to the slice owner-input file. Link
+the item. Explain why implementation needs the decision. Give one recommendation and its
+trade-off. Keep the plan status `NOT READY` until the owner answers the question and the required
+ADR work is complete.
+
+Do not block a slice on an unrelated ADR or architecture question.
+
+### 4. Take a framework alignment snapshot
 
 Inspect the repository. Do not rely only on design documents.
 
@@ -250,7 +296,7 @@ Mark a capability as `USE` only when real code supplies the required behavior. U
 the code exists but lacks one proved behavior. Use `CREATE` when the repository does not contain the
 capability. Use `DEFER` when the slice does not need it.
 
-### 3. Define the execution contract
+### 5. Define the execution contract
 
 Define how one agent can run the plan without sharing hidden state with another run. Freeze the
 contract before the first implementation change.
@@ -271,7 +317,7 @@ run-specific values in the evidence receipt instead of pre-filling a large plan 
 Use `N/A` with a reason in the receipt when a field cannot affect the slice. Do not record a secret
 in a digest input, log, receipt, or artifact.
 
-### 4. State one outcome
+### 6. State one outcome
 
 Use one sentence that names the user-visible or developer-visible result. Then list the behaviors
 that prove the result.
@@ -286,7 +332,7 @@ An accepted command changes one market lamp, and the new value is visible and in
 
 “Build the entity system” is not a good slice outcome. It names a solution but not a useful result.
 
-### 5. Capture the reference
+### 7. Capture the reference
 
 Record the current state before implementation changes it. Use the smallest useful set of proof:
 
@@ -299,7 +345,7 @@ Record the current state before implementation changes it. Use the smallest usef
 State which differences are allowed. If no difference is approved, the slice must preserve the
 reference outside its named outcome.
 
-### 6. Inventory what exists
+### 8. Inventory what exists
 
 List each needed capability. Name the real API, source path, and proof. Do not write “framework
 handles this” without a symbol or a test.
@@ -312,7 +358,7 @@ The inventory answers these questions:
 - What planned feature is still absent?
 - What code would cross an ownership boundary?
 
-### 7. Test missing-capability hypotheses
+### 9. Test missing-capability hypotheses
 
 Keep hypotheses separate from expected work. For each hypothesis:
 
@@ -323,7 +369,7 @@ Keep hypotheses separate from expected work. For each hypothesis:
 
 This step prevents a new abstraction when a narrow existing API is sufficient.
 
-### 8. Define expected framework work
+### 10. Define expected framework work
 
 List only framework code that the slice outcome needs. Each addition must name:
 
@@ -337,7 +383,7 @@ List only framework code that the slice outcome needs. Each addition must name:
 Prefer a deep, narrow module over many general interfaces. Keep a new implementation private until
 a second use proves a stable public shape.
 
-### 9. Compare implementation options
+### 11. Compare implementation options
 
 Write at least two credible options when the choice affects ownership, public contracts, data
 layout, or long-term cost. State benefits, costs, and evidence that would justify the larger option.
@@ -345,7 +391,7 @@ layout, or long-term cost. State benefits, costs, and evidence that would justif
 Put an owner choice and its context in the owner-input file. Record an engineering choice in the
 plan. A recommendation is not an approval.
 
-### 10. Draw the data and authority path
+### 12. Draw the data and authority path
 
 Show where the request starts, where authority makes the decision, and how accepted state reaches
 the visible result. Name each state copy.
@@ -365,7 +411,7 @@ caller
 Do not serialize data between normal modules in one process. Do not let render state become the
 authoritative game state.
 
-### 11. Define proof before implementation
+### 13. Define proof before implementation
 
 Name tests and evidence before code work starts. Include:
 
@@ -388,7 +434,7 @@ Name tests and evidence before code work starts. Include:
 
 If the slice cannot name a repeatable way to prove a claim, the claim is not ready.
 
-### 12. Run the readiness gate
+### 14. Run the readiness gate
 
 The owner-input file must be `ANSWERED`. Every required earlier slice must be complete. The plan
 must name all code, proof, security, and recovery work that the outcome needs.
@@ -396,7 +442,7 @@ must name all code, proof, security, and recovery work that the outcome needs.
 Baseline capture, dependency selection, tool selection, resource allocation, and run setup can be
 the first implementation checkpoint. These tasks do not require owner action.
 
-### 13. Implement checkpoints
+### 15. Implement checkpoints
 
 Each checkpoint must:
 
@@ -410,7 +456,7 @@ Each checkpoint must:
 
 Do not start the next checkpoint when the current checkpoint has an unexplained failure.
 
-### 14. Close with evidence
+### 16. Close with evidence
 
 Run the complete verification command. Record each completion check and rubric result in the
 evidence receipt. Keep a short completion checklist in the plan.
@@ -667,6 +713,11 @@ Every plan or evidence receipt must cover these gates when they apply:
 
 - The owner-input file is answered and the goal uses its answers.
 - Every earlier slice is complete.
+- The plan contains significant current research from relevant game frameworks.
+- The installed BroMetal version matches the latest published version, or the owner approved a
+  specific exception.
+- The plan records the accepted ADR, architecture, and complete `UNDER_REVIEW_A.md` review.
+- Each necessary item in `UNDER_REVIEW_A.md` has an answered owner question and completed ADR work.
 - The framework alignment snapshot is current.
 - The reference and allowed differences are recorded.
 - The outcome, non-goals, and failure behavior are clear.

@@ -89,6 +89,18 @@ cost.
 - `<relative link to SLICE_WORKFLOW_A.md>`
 - `<relevant ADR, architecture guide, reference source, and engineering guide>`
 
+## Research and decision review
+
+- Relevant frameworks: `<current primary sources, approaches, trade-offs, and Antiky result>`
+- BroMetal: `<installed version, latest published version, check command, relevant design rules,
+  and upgrade result>`
+- Accepted decisions: `<ADRs and architecture rules that control this slice>`
+- `UNDER_REVIEW_A.md`: `<necessary item and owner-input question, or NONE with a reason>`
+
+Do significant research. Do not list framework names without a result. The installed BroMetal
+version must be current unless the owner approved a specific exception in the owner-input file.
+Read `UNDER_REVIEW_A.md` in full. A necessary unresolved item keeps the plan `NOT READY`.
+
 ## Current state and reference
 
 State only the current facts that affect the slice:
