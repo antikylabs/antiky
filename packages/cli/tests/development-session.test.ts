@@ -627,12 +627,11 @@ test('disconnect, reconnect, controlled reload, and capture preserve related ide
     });
 
     const capturePromise = client.captureFrame();
+    void capturePromise.catch(() => {});
     const captureAction = await pollAction('runtime-reconnect-003');
     assert.equal(captureAction.kind, 'capture');
-    const png = Buffer.from(
-      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
-      'base64',
-    );
+    const png = Buffer.alloc(5 * 1024 * 1024 + 64 * 1024);
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png);
     const captureResponse = await fetch(`${session.inspectionUrl}/v1/runtime/action-result`, {
       method: 'POST',
       headers: browserHeaders,

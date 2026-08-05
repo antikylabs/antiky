@@ -9,7 +9,10 @@ import type {
 import { AntikyCliError } from '../errors.ts';
 
 const DEFAULT_ACTION_TIMEOUT_MILLISECONDS = 10_000;
-const MAX_CAPTURE_BYTES = 5 * 1024 * 1024;
+// High-DPI canvases can exceed 5 MiB below 4K. Keep the local transport bounded while allowing
+// exact PNG captures from common development displays.
+export const MAX_CAPTURE_BYTES = 32 * 1024 * 1024;
+export const MAX_CAPTURE_ENVELOPE_BYTES = Math.ceil(MAX_CAPTURE_BYTES / 3) * 4 + 64 * 1024;
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 export type BrowserDevelopmentAction = Readonly<{

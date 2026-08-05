@@ -12,9 +12,10 @@ import {
   type InspectionSnapshot,
 } from '@antiky/framework';
 
-import type {
-  BrowserDevelopmentAction,
-  CaptureActionInput,
+import {
+  MAX_CAPTURE_ENVELOPE_BYTES,
+  type BrowserDevelopmentAction,
+  type CaptureActionInput,
 } from './actions.ts';
 import type {
   DevelopmentCaptureResult,
@@ -29,7 +30,6 @@ import {
 } from '../mcp/server.ts';
 
 const MAX_BROWSER_MESSAGE_BYTES = 256 * 1024;
-const MAX_CAPTURE_MESSAGE_BYTES = 7 * 1024 * 1024;
 
 type InspectionServerOptions = Readonly<{
   host: '127.0.0.1';
@@ -433,7 +433,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         }
         if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/action-result') {
           const capture = readCaptureEnvelope(
-            await readJson(request, MAX_CAPTURE_MESSAGE_BYTES),
+            await readJson(request, MAX_CAPTURE_ENVELOPE_BYTES),
             options.developmentSessionId,
           );
           await options.completeCapture(capture);
