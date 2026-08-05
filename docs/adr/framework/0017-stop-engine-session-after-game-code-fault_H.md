@@ -6,13 +6,20 @@ Accepted
 
 ## Context
 
-An engine system, input-capture function, state-digest function, or command operation can fail after it changes world state.
+A game-code failure can occur after one of these callbacks or operations changes world state:
 
-An engine session cannot know how much state changed. If the engine session continues, the same operation can change the state again.
+- An engine-system callback
+- An input-capture function
+- A state-digest function
+- A command operation.
+
+The engine session cannot know which state changes are completed.
+
+If the engine session continues, the same operation can change the world state again.
 
 Inspection and disposal must stay available after this failure.
 
-The decisions that follow apply:
+These architecture decisions are also applicable:
 
 - [Let EngineSession own worlds](0008-engine-session-owns-worlds_H.md)
 - [Serialize data only when it crosses a real boundary](0010-serialize-at-boundaries_H.md)
@@ -20,31 +27,36 @@ The decisions that follow apply:
 
 ## Decision
 
+A terminal fault is a session condition that stops all subsequent simulation operations and command
+operations.
+
 We will put an engine session in `faulted` mode after a game-code failure.
 
-A terminal fault is a failure that stops all subsequent simulation operations and command operations.
+After a terminal fault, `EngineSession` will reject all simulation operations and command operations.
 
-The engine session will not run a system, step, or command operation after a terminal fault.
+After the failure, `EngineSession` will not run the operation again.
 
-The engine session will keep inspection and disposal available.
+`EngineSession` will keep inspection and disposal available.
 
-Inspection status will contain a safe fault code, a fault source, and an applicable system ID.
+Inspection will identify the fault source. It will not include callback error details, game input, or
+command data.
 
-Inspection status will not contain an error message, stack, input, or command data.
-
-An input-capture function must return `null` when it rejects expected invalid input.
-
-For this result, the engine session will return `INVALID_INPUT` and will continue to operate.
+Expected invalid input will not cause a terminal fault.
 
 All other input-capture failures will cause a terminal fault.
 
-Engine-session status version 2 will include the fault data.
+After a terminal fault, the game host must start a new engine session to continue simulation.
 
 ## Consequences
 
-- An engine session cannot continue from partial state after a game-code failure.
-- A developer can read the fault data and then dispose the engine session.
-- The game host must create a new engine session to continue operation after a terminal fault.
-- Each `captureInput` implementation must use `null` only for expected input rejection.
-- Transport readers must read engine-session status version 2.
-- An internal diagnostic record can contain more information than the safe fault data.
+- The engine session cannot continue when it does not know which state changes are completed.
+- A developer can read the fault data and dispose of the engine session.
+- The game host must start a new engine session after a terminal fault.
+- Game code can reject expected invalid input without a terminal fault.
+- The [public `EngineSession` contract](../../user-facing-docs/framework/engine-sessions.md) contains
+  the result codes and fault data.
+- If this recovery policy changes, Antiky must add a new ADR.
+
+## Revision history
+
+- `28662fe98ad0d547c5a9c43fc133a63e95b6e3aa` — Prior version before this change.
