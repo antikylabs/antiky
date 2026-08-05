@@ -94,6 +94,8 @@ test('user-facing development docs are standalone and match the shipped interfac
     'createTransform',
     'createPointLight',
     'createPointLightAuthoringService',
+    'submitPointLightPower',
+    'correctPointLightPower',
   ]) {
     assert.ok(pointLightGuide.includes(publicName), `Point-light guide omits ${publicName}`);
   }
@@ -101,6 +103,10 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.match(pointLightGuide, /linear RGB/i);
   assert.match(pointLightGuide, /0[^\n]*through[^\n]*4/);
   assert.match(pointLightGuide, /immutable/i);
+  assert.match(pointLightGuide, /antiky\.authoring\.set-point-light-power/);
+  assert.match(pointLightGuide, /world\.light\.edit/);
+  assert.match(pointLightGuide, /ACCEPTED/);
+  assert.match(pointLightGuide, /4 KiB/);
 
   assert.match(studioGuide, /connectDevelopmentClient/);
   assert.match(agentsGuide, /standalone product documentation/i);

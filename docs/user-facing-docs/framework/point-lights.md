@@ -115,6 +115,10 @@ const lights = createPointLightAuthoringService({
       pointLight: { schemaVersion: 1 },
     },
   ],
+  runtimeInstanceId: 'game-runtime-001',
+  renderBindings: [
+    { entityId: harborLampId, renderSlot: 0 },
+  ],
 });
 
 const harborLamp = lights.getPointLight(harborLampId);
@@ -123,6 +127,110 @@ const everyLamp = lights.listPointLights();
 
 Do not treat a returned record as mutable game state. Build runtime and render projections from the
 authoring record, and keep their numeric aliases inside their own lifetime.
+
+`runtimeInstanceId` names the current disposable runtime. A render binding maps an authored entity
+ID to a temporary numeric slot. A headless point light needs no render binding and still uses the
+same authoring and runtime service.
+
+## Change power through a command
+
+Call `submitPointLightPower` for an important authoring change. Do not modify a record returned by
+`getPointLight`.
+
+```ts
+const trustedContext = {
+  principalId: 'local-developer',
+  permissions: ['world.light.edit'],
+  receivedAt: new Date().toISOString(),
+  runtimeInstanceId: 'game-runtime-001',
+};
+
+const changed = lights.submitPointLightPower({
+  protocolVersion: 1,
+  commandVersion: 1,
+  type: 'antiky.authoring.set-point-light-power',
+  commandId: '018f0f3a-7b2c-7a1d-8e2f-123456789ac0',
+  worldId,
+  entityId: harborLampId,
+  expectedRevision: 1,
+  data: { power: 2 },
+}, trustedContext);
+
+if (changed.code !== 'ACCEPTED') {
+  throw new Error(`Power change failed: ${changed.code}`);
+}
+```
+
+The host creates the trusted context. Do not copy identity, permissions, receipt time, or runtime
+identity from command data. A change needs `world.light.edit`. A process or MCP boundary must reject
+an encoded command larger than 4 KiB; the framework service enforces the same limit for direct
+calls.
+
+An accepted command increments the lamp revision once and records one immutable
+`antiky.authoring.point-light-power-set` fact. The runtime and render projections receive that
+revision once. A same-value request returns `NO_OP` and records no fact.
+
+## Correct an accepted change
+
+A correction does not delete history. It reads the prior value from an accepted fact and submits a
+new power change.
+
+```ts
+const corrected = lights.correctPointLightPower({
+  protocolVersion: 1,
+  commandVersion: 1,
+  commandId: '018f0f3a-7b2c-7a1d-8e2f-123456789ac1',
+  correctedCommandId: changed.commandId,
+  expectedRevision: 2,
+}, {
+  ...trustedContext,
+  receivedAt: new Date().toISOString(),
+});
+
+if (corrected.code !== 'ACCEPTED') {
+  throw new Error(`Correction failed: ${corrected.code}`);
+}
+```
+
+The correction creates a second fact. The first fact remains available through
+`listPointLightPowerFacts`.
+
+## Apply render changes safely
+
+`readPointLightRenderChanges` reports only bound slots that have an unacknowledged authoring
+change. Apply each returned value through your renderer's normal next-frame path. Acknowledge the
+matching event sequence only after the adapter succeeds.
+
+```ts
+const changes = lights.readPointLightRenderChanges();
+
+for (const light of changes.pointLights) {
+  rendererLights.setBasePower(light.renderSlot, light.power);
+}
+
+lights.acknowledgePointLightRenderChanges(changes.eventSequence);
+```
+
+If the adapter fails, keep the last valid renderer values and leave the changes pending. Renderer
+objects and GPU resources do not enter the command, fact, or authoring record.
+
+## Handle results and history
+
+Use `code` for control flow. The stable result codes are:
+
+- `ACCEPTED` and `NO_OP` for successful decisions.
+- `INVALID_COMMAND`, `WORLD_NOT_FOUND`, and `ENTITY_NOT_FOUND` for invalid targets or structure.
+- `MISSING_PERMISSION`, `DUPLICATE_COMMAND`, and `STALE_REVISION` for authority and ordering.
+- `VALUE_OUT_OF_RANGE`, `HISTORY_CAPACITY_REACHED`, and `EVENT_SEQUENCE_ERROR` for bounded state
+  and replay failures.
+
+The service keeps at most 256 command results and 256 accepted facts. It rejects another change
+before either limit is exceeded. `rebuildPointLightState` replays the service history from the
+initial authored records. `replayPointLightPowerFacts` accepts an explicit ordered fact list and
+rejects a sequence gap without changing live state.
+
+Call `dispose` when the owning runtime stops. Later commands are rejected, while the last immutable
+read state remains available for diagnostics.
 
 See [Runtime Inspection](inspection.md) for the shared diagnostics and measurement source. See the
 [framework system overview](../../architecture/framework/overview_A.md) for authoring, runtime,

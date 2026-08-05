@@ -41,6 +41,11 @@ test('framework source has no Node, React, Next, BroMetal, Studio, or MCP import
         `${source.name} imports forbidden dependency ${specifier}`,
       );
     }
+    assert.doesNotMatch(
+      source.text,
+      /Market Lamp West|town-study/,
+      `${source.name} contains demo-specific point-light data`,
+    );
   }
 });
 

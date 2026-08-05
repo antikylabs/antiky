@@ -31,6 +31,8 @@ test('one private service stores and reads two independent point lights by stabl
       pointLight(HEADLESS_ID, 'Headless Test Lamp', 0.5),
       pointLight(WEST_ID, 'Market Lamp West 01', 1.05),
     ],
+    runtimeInstanceId: 'runtime-001',
+    renderBindings: [{ entityId: WEST_ID, renderSlot: 0 }],
   };
   const service = createPointLightAuthoringService(input);
 
@@ -52,6 +54,8 @@ test('service construction rejects duplicate IDs and invalid entity data', () =>
     () => createPointLightAuthoringService({
       worldId: WORLD_ID,
       pointLights: [pointLight(WEST_ID, 'One', 1), pointLight(WEST_ID, 'Two', 2)],
+      runtimeInstanceId: 'runtime-001',
+      renderBindings: [],
     }),
     (error: unknown) => (
       error instanceof PointLightServiceValidationError
@@ -63,6 +67,8 @@ test('service construction rejects duplicate IDs and invalid entity data', () =>
     () => createPointLightAuthoringService({
       worldId: WORLD_ID,
       pointLights: [pointLight(WEST_ID, '   ', 1)],
+      runtimeInstanceId: 'runtime-001',
+      renderBindings: [],
     }),
     (error: unknown) => (
       error instanceof PointLightServiceValidationError
@@ -71,20 +77,38 @@ test('service construction rejects duplicate IDs and invalid entity data', () =>
   );
 });
 
-test('service records are bounded and do not expose mutable maps or writer functions', () => {
+test('service records are bounded and expose no mutable map or generic writer', () => {
   const service = createPointLightAuthoringService({
     worldId: WORLD_ID,
     pointLights: [pointLight(WEST_ID, 'One', 1)],
+    runtimeInstanceId: 'runtime-001',
+    renderBindings: [],
   });
   const publicKeys = Object.keys(service).sort();
 
-  assert.deepEqual(publicKeys, ['getPointLight', 'listPointLights', 'worldId']);
+  assert.deepEqual(publicKeys, [
+    'acknowledgePointLightRenderChanges',
+    'correctPointLightPower',
+    'dispose',
+    'getPointLight',
+    'listPointLightCommandResults',
+    'listPointLightPowerFacts',
+    'listPointLights',
+    'readPointLightRenderChanges',
+    'readPointLightState',
+    'rebuildPointLightState',
+    'replayPointLightPowerFacts',
+    'submitPointLightPower',
+    'worldId',
+  ]);
   assert.throws(
     () => createPointLightAuthoringService({
       worldId: WORLD_ID,
       pointLights: Array.from({ length: MAX_POINT_LIGHTS + 1 }, (_, index) => (
         pointLight(`018f0f3a-7b2c-7a1d-8e2f-${index.toString(16).padStart(12, '0')}`, `Lamp ${index}`, 1)
       )),
+      runtimeInstanceId: 'runtime-001',
+      renderBindings: [],
     }),
     /at most 256 point lights/i,
   );
