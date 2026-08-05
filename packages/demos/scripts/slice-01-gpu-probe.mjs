@@ -356,22 +356,22 @@ export const gpuProbeSource = String.raw`(() => {
   try {
     const gpu = navigator.gpu;
     if (!gpu) throw new Error('WebGPU is unavailable.');
-    const wrappedGpu = new Proxy(gpu, {
-      get(target, property) {
-        if (property === 'requestAdapter') {
-          return async (...args) => {
-            state.adapterRequests += 1;
-            return proxyAdapter(await target.requestAdapter(...args));
-          };
-        }
-        const value = Reflect.get(target, property, target);
-        return typeof value === 'function' ? value.bind(target) : value;
+    let requestAdapterOwner = gpu;
+    while (
+      requestAdapterOwner
+      && !Object.prototype.hasOwnProperty.call(requestAdapterOwner, 'requestAdapter')
+    ) {
+      requestAdapterOwner = Object.getPrototypeOf(requestAdapterOwner);
+    }
+    if (!requestAdapterOwner) throw new Error('WebGPU requestAdapter is unavailable.');
+    const descriptor = Object.getOwnPropertyDescriptor(requestAdapterOwner, 'requestAdapter');
+    const requestAdapter = gpu.requestAdapter;
+    Object.defineProperty(requestAdapterOwner, 'requestAdapter', {
+      ...descriptor,
+      value: async function (...args) {
+        state.adapterRequests += 1;
+        return proxyAdapter(await Reflect.apply(requestAdapter, this, args));
       },
-    });
-    Object.defineProperty(navigator, 'gpu', {
-      configurable: true,
-      enumerable: true,
-      value: wrappedGpu,
     });
   } catch (error) {
     state.installError = error instanceof Error ? error.message : String(error);

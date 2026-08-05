@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import vm from 'node:vm';
 
 import {
   affectedUniformBlocks,
@@ -113,7 +114,30 @@ test('the browser probe installs before the game asks for a WebGPU adapter', () 
   assert.match(gpuProbeSource, /requestAdapter/);
   assert.match(gpuProbeSource, /writeBuffer/);
   assert.match(gpuProbeSource, /beginRenderPass/);
-  assert.match(gpuProbeSource, /Object\.defineProperty\(navigator, 'gpu'/);
+  assert.match(gpuProbeSource, /Object\.defineProperty\(requestAdapterOwner, 'requestAdapter'/);
+  assert.doesNotMatch(gpuProbeSource, /Object\.defineProperty\(navigator, 'gpu'/);
+});
+
+test('the browser probe installs when navigator.gpu is read-only', async () => {
+  const gpuPrototype = {
+    async requestAdapter() {
+      return null;
+    },
+  };
+  const gpu = Object.create(gpuPrototype);
+  const navigator = {};
+  Object.defineProperty(navigator, 'gpu', {
+    configurable: false,
+    enumerable: true,
+    value: gpu,
+  });
+  const context = vm.createContext({ navigator });
+
+  vm.runInContext(gpuProbeSource, context);
+  await gpu.requestAdapter();
+
+  assert.equal(context.__antikyGpuProbe.installError, null);
+  assert.equal(context.__antikyGpuProbe.adapterRequests, 1);
 });
 
 test('the baseline uses an immutable run ID and reads practical-light slot zero', () => {
