@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-02",
+  "runId": "s02-20260805T145240Z",
+  "outcome": "One EngineSession advances Antiky Town in bounded fixed steps and supports pause, resume, and one-step control.",
+  "framework": {
+    "authority": "CPU EngineSession",
+    "systemOrder": [
+      "town-update"
+    ],
+    "clock": {
+      "fixedStepSeconds": 0.016666666666666666,
+      "maximumFrameElapsedSeconds": 0.05,
+      "maximumStepsPerFrame": 3,
+      "longFrameInputSeconds": 1,
+      "completedSteps": 3,
+      "discardedElapsedSeconds": 0.95,
+      "accumulatorSeconds": 0,
+      "deterministicStateDigest": "total:3"
+    },
+    "eventHistoryPolicy": "Selective durable domain facts; fixed steps and movement remain temporary by default.",
+    "publicHostApiAdded": false,
+    "publicJournalApiAdded": false
+  },
+  "development": {
+    "developmentSessionId": "7e4f9224-8e20-4eb4-b5ca-d5b4239c166d",
+    "acceptedBuildRevision": 1,
+    "initialEngineSessionId": "019fd269-eb77-7d98-8da4-734cfde9d873",
+    "reloadedEngineSessionId": "019fd26a-11a3-75d6-888f-c973edd7e127",
+    "initialRuntimeInstanceId": "319b61d6-d14d-40ab-9f60-a8cbe9fb7e9f",
+    "reloadedRuntimeInstanceId": "e010a7af-c348-4728-b422-edf00950501d",
+    "initialCompletedStepCount": 90,
+    "pausedCompletedStepCount": 144,
+    "uiStepCompletedStepCount": 145,
+    "mcpStepCompletedStepCount": 146,
+    "resumedCompletedStepCount": 296,
+    "initialRuntimeFrameCount": 2,
+    "beforeUiStepRuntimeFrameCount": 302,
+    "uiStepRuntimeFrameCount": 303,
+    "uiStepGpuSubmissionDelta": 3,
+    "toolNames": [
+      "capture_frame",
+      "correct_point_light_power",
+      "dev_reload",
+      "get_dev_status",
+      "get_diagnostics",
+      "get_latest_build",
+      "get_point_light",
+      "get_render_stats",
+      "get_runtime_status",
+      "get_session_status",
+      "list_point_lights",
+      "pause_simulation",
+      "resume_simulation",
+      "set_point_light_power",
+      "step_simulation"
+    ],
+    "generatedIds": {
+      "world": "019fd269-ed1c-746d-ace7-64a1036b8406",
+      "entity": "019fd269-ee80-744f-882e-8c1dcbb0051d",
+      "command": "019fd269-efe8-7ec4-b280-f0b57ff43c61",
+      "session": "019fd269-f14d-716a-949b-a3533484e6ab"
+    },
+    "browser": {
+      "title": "Antiky game development",
+      "mainLabel": "Antiky Town development host",
+      "phase": "running",
+      "canvasWidth": 579,
+      "canvasHeight": 326,
+      "error": null
+    },
+    "capture": {
+      "width": 756,
+      "height": 469,
+      "channelStandardDeviation": 50.81784852608389
+    },
+    "referenceSimilarity": 0.995923,
+    "minimumReferenceSimilarity": 0.98,
+    "gpuBeforeReload": {
+      "schemaVersion": 1,
+      "installError": null,
+      "adapterRequests": 1,
+      "deviceRequests": 1,
+      "queueSubmissions": 1945,
+      "readbackOperations": 0,
+      "resources": {
+        "textures": 42,
+        "bindGroups": 9090,
+        "buffers": 149
+      }
+    },
+    "gpuAfterReload": {
+      "schemaVersion": 1,
+      "installError": null,
+      "adapterRequests": 1,
+      "deviceRequests": 1,
+      "queueSubmissions": 51,
+      "readbackOperations": 0,
+      "resources": {
+        "textures": 42,
+        "bindGroups": 256,
+        "buffers": 149
+      }
+    },
+    "reload": {
+      "schemaVersion": 1,
+      "actionId": "action-4f000fba-4915-4c9e-b6a2-36a180d2991c",
+      "developmentSessionId": "7e4f9224-8e20-4eb4-b5ca-d5b4239c166d",
+      "buildRevision": 1,
+      "oldRuntimeInstanceId": "319b61d6-d14d-40ab-9f60-a8cbe9fb7e9f",
+      "newRuntimeInstanceId": "e010a7af-c348-4728-b422-edf00950501d",
+      "result": "reloaded"
+    }
+  },
+  "mcp": {
+    "capability": "tools",
+    "resources": false,
+    "tools": [
+      "capture_frame",
+      "correct_point_light_power",
+      "dev_reload",
+      "get_dev_status",
+      "get_diagnostics",
+      "get_latest_build",
+      "get_point_light",
+      "get_render_stats",
+      "get_runtime_status",
+      "get_session_status",
+      "list_point_lights",
+      "pause_simulation",
+      "resume_simulation",
+      "set_point_light_power",
+      "step_simulation"
+    ]
+  },
+  "studio": {
+    "userInterfaceChanged": false,
+    "compatiblePath": "connectDevelopmentClient uses the same session operations."
+  },
+  "brometal": {
+    "version": "0.15.0",
+    "authority": "derived GPU presentation state",
+    "normalReadbackOperationsBeforeReload": 0,
+    "normalReadbackOperationsAfterReload": 0
+  },
+  "cleanup": {
+    "chromeExit": {
+      "code": 0,
+      "signal": null
+    },
+    "developmentExit": {
+      "code": 130,
+      "signal": null
+    },
+    "descriptorRemoved": true,
+    "portsReleased": [
+      3010,
+      3011,
+      9322
+    ]
+  }
+}

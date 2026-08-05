@@ -1,0 +1,385 @@
+{
+  "schemaVersion": 1,
+  "writer": "Slice 02 temporary verifier",
+  "validator": "Slice 02 temporary verifier",
+  "sliceId": "slice-02",
+  "runId": "s02-20260805T145240Z",
+  "state": "CLOSED",
+  "result": "PASS",
+  "outcome": "One EngineSession advances Antiky Town in bounded fixed steps and supports pause, resume, and one-step control.",
+  "startedAt": "2026-08-05T14:52:40.916Z",
+  "completedAt": "2026-08-05T14:53:14.826Z",
+  "sourceRevision": "ae7099001fbcad25d77dbe3638df82e5798d7621",
+  "finalImplementationRevision": "ae7099001fbcad25d77dbe3638df82e5798d7621",
+  "evidencePatchState": "The CP-04 evidence and closeout documents follow this implementation revision.",
+  "checkpointCommits": [
+    {
+      "id": "CP-00",
+      "commit": "85a23ed",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-01",
+      "commit": "12ddd9d",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-02",
+      "commit": "8d7639c",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-03",
+      "commit": "518dae5",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-03-R1",
+      "commit": "ae70990",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-04",
+      "commit": null,
+      "status": "PASS",
+      "evidencePatch": true
+    }
+  ],
+  "runSetup": {
+    "worktree": "/Users/josephduncan/github/emberwyrd/antikySite",
+    "branch": "feat/voxel-demo-work",
+    "dependencyLockSha256": "1f77697b649afb6ebe98e4452bbe6b00817271182b4cbf0e282521f3e2ee5bd0",
+    "configSha256": "d956f75153e3e64257f2585a3585edc6bdb5a308127a0dbd1138348bccc6e186",
+    "node": "v22.15.0",
+    "platform": "darwin-arm64",
+    "chrome": "Google Chrome 150.0.7871.188",
+    "viewport": {
+      "width": 756,
+      "height": 469
+    },
+    "locale": "en-US",
+    "timeZone": "America/Chicago",
+    "ports": [
+      3010,
+      3011,
+      9322
+    ],
+    "network": "Loopback only; Chrome external traffic was blocked.",
+    "outputDirectory": "docs/objectives/antiky-town/slice-02/outputs/s02-20260805T145240Z"
+  },
+  "readiness": [
+    {
+      "gate": "Owner input, dependency, ADR, and BroMetal baseline",
+      "status": "PASS"
+    },
+    {
+      "gate": "Framework alignment, research, scope, and authority",
+      "status": "PASS"
+    },
+    {
+      "gate": "Clean worktree, strict ports, reference, and rollback",
+      "status": "PASS"
+    },
+    {
+      "gate": "Named tests, controls, docs, and receipt writer",
+      "status": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "attempt-001",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "VERIFIER_DEFECT",
+      "retry": false,
+      "disposition": "The headless proof now checks the documented INVALID_ELAPSED_TIME result instead of expecting an exception. No service started."
+    },
+    {
+      "id": "attempt-002",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "VERIFIER_DEFECT",
+      "retry": true,
+      "disposition": "The MCP status check no longer reads a successful response body while formatting an assertion. The full repository check passed and all services cleaned up."
+    },
+    {
+      "id": "attempt-003",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "VERIFIER_DEFECT",
+      "retry": true,
+      "disposition": "Chrome navigated before the focused Vite host accepted connections. The verifier now waits for an HTTP success after antiky dev announces its services."
+    },
+    {
+      "id": "attempt-004",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "EVIDENCE_DEFECT",
+      "retry": true,
+      "disposition": "The behavior passed, but the audit found uiStepFrameDelta used the startup frame instead of the frame immediately before the UI step. The uncommitted output was rejected and the verifier now stores both endpoints."
+    },
+    {
+      "id": "attempt-005",
+      "checkpoint": "CP-04",
+      "result": "PASS",
+      "retry": true,
+      "note": "One clean development start supplied the browser, CLI, MCP, GPU, reload, and cleanup evidence."
+    }
+  ],
+  "unexpectedResults": [
+    {
+      "class": "TOOL_CAPABILITY",
+      "result": "RESOLVED",
+      "detail": "The attached Browser and Mac UI surfaces were unavailable. The plan-approved temporary verifier used an isolated headless Chrome runtime and left no permanent verification code."
+    },
+    {
+      "class": "VERIFIER_CONTRACT",
+      "result": "RESOLVED",
+      "detail": "Diagnostic runs added an HTTP-ready gate, composed get_dev_status with get_runtime_status, and matched the reference capture viewport. These changes did not alter product behavior."
+    },
+    {
+      "class": "PRODUCT_DEFECT",
+      "result": "RESOLVED",
+      "detail": "Paused single-step called BroMetal draw work outside renderer.loop(). A failing regression led commit ae70990 to run one paused presentation callback inside a temporary BroMetal loop."
+    }
+  ],
+  "identities": {
+    "developmentSessionId": "7e4f9224-8e20-4eb4-b5ca-d5b4239c166d",
+    "initialEngineSessionId": "019fd269-eb77-7d98-8da4-734cfde9d873",
+    "reloadedEngineSessionId": "019fd26a-11a3-75d6-888f-c973edd7e127",
+    "initialRuntimeInstanceId": "319b61d6-d14d-40ab-9f60-a8cbe9fb7e9f",
+    "reloadedRuntimeInstanceId": "e010a7af-c348-4728-b422-edf00950501d"
+  },
+  "controls": {
+    "cliPause": "PAUSED",
+    "uiStep": "STEPPED",
+    "mcpStep": "STEPPED",
+    "staleCliStep": "STALE_COMPLETED_STEP",
+    "cliResume": "RESUMED"
+  },
+  "tests": [
+    {
+      "command": "npm run check",
+      "status": "PASS",
+      "evidence": "logs/repository-check.log"
+    },
+    {
+      "command": "node --experimental-strip-types --experimental-transform-types docs/objectives/antiky-town/slice-02/verification/verify.mjs",
+      "status": "PASS",
+      "evidence": "confirmation-checks.md"
+    }
+  ],
+  "documentation": {
+    "framework": [
+      "docs/user-facing-docs/framework/engine-sessions.md",
+      "docs/user-facing-docs/framework/inspection.md"
+    ],
+    "cli": [
+      "docs/user-facing-docs/cli/development.md"
+    ],
+    "mcp": [
+      "docs/user-facing-docs/mcp/tools.md"
+    ],
+    "index": [
+      "docs/user-facing-docs/README.md"
+    ],
+    "studio": "N/A: the Studio connection workflow did not change."
+  },
+  "acceptanceChecks": [
+    {
+      "id": "AC-01",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-02",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-03",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-04",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-05",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-06",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-07",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-08",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-09",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-10",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-11",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-12",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-13",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-14",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-15",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-16",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-17",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-18",
+      "status": "PASS"
+    }
+  ],
+  "rubric": [
+    {
+      "dimension": "Outcome and scope",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Framework alignment",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Framework design",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Correctness",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Inspectability",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Render efficiency",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Failure and recovery",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Lifecycle and security",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Reference and performance",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Reproduction and handoff",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Autonomous execution",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Operation and learning",
+      "score": 3,
+      "status": "PASS"
+    }
+  ],
+  "processMeasures": {
+    "verificationAttempts": 5,
+    "retries": 4,
+    "diagnosticRuns": 6,
+    "flakyChecks": 0,
+    "ownerInterventionsDuringRun": 0,
+    "permissionEscalations": 1,
+    "browserSurfaceFallbacks": 1,
+    "blockedMilliseconds": 0
+  },
+  "rollback": {
+    "lastKnownGoodRevision": "ae70990",
+    "trigger": "A deterministic session, render, security, or cleanup regression.",
+    "proof": "All checkpoint commits and npm run check pass."
+  },
+  "afterCompletion": {
+    "owner": "Antiky Framework and CLI maintainers",
+    "health": "npm run check plus the documented antiky dev and session-tool workflow",
+    "humanFeedback": "docs/objectives/antiky-town/SLICE_FEEDBACK_H.txt",
+    "agentFindings": "the next slice owner-input and plan",
+    "retirement": "Use a later accepted API change with migration tests."
+  },
+  "finalGoalAudit": "PASS",
+  "artifacts": [
+    {
+      "path": "confirmation-checks.md",
+      "byteLength": 2038,
+      "sha256": "4ef075c5ddcd9759eb330c0c324297f13562140c73c98b6503f0866fb910a167"
+    },
+    {
+      "path": "facts.json",
+      "byteLength": 4702,
+      "sha256": "92adab2217ab9655a117e12a6550c64242af8fbd3d73b0ab4c502649fcc71b85"
+    },
+    {
+      "path": "measurements.json",
+      "byteLength": 1301,
+      "sha256": "83c60af5fb582fec563e6d53179216c8c742764ebb536501148d0d9de3c7efb5"
+    },
+    {
+      "path": "captures/session-controls.png",
+      "byteLength": 287154,
+      "sha256": "755c6b7f72b63e992f0b59551e6998651b3f942428c813e01c8a6d60b450f43f"
+    },
+    {
+      "path": "logs/repository-check.log",
+      "byteLength": 40794,
+      "sha256": "587618caba878fdb401aa25b44ac268965534db3430707a4e7694b3e739d5c31"
+    },
+    {
+      "path": "logs/antiky-dev.log",
+      "byteLength": 3409,
+      "sha256": "e8dc37916f6a5c40af7791d04d7caca7d3c03a0fbb22ce06b52d76d268a2add4"
+    },
+    {
+      "path": "logs/chrome.log",
+      "byteLength": 458,
+      "sha256": "f3d750a2df705ec16f7b34808f944c45ca5679dfb78c7a7be3824effd1a8d0ad"
+    }
+  ],
+  "selfDigest": "e8cdd66bdbd6112fee35875db819635833872689e260fc73fcd049f14083a9e2"
+}

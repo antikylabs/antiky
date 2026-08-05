@@ -4,7 +4,7 @@ Update this list after every slice run. New facts can add a slice, reorder slice
 direction.
 
 - [x] Slice 01 — Change one market lamp through the shared framework service.
-- [ ] Slice 02 — Add the fixed-step `EngineSession` clock.
+- [x] Slice 02 — Add the fixed-step `EngineSession` clock.
 - [ ] Slice 03 — Move character simulation into the framework.
 - [ ] Slice 04 — Compile town content through framework-owned assets.
 - [ ] Slice 05 — Add render preparation and the BroMetal adapter.

@@ -6,16 +6,16 @@ For a short review, answer the questions in [`owner-input_H.md`](owner-input_H.m
 
 | Field | Value |
 | --- | --- |
-| Status | `IN PROGRESS` |
+| Status | `COMPLETE` |
 | Owner | Antiky Framework maintainers |
 | Outcome | One `EngineSession` advances Antiky Town in bounded fixed steps and supports pause, resume, and one-step control |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Architecture decisions | Accepted framework ADRs below, including [ADR 0016](../../../adr/framework/0016-give-platform-work-to-game-host_H.md) |
 | Depends on | [`../slice-01/plan.md`](../slice-01/plan.md) completed |
-| Alignment revision | `0556f436e5d8eaf68aff19df2347520ca4a49332` |
+| Alignment revision | `ae7099001fbcad25d77dbe3638df82e5798d7621` |
 | Review date | `2026-08-04` |
 | Complete check | `node --experimental-strip-types --experimental-transform-types docs/objectives/antiky-town/slice-02/verification/verify.mjs` |
-| Evidence | `docs/objectives/antiky-town/slice-02/outputs/{run-id}/receipt.json` |
+| Evidence | [`outputs/s02-20260805T145240Z/receipt.json`](outputs/s02-20260805T145240Z/receipt.json) |
 
 The goal runner must read the complete owner-input file. It must stop on a `PENDING` answer. It
 must also stop until the required host-lifecycle ADR is accepted and BroMetal is current.
@@ -273,18 +273,18 @@ shared script folder. Delete it after the final outputs pass.
 
 - [x] Owner input is `ANSWERED` and the required host-lifecycle ADR is accepted.
 - [x] Slice 01 remains complete and BroMetal is locked at the current published version.
-- [ ] Antiky Town uses one session clock and one immutable system order.
-- [ ] Equal inputs and steps produce the tested equal state digest.
-- [ ] Long frames stay within the approved step limit and report discarded time.
-- [ ] Pause, resume, visibility, and one-step behavior preserve session state.
-- [ ] Point-light commands use session order and keep existing results and projections.
-- [ ] Direct, CLI, Studio-compatible, MCP, and UI controls use one service implementation.
-- [ ] `antiky generate id` supports all four stable ID kinds.
-- [ ] BroMetal and GPU work remain behind the approved boundary with zero normal readback.
-- [ ] Failure, reload, reconnect, disposal, and security checks pass.
-- [ ] Affected user-facing documentation matches shipped behavior.
-- [ ] Framework tests, package tests, `npm run check`, and the complete check pass.
-- [ ] The evidence receipt validates and links all required proof.
+- [x] Antiky Town uses one session clock and one immutable system order.
+- [x] Equal inputs and steps produce the tested equal state digest.
+- [x] Long frames stay within the approved step limit and report discarded time.
+- [x] Pause, resume, visibility, and one-step behavior preserve session state.
+- [x] Point-light commands use session order and keep existing results and projections.
+- [x] Direct, CLI, Studio-compatible, MCP, and UI controls use one service implementation.
+- [x] `antiky generate id` supports all four stable ID kinds.
+- [x] BroMetal and GPU work remain behind the approved boundary with zero normal readback.
+- [x] Failure, reload, reconnect, disposal, and security checks pass.
+- [x] Affected user-facing documentation matches shipped behavior.
+- [x] Framework tests, package tests, `npm run check`, and the complete check pass.
+- [x] The evidence receipt validates and links all required proof.
 
 ## Run and evidence rule
 

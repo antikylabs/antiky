@@ -12,3 +12,5 @@ plan creates, such as:
 - `captures/` and `logs/` when a completion check needs them.
 
 The receipt must list each stored output and its digest. Do not store credentials or other secrets.
+
+Completed run: [`s02-20260805T145240Z`](s02-20260805T145240Z/receipt.json).
