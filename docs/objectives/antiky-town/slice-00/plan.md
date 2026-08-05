@@ -13,7 +13,7 @@ This plan is the implementation contract. The accepted owner decisions are in
 | Architecture decision | [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | None |
 | Alignment revision | `441563bcce94abd76fb6813869e603e13f116b5a` |
-| Complete check | `npm run verify:slice-00` |
+| Complete check | Finished; see the saved results below |
 | Evidence | [`outputs/s00-20260804T205140Z/receipt.json`](outputs/s00-20260804T205140Z/receipt.json) |
 
 The goal runner must read the owner-input file before implementation. It must stop if the file has a
@@ -248,7 +248,7 @@ Slice 00 is complete only when all these statements are true:
 - [x] The update timing test passes on the recorded system.
 - [x] The current town reference remains available and has no unapproved visual change.
 - [x] `npm run check` passes.
-- [x] `npm run verify:slice-00` passes from one clean start.
+- [x] The final complete check passed from one clean start.
 - [x] The evidence receipt records the revision, environment, dependencies, checkpoints, attempts,
   failures, tests, measurements, and artifacts.
 

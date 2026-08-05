@@ -67,7 +67,7 @@ Keep each slice contract and its delivery outputs together:
 slice-NN/
   plan.md
   owner-input_H.md       optional; only when owner judgment is required
-  verification/
+  verification/           temporary; remove after completion
     verify.mjs           complete slice check
     tests/               tests for slice-specific evidence and policy
   outputs/
@@ -84,15 +84,14 @@ slice-NN/
 Keep product and framework implementation in `packages/`. Do not copy implementation files into the
 slice folder.
 
-Keep all slice-specific verification code in the slice `verification/` folder. This code includes
-the complete verifier, evidence contract, report builder, fixtures, probes that encode slice policy,
-and tests for those files. A root project command can point to the verifier. A product package must
-not know the slice schedule.
+Keep temporary verification code in the active slice's `verification/` folder. This code can include
+the complete check, fixtures, browser controls, probes, report code, and tests for those files. Do
+not create a shared verification framework for slice work. A small amount of duplication is better
+than permanent infrastructure for short-lived delivery work.
 
-Keep reusable, schedule-independent verification systems in `scripts/verification/`. These systems
-can control a browser, manage a development process, capture generic GPU facts, or write evidence.
-They must not know a slice number or an objective schedule. Do not put a slice-numbered file in
-`packages/` or `scripts/`.
+Do not add slice commands or tests to the root package manifest or a product package manifest. Do
+not put slice verification code in the repository `scripts/` folder. After a slice is complete,
+delete its `verification/` folder. Keep its plan and saved results in `outputs/`.
 
 Keep durable usage guidance in `docs/user-facing-docs/`. It is product documentation, not a slice
 output. The slice receipt links each page that the run changed.
@@ -196,7 +195,7 @@ The agent that runs this goal must follow these rules:
 18. Commit small, working checkpoints.
 19. Update affected pages in `docs/user-facing-docs/` with the checkpoint that changes behavior.
 20. Update `slice-list.md` from the run's facts before closeout.
-21. Mark the goal complete only after the receipt validates and the final audit passes.
+21. Mark the goal complete only after all checks pass and the saved results are complete.
 
 If work needs new owner authority, the agent adds one question with context to the owner-input file.
 It reports the exact blocked work. It must not invent permission to continue.
@@ -217,9 +216,9 @@ block and required-reading list. Do not copy the questions into the plan.
 
 Create `slice-NN/outputs/README.md`. The goal writes each run to `slice-NN/outputs/{run-id}/`.
 
-Create `slice-NN/verification/` when the slice needs executable verification. Put its verifier,
-fixtures, report code, evidence policy, and verifier tests in that folder. Reuse general systems
-from `scripts/verification/`.
+Create `slice-NN/verification/` when the slice needs executable verification. Put all temporary
+verification code in that folder. Do not add a root package command for it. Delete the folder after
+the final results are saved and checked.
 
 The real plan must name:
 

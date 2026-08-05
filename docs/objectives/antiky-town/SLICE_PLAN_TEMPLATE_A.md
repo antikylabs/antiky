@@ -31,7 +31,7 @@ and inline answer block in that file. Do not copy the questions into the plan.
 | Architecture decisions | `<links or NONE>` |
 | Depends on | `<earlier slice or NONE>` |
 | Alignment revision | `<full Git revision>` |
-| Complete check | `<one command>` |
+| Complete check | `<one temporary command; replace it with the saved result when complete>` |
 | Evidence | `docs/objectives/<objective>/slice-<NN>/outputs/{run-id}/receipt.json` |
 
 `<State that the goal runner must read the owner-input file and stop on a pending answer. Remove
@@ -182,10 +182,9 @@ Name the concrete boundaries and cases. Use a table only when exact mapping help
 
 For a reported error, add a failing regression test before the fix.
 
-Put the complete verifier, slice-specific fixtures, evidence policy, report code, and their tests in
-this slice's `verification/` folder. Import reusable, schedule-independent mechanics from
-`scripts/verification/`. A root project command can point here. Do not put slice-numbered
-verification files or objective schedule knowledge in a product package or in `scripts/`.
+Put all temporary verification code in this slice's `verification/` folder. Do not add the command
+or its tests to a package manifest. Do not create a shared root verification library. After the
+slice is complete, delete its `verification/` folder and keep only the saved results in `outputs/`.
 
 ## Completion checks
 
