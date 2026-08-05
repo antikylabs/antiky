@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import {
+  createPointLightAuthoringService,
+  inspectPointLightService,
+} from '@antiky/framework';
+
 // Node 22's strip-types test runner requires the source extension.
 // @ts-ignore explicit TypeScript extension is for the direct test runner
 import { createDemoInspectionSnapshot } from './runtime-inspection.ts';
@@ -61,4 +66,34 @@ test('demo inspection reports a structured runtime diagnostic without inventing 
     relatedIds: ['runtime-demo-error'],
   }]);
   assert.deepEqual(snapshot.measurements.render, { owner: 'framework' });
+});
+
+test('demo inspection publishes an available runtime-owned point-light view unchanged', () => {
+  const service = createPointLightAuthoringService({
+    worldId: '018f0f3a-7b2c-7a1d-8e2f-123456789abc',
+    pointLights: [{
+      entityId: '018f0f3a-7b2c-7a1d-8e2f-123456789abd',
+      label: 'Harbor Lamp',
+      revision: 1,
+      transform: { schemaVersion: 1 },
+      pointLight: { schemaVersion: 1 },
+    }],
+    runtimeInstanceId: 'runtime-demo-lights',
+    renderBindings: [],
+  });
+  const pointLights = inspectPointLightService(service);
+  const snapshot = createDemoInspectionSnapshot({
+    runtimeInstanceId: 'runtime-demo-lights',
+    phase: 'running',
+    frameCount: 1,
+    framesPerSecond: 0,
+    canvasWidth: 1,
+    canvasHeight: 1,
+    stats: {},
+    error: null,
+    pointLights,
+  });
+
+  assert.deepEqual(snapshot.pointLights, pointLights);
+  service.dispose();
 });

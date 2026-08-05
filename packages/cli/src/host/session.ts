@@ -274,8 +274,11 @@ export async function startDevelopmentSession(
     touchRuntime: (runtimeInstanceId) => runtimeConnection.touch(runtimeInstanceId),
     nextAction: (runtimeInstanceId) => actionBroker.nextAction(runtimeInstanceId),
     completeCapture: (input) => actionBroker.completeCapture(input),
+    completePointLightCommand: (input) => actionBroker.completePointLightCommand(input),
     requestReload: () => actionBroker.requestReload(),
     captureFrame: () => actionBroker.captureFrame(),
+    setPointLightPower: (command) => actionBroker.setPointLightPower(command),
+    correctPointLightPower: (request) => actionBroker.correctPointLightPower(request),
   });
 
   const stop = (

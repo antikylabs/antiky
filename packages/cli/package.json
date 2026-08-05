@@ -10,7 +10,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --experimental-transform-types --test tests/build-tracker.test.ts tests/config.test.ts tests/development-session.test.ts tests/mcp-server.test.ts tests/runtime-connection.test.ts tests/source-layout.test.ts tests/user-docs.test.ts",
+    "test": "node --experimental-strip-types --experimental-transform-types --test tests/actions.test.ts tests/build-tracker.test.ts tests/config.test.ts tests/development-session.test.ts tests/mcp-server.test.ts tests/point-light-development.test.ts tests/runtime-connection.test.ts tests/source-layout.test.ts tests/user-docs.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

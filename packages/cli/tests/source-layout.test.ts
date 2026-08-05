@@ -31,6 +31,7 @@ test('CLI source groups implementation files by responsibility', async () => {
   ]);
   await assertFilesExist(cliSource, [
     'development/client.ts',
+    'development/point-lights.ts',
     'development/types.ts',
     'host/actions.ts',
     'host/build-tracker.ts',
@@ -53,6 +54,8 @@ test('framework inspection code has a domain home as the package grows', async (
     'point-light/command-flow.test.ts',
     'point-light/commands.test.ts',
     'point-light/commands.ts',
+    'point-light/inspection.test.ts',
+    'point-light/inspection.ts',
     'point-light/projections.ts',
     'point-light/records.test.ts',
     'point-light/records.ts',

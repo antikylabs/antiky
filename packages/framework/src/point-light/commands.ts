@@ -300,6 +300,131 @@ export function parsePointLightCommandContext(value: unknown): PointLightCommand
   });
 }
 
+const POINT_LIGHT_COMMAND_RESULT_CODES = Object.freeze([
+  'ACCEPTED',
+  'NO_OP',
+  'INVALID_COMMAND',
+  'WORLD_NOT_FOUND',
+  'ENTITY_NOT_FOUND',
+  'MISSING_PERMISSION',
+  'DUPLICATE_COMMAND',
+  'STALE_REVISION',
+  'VALUE_OUT_OF_RANGE',
+  'HISTORY_CAPACITY_REACHED',
+  'EVENT_SEQUENCE_ERROR',
+] as const satisfies readonly PointLightCommandResultCode[]);
+
+function readResultCode(value: unknown, path: string): PointLightCommandResultCode {
+  if (
+    typeof value !== 'string'
+    || !(POINT_LIGHT_COMMAND_RESULT_CODES as readonly string[]).includes(value)
+  ) fail('Expected a stable point-light result code', path);
+  return value as PointLightCommandResultCode;
+}
+
+function readNullableId<T>(value: unknown, operation: () => T, path: string): T | null {
+  return value === null ? null : readId(operation, path);
+}
+
+function readNullableRevision(value: unknown, path: string): number | null {
+  return value === null ? null : readRevision(value, path);
+}
+
+export function parsePointLightCommandResult(value: unknown): PointLightCommandResult {
+  const record = readObject(value, '$result');
+  checkKeys(record, [
+    'schemaVersion',
+    'code',
+    'accepted',
+    'commandId',
+    'worldId',
+    'entityId',
+    'currentRevision',
+    'resultingRevision',
+    'eventSequence',
+    'runtimeInstanceId',
+  ], ['duplicateOfCode', 'fact'], '$result');
+  const code = readResultCode(record.code, '$result.code');
+  if (typeof record.accepted !== 'boolean' || record.accepted !== (code === 'ACCEPTED')) {
+    fail('Accepted must match the result code', '$result.accepted');
+  }
+  const commandId = readNullableId(
+    record.commandId,
+    () => parseCommandId(record.commandId),
+    '$result.commandId',
+  );
+  const worldId = readNullableId(
+    record.worldId,
+    () => parseWorldId(record.worldId),
+    '$result.worldId',
+  );
+  const entityId = readNullableId(
+    record.entityId,
+    () => parseEntityId(record.entityId),
+    '$result.entityId',
+  );
+  const currentRevision = readNullableRevision(
+    record.currentRevision,
+    '$result.currentRevision',
+  );
+  const resultingRevision = readNullableRevision(
+    record.resultingRevision,
+    '$result.resultingRevision',
+  );
+  const eventSequence = readNullableRevision(record.eventSequence, '$result.eventSequence');
+  const runtimeInstanceId = record.runtimeInstanceId === null
+    ? null
+    : readBoundedString(record.runtimeInstanceId, '$result.runtimeInstanceId');
+  const duplicateOfCode = Object.hasOwn(record, 'duplicateOfCode')
+    ? readResultCode(record.duplicateOfCode, '$result.duplicateOfCode')
+    : undefined;
+  const fact = Object.hasOwn(record, 'fact')
+    ? parsePointLightPowerSetFact(record.fact)
+    : undefined;
+  if (
+    code === 'ACCEPTED'
+    && (
+      commandId === null
+      || worldId === null
+      || entityId === null
+      || currentRevision === null
+      || resultingRevision === null
+      || eventSequence === null
+      || runtimeInstanceId === null
+      || fact === undefined
+      || fact.sourceCommandId !== commandId
+      || fact.worldId !== worldId
+      || fact.entityId !== entityId
+      || fact.resultingRevision !== resultingRevision
+      || fact.eventSequence !== eventSequence
+    )
+  ) fail('Accepted result does not match its fact', '$result');
+  if (code !== 'ACCEPTED' && fact !== undefined) {
+    fail('Only an accepted result can include a fact', '$result.fact');
+  }
+  if (code !== 'DUPLICATE_COMMAND' && duplicateOfCode !== undefined) {
+    fail('Only a duplicate result can include duplicateOfCode', '$result.duplicateOfCode');
+  }
+  return Object.freeze({
+    schemaVersion: readLiteral(
+      record.schemaVersion,
+      POINT_LIGHT_RESULT_SCHEMA_VERSION,
+      '$result.schemaVersion',
+    ),
+    code,
+    accepted: record.accepted,
+    commandId,
+    worldId,
+    entityId,
+    currentRevision,
+    resultingRevision,
+    eventSequence,
+    runtimeInstanceId,
+    ...(duplicateOfCode === undefined ? {} : { duplicateOfCode }),
+    ...(fact === undefined ? {} : { fact }),
+  });
+}
+
 export function parsePointLightPowerSetFact(value: unknown): PointLightPowerSetFact {
   const record = readObject(value, '$fact');
   checkKeys(record, [

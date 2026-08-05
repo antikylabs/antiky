@@ -1,4 +1,15 @@
 import {
+  parseCorrectPointLightPowerRequest,
+  parsePointLightCommandContext,
+  parsePointLightCommandResult,
+  parseSetPointLightPowerCommand,
+  type CorrectPointLightPowerRequest,
+  type PointLightCommandContext,
+  type PointLightCommandResult,
+  type SetPointLightPowerCommand,
+} from '@antiky/framework';
+
+import {
   createDemoInspectionSnapshot,
   type DemoInspectionInput,
 } from '../runtime-inspection.ts';
@@ -10,15 +21,27 @@ type BrowserBootstrap = Readonly<{
   credential: string;
 }>;
 
-type BrowserAction = Readonly<{
+type BrowserActionBase = Readonly<{
   schemaVersion: 1;
   actionId: string;
-  kind: 'reload' | 'capture';
   developmentSessionId: string;
   runtimeInstanceId: string;
   buildRevision: number;
-  captureId?: string;
 }>;
+
+type BrowserAction =
+  | (BrowserActionBase & Readonly<{ kind: 'reload' }>)
+  | (BrowserActionBase & Readonly<{ kind: 'capture'; captureId: string }>)
+  | (BrowserActionBase & Readonly<{
+    kind: 'set-point-light-power';
+    command: SetPointLightPowerCommand;
+    context: PointLightCommandContext;
+  }>)
+  | (BrowserActionBase & Readonly<{
+    kind: 'correct-point-light-power';
+    request: CorrectPointLightPowerRequest;
+    context: PointLightCommandContext;
+  }>);
 
 export type BrowserFrameCapture = Readonly<{
   mimeType: 'image/png';
@@ -30,6 +53,14 @@ export type BrowserFrameCapture = Readonly<{
 export type DevelopmentInspectionHandlers = Readonly<{
   reload(): void;
   captureFrame(): Promise<BrowserFrameCapture>;
+  setPointLightPower?(
+    command: SetPointLightPowerCommand,
+    context: PointLightCommandContext,
+  ): PointLightCommandResult | Promise<PointLightCommandResult>;
+  correctPointLightPower?(
+    request: CorrectPointLightPowerRequest,
+    context: PointLightCommandContext,
+  ): PointLightCommandResult | Promise<PointLightCommandResult>;
 }>;
 
 export interface DevelopmentInspectionPublisher {
@@ -76,28 +107,63 @@ function readAction(value: unknown, bootstrap: BrowserBootstrap): BrowserAction 
   const kind = record.kind;
   const expectedKeys = kind === 'capture'
     ? ['actionId', 'buildRevision', 'captureId', 'developmentSessionId', 'kind', 'runtimeInstanceId', 'schemaVersion']
-    : ['actionId', 'buildRevision', 'developmentSessionId', 'kind', 'runtimeInstanceId', 'schemaVersion'];
+    : kind === 'set-point-light-power'
+      ? ['actionId', 'buildRevision', 'command', 'context', 'developmentSessionId', 'kind', 'runtimeInstanceId', 'schemaVersion']
+      : kind === 'correct-point-light-power'
+        ? ['actionId', 'buildRevision', 'context', 'developmentSessionId', 'kind', 'request', 'runtimeInstanceId', 'schemaVersion']
+        : ['actionId', 'buildRevision', 'developmentSessionId', 'kind', 'runtimeInstanceId', 'schemaVersion'];
   const keys = Object.keys(record).sort();
   if (
     keys.length !== expectedKeys.length
     || keys.some((key, index) => key !== expectedKeys[index])
     || record.schemaVersion !== 1
-    || (kind !== 'reload' && kind !== 'capture')
+    || (
+      kind !== 'reload'
+      && kind !== 'capture'
+      && kind !== 'set-point-light-power'
+      && kind !== 'correct-point-light-power'
+    )
     || record.developmentSessionId !== bootstrap.developmentSessionId
     || typeof record.actionId !== 'string'
     || typeof record.runtimeInstanceId !== 'string'
     || !Number.isSafeInteger(record.buildRevision)
     || (kind === 'capture' && typeof record.captureId !== 'string')
   ) throw new Error('Antiky development action is incompatible.');
-  return Object.freeze({
+  const base = {
     schemaVersion: 1,
     actionId: record.actionId,
-    kind,
     developmentSessionId: bootstrap.developmentSessionId,
     runtimeInstanceId: record.runtimeInstanceId,
     buildRevision: record.buildRevision as number,
-    ...(kind === 'capture' ? { captureId: record.captureId as string } : {}),
-  });
+  } as const;
+  if (kind === 'capture') {
+    return Object.freeze({ ...base, kind, captureId: record.captureId as string });
+  }
+  if (kind === 'set-point-light-power') {
+    const context = parsePointLightCommandContext(record.context);
+    if (context.runtimeInstanceId !== base.runtimeInstanceId) {
+      throw new Error('Antiky point-light action context targets another runtime.');
+    }
+    return Object.freeze({
+      ...base,
+      kind,
+      command: parseSetPointLightPowerCommand(record.command),
+      context,
+    });
+  }
+  if (kind === 'correct-point-light-power') {
+    const context = parsePointLightCommandContext(record.context);
+    if (context.runtimeInstanceId !== base.runtimeInstanceId) {
+      throw new Error('Antiky point-light action context targets another runtime.');
+    }
+    return Object.freeze({
+      ...base,
+      kind,
+      request: parseCorrectPointLightPowerRequest(record.request),
+      context,
+    });
+  }
+  return Object.freeze({ ...base, kind: 'reload' });
 }
 
 function delay(milliseconds: number, signal: AbortSignal): Promise<void> {
@@ -158,8 +224,25 @@ export async function connectDevelopmentInspectionPublisher(
           handlers?.reload();
           return;
         }
-        if (!handlers || !action.captureId) throw new Error('Capture handler is unavailable.');
-        const capture = await handlers.captureFrame();
+        if (!handlers) throw new Error('Development action handler is unavailable.');
+        let result: unknown;
+        if (action.kind === 'capture') {
+          result = { kind: 'capture', ...await handlers.captureFrame() };
+        } else {
+          const commandResult = parsePointLightCommandResult(
+            action.kind === 'set-point-light-power'
+              ? await handlers.setPointLightPower?.(action.command, action.context)
+              : await handlers.correctPointLightPower?.(action.request, action.context),
+          );
+          const expectedCommandId = action.kind === 'set-point-light-power'
+            ? action.command.commandId
+            : action.request.commandId;
+          if (
+            commandResult.commandId !== expectedCommandId
+            || commandResult.runtimeInstanceId !== action.runtimeInstanceId
+          ) throw new Error('Point-light action returned a stale result.');
+          result = { kind: 'point-light-command', commandResult };
+        }
         const resultResponse = await fetch(`${inspectionOrigin}/v1/runtime/action-result`, {
           method: 'POST',
           cache: 'no-store',
@@ -169,7 +252,7 @@ export async function connectDevelopmentInspectionPublisher(
             developmentSessionId: bootstrap.developmentSessionId,
             runtimeInstanceId: action.runtimeInstanceId,
             actionId: action.actionId,
-            result: { kind: 'capture', ...capture },
+            result,
           }),
           signal: controller.signal,
         });

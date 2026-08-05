@@ -2,6 +2,17 @@ import { createHash, randomUUID } from 'node:crypto';
 import { chmod, mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import {
+  POINT_LIGHT_EDIT_PERMISSION,
+  PointLightCommandValidationError,
+  parsePointLightCommandContext,
+  parsePointLightCommandResult,
+  type CorrectPointLightPowerRequest,
+  type PointLightCommandContext,
+  type PointLightCommandResult,
+  type SetPointLightPowerCommand,
+} from '@antiky/framework';
+
 import type {
   DevelopmentCaptureResult,
   DevelopmentReloadResult,
@@ -15,15 +26,27 @@ export const MAX_CAPTURE_BYTES = 32 * 1024 * 1024;
 export const MAX_CAPTURE_ENVELOPE_BYTES = Math.ceil(MAX_CAPTURE_BYTES / 3) * 4 + 64 * 1024;
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
-export type BrowserDevelopmentAction = Readonly<{
+type BrowserDevelopmentActionBase = Readonly<{
   schemaVersion: 1;
   actionId: string;
-  kind: 'reload' | 'capture';
   developmentSessionId: string;
   runtimeInstanceId: string;
   buildRevision: number;
-  captureId?: string;
 }>;
+
+export type BrowserDevelopmentAction =
+  | (BrowserDevelopmentActionBase & Readonly<{ kind: 'reload' }>)
+  | (BrowserDevelopmentActionBase & Readonly<{ kind: 'capture'; captureId: string }>)
+  | (BrowserDevelopmentActionBase & Readonly<{
+    kind: 'set-point-light-power';
+    command: SetPointLightPowerCommand;
+    context: PointLightCommandContext;
+  }>)
+  | (BrowserDevelopmentActionBase & Readonly<{
+    kind: 'correct-point-light-power';
+    request: CorrectPointLightPowerRequest;
+    context: PointLightCommandContext;
+  }>);
 
 export type CaptureActionInput = Readonly<{
   actionId: string;
@@ -32,6 +55,12 @@ export type CaptureActionInput = Readonly<{
   canvasWidth: number;
   canvasHeight: number;
   dataBase64: string;
+}>;
+
+export type PointLightActionResultInput = Readonly<{
+  actionId: string;
+  runtimeInstanceId: string;
+  result: unknown;
 }>;
 
 type RuntimeContext = Readonly<{
@@ -45,12 +74,15 @@ type DevelopmentActionBrokerOptions = Readonly<{
   rootDirectory: string;
   readRuntimeContext(): RuntimeContext;
   timeoutMilliseconds?: number;
+  now?: () => string;
 }>;
 
 type PendingAction = {
   action: BrowserDevelopmentAction;
   delivered: boolean;
-  resolve(value: DevelopmentReloadResult | DevelopmentCaptureResult): void;
+  resolve(
+    value: DevelopmentReloadResult | DevelopmentCaptureResult | PointLightCommandResult,
+  ): void;
   reject(cause: Error): void;
   timer: NodeJS.Timeout;
 };
@@ -58,9 +90,14 @@ type PendingAction = {
 export interface DevelopmentActionBroker {
   requestReload(): Promise<DevelopmentReloadResult>;
   captureFrame(): Promise<DevelopmentCaptureResult>;
+  setPointLightPower(command: SetPointLightPowerCommand): Promise<PointLightCommandResult>;
+  correctPointLightPower(
+    request: CorrectPointLightPowerRequest,
+  ): Promise<PointLightCommandResult>;
   nextAction(runtimeInstanceId: string): BrowserDevelopmentAction | null;
   noteRuntimeConnected(runtimeInstanceId: string): void;
   completeCapture(input: CaptureActionInput): Promise<void>;
+  completePointLightCommand(input: PointLightActionResultInput): Promise<void>;
   stop(): void;
 }
 
@@ -91,26 +128,39 @@ export function createDevelopmentActionBroker(
   options: DevelopmentActionBrokerOptions,
 ): DevelopmentActionBroker {
   const timeoutMilliseconds = options.timeoutMilliseconds ?? DEFAULT_ACTION_TIMEOUT_MILLISECONDS;
+  const now = options.now ?? (() => new Date().toISOString());
   let pending: PendingAction | null = null;
 
-  const createPending = <T extends DevelopmentReloadResult | DevelopmentCaptureResult>(
-    kind: 'reload' | 'capture',
+  const createPending = <T extends
+    DevelopmentReloadResult | DevelopmentCaptureResult | PointLightCommandResult>(
+    kind: BrowserDevelopmentAction['kind'],
+    payload: Readonly<Record<string, unknown>> = {},
   ): Promise<T> => {
     if (pending) throw actionError('ANTIKY_ACTION_BUSY', 'Another development action is active.');
-    const context = options.readRuntimeContext();
-    if (!context.connected || !context.runtimeInstanceId) {
+    const runtimeContext = options.readRuntimeContext();
+    if (!runtimeContext.connected || !runtimeContext.runtimeInstanceId) {
       throw actionError('ANTIKY_RUNTIME_UNAVAILABLE', 'A connected runtime is required.');
     }
     const actionId = `action-${randomUUID()}`;
+    const trustedContext = kind === 'set-point-light-power' || kind === 'correct-point-light-power'
+      ? parsePointLightCommandContext({
+        principalId: 'antiky-local-development',
+        permissions: [POINT_LIGHT_EDIT_PERMISSION],
+        receivedAt: now(),
+        runtimeInstanceId: runtimeContext.runtimeInstanceId,
+      })
+      : undefined;
     const action = Object.freeze({
       schemaVersion: 1 as const,
       actionId,
       kind,
       developmentSessionId: options.developmentSessionId,
-      runtimeInstanceId: context.runtimeInstanceId,
-      buildRevision: context.buildRevision,
+      runtimeInstanceId: runtimeContext.runtimeInstanceId,
+      buildRevision: runtimeContext.buildRevision,
       ...(kind === 'capture' ? { captureId: `capture-${randomUUID()}` } : {}),
-    });
+      ...payload,
+      ...(trustedContext === undefined ? {} : { context: trustedContext }),
+    }) as BrowserDevelopmentAction;
     return new Promise<T>((resolve, reject) => {
       const timer = setTimeout(() => {
         if (pending?.action.actionId !== actionId) return;
@@ -128,7 +178,9 @@ export function createDevelopmentActionBroker(
     });
   };
 
-  const complete = (value: DevelopmentReloadResult | DevelopmentCaptureResult) => {
+  const complete = (
+    value: DevelopmentReloadResult | DevelopmentCaptureResult | PointLightCommandResult,
+  ) => {
     const active = pending;
     if (!active) return;
     clearTimeout(active.timer);
@@ -139,6 +191,12 @@ export function createDevelopmentActionBroker(
   return Object.freeze({
     requestReload: () => createPending<DevelopmentReloadResult>('reload'),
     captureFrame: () => createPending<DevelopmentCaptureResult>('capture'),
+    setPointLightPower: (command: SetPointLightPowerCommand) => (
+      createPending<PointLightCommandResult>('set-point-light-power', { command })
+    ),
+    correctPointLightPower: (request: CorrectPointLightPowerRequest) => (
+      createPending<PointLightCommandResult>('correct-point-light-power', { request })
+    ),
     nextAction(runtimeInstanceId: string): BrowserDevelopmentAction | null {
       if (
         !pending
@@ -211,6 +269,46 @@ export function createDevelopmentActionBroker(
         sha256: createHash('sha256').update(bytes).digest('hex'),
         path,
       }));
+    },
+    async completePointLightCommand(input: PointLightActionResultInput): Promise<void> {
+      const active = pending;
+      if (
+        !active
+        || (
+          active.action.kind !== 'set-point-light-power'
+          && active.action.kind !== 'correct-point-light-power'
+        )
+        || !active.delivered
+        || active.action.actionId !== input.actionId
+        || active.action.runtimeInstanceId !== input.runtimeInstanceId
+      ) {
+        throw new AntikyCliError('ANTIKY_ACTION_STALE', 'The point-light action is stale.');
+      }
+      let result: PointLightCommandResult;
+      try {
+        result = parsePointLightCommandResult(input.result);
+      } catch (cause: unknown) {
+        if (cause instanceof PointLightCommandValidationError) {
+          throw new AntikyCliError(
+            'ANTIKY_ACTION_STALE',
+            'The point-light action returned an invalid result.',
+          );
+        }
+        throw cause;
+      }
+      const expectedCommandId = active.action.kind === 'set-point-light-power'
+        ? active.action.command.commandId
+        : active.action.request.commandId;
+      if (
+        result.commandId !== expectedCommandId
+        || result.runtimeInstanceId !== active.action.runtimeInstanceId
+      ) {
+        throw new AntikyCliError(
+          'ANTIKY_ACTION_STALE',
+          'The point-light action result does not match the active request.',
+        );
+      }
+      complete(result);
     },
     stop(): void {
       if (!pending) return;

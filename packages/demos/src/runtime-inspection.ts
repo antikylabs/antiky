@@ -1,6 +1,7 @@
 import {
   createInspectionSnapshot,
   type InspectionSnapshot,
+  type PointLightInspection,
   type RuntimeLifecycle,
 } from '@antiky/framework';
 
@@ -24,6 +25,7 @@ export type DemoInspectionInput = Readonly<{
   canvasHeight: number;
   stats: DemoStats;
   error: string | null;
+  pointLights?: PointLightInspection;
 }>;
 
 function runtimeLifecycle(phase: DemoRuntimePhase): RuntimeLifecycle {
@@ -75,5 +77,6 @@ export function createDemoInspectionSnapshot(input: DemoInspectionInput): Inspec
       },
       render: renderMeasurements,
     },
+    ...(input.pointLights === undefined ? {} : { pointLights: input.pointLights }),
   });
 }

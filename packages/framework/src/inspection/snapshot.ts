@@ -1,3 +1,10 @@
+import {
+  PointLightInspectionValidationError,
+  createPointLightInspection,
+  type PointLightInspection,
+  type PointLightInspectionInput,
+} from '../point-light/inspection.ts';
+
 export const INSPECTION_SCHEMA_VERSION = 1 as const;
 export const MAX_INSPECTION_DIAGNOSTICS = 64;
 export const MAX_DIAGNOSTIC_RELATED_IDS = 16;
@@ -49,6 +56,7 @@ export type InspectionSnapshotInput = {
     runtime: InspectionRuntimeMeasurementsInput;
     render: InspectionRenderMeasurementsInput;
   };
+  pointLights?: PointLightInspectionInput;
 };
 
 export type InspectionDiagnostic = Readonly<{
@@ -87,6 +95,7 @@ export type InspectionSnapshot = Readonly<{
     runtime: InspectionRuntimeMeasurements;
     render: InspectionRenderMeasurements;
   }>;
+  pointLights?: PointLightInspection;
 }>;
 
 export type InspectionUpdate = Readonly<{
@@ -267,7 +276,12 @@ function readRenderMeasurements(
 
 export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
   const record = readObject(input, '$');
-  checkKeys(record, ['schemaVersion', 'runtime', 'diagnostics', 'measurements'], [], '$');
+  checkKeys(
+    record,
+    ['schemaVersion', 'runtime', 'diagnostics', 'measurements'],
+    ['pointLights'],
+    '$',
+  );
   if (record.schemaVersion !== INSPECTION_SCHEMA_VERSION) {
     fail(`Expected schema version ${INSPECTION_SCHEMA_VERSION}`, '$.schemaVersion');
   }
@@ -303,11 +317,22 @@ export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
     render: readRenderMeasurements(measurements.render, '$.measurements.render'),
   });
 
+  const pointLights = Object.hasOwn(record, 'pointLights')
+    ? createPointLightInspection(record.pointLights, '$.pointLights')
+    : undefined;
+  if (pointLights && pointLights.runtime.instanceId !== immutableRuntime.instanceId) {
+    throw new PointLightInspectionValidationError(
+      'Point-light runtime identity does not match inspection',
+      '$.pointLights.runtime.instanceId',
+    );
+  }
+
   return Object.freeze({
     schemaVersion: INSPECTION_SCHEMA_VERSION,
     runtime: immutableRuntime,
     diagnostics,
     measurements: immutableMeasurements,
+    ...(pointLights === undefined ? {} : { pointLights }),
   });
 }
 

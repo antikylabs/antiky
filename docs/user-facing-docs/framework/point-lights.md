@@ -132,6 +132,38 @@ authoring record, and keep their numeric aliases inside their own lifetime.
 ID to a temporary numeric slot. A headless point light needs no render binding and still uses the
 same authoring and runtime service.
 
+## Publish point-light inspection
+
+Use `inspectPointLightService` to expose one immutable view through the framework inspection source.
+Direct tests, the Antiky CLI typed client, Studio integrations, and MCP tools can then read the same
+authoring, runtime, render, and accepted-fact data.
+
+```ts
+import {
+  createInspectionSnapshot,
+  inspectPointLightService,
+} from '@antiky/framework';
+
+const pointLightInspection = inspectPointLightService(lights);
+const inspection = createInspectionSnapshot({
+  schemaVersion: 1,
+  runtime: {
+    instanceId: pointLightInspection.runtime.instanceId,
+    lifecycle: 'running',
+  },
+  diagnostics: [],
+  measurements: {
+    runtime: { owner: 'framework', frameCount: 1 },
+    render: { owner: 'framework' },
+  },
+  pointLights: pointLightInspection,
+});
+```
+
+The view includes a bound light's temporary render slot. A headless light remains in the authoring
+and runtime projections without a render entry. Inspection is read-only; submit changes through the
+command methods or the typed development client.
+
 ## Change power through a command
 
 Call `submitPointLightPower` for an important authoring change. Do not modify a record returned by

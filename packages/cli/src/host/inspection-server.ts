@@ -7,15 +7,25 @@ import {
 } from 'node:http';
 
 import {
+  MAX_POINT_LIGHT_COMMAND_BYTES,
+  PointLightCommandValidationError,
+  PointLightInspectionValidationError,
   createInspectionSnapshot,
+  encodedJsonByteLength,
   InspectionValidationError,
+  parseCorrectPointLightPowerRequest,
+  parseSetPointLightPowerCommand,
+  type CorrectPointLightPowerRequest,
   type InspectionSnapshot,
+  type PointLightCommandResult,
+  type SetPointLightPowerCommand,
 } from '@antiky/framework';
 
 import {
   MAX_CAPTURE_ENVELOPE_BYTES,
   type BrowserDevelopmentAction,
   type CaptureActionInput,
+  type PointLightActionResultInput,
 } from './actions.ts';
 import type {
   DevelopmentCaptureResult,
@@ -23,6 +33,10 @@ import type {
   DevelopmentSnapshot,
 } from '../development/types.ts';
 import { AntikyCliError } from '../errors.ts';
+import {
+  projectDevelopmentPointLight,
+  projectDevelopmentPointLightList,
+} from '../development/point-lights.ts';
 import {
   MCP_HTTP_PATH,
   MCP_HTTP_PROTOCOL_VERSIONS,
@@ -43,8 +57,13 @@ type InspectionServerOptions = Readonly<{
   touchRuntime(runtimeInstanceId: string): void;
   nextAction(runtimeInstanceId: string): BrowserDevelopmentAction | null;
   completeCapture(input: CaptureActionInput): Promise<void>;
+  completePointLightCommand(input: PointLightActionResultInput): Promise<void>;
   requestReload(): Promise<DevelopmentReloadResult>;
   captureFrame(): Promise<DevelopmentCaptureResult>;
+  setPointLightPower(command: SetPointLightPowerCommand): Promise<PointLightCommandResult>;
+  correctPointLightPower(
+    request: CorrectPointLightPowerRequest,
+  ): Promise<PointLightCommandResult>;
 }>;
 
 export interface InspectionServer {
@@ -223,7 +242,10 @@ function readSnapshotEnvelope(
       publicationSequence: readSequence(record.publicationSequence),
     };
   } catch (cause: unknown) {
-    if (cause instanceof InspectionValidationError) {
+    if (
+      cause instanceof InspectionValidationError
+      || cause instanceof PointLightInspectionValidationError
+    ) {
       serviceError(400, cause.code, cause.message);
     }
     throw cause;
@@ -278,10 +300,59 @@ function readCaptureEnvelope(value: unknown, developmentSessionId: string): Capt
   };
 }
 
+function readPointLightResultEnvelope(
+  value: unknown,
+  developmentSessionId: string,
+): PointLightActionResultInput {
+  const record = readObject(value);
+  if (!hasExactKeys(record, [
+    'schemaVersion', 'developmentSessionId', 'runtimeInstanceId', 'actionId', 'result',
+  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result fields.');
+  requireSession(record, developmentSessionId);
+  const result = readObject(record.result);
+  if (!hasExactKeys(result, ['kind', 'commandResult']) || result.kind !== 'point-light-command') {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid point-light action result fields.');
+  }
+  if (typeof record.actionId !== 'string' || typeof record.runtimeInstanceId !== 'string') {
+    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid point-light action result values.');
+  }
+  return {
+    actionId: record.actionId,
+    runtimeInstanceId: record.runtimeInstanceId,
+    result: result.commandResult,
+  };
+}
+
 function readActionRequest(value: unknown): void {
   const record = readObject(value);
   if (!hasExactKeys(record, ['schemaVersion']) || record.schemaVersion !== 1) {
     serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action request.');
+  }
+}
+
+function readPointLightActionRequest(
+  value: unknown,
+  kind: 'set' | 'correct',
+): SetPointLightPowerCommand | CorrectPointLightPowerRequest {
+  const record = readObject(value);
+  const field = kind === 'set' ? 'command' : 'request';
+  if (
+    !hasExactKeys(record, ['schemaVersion', field])
+    || record.schemaVersion !== 1
+  ) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid point-light action request.');
+  const bytes = encodedJsonByteLength(record[field]);
+  if (bytes === null || bytes > MAX_POINT_LIGHT_COMMAND_BYTES) {
+    serviceError(413, 'ANTIKY_MESSAGE_TOO_LARGE', 'Point-light command is too large.');
+  }
+  try {
+    return kind === 'set'
+      ? parseSetPointLightPowerCommand(record.command)
+      : parseCorrectPointLightPowerRequest(record.request);
+  } catch (cause: unknown) {
+    if (cause instanceof PointLightCommandValidationError) {
+      serviceError(400, cause.code, cause.message);
+    }
+    throw cause;
   }
 }
 
@@ -299,6 +370,14 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
     async readDevelopmentSnapshot() { return options.readDevelopmentSnapshot(); },
     requestReload: options.requestReload,
     captureFrame: options.captureFrame,
+    async listPointLights() {
+      return projectDevelopmentPointLightList(options.readDevelopmentSnapshot());
+    },
+    async getPointLight(entityId: unknown) {
+      return projectDevelopmentPointLight(options.readDevelopmentSnapshot(), entityId);
+    },
+    setPointLightPower: options.setPointLightPower,
+    correctPointLightPower: options.correctPointLightPower,
   });
   const server: HttpServer = createHttpServer((request, response) => {
     void (async () => {
@@ -432,11 +511,21 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           return;
         }
         if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/action-result') {
-          const capture = readCaptureEnvelope(
-            await readJson(request, MAX_CAPTURE_ENVELOPE_BYTES),
-            options.developmentSessionId,
-          );
-          await options.completeCapture(capture);
+          const input = await readJson(request, MAX_CAPTURE_ENVELOPE_BYTES);
+          const result = readObject(readObject(input).result);
+          if (result.kind === 'capture') {
+            await options.completeCapture(readCaptureEnvelope(
+              input,
+              options.developmentSessionId,
+            ));
+          } else if (result.kind === 'point-light-command') {
+            await options.completePointLightCommand(readPointLightResultEnvelope(
+              input,
+              options.developmentSessionId,
+            ));
+          } else {
+            serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result kind.');
+          }
           writeJson(response, 202, { schemaVersion: 1, accepted: true }, gameOrigin);
           return;
         }
@@ -449,6 +538,22 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           const result = requestUrl.pathname.endsWith('/reload')
             ? await options.requestReload()
             : await options.captureFrame();
+          writeJson(response, 200, result);
+          return;
+        }
+        if (
+          request.method === 'POST'
+          && (requestUrl.pathname === '/v1/actions/set-point-light-power'
+            || requestUrl.pathname === '/v1/actions/correct-point-light-power')
+        ) {
+          const kind = requestUrl.pathname.includes('/set-') ? 'set' : 'correct';
+          const input = readPointLightActionRequest(
+            await readJson(request, MAX_POINT_LIGHT_COMMAND_BYTES + 512),
+            kind,
+          );
+          const result = kind === 'set'
+            ? await options.setPointLightPower(input as SetPointLightPowerCommand)
+            : await options.correctPointLightPower(input as CorrectPointLightPowerRequest);
           writeJson(response, 200, result);
           return;
         }

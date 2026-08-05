@@ -1,4 +1,14 @@
-import type { InspectionSnapshot } from '@antiky/framework';
+import type {
+  CorrectPointLightPowerRequest,
+  InspectionSnapshot,
+  PointLightAuthoringRecord,
+  PointLightCommandResult,
+  PointLightPowerSetFact,
+  RenderPointLight,
+  RuntimePointLight,
+  SetPointLightPowerCommand,
+  WorldId,
+} from '@antiky/framework';
 
 export const DEVELOPMENT_SCHEMA_VERSION = 1 as const;
 
@@ -102,3 +112,30 @@ export type DevelopmentCaptureResult = Readonly<{
   sha256: string;
   path: string;
 }>;
+
+export type DevelopmentPointLightList = Readonly<{
+  schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
+  developmentSessionId: string;
+  runtimeInstanceId: string;
+  worldId: WorldId;
+  eventSequence: number;
+  pointLights: readonly PointLightAuthoringRecord[];
+}>;
+
+export type DevelopmentPointLightDetails = Readonly<{
+  schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
+  developmentSessionId: string;
+  runtimeInstanceId: string;
+  worldId: WorldId;
+  eventSequence: number;
+  pointLight: Readonly<{
+    authoring: PointLightAuthoringRecord;
+    runtime: RuntimePointLight;
+    render: RenderPointLight | null;
+    facts: readonly PointLightPowerSetFact[];
+  }> | null;
+}>;
+
+export type DevelopmentSetPointLightPowerInput = SetPointLightPowerCommand;
+export type DevelopmentCorrectPointLightPowerInput = CorrectPointLightPowerRequest;
+export type DevelopmentPointLightCommandResult = PointLightCommandResult;

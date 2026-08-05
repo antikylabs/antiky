@@ -43,6 +43,39 @@ const snapshot = createInspectionSnapshot({
 The framework owns every fact in `measurements`. Development-process and build measurements belong
 to the CLI development host and do not enter this object.
 
+## Include point-light inspection
+
+When a runtime owns a point-light authoring service, publish its immutable view through the optional
+`pointLights` field. Games without that service omit the field.
+
+```ts
+import {
+  createInspectionSnapshot,
+  inspectPointLightService,
+} from '@antiky/framework';
+
+const pointLights = inspectPointLightService(lightService);
+
+const snapshot = createInspectionSnapshot({
+  schemaVersion: 1,
+  runtime: {
+    instanceId: pointLights.runtime.instanceId,
+    lifecycle: 'running',
+  },
+  diagnostics: [],
+  measurements: {
+    runtime: { owner: 'framework', frameCount: 120 },
+    render: { owner: 'framework', drawCalls: 16 },
+  },
+  pointLights,
+});
+```
+
+The point-light view contains stable world and entity IDs, authoring records and revisions, the
+runtime projection, optional render bindings, dirty slots, and accepted facts. It contains no
+principal, permission, credential, renderer object, or GPU resource. The point-light runtime ID
+must match the enclosing inspection runtime ID.
+
 ## Read and subscribe
 
 `createInspectionStore` keeps the latest immutable snapshot. `read` returns that snapshot.

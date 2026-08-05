@@ -1,6 +1,6 @@
 import type { DevelopmentSnapshot } from '../development/types.ts';
 
-export const MCP_READ_TOOL_NAMES = Object.freeze([
+export const MCP_SNAPSHOT_READ_TOOL_NAMES = Object.freeze([
   'get_dev_status',
   'get_latest_build',
   'get_runtime_status',
@@ -8,17 +8,65 @@ export const MCP_READ_TOOL_NAMES = Object.freeze([
   'get_diagnostics',
 ] as const);
 
+export const MCP_POINT_LIGHT_READ_TOOL_NAMES = Object.freeze([
+  'list_point_lights',
+  'get_point_light',
+] as const);
+
+export const MCP_READ_TOOL_NAMES = Object.freeze([
+  ...MCP_SNAPSHOT_READ_TOOL_NAMES,
+  ...MCP_POINT_LIGHT_READ_TOOL_NAMES,
+] as const);
+
 export const MCP_TOOL_NAMES = Object.freeze([
   ...MCP_READ_TOOL_NAMES,
   'dev_reload',
   'capture_frame',
+  'set_point_light_power',
+  'correct_point_light_power',
 ] as const);
 
-export type McpReadToolName = typeof MCP_READ_TOOL_NAMES[number];
+export type McpSnapshotReadToolName = typeof MCP_SNAPSHOT_READ_TOOL_NAMES[number];
 
 const emptyInputSchema = Object.freeze({
   type: 'object',
   properties: {},
+  additionalProperties: false,
+} as const);
+
+const uuidV7Schema = Object.freeze({
+  type: 'string',
+  pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+} as const);
+
+const getPointLightInputSchema = Object.freeze({
+  type: 'object',
+  properties: { entityId: uuidV7Schema },
+  required: ['entityId'],
+  additionalProperties: false,
+} as const);
+
+const setPointLightPowerInputSchema = Object.freeze({
+  type: 'object',
+  properties: {
+    commandId: uuidV7Schema,
+    worldId: uuidV7Schema,
+    entityId: uuidV7Schema,
+    expectedRevision: { type: 'integer', minimum: 0 },
+    power: { type: 'number', minimum: 0, maximum: 4 },
+  },
+  required: ['commandId', 'worldId', 'entityId', 'expectedRevision', 'power'],
+  additionalProperties: false,
+} as const);
+
+const correctPointLightPowerInputSchema = Object.freeze({
+  type: 'object',
+  properties: {
+    commandId: uuidV7Schema,
+    correctedCommandId: uuidV7Schema,
+    expectedRevision: { type: 'integer', minimum: 0 },
+  },
+  required: ['commandId', 'correctedCommandId', 'expectedRevision'],
   additionalProperties: false,
 } as const);
 
@@ -68,6 +116,18 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
     annotations: readToolAnnotations,
   },
   {
+    name: 'list_point_lights',
+    description: 'Call to discover the point lights published by the connected runtime through the shared point-light inspection source. It returns stable world and entity identities, authored data, revisions, and the current event sequence. It does not change runtime or authoring state and takes no arguments.',
+    inputSchema: emptyInputSchema,
+    annotations: readToolAnnotations,
+  },
+  {
+    name: 'get_point_light',
+    description: 'Call with one stable entity ID after list_point_lights to inspect a specific point light. It returns the matching authoring record, runtime projection, optional render binding, and accepted facts; a valid unknown ID returns null. This read does not change state.',
+    inputSchema: getPointLightInputSchema,
+    annotations: readToolAnnotations,
+  },
+  {
     name: 'dev_reload',
     description: 'Call after get_latest_build reports a ready accepted revision and get_runtime_status reports a connected runtime. It requests a controlled reload of that browser runtime and relates the old and new runtime identities to the build revision. It does not start a development session or rebuild source. It takes no arguments.',
     inputSchema: emptyInputSchema,
@@ -79,14 +139,26 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
     inputSchema: emptyInputSchema,
     annotations: actionToolAnnotations,
   },
+  {
+    name: 'set_point_light_power',
+    description: 'Call after get_point_light with a new UUIDv7 command ID, the reported world and entity IDs, the current expected revision, and a power from 0 through 4. The local host supplies world.light.edit authority separately. The result uses stable command codes and an accepted change creates one fact.',
+    inputSchema: setPointLightPowerInputSchema,
+    annotations: actionToolAnnotations,
+  },
+  {
+    name: 'correct_point_light_power',
+    description: 'Call to correct an earlier accepted power change without deleting history. Supply a new UUIDv7 command ID, the corrected command ID from the accepted fact, and the current expected revision. A successful correction restores the earlier value by recording a new accepted fact.',
+    inputSchema: correctPointLightPowerInputSchema,
+    annotations: actionToolAnnotations,
+  },
 ] as const);
 
-export function isMcpReadToolName(name: string): name is McpReadToolName {
-  return (MCP_READ_TOOL_NAMES as readonly string[]).includes(name);
+export function isMcpSnapshotReadToolName(name: string): name is McpSnapshotReadToolName {
+  return (MCP_SNAPSHOT_READ_TOOL_NAMES as readonly string[]).includes(name);
 }
 
 export function projectMcpReadTool(
-  name: McpReadToolName,
+  name: McpSnapshotReadToolName,
   snapshot: DevelopmentSnapshot,
 ): unknown {
   switch (name) {

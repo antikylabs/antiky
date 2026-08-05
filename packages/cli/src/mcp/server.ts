@@ -1,11 +1,22 @@
 import { createInterface } from 'node:readline';
 import type { Readable } from 'node:stream';
 
-import type { DevelopmentSnapshot } from '../development/types.ts';
+import {
+  POINT_LIGHT_COMMAND_PROTOCOL_VERSION,
+  POINT_LIGHT_COMMAND_VERSION,
+  SET_POINT_LIGHT_POWER_COMMAND_TYPE,
+  parseCommandId,
+  parseEntityId,
+  parseWorldId,
+  type CorrectPointLightPowerRequest,
+  type SetPointLightPowerCommand,
+} from '@antiky/framework';
+
+import type { DevelopmentClient } from '../development/client.ts';
 import { AntikyCliError } from '../errors.ts';
 import {
   MCP_TOOL_DEFINITIONS,
-  isMcpReadToolName,
+  isMcpSnapshotReadToolName,
   projectMcpReadTool,
 } from './tools.ts';
 
@@ -18,11 +29,15 @@ export const MCP_HTTP_PROTOCOL_VERSIONS = Object.freeze([
 ] as const);
 const MAX_MCP_LINE_BYTES = 256 * 1024;
 
-type McpDevelopmentClient = Readonly<{
-  readDevelopmentSnapshot(): Promise<DevelopmentSnapshot>;
-  requestReload(): Promise<unknown>;
-  captureFrame(): Promise<unknown>;
-}>;
+type McpDevelopmentClient = Pick<DevelopmentClient,
+  | 'readDevelopmentSnapshot'
+  | 'requestReload'
+  | 'captureFrame'
+  | 'listPointLights'
+  | 'getPointLight'
+  | 'setPointLightPower'
+  | 'correctPointLightPower'
+>;
 
 type JsonRpcRequest = Readonly<{
   jsonrpc: '2.0';
@@ -66,6 +81,84 @@ function emptyArguments(value: unknown): boolean {
   if (value === undefined) return true;
   const record = readRecord(value);
   return record !== null && Object.keys(record).length === 0;
+}
+
+function hasExactKeys(record: Record<string, unknown>, expected: readonly string[]): boolean {
+  const actual = Object.keys(record).sort();
+  const sortedExpected = [...expected].sort();
+  return actual.length === sortedExpected.length
+    && actual.every((key, index) => key === sortedExpected[index]);
+}
+
+function readRevision(value: unknown): number | null {
+  return Number.isSafeInteger(value) && (value as number) >= 0 ? value as number : null;
+}
+
+function readGetPointLightArguments(value: unknown): { entityId: string } | null {
+  const record = readRecord(value);
+  if (!record || !hasExactKeys(record, ['entityId'])) return null;
+  try {
+    return { entityId: parseEntityId(record.entityId) };
+  } catch {
+    return null;
+  }
+}
+
+function readSetPointLightPowerArguments(value: unknown): SetPointLightPowerCommand | null {
+  const record = readRecord(value);
+  if (!record || !hasExactKeys(record, [
+    'commandId',
+    'worldId',
+    'entityId',
+    'expectedRevision',
+    'power',
+  ])) return null;
+  const expectedRevision = readRevision(record.expectedRevision);
+  if (
+    expectedRevision === null
+    || typeof record.power !== 'number'
+    || !Number.isFinite(record.power)
+    || record.power < 0
+    || record.power > 4
+  ) return null;
+  try {
+    return Object.freeze({
+      protocolVersion: POINT_LIGHT_COMMAND_PROTOCOL_VERSION,
+      commandVersion: POINT_LIGHT_COMMAND_VERSION,
+      type: SET_POINT_LIGHT_POWER_COMMAND_TYPE,
+      commandId: parseCommandId(record.commandId),
+      worldId: parseWorldId(record.worldId),
+      entityId: parseEntityId(record.entityId),
+      expectedRevision,
+      data: Object.freeze({ power: record.power }),
+    });
+  } catch {
+    return null;
+  }
+}
+
+function readCorrectPointLightPowerArguments(
+  value: unknown,
+): CorrectPointLightPowerRequest | null {
+  const record = readRecord(value);
+  if (!record || !hasExactKeys(record, [
+    'commandId',
+    'correctedCommandId',
+    'expectedRevision',
+  ])) return null;
+  const expectedRevision = readRevision(record.expectedRevision);
+  if (expectedRevision === null) return null;
+  try {
+    return Object.freeze({
+      protocolVersion: POINT_LIGHT_COMMAND_PROTOCOL_VERSION,
+      commandVersion: POINT_LIGHT_COMMAND_VERSION,
+      commandId: parseCommandId(record.commandId),
+      correctedCommandId: parseCommandId(record.correctedCommandId),
+      expectedRevision,
+    });
+  } catch {
+    return null;
+  }
 }
 
 function toolResult(value: unknown): unknown {
@@ -121,11 +214,11 @@ export async function processMcpRequest(
       !params
       || Object.keys(params).some((key) => key !== 'name' && key !== 'arguments')
       || typeof params.name !== 'string'
-      || !emptyArguments(params.arguments)
     ) {
       return errorResponse(id, -32602, 'Invalid tool call.');
     }
-    if (isMcpReadToolName(params.name)) {
+    if (isMcpSnapshotReadToolName(params.name)) {
+      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
         const snapshot = await client.readDevelopmentSnapshot();
         return response(id, toolResult(projectMcpReadTool(params.name, snapshot)));
@@ -133,7 +226,25 @@ export async function processMcpRequest(
         return response(id, toolFailure(cause));
       }
     }
+    if (params.name === 'list_point_lights') {
+      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        return response(id, toolResult(await client.listPointLights()));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
+    if (params.name === 'get_point_light') {
+      const argumentsValue = readGetPointLightArguments(params.arguments);
+      if (!argumentsValue) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        return response(id, toolResult(await client.getPointLight(argumentsValue.entityId)));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
     if (params.name === 'dev_reload') {
+      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
         return response(id, toolResult(await client.requestReload()));
       } catch (cause: unknown) {
@@ -141,8 +252,27 @@ export async function processMcpRequest(
       }
     }
     if (params.name === 'capture_frame') {
+      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
         return response(id, toolResult(await client.captureFrame()));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
+    if (params.name === 'set_point_light_power') {
+      const command = readSetPointLightPowerArguments(params.arguments);
+      if (!command) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        return response(id, toolResult(await client.setPointLightPower(command)));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
+    if (params.name === 'correct_point_light_power') {
+      const correction = readCorrectPointLightPowerArguments(params.arguments);
+      if (!correction) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        return response(id, toolResult(await client.correctPointLightPower(correction)));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }

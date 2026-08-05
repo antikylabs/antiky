@@ -51,6 +51,12 @@ test('user-facing development docs are standalone and match the shipped interfac
     assert.match(cliGuide, new RegExp(`antiky ${command}`));
   }
   for (const tool of MCP_TOOL_NAMES) assert.ok(cliGuide.includes(tool));
+  for (const method of [
+    'listPointLights',
+    'getPointLight',
+    'setPointLightPower',
+    'correctPointLightPower',
+  ]) assert.ok(cliGuide.includes(method), `CLI guide omits ${method}`);
   assert.doesNotMatch(cliGuide, /antiky:\/\//);
 
   assert.ok(cliGuide.includes(MCP_HTTP_PATH));
@@ -94,6 +100,7 @@ test('user-facing development docs are standalone and match the shipped interfac
     'createTransform',
     'createPointLight',
     'createPointLightAuthoringService',
+    'inspectPointLightService',
     'submitPointLightPower',
     'correctPointLightPower',
   ]) {
@@ -107,6 +114,8 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.match(pointLightGuide, /world\.light\.edit/);
   assert.match(pointLightGuide, /ACCEPTED/);
   assert.match(pointLightGuide, /4 KiB/);
+  assert.match(frameworkGuide, /pointLights/);
+  assert.match(frameworkGuide, /inspectPointLightService/);
 
   assert.match(studioGuide, /connectDevelopmentClient/);
   assert.match(agentsGuide, /standalone product documentation/i);

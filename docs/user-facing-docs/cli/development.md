@@ -97,6 +97,8 @@ The command prints the current `DevelopmentSnapshot` as JSON. It contains:
 - Runtime connection and cleanup health.
 - CLI-owned launch measurements and development diagnostics.
 - The latest framework `InspectionSnapshot`, or `null` before a runtime connects.
+- The runtime's point-light authoring, projection, binding, and accepted-fact view when the game
+  publishes one.
 
 Framework measurements and CLI development measurements remain separate, and every measurement
 record identifies its owner. A game runtime that publishes Antiky inspection snapshots supplies the
@@ -110,10 +112,49 @@ import { connectDevelopmentClient } from '@antiky/cli';
 
 const client = await connectDevelopmentClient('antiky.config.json');
 const development = await client.readDevelopmentSnapshot();
+const lights = await client.listPointLights();
+const harborLamp = await client.getPointLight(lights.pointLights[0].entityId);
 ```
 
 This client is also the supported boundary for a Studio integration. It reads the same state and
-exposes the same reload and frame-capture actions as the CLI and MCP adapters.
+exposes the same reload, frame-capture, and point-light operations as the CLI and MCP adapters.
+
+Point-light changes use the complete versioned framework command. Keep the command ID stable when
+diagnosing a retry; a new command ID represents a new request.
+
+```ts
+import { createCommandId } from '@antiky/framework';
+
+if (!harborLamp.pointLight) throw new Error('The point light is unavailable.');
+
+const changed = await client.setPointLightPower({
+  protocolVersion: 1,
+  commandVersion: 1,
+  type: 'antiky.authoring.set-point-light-power',
+  commandId: createCommandId(),
+  worldId: harborLamp.worldId,
+  entityId: harborLamp.pointLight.authoring.entityId,
+  expectedRevision: harborLamp.pointLight.authoring.revision,
+  data: { power: 2 },
+});
+
+if (
+  changed.code === 'ACCEPTED'
+  && changed.commandId
+  && changed.resultingRevision !== null
+) {
+  await client.correctPointLightPower({
+    protocolVersion: 1,
+    commandVersion: 1,
+    commandId: createCommandId(),
+    correctedCommandId: changed.commandId,
+    expectedRevision: changed.resultingRevision,
+  });
+}
+```
+
+Call `getPointLight` again after an accepted result to read the newly published inspection state.
+The browser runtime remains the service owner; the client does not keep a second mutable copy.
 
 ## Track development updates
 
@@ -166,8 +207,9 @@ JSON only to standard output.
 ### Development state tools
 
 The endpoint advertises a tools-only model-facing interface so every supported operation is directly
-callable by an agent. It does not duplicate the same values as MCP Resources. The state tools take
-no arguments and are marked read-only, non-destructive, idempotent, and closed-world:
+callable by an agent. It does not duplicate the same values as MCP Resources. Read tools are marked
+read-only, non-destructive, idempotent, and closed-world. The session-wide reads and
+`list_point_lights` take no arguments; `get_point_light` takes one stable entity ID.
 
 | Tool | Use it when | State returned |
 | --- | --- | --- |
@@ -176,6 +218,8 @@ no arguments and are marked read-only, non-destructive, idempotent, and closed-w
 | `get_runtime_status` | Before reload or capture, or when runtime facts are missing | Runtime connection and framework inspection snapshot |
 | `get_render_stats` | Check renderer health or performance without capturing pixels | Available framework-owned runtime and render measurements |
 | `get_diagnostics` | A build is not ready, a runtime is unavailable, or an action failed | Development and framework diagnostics with stable codes |
+| `list_point_lights` | Discover point lights published by the runtime | Stable world and entity IDs, authoring records, revisions, and event sequence |
+| `get_point_light` | Inspect one stable point-light ID | Authoring and runtime values, optional render binding, and accepted facts |
 
 Each tool description carries this selection and sequencing guidance in the MCP discovery response,
 so an agent does not need this guide in its context to choose the safe next call.
@@ -190,6 +234,16 @@ so an agent does not need this guide in its context to choose the safe next call
   after `get_runtime_status` confirms a connected runtime, and use `get_render_stats` for canvas and
   renderer measurements. The result contains the path, digest, byte count, capture ID, action ID,
   development session, runtime instance, and build revision.
+- `set_point_light_power` submits one versioned power command. Supply a new command ID, the world
+  and entity IDs returned by inspection, the current expected revision, and a power from `0`
+  through `4`.
+- `correct_point_light_power` records a correction for an earlier accepted command. Supply a new
+  command ID, the corrected command ID from its accepted fact, and the current expected revision.
+
+The two point-light action tools return the framework's stable command result. An accepted change
+adds a fact; a rejection does not mutate authoring, runtime, or render state. The local host supplies
+the `world.light.edit` permission, receipt time, principal, and runtime identity separately from
+tool arguments.
 
 Frame captures support visual review. Runtime and render facts still come from the framework
 inspection snapshot, not from image analysis.
@@ -200,6 +254,9 @@ The development listener accepts only the configured `127.0.0.1` host and exact 
 rejects a supplied browser Origin unless it matches the configured game origin. Inspection REST
 requests use the per-session bearer credential and versioned, field-checked, size-bounded messages.
 A retired runtime cannot replace a newer runtime's facts.
+
+Point-light commands are limited to 4 KiB. Trusted identity, permissions, receipt time, and runtime
+identity never enter command data or inspection output.
 
 The `/mcp` route deliberately does not require the rotating inspection credential so MCP clients can
 keep one stable local URL across restarts. Its trust boundary is the loopback bind plus the Host and

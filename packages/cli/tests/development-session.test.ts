@@ -7,7 +7,15 @@ import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { createInspectionSnapshot } from '@antiky/framework';
+import {
+  createInspectionSnapshot,
+  createPointLightAuthoringService,
+  inspectPointLightService,
+  parseCommandId,
+  parseEntityId,
+  parseWorldId,
+  type PointLightCommandResult,
+} from '@antiky/framework';
 
 // Node 22's strip-types test runner requires the source extension.
 // @ts-ignore explicit TypeScript extension is for the direct test runner
@@ -192,8 +200,12 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
       'get_runtime_status',
       'get_render_stats',
       'get_diagnostics',
+      'list_point_lights',
+      'get_point_light',
       'dev_reload',
       'capture_frame',
+      'set_point_light_power',
+      'correct_point_light_power',
     ]);
 
     const notification = await fetch(session.mcpUrl, {
@@ -454,6 +466,224 @@ test('browser publication, direct reads, CLI inspection, and a typed client shar
   }
 });
 
+test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one point-light service', async () => {
+  const project = await makeProject();
+  const config = await loadAntikyConfig(project.configPath);
+  const session = await startDevelopmentSession(config, {
+    writeOutput: () => {},
+    actionTimeoutMilliseconds: 1000,
+  });
+  const origin = new URL(config.game.url).origin;
+  const worldId = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
+  const visibleId = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abd');
+  const headlessId = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abe');
+  const setCommandId = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac0');
+  const correctionCommandId = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac1');
+  const runtimeInstanceId = 'runtime-point-lights-001';
+  const service = createPointLightAuthoringService({
+    worldId,
+    pointLights: [
+      {
+        entityId: visibleId,
+        label: 'Harbor Lamp',
+        revision: 1,
+        transform: { schemaVersion: 1, position: [-3.5, 4.25, 6.75] },
+        pointLight: {
+          schemaVersion: 1,
+          color: [1, 0.52, 0.22],
+          radius: 4,
+          power: 1.05,
+        },
+      },
+      {
+        entityId: headlessId,
+        label: 'Gate Lamp',
+        revision: 1,
+        transform: { schemaVersion: 1 },
+        pointLight: { schemaVersion: 1, power: 0.5 },
+      },
+    ],
+    runtimeInstanceId,
+    renderBindings: [{ entityId: visibleId, renderSlot: 0 }],
+  });
+  let publicationSequence = 0;
+
+  try {
+    const bootstrapResponse = await fetch(`${session.inspectionUrl}/v1/browser/bootstrap`, {
+      headers: { origin },
+    });
+    assert.equal(bootstrapResponse.status, 200);
+    const bootstrap = await bootstrapResponse.json() as { credential: string };
+    const browserHeaders = {
+      authorization: `Bearer ${bootstrap.credential}`,
+      'content-type': 'application/json',
+      origin,
+    };
+    const publish = async () => {
+      publicationSequence += 1;
+      const response = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+        method: 'POST',
+        headers: browserHeaders,
+        body: JSON.stringify({
+          schemaVersion: 1,
+          developmentSessionId: session.id,
+          publicationSequence,
+          snapshot: createInspectionSnapshot({
+            schemaVersion: 1,
+            runtime: { instanceId: runtimeInstanceId, lifecycle: 'running' },
+            diagnostics: [],
+            measurements: {
+              runtime: { owner: 'framework', frameCount: publicationSequence },
+              render: { owner: 'framework', drawCalls: 16 },
+            },
+            pointLights: inspectPointLightService(service),
+          }),
+        }),
+      });
+      assert.equal(response.status, 202, await response.text());
+    };
+    const completeNextPointLightAction = async (): Promise<PointLightCommandResult> => {
+      const deadline = Date.now() + 500;
+      type PointLightBrowserAction = {
+        actionId: string;
+        kind: 'set-point-light-power' | 'correct-point-light-power';
+        runtimeInstanceId: string;
+        command?: unknown;
+        request?: unknown;
+        context: unknown;
+      };
+      let action: PointLightBrowserAction | null = null;
+      while (!action) {
+        const response = await fetch(
+          `${session.inspectionUrl}/v1/runtime/action?runtimeInstanceId=${runtimeInstanceId}`,
+          { headers: { authorization: `Bearer ${bootstrap.credential}`, origin } },
+        );
+        if (response.status === 200) {
+          action = await response.json() as PointLightBrowserAction;
+          break;
+        }
+        assert.equal(response.status, 204);
+        if (Date.now() >= deadline) throw new Error('Timed out waiting for point-light action.');
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      if (!action) throw new Error('Point-light action was not returned.');
+      const selectedAction = action;
+      const result = selectedAction.kind === 'set-point-light-power'
+        ? service.submitPointLightPower(selectedAction.command, selectedAction.context)
+        : service.correctPointLightPower(selectedAction.request, selectedAction.context);
+      const completion = await fetch(`${session.inspectionUrl}/v1/runtime/action-result`, {
+        method: 'POST',
+        headers: browserHeaders,
+        body: JSON.stringify({
+          schemaVersion: 1,
+          developmentSessionId: session.id,
+          runtimeInstanceId,
+          actionId: selectedAction.actionId,
+          result: { kind: 'point-light-command', commandResult: result },
+        }),
+      });
+      assert.equal(completion.status, 202, await completion.text());
+      return result;
+    };
+    const callMcp = async (id: number, name: string, argumentsValue?: unknown) => {
+      const response = await fetch(session.mcpUrl, {
+        method: 'POST',
+        headers: {
+          accept: 'application/json, text/event-stream',
+          'content-type': 'application/json',
+          'mcp-protocol-version': '2025-11-25',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id,
+          method: 'tools/call',
+          params: {
+            name,
+            ...(argumentsValue === undefined ? {} : { arguments: argumentsValue }),
+          },
+        }),
+      });
+      assert.equal(response.status, 200);
+      return await response.json() as {
+        result: { structuredContent: Record<string, unknown>; isError?: boolean };
+      };
+    };
+
+    await publish();
+    const client = await connectDevelopmentClient(project.configPath);
+    const directBefore = inspectPointLightService(service);
+    const cliBefore = await inspectDevelopmentSession(project.configPath);
+    const typedList = await client.listPointLights();
+    const typedLight = await client.getPointLight(visibleId);
+    const mcpList = await callMcp(1, 'list_point_lights');
+    const mcpLight = await callMcp(2, 'get_point_light', { entityId: visibleId });
+
+    assert.deepEqual(session.snapshot().inspection?.pointLights, directBefore);
+    assert.deepEqual(cliBefore.inspection?.pointLights, directBefore);
+    assert.deepEqual(typedList.pointLights, directBefore.authoring);
+    assert.deepEqual(mcpList.result.structuredContent, typedList);
+    assert.deepEqual(mcpLight.result.structuredContent, typedLight);
+    assert.equal(typedLight.pointLight?.render?.renderSlot, 0);
+    assert.equal((await client.getPointLight(headlessId)).pointLight?.render, null);
+
+    const setCommand = {
+      protocolVersion: 1 as const,
+      commandVersion: 1 as const,
+      type: 'antiky.authoring.set-point-light-power' as const,
+      commandId: setCommandId,
+      worldId,
+      entityId: visibleId,
+      expectedRevision: 1,
+      data: { power: 2 },
+    };
+    const setPromise = client.setPointLightPower(setCommand);
+    const directSetResult = await completeNextPointLightAction();
+    const clientSetResult = await setPromise;
+    assert.deepEqual(clientSetResult, directSetResult);
+    assert.equal(clientSetResult.code, 'ACCEPTED');
+    await publish();
+
+    const correctionPromise = callMcp(3, 'correct_point_light_power', {
+      commandId: correctionCommandId,
+      correctedCommandId: setCommandId,
+      expectedRevision: 2,
+    });
+    const directCorrectionResult = await completeNextPointLightAction();
+    const mcpCorrection = await correctionPromise;
+    assert.deepEqual(mcpCorrection.result.structuredContent, directCorrectionResult);
+    assert.equal(directCorrectionResult.resultingRevision, 3);
+    await publish();
+
+    const finalDirect = inspectPointLightService(service);
+    const finalTyped = await client.getPointLight(visibleId);
+    const finalMcp = await callMcp(4, 'get_point_light', { entityId: visibleId });
+    assert.equal(finalDirect.authoring[0]?.pointLight.power, 1.05);
+    assert.equal(finalDirect.facts.length, 2);
+    assert.deepEqual(finalMcp.result.structuredContent, finalTyped);
+    assert.deepEqual(finalTyped.pointLight?.facts, finalDirect.facts);
+    assert.doesNotMatch(JSON.stringify(finalMcp), /credential|permissions|principalId/i);
+
+    const oversized = await fetch(
+      `${session.inspectionUrl}/v1/actions/set-point-light-power`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${bootstrap.credential}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          schemaVersion: 1,
+          command: { ...setCommand, padding: 'x'.repeat(5_000) },
+        }),
+      },
+    );
+    assert.equal(oversized.status, 413);
+  } finally {
+    service.dispose();
+    await session.stop('normal');
+  }
+});
+
 test('browser boundary rejects unauthorized, wrong-origin, stale, malformed, and oversized messages', async () => {
   const project = await makeProject();
   const config = await loadAntikyConfig(project.configPath);
@@ -514,6 +744,20 @@ test('browser boundary rejects unauthorized, wrong-origin, stale, malformed, and
       body: ' '.repeat(256 * 1024 + 1),
     });
     assert.equal(oversized.status, 413);
+
+    const invalidPointLights = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${bootstrap.credential}`,
+        'content-type': 'application/json',
+        origin,
+      },
+      body: JSON.stringify({
+        ...validEnvelope,
+        snapshot: { ...snapshot, pointLights: {} },
+      }),
+    });
+    assert.equal(invalidPointLights.status, 400);
 
     const stale = await fetch(`${session.inspectionUrl}/v1/runtime/snapshot`, {
       method: 'POST',
