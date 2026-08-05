@@ -31,6 +31,10 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0013: Give the simulation all inputs explicitly](framework/0013-explicit-simulation-inputs_H.md)
 - [0014: Apply approved sandbox changes through commands](framework/0014-promote-sandbox-commands_H.md)
 
+### CLI
+
+- [0001: Use MCP Tools for local development operations](cli/0001-use-mcp-tools-for-development_H.md)
+
 ### Studio
 
 - [0001: Let users choose their AI coding tools](studio/0001-ai-integrations_H.md)
