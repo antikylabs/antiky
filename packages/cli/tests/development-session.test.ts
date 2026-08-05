@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { access, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -29,6 +29,7 @@ import {
 
 const fixture = fileURLToPath(new URL('fixtures/managed-child.mjs', import.meta.url));
 const cli = fileURLToPath(new URL('../src/bin.ts', import.meta.url));
+const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const GAME_PORT = 43100;
 const INSPECTION_PORT = 43101;
 
@@ -100,6 +101,16 @@ async function portIsFree(port: number): Promise<boolean> {
     });
     server.listen(port, '127.0.0.1', () => server.close(() => resolve(true)));
   });
+}
+
+function processExists(processId: number): boolean {
+  try {
+    process.kill(processId, 0);
+    return true;
+  } catch (cause: unknown) {
+    if ((cause as NodeJS.ErrnoException).code === 'ESRCH') return false;
+    throw cause;
+  }
 }
 
 test('development session starts both children, publishes health, and cleans up', async () => {
@@ -388,6 +399,87 @@ test('SIGINT stops the CLI session and releases both ports', async () => {
   assert.equal(result?.code, 130, stderr);
   assert.equal(await portIsFree(GAME_PORT), true);
   assert.equal(await portIsFree(INSPECTION_PORT), true);
+});
+
+test('terminal SIGINT through the npm antiky wrapper leaves no child group or descriptor', async (context) => {
+  if (process.platform === 'win32') {
+    context.skip('POSIX terminal process groups are not available on Windows.');
+    return;
+  }
+  const project = await makeProject();
+  const npm = 'npm';
+  const child = spawn(npm, [
+    'run',
+    'antiky',
+    '--',
+    'dev',
+    '--config',
+    project.configPath,
+  ], {
+    cwd: repositoryRoot,
+    detached: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let stdout = '';
+  let stderr = '';
+  child.stdout.setEncoding('utf8');
+  child.stderr.setEncoding('utf8');
+  child.stdout.on('data', (chunk: string) => { stdout += chunk; });
+  child.stderr.on('data', (chunk: string) => { stderr += chunk; });
+  const descriptor = join(project.directory, '.antiky', 'dev-session.json');
+  let cleanShutdown = false;
+  let observedShutdown = {};
+
+  try {
+    await waitFor(() => stdout.includes('development session'));
+    process.kill(-child.pid!, 'SIGINT');
+    await new Promise<void>((resolve) => child.once('exit', () => resolve()));
+    try {
+      await waitFor(async () => (
+        !(await canRead(descriptor))
+        && await portIsFree(GAME_PORT)
+        && await portIsFree(INSPECTION_PORT)
+      ));
+      cleanShutdown = true;
+    } catch {
+      cleanShutdown = false;
+      const descriptorValue = await canRead(descriptor)
+        ? JSON.parse(await readFile(descriptor, 'utf8')) as { ownerPid: number }
+        : null;
+      observedShutdown = {
+        descriptorExists: descriptorValue !== null,
+        ownerPid: descriptorValue?.ownerPid ?? null,
+        ownerAlive: descriptorValue ? processExists(descriptorValue.ownerPid) : false,
+        gamePortFree: await portIsFree(GAME_PORT),
+        inspectionPortFree: await portIsFree(INSPECTION_PORT),
+      };
+    }
+  } finally {
+    if (child.exitCode === null && child.signalCode === null) {
+      try {
+        process.kill(-child.pid!, 'SIGKILL');
+      } catch (cause: unknown) {
+        if ((cause as NodeJS.ErrnoException).code !== 'ESRCH') throw cause;
+      }
+    }
+    if (await canRead(project.marker)) {
+      const processIds = (await readFile(project.marker, 'utf8'))
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => Number(line.split(':')[1]));
+      for (const processId of processIds) {
+        try {
+          process.kill(-processId, 'SIGKILL');
+        } catch (cause: unknown) {
+          if ((cause as NodeJS.ErrnoException).code !== 'ESRCH') throw cause;
+        }
+      }
+    }
+    await rm(descriptor, { force: true });
+    await waitFor(async () => await portIsFree(GAME_PORT) && await portIsFree(INSPECTION_PORT));
+  }
+
+  assert.equal(cleanShutdown, true, `${stdout}\n${stderr}\n${JSON.stringify(observedShutdown)}`);
 });
 
 test('browser publication, direct reads, CLI inspection, and a typed client share one snapshot', async () => {

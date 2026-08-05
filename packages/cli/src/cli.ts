@@ -51,21 +51,32 @@ export async function runCli(
     writeOutput: (line) => io.stdout(`${line}\n`),
   });
   let interruptCode = 130;
-  const onInterrupt = () => {
-    interruptCode = 130;
+  let interruptReceived = false;
+  const stopForSignal = (exitCode: number) => {
+    if (!interruptReceived) {
+      interruptReceived = true;
+      interruptCode = exitCode;
+    }
     void session.stop('interrupt', interruptCode);
+  };
+  const onInterrupt = () => {
+    stopForSignal(130);
   };
   const onTerminate = () => {
-    interruptCode = 143;
-    void session.stop('interrupt', interruptCode);
+    stopForSignal(143);
   };
-  process.once('SIGINT', onInterrupt);
-  process.once('SIGTERM', onTerminate);
+  const onHangup = () => {
+    stopForSignal(129);
+  };
+  process.on('SIGINT', onInterrupt);
+  process.on('SIGTERM', onTerminate);
+  process.on('SIGHUP', onHangup);
   try {
     const result = await session.stopped;
     return result.reason === 'interrupt' ? interruptCode : result.exitCode;
   } finally {
     process.off('SIGINT', onInterrupt);
     process.off('SIGTERM', onTerminate);
+    process.off('SIGHUP', onHangup);
   }
 }

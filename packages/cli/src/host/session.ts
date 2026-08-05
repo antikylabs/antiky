@@ -291,10 +291,11 @@ export async function startDevelopmentSession(
       cleanupState = 'stopping';
       const cleanupStarted = Date.now();
       actionBroker.stop();
-      await buildTracker.stop();
-      await Promise.all(children.map(stopChild));
-      await inspectionServer.stop();
+      const childStops = children.map(stopChild);
       await removeSessionDescriptor(descriptorPath);
+      await buildTracker.stop();
+      await Promise.all(childStops);
+      await inspectionServer.stop();
       cleanupMilliseconds = Date.now() - cleanupStarted;
       cleanupState = 'stopped';
       const result = Object.freeze({ reason, exitCode, cleanupMilliseconds });
