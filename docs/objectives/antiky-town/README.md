@@ -16,7 +16,7 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 
 | Document | Purpose |
 | --- | --- |
-| [`AGENTS.md`](AGENTS.md) | Directs agents to the workflow, shared research, ADRs, architecture, and feedback. `CLAUDE.md` aliases it. |
+| [`AGENTS.md`](AGENTS.md) | Directs agents to the workflow, shared research, ADRs, architecture, and feedback. [`CLAUDE.md`](CLAUDE.md) aliases it. |
 | [`DEV_HARNESS_RESEARCH_A.md`](../general-stuff/DEV_HARNESS_RESEARCH_A.md) | Researches the development host, inspection, reload, and GPU tools. |
 | [`INSPECTION_TOOLING_A.md`](../general-stuff/INSPECTION_TOOLING_A.md) | Defines the native inspection scope and the ideas kept from WebGPU Inspector. |
 | [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) | Defines the staged Antiky Town port and its feature choices. |

@@ -81,6 +81,7 @@ features.
 ## Required reading
 
 - [`owner-input_H.md`](owner-input_H.md)
+- [Objective agent guidance](../AGENTS.md); [`CLAUDE.md`](../CLAUDE.md) routes to it.
 - [`../SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
 - [`../IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
 - [`../SLICE_FEEDBACK_H.txt`](../SLICE_FEEDBACK_H.txt)
