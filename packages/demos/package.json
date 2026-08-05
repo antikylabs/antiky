@@ -16,7 +16,7 @@
     "shaders": "brometal dev --once",
     "shaders:watch": "brometal dev",
     "shaders:prod": "brometal prod",
-    "test": "node --experimental-strip-types --experimental-transform-types --test src/demos/brometal-town/physics/character-motor.test.ts src/runtime-inspection.test.ts src/react/development-inspection.test.ts tests/dev-host.test.mjs tests/shader-output-parity.test.mjs && vitest run src/demos/brometal-town/art/town-validation.test.ts",
+    "test": "node --experimental-strip-types --experimental-transform-types --test src/demos/brometal-town/physics/character-motor.test.ts src/runtime-inspection.test.ts src/react/development-inspection.test.ts tests/dev-host.test.mjs tests/shader-output-parity.test.mjs tests/slice-01-gpu-probe.test.mjs && vitest run src/demos/brometal-town/art/town-validation.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
