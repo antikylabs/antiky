@@ -221,4 +221,4 @@ Write `receipt.json`, `confirmation-checks.md`, and `facts.json` under this slic
 
 Update `../slice-list.md` from the run's facts before closeout.
 
-Write a `slice-summary.md` that tells the owner/human what they need to know about the slice development, what changed in the repo, what was added to CLI/Framework/Studio, and how to test. Keep it simple and straight forward and put it under this slice's directory.
+Write a `slice-summary.md` that tells the owner/human what they need to know about the slice development, what changed in the repo, what was added to CLI/Framework/Studio, and how to test. Also note any decisions that were made that might require an ADR. Keep it simple and straight forward and put it under this slice's directory.

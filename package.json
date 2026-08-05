@@ -19,7 +19,6 @@
     "check": "npm run typecheck && npm test"
   },
   "dependencies": {
-    "@huggingface/transformers": "3.8.1",
     "next": "15.5.22",
     "postcss": "8.5.25",
     "sharp": "0.35.3"
