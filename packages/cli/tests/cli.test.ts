@@ -47,3 +47,28 @@ test('antiky generate id rejects unknown kinds and options with usage', async ()
     );
   }
 });
+
+test('an unexpected CLI failure emits a safe diagnostic and a bounded public error', async () => {
+  const diagnostics: unknown[] = [];
+
+  await assert.rejects(
+    () => runCli(['generate', 'id', 'world'], {
+      stdout: () => { throw new Error('credential=must-not-leak'); },
+      stderr: () => {},
+    }, {
+      diagnosticSink: (event: unknown) => diagnostics.push(event),
+    }),
+    (error: unknown) => (
+      error instanceof AntikyCliError
+      && error.code === 'ANTIKY_INTERNAL_ERROR'
+      && error.message === 'The Antiky CLI failed unexpectedly.'
+      && !error.message.includes('must-not-leak')
+    ),
+  );
+  assert.deepEqual(diagnostics, [{
+    schemaVersion: 1,
+    level: 'error',
+    code: 'ANTIKY_CLI_FAILED',
+    component: 'cli',
+  }]);
+});

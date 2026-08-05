@@ -22,6 +22,14 @@ import type {
   DevelopmentSessionControlResult,
 } from '../development/types.ts';
 import { AntikyCliError } from '../errors.ts';
+import {
+  NOOP_CLI_DIAGNOSTIC_SINK,
+  emitCliDiagnostic,
+  type CliDiagnosticCode,
+  type CliDiagnosticComponent,
+  type CliDiagnosticLevel,
+  type CliDiagnosticSink,
+} from './diagnostics.ts';
 
 const DEFAULT_ACTION_TIMEOUT_MILLISECONDS = 10_000;
 // High-DPI canvases can exceed 5 MiB below 4K. Keep the local transport bounded while allowing
@@ -92,6 +100,7 @@ type DevelopmentActionBrokerOptions = Readonly<{
   readRuntimeContext(): RuntimeContext;
   timeoutMilliseconds?: number;
   now?: () => string;
+  diagnosticSink?: CliDiagnosticSink;
 }>;
 
 type PendingAction = {
@@ -183,8 +192,23 @@ export function createDevelopmentActionBroker(
 ): DevelopmentActionBroker {
   const timeoutMilliseconds = options.timeoutMilliseconds ?? DEFAULT_ACTION_TIMEOUT_MILLISECONDS;
   const now = options.now ?? (() => new Date().toISOString());
+  const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
   let pending: PendingAction | null = null;
   let stopped = false;
+
+  const reportAction = (
+    active: PendingAction,
+    level: CliDiagnosticLevel,
+    code: CliDiagnosticCode,
+    component: CliDiagnosticComponent = 'action-broker',
+  ): void => emitCliDiagnostic(diagnosticSink, {
+    level,
+    code,
+    developmentSessionId: options.developmentSessionId,
+    runtimeInstanceId: active.action.runtimeInstanceId,
+    actionId: active.action.actionId,
+    component,
+  });
 
   const resolvePending = (
     active: PendingAction,
@@ -198,6 +222,7 @@ export function createDevelopmentActionBroker(
     pending = null;
     clearTimeout(active.timer);
     active.resolve(value);
+    reportAction(active, 'info', 'ANTIKY_ACTION_COMPLETED');
     return true;
   };
 
@@ -249,6 +274,7 @@ export function createDevelopmentActionBroker(
       const timer = setTimeout(() => {
         const active = pending;
         if (!active || active.action.actionId !== actionId) return;
+        reportAction(active, 'warning', 'ANTIKY_ACTION_TIMED_OUT');
         rejectPending(active, actionError('ANTIKY_ACTION_TIMEOUT', `${kind} action timed out.`));
       }, timeoutMilliseconds);
       timer.unref();
@@ -259,6 +285,7 @@ export function createDevelopmentActionBroker(
         reject,
         timer,
       };
+      reportAction(pending, 'info', 'ANTIKY_ACTION_STARTED');
     });
   };
 
@@ -295,6 +322,7 @@ export function createDevelopmentActionBroker(
         || pending.action.runtimeInstanceId !== runtimeInstanceId
       ) return null;
       pending.delivered = true;
+      reportAction(pending, 'info', 'ANTIKY_ACTION_DELIVERED');
       return pending.action;
     },
     noteRuntimeConnected(runtimeInstanceId: string): void {
@@ -341,6 +369,7 @@ export function createDevelopmentActionBroker(
       try {
         path = await persistCapture(options.rootDirectory, active.action.captureId, bytes);
       } catch {
+        reportAction(active, 'error', 'ANTIKY_CAPTURE_SAVE_FAILED', 'capture-store');
         if (pending !== active) throw staleCaptureError();
         const error = new AntikyCliError(
           'ANTIKY_CAPTURE_SAVE_FAILED',
@@ -362,7 +391,10 @@ export function createDevelopmentActionBroker(
         path,
       });
       if (!resolvePending(active, result)) {
-        await Promise.allSettled([rm(path, { force: true })]);
+        const [discard] = await Promise.allSettled([rm(path, { force: true })]);
+        if (discard?.status === 'rejected') {
+          reportAction(active, 'error', 'ANTIKY_CAPTURE_SAVE_FAILED', 'capture-store');
+        }
         throw staleCaptureError();
       }
     },
@@ -463,6 +495,7 @@ export function createDevelopmentActionBroker(
       stopped = true;
       if (!pending) return;
       const active = pending;
+      reportAction(active, 'info', 'ANTIKY_ACTION_CANCELLED');
       rejectPending(
         active,
         actionError('ANTIKY_RUNTIME_UNAVAILABLE', 'The development session stopped.'),

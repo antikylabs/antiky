@@ -265,6 +265,17 @@ Antiky stores the random session credential in `.antiky/dev-session.json` with m
 It does not print the credential or put it in the game URL, diagnostics, or inspection results.
 Antiky removes the descriptor when the session stops.
 
+## Collect host diagnostics
+
+Code that embeds the CLI can pass `diagnosticSink` to `startDevelopmentSession` or as the third
+argument to `runCli`. The sink receives immutable structured events for session, component,
+runtime, action, cleanup, and unexpected request transitions. Each event contains a stable code,
+severity, component, and any available development-session, runtime, action, or request ID.
+
+Diagnostic events do not contain error messages, credentials, authorization headers, command
+payloads, or capture bytes. The `antiky` executable writes error-level events to standard error
+with the prefix `[ANTIKY_DIAGNOSTIC]`; an injected sink can retain or filter other levels.
+
 ## Stable errors
 
 The CLI writes a stable error code before its message:
@@ -275,6 +286,8 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_CONFIG_INVALID`: JSON, fields, paths, commands, URLs, or ports are invalid.
 - `ANTIKY_PORT_BUSY`: a configured port cannot be reserved. No child starts.
 - `ANTIKY_CHILD_START_FAILED`: an owned process could not start. Any partial start is cleaned up.
+- `ANTIKY_CHILD_STOP_FAILED`: an owned child process group remained active after shutdown attempts.
+- `ANTIKY_INTERNAL_ERROR`: the CLI failed unexpectedly; use the correlated diagnostic event.
 - `ANTIKY_SESSION_UNAVAILABLE`: `antiky inspect` cannot find or reach the selected session.
 - `ANTIKY_UNAUTHORIZED`: the inspection service rejected the session credential.
 - `ANTIKY_RUNTIME_UNAVAILABLE`: a runtime-backed read or action needs a connected game process.

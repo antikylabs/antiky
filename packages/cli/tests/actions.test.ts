@@ -373,6 +373,7 @@ test('a stopped broker rejects an in-flight capture and removes its late file', 
 test('a capture persistence failure rejects only that action and frees the broker', async () => {
   const temporaryDirectory = await mkdtemp(join(tmpdir(), 'antiky-action-write-failure-'));
   const rootDirectory = join(temporaryDirectory, 'not-a-directory');
+  const diagnostics: unknown[] = [];
   await writeFile(rootDirectory, 'fixture');
   const broker = createDevelopmentActionBroker({
     developmentSessionId: 'development-actions-write-failure-001',
@@ -383,6 +384,7 @@ test('a capture persistence failure rejects only that action and frees the broke
       connected: true,
     }),
     timeoutMilliseconds: 1_000,
+    diagnosticSink: (event: unknown) => diagnostics.push(event),
   });
   const capturePromise = broker.captureFrame();
   void capturePromise.catch(() => {});
@@ -422,6 +424,28 @@ test('a capture persistence failure rejects only that action and frees the broke
       result: acceptedResult,
     });
     assert.deepEqual(await laterPromise, acceptedResult);
+    assert.deepEqual(
+      diagnostics.find((event) => (
+        typeof event === 'object'
+        && event !== null
+        && 'code' in event
+        && event.code === 'ANTIKY_CAPTURE_SAVE_FAILED'
+      )),
+      {
+        schemaVersion: 1,
+        level: 'error',
+        code: 'ANTIKY_CAPTURE_SAVE_FAILED',
+        developmentSessionId: 'development-actions-write-failure-001',
+        runtimeInstanceId: 'runtime-actions-001',
+        actionId: captureAction.actionId,
+        component: 'capture-store',
+      },
+    );
+    const diagnosticText = JSON.stringify(diagnostics);
+    assert.doesNotMatch(diagnosticText, /not-a-directory/);
+    assert.doesNotMatch(diagnosticText, new RegExp(
+      Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString('base64'),
+    ));
   } finally {
     broker.stop();
     await rm(temporaryDirectory, { recursive: true, force: true });

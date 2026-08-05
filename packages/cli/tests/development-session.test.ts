@@ -29,6 +29,8 @@ import {
   runCli,
   startDevelopmentSession,
 } from '../src/index.ts';
+// @ts-ignore explicit TypeScript extension is for the direct test runner
+import { createInspectionServer } from '../src/host/inspection-server.ts';
 
 const fixture = fileURLToPath(new URL('fixtures/managed-child.mjs', import.meta.url));
 const cli = fileURLToPath(new URL('../src/bin.ts', import.meta.url));
@@ -120,8 +122,10 @@ test('development session starts both children, publishes health, and cleans up'
   const project = await makeProject();
   const config = await loadAntikyConfig(project.configPath);
   const lines: string[] = [];
+  const diagnostics: unknown[] = [];
   const session = await startDevelopmentSession(config, {
     writeOutput: (line) => lines.push(line),
+    diagnosticSink: (event: unknown) => diagnostics.push(event),
   });
   const descriptor = join(dirname(project.configPath), '.antiky', 'dev-session.json');
   try {
@@ -157,6 +161,23 @@ test('development session starts both children, publishes health, and cleans up'
   assert.equal(await canRead(descriptor), false);
   assert.equal(await portIsFree(GAME_PORT), true);
   assert.equal(await portIsFree(INSPECTION_PORT), true);
+  const diagnosticCodes = diagnostics.flatMap((event) => (
+    typeof event === 'object' && event !== null && 'code' in event && typeof event.code === 'string'
+      ? [event.code]
+      : []
+  ));
+  for (const code of [
+    'ANTIKY_SESSION_STARTING',
+    'ANTIKY_SESSION_READY',
+    'ANTIKY_SESSION_STOPPING',
+    'ANTIKY_SESSION_STOPPED',
+  ]) assert.ok(diagnosticCodes.includes(code), `missing ${code}`);
+  assert.ok(diagnostics.every((event) => (
+    typeof event === 'object'
+    && event !== null
+    && 'developmentSessionId' in event
+    && event.developmentSessionId === session.id
+  )));
 });
 
 test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
@@ -384,7 +405,12 @@ test('a partial spawn failure stops the first child and releases every resource'
 
   await assert.rejects(
     () => startDevelopmentSession(config),
-    (error: unknown) => error instanceof AntikyCliError && error.code === 'ANTIKY_CHILD_START_FAILED',
+    (error: unknown) => (
+      error instanceof AntikyCliError
+      && error.code === 'ANTIKY_CHILD_START_FAILED'
+      && error.message === 'Unable to start game.'
+      && !error.message.includes('antiky-command-that-does-not-exist')
+    ),
   );
   await waitFor(() => portIsFree(INSPECTION_PORT));
   assert.equal(await portIsFree(GAME_PORT), true);
@@ -440,8 +466,10 @@ test('cleanup attempts every resource and settles when one cleanup operation fai
   const project = await makeProject();
   const config = await loadAntikyConfig(project.configPath);
   const attempted: string[] = [];
+  const diagnostics: unknown[] = [];
   const session = await startDevelopmentSession(config, {
     writeOutput: () => {},
+    diagnosticSink: (event: unknown) => diagnostics.push(event),
     async runCleanupOperation(name, operation) {
       attempted.push(name);
       if (name === 'session-descriptor') throw new Error('injected descriptor cleanup failure');
@@ -474,6 +502,22 @@ test('cleanup attempts every resource and settles when one cleanup operation fai
     assert.equal(await portIsFree(GAME_PORT), true);
     assert.equal(await portIsFree(INSPECTION_PORT), true);
     assert.equal(childProcessIds.some(processExists), false);
+    assert.deepEqual(
+      diagnostics.find((event) => (
+        typeof event === 'object'
+        && event !== null
+        && 'code' in event
+        && event.code === 'ANTIKY_CLEANUP_FAILED'
+      )),
+      {
+        schemaVersion: 1,
+        level: 'error',
+        code: 'ANTIKY_CLEANUP_FAILED',
+        developmentSessionId: session.id,
+        component: 'session-descriptor',
+      },
+    );
+    assert.doesNotMatch(JSON.stringify(diagnostics), /injected descriptor cleanup failure/);
   } finally {
     await rm(descriptorPath, { force: true });
     for (const processId of childProcessIds) {
@@ -1111,6 +1155,62 @@ test('direct, typed-client, HTTP, MCP, and human CLI session controls share one 
   } finally {
     engine.dispose();
     await development.stop('normal');
+  }
+});
+
+test('unexpected inspection failures emit a safe request-correlated diagnostic', async () => {
+  const credential = 'credential-must-not-appear-in-diagnostics';
+  const diagnostics: unknown[] = [];
+  const server = createInspectionServer({
+    host: '127.0.0.1',
+    port: INSPECTION_PORT,
+    developmentSessionId: 'development-request-diagnostic-001',
+    gameUrl: `http://127.0.0.1:${GAME_PORT}/game`,
+    credential,
+    diagnosticSink: (event) => diagnostics.push(event),
+    readDevelopmentSnapshot() {
+      throw new Error('authorization and payload must-not-appear');
+    },
+    acceptInspection: () => 0,
+    disconnectRuntime: () => {},
+    touchRuntime: () => {},
+    nextAction: () => null,
+    completeCapture: async () => {},
+    completePointLightCommand: async () => {},
+    completeSessionControl: async () => {},
+    requestReload: async () => { throw new Error('not reached'); },
+    captureFrame: async () => { throw new Error('not reached'); },
+    setPointLightPower: async () => { throw new Error('not reached'); },
+    correctPointLightPower: async () => { throw new Error('not reached'); },
+    pauseSimulation: async () => { throw new Error('not reached'); },
+    resumeSimulation: async () => { throw new Error('not reached'); },
+    stepSimulation: async () => { throw new Error('not reached'); },
+  });
+  await server.start();
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${INSPECTION_PORT}/v1/development`, {
+      headers: { authorization: `Bearer ${credential}` },
+    });
+    assert.equal(response.status, 500);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'ANTIKY_INTERNAL_ERROR', message: 'Inspection service failed.' },
+    });
+    assert.equal(diagnostics.length, 1);
+    const [diagnostic] = diagnostics as Array<Record<string, unknown>>;
+    assert.deepEqual({ ...diagnostic, requestId: undefined }, {
+      schemaVersion: 1,
+      level: 'error',
+      code: 'ANTIKY_REQUEST_FAILED',
+      developmentSessionId: 'development-request-diagnostic-001',
+      requestId: undefined,
+      component: 'inspection-server',
+    });
+    assert.match(String(diagnostic?.requestId), /^request-[0-9a-f-]{36}$/);
+    const diagnosticText = JSON.stringify(diagnostics);
+    assert.doesNotMatch(diagnosticText, /credential|authorization|payload|must-not-appear/i);
+  } finally {
+    await server.stop();
   }
 });
 

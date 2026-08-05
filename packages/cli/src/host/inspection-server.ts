@@ -1,4 +1,4 @@
-import { timingSafeEqual } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import {
   createServer as createHttpServer,
   type IncomingMessage,
@@ -8,12 +8,8 @@ import {
 
 import {
   MAX_POINT_LIGHT_COMMAND_BYTES,
-  EngineSessionValidationError,
   PointLightCommandValidationError,
-  PointLightInspectionValidationError,
-  createInspectionSnapshot,
   encodedJsonByteLength,
-  InspectionValidationError,
   parseCorrectPointLightPowerRequest,
   parseSetPointLightPowerCommand,
   type CorrectPointLightPowerRequest,
@@ -29,6 +25,12 @@ import {
   type PointLightActionResultInput,
   type SessionControlActionResultInput,
 } from './actions.ts';
+import {
+  BrowserEnvelopeError,
+  readBrowserActionResultEnvelope,
+  readBrowserDisconnectEnvelope,
+  readBrowserSnapshotEnvelope,
+} from './browser-envelope.ts';
 import type {
   DevelopmentCaptureResult,
   DevelopmentReloadResult,
@@ -36,6 +38,11 @@ import type {
   DevelopmentSnapshot,
 } from '../development/types.ts';
 import { AntikyCliError } from '../errors.ts';
+import {
+  NOOP_CLI_DIAGNOSTIC_SINK,
+  emitCliDiagnostic,
+  type CliDiagnosticSink,
+} from './diagnostics.ts';
 import {
   projectDevelopmentPointLight,
   projectDevelopmentPointLightList,
@@ -55,6 +62,7 @@ type InspectionServerOptions = Readonly<{
   developmentSessionId: string;
   gameUrl: string;
   credential: string;
+  diagnosticSink?: CliDiagnosticSink;
   readDevelopmentSnapshot(): DevelopmentSnapshot;
   acceptInspection(snapshot: InspectionSnapshot, publicationSequence: number): number;
   disconnectRuntime(runtimeInstanceId: string, publicationSequence: number): void;
@@ -168,22 +176,6 @@ function hasExactKeys(record: UnknownRecord, keys: readonly string[]): boolean {
     && actual.every((key, index) => key === expected[index]);
 }
 
-function requireSession(record: UnknownRecord, developmentSessionId: string): void {
-  if (record.schemaVersion !== 1) {
-    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid browser message version.');
-  }
-  if (record.developmentSessionId !== developmentSessionId) {
-    serviceError(409, 'ANTIKY_SESSION_STALE', 'Development session is stale.');
-  }
-}
-
-function readSequence(value: unknown): number {
-  if (!Number.isSafeInteger(value) || (value as number) <= 0) {
-    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Publication sequence must be a positive integer.');
-  }
-  return value as number;
-}
-
 function readBody(request: IncomingMessage, maximumBytes: number): Promise<string> {
   const declaredLength = Number(request.headers['content-length']);
   if (
@@ -230,131 +222,6 @@ async function readJson(request: IncomingMessage, maximumBytes: number): Promise
     if (cause instanceof InspectionServiceError) throw cause;
     serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Malformed JSON message.');
   }
-}
-
-function readSnapshotEnvelope(
-  value: unknown,
-  developmentSessionId: string,
-): { snapshot: InspectionSnapshot; publicationSequence: number } {
-  const record = readObject(value);
-  if (!hasExactKeys(record, [
-    'schemaVersion',
-    'developmentSessionId',
-    'publicationSequence',
-    'snapshot',
-  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid browser message fields.');
-  requireSession(record, developmentSessionId);
-  try {
-    return {
-      snapshot: createInspectionSnapshot(record.snapshot),
-      publicationSequence: readSequence(record.publicationSequence),
-    };
-  } catch (cause: unknown) {
-    if (
-      cause instanceof InspectionValidationError
-      || cause instanceof PointLightInspectionValidationError
-      || cause instanceof EngineSessionValidationError
-    ) {
-      serviceError(400, cause.code, cause.message);
-    }
-    throw cause;
-  }
-}
-
-function readDisconnectEnvelope(
-  value: unknown,
-  developmentSessionId: string,
-): { runtimeInstanceId: string; publicationSequence: number } {
-  const record = readObject(value);
-  if (!hasExactKeys(record, [
-    'schemaVersion',
-    'developmentSessionId',
-    'runtimeInstanceId',
-    'publicationSequence',
-  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid disconnect message fields.');
-  requireSession(record, developmentSessionId);
-  if (typeof record.runtimeInstanceId !== 'string' || record.runtimeInstanceId.length > 128) {
-    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid runtime instance ID.');
-  }
-  return {
-    runtimeInstanceId: record.runtimeInstanceId,
-    publicationSequence: readSequence(record.publicationSequence),
-  };
-}
-
-function readCaptureEnvelope(value: unknown, developmentSessionId: string): CaptureActionInput {
-  const record = readObject(value);
-  if (!hasExactKeys(record, [
-    'schemaVersion', 'developmentSessionId', 'runtimeInstanceId', 'actionId', 'result',
-  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result fields.');
-  requireSession(record, developmentSessionId);
-  const result = readObject(record.result);
-  if (!hasExactKeys(result, [
-    'kind', 'mimeType', 'canvasWidth', 'canvasHeight', 'dataBase64',
-  ]) || result.kind !== 'capture' || result.mimeType !== 'image/png') {
-    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid capture result fields.');
-  }
-  if (
-    typeof record.actionId !== 'string'
-    || typeof record.runtimeInstanceId !== 'string'
-    || typeof result.dataBase64 !== 'string'
-  ) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid capture result values.');
-  return {
-    actionId: record.actionId,
-    runtimeInstanceId: record.runtimeInstanceId,
-    mimeType: 'image/png',
-    canvasWidth: result.canvasWidth as number,
-    canvasHeight: result.canvasHeight as number,
-    dataBase64: result.dataBase64,
-  };
-}
-
-function readPointLightResultEnvelope(
-  value: unknown,
-  developmentSessionId: string,
-): PointLightActionResultInput {
-  const record = readObject(value);
-  if (!hasExactKeys(record, [
-    'schemaVersion', 'developmentSessionId', 'runtimeInstanceId', 'actionId', 'result',
-  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result fields.');
-  requireSession(record, developmentSessionId);
-  const result = readObject(record.result);
-  if (!hasExactKeys(result, ['kind', 'commandResult']) || result.kind !== 'point-light-command') {
-    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid point-light action result fields.');
-  }
-  if (typeof record.actionId !== 'string' || typeof record.runtimeInstanceId !== 'string') {
-    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid point-light action result values.');
-  }
-  return {
-    actionId: record.actionId,
-    runtimeInstanceId: record.runtimeInstanceId,
-    result: result.commandResult,
-  };
-}
-
-function readSessionControlResultEnvelope(
-  value: unknown,
-  developmentSessionId: string,
-): SessionControlActionResultInput {
-  const record = readObject(value);
-  if (!hasExactKeys(record, [
-    'schemaVersion', 'developmentSessionId', 'runtimeInstanceId', 'actionId', 'result',
-  ])) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result fields.');
-  requireSession(record, developmentSessionId);
-  const result = readObject(record.result);
-  if (
-    !hasExactKeys(result, ['kind', 'controlResult', 'session'])
-    || result.kind !== 'session-control'
-  ) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid session-control result fields.');
-  if (typeof record.actionId !== 'string' || typeof record.runtimeInstanceId !== 'string') {
-    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid session-control result values.');
-  }
-  return {
-    actionId: record.actionId,
-    runtimeInstanceId: record.runtimeInstanceId,
-    result: result.controlResult,
-    session: result.session,
-  };
 }
 
 function readActionRequest(value: unknown): void {
@@ -412,6 +279,7 @@ function actionStatus(cause: AntikyCliError): number {
 export function createInspectionServer(options: InspectionServerOptions): InspectionServer {
   const gameOrigin = new URL(options.gameUrl).origin;
   const expectedHost = `${options.host}:${options.port}`;
+  const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
   const mcpClient = Object.freeze({
     async readDevelopmentSnapshot() { return options.readDevelopmentSnapshot(); },
     requestReload: options.requestReload,
@@ -432,6 +300,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
     stepSimulation: options.stepSimulation,
   });
   const server: HttpServer = createHttpServer((request, response) => {
+    const requestId = `request-${randomUUID()}`;
     void (async () => {
       let browserRequest = false;
       try {
@@ -514,7 +383,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           return;
         }
         if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/snapshot') {
-          const envelope = readSnapshotEnvelope(
+          const envelope = readBrowserSnapshotEnvelope(
             await readJson(request, MAX_BROWSER_MESSAGE_BYTES),
             options.developmentSessionId,
           );
@@ -532,7 +401,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           return;
         }
         if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/disconnect') {
-          const envelope = readDisconnectEnvelope(
+          const envelope = readBrowserDisconnectEnvelope(
             await readJson(request, MAX_BROWSER_MESSAGE_BYTES),
             options.developmentSessionId,
           );
@@ -564,25 +433,14 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         }
         if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/action-result') {
           const input = await readJson(request, MAX_CAPTURE_ENVELOPE_BYTES);
-          const result = readObject(readObject(input).result);
-          if (result.kind === 'capture') {
-            await options.completeCapture(readCaptureEnvelope(
-              input,
-              options.developmentSessionId,
-            ));
-          } else if (result.kind === 'point-light-command') {
-            await options.completePointLightCommand(readPointLightResultEnvelope(
-              input,
-              options.developmentSessionId,
-            ));
-          } else if (result.kind === 'session-control') {
-            await options.completeSessionControl(readSessionControlResultEnvelope(
-              input,
-              options.developmentSessionId,
-            ));
-          } else {
-            serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid action result kind.');
-          }
+          const envelope = readBrowserActionResultEnvelope(
+            input,
+            options.developmentSessionId,
+          );
+          if (envelope.kind === 'capture') await options.completeCapture(envelope.input);
+          else if (envelope.kind === 'point-light-command') {
+            await options.completePointLightCommand(envelope.input);
+          } else await options.completeSessionControl(envelope.input);
           writeJson(response, 202, { schemaVersion: 1, accepted: true }, gameOrigin);
           return;
         }
@@ -636,6 +494,12 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         }
         serviceError(404, 'ANTIKY_NOT_FOUND', 'Resource does not exist.');
       } catch (cause: unknown) {
+        if (cause instanceof BrowserEnvelopeError) {
+          writeJson(response, cause.status, {
+            error: { code: cause.code, message: cause.message },
+          }, browserRequest && request.headers.origin === gameOrigin ? gameOrigin : undefined);
+          return;
+        }
         if (cause instanceof InspectionServiceError) {
           writeJson(response, cause.status, {
             error: { code: cause.code, message: cause.message },
@@ -648,6 +512,13 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           }, browserRequest && request.headers.origin === gameOrigin ? gameOrigin : undefined);
           return;
         }
+        emitCliDiagnostic(diagnosticSink, {
+          level: 'error',
+          code: 'ANTIKY_REQUEST_FAILED',
+          developmentSessionId: options.developmentSessionId,
+          requestId,
+          component: 'inspection-server',
+        });
         writeJson(response, 500, {
           error: { code: 'ANTIKY_INTERNAL_ERROR', message: 'Inspection service failed.' },
         });

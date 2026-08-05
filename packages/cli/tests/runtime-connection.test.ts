@@ -23,7 +23,10 @@ function runtime(instanceId: string) {
 
 test('runtime timeouts, explicit disconnects, reconnects, and stale publications are distinct', async () => {
   let revision = 0;
+  const diagnostics: unknown[] = [];
   const connection = createRuntimeConnection({
+    developmentSessionId: 'development-runtime-connection-001',
+    diagnosticSink: (event: unknown) => diagnostics.push(event),
     timeoutMilliseconds: 20,
     acceptBuild: () => {
       revision = Math.max(revision, 1);
@@ -54,4 +57,20 @@ test('runtime timeouts, explicit disconnects, reconnects, and stale publications
     () => connection.accept(runtime('runtime-connection-001'), 4),
     (cause: unknown) => cause instanceof AntikyCliError && cause.code === 'ANTIKY_RUNTIME_STALE',
   );
+
+  const diagnosticCodes = diagnostics.flatMap((event) => (
+    typeof event === 'object' && event !== null && 'code' in event && typeof event.code === 'string'
+      ? [event.code]
+      : []
+  ));
+  assert.ok(diagnosticCodes.includes('ANTIKY_RUNTIME_CONNECTED'));
+  assert.ok(diagnosticCodes.includes('ANTIKY_RUNTIME_TIMED_OUT'));
+  assert.ok(diagnosticCodes.includes('ANTIKY_RUNTIME_DISCONNECTED'));
+  assert.ok(diagnostics.every((event) => (
+    typeof event === 'object'
+    && event !== null
+    && 'developmentSessionId' in event
+    && event.developmentSessionId === 'development-runtime-connection-001'
+  )));
+  assert.match(JSON.stringify(diagnostics), /runtime-connection-002/);
 });

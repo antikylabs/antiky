@@ -5,6 +5,11 @@ import { ID_KINDS, generateId, type IdKind } from '@antiky/framework';
 import { loadAntikyConfig } from './config.ts';
 import { connectDevelopmentClient, inspectDevelopmentSession } from './development/client.ts';
 import { AntikyCliError } from './errors.ts';
+import {
+  NOOP_CLI_DIAGNOSTIC_SINK,
+  emitCliDiagnostic,
+  type CliDiagnosticSink,
+} from './host/diagnostics.ts';
 import { startDevelopmentSession } from './host/session.ts';
 import { callMcpTool } from './mcp/client.ts';
 import { runMcpServer } from './mcp/server.ts';
@@ -21,6 +26,10 @@ const MAX_TOOL_INPUT_BYTES = 64 * 1024;
 export type CliIo = Readonly<{
   stdout: (text: string) => void;
   stderr: (text: string) => void;
+}>;
+
+export type RunCliOptions = Readonly<{
+  diagnosticSink?: CliDiagnosticSink;
 }>;
 
 function parseConfigPath(args: readonly string[]): string {
@@ -118,12 +127,10 @@ function parseToolInvocation(args: readonly string[]): ToolInvocation {
   return Object.freeze({ name, input, configPath });
 }
 
-export async function runCli(
+async function executeCli(
   args: readonly string[],
-  io: CliIo = {
-    stdout: (text) => process.stdout.write(text),
-    stderr: (text) => process.stderr.write(text),
-  },
+  io: CliIo,
+  diagnosticSink: CliDiagnosticSink,
 ): Promise<number> {
   const [command, ...commandArgs] = args;
   if (
@@ -166,6 +173,7 @@ export async function runCli(
   const config = await loadAntikyConfig(configPath);
   const session = await startDevelopmentSession(config, {
     writeOutput: (line) => io.stdout(`${line}\n`),
+    diagnosticSink,
   });
   let interruptCode = 130;
   let interruptReceived = false;
@@ -195,5 +203,30 @@ export async function runCli(
     process.off('SIGINT', onInterrupt);
     process.off('SIGTERM', onTerminate);
     process.off('SIGHUP', onHangup);
+  }
+}
+
+export async function runCli(
+  args: readonly string[],
+  io: CliIo = {
+    stdout: (text) => process.stdout.write(text),
+    stderr: (text) => process.stderr.write(text),
+  },
+  options: RunCliOptions = {},
+): Promise<number> {
+  const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
+  try {
+    return await executeCli(args, io, diagnosticSink);
+  } catch (cause: unknown) {
+    if (cause instanceof AntikyCliError) throw cause;
+    emitCliDiagnostic(diagnosticSink, {
+      level: 'error',
+      code: 'ANTIKY_CLI_FAILED',
+      component: 'cli',
+    });
+    throw new AntikyCliError(
+      'ANTIKY_INTERNAL_ERROR',
+      'The Antiky CLI failed unexpectedly.',
+    );
   }
 }

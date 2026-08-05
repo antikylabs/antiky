@@ -15,6 +15,12 @@ import {
   type DevelopmentStopResult,
 } from '../development/types.ts';
 import { AntikyCliError } from '../errors.ts';
+import {
+  NOOP_CLI_DIAGNOSTIC_SINK,
+  emitCliDiagnostic,
+  type CliDiagnosticComponent,
+  type CliDiagnosticSink,
+} from './diagnostics.ts';
 import { createInspectionServer } from './inspection-server.ts';
 import { createRuntimeConnection } from './runtime-connection.ts';
 import {
@@ -53,6 +59,7 @@ export type DevelopmentSessionOptions = Readonly<{
   buildFailureTimeoutMilliseconds?: number;
   actionTimeoutMilliseconds?: number;
   runtimeConnectionTimeoutMilliseconds?: number;
+  diagnosticSink?: CliDiagnosticSink;
   runCleanupOperation?: (
     name: DevelopmentCleanupOperation,
     operation: () => Promise<void>,
@@ -169,6 +176,7 @@ export async function startDevelopmentSession(
   options: DevelopmentSessionOptions = {},
 ): Promise<DevelopmentSession> {
   const writeOutput = options.writeOutput ?? ((line: string) => process.stdout.write(`${line}\n`));
+  const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
   const runCleanupOperation = options.runCleanupOperation
     ?? ((_name: DevelopmentCleanupOperation, operation: () => Promise<void>) => operation());
   let gameReservation: NetServer | undefined;
@@ -193,6 +201,25 @@ export async function startDevelopmentSession(
   }
 
   const id = randomUUID();
+  const reportSession = (
+    level: 'info' | 'warning' | 'error',
+    code:
+      | 'ANTIKY_SESSION_STARTING'
+      | 'ANTIKY_SESSION_READY'
+      | 'ANTIKY_SESSION_STOPPING'
+      | 'ANTIKY_SESSION_STOPPED'
+      | 'ANTIKY_SESSION_START_FAILED'
+      | 'ANTIKY_COMPONENT_STARTED'
+      | 'ANTIKY_CHILD_EXITED'
+      | 'ANTIKY_CLEANUP_FAILED',
+    component: CliDiagnosticComponent = 'session',
+  ): void => emitCliDiagnostic(diagnosticSink, {
+    level,
+    code,
+    developmentSessionId: id,
+    component,
+  });
+  reportSession('info', 'ANTIKY_SESSION_STARTING');
   const credential = randomBytes(32).toString('base64url');
   const inspectionUrl = `http://${config.network.host}:${config.network.inspectionPort}`;
   const mcpUrl = `${inspectionUrl}/mcp`;
@@ -220,6 +247,8 @@ export async function startDevelopmentSession(
   const stopped = new Promise<DevelopmentStopResult>((resolve) => { resolveStopped = resolve; });
 
   const runtimeConnection = createRuntimeConnection({
+    developmentSessionId: id,
+    diagnosticSink,
     acceptBuild: (inspection) => buildTracker.acceptRuntime(inspection),
     ...(options.runtimeConnectionTimeoutMilliseconds === undefined
       ? {}
@@ -229,6 +258,7 @@ export async function startDevelopmentSession(
   const actionBroker = createDevelopmentActionBroker({
     developmentSessionId: id,
     rootDirectory: config.game.workingDirectory,
+    diagnosticSink,
     readRuntimeContext: () => {
       const runtime = runtimeConnection.read();
       return {
@@ -281,6 +311,7 @@ export async function startDevelopmentSession(
     developmentSessionId: id,
     gameUrl: config.game.url,
     credential,
+    diagnosticSink,
     readDevelopmentSnapshot: snapshot,
     acceptInspection(inspection, publicationSequence) {
       const acceptedBuildRevision = runtimeConnection.accept(inspection, publicationSequence);
@@ -318,6 +349,7 @@ export async function startDevelopmentSession(
     stopPromise = (async () => {
       stopping = true;
       cleanupState = 'stopping';
+      reportSession('info', 'ANTIKY_SESSION_STOPPING');
       const cleanupStarted = Date.now();
       const cleanupOperations: ReadonlyArray<Readonly<{
         name: DevelopmentCleanupOperation;
@@ -359,6 +391,14 @@ export async function startDevelopmentSession(
         (count, result) => count + (result.status === 'rejected' ? 1 : 0),
         0,
       );
+      cleanupResults.forEach((cleanupResult, index) => {
+        if (cleanupResult.status !== 'rejected') return;
+        reportSession(
+          'error',
+          'ANTIKY_CLEANUP_FAILED',
+          cleanupOperations[index]!.name,
+        );
+      });
       cleanupMilliseconds = Date.now() - cleanupStarted;
       cleanupState = cleanupFailureCount === 0 ? 'stopped' : 'failed';
       const result = Object.freeze({
@@ -367,6 +407,10 @@ export async function startDevelopmentSession(
         cleanupMilliseconds,
         cleanupFailureCount,
       });
+      reportSession(
+        cleanupFailureCount === 0 ? 'info' : 'error',
+        'ANTIKY_SESSION_STOPPED',
+      );
       resolveStopped(result);
       return result;
     })();
@@ -405,25 +449,33 @@ export async function startDevelopmentSession(
       const record = processRecords[name];
       record.exitCode = code ?? 1;
       record.state = stopping ? 'stopped' : 'failed';
+      reportSession(
+        stopping ? 'info' : 'error',
+        'ANTIKY_CHILD_EXITED',
+        `${name}-child`,
+      );
       if (!stopping) void stop('child-failure', code && code !== 0 ? code : 1);
     });
     try {
       await waitForSpawn(child);
     } catch (cause: unknown) {
       processRecords[name].state = 'failed';
+      reportSession('error', 'ANTIKY_SESSION_START_FAILED', `${name}-child`);
       throw new AntikyCliError(
         'ANTIKY_CHILD_START_FAILED',
-        `Unable to start ${name}: ${cause instanceof Error ? cause.message : String(cause)}`,
+        `Unable to start ${name}.`,
       );
     }
     processRecords[name].pid = child.pid;
     processRecords[name].state = 'running';
+    reportSession('info', 'ANTIKY_COMPONENT_STARTED', `${name}-child`);
   };
 
   try {
     await closeNetServer(inspectionReservation);
     inspectionReservation = undefined;
     await inspectionServer.start();
+    reportSession('info', 'ANTIKY_COMPONENT_STARTED', 'inspection-server');
     await writeSessionDescriptor(descriptorPath, {
       schemaVersion: 1,
       developmentSessionId: id,
@@ -432,6 +484,7 @@ export async function startDevelopmentSession(
       credential,
       ownerPid: process.pid,
     });
+    reportSession('info', 'ANTIKY_COMPONENT_STARTED', 'session-descriptor');
     await spawnManaged('shaders', config.game.shaderCommand);
     await closeNetServer(gameReservation);
     gameReservation = undefined;
@@ -443,14 +496,18 @@ export async function startDevelopmentSession(
       join(config.game.workingDirectory, 'packages', 'demos', 'dev-host'),
       join(config.game.workingDirectory, 'src'),
     ]);
+    reportSession('info', 'ANTIKY_COMPONENT_STARTED', 'build-watcher');
   } catch (cause) {
+    reportSession('error', 'ANTIKY_SESSION_START_FAILED');
     await stop('start-failure', 1);
     if (cause instanceof AntikyCliError) throw cause;
     throw new AntikyCliError(
       'ANTIKY_CHILD_START_FAILED',
-      `Unable to start the development session: ${cause instanceof Error ? cause.message : String(cause)}`,
+      'Unable to start the development session.',
     );
   }
+
+  reportSession('info', 'ANTIKY_SESSION_READY');
 
   writeOutput(`Antiky development session ${id}`);
   writeOutput(`Config: ${config.path}`);
