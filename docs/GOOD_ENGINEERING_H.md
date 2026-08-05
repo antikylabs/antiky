@@ -139,7 +139,7 @@ What follows are short bullet points on what makes good engineering, will be exp
 - Understand your audience when you write documentation, or talk to people.
 
 ## File Size and Cohesion
-- Keep handwritten production files below 500 lines when practical. Files
-- Above 500 lines require a cohesion review; 
-- files above 800 lines should normally be decomposed. 
+- Keep handwritten production files below 500 lines when practical.
+- Files above 500 lines require a cohesion review.
+- Files above 800 lines should normally be decomposed.
 - Split by responsibility and ownership, not merely to satisfy a line count.
