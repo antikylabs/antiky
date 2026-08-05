@@ -11,6 +11,38 @@ import {
   type InspectionSnapshotInput,
 } from './snapshot.ts';
 
+function sessionStatus(runtimeInstanceId = 'runtime-001') {
+  return {
+    schemaVersion: 1,
+    sessionId: '018f0f3a-7b2c-7a1d-8e2f-123456789ab0',
+    worldId: '018f0f3a-7b2c-7a1d-8e2f-123456789abc',
+    runtimeInstanceId,
+    mode: 'paused',
+    pauseReasons: ['tool'],
+    systemOrder: ['town-update'],
+    clock: {
+      fixedStepSeconds: 1 / 60,
+      maximumFrameElapsedSeconds: 0.05,
+      maximumStepsPerFrame: 3,
+      accumulatorSeconds: 1 / 120,
+      completedStepCount: 12,
+      inputSequence: 10,
+      totalAcceptedElapsedSeconds: 0.2,
+      totalDiscardedSeconds: 0.1,
+    },
+    revisions: {
+      commandSequence: 2,
+      controlRevision: 3,
+      worldRevision: 1,
+    },
+    lastCompletedStep: {
+      completedStepId: 12,
+      inputSequence: 10,
+      stateDigest: 'town-v1:0123456789abcdef',
+    },
+  };
+}
+
 function snapshotInput(instanceId = 'runtime-001'): InspectionSnapshotInput {
   return {
     schemaVersion: INSPECTION_SCHEMA_VERSION,
@@ -101,6 +133,31 @@ test('diagnostics and semantic measurements retain their framework owner', () =>
   assert.equal(snapshot.measurements.runtime.frameCount, 42);
   assert.equal(snapshot.measurements.render.owner, 'framework');
   assert.equal(snapshot.measurements.render.uploadBytesPerFrame, 320);
+});
+
+test('inspection carries one validated immutable session status', () => {
+  const input = { ...snapshotInput(), session: sessionStatus() };
+  const snapshot = createInspectionSnapshot(input);
+
+  input.session.pauseReasons.push('visibility');
+  input.session.clock.completedStepCount = 99;
+
+  assert.equal(snapshot.session?.sessionId, '018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
+  assert.deepEqual(snapshot.session?.pauseReasons, ['tool']);
+  assert.equal(snapshot.session?.clock.completedStepCount, 12);
+  assert.ok(Object.isFrozen(snapshot.session));
+  assert.ok(Object.isFrozen(snapshot.session?.clock));
+  assert.ok(Object.isFrozen(snapshot.session?.systemOrder));
+});
+
+test('inspection rejects session status from another runtime', () => {
+  assert.throws(
+    () => createInspectionSnapshot({
+      ...snapshotInput(),
+      session: sessionStatus('runtime-other'),
+    }),
+    /runtime identity/i,
+  );
 });
 
 test('snapshot validation rejects unknown fields and invalid measurements', () => {

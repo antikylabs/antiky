@@ -11,3 +11,7 @@ Shared assets can remain shared, but framework behavior must prove itself in `an
 
 `createTownDemoFactory` accepts one optional slot-zero base-power source. With no source, including
 the `town-study` route, all authored practical-light defaults and presentation flicker are unchanged.
+
+The private `TownRuntime` seam separates CPU updates from one render call. `createTownDemoFactory`
+keeps the original Town Study timing adapter. Antiky Town uses `createTownRuntimeFactory` through
+its own private fixed-step host. The seam does not move Town state or BroMetal types into Framework.

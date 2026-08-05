@@ -1,9 +1,11 @@
 import {
   createInspectionSnapshot,
+  type EngineSessionStatus,
   type InspectionSnapshot,
   type PointLightInspection,
   type RuntimeLifecycle,
 } from '@antiky/framework';
+import type { BroMetalErrorCode } from 'brometal';
 
 import type { DemoStats } from './runtime.ts';
 
@@ -25,6 +27,8 @@ export type DemoInspectionInput = Readonly<{
   canvasHeight: number;
   stats: DemoStats;
   error: string | null;
+  errorCode?: BroMetalErrorCode;
+  session?: EngineSessionStatus;
   pointLights?: PointLightInspection;
 }>;
 
@@ -55,7 +59,9 @@ export function createDemoInspectionSnapshot(input: DemoInspectionInput): Inspec
       id: `${input.runtimeInstanceId}:error`,
       owner: 'framework' as const,
       source: 'runtime' as const,
-      code: 'ANTIKY_RUNTIME_ERROR',
+      code: input.errorCode === undefined
+        ? 'ANTIKY_RUNTIME_ERROR'
+        : `ANTIKY_BROMETAL_${input.errorCode.replaceAll('-', '_').toUpperCase()}`,
       severity: 'error' as const,
       message: input.error ?? 'The runtime failed without an error message.',
       relatedIds: [input.runtimeInstanceId],
@@ -77,6 +83,7 @@ export function createDemoInspectionSnapshot(input: DemoInspectionInput): Inspec
       },
       render: renderMeasurements,
     },
+    ...(input.session === undefined ? {} : { session: input.session }),
     ...(input.pointLights === undefined ? {} : { pointLights: input.pointLights }),
   });
 }

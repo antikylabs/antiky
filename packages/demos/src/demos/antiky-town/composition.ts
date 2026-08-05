@@ -1,37 +1,125 @@
+import {
+  EngineSessionValidationError,
+  createEngineSession,
+  createSessionId,
+  type EngineSession,
+  type PointLightAuthoringService,
+  type PointLightCommandResult,
+  type SessionId,
+} from '@antiky/framework';
+
 import type { DemoFactory } from '../../runtime.ts';
-import type { TownDemoOptions } from '../brometal-town/practical-light-input.ts';
+import type { TownRuntime, TownRuntimeBuilder } from '../brometal-town/town-runtime.ts';
 import { createAntikyTownPointLightService } from './content/point-lights.ts';
+import {
+  createAntikyTownGameHost,
+  registerAntikyTownGameHost,
+  type TownSemanticInput,
+} from './gameplay/game-host.ts';
 import { createTownPointLightAdapter } from './render/point-light-adapter.ts';
 
-export type TownFactoryBuilder = (options: TownDemoOptions) => DemoFactory;
+export type AntikyTownCompositionOptions = Readonly<{
+  createSessionId?: () => SessionId;
+}>;
+
+function createSessionPointLightService(
+  service: PointLightAuthoringService,
+  session: EngineSession<TownSemanticInput>,
+): PointLightAuthoringService {
+  const executePointLightCommand = (
+    operation: () => PointLightCommandResult,
+  ): PointLightCommandResult => {
+    const execution = session.executeCommand(() => {
+      const result = operation();
+      return Object.freeze({ result, authoringChanged: result.code === 'ACCEPTED' });
+    });
+    if (execution.code === 'EXECUTED' && execution.result !== undefined) return execution.result;
+    if (execution.code === 'SESSION_DISPOSED') return operation();
+    throw new EngineSessionValidationError(
+      `Point-light command could not run (${execution.code})`,
+      '$.pointLightCommand',
+    );
+  };
+
+  const facade: PointLightAuthoringService = {
+    worldId: service.worldId,
+    listPointLights: () => service.listPointLights(),
+    getPointLight: (entityId) => service.getPointLight(entityId),
+    submitPointLightPower: (command, context) => executePointLightCommand(
+      () => service.submitPointLightPower(command, context),
+    ),
+    correctPointLightPower: (request, context) => executePointLightCommand(
+      () => service.correctPointLightPower(request, context),
+    ),
+    listPointLightPowerFacts: () => service.listPointLightPowerFacts(),
+    listPointLightCommandResults: () => service.listPointLightCommandResults(),
+    readPointLightState: () => service.readPointLightState(),
+    readPointLightRenderChanges: () => service.readPointLightRenderChanges(),
+    acknowledgePointLightRenderChanges: (eventSequence) => (
+      service.acknowledgePointLightRenderChanges(eventSequence)
+    ),
+    replayPointLightPowerFacts: (facts) => service.replayPointLightPowerFacts(facts),
+    rebuildPointLightState: () => service.rebuildPointLightState(),
+    dispose: () => session.dispose(),
+  };
+  return Object.freeze(facade);
+}
 
 export function createAntikyTownDemoFactory(
-  buildTown: TownFactoryBuilder,
+  buildTown: TownRuntimeBuilder,
+  options: AntikyTownCompositionOptions = {},
 ): DemoFactory {
   return async (setup) => {
     const service = createAntikyTownPointLightService(setup.runtimeInstanceId);
+    let town: TownRuntime | null = null;
+    let session: EngineSession<TownSemanticInput> | null = null;
     try {
       const pointLightAdapter = createTownPointLightAdapter(service);
-      const town = await buildTown({ slotZeroPower: pointLightAdapter })(setup);
+      town = await buildTown({ slotZeroPower: pointLightAdapter })(setup);
+      const ownedTown = town;
+      session = createEngineSession<TownSemanticInput>({
+        sessionId: (options.createSessionId ?? createSessionId)(),
+        worldId: service.worldId,
+        runtimeInstanceId: setup.runtimeInstanceId,
+        systems: [Object.freeze({
+          id: 'town-update',
+          run(step) {
+            ownedTown.update(step.fixedDeltaSeconds, step.input.movement);
+          },
+        })],
+        captureInput(input) {
+          return input;
+        },
+        getStateDigest: () => ownedTown.readStateDigest(),
+        services: [service, ownedTown],
+      });
+      const ownedSession = session;
+      const host = createAntikyTownGameHost(ownedSession, ownedTown, setup.movement);
+      const pointLightService = createSessionPointLightService(service, ownedSession);
       let disposed = false;
-
-      return Object.freeze({
-        pointLightService: service,
-        frame(elapsedSeconds: number): void {
-          if (!disposed) town.frame(elapsedSeconds);
+      const instance = Object.freeze({
+        pointLightService,
+        frame(platformTimeSeconds: number): void {
+          if (!disposed) host.present(platformTimeSeconds);
         },
         dispose(): void {
           if (disposed) return;
           disposed = true;
-          try {
-            town.dispose();
-          } finally {
-            service.dispose();
-          }
+          ownedSession.dispose();
         },
       });
+      registerAntikyTownGameHost(instance, host);
+      return instance;
     } catch (cause: unknown) {
-      service.dispose();
+      if (session !== null) {
+        session.dispose();
+      } else {
+        try {
+          town?.dispose();
+        } finally {
+          service.dispose();
+        }
+      }
       throw cause;
     }
   };

@@ -10,6 +10,7 @@ export const ENGINE_SESSION_SCHEMA_VERSION = 1 as const;
 export const FIXED_STEP_SECONDS = 1 / 60;
 export const MAX_FRAME_ELAPSED_SECONDS = 0.05;
 export const MAX_STEPS_PER_FRAME = 3;
+export const MAX_ENGINE_SYSTEMS = 256;
 
 export type EnginePauseReason = 'user' | 'tool' | 'visibility';
 export type EngineSessionMode = 'running' | 'paused' | 'disposed';
@@ -198,14 +199,14 @@ function fail(message: string, path: string): never {
   throw new EngineSessionValidationError(message, path);
 }
 
-function readRuntimeInstanceId(value: unknown): string {
+function readRuntimeInstanceId(value: unknown, path = '$.runtimeInstanceId'): string {
   if (
     typeof value !== 'string'
     || value.length === 0
     || value.length > MAX_RUNTIME_ID_LENGTH
     || !RUNTIME_ID_PATTERN.test(value)
   ) {
-    fail('Expected a valid runtime-instance ID', '$.runtimeInstanceId');
+    fail('Expected a valid runtime-instance ID', path);
   }
   return value;
 }
@@ -220,6 +221,9 @@ function readSafeCount(value: unknown, path: string): number {
 function readSystems<Input>(value: unknown): readonly EngineSystem<Input>[] {
   if (!Array.isArray(value) || value.length === 0) {
     fail('Expected at least one engine system', '$.systems');
+  }
+  if (value.length > MAX_ENGINE_SYSTEMS) {
+    fail(`Expected at most ${MAX_ENGINE_SYSTEMS} engine systems`, '$.systems');
   }
   const ids = new Set<string>();
   return Object.freeze(value.map((candidate, index) => {
@@ -281,6 +285,239 @@ function sortedPauseReasons(reasons: ReadonlySet<EnginePauseReason>): readonly E
 
 function isPauseReason(value: unknown): value is EnginePauseReason {
   return typeof value === 'string' && PAUSE_REASONS.includes(value as EnginePauseReason);
+}
+
+type UnknownRecord = Record<string, unknown>;
+
+function readStatusObject(value: unknown, path: string): UnknownRecord {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    fail('Expected an object', path);
+  }
+  return value as UnknownRecord;
+}
+
+function checkStatusKeys(
+  value: UnknownRecord,
+  expected: readonly string[],
+  path: string,
+): void {
+  const allowed = new Set(expected);
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) fail('Unknown field', `${path}.${key}`);
+  }
+  for (const key of expected) {
+    if (!Object.hasOwn(value, key)) fail('Missing field', `${path}.${key}`);
+  }
+}
+
+function readStatusLiteral<Value extends string>(
+  value: unknown,
+  allowed: readonly Value[],
+  path: string,
+): Value {
+  if (typeof value !== 'string' || !allowed.includes(value as Value)) {
+    fail(`Expected one of: ${allowed.join(', ')}`, path);
+  }
+  return value as Value;
+}
+
+function readNonNegativeFinite(value: unknown, path: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    fail('Expected a non-negative finite number', path);
+  }
+  return value;
+}
+
+function readStatusId<Id>(operation: () => Id, path: string): Id {
+  try {
+    return operation();
+  } catch (error) {
+    if (error instanceof IdValidationError) fail(error.message, path);
+    throw error;
+  }
+}
+
+/** Validate and freeze session status received through an inspection boundary. */
+export function parseEngineSessionStatus(
+  value: unknown,
+  path = '$',
+): EngineSessionStatus {
+  const record = readStatusObject(value, path);
+  checkStatusKeys(record, [
+    'schemaVersion',
+    'sessionId',
+    'worldId',
+    'runtimeInstanceId',
+    'mode',
+    'pauseReasons',
+    'systemOrder',
+    'clock',
+    'revisions',
+    'lastCompletedStep',
+  ], path);
+  if (record.schemaVersion !== ENGINE_SESSION_SCHEMA_VERSION) {
+    fail(`Expected schema version ${ENGINE_SESSION_SCHEMA_VERSION}`, `${path}.schemaVersion`);
+  }
+
+  const mode = readStatusLiteral(
+    record.mode,
+    ['running', 'paused', 'disposed'] as const,
+    `${path}.mode`,
+  );
+  if (!Array.isArray(record.pauseReasons)) fail('Expected an array', `${path}.pauseReasons`);
+  const pauseReasonSet = new Set<EnginePauseReason>();
+  for (const [index, reason] of record.pauseReasons.entries()) {
+    const parsed = readStatusLiteral(reason, PAUSE_REASONS, `${path}.pauseReasons[${index}]`);
+    if (pauseReasonSet.has(parsed)) fail('Pause reasons must be unique', `${path}.pauseReasons[${index}]`);
+    pauseReasonSet.add(parsed);
+  }
+  if (mode === 'paused' && pauseReasonSet.size === 0) {
+    fail('A paused session needs a pause reason', `${path}.pauseReasons`);
+  }
+  if (mode !== 'paused' && pauseReasonSet.size > 0) {
+    fail('Only a paused session can have pause reasons', `${path}.pauseReasons`);
+  }
+  const pauseReasons = sortedPauseReasons(pauseReasonSet);
+
+  if (!Array.isArray(record.systemOrder) || record.systemOrder.length === 0) {
+    fail('Expected at least one system ID', `${path}.systemOrder`);
+  }
+  if (record.systemOrder.length > MAX_ENGINE_SYSTEMS) {
+    fail(`Expected at most ${MAX_ENGINE_SYSTEMS} system IDs`, `${path}.systemOrder`);
+  }
+  const systemIds = new Set<string>();
+  const systemOrder = Object.freeze(record.systemOrder.map((systemId, index) => {
+    if (typeof systemId !== 'string' || !SYSTEM_ID_PATTERN.test(systemId)) {
+      fail('Expected a stable system ID', `${path}.systemOrder[${index}]`);
+    }
+    if (systemIds.has(systemId)) fail('System IDs must be unique', `${path}.systemOrder[${index}]`);
+    systemIds.add(systemId);
+    return systemId;
+  }));
+
+  const clockRecord = readStatusObject(record.clock, `${path}.clock`);
+  checkStatusKeys(clockRecord, [
+    'fixedStepSeconds',
+    'maximumFrameElapsedSeconds',
+    'maximumStepsPerFrame',
+    'accumulatorSeconds',
+    'completedStepCount',
+    'inputSequence',
+    'totalAcceptedElapsedSeconds',
+    'totalDiscardedSeconds',
+  ], `${path}.clock`);
+  if (clockRecord.fixedStepSeconds !== FIXED_STEP_SECONDS) {
+    fail(`Expected ${FIXED_STEP_SECONDS}`, `${path}.clock.fixedStepSeconds`);
+  }
+  if (clockRecord.maximumFrameElapsedSeconds !== MAX_FRAME_ELAPSED_SECONDS) {
+    fail(`Expected ${MAX_FRAME_ELAPSED_SECONDS}`, `${path}.clock.maximumFrameElapsedSeconds`);
+  }
+  if (clockRecord.maximumStepsPerFrame !== MAX_STEPS_PER_FRAME) {
+    fail(`Expected ${MAX_STEPS_PER_FRAME}`, `${path}.clock.maximumStepsPerFrame`);
+  }
+  const accumulatorSeconds = readNonNegativeFinite(
+    clockRecord.accumulatorSeconds,
+    `${path}.clock.accumulatorSeconds`,
+  );
+  if (accumulatorSeconds >= FIXED_STEP_SECONDS) {
+    fail('Expected less than one fixed step', `${path}.clock.accumulatorSeconds`);
+  }
+  const completedStepCount = readSafeCount(
+    clockRecord.completedStepCount,
+    `${path}.clock.completedStepCount`,
+  );
+  const inputSequence = readSafeCount(clockRecord.inputSequence, `${path}.clock.inputSequence`);
+  const clock = Object.freeze({
+    fixedStepSeconds: FIXED_STEP_SECONDS,
+    maximumFrameElapsedSeconds: MAX_FRAME_ELAPSED_SECONDS,
+    maximumStepsPerFrame: MAX_STEPS_PER_FRAME,
+    accumulatorSeconds,
+    completedStepCount,
+    inputSequence,
+    totalAcceptedElapsedSeconds: readNonNegativeFinite(
+      clockRecord.totalAcceptedElapsedSeconds,
+      `${path}.clock.totalAcceptedElapsedSeconds`,
+    ),
+    totalDiscardedSeconds: readNonNegativeFinite(
+      clockRecord.totalDiscardedSeconds,
+      `${path}.clock.totalDiscardedSeconds`,
+    ),
+  });
+
+  const revisionRecord = readStatusObject(record.revisions, `${path}.revisions`);
+  checkStatusKeys(
+    revisionRecord,
+    ['commandSequence', 'controlRevision', 'worldRevision'],
+    `${path}.revisions`,
+  );
+  const revisions = Object.freeze({
+    commandSequence: readSafeCount(
+      revisionRecord.commandSequence,
+      `${path}.revisions.commandSequence`,
+    ),
+    controlRevision: readSafeCount(
+      revisionRecord.controlRevision,
+      `${path}.revisions.controlRevision`,
+    ),
+    worldRevision: readSafeCount(
+      revisionRecord.worldRevision,
+      `${path}.revisions.worldRevision`,
+    ),
+  });
+
+  let lastCompletedStep: EngineSessionStatus['lastCompletedStep'] = null;
+  if (record.lastCompletedStep !== null) {
+    const stepRecord = readStatusObject(record.lastCompletedStep, `${path}.lastCompletedStep`);
+    checkStatusKeys(
+      stepRecord,
+      ['completedStepId', 'inputSequence', 'stateDigest'],
+      `${path}.lastCompletedStep`,
+    );
+    const completedStepId = readSafeCount(
+      stepRecord.completedStepId,
+      `${path}.lastCompletedStep.completedStepId`,
+    );
+    const stepInputSequence = readSafeCount(
+      stepRecord.inputSequence,
+      `${path}.lastCompletedStep.inputSequence`,
+    );
+    if (completedStepId === 0 || completedStepId !== completedStepCount) {
+      fail('Expected the latest completed-step ID', `${path}.lastCompletedStep.completedStepId`);
+    }
+    if (stepInputSequence > inputSequence) {
+      fail('Step input sequence exceeds the clock', `${path}.lastCompletedStep.inputSequence`);
+    }
+    const stateDigest = stepRecord.stateDigest;
+    if (
+      stateDigest !== null
+      && (typeof stateDigest !== 'string' || stateDigest.length === 0 || stateDigest.length > MAX_DIGEST_LENGTH)
+    ) {
+      fail(
+        `Expected null or 1 through ${MAX_DIGEST_LENGTH} digest characters`,
+        `${path}.lastCompletedStep.stateDigest`,
+      );
+    }
+    lastCompletedStep = Object.freeze({
+      completedStepId,
+      inputSequence: stepInputSequence,
+      stateDigest: stateDigest as string | null,
+    });
+  } else if (completedStepCount === 0) {
+    lastCompletedStep = null;
+  }
+
+  return Object.freeze({
+    schemaVersion: ENGINE_SESSION_SCHEMA_VERSION,
+    sessionId: readStatusId(() => parseSessionId(record.sessionId), `${path}.sessionId`),
+    worldId: readStatusId(() => parseWorldId(record.worldId), `${path}.worldId`),
+    runtimeInstanceId: readRuntimeInstanceId(record.runtimeInstanceId, `${path}.runtimeInstanceId`),
+    mode,
+    pauseReasons,
+    systemOrder,
+    clock,
+    revisions,
+    lastCompletedStep,
+  });
 }
 
 export function createEngineSession<Input>(

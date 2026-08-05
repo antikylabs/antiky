@@ -334,6 +334,15 @@ test('construction rejects duplicate systems and unsafe initial counters', () =>
     () => createHarness({ initialCompletedStepCount: Number.MAX_SAFE_INTEGER + 1 }),
     (error: unknown) => error instanceof EngineSessionValidationError,
   );
+  assert.throws(
+    () => createHarness({
+      systems: Array.from({ length: 257 }, (_, index) => ({
+        id: `system-${index}`,
+        run: () => undefined,
+      })),
+    }),
+    (error: unknown) => error instanceof EngineSessionValidationError,
+  );
 });
 
 test('the completed-step counter never exceeds the safe integer limit', () => {

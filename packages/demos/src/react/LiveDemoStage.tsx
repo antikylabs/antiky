@@ -1,6 +1,11 @@
 'use client';
 
-import { createRenderer, type Renderer } from 'brometal';
+import {
+  createRenderer,
+  isBroMetalError,
+  type BroMetalErrorCode,
+  type Renderer,
+} from 'brometal';
 import { useEffect, useRef, useState } from 'react';
 import { inspectPointLightService } from '@antiky/framework';
 import {
@@ -12,6 +17,7 @@ import {
 } from '../runtime';
 import type { DemoInspectionInput, DemoRuntimePhase } from '../runtime-inspection';
 import { loadDemo } from '../registry';
+import { getAntikyTownGameHost } from '../demos/antiky-town/gameplay/game-host';
 import {
   createPausableRenderLoop,
   type PausableRenderLoop,
@@ -68,6 +74,7 @@ export default function LiveDemoStage({
   const pressedRef = useRef(new Set<string>());
   const touchRef = useRef({ x: 0, z: 0 });
   const [error, setError] = useState<string | null>(null);
+  const [runtimeErrorCode, setRuntimeErrorCode] = useState<BroMetalErrorCode | undefined>();
   const [stats, setStats] = useState<DemoStats>({});
   const [fps, setFps] = useState(0);
   const [phase, setPhase] = useState<Phase>(poster ? 'poster' : 'loading');
@@ -104,6 +111,7 @@ export default function LiveDemoStage({
     let pausedByVisibility = false;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const mode: DemoMode = variant === 'full' ? 'interactive' : variant === 'thumb' ? 'thumbnail' : 'ambient';
+    const autoplay = autoStart || (variant === 'hero' && !reducedMotion);
 
     runningRef.current = false;
     frameCountRef.current = 0;
@@ -113,6 +121,7 @@ export default function LiveDemoStage({
     pressedRef.current.clear();
     touchRef.current = { x: 0, z: 0 };
     setError(null);
+    setRuntimeErrorCode(undefined);
     setStats({});
     setFps(0);
     setPhase(poster ? 'poster' : 'loading');
@@ -185,6 +194,36 @@ export default function LiveDemoStage({
       syncMovement();
     };
 
+    const pauseForVisibility = () => {
+      if (!runningRef.current) return;
+      getAntikyTownGameHost(demoInstanceRef.current)?.pause('visibility');
+      runningRef.current = false;
+      frameLoopRef.current?.pause();
+      pausedByVisibility = true;
+      setPhase('paused');
+    };
+    const resumeFromVisibility = () => {
+      if (
+        document.hidden
+        || !visible
+        || !pausedByVisibility
+      ) return;
+      pausedByVisibility = false;
+      const host = getAntikyTownGameHost(demoInstanceRef.current);
+      const canRun = host === null || host.resume('visibility').mode === 'running';
+      runningRef.current = canRun;
+      if (canRun) {
+        frameLoopRef.current?.start();
+        setPhase('running');
+      } else {
+        setPhase('paused');
+      }
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) pauseForVisibility();
+      else resumeFromVisibility();
+    };
+
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerdown', onDown);
     window.addEventListener('pointerup', onUp);
@@ -192,6 +231,7 @@ export default function LiveDemoStage({
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('blur', onBlur);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     const start = async () => {
       let renderer: Renderer | null = null;
@@ -201,6 +241,14 @@ export default function LiveDemoStage({
         renderer = await createRenderer(canvas, {
           clearColor: [0.05, 0.04, 0.045, 1],
           cull: 'back',
+          onError: (runtimeError) => {
+            if (cancelled) return;
+            runningRef.current = false;
+            frameLoopRef.current?.pause();
+            setRuntimeErrorCode(runtimeError.code);
+            setError(`WebGPU stopped — ${runtimeError.message}`);
+            setPhase('error');
+          },
         });
         if (cancelled) {
           renderer.destroy();
@@ -232,7 +280,6 @@ export default function LiveDemoStage({
         let previewFrames = 2;
         const built = demo;
         const builtRenderer = renderer;
-        const autoplay = autoStart || (variant === 'hero' && !reducedMotion);
         let frameLoop: PausableRenderLoop;
         frameLoop = createPausableRenderLoop((frame) => builtRenderer.loop(frame), (time) => {
           if (!visible || document.hidden) return;
@@ -246,6 +293,7 @@ export default function LiveDemoStage({
                 setPhase('running');
                 if (autoStart) canvas.focus({ preventScroll: true });
               } else {
+                getAntikyTownGameHost(built)?.pause('user');
                 setPhase('ready');
                 frameLoop.pause();
               }
@@ -279,6 +327,7 @@ export default function LiveDemoStage({
         renderer?.destroy();
         if (cancelled) return;
         const detail = cause instanceof Error ? cause.message : String(cause);
+        setRuntimeErrorCode(isBroMetalError(cause) ? cause.code : undefined);
         setError(`WebGPU could not start — ${detail}`);
         setPhase('error');
       }
@@ -291,19 +340,9 @@ export default function LiveDemoStage({
           started = true;
           void start();
         } else if (!visible && runningRef.current) {
-          runningRef.current = false;
-          frameLoopRef.current?.pause();
-          pausedByVisibility = true;
-          setPhase('paused');
-        } else if (
-          visible
-          && pausedByVisibility
-          && (autoStart || (variant === 'hero' && !reducedMotion))
-        ) {
-          pausedByVisibility = false;
-          runningRef.current = true;
-          frameLoopRef.current?.start();
-          setPhase('running');
+          pauseForVisibility();
+        } else if (visible) {
+          resumeFromVisibility();
         }
       },
       { rootMargin: '160px 0px', threshold: 0.01 },
@@ -322,6 +361,7 @@ export default function LiveDemoStage({
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       teardown?.();
     };
   }, [slug, variant, poster, controlMode, autoStart, retry]);
@@ -390,6 +430,7 @@ export default function LiveDemoStage({
     if (process.env.NODE_ENV !== 'development') return;
     const canvas = canvasRef.current;
     const pointLightService = demoInstanceRef.current?.pointLightService;
+    const session = getAntikyTownGameHost(demoInstanceRef.current)?.readStatus();
     const input: DemoInspectionInput = Object.freeze({
       runtimeInstanceId: runtimeInstanceIdRef.current,
       phase,
@@ -399,6 +440,8 @@ export default function LiveDemoStage({
       canvasHeight: canvas?.height ?? 0,
       stats: Object.freeze({ ...stats }),
       error,
+      ...(runtimeErrorCode === undefined ? {} : { errorCode: runtimeErrorCode }),
+      ...(session === undefined ? {} : { session }),
       ...(pointLightService === undefined
         ? {}
         : { pointLights: inspectPointLightService(pointLightService) }),
@@ -407,10 +450,17 @@ export default function LiveDemoStage({
     void inspectionPublisherRef.current?.publish(input).catch(() => {
       // The development host reports connection health; the demo stays usable.
     });
-  }, [error, fps, inspectionTick, phase, retry, stats]);
+  }, [error, fps, inspectionTick, phase, retry, runtimeErrorCode, stats]);
 
   const toggleRunning = () => {
-    const next = !runningRef.current;
+    const host = getAntikyTownGameHost(demoInstanceRef.current);
+    let next: boolean;
+    if (runningRef.current) {
+      host?.pause('user');
+      next = false;
+    } else {
+      next = host === null || host.resume('user').mode === 'running';
+    }
     runningRef.current = next;
     if (next) frameLoopRef.current?.start();
     else frameLoopRef.current?.pause();

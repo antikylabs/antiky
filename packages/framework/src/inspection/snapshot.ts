@@ -4,6 +4,10 @@ import {
   type PointLightInspection,
   type PointLightInspectionInput,
 } from '../point-light/inspection.ts';
+import {
+  parseEngineSessionStatus,
+  type EngineSessionStatus,
+} from '../session/engine-session.ts';
 
 export const INSPECTION_SCHEMA_VERSION = 1 as const;
 export const MAX_INSPECTION_DIAGNOSTICS = 64;
@@ -56,6 +60,7 @@ export type InspectionSnapshotInput = {
     runtime: InspectionRuntimeMeasurementsInput;
     render: InspectionRenderMeasurementsInput;
   };
+  session?: EngineSessionStatus;
   pointLights?: PointLightInspectionInput;
 };
 
@@ -95,6 +100,7 @@ export type InspectionSnapshot = Readonly<{
     runtime: InspectionRuntimeMeasurements;
     render: InspectionRenderMeasurements;
   }>;
+  session?: EngineSessionStatus;
   pointLights?: PointLightInspection;
 }>;
 
@@ -279,7 +285,7 @@ export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
   checkKeys(
     record,
     ['schemaVersion', 'runtime', 'diagnostics', 'measurements'],
-    ['pointLights'],
+    ['session', 'pointLights'],
     '$',
   );
   if (record.schemaVersion !== INSPECTION_SCHEMA_VERSION) {
@@ -320,11 +326,20 @@ export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
   const pointLights = Object.hasOwn(record, 'pointLights')
     ? createPointLightInspection(record.pointLights, '$.pointLights')
     : undefined;
+  const session = Object.hasOwn(record, 'session')
+    ? parseEngineSessionStatus(record.session, '$.session')
+    : undefined;
+  if (session && session.runtimeInstanceId !== immutableRuntime.instanceId) {
+    fail('Session runtime identity does not match inspection', '$.session.runtimeInstanceId');
+  }
   if (pointLights && pointLights.runtime.instanceId !== immutableRuntime.instanceId) {
     throw new PointLightInspectionValidationError(
       'Point-light runtime identity does not match inspection',
       '$.pointLights.runtime.instanceId',
     );
+  }
+  if (session && pointLights && pointLights.worldId !== session.worldId) {
+    fail('Point-light world identity does not match session', '$.pointLights.worldId');
   }
 
   return Object.freeze({
@@ -332,6 +347,7 @@ export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
     runtime: immutableRuntime,
     diagnostics,
     measurements: immutableMeasurements,
+    ...(session === undefined ? {} : { session }),
     ...(pointLights === undefined ? {} : { pointLights }),
   });
 }

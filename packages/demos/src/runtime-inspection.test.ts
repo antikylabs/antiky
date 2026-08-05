@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  createEngineSession,
   createPointLightAuthoringService,
   inspectPointLightService,
+  parseSessionId,
+  parseWorldId,
 } from '@antiky/framework';
 
 // Node 22's strip-types test runner requires the source extension.
@@ -53,6 +56,7 @@ test('demo inspection reports a structured runtime diagnostic without inventing 
     canvasHeight: 0,
     stats: {},
     error: 'WebGPU adapter unavailable.',
+    errorCode: 'gpu-device-lost',
   });
 
   assert.equal(snapshot.runtime.lifecycle, 'error');
@@ -60,7 +64,7 @@ test('demo inspection reports a structured runtime diagnostic without inventing 
     id: 'runtime-demo-error:error',
     owner: 'framework',
     source: 'runtime',
-    code: 'ANTIKY_RUNTIME_ERROR',
+    code: 'ANTIKY_BROMETAL_GPU_DEVICE_LOST',
     severity: 'error',
     message: 'WebGPU adapter unavailable.',
     relatedIds: ['runtime-demo-error'],
@@ -96,4 +100,30 @@ test('demo inspection publishes an available runtime-owned point-light view unch
 
   assert.deepEqual(snapshot.pointLights, pointLights);
   service.dispose();
+});
+
+test('demo inspection publishes an available session status unchanged', () => {
+  const session = createEngineSession({
+    sessionId: parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0'),
+    worldId: parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc'),
+    runtimeInstanceId: 'runtime-demo-session',
+    systems: [{ id: 'town-update', run: () => undefined }],
+    captureInput: () => Object.freeze({}),
+  });
+  session.pause('tool');
+  const status = session.readStatus();
+  const snapshot = createDemoInspectionSnapshot({
+    runtimeInstanceId: 'runtime-demo-session',
+    phase: 'paused',
+    frameCount: 3,
+    framesPerSecond: 0,
+    canvasWidth: 1,
+    canvasHeight: 1,
+    stats: {},
+    error: null,
+    session: status,
+  });
+
+  assert.deepEqual(snapshot.session, status);
+  session.dispose();
 });

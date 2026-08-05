@@ -46,12 +46,13 @@ import {
   StaticCharacterWorldAdapter,
   createHeightFieldGroundSampler,
 } from './physics';
-import type { DemoFactory, DemoMode } from '../../runtime';
+import type { DemoFactory, DemoMode, DemoSetup, MovementInput } from '../../runtime';
 import {
   commitTownSlotZeroPower,
   readTownSlotZeroPower,
   type TownDemoOptions,
 } from './practical-light-input';
+import type { TownRuntime, TownRuntimeFactory } from './town-runtime';
 import postShader from './shaders/town-post.shader.gen';
 import awningShadowShader from './shaders/town-awning-shadow.shader.gen';
 import awningShader from './shaders/town-awning.shader.gen';
@@ -128,6 +129,54 @@ type ActorState = {
   scale: number;
 };
 
+const FNV_32_OFFSET = 0x811c9dc5;
+const FNV_32_PRIME = 0x01000193;
+const TOWN_HASH_RIGHT_OFFSET = 0x9e3779b9;
+const TOWN_HASH_RIGHT_PRIME = 0x5bd1e995;
+
+function townStateDigest(
+  simulationTime: number,
+  hero: ActorState,
+  npcs: readonly ActorState[],
+): string {
+  const bytes = new Uint8Array(8);
+  const view = new DataView(bytes.buffer);
+  let leftHash = FNV_32_OFFSET;
+  let rightHash = TOWN_HASH_RIGHT_OFFSET;
+  const addNumber = (value: number): void => {
+    view.setFloat64(0, value, false);
+    for (const byte of bytes) {
+      leftHash = Math.imul(leftHash ^ byte, FNV_32_PRIME) >>> 0;
+      rightHash = Math.imul(rightHash ^ byte, TOWN_HASH_RIGHT_PRIME) >>> 0;
+    }
+  };
+  const addActor = (actor: ActorState): void => {
+    const state = actor.motor.state;
+    for (const value of [
+      actor.progress,
+      actor.stride,
+      state.tick,
+      state.position.x,
+      state.position.y,
+      state.position.z,
+      state.previousPosition.x,
+      state.previousPosition.y,
+      state.previousPosition.z,
+      state.velocity.x,
+      state.velocity.z,
+      state.facing.x,
+      state.facing.z,
+      state.grounded ? 1 : 0,
+    ]) addNumber(value);
+  };
+  addNumber(simulationTime);
+  addActor(hero);
+  for (const npc of npcs) addActor(npc);
+  const left = leftHash.toString(16).padStart(8, '0');
+  const right = rightHash.toString(16).padStart(8, '0');
+  return `town-v1:${left}${right}`;
+}
+
 type ActorAtlasMetadata = {
   image: string;
   cell: { width: number; height: number };
@@ -175,10 +224,10 @@ function cameraPose(mode: DemoMode, aspect: number) {
   };
 }
 
-async function createTownDemo(
-  { renderer, movement, mode, report }: Parameters<DemoFactory>[0],
+async function createTownRuntime(
+  { renderer, mode, report }: DemoSetup,
   options: TownDemoOptions,
-) {
+): Promise<TownRuntime> {
   const world = buildTownWorld();
   const materialTexture = await loadTexture(
     renderer,
@@ -663,8 +712,9 @@ async function createTownDemo(
   const billboardUp = new Float32Array(3);
   const texel = new Float32Array(2);
   let sceneTarget: RenderTarget | null = null;
-  let previousTime: number | null = null;
   let simulationTime = 0;
+  let pendingPresentationSeconds = 0;
+  let heroRenderPosition = { ...hero.motor.state.position };
 
   const ensureSceneTarget = (): RenderTarget => {
     const width = Math.max(1, renderer.canvas.width);
@@ -684,12 +734,9 @@ async function createTownDemo(
   });
 
   return {
-    frame(time: number) {
-      const lastTime = previousTime;
-      const resetOrFirst = lastTime === null || time <= lastTime;
-      const dt = resetOrFirst ? 1 / 60 : Math.min(time - lastTime, 0.05);
-      previousTime = time;
+    update(dt: number, movement: Readonly<MovementInput>) {
       simulationTime += dt;
+      pendingPresentationSeconds += dt;
 
       let heroInputX = movement.x;
       let heroInputZ = movement.z;
@@ -703,6 +750,7 @@ async function createTownDemo(
         heroInputZ = length > 0.05 ? dz / length : 0;
       }
       const heroResult = hero.motor.advance(dt, { x: heroInputX, z: heroInputZ });
+      heroRenderPosition = heroResult.renderPosition;
       const heroSpeed = Math.hypot(hero.motor.state.velocity.x, hero.motor.state.velocity.z);
       hero.stride += dt * (heroSpeed > 0.08 ? 7.5 : 1.4);
 
@@ -720,7 +768,11 @@ async function createTownDemo(
         const speed = Math.hypot(npc.motor.state.velocity.x, npc.motor.state.velocity.z);
         npc.stride += dt * (speed > 0.08 ? 6.8 : 1.2);
       }
+    },
 
+    render() {
+      const dt = pendingPresentationSeconds;
+      pendingPresentationSeconds = 0;
       const pose = cameraPose(mode, renderer.aspect);
       if (mode === 'interactive') {
         const offset = pose.offset!;
@@ -753,10 +805,11 @@ async function createTownDemo(
 
       actorBatch.clear();
       const heroFacing = hero.motor.state.facing;
+      const heroSpeed = Math.hypot(hero.motor.state.velocity.x, hero.motor.state.velocity.z);
       actorBatch.push({
-        x: heroResult.renderPosition.x,
-        y: heroResult.renderPosition.y,
-        z: heroResult.renderPosition.z,
+        x: heroRenderPosition.x,
+        y: heroRenderPosition.y,
+        z: heroRenderPosition.z,
         width: pose.mobile ? 4.1 : hero.scale,
         height: pose.mobile ? 4.1 : hero.scale,
         tile: cardinalTile(
@@ -947,6 +1000,10 @@ async function createTownDemo(
       lastValidSlotZeroPower = commitTownSlotZeroPower(options.slotZeroPower, slotZeroPower);
     },
 
+    readStateDigest() {
+      return townStateDigest(simulationTime, hero, npcs);
+    },
+
     dispose() {
       sceneTarget?.dispose();
       shadowTarget.dispose();
@@ -974,8 +1031,33 @@ async function createTownDemo(
   };
 }
 
+export function createTownRuntimeFactory(options: TownDemoOptions = {}): TownRuntimeFactory {
+  return (setup) => createTownRuntime(setup, options);
+}
+
 export function createTownDemoFactory(options: TownDemoOptions = {}): DemoFactory {
-  return (setup) => createTownDemo(setup, options);
+  const buildRuntime = createTownRuntimeFactory(options);
+  return async (setup) => {
+    const runtime = await buildRuntime(setup);
+    let previousTime: number | null = null;
+    let disposed = false;
+    return Object.freeze({
+      frame(time: number): void {
+        if (disposed) return;
+        const lastTime = previousTime;
+        const resetOrFirst = lastTime === null || time <= lastTime;
+        const deltaSeconds = resetOrFirst ? 1 / 60 : Math.min(time - lastTime, 0.05);
+        previousTime = time;
+        runtime.update(deltaSeconds, setup.movement);
+        runtime.render();
+      },
+      dispose(): void {
+        if (disposed) return;
+        disposed = true;
+        runtime.dispose();
+      },
+    });
+  };
 }
 
 const factory = createTownDemoFactory();
