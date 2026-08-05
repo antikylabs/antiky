@@ -785,7 +785,6 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
     const humanLightExitCode = await runCli([
       'tool',
       'get_point_light',
-      '--input',
       JSON.stringify({ entityId: visibleId }),
       '--config',
       project.configPath,

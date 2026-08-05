@@ -63,7 +63,7 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.match(cliGuide, /Streamable HTTP/);
   assert.match(cliGuide, /`antiky dev`[^.]*starts[^.]*MCP/i);
   assert.match(cliGuide, /antiky tool list_point_lights/);
-  assert.match(cliGuide, /antiky tool get_point_light --input/);
+  assert.match(cliGuide, /antiky tool get_point_light '\{/);
   assert.match(cliGuide, /`ANTIKY_ARGUMENT_INVALID`[^\n]*development action input/i);
 
   const documentedConfig = cliGuide.match(/```json\n([\s\S]*?)```/)?.[1];

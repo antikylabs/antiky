@@ -11,7 +11,7 @@ export const CLI_USAGE = `Usage:
   antiky dev [--config path]
   antiky inspect [--config path]
   antiky mcp [--config path]
-  antiky tool <name> [--input json] [--config path]`;
+  antiky tool <name> [json] [--config path]`;
 
 const MAX_TOOL_INPUT_BYTES = 64 * 1024;
 
@@ -36,6 +36,22 @@ function invalidToolInvocation(message: string): never {
   throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', `${message}\n\n${CLI_USAGE}`);
 }
 
+function parseToolInput(value: string): Readonly<Record<string, unknown>> {
+  if (Buffer.byteLength(value) > MAX_TOOL_INPUT_BYTES) {
+    invalidToolInvocation('Tool input exceeds 65536 bytes.');
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    invalidToolInvocation('Tool input must be valid JSON.');
+  }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    invalidToolInvocation('Tool input must be a JSON object.');
+  }
+  return Object.freeze({ ...parsed as Record<string, unknown> });
+}
+
 function parseToolInvocation(args: readonly string[]): ToolInvocation {
   const [name, ...options] = args;
   if (!name || !/^[A-Za-z0-9_.-]{1,128}$/.test(name)) {
@@ -46,34 +62,35 @@ function parseToolInvocation(args: readonly string[]): ToolInvocation {
   let input: Readonly<Record<string, unknown>> = Object.freeze({});
   let hasConfig = false;
   let hasInput = false;
-  for (let index = 0; index < options.length; index += 2) {
-    const option = options[index];
-    const value = options[index + 1];
-    if (!value || value.startsWith('--')) invalidToolInvocation(`Expected a value after ${option}.`);
-
-    if (option === '--config' && !hasConfig) {
+  for (let index = 0; index < options.length;) {
+    const argument = options[index]!;
+    if (argument === '--config') {
+      const value = options[index + 1];
+      if (!value || value.startsWith('--')) {
+        invalidToolInvocation('Expected a value after --config.');
+      }
+      if (hasConfig) invalidToolInvocation('Option --config can be used only once.');
       configPath = resolve(value);
       hasConfig = true;
+      index += 2;
       continue;
     }
-    if (option === '--input' && !hasInput) {
-      if (Buffer.byteLength(value) > MAX_TOOL_INPUT_BYTES) {
-        invalidToolInvocation('Tool input exceeds 65536 bytes.');
+    if (argument === '--input') {
+      const value = options[index + 1];
+      if (!value || value.startsWith('--')) {
+        invalidToolInvocation('Expected a value after --input.');
       }
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(value);
-      } catch {
-        invalidToolInvocation('Tool input must be valid JSON.');
-      }
-      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-        invalidToolInvocation('Tool input must be a JSON object.');
-      }
-      input = Object.freeze({ ...parsed as Record<string, unknown> });
+      if (hasInput) invalidToolInvocation('Tool input can be provided only once.');
+      input = parseToolInput(value);
       hasInput = true;
+      index += 2;
       continue;
     }
-    invalidToolInvocation(`Unknown or repeated option: ${option}.`);
+    if (argument.startsWith('--')) invalidToolInvocation(`Unknown option: ${argument}.`);
+    if (hasInput) invalidToolInvocation('Tool input can be provided only once.');
+    input = parseToolInput(argument);
+    hasInput = true;
+    index += 1;
   }
 
   return Object.freeze({ name, input, configPath });

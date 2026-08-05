@@ -114,11 +114,13 @@ A person can call the same MCP tools that an agent uses. Keep `antiky dev` runni
 antiky tool list_point_lights
 ```
 
-Tools that take arguments accept one JSON object through `--input`:
+Tools that take arguments accept one positional JSON object:
 
 ```sh
-antiky tool get_point_light --input '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'
+antiky tool get_point_light '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'
 ```
+
+The `--input '<json>'` form is also accepted.
 
 The command connects to the `/mcp` endpoint from the selected `antiky.config.json`, performs the MCP
 handshake, calls the named tool, and prints its structured result as JSON. Use `--config path` when

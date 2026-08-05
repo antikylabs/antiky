@@ -86,8 +86,8 @@ Then:
 2. In another terminal, run `npm run antiky inspect` and find `Market Lamp West 01` in the
    point-light data.
 3. Run `npm run antiky tool list_point_lights` to call the MCP endpoint from the terminal.
-4. Run `npm run antiky tool get_point_light --input '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'`.
-5. Use `npm run antiky tool set_point_light_power --input '<json>'` with the returned world ID,
+4. Run `npm run antiky tool get_point_light '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'`.
+5. Use `npm run antiky tool set_point_light_power '<json>'` with the returned world ID,
    entity ID, current revision, a new UUIDv7 command ID, and a power from `0` through `4`.
 6. Confirm the light changes without a page reload, then call `get_point_light` again to confirm the
    new value and revision.
