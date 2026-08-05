@@ -28,6 +28,7 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 | [`slice-01/`](slice-01/plan.md) | Contains the Slice 01 plan, owner input, and run outputs. |
 | [`slice-02/`](slice-02/plan.md) | Contains the fixed-step EngineSession plan and owner input. |
 | [`slice-03/`](slice-03/plan.md) | Contains the character-simulation plan and owner input. |
+| [`slice-04/`](slice-04/plan.md) | Contains the Town asset-compilation plan and owner input. |
 
 ## Start here
 

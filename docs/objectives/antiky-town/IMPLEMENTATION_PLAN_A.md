@@ -453,6 +453,10 @@ Costs:
 
 ## Slice 4: Town content and compilation
 
+The executable contract is [`slice-04/plan.md`](slice-04/plan.md). Its open asset-boundary, public
+API, owner-granularity, and mesh-packing choices are in
+[`slice-04/owner-input_H.md`](slice-04/owner-input_H.md).
+
 ### Outcome
 
 Move the static town through framework-owned asset and authoring concepts. Keep individual voxels
