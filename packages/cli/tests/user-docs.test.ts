@@ -46,7 +46,7 @@ test('user-facing development docs are standalone and match the shipped interfac
     readFile(claudeGuidePath, 'utf8'),
   ]);
 
-  for (const command of ['dev', 'inspect', 'mcp']) {
+  for (const command of ['dev', 'inspect', 'mcp', 'tool']) {
     assert.match(CLI_USAGE, new RegExp(`antiky ${command}`));
     assert.match(cliGuide, new RegExp(`antiky ${command}`));
   }
@@ -62,6 +62,8 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.ok(cliGuide.includes(MCP_HTTP_PATH));
   assert.match(cliGuide, /Streamable HTTP/);
   assert.match(cliGuide, /`antiky dev`[^.]*starts[^.]*MCP/i);
+  assert.match(cliGuide, /antiky tool list_point_lights/);
+  assert.match(cliGuide, /antiky tool get_point_light --input/);
   assert.match(cliGuide, /`ANTIKY_ARGUMENT_INVALID`[^\n]*development action input/i);
 
   const documentedConfig = cliGuide.match(/```json\n([\s\S]*?)```/)?.[1];

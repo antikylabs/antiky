@@ -48,7 +48,8 @@ endpoint is `http://127.0.0.1:3011/mcp` with the default configuration. Slice 01
 
 The MCP interface uses tools only; it does not duplicate this data as MCP Resources. See
 [Antiky Development CLI](../../../user-facing-docs/cli/development.md) for the client API and tool
-arguments.
+arguments. A person can call the same endpoint with `antiky tool <name>`; for example,
+`antiky tool list_point_lights`.
 
 ### Demo and rendering
 
@@ -84,10 +85,10 @@ Then:
 1. Open `http://127.0.0.1:3010/` and confirm that Antiky Town loads.
 2. In another terminal, run `npm run antiky inspect` and find `Market Lamp West 01` in the
    point-light data.
-3. Connect an MCP client to `http://127.0.0.1:3011/mcp`.
-4. Call `list_point_lights`, then `get_point_light` with the entity ID above.
-5. Call `set_point_light_power` with the returned world ID, entity ID, current revision, a new
-   UUIDv7 command ID, and a power from `0` through `4`.
+3. Run `npm run antiky tool list_point_lights` to call the MCP endpoint from the terminal.
+4. Run `npm run antiky tool get_point_light --input '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'`.
+5. Use `npm run antiky tool set_point_light_power --input '<json>'` with the returned world ID,
+   entity ID, current revision, a new UUIDv7 command ID, and a power from `0` through `4`.
 6. Confirm the light changes without a page reload, then call `get_point_light` again to confirm the
    new value and revision.
 7. Call `correct_point_light_power` with a new UUIDv7 command ID, the accepted command ID, and the

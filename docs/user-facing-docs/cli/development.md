@@ -105,6 +105,29 @@ record identifies its owner. A game runtime that publishes Antiky inspection sna
 real lifecycle, frame, canvas, and render facts; the CLI does not infer them from terminal output or
 the DOM.
 
+## Call a development tool
+
+A person can call the same MCP tools that an agent uses. Keep `antiky dev` running, then use
+`antiky tool` in another terminal:
+
+```sh
+antiky tool list_point_lights
+```
+
+Tools that take arguments accept one JSON object through `--input`:
+
+```sh
+antiky tool get_point_light --input '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'
+```
+
+The command connects to the `/mcp` endpoint from the selected `antiky.config.json`, performs the MCP
+handshake, calls the named tool, and prints its structured result as JSON. Use `--config path` when
+the config is not in the current directory. Invalid JSON, an unknown tool, or arguments rejected by
+the tool return a nonzero exit code.
+
+This is one general command for every current and future MCP tool. It does not maintain another copy
+of development state or bypass the tool's validation and permissions.
+
 Code that needs the same service contract can use the exported typed client:
 
 ```ts
@@ -276,7 +299,8 @@ configured ports. An owned child failure performs the same cleanup and returns a
 
 The CLI writes a stable error code before its message:
 
-- `ANTIKY_ARGUMENT_INVALID`: the command, option, or development action input is not supported.
+- `ANTIKY_ARGUMENT_INVALID`: the command, option, JSON tool input, or development action input is
+  not supported.
 - `ANTIKY_CONFIG_NOT_FOUND`: the selected config file does not exist.
 - `ANTIKY_CONFIG_INVALID`: JSON, fields, paths, commands, URLs, or ports are invalid.
 - `ANTIKY_PORT_BUSY`: a configured port cannot be reserved. No child starts.

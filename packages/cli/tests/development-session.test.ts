@@ -24,6 +24,7 @@ import {
   connectDevelopmentClient,
   inspectDevelopmentSession,
   loadAntikyConfig,
+  runCli,
   startDevelopmentSession,
 } from '../src/index.ts';
 
@@ -219,6 +220,50 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
       'correct_point_light_power',
     ]);
 
+    const toolOutput: string[] = [];
+    const toolExitCode = await runCli([
+      'tool',
+      'get_dev_status',
+      '--config',
+      project.configPath,
+    ], {
+      stdout: (text) => toolOutput.push(text),
+      stderr: () => {},
+    });
+    assert.equal(toolExitCode, 0);
+    assert.equal(toolOutput.length, 1);
+    const toolStatus = JSON.parse(toolOutput[0]!) as {
+      developmentSessionId: string;
+      processes: { game: { state: string }; shaders: { state: string } };
+    };
+    assert.equal(toolStatus.developmentSessionId, session.id);
+    assert.equal(toolStatus.processes.game.state, 'running');
+    assert.equal(toolStatus.processes.shaders.state, 'running');
+
+    const unavailableOutput: string[] = [];
+    const unavailableExitCode = await runCli([
+      'tool',
+      'list_point_lights',
+      '--config',
+      project.configPath,
+    ], {
+      stdout: (text) => unavailableOutput.push(text),
+      stderr: () => {},
+    });
+    assert.equal(unavailableExitCode, 1);
+    assert.equal(
+      JSON.parse(unavailableOutput[0]!).error.code,
+      'ANTIKY_RUNTIME_UNAVAILABLE',
+    );
+
+    await assert.rejects(
+      () => runCli(['tool', 'not_a_real_tool', '--config', project.configPath]),
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_ARGUMENT_INVALID'
+      ),
+    );
+
     const notification = await fetch(session.mcpUrl, {
       method: 'POST',
       headers: {
@@ -264,6 +309,23 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
   } finally {
     await session.stop('normal');
   }
+});
+
+test('antiky tool rejects missing names and non-object JSON input before making a request', async () => {
+  await assert.rejects(
+    () => runCli(['tool']),
+    (error: unknown) => (
+      error instanceof AntikyCliError
+      && error.code === 'ANTIKY_ARGUMENT_INVALID'
+    ),
+  );
+  await assert.rejects(
+    () => runCli(['tool', 'list_point_lights', '--input', '[]']),
+    (error: unknown) => (
+      error instanceof AntikyCliError
+      && error.code === 'ANTIKY_ARGUMENT_INVALID'
+    ),
+  );
 });
 
 test('busy ports reject before either child starts', async () => {
@@ -709,12 +771,38 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
     const typedLight = await client.getPointLight(visibleId);
     const mcpList = await callMcp(1, 'list_point_lights');
     const mcpLight = await callMcp(2, 'get_point_light', { entityId: visibleId });
+    const humanListOutput: string[] = [];
+    const humanListExitCode = await runCli([
+      'tool',
+      'list_point_lights',
+      '--config',
+      project.configPath,
+    ], {
+      stdout: (text) => humanListOutput.push(text),
+      stderr: () => {},
+    });
+    const humanLightOutput: string[] = [];
+    const humanLightExitCode = await runCli([
+      'tool',
+      'get_point_light',
+      '--input',
+      JSON.stringify({ entityId: visibleId }),
+      '--config',
+      project.configPath,
+    ], {
+      stdout: (text) => humanLightOutput.push(text),
+      stderr: () => {},
+    });
 
     assert.deepEqual(session.snapshot().inspection?.pointLights, directBefore);
     assert.deepEqual(cliBefore.inspection?.pointLights, directBefore);
     assert.deepEqual(typedList.pointLights, directBefore.authoring);
     assert.deepEqual(mcpList.result.structuredContent, typedList);
     assert.deepEqual(mcpLight.result.structuredContent, typedLight);
+    assert.equal(humanListExitCode, 0);
+    assert.equal(humanLightExitCode, 0);
+    assert.deepEqual(JSON.parse(humanListOutput[0]!), typedList);
+    assert.deepEqual(JSON.parse(humanLightOutput[0]!), typedLight);
     assert.equal(typedLight.pointLight?.render?.renderSlot, 0);
     assert.equal((await client.getPointLight(headlessId)).pointLight?.render, null);
 

@@ -4,12 +4,16 @@ import { loadAntikyConfig } from './config.ts';
 import { connectDevelopmentClient, inspectDevelopmentSession } from './development/client.ts';
 import { AntikyCliError } from './errors.ts';
 import { startDevelopmentSession } from './host/session.ts';
+import { callMcpTool } from './mcp/client.ts';
 import { runMcpServer } from './mcp/server.ts';
 
 export const CLI_USAGE = `Usage:
   antiky dev [--config path]
   antiky inspect [--config path]
-  antiky mcp [--config path]`;
+  antiky mcp [--config path]
+  antiky tool <name> [--input json] [--config path]`;
+
+const MAX_TOOL_INPUT_BYTES = 64 * 1024;
 
 export type CliIo = Readonly<{
   stdout: (text: string) => void;
@@ -22,6 +26,59 @@ function parseConfigPath(args: readonly string[]): string {
   throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
 }
 
+type ToolInvocation = Readonly<{
+  name: string;
+  input: Readonly<Record<string, unknown>>;
+  configPath: string;
+}>;
+
+function invalidToolInvocation(message: string): never {
+  throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', `${message}\n\n${CLI_USAGE}`);
+}
+
+function parseToolInvocation(args: readonly string[]): ToolInvocation {
+  const [name, ...options] = args;
+  if (!name || !/^[A-Za-z0-9_.-]{1,128}$/.test(name)) {
+    invalidToolInvocation('Expected an MCP tool name.');
+  }
+
+  let configPath = resolve('antiky.config.json');
+  let input: Readonly<Record<string, unknown>> = Object.freeze({});
+  let hasConfig = false;
+  let hasInput = false;
+  for (let index = 0; index < options.length; index += 2) {
+    const option = options[index];
+    const value = options[index + 1];
+    if (!value || value.startsWith('--')) invalidToolInvocation(`Expected a value after ${option}.`);
+
+    if (option === '--config' && !hasConfig) {
+      configPath = resolve(value);
+      hasConfig = true;
+      continue;
+    }
+    if (option === '--input' && !hasInput) {
+      if (Buffer.byteLength(value) > MAX_TOOL_INPUT_BYTES) {
+        invalidToolInvocation('Tool input exceeds 65536 bytes.');
+      }
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(value);
+      } catch {
+        invalidToolInvocation('Tool input must be valid JSON.');
+      }
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        invalidToolInvocation('Tool input must be a JSON object.');
+      }
+      input = Object.freeze({ ...parsed as Record<string, unknown> });
+      hasInput = true;
+      continue;
+    }
+    invalidToolInvocation(`Unknown or repeated option: ${option}.`);
+  }
+
+  return Object.freeze({ name, input, configPath });
+}
+
 export async function runCli(
   args: readonly string[],
   io: CliIo = {
@@ -30,8 +87,15 @@ export async function runCli(
   },
 ): Promise<number> {
   const [command, ...commandArgs] = args;
-  if (command !== 'dev' && command !== 'inspect' && command !== 'mcp') {
+  if (command !== 'dev' && command !== 'inspect' && command !== 'mcp' && command !== 'tool') {
     throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+  if (command === 'tool') {
+    const invocation = parseToolInvocation(commandArgs);
+    const config = await loadAntikyConfig(invocation.configPath);
+    const result = await callMcpTool(config, invocation.name, invocation.input);
+    io.stdout(`${JSON.stringify(result.structuredContent, null, 2)}\n`);
+    return result.isError ? 1 : 0;
   }
   const configPath = parseConfigPath(commandArgs);
 
