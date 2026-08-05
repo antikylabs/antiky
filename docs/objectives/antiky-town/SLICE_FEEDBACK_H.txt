@@ -2,4 +2,4 @@
 # When done fixing them mark them with "x |" at the start of a line.
 
 ---
-we probably need a generate UUID function so if we change ID structure in the future folks can use the antiky generate id for entity ids etc.
+x | we probably need a generate UUID function so if we change ID structure in the future folks can use the antiky generate id for entity ids etc.
