@@ -1,12 +1,33 @@
-# Antiky Development CLI
+# Run Antiky locally
 
-The `antiky` command runs and inspects one local development session for your game. It keeps the
-game process, shader watcher, runtime inspection, and AI tooling behind one project-level command.
+Run `antiky dev` to start everything you need for local game development: your game process,
+shader watcher, runtime inspection, and MCP server. The command keeps those services in one
+development session and stops them together.
+
+## Start a development session
+
+From the directory that contains `antiky.config.json`, run:
+
+```sh
+antiky dev
+```
+
+After startup, Antiky prints the config path, game URL, inspection URL, MCP URL, development-session
+ID, and service names. Keep this terminal open while you work.
+
+Use another config file when needed:
+
+```sh
+antiky dev --config path/to/antiky.config.json
+```
+
+Antiky checks the complete config and reserves both configured ports before it starts any child
+process. If the config is invalid or a port is busy, nothing starts.
 
 ## Configure your project
 
-Put `antiky.config.json` at the project root. The schema is versioned and strict, so Antiky rejects
-unknown fields before starting a process. Adapt the commands and game route to your project:
+Put `antiky.config.json` at your project root. Change the commands and game URL to match your
+project:
 
 ```json
 {
@@ -43,44 +64,25 @@ unknown fields before starting a process. Adapt the commands and game route to y
 ```
 
 `workingDirectory` is relative to the config file and must stay inside its directory. Command
-arguments can use `{host}`, `{gamePort}`, `{inspectionPort}`, `{gameUrl}`, `{gameWidth}`, and
-`{gameHeight}` placeholders. Antiky expands each argument directly without invoking a shell. The
-optional `viewport` declares the game's intended canvas width and height; it defaults to `1280x720`
-when omitted and is available to the game process through `ANTIKY_GAME_WIDTH` and
+arguments can use these placeholders:
+
+| Placeholder | Value |
+| --- | --- |
+| `{host}` | The configured loopback host |
+| `{gamePort}` | The port for your game |
+| `{inspectionPort}` | The port for inspection and MCP |
+| `{gameUrl}` | The configured game URL |
+| `{gameWidth}` | The viewport width |
+| `{gameHeight}` | The viewport height |
+
+Antiky passes each expanded argument directly to the process without using a shell. The optional
+`viewport` defaults to `1280x720`. The game process also receives `ANTIKY_GAME_WIDTH` and
 `ANTIKY_GAME_HEIGHT`.
 
-The game URL must use HTTP at the configured game address. Antiky binds development services to the
-IPv4 loopback address `127.0.0.1`; it does not accept a LAN or wildcard host.
+The game URL must use HTTP at the configured game address. Development services bind only to the
+IPv4 loopback address `127.0.0.1`; Antiky rejects LAN and wildcard hosts.
 
-## Start the development session
-
-From the project root, run:
-
-```sh
-antiky dev
-```
-
-The `antiky dev` command starts the shader watcher, your configured game host, inspection service,
-and MCP service. The game command should open a focused development surface for the game itself;
-Antiky does not require or add a marketing site, navigation shell, or documentation UI.
-It prints the resolved config path, game URL, inspection URL, MCP URL, development-session ID, and
-service names after startup. The MCP URL is the inspection origin followed by `/mcp`, such as
-`http://127.0.0.1:3011/mcp`.
-
-To use another config path, run:
-
-```sh
-antiky dev --config path/to/antiky.config.json
-```
-
-Antiky validates the complete config and reserves both ports before starting a child. If validation
-or reservation fails, no configured process starts.
-
-The session credential is random. Antiky stores it only in `.antiky/dev-session.json` with mode
-`0600`. The credential does not appear in command output, the game URL, diagnostics, or inspection
-results. Antiky removes the descriptor when the session stops.
-
-## Inspect the session
+## Inspect the running session
 
 In another terminal, run:
 
@@ -88,49 +90,45 @@ In another terminal, run:
 antiky inspect
 ```
 
-The command prints the current `DevelopmentSnapshot` as JSON. It contains:
+The command prints the current development snapshot as JSON. It includes:
 
 - The development-session ID and accepted build revision.
 - The resolved config and local addresses.
 - Game and shader process health.
-- The latest build kind, result, changed path, and duration when available.
+- The latest build result, changed path, and duration.
 - Runtime connection and cleanup health.
-- CLI-owned launch measurements and development diagnostics.
-- The latest framework `InspectionSnapshot`, or `null` before a runtime connects.
-- The runtime's point-light authoring, projection, binding, and accepted-fact view when the game
-  publishes one.
+- CLI launch measurements and development diagnostics.
+- The latest framework inspection snapshot, or `null` before the game connects.
+- Point-light state when the game publishes it.
 
-Framework measurements and CLI development measurements remain separate, and every measurement
-record identifies its owner. A game runtime that publishes Antiky inspection snapshots supplies the
-real lifecycle, frame, canvas, and render facts; the CLI does not infer them from terminal output or
-the DOM.
+Your game supplies real lifecycle, frame, canvas, and render facts through a framework inspection
+snapshot. The CLI does not guess them from terminal output, the page DOM, or a captured image.
 
 ## Call a development tool
 
-A person can call the same MCP tools that an agent uses. Keep `antiky dev` running, then use
-`antiky tool` in another terminal:
+A person can call the same development tools that an MCP client uses. Keep `antiky dev` running,
+then call a tool in another terminal:
 
 ```sh
 antiky tool list_point_lights
 ```
 
-Tools that take arguments accept one positional JSON object:
+Pass one JSON object after a tool that needs input:
 
 ```sh
 antiky tool get_point_light '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'
 ```
 
-The `--input '<json>'` form is also accepted.
+You can use `--input '<json>'` instead of the positional object. Add `--config path` when the
+config file is not in the current directory.
 
-The command connects to the `/mcp` endpoint from the selected `antiky.config.json`, performs the MCP
-handshake, calls the named tool, and prints its structured result as JSON. Use `--config path` when
-the config is not in the current directory. Invalid JSON, an unknown tool, or arguments rejected by
-the tool return a nonzero exit code.
+The command connects to the session's MCP endpoint, calls the named tool, and prints its structured
+result as JSON. Invalid JSON, an unknown tool, or rejected arguments return a nonzero exit code.
+See the [MCP tool reference](../mcp/tools.md) for every tool and its inputs.
 
-This is one general command for every current and future MCP tool. It does not maintain another copy
-of development state or bypass the tool's validation and permissions.
+## Use the typed development client
 
-Code that needs the same service contract can use the exported typed client:
+Code that integrates with the same services can use `connectDevelopmentClient`:
 
 ```ts
 import { connectDevelopmentClient } from '@antiky/cli';
@@ -141,11 +139,12 @@ const lights = await client.listPointLights();
 const harborLamp = await client.getPointLight(lights.pointLights[0].entityId);
 ```
 
-This client is also the supported boundary for a Studio integration. It reads the same state and
-exposes the same reload, frame-capture, and point-light operations as the CLI and MCP adapters.
+The client also exposes `setPointLightPower`, `correctPointLightPower`, reload, and frame-capture
+operations. Studio uses this boundary so it reads and changes the same development session instead
+of keeping a second copy of game state.
 
-Point-light changes use the complete versioned framework command. Keep the command ID stable when
-diagnosing a retry; a new command ID represents a new request.
+Point-light changes use a complete versioned framework command. Keep a command ID stable when
+retrying the same request. Generate a new command ID for a new request.
 
 ```ts
 import { createCommandId } from '@antiky/framework';
@@ -178,124 +177,27 @@ if (
 }
 ```
 
-Call `getPointLight` again after an accepted result to read the newly published inspection state.
-The browser runtime remains the service owner; the client does not keep a second mutable copy.
+Call `getPointLight` again after an accepted result to read the new published state.
 
-## Track development updates
+## Follow source changes
 
 Antiky watches source, shader, asset, and config files under the configured working directory. It
-accepts a revision only after the changed build reaches a newer ready browser runtime. A browser
-reload can change the runtime-instance ID without changing the development-session ID.
+accepts a revision only after the changed build reaches a newer ready game process. A browser reload
+can change the runtime-instance ID without changing the development-session ID.
 
-For a shader change, Antiky waits for the matching generated shader before accepting a ready
+For a shader change, Antiky waits for the matching generated shader before it accepts a ready
 runtime. A failed update leaves the accepted revision and generated shader unchanged and adds a
-structured build diagnostic. Fixing the file clears that active diagnostic after the next ready
-runtime.
+structured diagnostic. Fixing the file clears the active diagnostic after the next ready runtime.
 
-## Connect an MCP client
+## Stop the session
 
-Prefer the Streamable HTTP endpoint that `antiky dev` starts. Point an MCP client that supports a
-remote URL at the printed MCP URL. A representative client entry looks like this, although the
-outer configuration keys vary by client:
+Press `Ctrl-C` in the `antiky dev` terminal. Antiky asks every owned process to stop, closes the
+inspection and MCP listener, removes the session descriptor, and releases both ports. An owned
+child failure performs the same cleanup and returns a nonzero status.
 
-```json
-{
-  "mcpServers": {
-    "antiky": {
-      "type": "http",
-      "url": "http://127.0.0.1:3011/mcp"
-    }
-  }
-}
-```
-
-The endpoint is stateless and implements MCP protocol version `2025-11-25`. It returns JSON for
-requests and does not keep an SSE session open.
-
-For a client that supports only standard input/output, configure that client to launch the adapter:
-
-```json
-{
-  "mcpServers": {
-    "antiky": {
-      "command": "antiky",
-      "args": ["mcp", "--config", "/absolute/path/to/antiky.config.json"]
-    }
-  }
-}
-```
-
-The MCP client owns this `antiky mcp` subprocess; you do not need to run it in a separate terminal.
-The adapter connects to the development session already started by `antiky dev` and writes protocol
-JSON only to standard output.
-
-### Development state tools
-
-The endpoint advertises a tools-only model-facing interface so every supported operation is directly
-callable by an agent. It does not duplicate the same values as MCP Resources. Read tools are marked
-read-only, non-destructive, idempotent, and closed-world. The session-wide reads and
-`list_point_lights` take no arguments; `get_point_light` takes one stable entity ID.
-
-| Tool | Use it when | State returned |
-| --- | --- | --- |
-| `get_dev_status` | Start here to orient to a session | Session, config, service health, connection, cleanup, and CLI measurements |
-| `get_latest_build` | Source, shader, asset, or config files changed | Accepted revision and latest build attempt |
-| `get_runtime_status` | Before reload or capture, or when runtime facts are missing | Runtime connection and framework inspection snapshot |
-| `get_render_stats` | Check renderer health or performance without capturing pixels | Available framework-owned runtime and render measurements |
-| `get_diagnostics` | A build is not ready, a runtime is unavailable, or an action failed | Development and framework diagnostics with stable codes |
-| `list_point_lights` | Discover point lights published by the runtime | Stable world and entity IDs, authoring records, revisions, and event sequence |
-| `get_point_light` | Inspect one stable point-light ID | Authoring and runtime values, optional render binding, and accepted facts |
-
-Each tool description carries this selection and sequencing guidance in the MCP discovery response,
-so an agent does not need this guide in its context to choose the safe next call.
-
-### Development action tools
-
-- `dev_reload` is appropriate after `get_latest_build` reports a ready accepted revision and
-  `get_runtime_status` reports a connected runtime. It reloads that runtime without starting a new
-  development session or rebuilding source. The result relates the development session, build
-  revision, old and new runtime instances, and action ID.
-- `capture_frame` captures the exact game-canvas pixels as a PNG under `.antiky/captures/`. Use it
-  after `get_runtime_status` confirms a connected runtime, and use `get_render_stats` for canvas and
-  renderer measurements. The result contains the path, digest, byte count, capture ID, action ID,
-  development session, runtime instance, and build revision.
-- `set_point_light_power` submits one versioned power command. Supply a new command ID, the world
-  and entity IDs returned by inspection, the current expected revision, and a power from `0`
-  through `4`.
-- `correct_point_light_power` records a correction for an earlier accepted command. Supply a new
-  command ID, the corrected command ID from its accepted fact, and the current expected revision.
-
-The two point-light action tools return the framework's stable command result. An accepted change
-adds a fact; a rejection does not mutate authoring, runtime, or render state. The local host supplies
-the `world.light.edit` permission, receipt time, principal, and runtime identity separately from
-tool arguments.
-
-Frame captures support visual review. Runtime and render facts still come from the framework
-inspection snapshot, not from image analysis.
-
-## Local bridge security
-
-The development listener accepts only the configured `127.0.0.1` host and exact Host header. It
-rejects a supplied browser Origin unless it matches the configured game origin. Inspection REST
-requests use the per-session bearer credential and versioned, field-checked, size-bounded messages.
-A retired runtime cannot replace a newer runtime's facts.
-
-Point-light commands are limited to 4 KiB. Trusted identity, permissions, receipt time, and runtime
-identity never enter command data or inspection output.
-
-The `/mcp` route deliberately does not require the rotating inspection credential so MCP clients can
-keep one stable local URL across restarts. Its trust boundary is the loopback bind plus the Host and
-Origin checks. Any local process can reach that endpoint, so do not expose the inspection port
-through a LAN bind, tunnel, or reverse proxy.
-
-A production game build must exclude the local browser adapter, inspection endpoint, development
-environment key, and credential bootstrap code.
-
-## Stop and cleanup
-
-Press `Ctrl-C` in the `antiky dev` terminal. Antiky sends a normal stop to every owned process, waits
-for it, closes the inspection and MCP listener, removes the session descriptor, and releases both
-configured ports. An owned child failure performs the same cleanup and returns a nonzero status.
+Antiky stores the random session credential in `.antiky/dev-session.json` with mode `0600`.
+It does not print the credential or put it in the game URL, diagnostics, or inspection results.
+Antiky removes the descriptor when the session stops.
 
 ## Stable errors
 
@@ -309,10 +211,13 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_CHILD_START_FAILED`: an owned process could not start. Any partial start is cleaned up.
 - `ANTIKY_SESSION_UNAVAILABLE`: `antiky inspect` cannot find or reach the selected session.
 - `ANTIKY_UNAUTHORIZED`: the inspection service rejected the session credential.
-- `ANTIKY_RUNTIME_UNAVAILABLE`: reload or capture needs a connected browser runtime.
+- `ANTIKY_RUNTIME_UNAVAILABLE`: reload or capture needs a connected game process.
 - `ANTIKY_ACTION_BUSY`: another controlled development action is still active.
-- `ANTIKY_ACTION_TIMEOUT`: the connected runtime did not finish the action in time.
-- `ANTIKY_ACTION_STALE`: an action result belongs to an inactive request or runtime.
-- `ANTIKY_CAPTURE_INVALID`: the browser returned invalid or oversized PNG data.
+- `ANTIKY_ACTION_TIMEOUT`: the connected game process did not finish the action in time.
+- `ANTIKY_ACTION_STALE`: an action result belongs to an inactive request or game process.
+- `ANTIKY_CAPTURE_INVALID`: the game returned invalid or oversized PNG data.
 
 Fix a config or port error and run the command again. Do not edit the local session descriptor.
+
+To connect an agent, use the [MCP overview](../mcp/overview.md). It covers the Streamable HTTP
+endpoint, the `antiky mcp` standard-input/output adapter, and the local security boundary.

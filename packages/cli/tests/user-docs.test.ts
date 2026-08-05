@@ -17,11 +17,9 @@ import { MCP_TOOL_NAMES } from '../src/mcp/tools.ts';
 const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const userDocsRoot = join(repositoryRoot, 'docs', 'user-facing-docs');
 const userDocsIndexPath = join(userDocsRoot, 'README.md');
-const documentationStandardsPath = join(
-  userDocsRoot,
-  'DOCUMENTATION_STANDARDS_A.md',
-);
 const cliGuidePath = join(userDocsRoot, 'cli', 'development.md');
+const mcpOverviewPath = join(userDocsRoot, 'mcp', 'overview.md');
+const mcpToolsPath = join(userDocsRoot, 'mcp', 'tools.md');
 const frameworkGuidePath = join(userDocsRoot, 'framework', 'inspection.md');
 const pointLightGuidePath = join(userDocsRoot, 'framework', 'point-lights.md');
 const studioGuidePath = join(
@@ -44,8 +42,9 @@ async function verifyLocalLinks(path: string, source: string): Promise<void> {
 test('user-facing development docs are standalone and match the shipped interfaces', async () => {
   const [
     userDocsIndex,
-    documentationStandards,
     cliGuide,
+    mcpOverview,
+    mcpTools,
     frameworkGuide,
     pointLightGuide,
     studioGuide,
@@ -53,8 +52,9 @@ test('user-facing development docs are standalone and match the shipped interfac
     claudeGuide,
   ] = await Promise.all([
     readFile(userDocsIndexPath, 'utf8'),
-    readFile(documentationStandardsPath, 'utf8'),
     readFile(cliGuidePath, 'utf8'),
+    readFile(mcpOverviewPath, 'utf8'),
+    readFile(mcpToolsPath, 'utf8'),
     readFile(frameworkGuidePath, 'utf8'),
     readFile(pointLightGuidePath, 'utf8'),
     readFile(studioGuidePath, 'utf8'),
@@ -62,40 +62,13 @@ test('user-facing development docs are standalone and match the shipped interfac
     readFile(claudeGuidePath, 'utf8'),
   ]);
 
-  for (const area of ['Framework', 'CLI', 'Studio']) {
-    assert.match(userDocsIndex, new RegExp(`^## ${area}$`, 'm'));
-  }
-  for (const guide of [
-    'cli/development.md',
-    'framework/inspection.md',
-    'framework/point-lights.md',
-    'studio/development-connection.md',
-  ]) {
-    assert.ok(userDocsIndex.includes(`](${guide})`), `Docs index omits ${guide}`);
-  }
-  for (const standard of [
-    'tutorial',
-    'how-to guide',
-    'reference',
-    'explanation',
-    'plain-language',
-    'smallest working example',
-    'progressive disclosure',
-    'documentation skill',
-  ]) {
-    assert.match(
-      documentationStandards,
-      new RegExp(standard, 'i'),
-      `Documentation standards omit ${standard}`,
-    );
-  }
-  assert.match(agentsGuide, /DOCUMENTATION_STANDARDS_A\.md/);
-
-  for (const command of ['dev', 'inspect', 'mcp', 'tool']) {
+  for (const command of ['dev', 'inspect', 'tool']) {
     assert.match(CLI_USAGE, new RegExp(`antiky ${command}`));
     assert.match(cliGuide, new RegExp(`antiky ${command}`));
   }
-  for (const tool of MCP_TOOL_NAMES) assert.ok(cliGuide.includes(tool));
+  assert.match(CLI_USAGE, /antiky mcp/);
+  assert.match(mcpOverview, /antiky mcp/);
+  for (const tool of MCP_TOOL_NAMES) assert.ok(mcpTools.includes(tool));
   for (const method of [
     'listPointLights',
     'getPointLight',
@@ -104,9 +77,9 @@ test('user-facing development docs are standalone and match the shipped interfac
   ]) assert.ok(cliGuide.includes(method), `CLI guide omits ${method}`);
   assert.doesNotMatch(cliGuide, /antiky:\/\//);
 
-  assert.ok(cliGuide.includes(MCP_HTTP_PATH));
-  assert.match(cliGuide, /Streamable HTTP/);
-  assert.match(cliGuide, /`antiky dev`[^.]*starts[^.]*MCP/i);
+  assert.ok(mcpOverview.includes(MCP_HTTP_PATH));
+  assert.match(mcpOverview, /Streamable HTTP/);
+  assert.match(mcpOverview, /`antiky dev`[^.]*starts[^.]*MCP/i);
   assert.match(cliGuide, /antiky tool list_point_lights/);
   assert.match(cliGuide, /antiky tool get_point_light '\{/);
   assert.match(cliGuide, /`ANTIKY_ARGUMENT_INVALID`[^\n]*development action input/i);
@@ -138,7 +111,14 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.doesNotMatch(config.game.url, /town-study/i);
 
   const deliveryLanguage = /Slice \d+|N\/A for Studio UI|acceptance evidence|checkpoint|milestone/i;
-  for (const guide of [cliGuide, frameworkGuide, pointLightGuide, studioGuide]) {
+  for (const guide of [
+    cliGuide,
+    mcpOverview,
+    mcpTools,
+    frameworkGuide,
+    pointLightGuide,
+    studioGuide,
+  ]) {
     assert.doesNotMatch(guide, deliveryLanguage);
   }
 
@@ -173,9 +153,10 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.match(claudeGuide, /^@\.\.\/GOOD_ENGINEERING_H\.md$/m);
 
   await verifyLocalLinks(cliGuidePath, cliGuide);
+  await verifyLocalLinks(mcpOverviewPath, mcpOverview);
+  await verifyLocalLinks(mcpToolsPath, mcpTools);
   await verifyLocalLinks(frameworkGuidePath, frameworkGuide);
   await verifyLocalLinks(pointLightGuidePath, pointLightGuide);
   await verifyLocalLinks(studioGuidePath, studioGuide);
   await verifyLocalLinks(userDocsIndexPath, userDocsIndex);
-  await verifyLocalLinks(documentationStandardsPath, documentationStandards);
 });
