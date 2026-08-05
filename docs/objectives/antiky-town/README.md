@@ -16,6 +16,7 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 
 | Document | Purpose |
 | --- | --- |
+| [`AGENTS.md`](AGENTS.md) | Directs agents to the workflow, shared research, ADRs, architecture, and feedback. `CLAUDE.md` aliases it. |
 | [`DEV_HARNESS_RESEARCH_A.md`](../general-stuff/DEV_HARNESS_RESEARCH_A.md) | Researches the development host, inspection, reload, and GPU tools. |
 | [`INSPECTION_TOOLING_A.md`](../general-stuff/INSPECTION_TOOLING_A.md) | Defines the native inspection scope and the ideas kept from WebGPU Inspector. |
 | [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) | Defines the staged Antiky Town port and its feature choices. |
@@ -26,6 +27,7 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 | [`slice-00/`](slice-00/plan.md) | Contains the Slice 00 plan, owner input, and run outputs. |
 | [`slice-01/`](slice-01/plan.md) | Contains the Slice 01 plan, owner input, and run outputs. |
 | [`slice-02/`](slice-02/plan.md) | Contains the fixed-step EngineSession plan and owner input. |
+| [`slice-03/`](slice-03/plan.md) | Contains the character-simulation plan and owner input. |
 
 ## Start here
 

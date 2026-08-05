@@ -388,6 +388,9 @@ Costs:
 
 ## Slice 3: Character simulation
 
+The executable contract is [`slice-03/plan.md`](slice-03/plan.md). Its open physics, public API,
+inspection, and parity choices are in [`slice-03/owner-input_H.md`](slice-03/owner-input_H.md).
+
 ### Outcome
 
 Move hero and NPC movement under `EngineSession`. Keep input temporary. Do not add movement frames
