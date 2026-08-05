@@ -32,6 +32,7 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0014: Apply approved sandbox changes through commands](framework/0014-promote-sandbox-commands_H.md)
 - [0015: Support WebGPU only](framework/0015-webgpu-support-only_H.md)
 - [0016: Give platform work to the game host](framework/0016-give-platform-work-to-game-host_H.md)
+- [0017: Stop an engine session after a game-code fault](framework/0017-stop-engine-session-after-game-code-fault_H.md)
 
 ### CLI
 

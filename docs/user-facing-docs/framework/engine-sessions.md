@@ -98,6 +98,39 @@ The session captures one semantic input value for each call to `advance`. If a d
 several catch-up steps, those steps use the same captured input with different completed-step IDs.
 Do not let a system read keys, pointers, sockets, or wall-clock time directly.
 
+## Reject input or stop after a fault
+
+Return `null` from `captureInput` when the caller supplies invalid input that the game can reject
+normally:
+
+```ts
+captureInput(input: { movementX: number }) {
+  if (!Number.isFinite(input.movementX)) return null;
+  return Object.freeze({ movementX: input.movementX });
+}
+```
+
+The frame or single-step operation then returns `INVALID_INPUT`. The session stays usable and does
+not change its clock or game state.
+
+Throwing from `captureInput` means that input capture itself failed. Returning a mutable or otherwise
+unsafe snapshot is also a capture failure. These failures are different from rejecting expected
+invalid input.
+
+The session enters `faulted` mode when input capture, an engine system, the state digest, or a command
+operation fails unexpectedly. The operation returns `SESSION_FAULTED`, and all later frames,
+single-step controls, and commands return the same code without running more game code. This
+fail-closed behavior prevents a partially changed world from being changed again.
+
+`readStatus()` remains available in faulted mode. Its `fault` field contains only a stable code, the
+failure source, and the system ID when a system failed. It does not copy the thrown message, stack,
+input, or command data across the inspection boundary. Engine-session status uses `schemaVersion: 2`
+for this contract.
+
+After you record the diagnostics you need, call `dispose()` and create a new session. A faulted
+session cannot resume because the framework cannot know how much game state changed before the
+failure.
+
 ## Pause, resume, and step
 
 Pause reasons are independent. This prevents a visibility resume from overriding a pause that a
@@ -138,7 +171,8 @@ When `antiky dev` is connected, the CLI and MCP session tools expose the same op
 `readStatus()` returns an immutable snapshot with:
 
 - The session, world, and current game-process identities.
-- Running, paused, or disposed mode and all active pause reasons.
+- Running, paused, faulted, or disposed mode and all active pause reasons.
+- Bounded fault data when game code caused a terminal fault.
 - Fixed-clock limits, completed steps, input sequence, accepted time, and discarded time.
 - Immutable system order and command, control, and world revisions.
 - The latest completed-step ID and optional state digest.

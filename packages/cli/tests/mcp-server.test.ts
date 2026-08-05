@@ -25,11 +25,12 @@ const CORRECTION_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789a
 const SESSION_ID = parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
 
 const runningSession = {
-  schemaVersion: 1 as const,
+  schemaVersion: 2 as const,
   sessionId: SESSION_ID,
   worldId: WORLD_ID,
   runtimeInstanceId: 'runtime-mcp-001',
   mode: 'running' as const,
+  fault: null,
   pauseReasons: [] as const,
   systemOrder: ['town-update'] as const,
   clock: {

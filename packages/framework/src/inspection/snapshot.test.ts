@@ -13,11 +13,12 @@ import {
 
 function sessionStatus(runtimeInstanceId = 'runtime-001') {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     sessionId: '018f0f3a-7b2c-7a1d-8e2f-123456789ab0',
     worldId: '018f0f3a-7b2c-7a1d-8e2f-123456789abc',
     runtimeInstanceId,
     mode: 'paused',
+    fault: null,
     pauseReasons: ['tool'],
     systemOrder: ['town-update'],
     clock: {

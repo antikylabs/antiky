@@ -12,6 +12,7 @@ import {
   EngineSessionValidationError,
   createEngineSession,
   parseEngineControlResult,
+  parseEngineSessionStatus,
   type EngineSession,
   type EngineSessionOptions,
   type EngineSystem,
@@ -57,7 +58,7 @@ function createHarness(
     systems,
     captureInput(input) {
       if (typeof input?.amount !== 'number' || !Number.isFinite(input.amount)) {
-        throw new Error('amount must be finite');
+        return null;
       }
       return Object.freeze({ amount: input.amount });
     },
@@ -189,6 +190,28 @@ test('control results are strictly validated and frozen at transport boundaries'
   );
   assert.throws(
     () => parseEngineControlResult({ ...result, completedStepCount: -1 }),
+    (error: unknown) => error instanceof EngineSessionValidationError,
+  );
+});
+
+test('faulted status is strictly validated and frozen at transport boundaries', () => {
+  const { session } = createHarness({
+    systems: [{ id: 'broken-system', run: () => { throw new Error('private'); } }],
+  });
+  session.advance(FIXED_STEP_SECONDS, { amount: 1 });
+  const status = session.readStatus();
+
+  const parsed = parseEngineSessionStatus(JSON.parse(JSON.stringify(status)));
+  assert.deepEqual(parsed, status);
+  assert.ok(Object.isFrozen(parsed));
+  assert.ok(Object.isFrozen(parsed.fault));
+
+  assert.throws(
+    () => parseEngineSessionStatus({ ...status, fault: { ...status.fault, secret: 'no' } }),
+    (error: unknown) => error instanceof EngineSessionValidationError,
+  );
+  assert.throws(
+    () => parseEngineSessionStatus({ ...status, fault: null }),
     (error: unknown) => error instanceof EngineSessionValidationError,
   );
 });
@@ -378,4 +401,115 @@ test('the completed-step counter never exceeds the safe integer limit', () => {
   assert.equal(session.step(Number.MAX_SAFE_INTEGER, { amount: 1 }).code, 'COUNTER_LIMIT');
   assert.equal(state.total, 0);
   assert.deepEqual(session.readStatus(), before);
+});
+
+test('expected input rejection stays recoverable while capture failures fault the session', () => {
+  let captureMode: 'reject' | 'throw' = 'reject';
+  const session = createEngineSession<TestInput>({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    runtimeInstanceId: 'runtime-session-capture-fault',
+    systems: [{ id: 'only-system', run: () => undefined }],
+    captureInput(input) {
+      if (captureMode === 'reject') return null;
+      throw new Error(`unsafe input: ${input.amount}`);
+    },
+  });
+
+  assert.equal(session.advance(FIXED_STEP_SECONDS, { amount: 1 }).code, 'INVALID_INPUT');
+  assert.equal(session.readStatus().mode, 'running');
+  assert.equal(session.readStatus().fault, null);
+
+  captureMode = 'throw';
+  assert.equal(session.advance(FIXED_STEP_SECONDS, { amount: 2 }).code, 'SESSION_FAULTED');
+  assert.equal(session.readStatus().mode, 'faulted');
+  assert.deepEqual(session.readStatus().fault, {
+    code: 'ENGINE_CALLBACK_FAILED',
+    source: 'input-capture',
+    systemId: null,
+  });
+  assert.equal(session.advance(FIXED_STEP_SECONDS, { amount: 3 }).code, 'SESSION_FAULTED');
+});
+
+test('a system failure is terminal, inspectable, and never retried', () => {
+  let mutations = 0;
+  const session = createEngineSession<TestInput>({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    runtimeInstanceId: 'runtime-session-system-fault',
+    systems: [{
+      id: 'unsafe-system',
+      run() {
+        mutations += 1;
+        throw new Error('secret system failure');
+      },
+    }],
+    captureInput: (input) => Object.freeze({ amount: input.amount }),
+  });
+
+  assert.equal(session.advance(FIXED_STEP_SECONDS, { amount: 1 }).code, 'SESSION_FAULTED');
+  assert.equal(mutations, 1);
+  assert.deepEqual(session.readStatus().fault, {
+    code: 'ENGINE_CALLBACK_FAILED',
+    source: 'system',
+    systemId: 'unsafe-system',
+  });
+  assert.equal(session.pause('tool').code, 'SESSION_FAULTED');
+  assert.equal(
+    session.executeCommand(() => ({ result: 'should-not-run', authoringChanged: true })).code,
+    'SESSION_FAULTED',
+  );
+  assert.equal(session.advance(FIXED_STEP_SECONDS, { amount: 1 }).code, 'SESSION_FAULTED');
+  assert.equal(mutations, 1);
+
+  session.dispose();
+  assert.equal(session.readStatus().mode, 'disposed');
+  assert.equal(session.readStatus().fault?.source, 'system');
+});
+
+test('state-digest and command failures fault without exposing thrown messages', () => {
+  const digestSession = createEngineSession<TestInput>({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    runtimeInstanceId: 'runtime-session-digest-fault',
+    systems: [{ id: 'only-system', run: () => undefined }],
+    captureInput: (input) => Object.freeze({ amount: input.amount }),
+    getStateDigest() {
+      throw new Error('digest credential=do-not-expose');
+    },
+  });
+
+  assert.equal(
+    digestSession.advance(FIXED_STEP_SECONDS, { amount: 1 }).code,
+    'SESSION_FAULTED',
+  );
+  assert.deepEqual(digestSession.readStatus().fault, {
+    code: 'ENGINE_CALLBACK_FAILED',
+    source: 'state-digest',
+    systemId: null,
+  });
+  assert.doesNotMatch(JSON.stringify(digestSession.readStatus()), /credential|do-not-expose/);
+
+  let commandMutations = 0;
+  const commandSession = createHarness().session;
+  const command = commandSession.executeCommand(() => {
+    commandMutations += 1;
+    throw new Error('command credential=do-not-expose');
+  });
+  assert.equal(command.code, 'SESSION_FAULTED');
+  assert.equal(commandMutations, 1);
+  assert.deepEqual(commandSession.readStatus().fault, {
+    code: 'ENGINE_CALLBACK_FAILED',
+    source: 'command',
+    systemId: null,
+  });
+  assert.equal(
+    commandSession.executeCommand(() => {
+      commandMutations += 1;
+      return { result: null, authoringChanged: true };
+    }).code,
+    'SESSION_FAULTED',
+  );
+  assert.equal(commandMutations, 1);
+  assert.doesNotMatch(JSON.stringify(commandSession.readStatus()), /credential|do-not-expose/);
 });

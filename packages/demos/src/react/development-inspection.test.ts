@@ -393,11 +393,12 @@ test('browser action polling relays pause, resume, and retry-safe step controls'
     mode: 'running' | 'paused',
     controlRevision: number,
   ): EngineSessionStatus => Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     sessionId,
     worldId,
     runtimeInstanceId,
     mode,
+    fault: null,
     pauseReasons: mode === 'paused' ? Object.freeze(['tool'] as const) : Object.freeze([]),
     systemOrder: Object.freeze(['town-update']),
     clock: Object.freeze({

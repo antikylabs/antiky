@@ -72,11 +72,12 @@ function createBroker() {
 }
 
 const pausedSessionStatus: EngineSessionStatus = Object.freeze({
-  schemaVersion: 1,
+  schemaVersion: 2,
   sessionId: SESSION_ID,
   worldId: WORLD_ID,
   runtimeInstanceId: 'runtime-actions-001',
   mode: 'paused',
+  fault: null,
   pauseReasons: Object.freeze(['tool'] as const),
   systemOrder: Object.freeze(['town-update']),
   clock: Object.freeze({
