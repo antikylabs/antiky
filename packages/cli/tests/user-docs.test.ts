@@ -16,6 +16,11 @@ import { MCP_TOOL_NAMES } from '../src/mcp/tools.ts';
 
 const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const userDocsRoot = join(repositoryRoot, 'docs', 'user-facing-docs');
+const userDocsIndexPath = join(userDocsRoot, 'README.md');
+const documentationStandardsPath = join(
+  userDocsRoot,
+  'DOCUMENTATION_STANDARDS_A.md',
+);
 const cliGuidePath = join(userDocsRoot, 'cli', 'development.md');
 const frameworkGuidePath = join(userDocsRoot, 'framework', 'inspection.md');
 const pointLightGuidePath = join(userDocsRoot, 'framework', 'point-lights.md');
@@ -37,7 +42,18 @@ async function verifyLocalLinks(path: string, source: string): Promise<void> {
 }
 
 test('user-facing development docs are standalone and match the shipped interfaces', async () => {
-  const [cliGuide, frameworkGuide, pointLightGuide, studioGuide, agentsGuide, claudeGuide] = await Promise.all([
+  const [
+    userDocsIndex,
+    documentationStandards,
+    cliGuide,
+    frameworkGuide,
+    pointLightGuide,
+    studioGuide,
+    agentsGuide,
+    claudeGuide,
+  ] = await Promise.all([
+    readFile(userDocsIndexPath, 'utf8'),
+    readFile(documentationStandardsPath, 'utf8'),
     readFile(cliGuidePath, 'utf8'),
     readFile(frameworkGuidePath, 'utf8'),
     readFile(pointLightGuidePath, 'utf8'),
@@ -45,6 +61,35 @@ test('user-facing development docs are standalone and match the shipped interfac
     readFile(agentsGuidePath, 'utf8'),
     readFile(claudeGuidePath, 'utf8'),
   ]);
+
+  for (const area of ['Framework', 'CLI', 'Studio']) {
+    assert.match(userDocsIndex, new RegExp(`^## ${area}$`, 'm'));
+  }
+  for (const guide of [
+    'cli/development.md',
+    'framework/inspection.md',
+    'framework/point-lights.md',
+    'studio/development-connection.md',
+  ]) {
+    assert.ok(userDocsIndex.includes(`](${guide})`), `Docs index omits ${guide}`);
+  }
+  for (const standard of [
+    'tutorial',
+    'how-to guide',
+    'reference',
+    'explanation',
+    'plain-language',
+    'smallest working example',
+    'progressive disclosure',
+    'documentation skill',
+  ]) {
+    assert.match(
+      documentationStandards,
+      new RegExp(standard, 'i'),
+      `Documentation standards omit ${standard}`,
+    );
+  }
+  assert.match(agentsGuide, /DOCUMENTATION_STANDARDS_A\.md/);
 
   for (const command of ['dev', 'inspect', 'mcp', 'tool']) {
     assert.match(CLI_USAGE, new RegExp(`antiky ${command}`));
@@ -131,4 +176,6 @@ test('user-facing development docs are standalone and match the shipped interfac
   await verifyLocalLinks(frameworkGuidePath, frameworkGuide);
   await verifyLocalLinks(pointLightGuidePath, pointLightGuide);
   await verifyLocalLinks(studioGuidePath, studioGuide);
+  await verifyLocalLinks(userDocsIndexPath, userDocsIndex);
+  await verifyLocalLinks(documentationStandardsPath, documentationStandards);
 });

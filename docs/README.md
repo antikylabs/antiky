@@ -14,6 +14,7 @@ These documents describe Antiky's direction, decisions, architecture, proposals,
 | [Architecture Decision Records](adr/README.md) | Core Contributor-owned records of accepted architectural decisions. |
 | [Architecture Guides](architecture/README.md) | Agent-authored explanations of the target Framework and Studio architecture. |
 | [Objectives](objectives/README.md) | The agent work loop, project plans, goals, feedback, findings, sessions, archives, and reports. |
+| [User documentation](user-facing-docs/README.md) | Standalone guides for developers building their own games with Antiky. |
 
 ## Document types
 

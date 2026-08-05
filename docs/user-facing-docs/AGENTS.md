@@ -6,6 +6,9 @@ This folder is standalone product documentation for developers integrating Antik
 games. Write for a reader who has the framework and CLI but no knowledge of this repository's
 delivery plan or demo projects.
 
+Read and follow [the user documentation standards](DOCUMENTATION_STANDARDS_A.md) before creating,
+reorganizing, or substantially rewriting a page in this folder.
+
 - Describe behavior that a developer can use from the released CLI, framework, or Studio boundary.
 - Use generic, adaptable examples. A repository demo may be labeled as an example, but it must not
   define the product contract.
