@@ -1,59 +1,80 @@
-# Request for BroMetal Input: Physics Authority and GPU Residency
+# Physics Authority and CPU/GPU Execution
 
-## Context
+The current recommendation is too blunt because it treats “authoritative” and “runs on the CPU” as
+the same decision.
 
-Antiky is a WebGPU game framework that uses BroMetal for GPU work. Its `EngineSession` owns fixed
-simulation steps and can run in a browser, a headless test, or a future server process.
+My recommendation is:
 
-We are about to move a tested kinematic character motor into the reusable framework. The motor
-calculates movement, grounding, slopes, steps, walls, and collision contacts. Those results affect
-gameplay, inspection, and future online authority.
+> Decide the physics architecture now, but implement only the physics path Slice 03 actually needs.
 
-We want to make the right long-term CPU and GPU decision before publishing this framework boundary.
+Authority and execution location are separate:
 
-## Proposed direction
+| Situation | Authority | Likely execution |
+| --- | --- | --- |
+| PvP or shared online world | Server `EngineSession` | CPU initially |
+| Client prediction for PvP | Not authoritative | Usually CPU using compatible movement logic |
+| Offline or local game | Local `EngineSession` | CPU or GPU, depending on the workload |
+| Particles, cloth, debris, or visual crowds | Presentation only | GPU whenever practical |
+| Gameplay collision inspected every step | Local or server host | CPU unless the dependent gameplay also lives on the GPU |
 
-We think physics authority and execution location are separate decisions:
+The important GPU rule should be:
 
-- A local or offline game is authoritative in its local session host.
-- A shared online or PvP game is authoritative in its server session.
-- Synchronous gameplay physics starts with a portable CPU implementation so it can run in browsers,
-  headless tests, client prediction, and servers.
-- GPU-resident physics is preferred when its state and the systems that consume it can remain on the
-  GPU.
-- Presentation physics such as particles, cloth, debris, and visual crowds should run on the GPU
-  when practical.
-- Normal gameplay should not require a CPU-to-GPU-to-CPU round trip during every fixed step.
+> Push a physics workload to the GPU when its state and its consumers can remain on the GPU.
 
-The important distinction is that moving isolated physics math to the GPU may not help when
-TypeScript gameplay code needs the result immediately for collision, damage, triggers, artificial
-intelligence, or inspection. That would require asynchronous GPU readback. Moving a complete
-workload and its consumers to the GPU can avoid that problem.
+Pushing isolated math to the GPU is not automatically beneficial. If TypeScript gameplay code
+needs the answer during the same fixed step—for collision, damage, grounding, triggers, artificial
+intelligence, or inspection—we must send the result back to the CPU. WebGPU readback is
+asynchronous and would create exactly the round trip BroMetal is trying to avoid.
 
-## Slice 03 decision
+For Slice 03, the character motor affects authoritative position, collision, non-player character
+behavior, inspection, headless tests, and future server simulation. A CPU implementation is
+therefore a genuinely reusable framework component, not Town-specific work. It can serve:
 
-For the current character motor, we plan to:
+- Browser games
+- Headless testing
+- Server simulation
+- Client prediction
+- Studio and Model Context Protocol inspection
 
-- Ship a synchronous CPU gameplay-movement implementation.
-- Keep BroMetal and WebGPU types out of its public contract.
-- Keep the game-specific collision adapter private.
-- Publish a completed actor snapshot at an explicit simulation boundary.
-- Treat this as one reusable gameplay-physics path, not Antiky's universal physics system.
-- Leave GPU-resident physics as a separate pipeline instead of pretending CPU and GPU physics can
-  implement the same synchronous interface.
+What we should avoid is presenting that motor as Antiky's universal physics architecture.
 
-A local game could later choose GPU-authoritative simulation, but it would need an explicit
-asynchronous snapshot boundary for CPU inspection, saves, and CPU-side game logic. Online gameplay
-would remain server-authoritative even if a future server used GPU acceleration internally.
+I would revise the Architecture Decision Record around three principles:
 
-## Questions
+1. Physics authority belongs to the session host.
 
-1. Does this division align with BroMetal's philosophy and intended use?
-2. Are we drawing the boundary between BroMetal and gameplay simulation in the right place?
-3. What BroMetal patterns would you recommend for physics state that remains GPU-resident across
-   compute and render work?
-4. If a game needs occasional CPU snapshots of GPU-resident state, what synchronization or readback
-   pattern would you recommend?
-5. Are there useful GPU physics workloads we are overlooking that can avoid per-step readback?
-6. Which assumptions here would you change before we record the architecture decision?
+   A local game's client host may be authoritative. An online game's server host is authoritative.
 
+2. Physics execution is selected by workload.
+
+   Synchronous gameplay physics starts with a portable CPU implementation. GPU-resident physics is
+   encouraged when its results can remain on the GPU.
+
+3. Crossing the CPU/GPU boundary must be explicit.
+
+   Do not use per-step GPU readback in the normal gameplay loop. A game that deliberately uses
+   GPU-authoritative local simulation must accept an asynchronous snapshot boundary for saves,
+   inspection, and CPU-side logic.
+
+For implementation, I would pay these upfront costs now:
+
+- Define the CPU character contract as a synchronous gameplay-collision contract, not a generic
+  GPU/CPU backend.
+- Keep BroMetal and WebGPU types out of that contract.
+- Keep Town's collision-world adapter private.
+- Mark completed snapshots as the boundary between authoritative state and its consumers.
+- Leave room for a separate GPU-resident physics pipeline instead of pretending it can implement
+  the same synchronous interface.
+- Avoid building that GPU pipeline until a real workload proves what it needs.
+
+The proposed answer to Slice 03 owner question 1 is:
+
+> Accept a physics-authority ADR now, but change the proposed direction. Separate authority from
+> execution location. Online gameplay is server-authoritative; local gameplay is authoritative in
+> its local session host. Slice 03 provides a portable CPU character-movement implementation
+> because its results feed synchronous gameplay, inspection, headless execution, and future server
+> simulation. Antiky should prefer GPU-resident physics for presentation and client-local workloads
+> whose state and consumers can remain on the GPU. Normal gameplay must not depend on per-step GPU
+> readback.
+
+This gives Antiky a long-term decision without forcing Slice 03 to prematurely build two physics
+engines.
