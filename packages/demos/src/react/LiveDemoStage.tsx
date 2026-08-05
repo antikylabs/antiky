@@ -6,7 +6,7 @@ import {
   type BroMetalErrorCode,
   type Renderer,
 } from 'brometal';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { inspectPointLightService } from '@antiky/framework';
 import {
   type DemoInstance,
@@ -99,6 +99,29 @@ export default function LiveDemoStage({
     touchRef.current = { x, z };
     syncMovement();
   };
+
+  const stepPausedSession = useCallback(async (expectedCompletedStepCount: number) => {
+    const host = getAntikyTownGameHost(demoInstanceRef.current);
+    if (!host) throw new Error('The demo engine session is unavailable.');
+    const before = host.readStatus();
+    let result: ReturnType<typeof host.step> | undefined;
+    if (
+      before.mode === 'paused'
+      && before.clock.completedStepCount === expectedCompletedStepCount
+    ) {
+      const frameLoop = frameLoopRef.current;
+      if (!frameLoop) throw new Error('The demo render loop is unavailable.');
+      await frameLoop.renderOnce(() => {
+        result = host.step(expectedCompletedStepCount);
+      });
+    } else {
+      result = host.step(expectedCompletedStepCount);
+    }
+    if (result === undefined) throw new Error('The paused step did not return a result.');
+    if (result.renderRequested) frameCountRef.current += 1;
+    setInspectionTick((value) => value + 1);
+    return { result, session: host.readStatus() };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -424,12 +447,7 @@ export default function LiveDemoStage({
           return { result, session: host.readStatus() };
         },
         stepSimulation(expectedCompletedStepCount) {
-          const host = getAntikyTownGameHost(demoInstanceRef.current);
-          if (!host) throw new Error('The demo engine session is unavailable.');
-          const result = host.step(expectedCompletedStepCount);
-          if (result.renderRequested) frameCountRef.current += 1;
-          setInspectionTick((value) => value + 1);
-          return { result, session: host.readStatus() };
+          return stepPausedSession(expectedCompletedStepCount);
         },
       });
       if (disposed) {
@@ -454,7 +472,7 @@ export default function LiveDemoStage({
         publisher?.close();
       }
     };
-  }, [inspectionOrigin]);
+  }, [inspectionOrigin, stepPausedSession]);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
@@ -502,9 +520,12 @@ export default function LiveDemoStage({
     const host = getAntikyTownGameHost(demoInstanceRef.current);
     if (!host) return;
     const expectedCompletedStepCount = host.readStatus().clock.completedStepCount;
-    const result = host.step(expectedCompletedStepCount);
-    if (result.renderRequested) frameCountRef.current += 1;
-    setInspectionTick((value) => value + 1);
+    void stepPausedSession(expectedCompletedStepCount).catch((cause: unknown) => {
+      const detail = cause instanceof Error ? cause.message : String(cause);
+      setRuntimeErrorCode(isBroMetalError(cause) ? cause.code : undefined);
+      setError(`WebGPU could not render the paused frame — ${detail}`);
+      setPhase('error');
+    });
   };
 
   const beginTouch = (x: number, z: number) => (event: React.PointerEvent<HTMLButtonElement>) => {
