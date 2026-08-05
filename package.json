@@ -16,7 +16,6 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "shaders": "npm run shaders --workspace @antiky/demos",
     "test": "npm test --workspaces --if-present",
-    "test:zdloop": "npm test --workspace @antiky/zdloop",
     "check": "npm run typecheck && npm test"
   },
   "dependencies": {
