@@ -52,6 +52,14 @@ const historicalAttempts = Object.freeze([
     cause: 'The paused stage suppressed demo drawing but left the BroMetal renderer loop submitting empty GPU frames.',
     disposition: 'A failing pausable-loop regression led the stage to stop the renderer loop on pause and start one replacement on resume.',
   },
+  {
+    id: 'attempt-012',
+    checkpoint: 'CP-05',
+    result: 'FAIL',
+    failureClass: 'DEFECT',
+    cause: 'The typed client collapsed a malformed development action into ANTIKY_SESSION_UNAVAILABLE, and the verifier expected a framework result for input rejected at the HTTP trust boundary.',
+    disposition: 'A failing client regression led invalid action responses to preserve ANTIKY_ARGUMENT_INVALID while the verifier checks the thrown boundary error and unchanged point-light state.',
+  },
 ]);
 
 function evidence(status, detail, reason) {
@@ -265,7 +273,7 @@ export function createReceipt(context, artifacts, acceptance) {
   const attempts = [
     ...historicalAttempts,
     {
-      id: 'attempt-012',
+      id: 'attempt-013',
       checkpoint: 'CP-05',
       result: 'PASS',
       failureClass: null,

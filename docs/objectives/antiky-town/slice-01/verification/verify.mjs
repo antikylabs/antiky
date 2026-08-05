@@ -540,6 +540,31 @@ export async function runSlice01Verification() {
       assertRejectedPointLightState({ before, after, result, expectedCode });
       rejectionRecords.push({ fixture, code: result.code, before, after, result });
     };
+    const runTransportRejection = async (
+      fixture,
+      expectedCode,
+      expectedTransportCode,
+      operation,
+    ) => {
+      const beforeSnapshot = await client.readDevelopmentSnapshot();
+      const before = pointLightStateVector(beforeSnapshot, ids.marketLamp);
+      const transportError = await operation().then(
+        () => null,
+        (error) => error,
+      );
+      assert.ok(transportError, `${fixture} did not reject at the transport boundary.`);
+      assert.equal(transportError.code, expectedTransportCode);
+      const afterSnapshot = await client.readDevelopmentSnapshot();
+      const after = pointLightStateVector(afterSnapshot, ids.marketLamp);
+      assert.deepEqual(after, before, `${fixture} changed point-light state.`);
+      rejectionRecords.push({
+        fixture,
+        code: expectedCode,
+        transportCode: transportError.code,
+        before,
+        after,
+      });
+    };
     await runRejection('same value', 'NO_OP', () => client.setPointLightPower(
       setCommand(commandIds.noOp, 2, 2),
     ));
@@ -558,7 +583,12 @@ export async function runSlice01Verification() {
     await runRejection('unknown world', 'WORLD_NOT_FOUND', () => client.setPointLightPower(
       setCommand(commandIds.missingWorld, 2, 3, { worldId: ids.unknownWorld }),
     ));
-    await runRejection('malformed command', 'INVALID_COMMAND', () => client.setPointLightPower({}));
+    await runTransportRejection(
+      'malformed command',
+      'INVALID_COMMAND',
+      'ANTIKY_ARGUMENT_INVALID',
+      () => client.setPointLightPower({}),
+    );
     const rejectionDelta = gpuCounterDelta(rejectionGpuBefore, await readGpuProbe(cdp));
     assertIdleGpuDelta(rejectionDelta);
     rejectionRecords.push({

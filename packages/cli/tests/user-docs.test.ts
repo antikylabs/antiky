@@ -62,6 +62,7 @@ test('user-facing development docs are standalone and match the shipped interfac
   assert.ok(cliGuide.includes(MCP_HTTP_PATH));
   assert.match(cliGuide, /Streamable HTTP/);
   assert.match(cliGuide, /`antiky dev`[^.]*starts[^.]*MCP/i);
+  assert.match(cliGuide, /`ANTIKY_ARGUMENT_INVALID`[^\n]*development action input/i);
 
   const documentedConfig = cliGuide.match(/```json\n([\s\S]*?)```/)?.[1];
   assert.ok(documentedConfig, 'CLI guide has no JSON config example');

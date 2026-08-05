@@ -755,6 +755,21 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
     assert.deepEqual(finalTyped.pointLight?.facts, finalDirect.facts);
     assert.doesNotMatch(JSON.stringify(finalMcp), /credential|permissions|principalId/i);
 
+    for (const invalidCommand of [
+      {},
+      undefined,
+      { ...setCommand, padding: 'x'.repeat(5_000) },
+    ]) {
+      await assert.rejects(
+        () => client.setPointLightPower(invalidCommand as never),
+        (error: unknown) => (
+          error instanceof AntikyCliError
+          && error.code === 'ANTIKY_ARGUMENT_INVALID'
+        ),
+      );
+    }
+    assert.deepEqual(inspectPointLightService(service), finalDirect);
+
     const oversized = await fetch(
       `${session.inspectionUrl}/v1/actions/set-point-light-power`,
       {

@@ -72,6 +72,16 @@ export async function connectDevelopmentClient(
       if (code === 'ANTIKY_ACTION_BUSY' || code === 'ANTIKY_ACTION_TIMEOUT') {
         throw new AntikyCliError(code, body?.error?.message ?? 'The action failed.');
       }
+      if (
+        code === 'INVALID_COMMAND'
+        || code === 'ANTIKY_MESSAGE_INVALID'
+        || code === 'ANTIKY_MESSAGE_TOO_LARGE'
+      ) {
+        throw new AntikyCliError(
+          'ANTIKY_ARGUMENT_INVALID',
+          body?.error?.message ?? 'The development action input is invalid.',
+        );
+      }
       throw new AntikyCliError(
         'ANTIKY_SESSION_UNAVAILABLE',
         `The Antiky inspection service rejected the action with status ${response.status}.`,

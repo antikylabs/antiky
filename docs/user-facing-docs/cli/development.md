@@ -276,7 +276,7 @@ configured ports. An owned child failure performs the same cleanup and returns a
 
 The CLI writes a stable error code before its message:
 
-- `ANTIKY_ARGUMENT_INVALID`: the command or option is not supported.
+- `ANTIKY_ARGUMENT_INVALID`: the command, option, or development action input is not supported.
 - `ANTIKY_CONFIG_NOT_FOUND`: the selected config file does not exist.
 - `ANTIKY_CONFIG_INVALID`: JSON, fields, paths, commands, URLs, or ports are invalid.
 - `ANTIKY_PORT_BUSY`: a configured port cannot be reserved. No child starts.

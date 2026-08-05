@@ -139,5 +139,6 @@ test('the complete verifier uses one Antiky dev start, tools-only MCP, and GPU e
   assert.match(source, /correct_point_light_power/);
   assert.match(source, /summarizeGpuProbe/);
   assert.match(source, /dev_reload/);
+  assert.match(source, /runTransportRejection[\s\S]*ANTIKY_ARGUMENT_INVALID/);
   assert.doesNotMatch(source, /resources\/(?:list|read)/);
 });
