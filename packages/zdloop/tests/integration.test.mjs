@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import test from "node:test";
 
@@ -32,7 +32,7 @@ test("the vendored runner targets Antiky's formal objective files", () => {
   assert.match(loop, /docs\/objectives\/03-TODO_A\.txt/);
   assert.match(loop, /docs\/objectives\/01-FEEDBACK_H\.txt/);
   assert.match(loop, /docs\/objectives\/04-AGENT-SESSIONS_A\.txt/);
-  assert.match(loop, /Use \$zd-session to run the next open task/);
+  assert.match(loop, /Follow \.claude\/commands\/session\.md to run the next open task/);
   assert.match(archive, /docs\/objectives\/03-TODO_A\.txt/);
   assert.match(archive, /docs\/objectives\/07-DONE_S\.txt/);
 });
@@ -86,13 +86,15 @@ test("Claude commands are fully specialized for Antiky", () => {
 });
 
 test("Codex skills delegate to the matching canonical Claude commands", () => {
-  const skillNames = ["archive", "session", "status", "triage"];
+  const skillNames = ["archive", "status", "triage"];
 
   for (const name of skillNames) {
     const skill = read(`.agents/skills/zd-${name}/SKILL.md`);
     assert.match(skill, new RegExp(`name: zd-${name}`));
     assert.match(skill, new RegExp(`\\.claude/commands/${name}\\.md`));
   }
+
+  assert.equal(existsSync(join(root, ".agents/skills/zd-session")), false);
 });
 
 test("the objective scaffolding documents ownership and loop inputs", () => {

@@ -24,13 +24,13 @@ const TODO_PATH = resolve(TODO_RELATIVE_PATH);
 const FEEDBACK_PATH = resolve(FEEDBACK_RELATIVE_PATH);
 const MEMORY_PATH = resolve(MEMORY_RELATIVE_PATH);
 const PROMPT =
-  "Use $zd-session to run the next open task. Run exactly one session and stop after its handoff; the outer runner will decide whether another session is allowed.";
+  "Follow .claude/commands/session.md to run the next open task. Run exactly one session and stop after its handoff; the outer runner will decide whether another session is allowed.";
 const MAX_WAIT_MS = 2_147_483_647;
 
 function usage() {
   return `Usage: npm run zdloop -- <wait> [--dry-run] [--no-tui]
 
-Run one $zd-session at a time until ${FEEDBACK_RELATIVE_PATH} is empty and the next open
+Run one explicit Codex session at a time until ${FEEDBACK_RELATIVE_PATH} is empty and the next open
 CHECKPOINT in ${TODO_RELATIVE_PATH} is reached.
 After the checkpoint, run one read-only Codex recap with a manual testing guide.
 The wait is a gap after a completed session, not a wall-clock schedule.
@@ -114,7 +114,7 @@ function isDecision(line) {
 }
 
 function buildDecisionPrompt(task, answer) {
-  return `Use $zd-session to complete exactly this task:\n\n${task}\n\nThe user reviewed the preceding @COMPARE artifact and supplied this decision:\n\nUser decision: ${answer}\n\nTreat that as the resolved product direction. Implement it, verify it, commit it, tick off the task, and stop after the handoff.`;
+  return `Follow .claude/commands/session.md to complete exactly this task:\n\n${task}\n\nThe user reviewed the preceding @COMPARE artifact and supplied this decision:\n\nUser decision: ${answer}\n\nTreat that as the resolved product direction. Implement it, verify it, commit it, tick off the task, and stop after the handoff.`;
 }
 
 function readPlan() {

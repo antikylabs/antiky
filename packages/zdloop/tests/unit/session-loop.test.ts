@@ -17,7 +17,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 const RUNNER = resolve(import.meta.dirname, "../../session-loop.mjs");
 const PROMPT =
-  "Use $zd-session to run the next open task. Run exactly one session and stop after its handoff; the outer runner will decide whether another session is allowed.";
+  "Follow .claude/commands/session.md to run the next open task. Run exactly one session and stop after its handoff; the outer runner will decide whether another session is allowed.";
 
 function recapPrompt(startCommit: string, checkpoint: string): string {
   return `This is the final read-only recap for a completed zdloop run. The run started at git commit ${startCommit} and stopped at "${checkpoint}". Review committed changes in ${startCommit}..HEAD and the matching recent work-session handoffs in docs/objectives/04-AGENT-SESSIONS_A.txt. Read docs/VISION_DIRECTION_H.md, docs/GOOD_ENGINEERING_H.md, and relevant records in docs/adr/ and docs/aip/ when judging the result. Do not change files. Tell the user what changed, give a prioritized manual test checklist, say what feedback to provide for each item, and call out known failures, deferred work, or blocked tasks. Ignore changes that predate the starting commit and treat unrelated uncommitted worktree changes as pre-existing.`;
