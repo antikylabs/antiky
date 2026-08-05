@@ -91,6 +91,13 @@ test('focused demo host compiles its TSX entry with the package TypeScript confi
       build: { outDir: output, emptyOutDir: true },
     });
     await readFile(join(output, 'index.html'), 'utf8');
+    for (const asset of [
+      'town-material-atlas-v1.png',
+      'town-prop-atlas-v2.png',
+      'town-vegetation-atlas-v2.png',
+    ]) {
+      await readFile(join(output, 'textures', asset));
+    }
   } finally {
     await rm(output, { recursive: true, force: true });
   }
