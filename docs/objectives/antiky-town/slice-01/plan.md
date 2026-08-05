@@ -11,26 +11,16 @@ This plan is the implementation contract. The accepted owner decisions are in
 | Outcome | One command changes one market lamp through the complete framework path |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
 | Depends on | [`../slice-00/plan.md`](../slice-00/plan.md) completed |
-| Alignment revision | `614b130e72b808bf58fbf69d5a32eb80c4b011d8` |
+| Alignment revision | `c59085bf6f2f887023675b7e1297900862b5177e` |
 | Complete check | `npm run verify:slice-01 --workspace @antiky/demos` |
 | Evidence | `docs/objectives/antiky-town/slice-01/outputs/{run-id}/receipt.json` |
 
-The goal runner must read the owner-input file and the completed Slice 00 evidence. It must stop on
-a `PENDING` answer or an incomplete Slice 00.
+The goal runner must read the owner-input file and completed Slice 00 evidence. It must stop on a
+`PENDING` answer or incomplete Slice 00. Run `/goal implement docs/objectives/antiky-town/slice-01/plan.md until complete`.
 
-After both gates pass, use:
-
-```text
-/goal implement docs/objectives/antiky-town/slice-01/plan.md until complete
-```
-
-## Review summary
-
-- Build reusable point-light parts and use one market lamp as the first visible consumer.
-- Change its base power through one authorized command.
-- Project the accepted value into the existing town renderer.
-- Inspect and undo the change through the shared framework services.
-- Do not build a general ECS, database, render graph, or Studio UI.
+Slice 00 completed before the focused Vite host and tools-only MCP surface shipped. `CP-00` must
+realign the Slice 00 verifier and make its clean verification pass before point-light work starts.
+`antiky dev` starts the game, inspection, and HTTP MCP services together. Do not start a second MCP service.
 
 ## Outcome
 
@@ -49,8 +39,8 @@ At completion:
 The current flicker remains presentation behavior. It does not change authoring state or create an
 event on each frame.
 
-The framework point-light service supports multiple lamps by stable ID. Slice 01 ports one lamp to
-the visible town. A second headless lamp proves that the service is not a single-object special case.
+The framework point-light service supports multiple lamps by stable ID. Slice 01 ports one lamp to the
+visible town. A second headless lamp proves that the service is not a single-object special case.
 
 ### Non-goals
 
@@ -85,7 +75,7 @@ and resource count before code work. It keeps `town-study` runnable.
 ## Data and authority path
 
 ```text
-test, CLI, Studio, or MCP
+test, typed CLI client, Studio, or MCP Tool
   -> SetPointLightPower command
   -> trusted context and validation
   -> point-light authoring service
@@ -110,7 +100,7 @@ slot `0` before the frame loop.
 | `@antiky/framework` | IDs, lamp data, command decision, accepted facts, projections, and inspection | BroMetal, React, DOM, website, Node.js host, or MCP transport |
 | `antiky-town` | Composition and the narrow mapping from lamp render data to town slot `0` | Command authority or general framework storage |
 | `brometal-town` | Reference rendering and a narrow input seam with unchanged defaults | Framework identity or history |
-| CLI, Studio, and MCP | Presentation or transport over shared services | A second lamp service or state copy |
+| CLI, Studio, and MCP | Presentation or transport over shared services | Engine rules, a second lamp service, or state copies |
 
 ## Required reading
 
@@ -118,6 +108,7 @@ slot `0` before the frame loop.
 - [`../slice-00/plan.md`](../slice-00/plan.md) and its completed outputs
 - [`SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
 - [`IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
+- [ADR 0001: Use MCP Tools for local development](../../../adr/cli/0001-use-mcp-tools-for-development_H.md)
 - [ADR 0007: Use commands to change world state](../../../adr/framework/0007-commands-as-mutation-boundary_H.md)
 - [ADR 0009: Keep authoring, runtime, and render state separate](../../../adr/framework/0009-separate-state-projections_H.md)
 - [ADR 0011: Use stable IDs and temporary numeric aliases](../../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
@@ -152,6 +143,9 @@ registry, query engine, scheduler, event store, or render graph.
 | Data | One finite `power` value from `0` through `4` |
 | Encoded limit | `4 KiB` at a process or MCP boundary |
 | Trusted context | Supplied separately by the host |
+| MCP reads | `list_point_lights` and `get_point_light` |
+| MCP changes | `set_point_light_power` and `correct_point_light_power` |
+| MCP transport | HTTP `/mcp` from `antiky dev`; stdio is a compatibility fallback |
 
 An accepted command increments the revision once and adds one versioned accepted fact. The fact
 records old and new power, event sequence, source command, world, lamp, resulting revision, trusted
@@ -175,13 +169,19 @@ A rejected request changes no authoring, history, runtime, render, or GPU-resour
 The framework service must not contain `Market Lamp West 01`, render slot `0`, or another
 town-specific value. The Antiky Town adapter owns that mapping.
 
+The four new MCP Tools call the same typed development client as direct and Studio-compatible
+clients. They use strict schemas and bounded results. Do not add MCP Resources that duplicate these
+Tools. `antiky inspect` includes the lamp inspection snapshot; do not add a lamp-specific shell
+command.
+
 ## Demo and render deliverable
 
 Add a town-local seam that can supply slot `0` base power. Keep the existing default values for
 `town-study`.
 
-Register a real `antiky-town` route only after the framework service, projection, and adapter pass.
-The Antiky Town composition root owns the lamp service and connects it to the current town factory.
+Register the `antiky-town` demo slug only after the framework service, projection, and adapter pass.
+Run it at the focused Vite host root through `antiky.config.json`. The Antiky Town composition root
+owns the lamp service and connects it to the current town factory. Keep `town-study` registered.
 
 BroMetal `0.14.0` writes a complete program uniform block on the first draw of a frame. The four
 affected source-derived block sizes total `2,112` bytes per frame. The runtime baseline must confirm
@@ -203,8 +203,8 @@ Slice 01 must not claim a four-byte GPU write. A power change must:
 - Update framework guidance for adding point lights, light identity, commands, results, and
   inspection.
 - Include one valid example that changes and then corrects the market lamp power.
-- Update CLI or Studio guidance if this slice changes either workflow. Otherwise, record `N/A` and
-  the reason for that area.
+- Update CLI guidance for the four new MCP Tools and automatic HTTP endpoint.
+- Update Studio guidance only if its connection workflow changes. Otherwise, record `N/A` and why.
 
 ## Safe lifecycle and security
 
@@ -225,11 +225,11 @@ BroMetal resources, or GPU resources.
 
 | ID | Deliverable | Main proof | Commit message |
 | --- | --- | --- | --- |
-| `CP-00` | Capture lamp, render, and visual baselines | Fixed fixture and structured measurements | `Record Slice 01 baseline` |
+| `CP-00` | Realign the harness; capture lamp, render, and visual baselines | Current Slice 00 verifier plus fixed evidence | `Record Slice 01 baseline` |
 | `CP-01` | Add IDs, lamp records, and validators | Framework unit tests | `Add lamp identity and data` |
 | `CP-02` | Add command, history, replay, undo, and projections | Headless command and parity tests | `Add market lamp command flow` |
 | `CP-03` | Extend shared inspection with lamp facts and operations | Direct, CLI, Studio-compatible, and MCP parity | `Expose market lamp inspection` |
-| `CP-04` | Add reference seam, town adapter, and Antiky Town route | Render, lifecycle, and visual tests | `Connect market lamp rendering` |
+| `CP-04` | Add reference seam, town adapter, and Antiky Town demo | Render, lifecycle, and visual tests | `Connect market lamp rendering` |
 | `CP-05` | Add complete verifier and receipt mapping | Clean end-to-end run | `Verify Antiky Town slice one` |
 
 Each checkpoint includes tests and leaves the repository in a working state.
@@ -248,9 +248,10 @@ Add headless and integration tests for:
 - Capacity rejection, ordered replay, sequence gaps, correction, and complete rebuild parity.
 - Exactly-once authoring, runtime, and render revision application.
 - Direct, CLI, Studio-compatible, and MCP query and command parity.
+- Tools-only MCP discovery through the HTTP endpoint that `antiky dev` starts.
 - Slot `0` updates, unchanged other lights, full uniform writes, zero readback, stable resources, and
   exactly-once disposal.
-- Reload, reconnect, invalid replacement, shutdown, and reference-route parity.
+- Reload, reconnect, invalid replacement, shutdown, and focused-host parity.
 - Before, changed, and corrected fixed-camera captures.
 - Import boundaries that keep BroMetal, DOM, React, website, and Node.js host code out of framework.
 - User-facing framework examples, links, and any affected CLI or Studio workflow.
@@ -264,7 +265,7 @@ event sequence `1`. Correction restores `1.05` at revision `3` and event sequenc
 ## Completion checks
 
 - [ ] The owner-input file is `ANSWERED` and Slice 00 is complete.
-- [ ] The Antiky Town route shows the reference town and lamp.
+- [ ] The focused Antiky Town host shows the reference town and lamp.
 - [ ] The fixed lamp ID, data, revision, history, and render binding are inspectable.
 - [ ] The same framework service supports a second headless point light without town-specific code.
 - [ ] The accepted fixture reaches authoring, runtime, render, and the next frame.
@@ -295,6 +296,5 @@ them.
 Use a clean revision and isolated resources. Record all attempts. Restore the latest passing
 checkpoint when a regression or unsafe behavior cannot be fixed forward.
 
-After completion, framework and demo maintainers own the verifier and health checks. Human feedback
-goes to `docs/objectives/01-FEEDBACK_H.txt`. Agent findings go to
-`docs/objectives/02-AGENT-FINDINGS_A.txt`.
+After completion, framework and demo maintainers own the verifier and health checks. Human feedback goes
+to `docs/objectives/01-FEEDBACK_H.txt`; agent findings go to `docs/objectives/02-AGENT-FINDINGS_A.txt`.

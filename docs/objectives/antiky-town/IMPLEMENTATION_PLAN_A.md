@@ -89,8 +89,7 @@ Do not start a slice until all of these statements are true:
 - The reference behavior and measurements for this slice are recorded.
 - The visible outcome, structured inspection evidence, and failure behavior are explicit.
 - Required runtime schemas and stable IDs are selected or included as work in the slice.
-- Required MCP resources and tools already exist, or their contracts and implementation are part of
-  the slice.
+- Required MCP Tools already exist, or their contracts and implementation are part of the slice.
 - The reload and reconnect effect is defined for every file type that the slice adds.
 - Tests are named before implementation. A reported failure gets a failing regression test first.
 - Any open ADR question that changes ownership or public contracts for this slice is resolved.
@@ -122,8 +121,8 @@ CLI, Studio, MCP, and tests must call the same typed inspection and command serv
 
 | Slice | Required before work starts | Structured interface required by completion |
 | --- | --- | --- |
-| 0 | Answered owner input, Node 22, installed workspaces, a supported WebGPU browser, and a working reference route | Development, build, runtime, render-stat, and diagnostic resources; controlled reload and frame-capture tools |
-| 1 | Slice 0 is green; lamp baseline, stable-ID rules, component schema, command limits, and permission test identities exist | Entity list and entity inspection; command result, revision, render binding, and undo evidence |
+| 0 | Answered owner input, Node 22, installed workspaces, a supported WebGPU browser, and a working reference route | Development, build, runtime, render-stat, diagnostic, reload, and frame-capture Tools |
+| 1 | Slice 0 is green; lamp baseline, stable-ID rules, component schema, command limits, and permission test identities exist | Point-light list, inspection, set, and correction Tools with revision and render evidence |
 | 2 | Slice 1 is green; fixed step, long-frame limit, and pause rules are approved | Session and clock state; pause, resume, and single-step tools |
 | 3 | Slice 2 is green; recorded movement input, collision baseline, and actor IDs exist | Actor state, simulation step, state digest, and active simulation diagnostics |
 | 4 | Slice 3 is green; town content hash, compile validation, and selectable-owner policy exist | Asset list and inspection, dependency and compile state, and owner-to-compiled-range evidence |
@@ -151,38 +150,38 @@ through the CLI development host. Give CLI, Studio, MCP, and tests one service s
 Slice 0 does not add the Antiky world model. It reports only facts that the current host and demo can
 truthfully supply.
 
-### Current Next.js host plus Antiky CLI — Recommended
+### Focused Vite game host plus Antiky CLI — Shipped replacement
 
-Keep the current demo route and Next.js host. Add `@antiky/cli` for configuration validation,
-shader watching, service health, runtime connections, and child-process cleanup.
+Run the configured demo on the focused Vite game host. Use `@antiky/cli` for configuration
+validation, shader watching, service health, runtime connections, and child-process cleanup.
 
 Add the first headless inspection contract and service to `@antiky/framework`. The CLI reads the
 framework facts. It does not calculate game facts itself.
 
 Benefits:
 
-- Keeps the working reference visible.
-- Adds the smallest new process surface.
-- Proves the development and inspection contracts before a host migration.
+- Keeps the working reference visible without website chrome.
+- Gives one configured game canvas a stable viewport and root URL.
+- Starts the game, inspection, and HTTP MCP services with one command.
 
 Costs:
 
-- The first harness remains coupled to the website host.
+- The host still uses Vite development behavior.
 - Source updates can restart the complete browser runtime.
 
-### Dedicated Vite game host plus Antiky CLI
+### Website host plus Antiky CLI — Replaced
 
-Move Antiky Town to a canvas-only Vite entry. Keep the same supervisor and inspection contracts.
+Run the game inside the website route. Keep the same supervisor and inspection contracts.
 
 Benefits:
 
-- Gives direct game-entry and HMR control.
-- Matches common Phaser and Three.js development workflows.
+- Reuses the public website route.
+- Keeps one fewer host entry.
 
 Costs:
 
-- Adds a host migration before the first framework behavior.
-- Requires a new boundary between the website and game host.
+- Includes unrelated website chrome and routing in the game loop.
+- Couples game development to the website package.
 
 ### Framework-owned web server and reload system
 
@@ -215,12 +214,12 @@ Costs:
 - The development-session ID stays stable when the browser reloads or reconnects.
 - Ten consecutive valid fixture edits each produce a newer build revision and a ready runtime within
   ten seconds. The integration test reports median and slowest update-to-ready time.
-- MCP resources report service health, latest build, runtime state, render statistics, and active
+- MCP Tools report service health, latest build, runtime state, render statistics, and active
   diagnostics without a screenshot or DOM query.
 - Direct framework inspection, CLI inspection, MCP, and a Studio-compatible client report the same
   engine facts.
-- At least one selected agent client can discover the running session and read every Slice 0
-  resource. If that client does not support Streamable HTTP, Slice 0 supplies a stdio adapter.
+- At least one selected agent client can discover and call every Slice 0 Tool. If that client does
+  not support Streamable HTTP, Slice 0 supplies a stdio adapter.
 - The controlled-reload tool returns the old and new runtime-instance IDs or a structured failure.
 - Frame capture includes the development-session ID, runtime-instance ID, and build revision.
 - Structured results are versioned and bounded. Large collections use pagination or summaries.
@@ -237,8 +236,8 @@ Costs:
 ## Slice 1: First complete object
 
 The executable contract is [`slice-01/plan.md`](slice-01/plan.md). The accepted owner decisions are
-in [`slice-01/owner-input_H.md`](slice-01/owner-input_H.md). Slice 01 remains blocked only until
-Slice 0 is complete.
+in [`slice-01/owner-input_H.md`](slice-01/owner-input_H.md). Slice 01 starts by verifying the current
+focused host and tools-only Slice 0 contracts.
 
 ### Outcome
 
@@ -311,7 +310,7 @@ Costs:
 - Replay and correction-based undo produce the expected authoring state.
 - A complete state rebuild matches the small state updates.
 - Inspection returns the lamp ID, label, components, revision, and render binding.
-- MCP entity inspection returns the same lamp record as the headless framework query.
+- MCP point-light inspection returns the same lamp record as the headless framework query.
 - Command rejection and undo results include stable codes and related request, entity, and revision
   IDs in the development diagnostics.
 - The default lamp value matches `brometal-town`.
