@@ -1,2 +1,0 @@
-# Antiky — completed tasks, moved out of docs/objectives/03-TODO_A.txt by /archive
-# Same format as the task list. Newest block last. Nothing here is edited or deleted.

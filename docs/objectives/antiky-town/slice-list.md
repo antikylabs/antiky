@@ -15,3 +15,4 @@ direction.
 - Slice 10 — Add durable events and snapshots behind the proven contracts.
 - Slice 11 — Add compatibility tests for older stored schemas.
 - Slice 12 — Add independent product versions and a tested release-promotion path.
+- SLice 13 — Add global lighting similar to unreal engine lumen global illumination

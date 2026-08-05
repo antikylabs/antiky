@@ -1,4 +1,0 @@
-interface:
-  display_name: "Antiky ZD Triage"
-  short_description: "Turn Antiky feedback into prioritized tasks"
-  default_prompt: "Use $zd-triage to process Antiky's objective inboxes without implementing work."

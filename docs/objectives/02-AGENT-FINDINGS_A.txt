@@ -1,6 +1,0 @@
-# Agent findings inbox
-
-# Capture real findings that are outside the active session. One finding per line below the rule.
-# Triage moves the raw line to 06-ARCHIVE-FINDINGS_A.txt before resetting this inbox.
-
----

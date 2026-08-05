@@ -1,4 +1,0 @@
-interface:
-  display_name: "Antiky ZD Archive"
-  short_description: "Archive completed Antiky tasks safely"
-  default_prompt: "Use $zd-archive to move completed Antiky task lines into the formal done archive."

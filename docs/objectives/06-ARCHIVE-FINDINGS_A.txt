@@ -1,3 +1,0 @@
-# Agent findings archive
-
-# Raw lines from 02-AGENT-FINDINGS_A.txt, preserved verbatim by triage. Newest dated block is last.

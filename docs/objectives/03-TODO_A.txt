@@ -1,1 +1,0 @@
-(A) 2026-08-03 CHECKPOINT finish VISION_DIRECTION_H.md and relevant ADR/AIP direction, then seed the first implementation band from 00-GOALS_H_A.txt +p0 @direction est:0m

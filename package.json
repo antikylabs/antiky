@@ -20,9 +20,7 @@
     "test:zdloop": "npm test --workspace @antiky/zdloop",
     "check": "npm run typecheck && npm test && npm run test:webgpu-only",
     "verify:slice-00": "node --experimental-strip-types --experimental-transform-types docs/objectives/antiky-town/slice-00/verification/verify.mjs",
-    "verify:slice-01": "node --experimental-strip-types --experimental-transform-types docs/objectives/antiky-town/slice-01/verification/verify.mjs",
-    "zdarchive": "node packages/zdloop/archive-tasks.mjs",
-    "zdloop": "node packages/zdloop/session-loop.mjs"
+    "verify:slice-01": "node --experimental-strip-types --experimental-transform-types docs/objectives/antiky-town/slice-01/verification/verify.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "3.8.1",
