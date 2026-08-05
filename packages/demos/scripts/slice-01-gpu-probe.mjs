@@ -132,6 +132,12 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
 
   const resourcesCreatedDuringWindow = {};
   for (const frame of frameFacts) addRecord(resourcesCreatedDuringWindow, frame.resourcesCreated);
+  const resourceCreationsPerFrame = {};
+  for (const kind of Object.keys(resourcesCreatedDuringWindow)) {
+    resourceCreationsPerFrame[kind] = summarizeNumbers(
+      frameFacts.map((frame) => frame.resourcesCreated[kind] ?? 0),
+    );
+  }
 
   return Object.freeze({
     observedFrames: frames.length,
@@ -148,6 +154,7 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
     affectedUniformBlocks,
     affectedUniformBytesPerFrame: affectedBytes,
     affectedUniformWritesPerFrame: expected,
+    resourceCreationsPerFrame,
     resourcesCreatedDuringWindow,
   });
 }

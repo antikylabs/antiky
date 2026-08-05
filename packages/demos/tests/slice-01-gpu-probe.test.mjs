@@ -37,7 +37,7 @@ function frame(firstIndex) {
       416: 1,
       544: 2,
       608: 1,
-    }),
+    }, { resourcesCreated: { bindGroups: 4 } }),
     submission(firstIndex + 2, 1, { 224: 1 }),
   ];
 }
@@ -88,7 +88,10 @@ test('the probe summarizes only complete steady town frames', () => {
     affectedUniformBlocks,
     affectedUniformBytesPerFrame: 2_112,
     affectedUniformWritesPerFrame: { 416: 1, 544: 2, 608: 1 },
-    resourcesCreatedDuringWindow: {},
+    resourceCreationsPerFrame: {
+      bindGroups: { minimum: 4, median: 4, maximum: 4 },
+    },
+    resourcesCreatedDuringWindow: { bindGroups: 8 },
   });
 });
 

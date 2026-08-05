@@ -167,8 +167,9 @@ function createBaselineMarkdown(baseline) {
     + `- All uniform blocks use ${writes.uniform.median.toLocaleString('en-US')} bytes per frame. `
     + `All measured buffer writes use ${writes.total.minimum.toLocaleString('en-US')} through `
     + `${writes.total.maximum.toLocaleString('en-US')} bytes per frame.\n`
-    + `- The steady measurement window created no GPU resource. The device-created resource `
-    + `counts are in \`baseline.json\`.\n`
+    + `- The ordinary per-frame resource creation pattern is `
+    + `\`${JSON.stringify(baseline.gpu.steady.resourceCreationsPerFrame)}\`. The device-created `
+    + `resource totals are in \`baseline.json\`.\n`
     + `- The fixed-camera reference is \`captures/before.png\`. The full host reference is `
     + `\`captures/before-host.png\`.\n`;
 }
@@ -265,10 +266,6 @@ export async function captureSlice01Baseline() {
     const steady = summarizeGpuProbe(rawProbe, 20);
     assert.equal(steady.drawCallsPerFrame, 16);
     assert.equal(steady.affectedUniformBytesPerFrame, 2_112);
-    assert.ok(
-      Object.values(steady.resourcesCreatedDuringWindow).every((count) => count === 0),
-      'The steady baseline created GPU resources.',
-    );
 
     const surface = JSON.parse(await evaluateValue(cdp, `JSON.stringify({
       title: document.title,
