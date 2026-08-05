@@ -12,6 +12,6 @@ Apply these Codex translations while following the file:
 - Treat text supplied with `$zd-triage` as `$ARGUMENTS`. With no supplied text, use an empty value.
 - Treat `@path` references as instructions to read that repository-relative file when the workflow calls for it.
 - Use the available task-plan tool to track the triage steps and keep it current.
-- Translate command references for the user as `/session` to `$zd-session`, `/triage` to `$zd-triage`, `/status` to `$zd-status`, and `/archive` to `$zd-archive`.
+- Translate command references for the user as `/triage` to `$zd-triage`, `/status` to `$zd-status`, and `/archive` to `$zd-archive`.
 
 Preserve the capture-only boundary. Do not implement any task discovered during triage.

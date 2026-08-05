@@ -40,8 +40,8 @@ Before planning or implementing work, read:
 ## Commands
 
 Claude Code uses `/status`, `/session`, `/triage`, and `/archive` from `.claude/commands/`.
-Codex uses the matching `$zd-status`, `$zd-session`, `$zd-triage`, and `$zd-archive` project skills
-from `.agents/skills/`.
+Codex uses `$zd-status`, `$zd-triage`, and `$zd-archive` project skills from `.agents/skills/`.
+Codex runs an explicitly requested implementation goal directly instead of loading a session skill.
 
 The deterministic root commands are:
 
