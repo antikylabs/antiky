@@ -30,6 +30,8 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0012: Let the server decide online game state](framework/0012-server-authoritative-simulation_H.md)
 - [0013: Give the simulation all inputs explicitly](framework/0013-explicit-simulation-inputs_H.md)
 - [0014: Apply approved sandbox changes through commands](framework/0014-promote-sandbox-commands_H.md)
+- [0015: Support WebGPU only](framework/0015-webgpu-support-only_H.md)
+- [0016: Give platform work to the game host](framework/0016-give-platform-work-to-game-host_H.md)
 
 ### CLI
 

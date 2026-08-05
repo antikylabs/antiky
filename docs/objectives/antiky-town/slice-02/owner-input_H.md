@@ -2,7 +2,7 @@
 
 ## Status
 
-`WAITING FOR OWNER`
+`ANSWERED`
 
 ## Purpose
 
@@ -50,7 +50,17 @@ In an online game, the authoritative server session accepts inputs and owns cano
 
 ### Owner answer
 
-`PENDING`
+`APPROVE WITH CONDITIONS`
+
+ The only weakness is that the recommendation does not explicitly state the rendering-frequency rule. I would
+  strengthen the eventual ADR with:
+
+  > Each presentation callback may run zero or more fixed simulation steps, followed by at most one render
+  > preparation and GPU submission. GPU state remains derived and nonauthoritative. Normal operation performs no
+  > GPU readback.
+
+  So: the current recommendation is correct, but that sentence would prevent someone from later interpreting “one
+  fixed step” as “one GPU update and draw per fixed step.”
 
 ## Question 2: What fixed-step and long-frame policy should the session use?
 
@@ -70,7 +80,7 @@ The simulation slows after a stall instead of spending unbounded CPU time to cat
 
 ### Owner answer
 
-`PENDING`
+`APPROVE`
 
 ## Question 3: What must pause, resume, and single-step do?
 
@@ -91,7 +101,7 @@ This preserves current GPU-saving behavior. The host needs a small paused-frame 
 
 ### Owner answer
 
-`PENDING`
+`APPROVE`
 
 ## Question 4: Which session Tools should humans and agents use?
 
@@ -112,7 +122,7 @@ unambiguous.
 
 ### Owner answer
 
-`PENDING`
+`APPROVE`
 
 ## Question 5: Should Slice 02 add the requested CLI ID generator?
 
@@ -132,7 +142,9 @@ changes behind Framework.
 
 ### Owner answer
 
-`PENDING`
+`ALTERNATIVE`
+
+The entint was for the framework to have a id generator, not the cli. So that the game can call it when it needs to generate an ID. Its fine if CLI reuses that, but the ID Generation should probably live in the framework yeah?
 
 ## Question 6: What future simulation-history boundary must Slice 02 preserve?
 
@@ -169,7 +181,7 @@ This keeps simple games small without preventing competitive games from selectin
 
 ### Owner answer
 
-`PENDING`
+`APPROVE`
 
 ## Work that does not need owner input
 
