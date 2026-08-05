@@ -23,6 +23,7 @@ function submission(index, drawCalls, uniformWrites, extra = {}) {
     writeBufferBytesByKind: { uniform: uniformBytes, vertex: extra.vertexBytes ?? 0 },
     writeBufferCallsByKindAndSize: { uniform: uniformWrites },
     resourcesCreated: extra.resourcesCreated ?? {},
+    readbackOperations: extra.readbackOperations ?? {},
   };
 }
 
@@ -88,6 +89,9 @@ test('the probe summarizes only complete steady town frames', () => {
     affectedUniformBlocks,
     affectedUniformBytesPerFrame: 2_112,
     affectedUniformWritesPerFrame: { 416: 1, 544: 2, 608: 1 },
+    readbackOperationsPerFrame: {
+      total: { minimum: 0, median: 0, maximum: 0 },
+    },
     resourceCreationsPerFrame: {
       bindGroups: { minimum: 4, median: 4, maximum: 4 },
     },
@@ -118,8 +122,28 @@ test('the browser probe installs before the game asks for a WebGPU adapter', () 
   assert.match(gpuProbeSource, /requestAdapter/);
   assert.match(gpuProbeSource, /writeBuffer/);
   assert.match(gpuProbeSource, /beginRenderPass/);
+  assert.match(gpuProbeSource, /mapAsync/);
+  assert.match(gpuProbeSource, /copyBufferToBuffer/);
+  assert.match(gpuProbeSource, /copyTextureToBuffer/);
   assert.match(gpuProbeSource, /Object\.defineProperty\(requestAdapterOwner, 'requestAdapter'/);
   assert.doesNotMatch(gpuProbeSource, /Object\.defineProperty\(navigator, 'gpu'/);
+});
+
+test('the probe reports GPU-to-CPU readback operations instead of assuming zero', () => {
+  const probe = {
+    version: 1,
+    installError: null,
+    submissions: frame(1).map((sample, index) => (
+      index === 1
+        ? { ...sample, readbackOperations: { copyTextureToMapRead: 1 } }
+        : sample
+    )),
+  };
+
+  assert.deepEqual(summarizeGpuProbe(probe).readbackOperationsPerFrame, {
+    copyTextureToMapRead: { minimum: 1, median: 1, maximum: 1 },
+    total: { minimum: 1, median: 1, maximum: 1 },
+  });
 });
 
 test('the browser probe installs when navigator.gpu is read-only', async () => {

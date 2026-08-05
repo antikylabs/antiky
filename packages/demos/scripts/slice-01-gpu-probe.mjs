@@ -82,6 +82,7 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
     const writesByKind = {};
     const writesBySizeAndKind = {};
     const resourcesCreated = {};
+    const readbackOperations = {};
     let draws = 0;
     let commandBuffers = 0;
     for (const submission of submissions) {
@@ -89,6 +90,7 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
       commandBuffers += submission.commandBuffers;
       addRecord(writesByKind, submission.writeBufferBytesByKind);
       addRecord(resourcesCreated, submission.resourcesCreated);
+      addRecord(readbackOperations, submission.readbackOperations);
       for (const [kind, sizes] of Object.entries(submission.writeBufferCallsByKindAndSize ?? {})) {
         writesBySizeAndKind[kind] ??= {};
         addRecord(writesBySizeAndKind[kind], sizes);
@@ -110,6 +112,7 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
       writesByKind,
       writesBySizeAndKind,
       resourcesCreated,
+      readbackOperations,
     };
   });
 
@@ -139,6 +142,19 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
     );
   }
 
+  const allReadbackKinds = new Set(frameFacts.flatMap((frame) => (
+    Object.keys(frame.readbackOperations)
+  )));
+  const readbackOperationsPerFrame = {};
+  for (const kind of allReadbackKinds) {
+    readbackOperationsPerFrame[kind] = summarizeNumbers(
+      frameFacts.map((frame) => frame.readbackOperations[kind] ?? 0),
+    );
+  }
+  readbackOperationsPerFrame.total = summarizeNumbers(frameFacts.map((frame) => (
+    sumRecordValues(frame.readbackOperations)
+  )));
+
   return Object.freeze({
     observedFrames: frames.length,
     firstSubmission: frames[0][0].index,
@@ -154,6 +170,7 @@ export function summarizeGpuProbe(probe, maximumFrames = 20) {
     affectedUniformBlocks,
     affectedUniformBytesPerFrame: affectedBytes,
     affectedUniformWritesPerFrame: expected,
+    readbackOperationsPerFrame,
     resourceCreationsPerFrame,
     resourcesCreatedDuringWindow,
   });
@@ -169,6 +186,7 @@ export const gpuProbeSource = String.raw`(() => {
     writeBufferCalls: 0,
     writeBufferBytes: 0,
     writeTextureCalls: 0,
+    readbackOperations: {},
     resources: {},
     resourceBytes: {},
     submissions: [],
@@ -212,6 +230,7 @@ export const gpuProbeSource = String.raw`(() => {
         writeBufferBytesByKind: {},
         writeBufferCallsByKindAndSize: {},
         resourcesCreated: {},
+        readbackOperations: {},
       };
     }
     return state.pending;
@@ -228,6 +247,15 @@ export const gpuProbeSource = String.raw`(() => {
     const bytes = data.byteLength;
     return bytes - Number(dataOffset || 0);
   };
+  const recordReadback = (kind) => {
+    increment(state.readbackOperations, kind);
+    increment(pending().readbackOperations, kind);
+  };
+  const isMapReadBuffer = (buffer) => {
+    const metadata = bufferMetadata.get(buffer);
+    return Boolean(metadata && (metadata.usage & GPUBufferUsage.MAP_READ));
+  };
+  let bufferMapReadInstrumented = false;
   const recordResource = (kind, descriptor, resource) => {
     increment(state.resources, kind);
     increment(pending().resourcesCreated, kind);
@@ -236,6 +264,18 @@ export const gpuProbeSource = String.raw`(() => {
       const usage = Number(descriptor?.usage || 0);
       increment(state.resourceBytes, kind, size);
       bufferMetadata.set(resource, { size, usage, kind: classifyBuffer(usage) });
+      if (!bufferMapReadInstrumented && typeof resource.mapAsync === 'function') {
+        try {
+          replaceMethod(resource, 'mapAsync', (original) => function (mode, ...args) {
+            const readMode = typeof GPUMapMode === 'undefined' ? 1 : GPUMapMode.READ;
+            if ((Number(mode) & readMode) !== 0) recordReadback('bufferMapRead');
+            return Reflect.apply(original, this, [mode, ...args]);
+          });
+          bufferMapReadInstrumented = true;
+        } catch (error) {
+          state.installError ||= error instanceof Error ? error.message : String(error);
+        }
+      }
     }
   };
   const replaceMethod = (target, name, createReplacement) => {
@@ -279,6 +319,18 @@ export const gpuProbeSource = String.raw`(() => {
       get(target, property) {
         if (property === 'beginRenderPass') {
           return (...args) => proxyPass(target.beginRenderPass(...args));
+        }
+        if (property === 'copyBufferToBuffer') {
+          return (...args) => {
+            if (isMapReadBuffer(args[2])) recordReadback('copyBufferToMapRead');
+            return Reflect.apply(target.copyBufferToBuffer, target, args);
+          };
+        }
+        if (property === 'copyTextureToBuffer') {
+          return (...args) => {
+            if (isMapReadBuffer(args[1]?.buffer)) recordReadback('copyTextureToMapRead');
+            return Reflect.apply(target.copyTextureToBuffer, target, args);
+          };
         }
         const value = Reflect.get(target, property, target);
         return typeof value === 'function' ? value.bind(target) : value;
