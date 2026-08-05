@@ -18,7 +18,7 @@ the action you need.
 | `get_diagnostics` | A build, runtime, or action is not working | No |
 | `list_point_lights` | You need to discover point lights and their stable IDs | No |
 | `get_point_light` | You need the complete state and history for one light | No |
-| `dev_reload` | A ready build should replace the connected game process | Yes |
+| `dev_reload` | A ready build should reload the connected game runtime | Yes |
 | `capture_frame` | You need the exact current game-canvas pixels | Yes |
 | `set_point_light_power` | You need to change a light's power | Yes |
 | `correct_point_light_power` | You need to restore the value before an accepted power change | Yes |

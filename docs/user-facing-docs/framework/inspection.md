@@ -1,13 +1,12 @@
-# Runtime Inspection
+# Runtime inspection
 
-`@antiky/framework` supplies one structured source for runtime diagnostics and semantic measurements.
-Your game can publish those facts once and let direct tests, the Antiky CLI, MCP clients, and Studio
-integrations read the same state.
+Runtime inspection lets development tools see what your game is doing while it runs. Publish one
+snapshot to expose the game's lifecycle, diagnostics, performance measurements, and optional
+point-light state to the CLI, MCP clients, Studio, and your tests.
 
-## Create a snapshot
+## Publish a snapshot
 
-Use `createInspectionSnapshot` at a trust boundary. It validates the complete value, rejects unknown
-fields, clones caller-owned data, and freezes the result.
+Create a snapshot whenever the state you want development tools to read changes:
 
 ```ts
 import {
@@ -40,46 +39,29 @@ const snapshot = createInspectionSnapshot({
 });
 ```
 
-The framework owns every fact in `measurements`. Development-process and build measurements belong
-to the CLI development host and do not enter this object.
+`createInspectionSnapshot` checks the complete value, rejects unknown fields, copies caller-owned
+data, and returns an immutable snapshot.
 
-## Include point-light inspection
+## Choose what to report
 
-When a runtime owns a point-light authoring service, publish its immutable view through the optional
-`pointLights` field. Games without that service omit the field.
+| Area | What it describes |
+| --- | --- |
+| `runtime` | The current game-runtime ID and lifecycle |
+| `diagnostics` | Problems or useful notices from the framework or renderer |
+| `measurements.runtime` | Frame count and an optional frames-per-second sample |
+| `measurements.render` | Canvas size, draw calls, instance count, and upload bytes per frame |
+| `pointLights` | Optional point-light state and accepted change history |
 
-```ts
-import {
-  createInspectionSnapshot,
-  inspectPointLightService,
-} from '@antiky/framework';
+Report only measurements that your game can obtain truthfully. Omit an optional value instead of
+estimating it.
 
-const pointLights = inspectPointLightService(lightService);
+Every measurement inside this snapshot uses `owner: 'framework'`. Process-launch and build timing
+belong to the CLI development snapshot, not the framework snapshot.
 
-const snapshot = createInspectionSnapshot({
-  schemaVersion: 1,
-  runtime: {
-    instanceId: pointLights.runtime.instanceId,
-    lifecycle: 'running',
-  },
-  diagnostics: [],
-  measurements: {
-    runtime: { owner: 'framework', frameCount: 120 },
-    render: { owner: 'framework', drawCalls: 16 },
-  },
-  pointLights,
-});
-```
+## Keep the latest snapshot
 
-The point-light view contains stable world and entity IDs, authoring records and revisions, the
-runtime projection, optional render bindings, dirty slots, and accepted facts. It contains no
-principal, permission, credential, renderer object, or GPU resource. The point-light runtime ID
-must match the enclosing inspection runtime ID.
-
-## Read and subscribe
-
-`createInspectionStore` keeps the latest immutable snapshot. `read` returns that snapshot.
-`subscribe` reports each later publication in sequence order.
+`createInspectionStore` keeps the current snapshot and lets other parts of your game read or
+subscribe to it:
 
 ```ts
 import { createInspectionStore } from '@antiky/framework';
@@ -97,38 +79,73 @@ store.publish({
 unsubscribe();
 ```
 
-Publishing validates and clones the new value before subscribers receive it. Do not use a snapshot
-as mutable application state.
+`read` returns the latest snapshot. `subscribe` receives each later publication in sequence
+order. Publishing validates and copies the new value before subscribers receive it, so do not use a
+snapshot as mutable game state.
 
-## Diagnostics
+## Include point lights
 
-A diagnostic contains these fields:
+If your game owns a point-light service, turn its state into an inspection view with
+`inspectPointLightService`:
 
-- `id`: a stable ID for this diagnostic.
-- `owner`: always `framework` in an inspection snapshot.
-- `source`: `runtime` or `render`.
-- `code`: a stable uppercase machine code.
-- `severity`: `info`, `warning`, or `error`.
-- `message`: a bounded human-readable explanation.
-- `relatedIds`: up to 16 runtime, build, capture, or action IDs.
+```ts
+import {
+  createInspectionSnapshot,
+  inspectPointLightService,
+} from '@antiky/framework';
 
-A snapshot contains at most 64 diagnostics. A client must use `code` for control flow and can show
-`message` to a person.
+const pointLights = inspectPointLightService(lightService);
 
-## Measurements
+const snapshotWithLights = createInspectionSnapshot({
+  schemaVersion: 1,
+  runtime: {
+    instanceId: pointLights.runtime.instanceId,
+    lifecycle: 'running',
+  },
+  diagnostics: [],
+  measurements: {
+    runtime: { owner: 'framework', frameCount: 120 },
+    render: { owner: 'framework', drawCalls: 16 },
+  },
+  pointLights,
+});
+```
 
-Runtime measurements contain the total frame count and an optional frames-per-second sample.
-Render measurements can contain canvas size, draw calls, instances, and CPU-to-GPU bytes for each
-frame. A producer omits a value that it cannot report truthfully.
+The point-light view includes stable world and entity IDs, authored values and revisions, current
+game values, optional render bindings, pending render slots, and accepted facts. It does not include
+credentials, permissions, renderer objects, or GPU resources.
 
-The inspection module is headless. It does not import Node.js, React, Next.js, BroMetal, Studio, MCP,
-or browser globals. A host adapter maps its real runtime facts into this contract.
+The point-light runtime ID must match the runtime ID on the enclosing snapshot. Games that do not
+use the point-light service leave `pointLights` out.
 
-## Validation errors
+See [Point lights](point-lights.md) for creation, live changes, and renderer integration.
 
-Invalid input throws `InspectionValidationError`. The error has the stable code
-`ANTIKY_INSPECTION_INVALID` and a `path` that identifies the rejected field. Treat this error as a
-request rejection. Do not publish a partial snapshot.
+## Report diagnostics
 
-See the [framework system overview](../../architecture/framework/overview_A.md) for the ownership and
-state-flow rules.
+A diagnostic contains:
+
+| Field | Meaning |
+| --- | --- |
+| `id` | A stable ID for this occurrence |
+| `owner` | `framework` inside a framework snapshot |
+| `source` | `runtime` or `render` |
+| `code` | A stable uppercase code for control flow |
+| `severity` | `info`, `warning`, or `error` |
+| `message` | A bounded explanation for a person |
+| `relatedIds` | Up to 16 related runtime, build, capture, or action IDs |
+
+A snapshot can contain up to 64 diagnostics. Consumers should use `code` to choose recovery and
+show `message` to a person.
+
+## Handle invalid snapshots
+
+Invalid input throws `InspectionValidationError`. Its stable code is
+`ANTIKY_INSPECTION_INVALID`, and its `path` identifies the rejected field. Treat the whole
+publication as rejected; do not publish a partial snapshot.
+
+The inspection module is headless. It does not import browser, Node.js, React, Studio, MCP, or
+renderer code. Your game adapter reads real state from those systems and maps it into this public
+snapshot.
+
+After `antiky dev` connects to the game, use `antiky inspect` or the
+[MCP inspection tools](../mcp/tools.md#development-state-tools) to read the published state.
