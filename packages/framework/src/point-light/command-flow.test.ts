@@ -85,6 +85,16 @@ function sixStateValues(service: ReturnType<typeof createService>) {
   };
 }
 
+function observableState(service: ReturnType<typeof createService>) {
+  return {
+    pointLights: service.listPointLights(),
+    facts: service.listPointLightPowerFacts(),
+    commandResults: service.listPointLightCommandResults(),
+    state: service.readPointLightState(),
+    renderChanges: service.readPointLightRenderChanges(),
+  };
+}
+
 test('an accepted command reaches authoring, runtime, render, and one dirty slot exactly once', () => {
   const service = createService();
   const result = service.submitPointLightPower(setPower(commandId(0), 2), trustedContext);
@@ -150,6 +160,27 @@ test('correction records a new fact and restores the prior value', () => {
   assert.equal(correction.fact?.oldPower, 2);
   assert.equal(correction.fact?.newPower, 1.05);
   assert.equal(service.getPointLight(WEST_ID)?.pointLight.power, 1.05);
+});
+
+test('an unknown correction has no entity and duplicate retries do not grow history', () => {
+  const service = createService();
+  const request = {
+    protocolVersion: 1,
+    commandVersion: 1,
+    commandId: commandId(32),
+    correctedCommandId: commandId(999),
+    expectedRevision: 1,
+  };
+
+  const first = service.correctPointLightPower(request, trustedContext);
+  const duplicate = service.correctPointLightPower(request, trustedContext);
+
+  assert.equal(first.code, 'INVALID_COMMAND');
+  assert.equal(first.entityId, null);
+  assert.equal(duplicate.code, 'DUPLICATE_COMMAND');
+  assert.equal(duplicate.entityId, null);
+  assert.equal(duplicate.duplicateOfCode, 'INVALID_COMMAND');
+  assert.deepEqual(service.listPointLightCommandResults(), [first]);
 });
 
 test('render changes remain pending until the adapter acknowledges the current sequence', () => {
@@ -237,7 +268,7 @@ test('ordered replay and a complete rebuild match current state and reject seque
   assert.deepEqual(sixStateValues(service), before);
 });
 
-test('runtime mismatch and disposal reject later commands without changing the last valid state', () => {
+test('runtime mismatch and every disposed command path preserve all observable state', () => {
   const service = createService();
   const before = sixStateValues(service);
   const mismatch = service.submitPointLightPower(setPower(commandId(600), 2), {
@@ -247,8 +278,45 @@ test('runtime mismatch and disposal reject later commands without changing the l
   assert.equal(mismatch.code, 'INVALID_COMMAND');
   assert.deepEqual(sixStateValues(service), before);
 
+  const acceptedCommand = setPower(commandId(601), 2);
+  assert.equal(service.submitPointLightPower(acceptedCommand, trustedContext).code, 'ACCEPTED');
+  const missingCorrection = {
+    protocolVersion: 1,
+    commandVersion: 1,
+    commandId: commandId(602),
+    correctedCommandId: commandId(998),
+    expectedRevision: 2,
+  };
+  assert.equal(
+    service.correctPointLightPower(missingCorrection, trustedContext).code,
+    'INVALID_COMMAND',
+  );
   service.dispose();
-  const disposed = service.submitPointLightPower(setPower(commandId(601), 2), trustedContext);
-  assert.equal(disposed.code, 'INVALID_COMMAND');
-  assert.deepEqual(sixStateValues(service), before);
+  const disposedState = observableState(service);
+  const cases: readonly (() => ReturnType<typeof service.submitPointLightPower>)[] = [
+    () => service.submitPointLightPower(setPower(commandId(603), 3, 2), trustedContext),
+    () => service.submitPointLightPower(acceptedCommand, trustedContext),
+    () => service.submitPointLightPower({ invalid: true }, trustedContext),
+    () => service.correctPointLightPower({
+      protocolVersion: 1,
+      commandVersion: 1,
+      commandId: commandId(604),
+      correctedCommandId: commandId(601),
+      expectedRevision: 2,
+    }, trustedContext),
+    () => service.correctPointLightPower({
+      protocolVersion: 1,
+      commandVersion: 1,
+      commandId: commandId(605),
+      correctedCommandId: commandId(997),
+      expectedRevision: 2,
+    }, trustedContext),
+    () => service.correctPointLightPower(missingCorrection, trustedContext),
+    () => service.correctPointLightPower({ invalid: true }, trustedContext),
+  ];
+
+  for (const submit of cases) {
+    assert.equal(submit().code, 'INVALID_COMMAND');
+    assert.deepEqual(observableState(service), disposedState);
+  }
 });

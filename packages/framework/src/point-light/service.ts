@@ -22,6 +22,7 @@ import {
   parsePointLightCommandContext,
   parsePointLightPowerSetFact,
   parseSetPointLightPowerCommand,
+  type CorrectPointLightPowerRequest,
   type PointLightCommandContext,
   type PointLightCommandContextInput,
   type PointLightCommandResult,
@@ -349,6 +350,25 @@ export function createPointLightAuthoringService(input: unknown): PointLightAuth
     return cache ? cacheResult(result) : result;
   };
 
+  const resultForCorrection = (
+    request: CorrectPointLightPowerRequest,
+    code: PointLightCommandResultCode,
+    entityId: EntityId | null,
+    options: Omit<ResultInput, 'code' | 'commandId' | 'worldId' | 'entityId'> = {},
+    cache = true,
+  ): PointLightCommandResult => {
+    const result = createCommandResult({
+      code,
+      commandId: request.commandId,
+      worldId,
+      entityId,
+      runtimeInstanceId,
+      eventSequence,
+      ...options,
+    });
+    return cache ? cacheResult(result) : result;
+  };
+
   const readTrustedContext = (
     value: unknown,
     command: SetPointLightPowerCommand,
@@ -496,19 +516,20 @@ export function createPointLightAuthoringService(input: unknown): PointLightAuth
     } catch {
       return createCommandResult({ code: 'INVALID_COMMAND', runtimeInstanceId });
     }
+    if (disposed) return resultForCorrection(request, 'INVALID_COMMAND', null, {}, false);
+
+    const priorResult = resultByCommand.get(request.commandId);
+    if (priorResult) {
+      return resultForCorrection(request, 'DUPLICATE_COMMAND', priorResult.entityId, {
+        currentRevision: priorResult.entityId === null
+          ? null
+          : currentMap.get(priorResult.entityId)?.revision ?? null,
+        duplicateOfCode: priorResult.code,
+      }, false);
+    }
     const corrected = facts.find((fact) => fact.sourceCommandId === request.correctedCommandId);
     if (!corrected) {
-      const placeholder = Object.freeze({
-        protocolVersion: POINT_LIGHT_COMMAND_PROTOCOL_VERSION,
-        commandVersion: POINT_LIGHT_COMMAND_VERSION,
-        type: SET_POINT_LIGHT_POWER_COMMAND_TYPE,
-        commandId: request.commandId,
-        worldId,
-        entityId: initialRecords[0]?.entityId ?? parseEntityId(request.correctedCommandId),
-        expectedRevision: request.expectedRevision,
-        data: Object.freeze({ power: 0, correctionOf: request.correctedCommandId }),
-      });
-      return resultFor(placeholder, 'INVALID_COMMAND');
+      return resultForCorrection(request, 'INVALID_COMMAND', null);
     }
     return submitPointLightPower(Object.freeze({
       protocolVersion: POINT_LIGHT_COMMAND_PROTOCOL_VERSION,
