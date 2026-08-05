@@ -8,6 +8,7 @@ import {
   summarizeGpuProbe,
 } from '../scripts/slice-01-gpu-probe.mjs';
 import {
+  describeProbeProgress,
   extractReferencePointLight,
   formatSlice01RunId,
 } from '../scripts/capture-slice-01-baseline.mjs';
@@ -156,4 +157,17 @@ test('the baseline uses an immutable run ID and reads practical-light slot zero'
     power: 1.05,
     color: [1, 0.52, 0.22],
   });
+});
+
+test('a baseline timeout reports the browser and GPU boundary that stalled', () => {
+  assert.equal(describeProbeProgress({
+    phase: 'error',
+    stageError: 'Device setup failed.',
+    probe: {
+      installError: null,
+      adapterRequests: 1,
+      deviceRequests: 0,
+      queueSubmissions: 0,
+    },
+  }), 'phase=error; stageError=Device setup failed.; probeInstallError=none; adapterRequests=1; deviceRequests=0; queueSubmissions=0');
 });

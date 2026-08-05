@@ -84,6 +84,21 @@ export function extractReferencePointLight(source) {
   return pointLight;
 }
 
+export function describeProbeProgress(progress) {
+  const probe = progress.probe ?? {};
+  const value = (candidate) => candidate === null || candidate === undefined || candidate === ''
+    ? 'none'
+    : String(candidate).replaceAll(/\s+/g, ' ').trim();
+  return [
+    `phase=${value(progress.phase)}`,
+    `stageError=${value(progress.stageError)}`,
+    `probeInstallError=${value(probe.installError)}`,
+    `adapterRequests=${value(probe.adapterRequests)}`,
+    `deviceRequests=${value(probe.deviceRequests)}`,
+    `queueSubmissions=${value(probe.queueSubmissions)}`,
+  ].join('; ');
+}
+
 async function evaluateValue(cdp, expression) {
   const response = await cdp.send('Runtime.evaluate', { expression, returnByValue: true });
   if (response.exceptionDetails) {
@@ -209,14 +224,28 @@ export async function captureSlice01Baseline() {
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: gpuProbeSource });
     await cdp.send('Page.navigate', { url: gameUrl });
 
-    await waitFor(async () => evaluateValue(cdp, `(
-      document.querySelector('.stage')?.getAttribute('data-phase') === 'running'
-      && globalThis.__antikyGpuProbe?.queueSubmissions >= 210
-    )`), {
-      timeoutMilliseconds: 45_000,
-      intervalMilliseconds: 100,
-      label: '210 instrumented town submissions',
-    });
+    try {
+      await waitFor(async () => evaluateValue(cdp, `(
+        document.querySelector('.stage')?.getAttribute('data-phase') === 'running'
+        && globalThis.__antikyGpuProbe?.queueSubmissions >= 210
+      )`), {
+        timeoutMilliseconds: 45_000,
+        intervalMilliseconds: 100,
+        label: '210 instrumented town submissions',
+      });
+    } catch (error) {
+      const progress = JSON.parse(await evaluateValue(cdp, `JSON.stringify({
+        phase: document.querySelector('.stage')?.getAttribute('data-phase') ?? null,
+        stageError: document.querySelector('.stage-error, [role="alert"]')?.textContent ?? null,
+        probe: globalThis.__antikyGpuProbe ? {
+          installError: globalThis.__antikyGpuProbe.installError,
+          adapterRequests: globalThis.__antikyGpuProbe.adapterRequests,
+          deviceRequests: globalThis.__antikyGpuProbe.deviceRequests,
+          queueSubmissions: globalThis.__antikyGpuProbe.queueSubmissions,
+        } : null,
+      })`));
+      throw new Error(`${error.message} ${describeProbeProgress(progress)}`, { cause: error });
+    }
 
     const { connectDevelopmentClient } = await import('../../cli/src/development/client.ts');
     const client = await waitFor(() => connectDevelopmentClient(), {
