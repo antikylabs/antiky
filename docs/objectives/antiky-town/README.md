@@ -15,10 +15,10 @@ When a slice changes how people use the framework, CLI, or Studio, update the ma
 
 | Document | Purpose |
 | --- | --- |
-| [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) | Researches the development host, inspection, reload, and GPU tools. |
-| [`INSPECTION_TOOLING_A.md`](INSPECTION_TOOLING_A.md) | Defines the native inspection scope and the ideas kept from WebGPU Inspector. |
+| [`DEV_HARNESS_RESEARCH_A.md`](../general-stuff/DEV_HARNESS_RESEARCH_A.md) | Researches the development host, inspection, reload, and GPU tools. |
+| [`INSPECTION_TOOLING_A.md`](../general-stuff/INSPECTION_TOOLING_A.md) | Defines the native inspection scope and the ideas kept from WebGPU Inspector. |
 | [`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md) | Defines the staged Antiky Town port and its feature choices. |
-| [`RELEASE_VERSIONING_A.md`](RELEASE_VERSIONING_A.md) | Defines the independent version and release direction for Slice 12. |
+| [`RELEASE_VERSIONING_A.md`](../general-stuff/RELEASE_VERSIONING_A.md) | Defines the independent version and release direction for Slice 12. |
 | [`SLICE_WORKFLOW_A.md`](SLICE_WORKFLOW_A.md) | Defines how to plan, run, and close each slice. |
 | [`SLICE_PLAN_TEMPLATE_A.md`](SLICE_PLAN_TEMPLATE_A.md) | Supplies the copyable contract for a new slice. |
 | [`slice-list.md`](slice-list.md) | Lists the short active slice sequence. |

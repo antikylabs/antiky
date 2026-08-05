@@ -77,5 +77,5 @@ Add an inspection capability only when a slice can name its consumer and proof.
 ## References
 
 - [Development harness research](DEV_HARNESS_RESEARCH_A.md)
-- [Slice 00 plan](slice-00/plan.md)
+- [Antiky Town Slice 00 plan](../antiky-town/slice-00/plan.md)
 - [WebGPU Inspector](https://github.com/brendan-duncan/webgpu_inspector)

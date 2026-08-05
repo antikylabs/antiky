@@ -85,8 +85,8 @@ process health, or cleanup time. The CLI development host owns these meanings.
 
 - [`owner-input_H.md`](owner-input_H.md)
 - [`SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
-- [`DEV_HARNESS_RESEARCH_A.md`](../DEV_HARNESS_RESEARCH_A.md)
-- [`INSPECTION_TOOLING_A.md`](../INSPECTION_TOOLING_A.md)
+- [`DEV_HARNESS_RESEARCH_A.md`](../../general-stuff/DEV_HARNESS_RESEARCH_A.md)
+- [`INSPECTION_TOOLING_A.md`](../../general-stuff/INSPECTION_TOOLING_A.md)
 - [`IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
 - [ADR 0003: Use one engine API for humans and agents](../../../adr/framework/0003-agent-native_H.md)
 - [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md)
@@ -169,7 +169,7 @@ Slice 00 proves a Studio-compatible connection contract. It does not build a Stu
 desktop host. Studio implementation starts after the first town port.
 
 Do not integrate WebGPU Inspector. Use it only as a design reference. Antiky's native inspection
-scope is defined in [`INSPECTION_TOOLING_A.md`](../INSPECTION_TOOLING_A.md).
+scope is defined in [`INSPECTION_TOOLING_A.md`](../../general-stuff/INSPECTION_TOOLING_A.md).
 
 ## User-facing documentation deliverable
 

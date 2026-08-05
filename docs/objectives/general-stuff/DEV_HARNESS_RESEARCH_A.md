@@ -8,8 +8,9 @@
 
 Antiky Town should start with a development-harness slice.
 
-Use [`slice-00/plan.md`](slice-00/plan.md) as the executable contract. This document supplies the
-research. It does not replace the plan, owner input, tests, checkpoints, or completion checks.
+Use the [Antiky Town Slice 00 plan](../antiky-town/slice-00/plan.md) as the executable contract.
+This document supplies the research. It does not replace the plan, owner input, tests,
+checkpoints, or completion checks.
 
 The first version should use the current Next.js demo host. It should not build a new bundler or a
 new hot-module-reload system. `@antiky/cli` should read project configuration, start the existing
@@ -376,7 +377,8 @@ Read operations must stay read-only. A tool that changes runtime state must say 
 return a structured result.
 
 Later slices add world, entity, asset, clock, selection, command, and history operations. The
-[implementation plan](IMPLEMENTATION_PLAN_A.md) defines when each operation becomes required.
+[Antiky Town implementation plan](../antiky-town/IMPLEMENTATION_PLAN_A.md) defines when each
+operation becomes required.
 
 ## Host choices for Slice 0
 
@@ -429,7 +431,8 @@ cannot meet.
 
 ## Owner decisions
 
-[`slice-00/owner-input_H.md`](slice-00/owner-input_H.md) records these accepted decisions:
+The [Antiky Town Slice 00 owner input](../antiky-town/slice-00/owner-input_H.md) records these
+accepted decisions:
 
 - Launch `town-study` through the current Next.js host.
 - Prove direct, CLI, and MCP inspection plus a Studio-compatible contract.

@@ -35,7 +35,8 @@ Before planning or implementing work, read:
 
 | Project | Purpose |
 | --- | --- |
-| [Antiky Town](antiky-town/README.md) | Holds the port plan, development research, slice workflow, template, and executable slice plans. |
+| [Antiky Town](antiky-town/README.md) | Holds the port plan, slice workflow, template, and executable slice plans. |
+| [General research](general-stuff/) | Holds research and direction that more than one objective can use. |
 
 ## Commands
 

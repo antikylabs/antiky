@@ -41,9 +41,10 @@ service surface that CLI, Studio, and tests use.
 Later slices extend the framework service with world, entity, asset, clock, selection, command, and
 history operations.
 
-Read [`DEV_HARNESS_RESEARCH_A.md`](DEV_HARNESS_RESEARCH_A.md) for the engine research and Slice 0
-design. Read [`INSPECTION_TOOLING_A.md`](INSPECTION_TOOLING_A.md) for the accepted native inspection
-scope.
+Read [`DEV_HARNESS_RESEARCH_A.md`](../general-stuff/DEV_HARNESS_RESEARCH_A.md) for the engine
+research and Slice 0 design. Read
+[`INSPECTION_TOOLING_A.md`](../general-stuff/INSPECTION_TOOLING_A.md) for the accepted native
+inspection scope.
 
 ## Rules for every slice
 

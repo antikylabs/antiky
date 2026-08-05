@@ -3,7 +3,7 @@
 **Status: Proposed Slice 12 direction**
 
 Create the full `slice-12/plan.md` from the
-[shared template](SLICE_PLAN_TEMPLATE_A.md) when this slice becomes active.
+[Antiky Town slice template](../antiky-town/SLICE_PLAN_TEMPLATE_A.md) when this slice becomes active.
 
 ## Outcome
 
