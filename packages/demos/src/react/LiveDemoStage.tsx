@@ -12,6 +12,10 @@ import {
 } from '../runtime';
 import type { DemoInspectionInput, DemoRuntimePhase } from '../runtime-inspection';
 import { loadDemo } from '../registry';
+import {
+  createPausableRenderLoop,
+  type PausableRenderLoop,
+} from './pausable-render-loop';
 
 type Props = {
   slug: string;
@@ -57,6 +61,7 @@ export default function LiveDemoStage({
   const frameCountRef = useRef(0);
   const runtimeInstanceIdRef = useRef('runtime-pending');
   const demoInstanceRef = useRef<DemoInstance | null>(null);
+  const frameLoopRef = useRef<PausableRenderLoop | null>(null);
   const inspectionPublisherRef = useRef<InspectionPublisher | null>(null);
   const inspectionInputRef = useRef<DemoInspectionInput | null>(null);
   const movementRef = useRef<MovementInput>({ x: 0, z: 0, active: false });
@@ -226,8 +231,10 @@ export default function LiveDemoStage({
         let lastReport = 0;
         let previewFrames = 2;
         const built = demo;
+        const builtRenderer = renderer;
         const autoplay = autoStart || (variant === 'hero' && !reducedMotion);
-        const stop = renderer.loop((time) => {
+        let frameLoop: PausableRenderLoop;
+        frameLoop = createPausableRenderLoop((frame) => builtRenderer.loop(frame), (time) => {
           if (!visible || document.hidden) return;
           if (!runningRef.current && previewFrames > 0) {
             built.frame(0.8);
@@ -240,6 +247,7 @@ export default function LiveDemoStage({
                 if (autoStart) canvas.focus({ preventScroll: true });
               } else {
                 setPhase('ready');
+                frameLoop.pause();
               }
             }
             return;
@@ -255,9 +263,12 @@ export default function LiveDemoStage({
             lastReport = time;
           }
         });
+        frameLoopRef.current = frameLoop;
+        frameLoop.start();
 
         teardown = () => {
-          stop();
+          if (frameLoopRef.current === frameLoop) frameLoopRef.current = null;
+          frameLoop.dispose();
           if (demoInstanceRef.current === built) demoInstanceRef.current = null;
           built.dispose();
           renderer?.destroy();
@@ -281,6 +292,7 @@ export default function LiveDemoStage({
           void start();
         } else if (!visible && runningRef.current) {
           runningRef.current = false;
+          frameLoopRef.current?.pause();
           pausedByVisibility = true;
           setPhase('paused');
         } else if (
@@ -290,6 +302,7 @@ export default function LiveDemoStage({
         ) {
           pausedByVisibility = false;
           runningRef.current = true;
+          frameLoopRef.current?.start();
           setPhase('running');
         }
       },
@@ -399,6 +412,8 @@ export default function LiveDemoStage({
   const toggleRunning = () => {
     const next = !runningRef.current;
     runningRef.current = next;
+    if (next) frameLoopRef.current?.start();
+    else frameLoopRef.current?.pause();
     setPhase(next ? 'running' : 'paused');
     if (next) canvasRef.current?.focus({ preventScroll: true });
   };

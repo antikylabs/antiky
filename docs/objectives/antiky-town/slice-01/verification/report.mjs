@@ -44,6 +44,14 @@ const historicalAttempts = Object.freeze([
     cause: 'The owner rejected placing objective-specific verification implementation inside the demos product package.',
     disposition: 'The unsealed run stopped before service startup; reusable systems moved to scripts/verification and objective fixtures moved into this slice folder.',
   },
+  {
+    id: 'attempt-011',
+    checkpoint: 'CP-05',
+    result: 'FAIL',
+    failureClass: 'DEFECT',
+    cause: 'The paused stage suppressed demo drawing but left the BroMetal renderer loop submitting empty GPU frames.',
+    disposition: 'A failing pausable-loop regression led the stage to stop the renderer loop on pause and start one replacement on resume.',
+  },
 ]);
 
 function evidence(status, detail, reason) {
@@ -257,7 +265,7 @@ export function createReceipt(context, artifacts, acceptance) {
   const attempts = [
     ...historicalAttempts,
     {
-      id: 'attempt-011',
+      id: 'attempt-012',
       checkpoint: 'CP-05',
       result: 'PASS',
       failureClass: null,
