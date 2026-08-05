@@ -16,3 +16,7 @@ The receipt must list each stored output and its digest. Do not store credential
 The Evidence field in [`../plan.md`](../plan.md) identifies the authoritative receipt. Run
 `s00-20260804T185103Z` remains immutable historical evidence and is superseded by
 `s00-20260804T205140Z`, which records and corrects its browser-network evidence failure.
+
+Run `s00-20260805T012759Z` is the current compatibility evidence for Slice 01. It verifies the
+focused game host and the HTTP MCP tool surface after the Slice 00 implementation changed. The
+completed Slice 00 plan continues to identify its historical delivery receipt.

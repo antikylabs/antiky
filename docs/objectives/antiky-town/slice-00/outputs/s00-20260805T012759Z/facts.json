@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-00",
+  "runId": "s00-20260805T012759Z",
+  "outcome": "One command starts, inspects, controls, and safely stops the current Antiky town.",
+  "route": "http://127.0.0.1:3010/",
+  "clients": {
+    "direct": "connectDevelopmentClient",
+    "cli": "antiky inspect",
+    "mcp": {
+      "transport": "streamable-http",
+      "tools": [
+        "get_dev_status",
+        "get_latest_build",
+        "get_runtime_status",
+        "get_render_stats",
+        "get_diagnostics",
+        "dev_reload",
+        "capture_frame"
+      ]
+    },
+    "studioCompatible": "connectDevelopmentClient; no Slice 00 Studio UI"
+  },
+  "identities": {
+    "correlationId": "verify-3b734d26-c1e0-4137-9a85-7b0a0ce0a1d1",
+    "developmentSessionId": "fb393a71-2ff8-411a-be9b-4caed42b0232",
+    "acceptedBuildRevision": 1,
+    "runtimeBeforeReload": "2407ebee-67d2-417d-abed-9552c7e133f9",
+    "runtimeAfterReload": "565591c3-ca11-430f-a023-308b8e318d1e",
+    "reloadActionId": "action-a2083a72-251a-41c4-adaf-ee60376a0d38",
+    "captureActionId": "action-5fbd323f-3627-47a9-ab0d-7a801759ee96",
+    "captureId": "capture-f590dab9-842d-431a-ae9c-9d3db913b80d"
+  },
+  "render": {
+    "owner": "framework",
+    "canvasWidth": 579,
+    "canvasHeight": 326,
+    "drawCalls": 16,
+    "instances": 1247,
+    "uploadBytesPerFrame": 1152
+  },
+  "reference": {
+    "baseline": "captures/baseline-town-ready.png",
+    "result": "captures/town-ready.png",
+    "canvasCapture": "captures/town-ready-canvas.png",
+    "approvedVisualDifference": "none",
+    "similarity": 0.902512,
+    "controls": [
+      "Town Study development host",
+      "Pause",
+      "Movement controls"
+    ]
+  },
+  "security": {
+    "bindAddress": "127.0.0.1",
+    "externalBrowserNetworkBlocked": true,
+    "sensitiveSessionValue": "random for each session and never recorded in evidence",
+    "productionBridgeExcluded": true,
+    "boundaryRegressionsPassed": true
+  },
+  "cleanup": {
+    "descriptorRemoved": true,
+    "releasedPorts": [
+      3010,
+      3011,
+      9322
+    ],
+    "browserProfileRemoved": true,
+    "ownedProcessesStopped": true
+  },
+  "scope": {
+    "studioUi": "N/A; explicitly deferred by the approved plan.",
+    "worldEntitiesCommandsAndRenderAbstractions": "N/A; deferred to later slices.",
+    "webgpuInspector": "N/A; prohibited by owner direction."
+  },
+  "learned": [
+    "Mode-stable authored shader expressions keep development and production output deterministic.",
+    "Capture acceptance must enter the running town and reject a visually uniform PNG.",
+    "Browser verification must block external traffic explicitly and reject evidence of any endpoint response.",
+    "Bounded polling of discovered authored files avoids platform watcher exhaustion.",
+    "Slice 01 can use the shared service after this receipt closes."
+  ]
+}
