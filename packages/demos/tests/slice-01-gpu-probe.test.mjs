@@ -141,6 +141,32 @@ test('the browser probe installs when navigator.gpu is read-only', async () => {
   assert.equal(context.__antikyGpuProbe.adapterRequests, 1);
 });
 
+test('the browser probe preserves WebIDL adapter and device identity', async () => {
+  const queue = {};
+  const device = { queue };
+  const adapter = {
+    async requestDevice() {
+      return device;
+    },
+  };
+  const gpuPrototype = {
+    async requestAdapter() {
+      return adapter;
+    },
+  };
+  const gpu = Object.create(gpuPrototype);
+  const context = vm.createContext({ navigator: { gpu } });
+
+  vm.runInContext(gpuProbeSource, context);
+  const measuredAdapter = await gpu.requestAdapter();
+  const measuredDevice = await measuredAdapter.requestDevice();
+
+  assert.equal(measuredAdapter, adapter);
+  assert.equal(measuredDevice, device);
+  assert.equal(measuredDevice.queue, queue);
+  assert.equal(context.__antikyGpuProbe.deviceRequests, 1);
+});
+
 test('the baseline uses an immutable run ID and reads practical-light slot zero', () => {
   assert.equal(
     formatSlice01RunId(new Date('2026-08-05T02:03:04.567Z')),

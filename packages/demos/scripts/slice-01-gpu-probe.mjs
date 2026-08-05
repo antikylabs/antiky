@@ -176,6 +176,7 @@ export const gpuProbeSource = String.raw`(() => {
 
   const bufferMetadata = new WeakMap();
   const proxyCache = new WeakMap();
+  const instrumented = new WeakSet();
   const resourceMethods = new Map([
     ['createBuffer', 'buffers'],
     ['createTexture', 'textures'],
@@ -230,6 +231,21 @@ export const gpuProbeSource = String.raw`(() => {
       bufferMetadata.set(resource, { size, usage, kind: classifyBuffer(usage) });
     }
   };
+  const replaceMethod = (target, name, createReplacement) => {
+    let owner = target;
+    while (owner && !Object.prototype.hasOwnProperty.call(owner, name)) {
+      owner = Object.getPrototypeOf(owner);
+    }
+    if (!owner || typeof target[name] !== 'function') {
+      throw new Error('WebGPU method ' + name + ' is unavailable.');
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(owner, name);
+    const original = target[name];
+    Object.defineProperty(owner, name, {
+      ...descriptor,
+      value: createReplacement(original),
+    });
+  };
 
   const proxyPass = (pass) => {
     if (proxyCache.has(pass)) return proxyCache.get(pass);
@@ -265,92 +281,73 @@ export const gpuProbeSource = String.raw`(() => {
     return proxy;
   };
 
-  const proxyQueue = (queue) => {
-    if (proxyCache.has(queue)) return proxyCache.get(queue);
-    const proxy = new Proxy(queue, {
-      get(target, property) {
-        if (property === 'writeBuffer') {
-          return (...args) => {
-            const metadata = bufferMetadata.get(args[0]) || { kind: 'unknown' };
-            const bytes = writtenBytes(args[2], args[3], args[4]);
-            const sample = pending();
-            state.writeBufferCalls += 1;
-            state.writeBufferBytes += bytes;
-            sample.writeBufferCalls += 1;
-            sample.writeBufferBytes += bytes;
-            increment(sample.writeBufferBytesByKind, metadata.kind, bytes);
-            sample.writeBufferCallsByKindAndSize[metadata.kind] ||= {};
-            increment(sample.writeBufferCallsByKindAndSize[metadata.kind], String(bytes));
-            return target.writeBuffer(...args);
-          };
-        }
-        if (property === 'writeTexture') {
-          return (...args) => {
-            state.writeTextureCalls += 1;
-            return target.writeTexture(...args);
-          };
-        }
-        if (property === 'submit') {
-          return (...args) => {
-            const sample = pending();
-            sample.commandBuffers = args[0]?.length ?? 0;
-            const result = target.submit(...args);
-            state.queueSubmissions += 1;
-            state.submissions.push(sample);
-            if (state.submissions.length > 240) state.submissions.shift();
-            state.pending = null;
-            return result;
-          };
-        }
-        const value = Reflect.get(target, property, target);
-        return typeof value === 'function' ? value.bind(target) : value;
-      },
-    });
-    proxyCache.set(queue, proxy);
-    return proxy;
+  const instrumentQueue = (queue) => {
+    if (instrumented.has(queue)) return queue;
+    instrumented.add(queue);
+    if (typeof queue.writeBuffer === 'function') {
+      replaceMethod(queue, 'writeBuffer', (original) => function (...args) {
+        const metadata = bufferMetadata.get(args[0]) || { kind: 'unknown' };
+        const bytes = writtenBytes(args[2], args[3], args[4]);
+        const sample = pending();
+        state.writeBufferCalls += 1;
+        state.writeBufferBytes += bytes;
+        sample.writeBufferCalls += 1;
+        sample.writeBufferBytes += bytes;
+        increment(sample.writeBufferBytesByKind, metadata.kind, bytes);
+        sample.writeBufferCallsByKindAndSize[metadata.kind] ||= {};
+        increment(sample.writeBufferCallsByKindAndSize[metadata.kind], String(bytes));
+        return Reflect.apply(original, this, args);
+      });
+    }
+    if (typeof queue.writeTexture === 'function') {
+      replaceMethod(queue, 'writeTexture', (original) => function (...args) {
+        state.writeTextureCalls += 1;
+        return Reflect.apply(original, this, args);
+      });
+    }
+    if (typeof queue.submit === 'function') {
+      replaceMethod(queue, 'submit', (original) => function (...args) {
+        const sample = pending();
+        sample.commandBuffers = args[0]?.length ?? 0;
+        const result = Reflect.apply(original, this, args);
+        state.queueSubmissions += 1;
+        state.submissions.push(sample);
+        if (state.submissions.length > 240) state.submissions.shift();
+        state.pending = null;
+        return result;
+      });
+    }
+    return queue;
   };
 
-  const proxyDevice = (device) => {
-    if (proxyCache.has(device)) return proxyCache.get(device);
-    const queue = proxyQueue(device.queue);
-    const proxy = new Proxy(device, {
-      get(target, property) {
-        if (property === 'queue') return queue;
-        if (property === 'createCommandEncoder') {
-          return (...args) => proxyEncoder(target.createCommandEncoder(...args));
-        }
-        const resourceKind = resourceMethods.get(property);
-        if (resourceKind) {
-          return (...args) => {
-            const resource = target[property](...args);
-            recordResource(resourceKind, args[0], resource);
-            return resource;
-          };
-        }
-        const value = Reflect.get(target, property, target);
-        return typeof value === 'function' ? value.bind(target) : value;
-      },
-    });
-    proxyCache.set(device, proxy);
-    return proxy;
+  const instrumentDevice = (device) => {
+    if (instrumented.has(device)) return device;
+    instrumented.add(device);
+    instrumentQueue(device.queue);
+    if (typeof device.createCommandEncoder === 'function') {
+      replaceMethod(device, 'createCommandEncoder', (original) => function (...args) {
+        return proxyEncoder(Reflect.apply(original, this, args));
+      });
+    }
+    for (const [method, resourceKind] of resourceMethods) {
+      if (typeof device[method] !== 'function') continue;
+      replaceMethod(device, method, (original) => function (...args) {
+        const resource = Reflect.apply(original, this, args);
+        recordResource(resourceKind, args[0], resource);
+        return resource;
+      });
+    }
+    return device;
   };
 
-  const proxyAdapter = (adapter) => {
-    if (!adapter || proxyCache.has(adapter)) return adapter ? proxyCache.get(adapter) : adapter;
-    const proxy = new Proxy(adapter, {
-      get(target, property) {
-        if (property === 'requestDevice') {
-          return async (...args) => {
-            state.deviceRequests += 1;
-            return proxyDevice(await target.requestDevice(...args));
-          };
-        }
-        const value = Reflect.get(target, property, target);
-        return typeof value === 'function' ? value.bind(target) : value;
-      },
+  const instrumentAdapter = (adapter) => {
+    if (!adapter || instrumented.has(adapter)) return adapter;
+    instrumented.add(adapter);
+    replaceMethod(adapter, 'requestDevice', (original) => async function (...args) {
+      state.deviceRequests += 1;
+      return instrumentDevice(await Reflect.apply(original, this, args));
     });
-    proxyCache.set(adapter, proxy);
-    return proxy;
+    return adapter;
   };
 
   try {
@@ -370,7 +367,7 @@ export const gpuProbeSource = String.raw`(() => {
       ...descriptor,
       value: async function (...args) {
         state.adapterRequests += 1;
-        return proxyAdapter(await Reflect.apply(requestAdapter, this, args));
+        return instrumentAdapter(await Reflect.apply(requestAdapter, this, args));
       },
     });
   } catch (error) {
