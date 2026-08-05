@@ -282,6 +282,7 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_ACTION_TIMEOUT`: the connected game process did not finish the action in time.
 - `ANTIKY_ACTION_STALE`: an action result belongs to an inactive request or game process.
 - `ANTIKY_CAPTURE_INVALID`: the game returned invalid or oversized PNG data.
+- `ANTIKY_CAPTURE_SAVE_FAILED`: Antiky could not save a valid frame capture.
 
 Fix a config or port error and run the command again. Do not edit the local session descriptor.
 

@@ -79,7 +79,11 @@ export async function connectDevelopmentClient(
       if (code === 'ANTIKY_RUNTIME_UNAVAILABLE') {
         throw new AntikyCliError(code, body?.error?.message ?? 'The runtime is unavailable.');
       }
-      if (code === 'ANTIKY_ACTION_BUSY' || code === 'ANTIKY_ACTION_TIMEOUT') {
+      if (
+        code === 'ANTIKY_ACTION_BUSY'
+        || code === 'ANTIKY_ACTION_TIMEOUT'
+        || code === 'ANTIKY_CAPTURE_SAVE_FAILED'
+      ) {
         throw new AntikyCliError(code, body?.error?.message ?? 'The action failed.');
       }
       if (

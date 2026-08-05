@@ -405,6 +405,7 @@ function actionStatus(cause: AntikyCliError): number {
   if (cause.code === 'ANTIKY_ACTION_TIMEOUT') return 504;
   if (cause.code === 'ANTIKY_RUNTIME_UNAVAILABLE') return 503;
   if (cause.code === 'ANTIKY_CAPTURE_INVALID') return 400;
+  if (cause.code === 'ANTIKY_CAPTURE_SAVE_FAILED') return 500;
   return 409;
 }
 

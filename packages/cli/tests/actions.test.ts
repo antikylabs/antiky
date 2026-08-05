@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { access, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 
 import {
@@ -242,4 +245,185 @@ test('session controls relay one exact action and reject stale browser state', a
     session: steppedStatus,
   });
   broker.stop();
+});
+
+test('a capture completion cannot complete an action started after its timeout', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-action-identity-'));
+  const broker = createDevelopmentActionBroker({
+    developmentSessionId: 'development-actions-identity-001',
+    rootDirectory,
+    readRuntimeContext: () => ({
+      runtimeInstanceId: 'runtime-actions-001',
+      buildRevision: 4,
+      connected: true,
+    }),
+    timeoutMilliseconds: 1_000,
+    now: () => '2026-08-05T03:00:00.000Z',
+  });
+  const capturePromise = broker.captureFrame();
+  void capturePromise.catch(() => {});
+  const captureAction = broker.nextAction('runtime-actions-001');
+  assert.equal(captureAction?.kind, 'capture');
+
+  const completion = broker.completeCapture({
+    actionId: captureAction!.actionId,
+    runtimeInstanceId: 'runtime-actions-001',
+    mimeType: 'image/png',
+    canvasWidth: 1,
+    canvasHeight: 1,
+    dataBase64: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString('base64'),
+  });
+
+  try {
+    context.mock.timers.tick(1_000);
+    await assert.rejects(
+      capturePromise,
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_ACTION_TIMEOUT'
+      ),
+    );
+
+    const laterPromise = broker.pauseSimulation();
+    const laterAction = broker.nextAction('runtime-actions-001');
+    assert.equal(laterAction?.kind, 'pause-simulation');
+
+    await assert.rejects(
+      completion,
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_ACTION_STALE'
+      ),
+    );
+    await broker.completeSessionControl({
+      actionId: laterAction!.actionId,
+      runtimeInstanceId: 'runtime-actions-001',
+      result: pausedControlResult,
+      session: pausedSessionStatus,
+    });
+    assert.equal((await laterPromise).actionId, laterAction!.actionId);
+  } finally {
+    broker.stop();
+    context.mock.timers.reset();
+    await rm(rootDirectory, { recursive: true, force: true });
+  }
+});
+
+test('a stopped broker rejects an in-flight capture and removes its late file', async () => {
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-action-stop-'));
+  const broker = createDevelopmentActionBroker({
+    developmentSessionId: 'development-actions-stop-001',
+    rootDirectory,
+    readRuntimeContext: () => ({
+      runtimeInstanceId: 'runtime-actions-001',
+      buildRevision: 4,
+      connected: true,
+    }),
+    timeoutMilliseconds: 1_000,
+  });
+  const capturePromise = broker.captureFrame();
+  void capturePromise.catch(() => {});
+  const captureAction = broker.nextAction('runtime-actions-001');
+  assert.ok(captureAction && captureAction.kind === 'capture');
+  const completion = broker.completeCapture({
+    actionId: captureAction.actionId,
+    runtimeInstanceId: 'runtime-actions-001',
+    mimeType: 'image/png',
+    canvasWidth: 1,
+    canvasHeight: 1,
+    dataBase64: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString('base64'),
+  });
+
+  try {
+    broker.stop();
+    await assert.rejects(
+      capturePromise,
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_RUNTIME_UNAVAILABLE'
+      ),
+    );
+    await assert.rejects(
+      completion,
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_ACTION_STALE'
+      ),
+    );
+    await assert.rejects(access(join(
+      rootDirectory,
+      '.antiky',
+      'captures',
+      `${captureAction.captureId}.png`,
+    )));
+    assert.throws(
+      () => broker.captureFrame(),
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_RUNTIME_UNAVAILABLE'
+      ),
+    );
+  } finally {
+    broker.stop();
+    await rm(rootDirectory, { recursive: true, force: true });
+  }
+});
+
+test('a capture persistence failure rejects only that action and frees the broker', async () => {
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), 'antiky-action-write-failure-'));
+  const rootDirectory = join(temporaryDirectory, 'not-a-directory');
+  await writeFile(rootDirectory, 'fixture');
+  const broker = createDevelopmentActionBroker({
+    developmentSessionId: 'development-actions-write-failure-001',
+    rootDirectory,
+    readRuntimeContext: () => ({
+      runtimeInstanceId: 'runtime-actions-001',
+      buildRevision: 4,
+      connected: true,
+    }),
+    timeoutMilliseconds: 1_000,
+  });
+  const capturePromise = broker.captureFrame();
+  void capturePromise.catch(() => {});
+  const captureAction = broker.nextAction('runtime-actions-001');
+  assert.ok(captureAction && captureAction.kind === 'capture');
+
+  try {
+    await assert.rejects(
+      () => broker.completeCapture({
+        actionId: captureAction.actionId,
+        runtimeInstanceId: 'runtime-actions-001',
+        mimeType: 'image/png',
+        canvasWidth: 1,
+        canvasHeight: 1,
+        dataBase64: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString('base64'),
+      }),
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_CAPTURE_SAVE_FAILED'
+        && !error.message.includes('not-a-directory')
+      ),
+    );
+    await assert.rejects(
+      capturePromise,
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_CAPTURE_SAVE_FAILED'
+      ),
+    );
+
+    const laterPromise = broker.setPointLightPower(setCommand);
+    const laterAction = broker.nextAction('runtime-actions-001');
+    assert.equal(laterAction?.kind, 'set-point-light-power');
+    await broker.completePointLightCommand({
+      actionId: laterAction!.actionId,
+      runtimeInstanceId: 'runtime-actions-001',
+      result: acceptedResult,
+    });
+    assert.deepEqual(await laterPromise, acceptedResult);
+  } finally {
+    broker.stop();
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
 });

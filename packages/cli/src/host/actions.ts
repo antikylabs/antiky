@@ -133,6 +133,10 @@ function actionError(
   return new AntikyCliError(code, message);
 }
 
+function staleCaptureError(): AntikyCliError {
+  return new AntikyCliError('ANTIKY_ACTION_STALE', 'The capture action is stale.');
+}
+
 function decodePng(value: string): Buffer {
   if (value.length === 0 || value.length > Math.ceil(MAX_CAPTURE_BYTES / 3) * 4 + 4) {
     throw new AntikyCliError('ANTIKY_CAPTURE_INVALID', 'The frame capture is empty or too large.');
@@ -149,12 +153,61 @@ function decodePng(value: string): Buffer {
   return bytes;
 }
 
+async function persistCapture(
+  rootDirectory: string,
+  captureId: string,
+  bytes: Buffer,
+): Promise<string> {
+  const directory = join(rootDirectory, '.antiky', 'captures');
+  const path = join(directory, `${captureId}.png`);
+  const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
+  let committed = false;
+  try {
+    await mkdir(directory, { recursive: true, mode: 0o700 });
+    await chmod(directory, 0o700);
+    await writeFile(temporaryPath, bytes, { flag: 'wx', mode: 0o600 });
+    await rename(temporaryPath, path);
+    await chmod(path, 0o600);
+    committed = true;
+    return path;
+  } finally {
+    await Promise.allSettled([
+      rm(temporaryPath, { force: true }),
+      ...(committed ? [] : [rm(path, { force: true })]),
+    ]);
+  }
+}
+
 export function createDevelopmentActionBroker(
   options: DevelopmentActionBrokerOptions,
 ): DevelopmentActionBroker {
   const timeoutMilliseconds = options.timeoutMilliseconds ?? DEFAULT_ACTION_TIMEOUT_MILLISECONDS;
   const now = options.now ?? (() => new Date().toISOString());
   let pending: PendingAction | null = null;
+  let stopped = false;
+
+  const resolvePending = (
+    active: PendingAction,
+    value:
+      | DevelopmentReloadResult
+      | DevelopmentCaptureResult
+      | PointLightCommandResult
+      | DevelopmentSessionControlResult,
+  ): boolean => {
+    if (pending !== active) return false;
+    pending = null;
+    clearTimeout(active.timer);
+    active.resolve(value);
+    return true;
+  };
+
+  const rejectPending = (active: PendingAction, cause: Error): boolean => {
+    if (pending !== active) return false;
+    pending = null;
+    clearTimeout(active.timer);
+    active.reject(cause);
+    return true;
+  };
 
   const createPending = <T extends
     | DevelopmentReloadResult
@@ -164,6 +217,9 @@ export function createDevelopmentActionBroker(
     kind: BrowserDevelopmentAction['kind'],
     payload: Readonly<Record<string, unknown>> = {},
   ): Promise<T> => {
+    if (stopped) {
+      throw actionError('ANTIKY_RUNTIME_UNAVAILABLE', 'The development session stopped.');
+    }
     if (pending) throw actionError('ANTIKY_ACTION_BUSY', 'Another development action is active.');
     const runtimeContext = options.readRuntimeContext();
     if (!runtimeContext.connected || !runtimeContext.runtimeInstanceId) {
@@ -191,9 +247,9 @@ export function createDevelopmentActionBroker(
     }) as BrowserDevelopmentAction;
     return new Promise<T>((resolve, reject) => {
       const timer = setTimeout(() => {
-        if (pending?.action.actionId !== actionId) return;
-        pending = null;
-        reject(actionError('ANTIKY_ACTION_TIMEOUT', `${kind} action timed out.`));
+        const active = pending;
+        if (!active || active.action.actionId !== actionId) return;
+        rejectPending(active, actionError('ANTIKY_ACTION_TIMEOUT', `${kind} action timed out.`));
       }, timeoutMilliseconds);
       timer.unref();
       pending = {
@@ -204,20 +260,6 @@ export function createDevelopmentActionBroker(
         timer,
       };
     });
-  };
-
-  const complete = (
-    value:
-      | DevelopmentReloadResult
-      | DevelopmentCaptureResult
-      | PointLightCommandResult
-      | DevelopmentSessionControlResult,
-  ) => {
-    const active = pending;
-    if (!active) return;
-    clearTimeout(active.timer);
-    pending = null;
-    active.resolve(value);
   };
 
   return Object.freeze({
@@ -256,18 +298,19 @@ export function createDevelopmentActionBroker(
       return pending.action;
     },
     noteRuntimeConnected(runtimeInstanceId: string): void {
+      const active = pending;
       if (
-        !pending
-        || pending.action.kind !== 'reload'
-        || !pending.delivered
-        || pending.action.runtimeInstanceId === runtimeInstanceId
+        !active
+        || active.action.kind !== 'reload'
+        || !active.delivered
+        || active.action.runtimeInstanceId === runtimeInstanceId
       ) return;
-      complete(Object.freeze({
+      resolvePending(active, Object.freeze({
         schemaVersion: 1,
-        actionId: pending.action.actionId,
+        actionId: active.action.actionId,
         developmentSessionId: options.developmentSessionId,
-        buildRevision: pending.action.buildRevision,
-        oldRuntimeInstanceId: pending.action.runtimeInstanceId,
+        buildRevision: active.action.buildRevision,
+        oldRuntimeInstanceId: active.action.runtimeInstanceId,
         newRuntimeInstanceId: runtimeInstanceId,
         result: 'reloaded',
       }));
@@ -294,19 +337,19 @@ export function createDevelopmentActionBroker(
         throw new AntikyCliError('ANTIKY_CAPTURE_INVALID', 'The frame capture metadata is invalid.');
       }
       const bytes = decodePng(input.dataBase64);
-      const directory = join(options.rootDirectory, '.antiky', 'captures');
-      await mkdir(directory, { recursive: true, mode: 0o700 });
-      await chmod(directory, 0o700);
-      const path = join(directory, `${active.action.captureId}.png`);
-      const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
+      let path: string;
       try {
-        await writeFile(temporaryPath, bytes, { flag: 'wx', mode: 0o600 });
-        await rename(temporaryPath, path);
-        await chmod(path, 0o600);
-      } finally {
-        await rm(temporaryPath, { force: true });
+        path = await persistCapture(options.rootDirectory, active.action.captureId, bytes);
+      } catch {
+        if (pending !== active) throw staleCaptureError();
+        const error = new AntikyCliError(
+          'ANTIKY_CAPTURE_SAVE_FAILED',
+          'The frame capture could not be saved.',
+        );
+        rejectPending(active, error);
+        throw error;
       }
-      complete(Object.freeze({
+      const result = Object.freeze({
         schemaVersion: 1,
         actionId: active.action.actionId,
         captureId: active.action.captureId,
@@ -317,7 +360,11 @@ export function createDevelopmentActionBroker(
         byteLength: bytes.length,
         sha256: createHash('sha256').update(bytes).digest('hex'),
         path,
-      }));
+      });
+      if (!resolvePending(active, result)) {
+        await Promise.allSettled([rm(path, { force: true })]);
+        throw staleCaptureError();
+      }
     },
     async completePointLightCommand(input: PointLightActionResultInput): Promise<void> {
       const active = pending;
@@ -357,7 +404,9 @@ export function createDevelopmentActionBroker(
           'The point-light action result does not match the active request.',
         );
       }
-      complete(result);
+      if (!resolvePending(active, result)) {
+        throw new AntikyCliError('ANTIKY_ACTION_STALE', 'The point-light action is stale.');
+      }
     },
     async completeSessionControl(input: SessionControlActionResultInput): Promise<void> {
       const active = pending;
@@ -390,13 +439,15 @@ export function createDevelopmentActionBroker(
             '$.result',
           );
         }
-        complete(Object.freeze({
+        if (!resolvePending(active, Object.freeze({
           schemaVersion: 1,
           actionId: active.action.actionId,
           developmentSessionId: options.developmentSessionId,
           result,
           session,
-        }));
+        }))) {
+          throw new AntikyCliError('ANTIKY_ACTION_STALE', 'The session-control action is stale.');
+        }
       } catch (cause: unknown) {
         if (cause instanceof EngineSessionValidationError) {
           throw new AntikyCliError(
@@ -408,11 +459,14 @@ export function createDevelopmentActionBroker(
       }
     },
     stop(): void {
+      if (stopped) return;
+      stopped = true;
       if (!pending) return;
       const active = pending;
-      pending = null;
-      clearTimeout(active.timer);
-      active.reject(actionError('ANTIKY_RUNTIME_UNAVAILABLE', 'The development session stopped.'));
+      rejectPending(
+        active,
+        actionError('ANTIKY_RUNTIME_UNAVAILABLE', 'The development session stopped.'),
+      );
     },
   });
 }
