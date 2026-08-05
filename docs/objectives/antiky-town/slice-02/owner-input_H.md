@@ -24,6 +24,8 @@ change the recommendation. Change the status to `ANSWERED` after all answers are
 - MCP exposes Tools. It does not duplicate the operations as Resources.
 - BroMetal `0.15.0` is the current, verified feature baseline.
 - Keep `town-study` runnable as the reference.
+- Record important accepted facts as durable domain events. Keep frequent simulation state
+  temporary unless a game enables a bounded replay or audit policy.
 
 ## Question 1: Should we accept a narrow game-host lifecycle ADR now?
 
@@ -43,6 +45,8 @@ movement-input adapter private to Antiky Town. Promote it only after another gam
 feature proves a public contract.
 
 This adds one transitional adapter. It avoids publishing a general input framework from one game.
+The host observes raw platform events, but it does not become an event store or gameplay authority.
+In an online game, the authoritative server session accepts inputs and owns canonical history.
 
 ### Owner answer
 
@@ -125,6 +129,43 @@ code.
 
 This adds a small public CLI command. It avoids four separate commands and keeps future ID-format
 changes behind Framework.
+
+### Owner answer
+
+`PENDING`
+
+## Question 6: What future simulation-history boundary must Slice 02 preserve?
+
+### Context
+
+Antiky records important authored changes and gameplay results as durable domain events. It does not
+record every fixed step, position, velocity, physics contact, animation update, or render value by
+default.
+
+Some games need more evidence. A competitive game may keep server-accepted input batches, periodic
+runtime checkpoints, state hashes, or selected position traces. A local game may keep similar data
+when its local `EngineSession` is authoritative. Browser input and prediction traces are not
+canonical in a server-authoritative game.
+
+These records have different purposes:
+
+- The domain event stream stores important accepted facts.
+- A simulation input journal stores accepted semantic input by step.
+- Runtime checkpoints and state traces store selected high-frequency state.
+- Client prediction buffers and raw device traces stay temporary and untrusted.
+
+### Recommendation
+
+Keep the default selective. Do not emit a durable event for each step or movement update. In Slice
+02, preserve only the internal facts that a later authoritative journal needs: the completed step,
+input sequence, immutable semantic input used by that step, and tested state digest.
+
+Do not add durable input storage, a replay file format, a public journal interface, retention rules,
+or per-position history in this slice. A later bounded journal or checkpoint adapter must attach to
+the authoritative `EngineSession`, not the browser host. In online play, the server validates and
+records accepted input; the client keeps only a limited prediction and diagnostic window.
+
+This keeps simple games small without preventing competitive games from selecting richer history.
 
 ### Owner answer
 
