@@ -7,7 +7,7 @@ import {
 import {
   parseEngineSessionStatus,
   type EngineSessionStatus,
-} from '../session/engine-session.ts';
+} from '../sessions/engine-session/index.ts';
 
 export const INSPECTION_SCHEMA_VERSION = 1 as const;
 export const MAX_INSPECTION_DIAGNOSTICS = 64;

@@ -4,7 +4,7 @@ import {
   parseWorldId,
   type SessionId,
   type WorldId,
-} from '../identity/ids.ts';
+} from '../../identity/ids.ts';
 import {
   ENGINE_SESSION_SCHEMA_VERSION,
   FIXED_STEP_SECONDS,
@@ -32,7 +32,7 @@ import {
   type EngineStepContext,
   type EngineStepSource,
   type EngineSystem,
-} from './engine-session-contract.ts';
+} from './contract.ts';
 import {
   MAX_DIGEST_LENGTH,
   SYSTEM_ID_PATTERN,
@@ -41,7 +41,7 @@ import {
   readRuntimeInstanceId,
   readSafeCount,
   sortedPauseReasons,
-} from './engine-session-validation.ts';
+} from './validation.ts';
 
 const MAX_INPUT_DEPTH = 32;
 const MAX_INPUT_VALUES = 4_096;

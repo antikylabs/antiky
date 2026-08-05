@@ -2,7 +2,7 @@ import {
   IdValidationError,
   parseSessionId,
   parseWorldId,
-} from '../identity/ids.ts';
+} from '../../identity/ids.ts';
 import {
   ENGINE_SESSION_SCHEMA_VERSION,
   FIXED_STEP_SECONDS,
@@ -13,7 +13,7 @@ import {
   type EngineControlResultCode,
   type EngineSessionFault,
   type EngineSessionStatus,
-} from './engine-session-contract.ts';
+} from './contract.ts';
 import {
   FAULT_SOURCES,
   MAX_DIGEST_LENGTH,
@@ -23,7 +23,7 @@ import {
   readPauseReasons,
   readRuntimeInstanceId,
   readSafeCount,
-} from './engine-session-validation.ts';
+} from './validation.ts';
 
 const CONTROL_RESULT_CODES = [
   'PAUSED',

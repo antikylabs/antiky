@@ -2,7 +2,7 @@ import {
   EngineSessionValidationError,
   type EnginePauseReason,
   type EngineSessionMode,
-} from './engine-session-contract.ts';
+} from './contract.ts';
 
 export const PAUSE_REASONS = ['user', 'tool', 'visibility'] as const;
 export const SESSION_MODES = ['running', 'paused', 'faulted', 'disposed'] as const;

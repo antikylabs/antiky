@@ -1,4 +1,4 @@
-import type { SessionId, WorldId } from '../identity/ids.ts';
+import type { SessionId, WorldId } from '../../identity/ids.ts';
 
 export const ENGINE_SESSION_SCHEMA_VERSION = 2 as const;
 export const FIXED_STEP_SECONDS = 1 / 60;

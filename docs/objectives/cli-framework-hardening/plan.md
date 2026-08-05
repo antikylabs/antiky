@@ -114,9 +114,9 @@ to an existing test suite, observe it fail for the expected reason, and then fix
 - [ ] A timed-out or stopped capture cannot complete a later action.
 - [ ] Every point-light command path preserves all observable state after disposal.
 - [ ] Unexpected CLI failures produce safe correlated diagnostics.
-- [ ] `engine-session.ts` is below the 800-line decomposition threshold and has one clear runtime
-      responsibility; every remaining production file above 500 lines has a documented cohesion
-      judgment in the final handoff.
+- [ ] `sessions/engine-session/runtime.ts` is below the 800-line decomposition threshold and has
+      one clear runtime responsibility; every remaining production file above 500 lines has a
+      documented cohesion judgment in the final handoff.
 - [ ] Brittle source-layout and documentation-prose assertions are gone without losing meaningful
       behavioral or security coverage.
 - [ ] Framework and CLI typechecks and tests pass, followed by one clean `npm run check`.
