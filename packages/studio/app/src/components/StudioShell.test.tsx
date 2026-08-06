@@ -170,11 +170,22 @@ test('workspace follows the website game-first layout contract', () => {
   );
   assert.match(
     shellStyles,
-    /@media \(max-width: 720px\)[\s\S]*grid-template-areas:\s*"game"\s*"terminal"\s*"inspection"\s*"activity"/,
+    /@media \(max-width: 760px\)[\s\S]*grid-template-areas:\s*"game"\s*"terminal"\s*"inspection"\s*"activity"/,
   );
   for (const area of surfaceOrder) {
     assert.match(shellStyles, new RegExp(`\\.${area}-panel\\s*\\{[^}]*grid-area:\\s*${area}`, 's'));
   }
+});
+
+test('workspace chrome uses the compact website dimensions', () => {
+  assert.match(
+    shellStyles,
+    /\.studio-shell\s*\{[^}]*grid-template-rows:\s*50px 44px minmax\(0, 1fr\) 30px/s,
+  );
+  assert.match(shellStyles, /\.panel-heading\s*\{[^}]*height:\s*36px/s);
+  assert.match(shellStyles, /\.tabs\s*\{[^}]*min-height:\s*34px/s);
+  assert.match(shellStyles, /\.control-actions button\s*\{[^}]*min-height:\s*28px/s);
+  assert.doesNotMatch(shellStyles, /\.activity-panel \.panel-heading\s*\{[^}]*display:\s*none/s);
 });
 
 test('connected Studio renders the live game and every semantic inspection surface', () => {

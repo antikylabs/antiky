@@ -34,7 +34,7 @@
   flex: 0 0 auto;
   padding: 3px 6px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 5px;
   color: var(--text-muted);
   font-family: var(--mono);
   font-size: 8px;
@@ -54,10 +54,11 @@
 
 .entity-record,
 .store-record {
-  margin-bottom: 6px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--surface-raised);
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(41, 42, 49, .72);
+  border-radius: 0;
+  background: transparent;
 }
 
 .entity-record > summary,
@@ -126,14 +127,15 @@
 .component-list,
 .store-entries {
   display: grid;
-  gap: 5px;
-  padding: 0 7px 7px;
+  gap: 1px;
+  padding: 0 7px 7px 22px;
 }
 
 .component-record,
 .store-entry {
-  border: 1px solid var(--line);
-  border-radius: 5px;
+  border: 0;
+  border-top: 1px solid rgba(41, 42, 49, .72);
+  border-radius: 0;
   background: var(--surface);
 }
 

@@ -69,7 +69,6 @@ export function StudioShell({ platform, context, development, actions }: StudioS
           <span>Studio</span>
         </div>
         <div className="project-context" title={context.projectDirectory || undefined}>
-          <span className="technical-label">Workspace</span>
           <strong>{projectLabel}</strong>
         </div>
         <div className="connection-state" aria-label={`Development host ${connectionLabel.toLowerCase()}`}>
@@ -79,15 +78,7 @@ export function StudioShell({ platform, context, development, actions }: StudioS
       </header>
 
       <nav className="controlbar" aria-label="Simulation controls">
-        <div className="session-summary">
-          <span className="state-chip">{mode ?? 'No session'}</span>
-          <span>
-            {session
-              ? `Step ${session.clock.completedStepCount} · runtime ${inspection?.runtime.instanceId}`
-              : recoveryMessage(platform)}
-          </span>
-          {development.issue && <span className="control-issue">{development.issue.message}</span>}
-        </div>
+        <span className="controlbar-label">Simulation</span>
         <div className="control-actions">
           {(development.issue || development.status === 'disconnected') && (
             <button onClick={() => void actions.refresh()} type="button">Retry</button>
@@ -107,6 +98,15 @@ export function StudioShell({ platform, context, development, actions }: StudioS
             onClick={() => void actions.step()}
             type="button"
           ><ControlIcon>↦</ControlIcon>{pending === 'step' ? 'Stepping' : 'Step'}</button>
+        </div>
+        <div className="session-summary">
+          <span className="state-chip">{mode ?? 'No session'}</span>
+          <span>
+            {session
+              ? `Step ${session.clock.completedStepCount} · runtime ${inspection?.runtime.instanceId}`
+              : recoveryMessage(platform)}
+          </span>
+          {development.issue && <span className="control-issue">{development.issue.message}</span>}
         </div>
       </nav>
 

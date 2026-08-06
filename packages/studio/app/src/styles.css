@@ -50,9 +50,15 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
+summary:focus-visible,
+.game-stage iframe:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+
 .studio-shell {
   display: grid;
-  grid-template-rows: 58px 56px minmax(0, 1fr) 30px;
+  grid-template-rows: 50px 44px minmax(0, 1fr) 30px;
   width: 100vw;
   height: 100dvh;
   background: var(--bg);
@@ -68,21 +74,21 @@ button:focus-visible {
 
 .titlebar {
   min-width: 0;
-  padding: 0 18px;
+  gap: 24px;
+  padding: 0 16px;
+  background: var(--surface-raised);
 }
 
 .brand-lockup {
   display: flex;
   align-items: center;
-  gap: 16px;
-  min-width: 208px;
-  padding-right: 20px;
-  border-right: 1px solid var(--line);
+  gap: 8px;
+  flex: 0 0 auto;
 }
 
 .brand-lockup img {
-  width: 128px;
-  height: 27px;
+  width: 116px;
+  height: 24px;
   object-fit: contain;
   object-position: left center;
 }
@@ -90,51 +96,47 @@ button:focus-visible {
 .brand-lockup span {
   color: var(--text-muted);
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: .06em;
 }
 
 .project-context {
   display: flex;
   align-items: baseline;
-  gap: 12px;
   min-width: 0;
-  padding-left: 20px;
+  margin-left: auto;
 }
 
 .project-context strong {
   overflow: hidden;
-  font-family: var(--display);
-  font-size: 14px;
-  font-weight: 540;
-  letter-spacing: -.015em;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.technical-label,
 .panel-state {
   color: var(--text-faint);
   font-family: var(--mono);
   font-size: 9px;
-  letter-spacing: .07em;
-  text-transform: uppercase;
+  letter-spacing: .03em;
 }
 
 .connection-state {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-left: auto;
+  gap: 7px;
   color: var(--text-muted);
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
 }
 
 .status-dot {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--text-faint);
 }
@@ -145,6 +147,7 @@ button:focus-visible {
 
 .status-connected {
   background: var(--success);
+  box-shadow: 0 0 0 3px rgba(72, 199, 142, .12);
 }
 
 .status-connecting {
@@ -160,10 +163,18 @@ button:focus-visible {
 }
 
 .controlbar {
-  justify-content: space-between;
-  gap: 18px;
-  padding: 0 14px 0 18px;
+  gap: 6px;
+  padding: 6px 12px;
   background: var(--surface);
+}
+
+.controlbar-label {
+  margin-right: 5px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
 
 .session-summary,
@@ -175,9 +186,11 @@ button:focus-visible {
 
 .session-summary {
   min-width: 0;
-  gap: 12px;
+  gap: 8px;
+  margin-left: auto;
   color: var(--text-faint);
-  font-size: 11px;
+  font-family: var(--mono);
+  font-size: 9px;
 }
 
 .session-summary code {
@@ -194,9 +207,12 @@ button:focus-visible {
 }
 
 .state-chip {
-  padding: 5px 8px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
   border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  border-radius: 5px;
   color: var(--text-muted);
   font-family: var(--mono);
   font-size: 9px;
@@ -209,14 +225,15 @@ button:focus-visible {
 }
 
 .control-actions button {
-  min-width: 92px;
-  min-height: 38px;
-  padding: 0 13px;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: var(--surface-raised);
-  color: var(--text);
-  font-size: 12px;
+  min-width: 0;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 10px;
 }
 
 .control-actions button:disabled {
@@ -225,10 +242,16 @@ button:focus-visible {
   cursor: not-allowed;
 }
 
+.control-actions button:not(:disabled):hover {
+  border-color: var(--line-strong);
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
 .control-icon {
   display: inline-block;
-  min-width: 17px;
-  margin-right: 7px;
+  min-width: 14px;
+  margin-right: 5px;
   font-family: var(--mono);
   text-align: center;
 }
@@ -251,7 +274,7 @@ button:focus-visible {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--surface);
+  background: #090a0c;
 }
 
 .panel-heading {
@@ -259,9 +282,10 @@ button:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  height: 38px;
-  padding: 0 14px;
+  height: 36px;
+  padding: 0 11px;
   border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
 
 .panel-heading h2 {
@@ -269,8 +293,7 @@ button:focus-visible {
   font-family: var(--mono);
   font-size: 10px;
   font-weight: 400;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+  letter-spacing: .02em;
 }
 
 .game-panel {
@@ -293,7 +316,7 @@ button:focus-visible {
 .game-stage,
 .inspection-body {
   display: grid;
-  height: calc(100% - 38px);
+  height: calc(100% - 36px);
   place-items: center;
 }
 
@@ -357,17 +380,18 @@ button:focus-visible {
 
 .tabs {
   display: flex;
-  min-height: 38px;
-  padding: 4px 8px 0;
+  min-height: 34px;
+  gap: 14px;
+  padding: 0 11px;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
 
 .tabs button {
-  min-height: 33px;
-  padding: 0 12px;
+  min-height: 34px;
+  padding: 0;
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 1px solid transparent;
   background: transparent;
   color: var(--text-faint);
   font-family: var(--mono);
@@ -385,37 +409,22 @@ button:focus-visible {
   color: var(--text);
 }
 
-.inspection-body {
-  height: calc(100% - 76px);
-  overflow: auto;
+.tabs button:focus-visible {
+  outline-offset: -3px;
 }
 
-.activity-panel .panel-heading {
-  display: none;
+.inspection-body {
+  height: calc(100% - 70px);
+  overflow: auto;
 }
 
 .activity-panel .tabs {
-  padding-left: 14px;
+  padding-left: 11px;
 }
 
 .activity-body {
-  height: calc(100% - 38px);
+  height: calc(100% - 70px);
   overflow: auto;
-}
-
-.activity-column-head {
-  display: grid;
-  grid-template-columns: 100px minmax(140px, .6fr) minmax(300px, 1.8fr) 130px;
-  gap: 16px;
-  min-height: 30px;
-  align-items: center;
-  padding: 0 18px;
-  border-bottom: 1px solid var(--line);
-  color: var(--text-faint);
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
 }
 
 .activity-body .empty-state {
@@ -431,10 +440,12 @@ button:focus-visible {
   gap: 0;
   border-top: 1px solid var(--line);
   border-bottom: 0;
-  background: var(--surface);
+  background: var(--surface-raised);
   color: var(--text-faint);
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 8px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 .statusbar span {

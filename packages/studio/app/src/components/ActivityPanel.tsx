@@ -164,7 +164,7 @@ export function ActivityPanel({
   const [active, setActive] = useState<(typeof labels)[number]>('Events');
   return (
     <Panel
-      actions={<span className="panel-state">Event and development-session history</span>}
+      actions={<span className="panel-state">{stale ? 'stale' : 'retained'}</span>}
       className="activity-panel"
       title="Activity"
       workspaceArea="activity"
