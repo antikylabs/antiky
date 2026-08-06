@@ -71,23 +71,7 @@ not require one model provider.
 
 ## How the pieces fit
 
-```text
-person / coding agent / future Studio
-                 |
-        CLI / MCP / typed client
-                 |
-        antiky dev development host
-          /                 \
- process and build facts     game runtime
-                              |
-                       Antiky Framework
-                              |
-                        render adapter
-                              |
-                         BroMetal
-                              |
-                           WebGPU
-```
+[![Antiky architecture overview](docs/architecture/antiky-architecture.png)](docs/architecture/README.md)
 
 The CLI owns local configuration, child processes, builds, connections, and cleanup. The framework
 owns semantic game facts and engine rules. MCP adapts those shared services today. The future
