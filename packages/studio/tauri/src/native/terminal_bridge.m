@@ -66,8 +66,14 @@ static BOOL send_key(NSEvent *event, ghostty_input_action_e action) {
   key.consumed_mods = ghostty_mods(
       event.modifierFlags & ~(NSEventModifierFlagControl | NSEventModifierFlagCommand));
   key.keycode = event.keyCode;
-  key.unshifted_codepoint = single_codepoint(unmodified_event_text(event));
-  NSString *text = action == GHOSTTY_ACTION_RELEASE ? nil : event_text(event);
+  BOOL hasKeyboardText =
+      event.type == NSEventTypeKeyDown || event.type == NSEventTypeKeyUp;
+  if (hasKeyboardText) {
+    key.unshifted_codepoint = single_codepoint(unmodified_event_text(event));
+  }
+  NSString *text = hasKeyboardText && action != GHOSTTY_ACTION_RELEASE
+      ? event_text(event)
+      : nil;
   key.text = text.UTF8String;
   return ghostty_surface_key(antiky_view.surface, key);
 }
@@ -105,12 +111,12 @@ static void send_mouse_button(
   if (event.type != NSEventTypeKeyDown ||
       self.window.firstResponder != self ||
       self.surface == NULL) {
-    return [super performKeyEquivalent:event];
+    return NO;
   }
   NSEventModifierFlags flags = event.modifierFlags;
   if ((flags & NSEventModifierFlagControl) == 0 ||
       (flags & NSEventModifierFlagCommand) != 0) {
-    return [super performKeyEquivalent:event];
+    return NO;
   }
   ghostty_input_action_e action =
       event.isARepeat ? GHOSTTY_ACTION_REPEAT : GHOSTTY_ACTION_PRESS;
