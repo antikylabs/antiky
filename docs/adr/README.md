@@ -12,6 +12,8 @@ changes through an [Antiky Improvement Proposal (AIP)](../aip/README.md).
 An accepted AIP can produce no ADR, one ADR, or more than one ADR. Each ADR must make sense without
 the AIP. When applicable, the ADR must also link to the AIP.
 
+> Note from the creator: ADRs and AIPs form the foundation of what we state as true about the game engine and systems surrounding it. It is what we hold AI accountable to as it builds. It is what allows us to not have to inpsect every line of code AI writes. We inspect every line of ADRs and AIPs. We inspect every line of GOOD_ENGINEERING and every line of VISION_DIRECTION. These things are non-negotiables. With this and smartly placed AGENTS.md and CLAUDE.md files along with good planning practices, AI becomes extremely well versed and directionally aligned with our decisions and desires. If you find something at fault in an ADR or accepted AIP, please do raise an issue loudly! Disasterous ADRs can be disasterous for the platform.
+
 ## Records
 
 ### Framework
