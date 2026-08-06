@@ -18,6 +18,12 @@ export default function SiteFooter() {
       </div>
       <div className="wrap footer-note">
         <span>© {new Date().getFullYear()} {SITE_NAME}</span>
+        {process.env.NODE_ENV === 'production' && (
+          <span className="live-presence" role="status" aria-live="polite">
+            <span className="live-presence-dot" aria-hidden="true" />
+            <span><span data-ssps-live-count>—</span> active now</span>
+          </span>
+        )}
         <span>Antiky Framework is emerging. Emberwyrd is planned.</span>
       </div>
     </footer>

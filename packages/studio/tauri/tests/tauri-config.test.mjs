@@ -5,6 +5,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const packageDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
+const appDirectory = resolve(packageDirectory, '../app');
 
 test('Tauri uses the existing Antiky brand mark as its native icon', async () => {
   const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
@@ -36,4 +37,25 @@ test('the main window can reach the website narrow-layout breakpoint', async () 
 
   assert.ok(mainWindow.minWidth <= 760);
   assert.ok(mainWindow.width > mainWindow.minWidth);
+});
+
+test('the launched desktop app reports presence through the bounded SSPS integration', async () => {
+  const index = await readFile(resolve(appDirectory, 'index.html'), 'utf8');
+  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
+
+  assert.match(
+    index,
+    /<script async src="https:\/\/usessps\.com\/ssps\.js" data-site-id="268"><\/script>/,
+    'the desktop HTML must load the configured SSPS site',
+  );
+  assert.match(
+    config.app.security.csp,
+    /(?:^|; )script-src 'self' https:\/\/usessps\.com(?:;|$)/,
+    'the CSP must allow only the SSPS script origin in addition to local scripts',
+  );
+  assert.match(
+    config.app.security.csp,
+    /(?:^|; )connect-src [^;]*\bwss:\/\/usessps\.com\b[^;]*(?:;|$)/,
+    'the CSP must allow the SSPS presence WebSocket',
+  );
 });

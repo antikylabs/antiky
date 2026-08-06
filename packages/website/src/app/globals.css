@@ -225,6 +225,8 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
 .footer-main nav .icon { width: 13px; height: 13px; }
 .footer-main nav a:hover { color: var(--text); }
 .footer-note { display: flex; justify-content: space-between; gap: 20px; margin-top: 58px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--text-faint); font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: .05em; }
+.live-presence { display: inline-flex; align-items: center; gap: 7px; color: var(--text-muted); white-space: nowrap; }
+.live-presence-dot { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgba(72, 199, 142, .12); }
 
 @media (max-width: 900px) {
   .desktop-nav, .header-action { display: none; }

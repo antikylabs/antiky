@@ -58,11 +58,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         {process.env.NODE_ENV === 'production' && (
-          <script
-            data-site="HELZNBFB"
-            defer
-            src="https://cdn.usefathom.com/script.js"
-          />
+          <>
+            <script
+              data-site="HELZNBFB"
+              defer
+              src="https://cdn.usefathom.com/script.js"
+            />
+            <script
+              async
+              data-site-id="268"
+              src="https://usessps.com/ssps.js"
+            />
+          </>
         )}
       </head>
       <body>

@@ -25,7 +25,7 @@
     ],
     "security": {
       "capabilities": ["main"],
-      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src ipc: http://ipc.localhost http://127.0.0.1:*; frame-src http://127.0.0.1:*"
+      "csp": "default-src 'self'; script-src 'self' https://usessps.com; img-src 'self' asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src ipc: http://ipc.localhost http://127.0.0.1:* wss://usessps.com; frame-src http://127.0.0.1:*"
     }
   },
   "bundle": {
