@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "antiky": "node --experimental-strip-types --experimental-transform-types packages/cli/src/bin.ts",
+    "portRelease": "node scripts/port-release.mjs",
     "postinstall": "node scripts/patch-brometal.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:website": "node scripts/dev.mjs website",
@@ -18,7 +19,7 @@
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "shaders": "npm run shaders --workspace @antiky/demos",
-    "test": "npm test --workspaces --if-present",
+    "test": "node --test scripts/port-release.test.mjs && npm test --workspaces --if-present",
     "check": "npm run typecheck && npm test"
   },
   "dependencies": {
