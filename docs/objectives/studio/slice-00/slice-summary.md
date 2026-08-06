@@ -2,6 +2,28 @@
 
 Studio Slice 00 is complete. Antiky now has one macOS Studio workspace that uses the same local development session as the CLI and MCP clients. It shows the live game beside a native terminal, structured inspection, session controls, event history, and MCP call history.
 
+## Feedback 08 layout update
+
+The Feedback 08 implementation is ready for owner visual review. Studio now follows the website's
+game-first hierarchy. The larger live game is in the upper left, Inspection is in the upper right,
+Terminal is below the game, and Activity is below Inspection. A narrow window stacks those surfaces
+as Live game, Terminal, Inspection, and Activity.
+
+The title, simulation controls, panel headings, tabs, dividers, and status bar use the website's
+compact visual language. Studio still displays live project data. It does not copy the website's
+sample terminal text, town poster, inspection records, or event records.
+
+The native terminal now clips to its visible panel intersection and follows element resize, window
+resize, scrolling, and visual-viewport changes. It hides when its panel is offscreen. The custom title
+bar is a native drag region, and keyboard focus on the terminal has a visible boundary. Native runs
+showed one window, one terminal, and one non-white live-game iframe at desktop, intermediate, and
+narrow sizes.
+
+The complete repository checks and both Studio builds pass. Native captures are in the
+[Feedback 08 evidence run](outputs/studio-s00-feedback-08-20260806T181038Z/confirmation-checks.md).
+Browser Control had no attached browser, so browser capture and owner approval remain open before the
+feedback plan can close.
+
 ## What changed in the repository
 
 ### Framework
@@ -65,6 +87,12 @@ In the embedded terminal, start the complete development session:
 ```
 
 Confirm that the Town appears. Open the Hierarchy, Stores, Events, MCP calls, and Diagnostics tabs. Pause the game, advance one step, and resume it.
+
+For the Feedback 08 layout, resize Studio from a wide window to its minimum width. Confirm that the
+wide workspace uses two rows and two columns, and that the narrow workspace stacks Live game,
+Terminal, Inspection, and Activity. Scroll the narrow workspace and confirm that the native terminal
+never covers Inspection or Activity. Use the title bar to move the window, then use the keyboard to
+reach the terminal and confirm that its focus boundary is visible.
 
 From another terminal, these commands exercise the same host:
 

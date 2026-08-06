@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-feedback-08-20260806T181038Z",
+  "status": "PASS",
+  "startedAt": "2026-08-06T20:50:50.352Z",
+  "completedAt": "2026-08-06T20:51:38.958Z",
+  "implementationRevision": "dabf749f9bbb27ced73ac214642168b5083023ac",
+  "checks": [
+    {
+      "name": "Workspace hierarchy",
+      "status": "PASS",
+      "evidence": "The DOM and named CSS grids use game, terminal, inspection, and activity in the approved order."
+    },
+    {
+      "name": "Native terminal geometry",
+      "status": "PASS",
+      "evidence": "Bounds are clipped, synchronized on resize and scroll, hidden offscreen, and reachable at the narrow breakpoint."
+    },
+    {
+      "name": "Accessibility and documentation",
+      "status": "PASS",
+      "evidence": "Visible focus, reduced motion, a movable title bar, and the responsive public workflow are present."
+    },
+    {
+      "name": "Run-scoped captures",
+      "status": "PASS",
+      "evidence": "6 reference, before, desktop, intermediate, narrow, and focus captures have the expected dimensions."
+    }
+  ],
+  "commands": [
+    {
+      "name": "Repository checks",
+      "command": "npm run check",
+      "exitCode": 0,
+      "durationMilliseconds": 28980,
+      "status": "PASS",
+      "summary": "Repository typechecks and all workspace tests passed."
+    },
+    {
+      "name": "Studio web build",
+      "command": "npm run build --workspace @antiky/studio-app",
+      "exitCode": 0,
+      "durationMilliseconds": 1315,
+      "status": "PASS",
+      "summary": "The portable Studio application build passed."
+    },
+    {
+      "name": "Studio native build",
+      "command": "npm run build --workspace @antiky/studio-tauri",
+      "exitCode": 0,
+      "durationMilliseconds": 18280,
+      "status": "PASS",
+      "summary": "The Tauri application and macOS bundle build passed."
+    },
+    {
+      "name": "Whitespace audit",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "durationMilliseconds": 16,
+      "status": "PASS",
+      "summary": "The current patch has no whitespace errors."
+    },
+    {
+      "name": "Revision",
+      "command": "git rev-parse HEAD",
+      "exitCode": 0,
+      "durationMilliseconds": 9,
+      "status": "PASS",
+      "summary": "The exact checked revision was recorded."
+    }
+  ],
+  "captures": [
+    {
+      "path": "captures/reference-owner-desktop-1672x941.png",
+      "width": 1672,
+      "height": 941,
+      "sha256": "3b979724e54495f28a58ecb98ab1bf2fb5416f9e4f4aa9d7931ce9289791322f"
+    },
+    {
+      "path": "captures/before-native-desktop-1228x768.jpeg",
+      "width": 1228,
+      "height": 768,
+      "sha256": "c36f422c20e70edfc341d4d1bd86e2ddefbff05fc904b8198966d1a57037ef18"
+    },
+    {
+      "path": "captures/after-native-desktop-connected-safe-1228x768.jpeg",
+      "width": 1228,
+      "height": 768,
+      "sha256": "b4815dcd24792606d0605fff50e096c5edb422c705e0874fd4a7560d52293ced"
+    },
+    {
+      "path": "captures/after-native-intermediate-connected-safe-988x768.jpeg",
+      "width": 988,
+      "height": 768,
+      "sha256": "d22e6968cd0eef4a453352e51408738923b9e665af53e762cc203a21fa06d738"
+    },
+    {
+      "path": "captures/after-native-narrow-connected-safe-753x825.jpeg",
+      "width": 753,
+      "height": 825,
+      "sha256": "0947063765c1e520dde62640718e60e556b876e69bd34394f9dd8b80550525a2"
+    },
+    {
+      "path": "captures/after-native-narrow-terminal-focus-safe-753x825.jpeg",
+      "width": 753,
+      "height": 825,
+      "sha256": "0947063765c1e520dde62640718e60e556b876e69bd34394f9dd8b80550525a2"
+    }
+  ],
+  "browserControl": {
+    "status": "UNAVAILABLE",
+    "classification": "EVIDENCE_FAILURE",
+    "detail": "Browser Control reported no attached browser. Native Computer Use captures are present; browser appearance remains pending owner review."
+  }
+}

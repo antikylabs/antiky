@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `READY` |
+| Status | `AWAITING OWNER REVIEW` |
 | Feedback source | [Slice 00 feedback, line 8](slice-feedback.txt) |
 | Outcome | The shipped Studio uses the same game-first workspace hierarchy as the Studio render on the website |
 | Owner input | The source feedback and owner-supplied website render select the visual direction |
@@ -191,14 +191,14 @@ already safe. Do not make Studio depend on website runtime code.
 
 ## Completion checks
 
-- [ ] The real Studio has the website's game-first two-by-two desktop hierarchy.
-- [ ] The compact chrome and visual density match the approved reference.
-- [ ] Every current Studio capability and honest state remains available.
-- [ ] The native terminal stays inside the lower-left surface during all geometry tests.
+- [x] The real Studio has the website's game-first two-by-two desktop hierarchy.
+- [x] The compact chrome and visual density match the approved reference.
+- [x] Every current Studio capability and honest state remains available.
+- [x] The native terminal stays inside the lower-left surface during all geometry tests.
 - [ ] Narrow and zoomed layouts remain readable and keyboard accessible.
-- [ ] One launch creates one window, one terminal, and one live-game iframe.
+- [x] One launch creates one window, one terminal, and one live-game iframe.
 - [ ] Actual native and browser captures pass owner review.
-- [ ] Tests, builds, general docs, receipt, and slice summary pass.
+- [x] Tests, builds, general docs, receipt, and slice summary pass.
 
 ## Run and evidence rule
 
