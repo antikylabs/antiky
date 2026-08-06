@@ -1,7 +1,7 @@
 export const SITE_NAME = 'Antiky Labs';
 export const SITE_TAGLINE = 'Tools for making worlds.';
 export const SITE_DESCRIPTION =
-  'Antiky Labs builds playable browser experiments, an emerging 2.3D game framework, active research, and future games through Antiky Worlds.';
+  'Antiky Labs builds a native game-development Studio, an emerging 2.3D framework, playable browser experiments, active research, and future worlds.';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
 
 export const GITHUB_URL = 'https://github.com/shadowcodex';
@@ -15,6 +15,7 @@ export type NavLink = { href: string; label: string };
 
 export const NAV: NavLink[] = [
   { href: '/framework', label: 'Framework' },
+  { href: '/studio', label: 'Studio' },
   { href: '/docs', label: 'Docs' },
   { href: '/worlds', label: 'Worlds' },
   { href: '/research', label: 'Research' },

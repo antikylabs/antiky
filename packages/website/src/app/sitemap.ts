@@ -4,7 +4,7 @@ import { getDocsEntries } from '@/lib/docs';
 import { canonical } from '@/lib/site';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const pages = ['/', '/framework', '/worlds', '/research', '/demos'];
+  const pages = ['/', '/framework', '/studio', '/worlds', '/research', '/demos'];
   const docs = await getDocsEntries();
   return [
     ...pages.map((path) => ({ url: canonical(path), changeFrequency: 'weekly' as const, priority: path === '/' ? 1 : 0.8 })),

@@ -11,6 +11,12 @@ const WORK = [
     body: 'A 2.3D game framework taking shape on top of BroMetal—built for 2D characters and objects inside spatial 3D worlds.',
   },
   {
+    href: '/studio',
+    status: 'Source preview',
+    title: 'Antiky Studio',
+    body: 'A native development workspace for the running game, terminal, simulation controls, and structured runtime state.',
+  },
+  {
     href: '/demos',
     status: 'Live now',
     title: 'Browser studies',
