@@ -8,6 +8,16 @@ import {
   parseEngineSessionStatus,
   type EngineSessionStatus,
 } from '../sessions/engine-session/index.ts';
+import {
+  createEventHistory,
+  type EventHistory,
+  type EventHistoryInput,
+} from './events.ts';
+import {
+  createWorldInspection,
+  type WorldInspection,
+  type WorldInspectionInput,
+} from './world.ts';
 
 export const INSPECTION_SCHEMA_VERSION = 1 as const;
 export const MAX_INSPECTION_DIAGNOSTICS = 64;
@@ -62,6 +72,8 @@ export type InspectionSnapshotInput = {
   };
   session?: EngineSessionStatus;
   pointLights?: PointLightInspectionInput;
+  world?: WorldInspectionInput;
+  events?: EventHistoryInput;
 };
 
 export type InspectionDiagnostic = Readonly<{
@@ -102,6 +114,8 @@ export type InspectionSnapshot = Readonly<{
   }>;
   session?: EngineSessionStatus;
   pointLights?: PointLightInspection;
+  world?: WorldInspection;
+  events?: EventHistory;
 }>;
 
 export type InspectionUpdate = Readonly<{
@@ -285,7 +299,7 @@ export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
   checkKeys(
     record,
     ['schemaVersion', 'runtime', 'diagnostics', 'measurements'],
-    ['session', 'pointLights'],
+    ['session', 'pointLights', 'world', 'events'],
     '$',
   );
   if (record.schemaVersion !== INSPECTION_SCHEMA_VERSION) {
@@ -326,6 +340,12 @@ export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
   const pointLights = Object.hasOwn(record, 'pointLights')
     ? createPointLightInspection(record.pointLights, '$.pointLights')
     : undefined;
+  const world = Object.hasOwn(record, 'world')
+    ? createWorldInspection(record.world, '$.world')
+    : undefined;
+  const events = Object.hasOwn(record, 'events')
+    ? createEventHistory(record.events, '$.events')
+    : undefined;
   const session = Object.hasOwn(record, 'session')
     ? parseEngineSessionStatus(record.session, '$.session')
     : undefined;
@@ -338,8 +358,29 @@ export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
       '$.pointLights.runtime.instanceId',
     );
   }
+  if (world && world.runtimeInstanceId !== immutableRuntime.instanceId) {
+    fail('World runtime identity does not match inspection', '$.world.runtimeInstanceId');
+  }
+  if (events && events.runtimeInstanceId !== immutableRuntime.instanceId) {
+    fail('Event-history runtime identity does not match inspection', '$.events.runtimeInstanceId');
+  }
   if (session && pointLights && pointLights.worldId !== session.worldId) {
     fail('Point-light world identity does not match session', '$.pointLights.worldId');
+  }
+  if (session && world && world.worldId !== session.worldId) {
+    fail('World identity does not match session', '$.world.worldId');
+  }
+  if (session && events && events.worldId !== session.worldId) {
+    fail('Event-history world identity does not match session', '$.events.worldId');
+  }
+  if (world && events && events.worldId !== world.worldId) {
+    fail('Event-history world identity does not match world view', '$.events.worldId');
+  }
+  if (pointLights && world && pointLights.worldId !== world.worldId) {
+    fail('Point-light world identity does not match world view', '$.pointLights.worldId');
+  }
+  if (pointLights && events && pointLights.worldId !== events.worldId) {
+    fail('Point-light world identity does not match event history', '$.pointLights.worldId');
   }
 
   return Object.freeze({
@@ -349,6 +390,8 @@ export function createInspectionSnapshot(input: unknown): InspectionSnapshot {
     measurements: immutableMeasurements,
     ...(session === undefined ? {} : { session }),
     ...(pointLights === undefined ? {} : { pointLights }),
+    ...(world === undefined ? {} : { world }),
+    ...(events === undefined ? {} : { events }),
   });
 }
 

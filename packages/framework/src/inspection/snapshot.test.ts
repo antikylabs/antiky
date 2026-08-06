@@ -11,6 +11,48 @@ import {
   type InspectionSnapshotInput,
 } from './snapshot.ts';
 
+const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
+
+function semanticWorld(runtimeInstanceId = 'runtime-001', worldId = WORLD_ID) {
+  return {
+    schemaVersion: 1,
+    owner: 'framework' as const,
+    worldId,
+    runtimeInstanceId,
+    revision: 0,
+    incomplete: false,
+    counts: {
+      entities: { available: 0, retained: 0 },
+      components: { available: 0, retained: 0 },
+      relationships: { available: 0, retained: 0 },
+      stores: { available: 0, retained: 0 },
+    },
+    entities: [],
+    relationships: [],
+    stores: [],
+  };
+}
+
+function eventHistory(runtimeInstanceId = 'runtime-001', worldId = WORLD_ID) {
+  return {
+    schemaVersion: 1,
+    owner: 'framework' as const,
+    sourceId: 'antiky.point-light-authoring',
+    worldId,
+    runtimeInstanceId,
+    incomplete: false,
+    counts: { available: 0, retained: 0 },
+    retention: {
+      lifetime: 'runtime-instance' as const,
+      storage: 'memory' as const,
+      overflow: 'reject-new' as const,
+      capacity: 256,
+      droppedCount: 0,
+    },
+    events: [],
+  };
+}
+
 function sessionStatus(runtimeInstanceId = 'runtime-001') {
   return {
     schemaVersion: 2,
@@ -149,6 +191,52 @@ test('inspection carries one validated immutable session status', () => {
   assert.ok(Object.isFrozen(snapshot.session));
   assert.ok(Object.isFrozen(snapshot.session?.clock));
   assert.ok(Object.isFrozen(snapshot.session?.systemOrder));
+});
+
+test('inspection carries one immutable semantic world and accepted-event history', () => {
+  const world = semanticWorld();
+  const events = eventHistory();
+  const snapshot = createInspectionSnapshot({
+    ...snapshotInput(),
+    session: sessionStatus(),
+    world,
+    events,
+  });
+
+  world.revision = 99;
+  events.retention.capacity = 1;
+  assert.equal(snapshot.world?.revision, 0);
+  assert.equal(snapshot.events?.retention.capacity, 256);
+  assert.equal(snapshot.world?.worldId, snapshot.session?.worldId);
+  assert.equal(snapshot.events?.worldId, snapshot.world?.worldId);
+  assert.ok(Object.isFrozen(snapshot.world));
+  assert.ok(Object.isFrozen(snapshot.events));
+});
+
+test('inspection rejects semantic views from another runtime or world', () => {
+  assert.throws(
+    () => createInspectionSnapshot({
+      ...snapshotInput(),
+      world: semanticWorld('runtime-other'),
+    }),
+    (error: unknown) => (
+      error instanceof InspectionValidationError
+      && error.path === '$.world.runtimeInstanceId'
+    ),
+  );
+
+  assert.throws(
+    () => createInspectionSnapshot({
+      ...snapshotInput(),
+      session: sessionStatus(),
+      world: semanticWorld(),
+      events: eventHistory('runtime-001', '018f0f3a-7b2c-7a1d-8e2f-123456789bbb'),
+    }),
+    (error: unknown) => (
+      error instanceof InspectionValidationError
+      && error.path === '$.events.worldId'
+    ),
+  );
 });
 
 test('inspection rejects session status from another runtime', () => {
