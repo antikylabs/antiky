@@ -26,8 +26,9 @@ change the recommendation. Change the status to `ANSWERED` after all answers are
 - Keep `town-study` runnable as the reference.
 - Humans and agents use the same development service through `antiky tool` and MCP Tools.
 - ADR 0018 selects physics authority independently from CPU or GPU execution. The server owns
-  online authority and starts with CPU physics. An online client GPU is nonauthoritative. A local
-  single-player `EngineSession` can make GPU physics authoritative.
+  online authority and starts with CPU physics. An online client GPU is nonauthoritative. If the
+  local game client owns all necessary game authority, its local `EngineSession` can make GPU physics
+  authoritative.
 
 ## Question 1: Should we accept a narrow authoritative-physics ADR now?
 
@@ -53,8 +54,8 @@ physics. Do not add a public general physics service or select a physics library
 The same simulation step can stay entirely on the GPU. GPU physics can feed subsequent GPU
 gameplay and rendering work without readback.
 
-Antiky Town is a local single-player game. Its local `EngineSession` can own authoritative GPU
-physics state.
+The Antiky Town client owns all necessary game authority. Its local `EngineSession` can own
+authoritative GPU physics state.
 
 The current Town implementation has CPU consumers that use actor physics state:
 
