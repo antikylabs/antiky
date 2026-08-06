@@ -49,3 +49,20 @@ impl Display for NativeError {
 }
 
 impl std::error::Error for NativeError {}
+
+#[cfg(test)]
+mod tests {
+    use super::NativeError;
+
+    #[test]
+    fn terminal_theme_error_has_one_stable_serialized_shape() {
+        let value = serde_json::to_value(NativeError::terminal_theme_invalid())
+            .expect("serializable terminal theme error");
+        assert_eq!(value["code"], "ANTIKY_TERMINAL_THEME_INVALID");
+        assert_eq!(
+            value["message"],
+            "The Antiky Studio terminal theme is missing or invalid."
+        );
+        assert_eq!(value.as_object().expect("error object").len(), 2);
+    }
+}

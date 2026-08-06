@@ -5,7 +5,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { test } from 'vitest';
 
-import { NativeTerminal, terminalBoundsForRect } from './NativeTerminal.tsx';
+import { displayError, NativeTerminal, terminalBoundsForRect } from './NativeTerminal.tsx';
 
 const terminalStyles = readFileSync(new URL('./terminal.css', import.meta.url), 'utf8');
 const terminalSource = readFileSync(new URL('./NativeTerminal.tsx', import.meta.url), 'utf8');
@@ -87,6 +87,15 @@ test('native terminal uses one themed loading and error surface from the first f
     terminalStyles,
     /\.native-terminal-error\s*\{[^}]*color:\s*var\(--error\)/s,
   );
+});
+
+test('native terminal displays the stable serialized theme error without exposing diagnostics', () => {
+  const message = 'The Antiky Studio terminal theme is missing or invalid.';
+
+  assert.equal(displayError(message), message);
+  assert.equal(displayError({ code: 'ANTIKY_TERMINAL_THEME_INVALID', message }), message);
+  assert.equal(displayError({ code: 'ANTIKY_TERMINAL_THEME_INVALID' }), 'The native terminal could not be opened.');
+  assert.equal(displayError(null), 'The native terminal could not be opened.');
 });
 
 test('native terminal teardown is reusable by preference reloads', () => {

@@ -35,7 +35,7 @@ export function closeNativeTerminal() {
   return enqueueNativeCommand(() => invoke('terminal_close'));
 }
 
-function displayError(reason: unknown) {
+export function displayError(reason: unknown) {
   if (typeof reason === 'string' && reason.trim()) return reason;
   if (reason && typeof reason === 'object' && 'message' in reason) {
     return String(reason.message);
