@@ -5,6 +5,7 @@ import '@fontsource/ibm-plex-mono/400.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { closeNativeTerminal } from './NativeTerminal.tsx';
 import {
   App,
   resolveInitialStudioPage,
@@ -12,9 +13,9 @@ import {
   type StudioPage,
 } from './App.tsx';
 import {
+  applySspsPresencePreference,
   readSspsPresenceEnabled,
   startSspsPresence,
-  writeSspsPresenceEnabled,
 } from './sspsPresence.ts';
 import './styles.css';
 import './inspection.css';
@@ -34,12 +35,15 @@ const changeStudioPage = (page: StudioPage) => {
   window.history.replaceState(null, '', studioPageHref(window.location, page));
 };
 
-const changeSspsPresence = (enabled: boolean): boolean => {
-  if (!writeSspsPresenceEnabled(window.localStorage, enabled)) return false;
-  changeStudioPage('settings');
-  window.location.reload();
-  return true;
-};
+const changeSspsPresence = (enabled: boolean) => applySspsPresencePreference(
+  window.localStorage,
+  enabled,
+  platform === 'native' ? closeNativeTerminal : async () => undefined,
+  () => {
+    changeStudioPage('settings');
+    window.location.reload();
+  },
+);
 
 createRoot(root).render(
   <StrictMode>

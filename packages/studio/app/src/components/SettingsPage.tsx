@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 type SettingsPageProps = Readonly<{
   sspsPresenceEnabled: boolean;
-  onSspsPresenceChange(enabled: boolean): boolean;
+  onSspsPresenceChange(enabled: boolean): boolean | Promise<boolean>;
 }>;
 
 export function SettingsPage({
@@ -10,10 +10,18 @@ export function SettingsPage({
   onSspsPresenceChange,
 }: SettingsPageProps) {
   const [saveFailed, setSaveFailed] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const changePresence = () => {
+  const changePresence = async () => {
     setSaveFailed(false);
-    if (!onSspsPresenceChange(!sspsPresenceEnabled)) setSaveFailed(true);
+    setSaving(true);
+    try {
+      if (!await onSspsPresenceChange(!sspsPresenceEnabled)) setSaveFailed(true);
+    } catch {
+      setSaveFailed(true);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -53,14 +61,15 @@ export function SettingsPage({
               aria-describedby="online-presence-description"
               aria-label="Share online presence"
               className="setting-switch"
-              onClick={changePresence}
+              disabled={saving}
+              onClick={() => { void changePresence(); }}
               role="switch"
               type="button"
             >
               <span aria-hidden="true" className="setting-switch-track">
                 <span className="setting-switch-thumb" />
               </span>
-              <span>{sspsPresenceEnabled ? 'On' : 'Off'}</span>
+              <span>{saving ? 'Saving…' : sspsPresenceEnabled ? 'On' : 'Off'}</span>
             </button>
           </div>
         </section>

@@ -34,6 +34,23 @@ export function writeSspsPresenceEnabled(
   return true;
 }
 
+export async function applySspsPresencePreference(
+  storage: PresenceStorage,
+  enabled: boolean,
+  prepareReload: () => Promise<void>,
+  reload: () => void,
+): Promise<boolean> {
+  if (!writeSspsPresenceEnabled(storage, enabled)) return false;
+
+  try {
+    await prepareReload();
+  } catch {
+    // Reloading still honors the saved privacy choice if native teardown is unavailable.
+  }
+  reload();
+  return true;
+}
+
 export function startSspsPresence(
   document: Document,
   platform: PresencePlatform,

@@ -53,6 +53,18 @@ test('the main window can reach the website narrow-layout breakpoint', async () 
   assert.ok(mainWindow.width > mainWindow.minWidth);
 });
 
+test('the native window and bootstrap document avoid an unthemed startup frame', async () => {
+  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
+  const index = await readFile(resolve(appDirectory, 'index.html'), 'utf8');
+  const [mainWindow] = config.app.windows;
+
+  assert.equal(mainWindow.backgroundColor, '#08090b');
+  assert.match(
+    index,
+    /<style>html, body, #root \{ background: #08090b; \}<\/style>/,
+  );
+});
+
 test('the launched desktop app can opt out of the bounded SSPS integration before it loads', async () => {
   const index = await readFile(resolve(appDirectory, 'index.html'), 'utf8');
   const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));

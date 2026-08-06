@@ -29,7 +29,7 @@ type StudioShellProps = Readonly<{
   actions: StudioShellActions;
   initialPage?: 'settings' | 'workspace';
   onPageChange?(page: 'settings' | 'workspace'): void;
-  onSspsPresenceChange?(enabled: boolean): boolean;
+  onSspsPresenceChange?(enabled: boolean): boolean | Promise<boolean>;
   sspsPresenceEnabled?: boolean;
 }>;
 

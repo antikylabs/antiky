@@ -21,7 +21,7 @@ export function studioPageHref(
 type AppProps = Readonly<{
   initialPage?: StudioPage;
   onPageChange?(page: StudioPage): void;
-  onSspsPresenceChange?(enabled: boolean): boolean;
+  onSspsPresenceChange?(enabled: boolean): boolean | Promise<boolean>;
   platform: StudioPlatform;
   sspsPresenceEnabled?: boolean;
 }>;

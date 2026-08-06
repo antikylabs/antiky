@@ -88,6 +88,23 @@ test('unhandled Command shortcuts continue through AppKit without re-entering it
   );
 });
 
+test('Command copy and paste remain terminal clipboard shortcuts', async () => {
+  const source = await bridgeSource;
+  const view = source.match(
+    /@implementation AntikyGhosttyView[\s\S]*?\n@end/,
+  )?.[0];
+  const keyEquivalent = view?.match(
+    /- \(BOOL\)performKeyEquivalent:\(NSEvent \*\)event[\s\S]*?\n\}\n- \(void\)keyDown/,
+  )?.[0];
+
+  assert.ok(keyEquivalent, 'terminal key-equivalent handling must remain inspectable');
+  assert.match(keyEquivalent, /event\.keyCode == 0x08 \|\| event\.keyCode == 0x09/);
+  assert.match(
+    keyEquivalent,
+    /if \(terminalClipboardShortcut\) \{[\s\S]*return send_key\(event, action\);/,
+  );
+});
+
 test('modifier-only events never ask AppKit for keyboard text', async () => {
   const source = await bridgeSource;
   const sendKey = source.match(
@@ -119,4 +136,20 @@ test('terminal layout hides offscreen geometry and restores visible geometry', a
   assert.ok(hide, 'native terminal hide must remain explicit and inspectable');
   assert.match(layout, /antiky_view\.hidden = NO/);
   assert.match(hide, /antiky_view\.hidden = YES/);
+});
+
+test('the native view paints the Studio media background before Ghostty draws', async () => {
+  const source = await bridgeSource;
+  const open = source.match(
+    /int32_t antiky_terminal_open\([\s\S]*?\n\}\n\nint32_t antiky_terminal_layout/,
+  )?.[0];
+
+  assert.ok(open, 'native terminal open must remain explicit and inspectable');
+  const background = open.indexOf('antiky_view.layer.backgroundColor');
+  const attach = open.indexOf('[parent addSubview:antiky_view');
+  assert.ok(background > 0, 'the AppKit surface must own an explicit first-frame background');
+  assert.ok(attach > background, 'the background must be set before the native view is attached');
+  assert.match(open, /Red:\(8\.0 \/ 255\.0\)/);
+  assert.match(open, /green:\(9\.0 \/ 255\.0\)/);
+  assert.match(open, /blue:\(11\.0 \/ 255\.0\)/);
 });

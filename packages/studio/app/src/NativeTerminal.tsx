@@ -31,7 +31,12 @@ function enqueueNativeCommand(operation: () => Promise<void>) {
   return nativeCommandQueue;
 }
 
+export function closeNativeTerminal() {
+  return enqueueNativeCommand(() => invoke('terminal_close'));
+}
+
 function displayError(reason: unknown) {
+  if (typeof reason === 'string' && reason.trim()) return reason;
   if (reason && typeof reason === 'object' && 'message' in reason) {
     return String(reason.message);
   }
@@ -94,6 +99,7 @@ function sameBounds(left: TerminalBounds | null | undefined, right: TerminalBoun
 export function NativeTerminal() {
   const viewport = useRef<HTMLDivElement>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const element = viewport.current;
@@ -111,7 +117,10 @@ export function NativeTerminal() {
     );
 
     const reportFailure = (reason: unknown) => {
-      if (active) setFailure(displayError(reason));
+      if (active) {
+        setReady(false);
+        setFailure(displayError(reason));
+      }
     };
 
     const submitLayout = (bounds: TerminalBounds | null) => {
@@ -120,7 +129,10 @@ export function NativeTerminal() {
       lastSubmittedBounds = submittedBounds;
       void enqueueNativeCommand(async () => {
         await invoke('terminal_layout', { bounds: submittedBounds });
-        if (active) setFailure(null);
+        if (active) {
+          setReady(true);
+          setFailure(null);
+        }
       }).catch((reason) => {
         lastSubmittedBounds = undefined;
         reportFailure(reason);
@@ -149,7 +161,10 @@ export function NativeTerminal() {
         const currentBounds = readBounds();
         await invoke('terminal_layout', { bounds: currentBounds });
         lastSubmittedBounds = currentBounds;
-        if (active) setFailure(null);
+        if (active) {
+          setReady(true);
+          setFailure(null);
+        }
       }).catch((reason) => {
         opening = false;
         reportFailure(reason);
@@ -178,10 +193,10 @@ export function NativeTerminal() {
       visualViewport?.removeEventListener('resize', scheduleSynchronization);
       visualViewport?.removeEventListener('scroll', scheduleSynchronization);
       if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
-      void enqueueNativeCommand(async () => {
-        if (opened) await invoke('terminal_close');
+      if (opened) {
         opened = false;
-      });
+        void closeNativeTerminal();
+      }
     };
   }, []);
 
@@ -200,7 +215,16 @@ export function NativeTerminal() {
       tabIndex={0}
     >
       <div className="native-terminal-viewport" ref={viewport} />
-      {failure && <p className="native-terminal-error">{failure}</p>}
+      {!ready && !failure && (
+        <p className="native-terminal-state native-terminal-loading" role="status">
+          Opening terminal…
+        </p>
+      )}
+      {failure && (
+        <p className="native-terminal-state native-terminal-error" role="alert">
+          {failure}
+        </p>
+      )}
     </div>
   );
 }

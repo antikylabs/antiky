@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 
 import {
+  applySspsPresencePreference,
   readSspsPresenceEnabled,
   SSPS_PRESENCE_STORAGE_KEY,
   SSPS_SCRIPT_URL,
@@ -67,6 +68,53 @@ test('SSPS presence stays disabled when preference storage is unavailable', () =
 
   assert.equal(readSspsPresenceEnabled(unavailable), false);
   assert.equal(writeSspsPresenceEnabled(unavailable, false), false);
+});
+
+test('SSPS preference changes wait for native terminal teardown before reloading Studio', async () => {
+  const storage = testStorage();
+  const events: string[] = [];
+  let finishTerminalTeardown = () => undefined;
+  const terminalTeardown = new Promise<void>((resolve) => {
+    finishTerminalTeardown = () => {
+      events.push('terminal closed');
+      resolve();
+    };
+  });
+
+  const change = applySspsPresencePreference(
+    storage,
+    false,
+    () => {
+      events.push('close requested');
+      return terminalTeardown;
+    },
+    () => { events.push('reloaded'); },
+  );
+
+  assert.equal(storage.values.get(SSPS_PRESENCE_STORAGE_KEY), 'disabled');
+  assert.deepEqual(events, ['close requested']);
+  finishTerminalTeardown();
+  assert.equal(await change, true);
+  assert.deepEqual(events, ['close requested', 'terminal closed', 'reloaded']);
+});
+
+test('SSPS preference changes do not close or reload when saving fails', async () => {
+  const unavailable = {
+    getItem: () => { throw new Error('storage unavailable'); },
+    removeItem: () => { throw new Error('storage unavailable'); },
+    setItem: () => { throw new Error('storage unavailable'); },
+  };
+  let terminalCloseCount = 0;
+  let reloadCount = 0;
+
+  assert.equal(await applySspsPresencePreference(
+    unavailable,
+    false,
+    async () => { terminalCloseCount += 1; },
+    () => { reloadCount += 1; },
+  ), false);
+  assert.equal(terminalCloseCount, 0);
+  assert.equal(reloadCount, 0);
 });
 
 test('SSPS loads one exact site script only for an enabled native Studio', () => {

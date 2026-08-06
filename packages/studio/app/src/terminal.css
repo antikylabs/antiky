@@ -18,13 +18,22 @@
   overflow: hidden;
 }
 
-.native-terminal-error {
+.native-terminal-state {
   position: absolute;
   z-index: 1;
-  inset: 20px;
+  inset: 3px;
   margin: 0;
-  color: var(--error);
+  padding: 17px;
+  background: #08090b;
   font-family: var(--mono);
   font-size: 11px;
   line-height: 1.5;
+}
+
+.native-terminal-loading {
+  color: var(--text-faint);
+}
+
+.native-terminal-error {
+  color: var(--error);
 }

@@ -71,3 +71,29 @@ test('native terminal resynchronizes after element, viewport, and scroll geometr
   assert.match(terminalSource, /visualViewport\?\.addEventListener\('resize', scheduleSynchronization\)/);
   assert.match(terminalSource, /visualViewport\?\.addEventListener\('scroll', scheduleSynchronization\)/);
 });
+
+test('native terminal uses one themed loading and error surface from the first frame', () => {
+  const html = renderToStaticMarkup(createElement(NativeTerminal));
+
+  assert.match(html, /role="status"/);
+  assert.match(html, /Opening terminal/);
+  assert.match(terminalSource, /role="alert"/);
+  assert.match(terminalSource, /typeof reason === 'string'/);
+  assert.match(
+    terminalStyles,
+    /\.native-terminal-state\s*\{[^}]*background:\s*#08090b/s,
+  );
+  assert.match(
+    terminalStyles,
+    /\.native-terminal-error\s*\{[^}]*color:\s*var\(--error\)/s,
+  );
+});
+
+test('native terminal teardown is reusable by preference reloads', () => {
+  assert.match(terminalSource, /export function closeNativeTerminal\(\)/);
+  assert.match(
+    terminalSource,
+    /return enqueueNativeCommand\(\(\) => invoke\('terminal_close'\)\)/,
+  );
+  assert.match(terminalSource, /if \(opened\) \{[\s\S]*void closeNativeTerminal\(\)/);
+});

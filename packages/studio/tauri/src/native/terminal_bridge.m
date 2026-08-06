@@ -161,12 +161,19 @@ static void send_mouse_button(
     return NO;
   }
   NSEventModifierFlags flags = event.modifierFlags;
+  ghostty_input_action_e action =
+      event.isARepeat ? GHOSTTY_ACTION_REPEAT : GHOSTTY_ACTION_PRESS;
+  BOOL terminalClipboardShortcut =
+      (flags & NSEventModifierFlagCommand) != 0 &&
+      (flags & NSEventModifierFlagControl) == 0 &&
+      (event.keyCode == 0x08 || event.keyCode == 0x09);
+  if (terminalClipboardShortcut) {
+    return send_key(event, action);
+  }
   if ((flags & NSEventModifierFlagControl) == 0 ||
       (flags & NSEventModifierFlagCommand) != 0) {
     return NO;
   }
-  ghostty_input_action_e action =
-      event.isARepeat ? GHOSTTY_ACTION_REPEAT : GHOSTTY_ACTION_PRESS;
   send_key(event, action);
   return YES;
 }
@@ -378,6 +385,10 @@ int32_t antiky_terminal_open(
       initWithFrame:native_frame(parent, x, y, width, height)];
   antiky_view.wantsLayer = YES;
   antiky_view.clipsToBounds = YES;
+  antiky_view.layer.backgroundColor = [NSColor colorWithSRGBRed:(8.0 / 255.0)
+                                                          green:(9.0 / 255.0)
+                                                           blue:(11.0 / 255.0)
+                                                          alpha:1.0].CGColor;
   [parent addSubview:antiky_view positioned:NSWindowAbove relativeTo:nil];
 
   ghostty_surface_config_s surface_config = ghostty_surface_config_new();
