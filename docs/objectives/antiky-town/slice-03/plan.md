@@ -2,6 +2,10 @@
 
 For a short review, answer the questions in [`owner-input_H.md`](owner-input_H.md).
 
+Read the [`architecture-addendum.md`](architecture-addendum.md) before you use this plan. The
+addendum records the later physics decisions. It controls when this plan contains an older CPU
+assumption.
+
 ## Control
 
 | Field | Value |
