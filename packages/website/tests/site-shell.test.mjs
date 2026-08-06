@@ -40,7 +40,7 @@ test('production pages report the configured SSPS live visitor count once', asyn
   for (const page of ['index.html', 'framework.html', 'studio.html']) {
     const output = await readFile(new URL(page, outputRoot), 'utf8');
     const scripts = output.match(/<script[^>]+src="https:\/\/usessps\.com\/ssps\.js"[^>]*>/g) ?? [];
-    const counters = output.match(/<[^>]+\sdata-ssps-live-count(?:="[^"]*")?[^>]*>/g) ?? [];
+    const counters = output.match(/<[^>]+\sid="ssps-live-count"[^>]*>/g) ?? [];
 
     assert.equal(scripts.length, 1, `${page} must load SSPS once`);
     assert.match(scripts[0], /data-site-id="268"/);

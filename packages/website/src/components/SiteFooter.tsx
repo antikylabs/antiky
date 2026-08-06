@@ -21,7 +21,7 @@ export default function SiteFooter() {
         {process.env.NODE_ENV === 'production' && (
           <span className="live-presence" role="status" aria-live="polite">
             <span className="live-presence-dot" aria-hidden="true" />
-            <span><span data-ssps-live-count>—</span> active now</span>
+            <span><span id="ssps-live-count">—</span> active now</span>
           </span>
         )}
         <span>Antiky Framework is emerging. Emberwyrd is planned.</span>
