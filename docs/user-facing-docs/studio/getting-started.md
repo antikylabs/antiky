@@ -36,7 +36,14 @@ second game.
 
 ## Use the workspace
 
-The first workspace has these areas:
+On a wide window, Studio puts the live game in the larger upper-left area. Inspection is on the
+upper right. The terminal is below the game, and Activity is below Inspection in a smaller lower
+row. This keeps the running game prominent while the supporting tools remain visible.
+
+In a narrow window or at high zoom, the areas stack in this order: Live game, Terminal, Inspection,
+Activity. Scroll the workspace to reach each area.
+
+The workspace has these areas:
 
 | Area | What you can do |
 | --- | --- |

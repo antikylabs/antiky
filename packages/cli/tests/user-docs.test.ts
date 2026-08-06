@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { access, readFile, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import test from 'node:test';
@@ -28,4 +29,12 @@ test('user-facing documentation has valid local links', async () => {
   await Promise.all((await markdownFiles(userDocsRoot)).map(async (path) => {
     await verifyLocalLinks(path, await readFile(path, 'utf8'));
   }));
+});
+
+test('the Studio guide describes the game-first responsive workspace', async () => {
+  const source = await readFile(new URL('../../../docs/user-facing-docs/studio/getting-started.md', import.meta.url), 'utf8');
+
+  assert.match(source, /live game in the larger upper-left area/i);
+  assert.match(source, /terminal is below the game/i);
+  assert.match(source, /stack in this order:\s*Live game,\s*Terminal,\s*Inspection,\s*Activity/i);
 });
