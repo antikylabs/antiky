@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-20260806T043040Z",
+  "durationsMilliseconds": {
+    "repositoryCheck": 22947,
+    "nativeBuild": 14250
+  },
+  "liveTown": {
+    "drawCallsPerFrame": 16,
+    "instances": 1247,
+    "uploadBytesPerFrame": 1152,
+    "matchesSlice01AndSlice02Reference": true,
+    "gpuReadbackAddedByStudio": false
+  },
+  "semanticInspection": {
+    "entities": 2,
+    "componentSummaries": 4,
+    "relationships": 0,
+    "stores": 3,
+    "retainedEventsInCleanRun": 0
+  },
+  "mcpCallLog": {
+    "capacity": 100,
+    "maximumValueBytes": 16384,
+    "retainedVerificationCalls": 3,
+    "droppedVerificationCalls": 0
+  },
+  "nativeTerminalProbe": {
+    "initialWidthPx": 1280,
+    "initialHeightPx": 640,
+    "finalWidthPx": 1520,
+    "finalHeightPx": 720,
+    "childRuntimeMs": 7047,
+    "focus": true,
+    "clipping": true,
+    "rendererLayerAttached": true,
+    "resize": true,
+    "unicodeInput": true,
+    "childExit": true,
+    "disposed": true
+  }
+}

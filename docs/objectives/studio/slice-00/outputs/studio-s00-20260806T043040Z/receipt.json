@@ -1,19 +1,490 @@
 {
   "schemaVersion": 1,
+  "writer": "Studio Slice 00 goal runner",
+  "validator": "Machine-readable artifact and hash audit",
   "sliceId": "studio-slice-00",
   "runId": "studio-s00-20260806T043040Z",
-  "status": "in-progress",
+  "state": "CLOSED",
+  "result": "PASS",
+  "outcome": "One Studio window combines the live Town game, native terminal, session controls, semantic inspection, event history, and MCP call history from one development session.",
+  "startedAt": "2026-08-06T04:30:40Z",
+  "completedAt": "2026-08-06T07:29:51.387Z",
   "sourceRevision": "b77eae8535a5ed41c8c2b2971ac6d94a2614cf6f",
-  "files": [
+  "finalImplementationRevision": "fac58f7238e9e5ebda3690d6a0c27ebca168ffc1",
+  "evidencePatchState": "The native-origin control regression, closed plan, receipt, facts, measurements, confirmation checks, slice list, and summary follow the final implementation revision.",
+  "checkpointCommits": [
+    {
+      "id": "CP-00",
+      "commit": "afe0314",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-01",
+      "commit": "a8153a5",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-02",
+      "commit": "458d2d5",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-02-CLEANUP",
+      "commits": [
+        "42062b6",
+        "211afd5"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "CP-03",
+      "commit": "82897af",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-04",
+      "commit": "fac58f7",
+      "status": "PASS"
+    },
+    {
+      "id": "CP-05",
+      "commit": null,
+      "evidencePatch": true,
+      "status": "PASS"
+    }
+  ],
+  "runSetup": {
+    "worktree": ".",
+    "branch": "feat/voxel-demo-work",
+    "dependencyLockSha256": "7d487c555b75008846360d0c0c6ebc604da6d549c89f8939507055ce1a6327bb",
+    "configSha256": "d956f75153e3e64257f2585a3585edc6bdb5a308127a0dbd1138348bccc6e186",
+    "platform": "macOS 26.5.2 arm64",
+    "node": "v22.15.0",
+    "npm": "10.9.2",
+    "rustc": "1.97.1",
+    "cargo": "1.97.1",
+    "xcode": "26.6",
+    "locale": "en_US.UTF-8",
+    "timeZone": "America/Chicago",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "browserControl": "unavailable",
+    "ports": [
+      3010,
+      3011,
+      1420
+    ],
+    "network": "Loopback development traffic only during verification.",
+    "outputDirectory": "docs/objectives/studio/slice-00/outputs/studio-s00-20260806T043040Z"
+  },
+  "dependencies": {
+    "brometal": {
+      "installed": "0.15.0",
+      "latestAtReview": "0.15.0",
+      "currentAtReview": true
+    },
+    "ghostty": {
+      "revision": "f948d4207655f31ae9b95fa039e73524df43cd13",
+      "sourceArchiveSha256": "d7051e56f4edbca4a316c9785265e06ce0776f74004026a2395bb881c009fa99",
+      "declaredVersion": "1.3.2-dev"
+    },
+    "zig": {
+      "version": "0.16.0",
+      "aarch64MacosArchiveSha256": "b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489"
+    }
+  },
+  "readiness": [
+    {
+      "gate": "Owner input and prior slices",
+      "status": "PASS",
+      "evidence": "No owner input was required. Antiky Town Slices 01 and 02 were complete."
+    },
+    {
+      "gate": "Architecture, ADR, research, and BroMetal review",
+      "status": "PASS",
+      "evidence": "The plan records the accepted decisions, complete UNDER_REVIEW review, current framework research, and BroMetal 0.15.0 result."
+    },
+    {
+      "gate": "Run setup, ports, reference, permissions, and rollback",
+      "status": "PASS",
+      "evidence": "baseline.json"
+    },
+    {
+      "gate": "Native Ghostty surface qualification",
+      "status": "PASS",
+      "evidence": "ghostty-probe.json and native-studio.json"
+    },
+    {
+      "gate": "Named tests, complete verifier, docs, and receipt writer",
+      "status": "PASS",
+      "evidence": "final-verifier.json"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "attempt-001",
+      "checkpoint": "CP-00",
+      "result": "FAIL",
+      "failureClass": "TRANSIENT",
+      "disposition": "The sandbox denied loopback binds. The scoped outside-sandbox repository check passed."
+    },
+    {
+      "id": "attempt-002",
+      "checkpoint": "CP-00",
+      "result": "FAIL",
+      "failureClass": "TRANSIENT",
+      "disposition": "An unrelated Homebrew tap shadowed Zig. A second qualified formula attempt had the same result."
+    },
+    {
+      "id": "attempt-003",
+      "checkpoint": "CP-00",
+      "result": "PASS",
+      "failureClass": "QUALIFIED_FALLBACK",
+      "disposition": "The official pinned Zig archive built the pinned Ghostty source in isolated temporary storage."
+    },
+    {
+      "id": "attempt-004",
+      "checkpoint": "CP-00",
+      "result": "FAIL",
+      "failureClass": "QUALIFICATION",
+      "disposition": "The first Ghostty probe link omitted IOSurface and the C++ runtime. The bounded probe added the required platform linkage."
+    },
+    {
+      "id": "attempt-005",
+      "checkpoint": "CP-00",
+      "result": "FAIL",
+      "failureClass": "EVIDENCE_FAILURE",
+      "disposition": "The first resize assertion observed asynchronous initialization. The strengthened probe matched both requested sizes and passed."
+    },
+    {
+      "id": "attempt-006",
+      "checkpoint": "CP-00",
+      "result": "LIMITED",
+      "failureClass": "EVIDENCE_FAILURE",
+      "disposition": "Computer Use could not address the temporary native bundle. The receipt keeps the visual limitation explicit and makes no screenshot claim."
+    },
+    {
+      "id": "attempt-007",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "disposition": "A red regression proved that a maximum-depth host marker path exceeded the shared parser bound. The parser now accepts every bounded host-produced path."
+    },
+    {
+      "id": "attempt-008",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "disposition": "A red native-origin preflight regression returned 403. Exact Tauri and local Vite origins now pass strict protected CORS checks."
+    },
+    {
+      "id": "attempt-009",
+      "checkpoint": "CP-04",
+      "result": "FAIL",
+      "failureClass": "DEFECT",
+      "disposition": "The real Studio run found that Town published point lights but omitted semantic world and event views. A red demo regression led the runtime adapter to derive both views."
+    },
+    {
+      "id": "attempt-010",
+      "checkpoint": "CP-04",
+      "result": "EXPECTED_REJECTION",
+      "failureClass": "EXPECTED_REJECTION",
+      "disposition": "The automated occluded webview stayed in initializing state, so pause_simulation correctly returned ANTIKY_RUNTIME_UNAVAILABLE. Permanent parity and native-origin tests prove the ready-runtime control path."
+    },
+    {
+      "id": "attempt-011",
+      "checkpoint": "CP-04",
+      "result": "LIMITED",
+      "failureClass": "EVIDENCE_FAILURE",
+      "disposition": "No attached browser existed, and Computer Use could not capture the bundled Studio window. No unrelated browser driver or synthetic screenshot replaced it."
+    },
+    {
+      "id": "attempt-012",
+      "checkpoint": "CP-05",
+      "result": "PASS",
+      "note": "The complete verifier passed, but its bounded result omitted the named Town render counters."
+    },
+    {
+      "id": "attempt-013",
+      "checkpoint": "CP-05",
+      "result": "PASS",
+      "failureClass": "EVIDENCE_STRENGTHENING",
+      "disposition": "The verifier asserted and retained the unchanged draw, instance, and upload counters. It passed again from a clean service start."
+    }
+  ],
+  "unexpectedResults": [
+    {
+      "class": "PRODUCT_DEFECT",
+      "result": "RESOLVED",
+      "detail": "The real native run exposed the missing Town semantic projection. The demo adapter now publishes the existing Framework world and event views."
+    },
+    {
+      "class": "SECURITY_BOUNDARY",
+      "result": "RESOLVED",
+      "detail": "The first native CORS probe failed closed. Exact Studio origins, protected preflight, and actual error-response headers now have permanent integration coverage."
+    },
+    {
+      "class": "TOOL_CAPABILITY",
+      "result": "RECORDED_LIMITATION",
+      "detail": "Attached browser and desktop capture were unavailable. The run does not claim visual evidence."
+    },
+    {
+      "class": "MAINTAINABILITY",
+      "result": "RESOLVED",
+      "detail": "The CLI inspection server and Studio app were split into cohesive modules under the repository soft file-size cap."
+    }
+  ],
+  "identities": {
+    "developmentSessionId": "bd32539d-cbf0-4b4a-994c-c6d438198729",
+    "runtimeInstanceId": "567a3ef5-3300-4d77-aae0-d706199e4bad",
+    "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+    "eventSourceId": "antiky.point-light-authoring"
+  },
+  "tests": [
+    {
+      "command": "npm run check",
+      "status": "PASS",
+      "evidence": "final-verifier.json"
+    },
+    {
+      "command": "npm run build --workspace @antiky/studio-tauri",
+      "status": "PASS",
+      "evidence": "final-verifier.json"
+    },
+    {
+      "command": "node docs/objectives/studio/slice-00/verification/verify.mjs",
+      "status": "PASS",
+      "evidence": "final-verifier.json"
+    }
+  ],
+  "documentation": {
+    "architecture": [
+      "docs/architecture/studio/overview_A.md"
+    ],
+    "index": [
+      "docs/user-facing-docs/README.md"
+    ],
+    "framework": [
+      "docs/user-facing-docs/framework/inspection.md"
+    ],
+    "cli": [
+      "docs/user-facing-docs/cli/development.md"
+    ],
+    "mcp": [
+      "docs/user-facing-docs/mcp/overview.md",
+      "docs/user-facing-docs/mcp/tools.md"
+    ],
+    "studio": [
+      "docs/user-facing-docs/studio/getting-started.md",
+      "docs/user-facing-docs/studio/development-connection.md"
+    ]
+  },
+  "acceptanceChecks": [
+    {
+      "id": "AC-01",
+      "status": "PASS",
+      "evidence": "native-studio.json, ghostty-probe.json, and final-verifier.json"
+    },
+    {
+      "id": "AC-02",
+      "status": "PASS",
+      "evidence": "final-verifier.json records one development session across Studio, the shared client, and MCP."
+    },
+    {
+      "id": "AC-03",
+      "status": "PASS",
+      "evidence": "facts.json and the Studio component tests in npm run check"
+    },
+    {
+      "id": "AC-04",
+      "status": "PASS",
+      "evidence": "CLI control-parity integration and native-origin POST coverage in npm run check"
+    },
+    {
+      "id": "AC-05",
+      "status": "PASS",
+      "evidence": "Framework event-history tests, Studio event-panel tests, and final-verifier.json"
+    },
+    {
+      "id": "AC-06",
+      "status": "PASS",
+      "evidence": "MCP call-log unit and integration tests plus final-verifier.json"
+    },
+    {
+      "id": "AC-07",
+      "status": "PASS",
+      "evidence": "Studio browser-shell test in npm run check"
+    },
+    {
+      "id": "AC-08",
+      "status": "PASS",
+      "evidence": "CLI, Studio, native terminal, and cleanup tests plus final-verifier.json"
+    },
+    {
+      "id": "AC-09",
+      "status": "PASS",
+      "evidence": "measurements.json records the unchanged Town reference counters and no Studio GPU readback path."
+    },
+    {
+      "id": "AC-10",
+      "status": "PASS",
+      "evidence": "General docs, npm run check, native build, closed receipt, and slice-summary.md"
+    }
+  ],
+  "rubric": [
+    {
+      "dimension": "Outcome and scope",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Framework alignment",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Framework design",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Correctness",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Inspectability",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Render efficiency",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Failure and recovery",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Lifecycle and security",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Reference and performance",
+      "score": 3,
+      "status": "PASS",
+      "note": "Town render counters match the retained reference. Studio visual capture is explicitly unavailable and is not claimed."
+    },
+    {
+      "dimension": "Reproduction and handoff",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Autonomous execution",
+      "score": 3,
+      "status": "PASS"
+    },
+    {
+      "dimension": "Operation and learning",
+      "score": 3,
+      "status": "PASS"
+    }
+  ],
+  "deliveryAuthority": {
+    "repositoryWrites": "Approved Slice 00 workspace paths only; expires at closeout.",
+    "localProcesses": "Studio, antiky dev, tests, builds, and bounded probes only; revoked by process exit.",
+    "network": "Loopback traffic and approved dependency qualification only; no deployment.",
+    "secrets": "No secret read, persistence, transcript, or evidence authority.",
+    "productionDeployment": false,
+    "persistentUserData": false,
+    "worldMutationBeyondExistingDevelopmentControls": false,
+    "agentAuthorityExpansion": false
+  },
+  "processMeasures": {
+    "completeVerificationAttempts": 2,
+    "implementationRegressionCycles": 3,
+    "toolchainQualificationRetries": 4,
+    "flakyChecks": 0,
+    "ownerInterventionsDuringRun": 0,
+    "permissionEscalationCategories": 4,
+    "blockedMilliseconds": 0
+  },
+  "rollback": {
+    "lastKnownGoodRevision": "fac58f7",
+    "trigger": "A deterministic Studio, terminal, inspection, control, security, event-order, MCP-log, or cleanup regression.",
+    "action": "Create a corrective or revert commit that restores the last passing checkpoint. Do not rewrite shared history.",
+    "stateEffect": "No durable world or event schema migration exists. A restarted development session clears in-memory runtime and MCP history.",
+    "proof": "npm run check and the documented native build and live-session workflow"
+  },
+  "afterCompletion": {
+    "owner": "Antiky Studio, Framework, and CLI maintainers",
+    "health": "npm run check plus the Studio getting-started workflow",
+    "humanFeedback": "docs/objectives/studio/slice-00/slice-summary.md and the next Studio owner-input file",
+    "agentFindings": "docs/objectives/studio/slice-list.md and the next Studio plan",
+    "retirement": "Replace a boundary only through a later accepted design with migration and regression tests."
+  },
+  "visualEvidence": {
+    "status": "UNAVAILABLE",
+    "classification": "EVIDENCE_FAILURE",
+    "screenshotClaimed": false,
+    "reason": "No controllable browser was attached, and desktop automation could not address the bundled Studio window.",
+    "supportingNonVisualProof": [
+      "native-studio.json",
+      "ghostty-probe.json",
+      "final-verifier.json",
+      "Studio component tests",
+      "Tauri build"
+    ]
+  },
+  "finalGoalAudit": "PASS",
+  "artifacts": [
     {
       "path": "baseline.json",
+      "byteLength": 5665,
       "sha256": "736a3a4fc25d32fb0c87ed0eb512a225e901c2cf5aaf129d35bcf767f1886149",
-      "purpose": "Frozen environment, package, service, and qualification baseline"
+      "purpose": "Frozen environment, dependency, service, and qualification baseline"
     },
     {
       "path": "ghostty-probe.json",
+      "byteLength": 1238,
       "sha256": "ffaad883a9c02828c08e64f54fdf6215070c18122699dddb99c9f3a7d7b7c872",
       "purpose": "Pinned full-libghostty native-surface proof"
+    },
+    {
+      "path": "native-studio.json",
+      "byteLength": 1015,
+      "sha256": "36c8826d654f06cae109da8c1904427534f16914dc4b13d7a6c27ad73174105c",
+      "purpose": "Tauri terminal integration and lifecycle proof"
+    },
+    {
+      "path": "final-verifier.json",
+      "byteLength": 2479,
+      "sha256": "96ee35ea4104a172c9f806f7211aa996c2f76bf411ceab819ec813948de91eec",
+      "purpose": "Clean repository, native build, live Studio, MCP parity, render, and cleanup proof"
+    },
+    {
+      "path": "confirmation-checks.md",
+      "byteLength": 1990,
+      "sha256": "1ea1643948a6bdb7af0540956491c2c690072ae78de591507c6eeb774e7859aa",
+      "purpose": "Short human-readable acceptance result"
+    },
+    {
+      "path": "facts.json",
+      "byteLength": 3482,
+      "sha256": "6a746846d96e65145eff9be473b4a14eca93c725d65ecee3a45e54db78a3bb14",
+      "purpose": "Stable machine-readable architecture and live-session facts"
+    },
+    {
+      "path": "measurements.json",
+      "byteLength": 981,
+      "sha256": "2ac69ca6bb1ead6841cb9583a83304f596a8e878cc0f5dea0d9427a206b9bbd3",
+      "purpose": "Verification duration, unchanged Town render, inspection, MCP, and terminal measurements"
     }
   ]
 }

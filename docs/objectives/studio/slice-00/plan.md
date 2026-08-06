@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `READY` |
+| Status | `COMPLETE` |
 | Owner | Antiky Studio maintainers |
 | Outcome | One Studio window combines the live game, native terminal, session controls, world inspection, event-sourcing log, and MCP call log from one `antiky dev` session |
 | Owner input | `NONE` |
@@ -251,18 +251,18 @@ Delete it after the final outputs pass.
 
 ## Completion checks
 
-- [ ] `AC-01` Tauri opens the website-aligned workspace with the native terminal and live Town game.
-- [ ] `AC-02` Studio attaches through the shared client to the same session used by CLI and MCP.
-- [ ] `AC-03` The hierarchy, component summaries, stores, snapshot, and diagnostics show all current
+- [x] `AC-01` Tauri opens the website-aligned workspace with the native terminal and live Town game.
+- [x] `AC-02` Studio attaches through the shared client to the same session used by CLI and MCP.
+- [x] `AC-03` The hierarchy, component summaries, stores, snapshot, and diagnostics show all current
   published data without exposing or inventing engine internals.
-- [ ] `AC-04` Pause, resume, and one-step controls return the same safe results as CLI and MCP.
-- [ ] `AC-05` The event panel shows the real ordered event-sourcing facts and their retention scope.
-- [ ] `AC-06` The MCP panel shows bounded, ordered Tool arguments and returned results, with visible
+- [x] `AC-04` Pause, resume, and one-step controls return the same safe results as CLI and MCP.
+- [x] `AC-05` The event panel shows the real ordered event-sourcing facts and their retention scope.
+- [x] `AC-06` The MCP panel shows bounded, ordered Tool arguments and returned results, with visible
   redaction, errors, source scope, dropped count, and no recursive self-log.
-- [ ] `AC-07` Browser mode keeps the same panels and clearly marks the native terminal unavailable.
-- [ ] `AC-08` Invalid, stale, disconnected, failed, busy-port, and close paths are honest and recoverable.
-- [ ] `AC-09` Town rendering, simulation, resources, and zero normal GPU readback remain unchanged.
-- [ ] `AC-10` General docs, tests, builds, repository check, receipt, and `slice-summary.md` pass.
+- [x] `AC-07` Browser mode keeps the same panels and clearly marks the native terminal unavailable.
+- [x] `AC-08` Invalid, stale, disconnected, failed, busy-port, and close paths are honest and recoverable.
+- [x] `AC-09` Town rendering, simulation, resources, and zero normal GPU readback remain unchanged.
+- [x] `AC-10` General docs, tests, builds, repository check, receipt, and `slice-summary.md` pass.
 
 ## Run and evidence rule
 

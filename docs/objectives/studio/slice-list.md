@@ -2,7 +2,7 @@
 
 Update this list after every Studio slice run.
 
-- [ ] Slice 00 — Open Studio with the live Town, native terminal, session controls, inspection
+- [x] Slice 00 — Open Studio with the live Town, native terminal, session controls, inspection
   panels, event-sourcing log, and MCP call log from one development session.
 - [ ] Slice 01 — Clickable canvas
 - [ ] Slice 02 — Comments on canvas objects

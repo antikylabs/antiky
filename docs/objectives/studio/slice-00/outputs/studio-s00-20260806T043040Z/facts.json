@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "studio-slice-00",
+  "runId": "studio-s00-20260806T043040Z",
+  "outcome": "One Studio window combines the live Town game, native terminal, session controls, semantic inspection, event history, and MCP call history from one development session.",
+  "framework": {
+    "worldInspection": {
+      "owner": "framework",
+      "entities": 2,
+      "componentSummaries": 4,
+      "relationships": 0,
+      "storeKinds": [
+        "authoring",
+        "render",
+        "runtime"
+      ]
+    },
+    "eventHistory": {
+      "sourceId": "antiky.point-light-authoring",
+      "lifetime": "runtime-instance",
+      "storage": "memory",
+      "overflow": "reject-new",
+      "capacity": 256,
+      "liveRetainedEvents": 0,
+      "note": "The clean live run made no domain change. Framework and Studio tests prove ordered accepted point-light facts."
+    },
+    "publicEcsStorageAdded": false,
+    "durableEventStoreAdded": false,
+    "gpuReadbackAdded": false
+  },
+  "development": {
+    "developmentSessionId": "bd32539d-cbf0-4b4a-994c-c6d438198729",
+    "runtimeInstanceId": "567a3ef5-3300-4d77-aae0-d706199e4bad",
+    "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+    "gameUrl": "http://127.0.0.1:3010/",
+    "inspectionUrl": "http://127.0.0.1:3011",
+    "mcpUrl": "http://127.0.0.1:3011/mcp",
+    "sharedClient": "@antiky/cli/development",
+    "controlParity": [
+      "direct",
+      "shared-client",
+      "HTTP",
+      "MCP",
+      "human CLI",
+      "browser relay"
+    ]
+  },
+  "mcp": {
+    "capability": "tools",
+    "resources": false,
+    "toolCount": 17,
+    "newReadTools": [
+      "get_world_inspection",
+      "get_event_log"
+    ],
+    "callLog": {
+      "owner": "cli",
+      "scope": "development-session",
+      "storage": "memory",
+      "capacity": 100,
+      "maximumValueBytes": 16384,
+      "overflow": "drop-oldest",
+      "protectedReadIsMcpTool": false,
+      "protectedReadAddsCall": false,
+      "secretRedactionPassed": true,
+      "truncationMarkersPassed": true
+    }
+  },
+  "studio": {
+    "webPackage": "packages/studio/app",
+    "nativePackage": "packages/studio/tauri",
+    "terminal": "pinned libghostty native surface",
+    "panels": [
+      "Live game",
+      "Terminal",
+      "Hierarchy",
+      "Stores",
+      "Snapshot",
+      "Events",
+      "MCP calls",
+      "Diagnostics"
+    ],
+    "sessionControls": [
+      "pause",
+      "resume",
+      "step"
+    ],
+    "inspectionIsReadOnly": true,
+    "secondRendererAdded": false,
+    "secondDevelopmentHostAdded": false,
+    "browserFallbackKeepsPanels": true
+  },
+  "security": {
+    "bindHost": "127.0.0.1",
+    "protectedDevelopmentQueries": true,
+    "allowedStudioOrigins": [
+      "tauri://localhost",
+      "http://tauri.localhost",
+      "http://127.0.0.1:1420"
+    ],
+    "tauriCapability": "default-deny bounded commands",
+    "credentialsStoredInEvidence": false,
+    "terminalTranscriptStored": false
+  },
+  "cleanup": {
+    "studioSignal": "SIGTERM",
+    "developmentExitCode": 130,
+    "descriptorRemoved": true,
+    "portsReleased": [
+      3010,
+      3011,
+      1420
+    ],
+    "orphanProcesses": 0
+  },
+  "visualEvidence": {
+    "status": "unavailable",
+    "classification": "EVIDENCE_FAILURE",
+    "reason": "No controllable browser was attached, and desktop automation could not address the bundled Studio window.",
+    "claim": "No screenshot is claimed. Native process, webview, data, build, and terminal-surface evidence passed."
+  }
+}

@@ -348,6 +348,41 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
     assert.equal(studioSnapshot.status, 200);
     assert.equal(studioSnapshot.headers.get('access-control-allow-origin'), studioOrigin);
 
+    const studioControlPreflight = await fetch(
+      `${session.inspectionUrl}/v1/actions/pause-simulation`,
+      {
+        method: 'OPTIONS',
+        headers: {
+          origin: studioOrigin,
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'authorization, content-type',
+        },
+      },
+    );
+    assert.equal(studioControlPreflight.status, 204);
+    assert.equal(
+      studioControlPreflight.headers.get('access-control-allow-origin'),
+      studioOrigin,
+    );
+    const studioControl = await fetch(
+      `${session.inspectionUrl}/v1/actions/pause-simulation`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${activeDescriptor.credential}`,
+          'content-type': 'application/json',
+          origin: studioOrigin,
+        },
+        body: JSON.stringify({ schemaVersion: 1 }),
+      },
+    );
+    assert.equal(studioControl.status, 503);
+    assert.equal(studioControl.headers.get('access-control-allow-origin'), studioOrigin);
+    assert.equal(
+      ((await studioControl.json()) as { error: { code: string } }).error.code,
+      'ANTIKY_RUNTIME_UNAVAILABLE',
+    );
+
     await assert.rejects(
       () => runCli(['tool', 'not_a_real_tool', '--config', project.configPath]),
       (error: unknown) => (
