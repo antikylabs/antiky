@@ -55,8 +55,8 @@ to standard output.
 ## What the server exposes
 
 Antiky exposes development operations as MCP tools. Read tools report session, build, runtime,
-render, diagnostic, and point-light state. Action tools reload the game, capture a frame, or submit
-a point-light change.
+render, diagnostic, world, store, event, and point-light state. Action tools reload the game,
+capture a frame, control simulation, or submit a point-light change.
 
 The server does not publish the same state again as MCP Resources. Tools fit both kinds of Antiky
 work:
@@ -68,6 +68,11 @@ work:
 
 Start with `get_dev_status` when an agent first connects. See the [MCP tool
 reference](tools.md) for the complete catalog, inputs, results, and recommended call order.
+
+The local development host also keeps a bounded in-memory record of handled `tools/call` requests
+for Studio. That record is a protected development-client query, not an MCP Tool or Resource.
+Reading it cannot make the history record itself. It expires with the `antiky dev` session and does
+not become game event history.
 
 ## Call a tool yourself
 

@@ -58,11 +58,23 @@ The CLI and Studio have different presentations. They do not have different engi
 `antiky dev` starts and supervises the local development host and game process. Studio connects to
 the same host. It uses structured engine services instead of terminal text.
 
-The Studio host can start an approved local CLI process. It can later use the same launch service
-directly if a real use case needs this integration. It must not implement a second launcher.
+The integrated terminal can start the CLI. Studio can later use the same launch service directly if
+a use case needs this integration. Studio must not implement a second launcher.
 
 The framework owns semantic inspection and measurements. The development host owns process, build,
 connection, and cleanup facts. Studio can show both sources without becoming their owner.
+
+The current local connection uses this path:
+
+```text
+Framework queries and commands -> antiky dev -> DevelopmentClient -> Studio panels
+                                          `-> MCP Tool adapter -> MCP clients
+Tauri host -> bounded connection discovery and native terminal only
+```
+
+The Tauri host reads the selected project's session descriptor. It gives one bounded connection to
+the portable app. The app uses the browser-safe `DevelopmentClient`. Tauri does not fetch engine
+data and does not copy development requests.
 
 ## Web and desktop hosts
 
@@ -97,8 +109,9 @@ The architecture supports both local and detached sessions:
 | Separate Studio | Tauri or browser | Existing game or server process | Inspect a live runtime without direct access to its objects |
 | Headless tools | Optional UI | Headless session | Tests, validation, import, and agent sandboxes |
 
-The project has not selected the engine process location or connection method. Direct calls, Tauri
-process messages, and local networks must use the same validation and authority rules.
+The first local Studio connects to the loopback service that `antiky dev` owns. A later detached
+connection can use another transport. The transport must keep the same validation and authority
+rules.
 
 ## EditorSession
 
@@ -198,13 +211,13 @@ A useful first workspace contains:
 - Live game canvas
 - Mode and single-step controls
 - Scene hierarchy
-- Entity and component inspector
-- Asset browser and dependency view
-- Console and structured diagnostics
-- Command or event history
-- Render-pass inspection
-- Feedback queue
-- Optional integrated terminal or agent panel.
+- Entity and component summaries
+- Named authoring, runtime, and render store views
+- Complete bounded inspection snapshot
+- Structured diagnostics
+- Event-sourcing history
+- MCP Tool-call history
+- Integrated terminal or agent panel.
 
 The hierarchy is a view of parent-child relationships. The inspector also shows other relationships,
 stable IDs, revisions, asset references, recent relevant history, and diagnostics.
@@ -247,8 +260,9 @@ property. A reviewer can compare stored context with current state.
 
 ## MCP adapter
 
-The Model Context Protocol (MCP) adapter calls `EditorSession`. It supplies tools for tasks and
-resources for read operations. Its operation groups include:
+The Model Context Protocol (MCP) adapter calls the same services as Studio. It supplies Tools for
+read and action operations. It does not duplicate read operations as MCP Resources. Its operation
+groups include:
 
 - Engine and mode control
 - World and hierarchy inspection
@@ -265,6 +279,29 @@ private panel state, or add engine rules.
 Read operations do not change state. Changes require explicit command data and current permissions.
 Destructive actions, sandbox changes, and expensive simulation can require stronger rules or human
 confirmation.
+
+## Event history and MCP call history
+
+Studio shows two separate histories. The Framework owns event history. The development host owns
+MCP call history.
+
+```text
+accepted domain command -> Framework event source -> event history -> Studio Events
+MCP tools/call -> Tool adapter -> result -> development-host call log -> Studio MCP calls
+```
+
+Event history contains accepted domain facts that a game selects for event sourcing. Its source
+declares the lifetime, storage, overflow behavior, capacity, and dropped count. An in-memory
+runtime-instance history does not survive a runtime replacement.
+
+The MCP call log contains complete Tool calls that the current `antiky dev` endpoint handled. It
+keeps bounded arguments, a structured result or error, timing, and available correlation IDs. It
+uses development-session memory. It has a capacity of 100 complete calls and drops the oldest call
+at capacity. The host marks redaction and truncation.
+
+The MCP call log is a protected development query. It is not an MCP Tool. This rule prevents a read
+from adding itself to the returned history. The log is not an event store, terminal transcript,
+caller identity record, capture record, or durable audit log.
 
 ## Agent sandbox workflow
 
@@ -359,10 +396,8 @@ This complete workflow is more important than partial implementations of many pa
 
 ## Open decisions
 
-- Web UI framework and panel-layout library
-- Engine process location and connection method
 - First game-canvas selection method
-- Exact integrated-terminal process model
-- Workspace storage and project discovery
+- Cross-platform native terminal support after the first macOS `libghostty` host
+- Release packaging and project selection outside the source-development command
 - Notification behavior for feedback and diagnostics
 - The first Studio feature after the shared editor session exists.

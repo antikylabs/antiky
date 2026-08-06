@@ -3,7 +3,10 @@ import test from 'node:test';
 
 import { createDevelopmentClient } from '@antiky/cli/development';
 import { AntikyCliError } from '../src/errors.ts';
-import type { DevelopmentSnapshot } from '../src/development/types.ts';
+import type {
+  DevelopmentMcpCallLog,
+  DevelopmentSnapshot,
+} from '../src/development/types.ts';
 
 const snapshot: DevelopmentSnapshot = {
   schemaVersion: 1,
@@ -27,6 +30,21 @@ const snapshot: DevelopmentSnapshot = {
   inspection: null,
 };
 
+const mcpCallLog: DevelopmentMcpCallLog = {
+  schemaVersion: 1,
+  developmentSessionId: snapshot.developmentSessionId,
+  owner: 'cli',
+  retention: {
+    scope: 'development-session',
+    capacity: 100,
+    retainedCount: 0,
+    droppedCount: 0,
+    firstSequence: null,
+    lastSequence: null,
+  },
+  calls: [],
+};
+
 test('browser client uses an explicit loopback connection without exposing its credential', async () => {
   const requests: Array<{ url: string; init?: RequestInit }> = [];
   const client = createDevelopmentClient({
@@ -39,6 +57,7 @@ test('browser client uses an explicit loopback connection without exposing its c
       if (String(input).endsWith('/v1/development')) {
         return Response.json(snapshot);
       }
+      if (String(input).endsWith('/v1/mcp-calls')) return Response.json(mcpCallLog);
       return Response.json({
         schemaVersion: 1,
         actionId: 'action-pause-001',
@@ -50,14 +69,30 @@ test('browser client uses an explicit loopback connection without exposing its c
   });
 
   assert.deepEqual(await client.readDevelopmentSnapshot(), snapshot);
+  assert.deepEqual(await client.getMcpCallLog(), mcpCallLog);
   await client.pauseSimulation();
   assert.deepEqual(requests.map(({ url }) => url), [
     'http://127.0.0.1:3011/v1/development',
+    'http://127.0.0.1:3011/v1/mcp-calls',
     'http://127.0.0.1:3011/v1/actions/pause-simulation',
   ]);
   assert.equal(requests[0]?.init?.headers instanceof Headers, true);
   assert.equal((requests[0]?.init?.headers as Headers).get('authorization'), `Bearer ${'a'.repeat(48)}`);
   assert.equal(JSON.stringify(client).includes('a'.repeat(48)), false);
+});
+
+test('browser client rejects incompatible MCP call history', async () => {
+  const client = createDevelopmentClient({
+    inspectionUrl: 'http://127.0.0.1:3011',
+    developmentSessionId: snapshot.developmentSessionId,
+    credential: 'a'.repeat(48),
+  }, {
+    fetch: async () => Response.json({ ...mcpCallLog, owner: 'framework' }),
+  });
+  await assert.rejects(
+    () => client.getMcpCallLog(),
+    (error: unknown) => error instanceof AntikyCliError && error.code === 'ANTIKY_SESSION_UNAVAILABLE',
+  );
 });
 
 test('browser client rejects non-loopback connections and incompatible snapshots', async () => {

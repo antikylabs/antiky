@@ -72,7 +72,7 @@ test('demo inspection reports a structured runtime diagnostic without inventing 
   assert.deepEqual(snapshot.measurements.render, { owner: 'framework' });
 });
 
-test('demo inspection publishes an available runtime-owned point-light view unchanged', () => {
+test('demo inspection publishes point lights through the semantic world and event views', () => {
   const service = createPointLightAuthoringService({
     worldId: '018f0f3a-7b2c-7a1d-8e2f-123456789abc',
     pointLights: [{
@@ -99,6 +99,17 @@ test('demo inspection publishes an available runtime-owned point-light view unch
   });
 
   assert.deepEqual(snapshot.pointLights, pointLights);
+  assert.equal(snapshot.world?.worldId, pointLights.worldId);
+  assert.deepEqual(
+    snapshot.world?.entities.map((entity) => entity.entityId),
+    ['018f0f3a-7b2c-7a1d-8e2f-123456789abd'],
+  );
+  assert.deepEqual(
+    new Set(snapshot.world?.stores.map((store) => store.kind)),
+    new Set(['authoring', 'runtime', 'render']),
+  );
+  assert.equal(snapshot.events?.sourceId, 'antiky.point-light-authoring');
+  assert.deepEqual(snapshot.events?.events, []);
   service.dispose();
 });
 

@@ -26,5 +26,7 @@ agents, and Studio. Start with the task you want to complete.
 
 ## Studio
 
-- [Connect Studio to a development session](studio/development-connection.md) and use the same live
-  state as the CLI and MCP clients.
+- [Inspect a running game in Studio](studio/getting-started.md) beside a native terminal, simulation
+  controls, hierarchy, stores, event history, and MCP call history.
+- [Connect Studio to a development session](studio/development-connection.md) through the same typed
+  client used by CLI and MCP adapters.

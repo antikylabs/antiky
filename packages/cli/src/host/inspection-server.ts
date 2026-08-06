@@ -1,9 +1,7 @@
-import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import {
   createServer as createHttpServer,
-  type IncomingMessage,
   type Server as HttpServer,
-  type ServerResponse,
 } from 'node:http';
 
 import {
@@ -54,11 +52,37 @@ import {
 import { projectDevelopmentSessionStatus } from '../development/sessions.ts';
 import {
   MCP_HTTP_PATH,
-  MCP_HTTP_PROTOCOL_VERSIONS,
-  processMcpRequest,
 } from '../mcp/server.ts';
+import { createMcpCallLog } from './mcp-call-log.ts';
+import { handleMcpHttpRequest } from './inspection-mcp.ts';
+import {
+  InspectionServiceError,
+  hasCredential,
+  readDevelopmentOrigin,
+  readJson,
+  requireExactOrigin,
+  serviceError,
+  validateCorsPreflight,
+  writeEmpty,
+  writeJson,
+} from './inspection-http.ts';
 
 const MAX_BROWSER_MESSAGE_BYTES = 256 * 1024;
+
+const DEVELOPMENT_GET_PATHS = new Set([
+  '/v1/development',
+  '/v1/mcp-calls',
+]);
+
+const DEVELOPMENT_POST_PATHS = new Set([
+  '/v1/actions/reload',
+  '/v1/actions/capture',
+  '/v1/actions/pause-simulation',
+  '/v1/actions/resume-simulation',
+  '/v1/actions/step-simulation',
+  '/v1/actions/set-point-light-power',
+  '/v1/actions/correct-point-light-power',
+]);
 
 type InspectionServerOptions = Readonly<{
   host: '127.0.0.1';
@@ -91,80 +115,7 @@ export interface InspectionServer {
   stop(): Promise<void>;
 }
 
-export class InspectionServiceError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'InspectionServiceError';
-  }
-}
-
 type UnknownRecord = Record<string, unknown>;
-
-function serviceError(status: number, code: string, message: string): never {
-  throw new InspectionServiceError(status, code, message);
-}
-
-function hasCredential(header: string | undefined, credential: string): boolean {
-  if (!header?.startsWith('Bearer ')) return false;
-  const supplied = Buffer.from(header.slice('Bearer '.length));
-  const expected = Buffer.from(credential);
-  return supplied.length === expected.length && timingSafeEqual(supplied, expected);
-}
-
-function writeJson(
-  response: ServerResponse,
-  status: number,
-  body: unknown,
-  allowedOrigin?: string,
-): void {
-  if (response.destroyed || response.writableEnded) return;
-  const bodyText = JSON.stringify(body);
-  response.writeHead(status, {
-    'cache-control': 'no-store',
-    'content-type': 'application/json; charset=utf-8',
-    'content-length': Buffer.byteLength(bodyText),
-    ...(allowedOrigin === undefined ? {} : {
-      'access-control-allow-origin': allowedOrigin,
-      vary: 'Origin',
-    }),
-  });
-  response.end(bodyText);
-}
-
-function writeEmpty(
-  response: ServerResponse,
-  status: number,
-  headers: Readonly<Record<string, string>> = {},
-): void {
-  if (response.destroyed || response.writableEnded) return;
-  response.writeHead(status, { 'cache-control': 'no-store', ...headers });
-  response.end();
-}
-
-function acceptsMcpResponse(header: string | undefined): boolean {
-  const mediaTypes = new Set(
-    header?.split(',').map((value) => value.split(';', 1)[0]!.trim().toLowerCase()),
-  );
-  return mediaTypes.has('application/json') && mediaTypes.has('text/event-stream');
-}
-
-function isMcpNotification(value: unknown): boolean {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
-  const record = value as UnknownRecord;
-  return record.jsonrpc === '2.0'
-    && typeof record.method === 'string'
-    && !Object.hasOwn(record, 'id');
-}
-
-function requireExactOrigin(request: IncomingMessage, expectedOrigin: string): void {
-  if (request.headers.origin !== expectedOrigin) {
-    serviceError(403, 'ANTIKY_ORIGIN_INVALID', 'Invalid Origin header.');
-  }
-}
 
 function readObject(value: unknown): UnknownRecord {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
@@ -178,54 +129,6 @@ function hasExactKeys(record: UnknownRecord, keys: readonly string[]): boolean {
   const expected = [...keys].sort();
   return actual.length === expected.length
     && actual.every((key, index) => key === expected[index]);
-}
-
-function readBody(request: IncomingMessage, maximumBytes: number): Promise<string> {
-  const declaredLength = Number(request.headers['content-length']);
-  if (
-    request.headers['content-length'] !== undefined
-    && (!Number.isSafeInteger(declaredLength) || declaredLength < 0)
-  ) serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid Content-Length header.');
-  if (declaredLength > maximumBytes) {
-    serviceError(413, 'ANTIKY_MESSAGE_TOO_LARGE', 'Browser message is too large.');
-  }
-
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    let size = 0;
-    let rejected = false;
-    request.on('data', (chunk: Buffer) => {
-      if (rejected) return;
-      size += chunk.length;
-      if (size > maximumBytes) {
-        rejected = true;
-        reject(new InspectionServiceError(
-          413,
-          'ANTIKY_MESSAGE_TOO_LARGE',
-          'Browser message is too large.',
-        ));
-        request.resume();
-        return;
-      }
-      chunks.push(chunk);
-    });
-    request.once('end', () => {
-      if (!rejected) resolve(Buffer.concat(chunks).toString('utf8'));
-    });
-    request.once('error', reject);
-  });
-}
-
-async function readJson(request: IncomingMessage, maximumBytes: number): Promise<unknown> {
-  if (request.headers['content-type']?.split(';', 1)[0]?.trim() !== 'application/json') {
-    serviceError(415, 'ANTIKY_CONTENT_TYPE_INVALID', 'Content-Type must be application/json.');
-  }
-  try {
-    return JSON.parse(await readBody(request, maximumBytes));
-  } catch (cause: unknown) {
-    if (cause instanceof InspectionServiceError) throw cause;
-    serviceError(400, 'ANTIKY_MESSAGE_INVALID', 'Malformed JSON message.');
-  }
 }
 
 function readActionRequest(value: unknown): void {
@@ -280,10 +183,17 @@ function actionStatus(cause: AntikyCliError): number {
   return 409;
 }
 
+function developmentRequestMethod(pathname: string): 'GET' | 'POST' | null {
+  if (DEVELOPMENT_GET_PATHS.has(pathname)) return 'GET';
+  if (DEVELOPMENT_POST_PATHS.has(pathname)) return 'POST';
+  return null;
+}
+
 export function createInspectionServer(options: InspectionServerOptions): InspectionServer {
   const gameOrigin = new URL(options.gameUrl).origin;
   const expectedHost = `${options.host}:${options.port}`;
   const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
+  const mcpCallLog = createMcpCallLog(options.developmentSessionId);
   const mcpClient = Object.freeze({
     async readDevelopmentSnapshot() { return options.readDevelopmentSnapshot(); },
     requestReload: options.requestReload,
@@ -313,15 +223,21 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
     const requestId = `request-${randomUUID()}`;
     void (async () => {
       let browserRequest = false;
+      let allowedResponseOrigin: string | undefined;
       try {
         if (request.headers.host !== expectedHost) {
           serviceError(400, 'ANTIKY_HOST_INVALID', 'Invalid Host header.');
         }
         const requestUrl = new URL(request.url ?? '/', `http://${expectedHost}`);
+        const developmentMethod = developmentRequestMethod(requestUrl.pathname);
         browserRequest = requestUrl.pathname === '/v1/browser/bootstrap'
           || requestUrl.pathname.startsWith('/v1/runtime/');
-        if (browserRequest) requireExactOrigin(request, gameOrigin);
-        else if (request.headers.origin && request.headers.origin !== gameOrigin) {
+        if (browserRequest) {
+          requireExactOrigin(request, gameOrigin);
+          allowedResponseOrigin = gameOrigin;
+        } else if (developmentMethod) {
+          allowedResponseOrigin = readDevelopmentOrigin(request, gameOrigin);
+        } else if (request.headers.origin && request.headers.origin !== gameOrigin) {
           serviceError(403, 'ANTIKY_ORIGIN_INVALID', 'Invalid Origin header.');
         }
 
@@ -329,36 +245,13 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         // loopback bind plus the Host and Origin checks above; every inspection REST route below
         // remains protected by the per-session credential.
         if (requestUrl.pathname === MCP_HTTP_PATH) {
-          if (request.method !== 'POST') {
-            writeEmpty(response, 405, { allow: 'POST' });
-            return;
-          }
-          if (!acceptsMcpResponse(request.headers.accept)) {
-            serviceError(
-              406,
-              'ANTIKY_MCP_ACCEPT_INVALID',
-              'MCP clients must accept application/json and text/event-stream.',
-            );
-          }
-          const protocolVersion = request.headers['mcp-protocol-version'];
-          if (
-            protocolVersion !== undefined
-            && (
-              typeof protocolVersion !== 'string'
-              || !MCP_HTTP_PROTOCOL_VERSIONS.includes(
-                protocolVersion as typeof MCP_HTTP_PROTOCOL_VERSIONS[number],
-              )
-            )
-          ) {
-            serviceError(400, 'ANTIKY_MCP_VERSION_UNSUPPORTED', 'Unsupported MCP protocol version.');
-          }
-          const message = await readJson(request, MAX_BROWSER_MESSAGE_BYTES);
-          const reply = await processMcpRequest(mcpClient, message);
-          if (isMcpNotification(message)) {
-            writeEmpty(response, 202);
-          } else {
-            writeJson(response, 200, reply);
-          }
+          await handleMcpHttpRequest(
+            request,
+            response,
+            mcpClient,
+            mcpCallLog,
+            MAX_BROWSER_MESSAGE_BYTES,
+          );
           return;
         }
 
@@ -372,6 +265,21 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
             vary: 'Origin',
           });
           response.end();
+          return;
+        }
+
+        if (request.method === 'OPTIONS' && developmentMethod) {
+          if (!allowedResponseOrigin) {
+            serviceError(403, 'ANTIKY_ORIGIN_INVALID', 'Origin is required for CORS preflight.');
+          }
+          validateCorsPreflight(request, developmentMethod);
+          writeEmpty(response, 204, {
+            'access-control-allow-origin': allowedResponseOrigin,
+            'access-control-allow-methods': `${developmentMethod}, OPTIONS`,
+            'access-control-allow-headers': 'Authorization, Content-Type',
+            'access-control-max-age': '600',
+            vary: 'Origin',
+          });
           return;
         }
 
@@ -389,7 +297,11 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         }
 
         if (request.method === 'GET' && requestUrl.pathname === '/v1/development') {
-          writeJson(response, 200, options.readDevelopmentSnapshot());
+          writeJson(response, 200, options.readDevelopmentSnapshot(), allowedResponseOrigin);
+          return;
+        }
+        if (request.method === 'GET' && requestUrl.pathname === '/v1/mcp-calls') {
+          writeJson(response, 200, mcpCallLog.read(), allowedResponseOrigin);
           return;
         }
         if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/snapshot') {
@@ -469,7 +381,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
               : requestUrl.pathname.endsWith('/pause-simulation')
                 ? await options.pauseSimulation()
                 : await options.resumeSimulation();
-          writeJson(response, 200, result);
+          writeJson(response, 200, result, allowedResponseOrigin);
           return;
         }
         if (
@@ -483,6 +395,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
             response,
             200,
             await options.stepSimulation(expectedCompletedStepCount),
+            allowedResponseOrigin,
           );
           return;
         }
@@ -499,7 +412,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           const result = kind === 'set'
             ? await options.setPointLightPower(input as SetPointLightPowerCommand)
             : await options.correctPointLightPower(input as CorrectPointLightPowerRequest);
-          writeJson(response, 200, result);
+          writeJson(response, 200, result, allowedResponseOrigin);
           return;
         }
         serviceError(404, 'ANTIKY_NOT_FOUND', 'Resource does not exist.');
@@ -507,19 +420,19 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         if (cause instanceof BrowserEnvelopeError) {
           writeJson(response, cause.status, {
             error: { code: cause.code, message: cause.message },
-          }, browserRequest && request.headers.origin === gameOrigin ? gameOrigin : undefined);
+          }, allowedResponseOrigin);
           return;
         }
         if (cause instanceof InspectionServiceError) {
           writeJson(response, cause.status, {
             error: { code: cause.code, message: cause.message },
-          }, browserRequest && request.headers.origin === gameOrigin ? gameOrigin : undefined);
+          }, allowedResponseOrigin);
           return;
         }
         if (cause instanceof AntikyCliError) {
           writeJson(response, actionStatus(cause), {
             error: { code: cause.code, message: cause.message },
-          }, browserRequest && request.headers.origin === gameOrigin ? gameOrigin : undefined);
+          }, allowedResponseOrigin);
           return;
         }
         emitCliDiagnostic(diagnosticSink, {
@@ -531,7 +444,7 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         });
         writeJson(response, 500, {
           error: { code: 'ANTIKY_INTERNAL_ERROR', message: 'Inspection service failed.' },
-        });
+        }, allowedResponseOrigin);
       }
     })();
   });

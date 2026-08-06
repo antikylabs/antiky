@@ -1,6 +1,7 @@
 import { createInspectionSnapshot } from '@antiky/framework';
 
 import { AntikyCliError } from '../errors.ts';
+import { parseDevelopmentMcpCallLog } from './mcp-calls.ts';
 import {
   projectDevelopmentEventHistory,
   projectDevelopmentWorldInspection,
@@ -14,6 +15,7 @@ import type {
   DevelopmentCaptureResult,
   DevelopmentCorrectPointLightPowerInput,
   DevelopmentEventHistory,
+  DevelopmentMcpCallLog,
   DevelopmentPointLightCommandResult,
   DevelopmentPointLightDetails,
   DevelopmentPointLightList,
@@ -50,6 +52,7 @@ export interface DevelopmentClient {
   getPointLight(entityId: unknown): Promise<DevelopmentPointLightDetails>;
   getWorldInspection(): Promise<DevelopmentWorldInspection>;
   getEventHistory(): Promise<DevelopmentEventHistory>;
+  getMcpCallLog(): Promise<DevelopmentMcpCallLog>;
   setPointLightPower(
     command: DevelopmentSetPointLightPowerInput,
   ): Promise<DevelopmentPointLightCommandResult>;
@@ -270,8 +273,41 @@ export function createDevelopmentClient(
     }
   };
 
+  const getMcpCallLog = async (): Promise<DevelopmentMcpCallLog> => {
+    let response: Response;
+    try {
+      response = await fetchRequest(`${connection.inspectionUrl}/v1/mcp-calls`, {
+        headers: new Headers({ authorization: `Bearer ${connection.credential}` }),
+        signal: AbortSignal.timeout(snapshotTimeout),
+      });
+    } catch {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky inspection service is unavailable.',
+      );
+    }
+    if (!response.ok) {
+      throw new AntikyCliError(
+        response.status === 401 ? 'ANTIKY_UNAUTHORIZED' : 'ANTIKY_SESSION_UNAVAILABLE',
+        `The Antiky inspection service rejected the request with status ${response.status}.`,
+      );
+    }
+    try {
+      return parseDevelopmentMcpCallLog(
+        await response.json(),
+        connection.developmentSessionId,
+      );
+    } catch {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky inspection service returned incompatible MCP call history.',
+      );
+    }
+  };
+
   return Object.freeze({
     readDevelopmentSnapshot,
+    getMcpCallLog,
     requestReload: () => requestAction<DevelopmentReloadResult>('/v1/actions/reload'),
     captureFrame: () => requestAction<DevelopmentCaptureResult>('/v1/actions/capture'),
     async listPointLights() {

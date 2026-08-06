@@ -183,6 +183,8 @@ import { connectDevelopmentClient } from '@antiky/cli';
 const client = await connectDevelopmentClient('antiky.config.json');
 const development = await client.readDevelopmentSnapshot();
 const sessionStatus = await client.getSessionStatus();
+const world = await client.getWorldInspection();
+const events = await client.getEventHistory();
 const lights = await client.listPointLights();
 const harborLamp = await client.getPointLight(lights.pointLights[0].entityId);
 ```
@@ -191,6 +193,15 @@ The client also exposes `pauseSimulation`, `resumeSimulation`, `stepSimulation`,
 `setPointLightPower`, `correctPointLightPower`, reload, and frame-capture operations. Studio uses
 this boundary so it reads and changes the same development session instead of keeping a second
 copy of game state.
+
+`getWorldInspection` returns the complete bounded hierarchy and named store views published by the
+Framework. `getEventHistory` returns accepted event-sourcing facts and the source's retention rule.
+Both operations return `ANTIKY_RUNTIME_UNAVAILABLE` when the connected game does not publish that
+view.
+
+Browser and desktop-webview clients import `createDevelopmentClient` from
+`@antiky/cli/development` and receive a bounded connection from their host. They do not import the
+Node.js descriptor reader.
 
 Pause and step through the typed boundary with the same retry-safe count used by the CLI:
 
@@ -240,6 +251,27 @@ if (
 ```
 
 Call `getPointLight` again after an accepted result to read the new published state.
+
+## Read MCP call history
+
+The typed client can read the temporary history of MCP Tool calls handled by this development host:
+
+```ts
+const calls = await client.getMcpCallLog();
+
+for (const call of calls.calls) {
+  console.log(call.sequence, call.toolName, call.outcome);
+}
+```
+
+`getMcpCallLog` uses the protected `/v1/mcp-calls` development query. It is not an MCP Tool, so
+reading the log does not add another entry to the same log.
+
+The host keeps at most 100 complete calls in memory for one development session. It records source
+sequence, time, duration, Tool name, bounded arguments, structured result or error, and available
+correlation IDs. It drops the oldest complete entry at capacity and reports the dropped count.
+Secret-named fields are redacted, and oversized values are marked as truncated. Do not treat this
+log as an event store, terminal transcript, caller identity record, or durable audit log.
 
 ## Follow source changes
 

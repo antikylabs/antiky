@@ -285,6 +285,69 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
       'ANTIKY_RUNTIME_UNAVAILABLE',
     );
 
+    const unknownCall = await fetch(session.mcpUrl, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+        'mcp-protocol-version': '2025-11-25',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 'unknown-call',
+        method: 'tools/call',
+        params: { name: 'unknown_tool', arguments: { credential: 'do-not-store' } },
+      }),
+    });
+    assert.equal(unknownCall.status, 200);
+
+    const client = await connectDevelopmentClient(project.configPath);
+    const callLog = await client.getMcpCallLog();
+    assert.deepEqual(callLog.calls.map((call) => call.toolName), [
+      'get_dev_status',
+      'list_point_lights',
+      'unknown_tool',
+    ]);
+    assert.deepEqual(callLog.calls.map((call) => call.outcome), [
+      'success',
+      'tool-error',
+      'protocol-error',
+    ]);
+    assert.equal(
+      callLog.calls[0]?.correlationIds.developmentSessionId,
+      session.id,
+    );
+    assert.equal(callLog.calls[2]?.redaction.applied, true);
+    assert.doesNotMatch(JSON.stringify(callLog), /do-not-store/);
+    assert.deepEqual(await client.getMcpCallLog(), callLog);
+
+    const protectedCallLog = await fetch(`${session.inspectionUrl}/v1/mcp-calls`);
+    assert.equal(protectedCallLog.status, 401);
+
+    const activeDescriptor = JSON.parse(await readFile(
+      join(project.directory, '.antiky', 'dev-session.json'),
+      'utf8',
+    )) as { credential: string };
+    const studioOrigin = 'tauri://localhost';
+    const studioPreflight = await fetch(`${session.inspectionUrl}/v1/development`, {
+      method: 'OPTIONS',
+      headers: {
+        origin: studioOrigin,
+        'access-control-request-method': 'GET',
+        'access-control-request-headers': 'authorization',
+      },
+    });
+    assert.equal(studioPreflight.status, 204);
+    assert.equal(studioPreflight.headers.get('access-control-allow-origin'), studioOrigin);
+    const studioSnapshot = await fetch(`${session.inspectionUrl}/v1/development`, {
+      headers: {
+        authorization: `Bearer ${activeDescriptor.credential}`,
+        origin: studioOrigin,
+      },
+    });
+    assert.equal(studioSnapshot.status, 200);
+    assert.equal(studioSnapshot.headers.get('access-control-allow-origin'), studioOrigin);
+
     await assert.rejects(
       () => runCli(['tool', 'not_a_real_tool', '--config', project.configPath]),
       (error: unknown) => (

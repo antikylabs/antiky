@@ -1,5 +1,6 @@
 import {
   createInspectionSnapshot,
+  createPointLightWorldViews,
   type EngineSessionStatus,
   type InspectionSnapshot,
   type PointLightInspection,
@@ -38,6 +39,9 @@ function runtimeLifecycle(phase: DemoRuntimePhase): RuntimeLifecycle {
 }
 
 export function createDemoInspectionSnapshot(input: DemoInspectionInput): InspectionSnapshot {
+  const pointLightWorldViews = input.pointLights === undefined
+    ? undefined
+    : createPointLightWorldViews(input.pointLights);
   const renderMeasurements: {
     owner: 'framework';
     canvasWidth?: number;
@@ -85,5 +89,6 @@ export function createDemoInspectionSnapshot(input: DemoInspectionInput): Inspec
     },
     ...(input.session === undefined ? {} : { session: input.session }),
     ...(input.pointLights === undefined ? {} : { pointLights: input.pointLights }),
+    ...(pointLightWorldViews === undefined ? {} : pointLightWorldViews),
   });
 }

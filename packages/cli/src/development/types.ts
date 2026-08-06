@@ -170,3 +170,60 @@ export type DevelopmentSessionControlResult = Readonly<{
   result: EngineControlResult;
   session: EngineSessionStatus;
 }>;
+
+export type DevelopmentMcpLogValue =
+  | null
+  | boolean
+  | number
+  | string
+  | readonly DevelopmentMcpLogValue[]
+  | Readonly<{ [key: string]: DevelopmentMcpLogValue }>;
+
+export type DevelopmentMcpCallOutcome = 'success' | 'tool-error' | 'protocol-error';
+
+export type DevelopmentMcpCall = Readonly<{
+  sequence: number;
+  callId: string;
+  jsonRpcId: string | number | null;
+  receivedAt: string;
+  durationMilliseconds: number;
+  toolName: string;
+  arguments: DevelopmentMcpLogValue;
+  outcome: DevelopmentMcpCallOutcome;
+  result?: DevelopmentMcpLogValue;
+  error?: DevelopmentMcpLogValue;
+  correlationIds: Readonly<Partial<{
+    actionId: string;
+    captureId: string;
+    commandId: string;
+    correctedCommandId: string;
+    developmentSessionId: string;
+    entityId: string;
+    runtimeInstanceId: string;
+    sessionId: string;
+    worldId: string;
+  }>>;
+  redaction: Readonly<{
+    applied: boolean;
+    paths: readonly string[];
+  }>;
+  truncation: Readonly<{
+    applied: boolean;
+    paths: readonly string[];
+  }>;
+}>;
+
+export type DevelopmentMcpCallLog = Readonly<{
+  schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
+  developmentSessionId: string;
+  owner: 'cli';
+  retention: Readonly<{
+    scope: 'development-session';
+    capacity: number;
+    retainedCount: number;
+    droppedCount: number;
+    firstSequence: number | null;
+    lastSequence: number | null;
+  }>;
+  calls: readonly DevelopmentMcpCall[];
+}>;

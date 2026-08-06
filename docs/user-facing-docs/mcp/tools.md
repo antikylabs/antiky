@@ -17,6 +17,8 @@ the action you need.
 | `get_render_stats` | You need renderer measurements, not an image | No |
 | `get_diagnostics` | A build, runtime, or action is not working | No |
 | `get_session_status` | You need fixed-clock state or a completed-step count | No |
+| `get_world_inspection` | You need the published entity hierarchy or named stores | No |
+| `get_event_log` | You need accepted event-sourcing facts and their retention | No |
 | `list_point_lights` | You need to discover point lights and their stable IDs | No |
 | `get_point_light` | You need the complete state and history for one light | No |
 | `dev_reload` | A ready build should reload the connected game runtime | Yes |
@@ -39,6 +41,8 @@ action tools are not marked idempotent.
 ```sh
 antiky tool get_dev_status
 antiky tool get_session_status
+antiky tool get_world_inspection
+antiky tool get_event_log
 antiky tool list_point_lights
 antiky tool get_point_light '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'
 ```
@@ -164,6 +168,47 @@ Session-control results use these stable codes:
 
 Every action result includes the action ID, development-session ID, control result, and resulting
 session status. Use the stable code for control flow and the returned status for the next request.
+
+## World and event inspection tools
+
+These read tools expose semantic copies published by the Framework. They do not expose live engine
+objects, private stores, renderer handles, or GPU resources.
+
+### `get_world_inspection`
+
+Call this to read the complete bounded world view:
+
+```sh
+antiky tool get_world_inspection
+```
+
+The result contains the development-session ID and a Framework-owned world record. The world record
+contains stable entity IDs, labels, revisions, component summaries, real `ChildOf` relationships,
+and named authoring, runtime, or render stores. Counts and `incomplete` state show whether the
+published view retained everything available at its source.
+
+An entity without a `ChildOf` parent remains a root. Store entries are bounded JSON copies, not raw
+game storage.
+
+### `get_event_log`
+
+Call this to read accepted event-sourcing facts in source sequence order:
+
+```sh
+antiky tool get_event_log
+```
+
+The result contains the development-session ID and one Framework event-history record. Each fact
+keeps its event type and schema, sequence, command ID, world and entity IDs, resulting revision,
+time, and bounded data.
+
+The retention record states the source lifetime, storage, overflow behavior, capacity, and dropped
+count. For example, `lifetime: "runtime-instance"` with `storage: "memory"` means the history can
+disappear when the game runtime reloads. This Tool does not return simulation steps, rejected
+commands, diagnostics, MCP traffic, or a durable audit log.
+
+Both Tools return `ANTIKY_RUNTIME_UNAVAILABLE` when the connected game does not publish the requested
+view.
 
 ## Point-light read tools
 

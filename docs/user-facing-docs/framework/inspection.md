@@ -2,7 +2,7 @@
 
 Runtime inspection lets development tools see what your game is doing while it runs. Publish one
 snapshot to expose the game's lifecycle, diagnostics, performance measurements, and optional
-engine-session or point-light state to the CLI, MCP clients, Studio, and your tests.
+session, world, store, and event state to the CLI, MCP clients, Studio, and your tests.
 
 ## Publish a snapshot
 
@@ -52,6 +52,8 @@ data, and returns an immutable snapshot.
 | `measurements.render` | Canvas size, draw calls, instance count, and upload bytes per frame |
 | `session` | Optional engine-session identity, clock, controls, order, and revisions |
 | `pointLights` | Optional point-light state and accepted change history |
+| `world` | Optional entities, component summaries, `ChildOf` hierarchy, and named store views |
+| `events` | Optional accepted event-sourcing facts and their declared retention policy |
 
 Report only measurements that your game can obtain truthfully. Omit an optional value instead of
 estimating it.
@@ -124,6 +126,91 @@ See [Point lights](point-lights.md) for creation, live changes, and renderer int
 If your game uses an `EngineSession`, include `session.readStatus()` as `session`. Its runtime ID
 must match the enclosing snapshot. See [Run a fixed-step game session](engine-sessions.md) for the
 clock and control workflow.
+
+## Publish hierarchy, stores, and events
+
+Publish `world` when tools need more than one feature-specific inspection view. A world view contains
+stable entity headers, bounded component summaries, real `ChildOf` relationships, and named store
+views. A store view is a safe copy of useful authoring, runtime, or render data. It is not a live
+`Map`, engine handle, renderer object, or GPU resource.
+
+Publish `events` for accepted domain facts that your game deliberately event-sources. Do not put
+simulation steps, rejected commands, diagnostics, or development-tool traffic in this history.
+
+The point-light service supplies a complete adapter for both views:
+
+```ts
+import {
+  createInspectionSnapshot,
+  createPointLightWorldViews,
+  inspectPointLightService,
+} from '@antiky/framework';
+
+const pointLights = inspectPointLightService(lightService);
+const { world, events } = createPointLightWorldViews(pointLights);
+
+const snapshotWithWorld = createInspectionSnapshot({
+  schemaVersion: 1,
+  runtime: {
+    instanceId: pointLights.runtime.instanceId,
+    lifecycle: 'running',
+  },
+  diagnostics: [],
+  measurements: {
+    runtime: { owner: 'framework', frameCount: 120 },
+    render: { owner: 'framework', drawCalls: 16 },
+  },
+  pointLights,
+  world,
+  events,
+});
+```
+
+For another game system, call `createWorldInspection` and `createEventHistory` with semantic copies
+from that system. Both functions reject unknown fields and return immutable values.
+
+### Describe a world view
+
+Every entity has a stable UUIDv7, label, revision, and zero or more component summaries. A component
+summary has a stable type ID, schema version, short text summary, and bounded JSON data. Use a
+`ChildOf` relationship only for a real parent-child relationship. Unparented entities remain valid
+roots in the hierarchy.
+
+Each named store declares one of these kinds:
+
+| Kind | Use |
+| --- | --- |
+| `authoring` | Values that a developer or command authored |
+| `runtime` | The current game-side projection |
+| `render` | The render-side projection or binding state |
+
+Counts state how many records are available and retained. Set `incomplete: true` when a bounded view
+retains fewer records than its source. Consumers can then show partial data without treating it as
+complete.
+
+One world view can retain at most 512 entities, 2,048 component summaries, 1,024 relationships, 64
+stores, and 2,048 total store entries. Each structured component, store, or event value is copied
+and bounded before publication.
+
+### Describe event retention
+
+An event history identifies one source, world, and runtime. Each retained fact keeps its source
+sequence, event schema and type, command ID, related entity IDs, resulting revision, UTC time, and
+bounded data. Sequences are contiguous in source order.
+
+The source must declare its retention instead of making a consumer guess:
+
+| Field | Values | Meaning |
+| --- | --- | --- |
+| `lifetime` | `runtime-instance`, `session`, or `durable` | The identity boundary after which history can disappear |
+| `storage` | `memory` or `persistent` | Where the source keeps accepted facts |
+| `overflow` | `reject-new` or `drop-oldest` | What happens when capacity is full |
+| `capacity` | Positive integer | Maximum records in the source |
+| `droppedCount` | Non-negative integer | Older accepted facts no longer in this view |
+
+An inspection response retains at most 512 events. `incomplete` and the available and retained
+counts must agree with `droppedCount`. A `runtime-instance` and `memory` history disappears when the
+game runtime is replaced. It is not durable replay storage.
 
 ## Report diagnostics
 

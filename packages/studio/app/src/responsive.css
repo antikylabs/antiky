@@ -1,0 +1,84 @@
+@media (max-width: 1080px) {
+  body {
+    overflow: auto;
+  }
+
+  .studio-shell {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(250px, .7fr) minmax(410px, 1.3fr);
+    grid-template-rows: 520px 360px 250px;
+    overflow: visible;
+  }
+
+  .game-panel {
+    border-right: 0;
+  }
+
+  .inspection-panel,
+  .activity-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .studio-shell {
+    grid-template-rows: 58px auto auto 30px;
+  }
+
+  .project-context,
+  .session-summary > span:last-child {
+    display: none;
+  }
+
+  .brand-lockup {
+    min-width: 0;
+    border-right: 0;
+  }
+
+  .controlbar {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 10px 12px;
+  }
+
+  .control-actions button {
+    min-width: 0;
+    min-height: 44px;
+    flex: 1;
+  }
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .terminal-panel,
+  .game-panel,
+  .inspection-panel,
+  .activity-panel {
+    min-height: 390px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .activity-record summary {
+    grid-template-columns: 58px minmax(85px, .5fr) minmax(170px, 1fr);
+  }
+
+  .activity-record summary time {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

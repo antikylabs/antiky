@@ -143,6 +143,22 @@ button:focus-visible {
   background: var(--text-faint);
 }
 
+.status-connected {
+  background: var(--success);
+}
+
+.status-connecting {
+  background: var(--warning);
+}
+
+.status-stale {
+  background: var(--warning);
+}
+
+.status-disconnected {
+  background: var(--text-faint);
+}
+
 .controlbar {
   justify-content: space-between;
   gap: 18px;
@@ -167,6 +183,14 @@ button:focus-visible {
 .session-summary code {
   color: var(--text-muted);
   font-family: var(--mono);
+}
+
+.control-issue {
+  overflow: hidden;
+  max-width: 420px;
+  color: var(--warning);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .state-chip {
@@ -277,6 +301,13 @@ button:focus-visible {
 .game-stage {
   background: var(--media);
   box-shadow: inset 0 0 0 1px #111216;
+}
+
+.game-stage iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--media);
 }
 
 .empty-state {
@@ -407,90 +438,39 @@ button:focus-visible {
   border-right: 1px solid var(--line);
 }
 
-@media (max-width: 1080px) {
-  body {
-    overflow: auto;
-  }
-
-  .studio-shell {
-    height: auto;
-    min-height: 100dvh;
-  }
-
-  .workspace {
-    grid-template-columns: minmax(250px, .7fr) minmax(410px, 1.3fr);
-    grid-template-rows: 520px 360px 250px;
-    overflow: visible;
-  }
-
-  .game-panel {
-    border-right: 0;
-  }
-
-  .inspection-panel {
-    grid-column: 1 / -1;
-  }
-
-  .activity-panel {
-    grid-column: 1 / -1;
-  }
+.stale-banner {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  padding: 7px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--warning) 45%, var(--line));
+  background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  color: var(--warning);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
-@media (max-width: 720px) {
-  .studio-shell {
-    grid-template-rows: 58px auto auto 30px;
-  }
-
-  .project-context,
-  .session-summary > span:last-child {
-    display: none;
-  }
-
-  .brand-lockup {
-    min-width: 0;
-    border-right: 0;
-  }
-
-  .controlbar {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 10px 12px;
-  }
-
-  .control-actions button {
-    min-width: 0;
-    min-height: 44px;
-    flex: 1;
-  }
-
-  .workspace {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .terminal-panel,
-  .game-panel,
-  .inspection-panel,
-  .activity-panel {
-    min-height: 390px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .activity-column-head {
-    grid-template-columns: 70px minmax(90px, .5fr) minmax(180px, 1fr);
-  }
-
-  .activity-column-head span:last-child {
-    display: none;
-  }
+.warning-note {
+  margin: 8px 0;
+  color: var(--warning);
+  font-size: 10px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition-duration: .01ms !important;
-  }
+.quiet-note {
+  color: var(--text-faint);
+  font-size: 10px;
+}
+
+.json-record {
+  max-width: 100%;
+  margin: 0;
+  overflow: auto;
+  color: #c9c5e9;
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
