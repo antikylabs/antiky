@@ -134,6 +134,9 @@ ADR 0018 selects physics authority independently from its execution device. Same
 gameplay can stay entirely on the GPU. CPU code needs an asynchronous snapshot only when it reads
 GPU state.
 
+Antiky Town is a local single-player game. Its local `EngineSession` can own authoritative GPU
+physics state. Server authority does not force this workload onto the CPU.
+
 The current Slice 03 design has these CPU consumers:
 
 - NPC intent reads the current actor position.
