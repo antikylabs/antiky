@@ -44,6 +44,10 @@ import {
   type CliDiagnosticSink,
 } from './diagnostics.ts';
 import {
+  projectDevelopmentEventHistory,
+  projectDevelopmentWorldInspection,
+} from '../development/inspection.ts';
+import {
   projectDevelopmentPointLight,
   projectDevelopmentPointLightList,
 } from '../development/point-lights.ts';
@@ -294,6 +298,12 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
     correctPointLightPower: options.correctPointLightPower,
     async getSessionStatus() {
       return projectDevelopmentSessionStatus(options.readDevelopmentSnapshot());
+    },
+    async getWorldInspection() {
+      return projectDevelopmentWorldInspection(options.readDevelopmentSnapshot());
+    },
+    async getEventHistory() {
+      return projectDevelopmentEventHistory(options.readDevelopmentSnapshot());
     },
     pauseSimulation: options.pauseSimulation,
     resumeSimulation: options.resumeSimulation,

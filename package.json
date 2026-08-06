@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/studio/*"
   ],
   "scripts": {
     "antiky": "node --experimental-strip-types --experimental-transform-types packages/cli/src/bin.ts",
@@ -12,6 +13,7 @@
     "dev:website": "node scripts/dev.mjs website",
     "dev:framework": "node scripts/dev.mjs framework",
     "dev:demos": "node scripts/dev.mjs demos",
+    "dev:studio": "npm run dev --workspace @antiky/studio-app",
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "shaders": "npm run shaders --workspace @antiky/demos",

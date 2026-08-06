@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import {
   createInspectionSnapshot,
+  createPointLightWorldViews,
   parseCommandId,
   parseEntityId,
   parseSessionId,
@@ -60,6 +61,27 @@ const authoringLight = {
   pointLight: { schemaVersion: 1, color: [1, 0.52, 0.22], radius: 4, power: 1.05 },
 } as const;
 
+const pointLightInspection = {
+  schemaVersion: 1,
+  owner: 'framework',
+  worldId: WORLD_ID,
+  eventSequence: 0,
+  authoring: [authoringLight],
+  runtime: {
+    instanceId: 'runtime-mcp-001',
+    eventSequence: 0,
+    pointLights: [{ entityId: LIGHT_ID, revision: 1, power: 1.05 }],
+  },
+  render: {
+    eventSequence: 0,
+    pointLights: [{ entityId: LIGHT_ID, renderSlot: 0, revision: 1, power: 1.05 }],
+    dirtySlots: [],
+  },
+  facts: [],
+} as const;
+
+const worldViews = createPointLightWorldViews(pointLightInspection);
+
 const frameworkInspection = createInspectionSnapshot({
   schemaVersion: 1,
   runtime: { instanceId: 'runtime-mcp-001', lifecycle: 'running' },
@@ -69,24 +91,8 @@ const frameworkInspection = createInspectionSnapshot({
     render: { owner: 'framework', canvasWidth: 640, canvasHeight: 480, drawCalls: 16 },
   },
   session: runningSession,
-  pointLights: {
-    schemaVersion: 1,
-    owner: 'framework',
-    worldId: WORLD_ID,
-    eventSequence: 0,
-    authoring: [authoringLight],
-    runtime: {
-      instanceId: 'runtime-mcp-001',
-      eventSequence: 0,
-      pointLights: [{ entityId: LIGHT_ID, revision: 1, power: 1.05 }],
-    },
-    render: {
-      eventSequence: 0,
-      pointLights: [{ entityId: LIGHT_ID, renderSlot: 0, revision: 1, power: 1.05 }],
-      dirtySlots: [],
-    },
-    facts: [],
-  },
+  pointLights: pointLightInspection,
+  ...worldViews,
 });
 
 const developmentSnapshot = {
@@ -128,6 +134,8 @@ const developmentSnapshot = {
 } as const;
 
 const unusedPointLightMethods = {
+  async getWorldInspection(): Promise<never> { throw new Error('not reached'); },
+  async getEventHistory(): Promise<never> { throw new Error('not reached'); },
   async listPointLights(): Promise<never> { throw new Error('not reached'); },
   async getPointLight(): Promise<never> { throw new Error('not reached'); },
   async setPointLightPower(): Promise<never> { throw new Error('not reached'); },
@@ -237,6 +245,22 @@ test('MCP exposes one well-described tools-only development surface', async () =
         session: runningSession,
       } as const;
     },
+    async getWorldInspection() {
+      calls.push('get-world-inspection');
+      return {
+        schemaVersion: 1,
+        developmentSessionId: 'development-mcp-001',
+        world: worldViews.world,
+      } as const;
+    },
+    async getEventHistory() {
+      calls.push('get-event-history');
+      return {
+        schemaVersion: 1,
+        developmentSessionId: 'development-mcp-001',
+        events: worldViews.events,
+      } as const;
+    },
     async pauseSimulation() {
       calls.push('pause-simulation');
       return {
@@ -314,6 +338,8 @@ test('MCP exposes one well-described tools-only development surface', async () =
     'get_render_stats',
     'get_diagnostics',
     'get_session_status',
+    'get_world_inspection',
+    'get_event_log',
     'list_point_lights',
     'get_point_light',
   ];
@@ -330,6 +356,8 @@ test('MCP exposes one well-described tools-only development surface', async () =
     get_render_stats: [/renderer health or performance/i, /does not capture/i],
     get_diagnostics: [/build is not ready/i, /stable code/i],
     get_session_status: [/fixed clock/i, /takes no arguments/i],
+    get_world_inspection: [/entity hierarchy/i, /named store/i],
+    get_event_log: [/accepted event-sourcing/i, /runtime-instance/i],
     list_point_lights: [/point-light inspection/i, /does not change/i],
     get_point_light: [/stable entity id/i, /accepted facts/i],
     dev_reload: [/after .*accepted revision/i, /does not start a development session/i],
@@ -386,6 +414,14 @@ test('MCP exposes one well-described tools-only development surface', async () =
     params: { name: 'get_point_light', arguments: { entityId: LIGHT_ID } },
   });
   assert.equal(oneLight.result.structuredContent.pointLight.authoring.label, 'Harbor Lamp');
+  const world = await processMcpRequest(client, {
+    jsonrpc: '2.0', id: 52, method: 'tools/call', params: { name: 'get_world_inspection' },
+  });
+  assert.equal(world.result.structuredContent.world.entities[0].entityId, LIGHT_ID);
+  const events = await processMcpRequest(client, {
+    jsonrpc: '2.0', id: 53, method: 'tools/call', params: { name: 'get_event_log' },
+  });
+  assert.equal(events.result.structuredContent.events.retention.lifetime, 'runtime-instance');
 
   const reload = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 31, method: 'tools/call', params: { name: 'dev_reload', arguments: {} },
@@ -447,6 +483,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
   assert.deepEqual(calls, [
     'read', 'read', 'read', 'read', 'read',
     'list-point-lights', `get-point-light:${LIGHT_ID}`,
+    'get-world-inspection', 'get-event-history',
     'reload', 'capture',
     `set-point-light:${JSON.stringify({
       protocolVersion: 1,

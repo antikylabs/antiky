@@ -236,6 +236,8 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
       'get_render_stats',
       'get_diagnostics',
       'get_session_status',
+      'get_world_inspection',
+      'get_event_log',
       'list_point_lights',
       'get_point_light',
       'dev_reload',

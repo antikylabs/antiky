@@ -38,6 +38,8 @@ type McpDevelopmentClient = Pick<DevelopmentClient,
   | 'setPointLightPower'
   | 'correctPointLightPower'
   | 'getSessionStatus'
+  | 'getWorldInspection'
+  | 'getEventHistory'
   | 'pauseSimulation'
   | 'resumeSimulation'
   | 'stepSimulation'
@@ -251,6 +253,18 @@ export async function processMcpRequest(
       if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
         return response(id, toolResult(await client.getSessionStatus()));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
+    if (params.name === 'get_world_inspection' || params.name === 'get_event_log') {
+      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        return response(id, toolResult(
+          params.name === 'get_world_inspection'
+            ? await client.getWorldInspection()
+            : await client.getEventHistory(),
+        ));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }

@@ -16,6 +16,8 @@ export const MCP_POINT_LIGHT_READ_TOOL_NAMES = Object.freeze([
 export const MCP_READ_TOOL_NAMES = Object.freeze([
   ...MCP_SNAPSHOT_READ_TOOL_NAMES,
   'get_session_status',
+  'get_world_inspection',
+  'get_event_log',
   ...MCP_POINT_LIGHT_READ_TOOL_NAMES,
 ] as const);
 
@@ -136,6 +138,18 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
   {
     name: 'get_session_status',
     description: 'Call to inspect the connected engine session and its fixed clock before changing simulation state. It returns session, world, and runtime identities; mode and pause reasons; immutable system order; completed-step and elapsed-time counters; revisions; and the latest state digest. It takes no arguments and does not change the session.',
+    inputSchema: emptyInputSchema,
+    annotations: readToolAnnotations,
+  },
+  {
+    name: 'get_world_inspection',
+    description: 'Call to inspect the complete bounded entity hierarchy and named store views published by the connected Framework runtime. It returns stable entity and component summaries, real ChildOf relationships, explicit counts, and incomplete status. It takes no arguments and does not expose engine objects.',
+    inputSchema: emptyInputSchema,
+    annotations: readToolAnnotations,
+  },
+  {
+    name: 'get_event_log',
+    description: 'Call to inspect accepted event-sourcing facts in source sequence order. It returns the source, world and runtime identities, bounded structured facts, counts, and the declared runtime-instance retention policy. It takes no arguments and does not include simulation steps, diagnostics, or MCP traffic.',
     inputSchema: emptyInputSchema,
     annotations: readToolAnnotations,
   },

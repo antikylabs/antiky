@@ -2,6 +2,7 @@ import type {
   CorrectPointLightPowerRequest,
   EngineControlResult,
   EngineSessionStatus,
+  EventHistory,
   InspectionSnapshot,
   PointLightAuthoringRecord,
   PointLightCommandResult,
@@ -10,6 +11,7 @@ import type {
   RuntimePointLight,
   SetPointLightPowerCommand,
   WorldId,
+  WorldInspection,
 } from '@antiky/framework';
 
 export const DEVELOPMENT_SCHEMA_VERSION = 1 as const;
@@ -137,6 +139,18 @@ export type DevelopmentPointLightDetails = Readonly<{
     render: RenderPointLight | null;
     facts: readonly PointLightPowerSetFact[];
   }> | null;
+}>;
+
+export type DevelopmentWorldInspection = Readonly<{
+  schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
+  developmentSessionId: string;
+  world: WorldInspection;
+}>;
+
+export type DevelopmentEventHistory = Readonly<{
+  schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
+  developmentSessionId: string;
+  events: EventHistory;
 }>;
 
 export type DevelopmentSetPointLightPowerInput = SetPointLightPowerCommand;
