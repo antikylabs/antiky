@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-feedback-09-20260806T222222Z",
+  "method": "WCAG 2 relative luminance contrast against #08090b",
+  "background": "#08090b",
+  "surfacePairs": [
+    { "name": "default text", "foreground": "#f4f4f1", "ratio": 18.08 },
+    { "name": "cursor", "foreground": "#8b7cff", "ratio": 6.09 },
+    { "name": "cursor text", "foreground": "#08090b", "background": "#8b7cff", "ratio": 6.09 },
+    { "name": "selection text", "foreground": "#08090b", "background": "#8b7cff", "ratio": 6.09 }
+  ],
+  "ansiPalette": [
+    { "index": 0, "hex": "#08090b", "ratio": 1.0, "role": "semantic black and matching application background" },
+    { "index": 1, "hex": "#ff6b6b", "ratio": 7.18 },
+    { "index": 2, "hex": "#48c78e", "ratio": 9.33 },
+    { "index": 3, "hex": "#e9b64f", "ratio": 10.69 },
+    { "index": 4, "hex": "#8b7cff", "ratio": 6.09 },
+    { "index": 5, "hex": "#d48cff", "ratio": 8.53 },
+    { "index": 6, "hex": "#5cc8d7", "ratio": 10.15 },
+    { "index": 7, "hex": "#a6a6ae", "ratio": 8.24 },
+    { "index": 8, "hex": "#787982", "ratio": 4.61 },
+    { "index": 9, "hex": "#ff9a9a", "ratio": 9.81 },
+    { "index": 10, "hex": "#7eddae", "ratio": 12.18 },
+    { "index": 11, "hex": "#f3d37c", "ratio": 13.68 },
+    { "index": 12, "hex": "#a69bff", "ratio": 8.3 },
+    { "index": 13, "hex": "#e8b3ff", "ratio": 11.69 },
+    { "index": 14, "hex": "#8ce8f0", "ratio": 14.15 },
+    { "index": 15, "hex": "#f4f4f1", "ratio": 18.08 }
+  ],
+  "result": "All foreground palette entries except semantic black meet 4.5:1 against the terminal background. ANSI black equals the application background so programs that request a black background do not create mismatched blocks."
+}

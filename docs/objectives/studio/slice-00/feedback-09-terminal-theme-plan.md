@@ -4,12 +4,12 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` until Feedback 08 sets the final terminal surface |
+| Status | `IN PROGRESS` |
 | Feedback source | [Slice 00 feedback, line 9](slice-feedback.txt) |
 | Outcome | The real Ghostty terminal opens with an Antiky Studio visual profile and the user's normal shell behavior |
 | Owner input | The source feedback selects the Studio visual language and the existing ADRs preserve agent choice |
 | Architecture decisions | [Studio 0001](../../../adr/studio/0001-ai-integrations_H.md) and [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) |
-| Depends on | [Feedback 08](feedback-08-website-layout-plan.md) |
+| Depends on | [Completed Feedback 08](_completed/feedback-08-website-layout-plan.md) |
 | Alignment revision | `0cf02f51dff72f0c22681cb5a3af890173c32b00` |
 | Review date | `2026-08-06` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-09/verify.mjs` |
