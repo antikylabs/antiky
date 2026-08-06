@@ -76,6 +76,7 @@ test('the launched desktop app can opt out of the bounded SSPS integration befor
 
 test('the Studio terminal theme is a complete visual-only Ghostty profile', async () => {
   const profile = await readFile(terminalThemePath, 'utf8');
+  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
   const entries = profile
     .split('\n')
     .map((line) => line.trim())
@@ -98,4 +99,7 @@ test('the Studio terminal theme is a complete visual-only Ghostty profile', asyn
     .map(([, value]) => Number.parseInt(value.slice(0, value.indexOf('=')), 10));
   assert.deepEqual(paletteIndexes, Array.from({ length: 16 }, (_, index) => index));
   assert.doesNotMatch(profile, /(?:command|input|keybind|font-family|working-directory|config-file)\s*=/);
+  assert.deepEqual(config.bundle.resources, {
+    'resources/terminal/antiky-studio.ghostty': 'terminal/antiky-studio.ghostty',
+  });
 });

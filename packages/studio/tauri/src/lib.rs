@@ -3,12 +3,14 @@ mod connection;
 mod error;
 mod native;
 mod terminal;
+mod terminal_theme;
 
 pub use connection::{
     DevelopmentConnection, read_development_connection, resolve_project_directory,
 };
 pub use error::NativeError;
 pub use terminal::TerminalBounds;
+pub use terminal_theme::{TerminalTheme, resolve_terminal_theme};
 
 use commands::{
     StudioState, discover_development_connection, studio_context, terminal_close, terminal_focus,

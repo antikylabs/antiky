@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NativeError {
     code: &'static str,
@@ -27,6 +27,13 @@ impl NativeError {
         Self {
             code: "ANTIKY_NATIVE_UNAVAILABLE",
             message: message.into(),
+        }
+    }
+
+    pub(crate) fn terminal_theme_invalid() -> Self {
+        Self {
+            code: "ANTIKY_TERMINAL_THEME_INVALID",
+            message: "The Antiky Studio terminal theme is missing or invalid.".into(),
         }
     }
 

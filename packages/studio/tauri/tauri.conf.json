@@ -30,6 +30,9 @@
   },
   "bundle": {
     "active": false,
+    "resources": {
+      "resources/terminal/antiky-studio.ghostty": "terminal/antiky-studio.ghostty"
+    },
     "icon": [
       "../../website/public/brand/antiky-labs-wordmark-white.png"
     ]
