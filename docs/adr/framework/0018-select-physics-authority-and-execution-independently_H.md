@@ -30,8 +30,8 @@ step without GPU readback.
 
 A GPU snapshot copies a specified quantity of GPU state for CPU use.
 
-[ADR 0016](0016-give-platform-work-to-game-host_H.md) keeps GPU state nonauthoritative. In that
-decision, usual simulation work does not wait for GPU readback.
+[ADR 0016](0016-give-platform-work-to-game-host_H.md) uses nonauthoritative GPU state for its first
+browser host. In that decision, usual simulation work does not wait for GPU readback.
 
 Antiky must have one rule for physics authority and one rule for physics execution.
 
@@ -72,6 +72,8 @@ GPU execution.
 For a local game, the local `EngineSession` can accept authoritative physics state. It can select CPU
 or GPU execution for each physics workload.
 
+If a local `EngineSession` selects GPU execution, GPU physics state can be authoritative.
+
 Usual simulation work will not wait for GPU readback. Each readback request must identify the
 snapshot and its data limit.
 
@@ -86,7 +88,8 @@ interface (API).
 ## Consequences
 
 - Online clients cannot set authoritative physics state.
-- Client GPU work can keep temporary physics state on the GPU.
+- An online client GPU can keep temporary physics state on the GPU.
+- A local single-player game can keep authoritative physics state on the GPU.
 - Usual simulation work has no data round trips between the CPU and GPU.
 - GPU work can use GPU-only physics state in the same simulation step.
 - CPU code cannot read GPU-only physics state in the same simulation step.
@@ -101,3 +104,4 @@ interface (API).
 ## Revision history
 
 - `40991f9dd41f9e2b996c22f5875d77990ddd2c45` — Clarified same-step GPU use and GPU-to-CPU readback.
+- `9858394c6688762af6c23dee4aab4c29ef8239bd` — Clarified local single-player GPU authority.
