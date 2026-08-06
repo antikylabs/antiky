@@ -22,12 +22,17 @@ const ANSI_PALETTE: [&str; 16] = [
 
 #[derive(Clone, Debug)]
 pub struct TerminalTheme {
+    resource_root: PathBuf,
     path: PathBuf,
 }
 
 impl TerminalTheme {
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    pub(crate) fn revalidate(&self) -> Result<Self, NativeError> {
+        resolve_terminal_theme(&self.resource_root, &self.path)
     }
 }
 
@@ -107,7 +112,7 @@ pub fn resolve_terminal_theme(
 
     let canonical_root = resource_root.canonicalize().map_err(|_| invalid_theme())?;
     let canonical_path = candidate.canonicalize().map_err(|_| invalid_theme())?;
-    if !canonical_path.starts_with(&canonical_root) {
+    if canonical_path != canonical_root.join(TERMINAL_THEME_RESOURCE_PATH) {
         return Err(invalid_theme());
     }
 
@@ -119,6 +124,7 @@ pub fn resolve_terminal_theme(
     validate_profile(contents)?;
 
     Ok(TerminalTheme {
+        resource_root: canonical_root,
         path: canonical_path,
     })
 }

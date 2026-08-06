@@ -9,6 +9,38 @@ const bridgeSource = readFile(
   resolve(packageDirectory, 'src/native/terminal_bridge.m'),
   'utf8',
 );
+const bridgeHeader = readFile(
+  resolve(packageDirectory, 'src/native/terminal_bridge.h'),
+  'utf8',
+);
+
+test('the bridge validates and loads the Studio profile after user configuration', async () => {
+  const [source, header] = await Promise.all([bridgeSource, bridgeHeader]);
+  const open = source.match(
+    /int32_t antiky_terminal_open\([\s\S]*?\n\}\n\nint32_t antiky_terminal_layout/,
+  )?.[0];
+  const validation = source.match(
+    /int32_t antiky_terminal_validate_profile\([\s\S]*?\n\}/,
+  )?.[0];
+
+  assert.ok(open, 'native terminal open must remain explicit and inspectable');
+  assert.ok(validation, 'the product profile must use an isolated Ghostty configuration');
+  assert.match(header, /const char \*terminal_profile/);
+  assert.match(validation, /ghostty_config_new\(\)/);
+  assert.match(validation, /ghostty_config_load_file\(profile_config, terminal_profile\)/);
+  assert.match(validation, /ghostty_config_finalize\(profile_config\)/);
+  assert.match(validation, /ghostty_config_diagnostics_count\(profile_config\)/);
+  assert.match(validation, /ghostty_config_free\(profile_config\)/);
+
+  const userDefaults = open.indexOf('ghostty_config_load_default_files(antiky_config)');
+  const userRecursive = open.indexOf('ghostty_config_load_recursive_files(antiky_config)');
+  const studioProfile = open.indexOf('ghostty_config_load_file(antiky_config, terminal_profile)');
+  const finalize = open.indexOf('ghostty_config_finalize(antiky_config)');
+  assert.ok(userDefaults > 0);
+  assert.ok(userRecursive > userDefaults);
+  assert.ok(studioProfile > userRecursive);
+  assert.ok(finalize > studioProfile);
+});
 
 test('terminal teardown frees the Ghostty surface without requesting an interactive close', async () => {
   const source = await bridgeSource;

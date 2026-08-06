@@ -17,6 +17,7 @@ typedef struct {
 int32_t antiky_terminal_open(
     void *parent_view,
     const char *working_directory,
+    const char *terminal_profile,
     double x,
     double y,
     double width,
@@ -32,6 +33,10 @@ int32_t antiky_terminal_layout(
     size_t error_capacity);
 int32_t antiky_terminal_hide(char *error, size_t error_capacity);
 int32_t antiky_terminal_focus(char *error, size_t error_capacity);
+int32_t antiky_terminal_validate_profile(
+    const char *terminal_profile,
+    char *error,
+    size_t error_capacity);
 void antiky_terminal_close(void);
 antiky_terminal_status_s antiky_terminal_status(void);
 

@@ -16,6 +16,7 @@ use commands::{
     StudioState, discover_development_connection, studio_context, terminal_close, terminal_focus,
     terminal_layout, terminal_open, terminal_status,
 };
+use tauri::{Manager, path::BaseDirectory};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -25,7 +26,26 @@ pub fn run() {
             .expect("Antiky Studio requires a valid project directory");
 
     let app = tauri::Builder::default()
-        .manage(StudioState { project_directory })
+        .setup(move |app| {
+            let paths = app.path();
+            let terminal_theme = match (
+                paths.resource_dir(),
+                paths.resolve(
+                    terminal_theme::TERMINAL_THEME_RESOURCE_PATH,
+                    BaseDirectory::Resource,
+                ),
+            ) {
+                (Ok(resource_root), Ok(candidate)) => {
+                    resolve_terminal_theme(&resource_root, &candidate)
+                }
+                _ => Err(NativeError::terminal_theme_invalid()),
+            };
+            app.manage(StudioState {
+                project_directory,
+                terminal_theme,
+            });
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             studio_context,
             discover_development_connection,

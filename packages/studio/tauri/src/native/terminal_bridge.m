@@ -16,9 +16,50 @@ static ghostty_app_t antiky_app = NULL;
 static AntikyGhosttyView *antiky_view = nil;
 static BOOL antiky_ghostty_initialized = NO;
 
+static const int32_t ANTIKY_TERMINAL_ERROR = 1;
+static const int32_t ANTIKY_TERMINAL_THEME_ERROR = 2;
+static const char *ANTIKY_TERMINAL_THEME_ERROR_MESSAGE =
+    "The Antiky Studio terminal theme is missing or invalid.";
+
 static void write_error(char *destination, size_t capacity, const char *message) {
   if (destination == NULL || capacity == 0) return;
   snprintf(destination, capacity, "%s", message);
+}
+
+static int32_t initialize_ghostty(char *error, size_t error_capacity) {
+  if (antiky_ghostty_initialized) return 0;
+  char program[] = "antiky-studio";
+  char *arguments[] = {program, NULL};
+  if (ghostty_init(1, arguments) != 0) {
+    write_error(error, error_capacity, "libghostty initialization failed.");
+    return ANTIKY_TERMINAL_ERROR;
+  }
+  antiky_ghostty_initialized = YES;
+  return 0;
+}
+
+int32_t antiky_terminal_validate_profile(
+    const char *terminal_profile, char *error, size_t error_capacity) {
+  int32_t initialization_status = initialize_ghostty(error, error_capacity);
+  if (initialization_status != 0) return initialization_status;
+  if (terminal_profile == NULL) {
+    write_error(error, error_capacity, ANTIKY_TERMINAL_THEME_ERROR_MESSAGE);
+    return ANTIKY_TERMINAL_THEME_ERROR;
+  }
+  ghostty_config_t profile_config = ghostty_config_new();
+  if (profile_config == NULL) {
+    write_error(error, error_capacity, ANTIKY_TERMINAL_THEME_ERROR_MESSAGE);
+    return ANTIKY_TERMINAL_THEME_ERROR;
+  }
+  ghostty_config_load_file(profile_config, terminal_profile);
+  ghostty_config_finalize(profile_config);
+  uint32_t diagnostics = ghostty_config_diagnostics_count(profile_config);
+  ghostty_config_free(profile_config);
+  if (diagnostics != 0) {
+    write_error(error, error_capacity, ANTIKY_TERMINAL_THEME_ERROR_MESSAGE);
+    return ANTIKY_TERMINAL_THEME_ERROR;
+  }
+  return 0;
 }
 
 static ghostty_input_mods_e ghostty_mods(NSEventModifierFlags flags) {
@@ -286,6 +327,7 @@ static void update_surface_geometry(void) {
 int32_t antiky_terminal_open(
     void *parent_view,
     const char *working_directory,
+    const char *terminal_profile,
     double x,
     double y,
     double width,
@@ -294,28 +336,23 @@ int32_t antiky_terminal_open(
     size_t error_capacity) {
   if (![NSThread isMainThread] || parent_view == NULL || working_directory == NULL) {
     write_error(error, error_capacity, "Native terminal must open on the main thread.");
-    return 1;
+    return ANTIKY_TERMINAL_ERROR;
   }
   if (antiky_view != nil) {
     return antiky_terminal_layout(x, y, width, height, error, error_capacity);
   }
-  if (!antiky_ghostty_initialized) {
-    char program[] = "antiky-studio";
-    char *arguments[] = {program, NULL};
-    if (ghostty_init(1, arguments) != 0) {
-      write_error(error, error_capacity, "libghostty initialization failed.");
-      return 1;
-    }
-    antiky_ghostty_initialized = YES;
-  }
+  int32_t profile_status =
+      antiky_terminal_validate_profile(terminal_profile, error, error_capacity);
+  if (profile_status != 0) return profile_status;
 
   antiky_config = ghostty_config_new();
   if (antiky_config == NULL) {
     write_error(error, error_capacity, "Ghostty configuration could not be created.");
-    return 1;
+    return ANTIKY_TERMINAL_ERROR;
   }
   ghostty_config_load_default_files(antiky_config);
   ghostty_config_load_recursive_files(antiky_config);
+  ghostty_config_load_file(antiky_config, terminal_profile);
   ghostty_config_finalize(antiky_config);
 
   ghostty_runtime_config_s runtime = {
@@ -333,7 +370,7 @@ int32_t antiky_terminal_open(
     ghostty_config_free(antiky_config);
     antiky_config = NULL;
     write_error(error, error_capacity, "Ghostty application could not be created.");
-    return 1;
+    return ANTIKY_TERMINAL_ERROR;
   }
 
   NSView *parent = (__bridge NSView *)parent_view;
@@ -356,7 +393,7 @@ int32_t antiky_terminal_open(
   if (antiky_view.surface == NULL) {
     antiky_terminal_close();
     write_error(error, error_capacity, "Ghostty surface could not be created.");
-    return 1;
+    return ANTIKY_TERMINAL_ERROR;
   }
   ghostty_app_set_focus(antiky_app, NSApp.isActive);
   update_surface_geometry();

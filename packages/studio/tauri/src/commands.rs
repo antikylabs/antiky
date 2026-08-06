@@ -6,11 +6,13 @@ use serde::Serialize;
 use tauri::{State, WebviewWindow};
 
 use crate::{
-    DevelopmentConnection, NativeError, TerminalBounds, native, read_development_connection,
+    DevelopmentConnection, NativeError, TerminalBounds, TerminalTheme, native,
+    read_development_connection,
 };
 
 pub(crate) struct StudioState {
     pub project_directory: PathBuf,
+    pub terminal_theme: Result<TerminalTheme, NativeError>,
 }
 
 #[derive(Serialize)]
@@ -69,11 +71,21 @@ pub(crate) async fn terminal_open(
 ) -> Result<(), NativeError> {
     let bounds = bounds.validate()?;
     let project_directory = state.project_directory.clone();
+    let terminal_theme = state
+        .terminal_theme
+        .as_ref()
+        .map_err(|error| error.clone())?
+        .revalidate()?;
     run_on_main_thread(window, move |window| {
         let parent = window
             .ns_view()
             .map_err(|_| NativeError::native_unavailable("Studio window is unavailable."))?;
-        native::open(parent.cast::<c_void>(), &project_directory, bounds)
+        native::open(
+            parent.cast::<c_void>(),
+            &project_directory,
+            terminal_theme.path(),
+            bounds,
+        )
     })
     .await
 }
