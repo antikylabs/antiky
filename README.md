@@ -71,7 +71,7 @@ not require one model provider.
 
 ## How the pieces fit
 
-[![Antiky architecture overview](docs/architecture/antiky-architecture.png)](docs/architecture/README.md)
+[![Antiky architecture overview](docs/user-facing-docs/assets/antiky-architecture.png)](docs/architecture/README.md)
 
 The CLI owns local configuration, child processes, builds, connections, and cleanup. The framework
 owns semantic game facts and engine rules. MCP adapts those shared services today. The future

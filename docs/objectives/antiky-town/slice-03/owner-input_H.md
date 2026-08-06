@@ -89,7 +89,7 @@ not keep the current CPU plan and add GPU math inside it.
 
 ### Owner answer
 
-`PENDING`
+`REJECT` - We should use GPU path now... Thats our main goal and alignment with BroMetal. Lets explore and research 3 options for integraiton of nexus with our framework and with brometal.
 
 ## Question 3: Should the tested character motor become a Framework API?
 
