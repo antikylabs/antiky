@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { access, readFile, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { promisify } from 'node:util';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const userDocsRoot = new URL('../../../docs/user-facing-docs/', import.meta.url);
+const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
+const runFile = promisify(execFile);
 
 async function markdownFiles(directory: URL): Promise<URL[]> {
   const files: URL[] = [];
@@ -29,6 +33,32 @@ test('user-facing documentation has valid local links', async () => {
   await Promise.all((await markdownFiles(userDocsRoot)).map(async (path) => {
     await verifyLocalLinks(path, await readFile(path, 'utf8'));
   }));
+});
+
+test('the generated framework API reference covers every public area and is current', async () => {
+  await runFile(process.execPath, [
+    resolve(repositoryRoot, 'scripts/generate-framework-api-reference.mjs'),
+    '--check',
+  ], { cwd: repositoryRoot });
+
+  const pages = await Promise.all([
+    'api-reference.md',
+    'api-identity.md',
+    'api-engine-session.md',
+    'api-inspection.md',
+    'api-point-light-core.md',
+    'api-point-light-commands.md',
+    'api-point-light-integration.md',
+  ].map((name) => readFile(new URL(`framework/${name}`, userDocsRoot), 'utf8')));
+
+  assert.match(pages[0]!, /import \{ createEngineSession \} from '@antiky\/framework'/);
+  assert.match(pages[0]!, /Choose an API area/);
+  assert.match(pages[1]!, /### `createWorldId`/);
+  assert.match(pages[2]!, /### `EngineSession`/);
+  assert.match(pages[3]!, /### `createInspectionSnapshot`/);
+  assert.match(pages[4]!, /### `createPointLightAuthoringService`/);
+  assert.match(pages[5]!, /### `parseSetPointLightPowerCommand`/);
+  assert.match(pages[6]!, /### `inspectPointLightWorld`/);
 });
 
 test('the Studio guide describes the game-first responsive workspace', async () => {

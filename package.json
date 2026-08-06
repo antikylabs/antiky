@@ -16,6 +16,8 @@
     "dev:demos": "node scripts/dev.mjs demos",
     "dev:studio": "npm run dev --workspace @antiky/studio-tauri",
     "dev:studio:web": "npm run dev --workspace @antiky/studio-app",
+    "docs:api": "node scripts/generate-framework-api-reference.mjs",
+    "docs:api:check": "node scripts/generate-framework-api-reference.mjs --check",
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "shaders": "npm run shaders --workspace @antiky/demos",
