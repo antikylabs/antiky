@@ -4,16 +4,16 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `READY` |
+| Status | `IN PROGRESS` |
 | Feedback source | [Slice 00 feedback, line 1](slice-feedback.txt) |
 | Outcome | A user opens one `<name>.antiky` file and Studio binds one workspace to that file's project root |
 | Owner input | The source feedback supplies the product direction |
 | Architecture decisions | [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) and [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | Completed Studio Slice 00 |
-| Alignment revision | `dd0eda5d8c4f4273e0cab8b3a5bfa843b8d17b40` |
+| Alignment revision | `306435a1647901d0021035746c9fe623d9ea27ac` |
 | Review date | `2026-08-06` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-01/verify.mjs` |
-| Evidence | `docs/objectives/studio/slice-00/outputs/studio-s00-feedback-01-{run-id}/receipt.json` |
+| Evidence | [Run `studio-s00-feedback-01-20260806T233318Z`](outputs/studio-s00-feedback-01-20260806T233318Z/receipt.json) |
 
 Goal command:
 

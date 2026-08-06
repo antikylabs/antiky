@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-feedback-01-20260806T233318Z",
+  "facts": {
+    "studioSlice00Complete": true,
+    "installedBrometalVersion": "0.15.0",
+    "latestBrometalVersionAtReview": "0.15.0",
+    "renderPathChange": false,
+    "projectManifestAdr": "docs/adr/studio/0005-use-one-antiky-project-manifest_H.md",
+    "initialProjectFormat": "antiky.config.json",
+    "targetProjectExtension": ".antiky"
+  }
+}

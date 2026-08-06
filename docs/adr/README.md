@@ -48,6 +48,7 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0002: Keep the Studio web editor independent from Tauri](studio/0002-tauri-portable-web-editor_H.md)
 - [0003: Attach each feedback comment to its exact target](studio/0003-contextual-feedback-queue_H.md)
 - [0004: Make CLI and Studio use the same engine services](studio/0004-share-engine-services-with-cli_H.md)
+- [0005: Use one Antiky project manifest](studio/0005-use-one-antiky-project-manifest_H.md)
 
 ## Minimal format
 
