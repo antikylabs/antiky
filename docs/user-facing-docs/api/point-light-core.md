@@ -9,7 +9,7 @@ Validate point-light records and manage the authoritative lights for one world.
 
 Use records for isolated values and the authoring service when lights need stable identity, revisions, history, and renderer handoff.
 
-For the task-first workflow, read [Add point lights](point-lights.md). Import every API on this page from `@antiky/framework`.
+For the task-first workflow, read [Add point lights](../framework/point-lights.md). Import every API on this page from `@antiky/framework`.
 
 ## Example
 

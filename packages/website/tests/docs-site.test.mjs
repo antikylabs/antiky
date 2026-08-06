@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const docsRoot = new URL('../../../docs/user-facing-docs/', import.meta.url);
 const outputRoot = new URL('../.next/server/app/', import.meta.url);
-const sections = ['framework', 'cli', 'mcp', 'studio'];
+const sections = ['framework', 'cli', 'mcp', 'studio', 'api'];
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
 
 async function documentationSources() {
@@ -120,22 +120,25 @@ test('docs production output provides search, Markdown copy, and an llms.txt ind
 });
 
 test('docs production output exposes the complete generated framework API reference', async () => {
-  const overview = await readFile(new URL('docs/framework/api-reference.html', outputRoot), 'utf8');
-  const identity = await readFile(new URL('docs/framework/api-identity.html', outputRoot), 'utf8');
-  const engineSession = await readFile(new URL('docs/framework/api-engine-session.html', outputRoot), 'utf8');
-  const inspection = await readFile(new URL('docs/framework/api-inspection.html', outputRoot), 'utf8');
-  const pointLightCore = await readFile(new URL('docs/framework/api-point-light-core.html', outputRoot), 'utf8');
-  const pointLightCommands = await readFile(new URL('docs/framework/api-point-light-commands.html', outputRoot), 'utf8');
-  const pointLightIntegration = await readFile(new URL('docs/framework/api-point-light-integration.html', outputRoot), 'utf8');
+  const docsHome = await readFile(new URL('docs.html', outputRoot), 'utf8');
+  const overview = await readFile(new URL('docs/api/reference.html', outputRoot), 'utf8');
+  const identity = await readFile(new URL('docs/api/identity.html', outputRoot), 'utf8');
+  const engineSession = await readFile(new URL('docs/api/engine-session.html', outputRoot), 'utf8');
+  const inspection = await readFile(new URL('docs/api/inspection.html', outputRoot), 'utf8');
+  const pointLightCore = await readFile(new URL('docs/api/point-light-core.html', outputRoot), 'utf8');
+  const pointLightCommands = await readFile(new URL('docs/api/point-light-commands.html', outputRoot), 'utf8');
+  const pointLightIntegration = await readFile(new URL('docs/api/point-light-integration.html', outputRoot), 'utf8');
   const llms = await readFile(new URL('llms.txt.body', outputRoot), 'utf8');
 
   assert.match(overview, /all 176 public symbols/);
-  assert.match(overview, /href="\/docs\/framework\/api-identity#createworldid"/);
+  assert.match(overview, /href="\/docs\/api\/identity#createworldid"/);
   assert.match(identity, /<h3 id="createworldid"/);
   assert.match(engineSession, /<h3 id="enginesession"/);
   assert.match(inspection, /<h3 id="createinspectionsnapshot"/);
   assert.match(pointLightCore, /<h3 id="createpointlightauthoringservice"/);
   assert.match(pointLightCommands, /<h3 id="parsesetpointlightpowercommand"/);
   assert.match(pointLightIntegration, /<h3 id="inspectpointlightworld"/);
-  assert.match(llms, /\/docs\/framework\/api-reference\.md/);
+  assert.ok(docsHome.indexOf('<h2>API Reference</h2>') > docsHome.indexOf('<h2>Studio</h2>'));
+  assert.match(llms, /\/docs\/api\/reference\.md/);
+  await assert.rejects(readFile(new URL('docs/framework/api-reference.html', outputRoot)), { code: 'ENOENT' });
 });

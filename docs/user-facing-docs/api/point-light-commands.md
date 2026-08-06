@@ -9,7 +9,7 @@ Validate versioned power-change commands, trusted execution context, results, an
 
 Use these parsers at tool or process boundaries; create trusted context in the host instead of accepting authority from a command.
 
-For the task-first workflow, read [Point lights: Change power](point-lights.md#change-power-while-the-game-runs). Import every API on this page from `@antiky/framework`.
+For the task-first workflow, read [Point lights: Change power](../framework/point-lights.md#change-power-while-the-game-runs). Import every API on this page from `@antiky/framework`.
 
 ## Example
 

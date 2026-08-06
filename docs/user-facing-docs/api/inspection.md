@@ -9,7 +9,7 @@ Publish immutable runtime snapshots, bounded world views, and declared event his
 
 Use inspection as a read-only adapter boundary; keep live engine objects, credentials, and renderer resources out of it.
 
-For the task-first workflow, read [Publish runtime inspection](inspection.md). Import every API on this page from `@antiky/framework`.
+For the task-first workflow, read [Publish runtime inspection](../framework/inspection.md). Import every API on this page from `@antiky/framework`.
 
 ## Example
 

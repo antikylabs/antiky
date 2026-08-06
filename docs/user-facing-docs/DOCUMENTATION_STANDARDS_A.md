@@ -136,6 +136,7 @@ and groups pages by the public surface a developer recognizes:
 - `cli/` for commands a person runs.
 - `mcp/` for connecting an MCP client and using MCP tools.
 - `studio/` for Studio workflows and integration.
+- `api/` for generated public signatures, limits, result codes, and concise symbol guidance.
 
 Give each topic one canonical home. A CLI page can show the command that calls an MCP tool, but the
 complete MCP setup and tool catalog belong in the MCP section. Cross-link the canonical page at the

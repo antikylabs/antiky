@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from 'node:crypto';
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
@@ -11,7 +11,7 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const frameworkRoot = resolve(repositoryRoot, 'packages/framework');
 const frameworkSourceRoot = resolve(frameworkRoot, 'src');
 const frameworkEntry = resolve(frameworkSourceRoot, 'index.ts');
-const docsRoot = resolve(repositoryRoot, 'docs/user-facing-docs/framework');
+const docsRoot = resolve(repositoryRoot, 'docs/user-facing-docs/api');
 const generatorPath = 'scripts/generate-framework-api-reference.mjs';
 const printer = ts.createPrinter({
   newLine: ts.NewLineKind.LineFeed,
@@ -204,7 +204,7 @@ function validateContent(exports) {
   const configuredSources = new Set();
   for (const area of API_AREAS) {
     if (
-      !area.slug.startsWith('api-')
+      !/^[a-z][a-z0-9-]+$/.test(area.slug)
       || area.modules.length === 0
       || !area.exampleDescription?.trim()
       || !area.example?.trim()
@@ -386,7 +386,7 @@ function renderArea(area, exports, fingerprint) {
 
 function generatedPages(exports, fingerprint) {
   const pages = new Map([
-    ['api-reference.md', renderOverview(exports, fingerprint)],
+    ['reference.md', renderOverview(exports, fingerprint)],
   ]);
   for (const area of API_AREAS) {
     pages.set(`${area.slug}.md`, renderArea(area, exports, fingerprint));
@@ -412,6 +412,7 @@ async function checkPages(pages) {
 }
 
 async function writePages(pages) {
+  await mkdir(docsRoot, { recursive: true });
   for (const [name, source] of pages) {
     await writeFile(resolve(docsRoot, name), source, 'utf8');
   }

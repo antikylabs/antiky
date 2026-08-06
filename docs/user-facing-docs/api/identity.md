@@ -9,7 +9,7 @@ Create and validate stable UUIDv7 identities for worlds, entities, commands, and
 
 Use branded IDs at storage and command boundaries so different identity kinds cannot be mixed accidentally.
 
-For the task-first workflow, read [Point lights: Keep IDs stable](point-lights.md#keep-ids-stable). Import every API on this page from `@antiky/framework`.
+For the task-first workflow, read [Point lights: Keep IDs stable](../framework/point-lights.md#keep-ids-stable). Import every API on this page from `@antiky/framework`.
 
 ## Example
 

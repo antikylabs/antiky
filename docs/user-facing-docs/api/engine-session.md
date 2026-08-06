@@ -9,7 +9,7 @@ Run deterministic fixed-step systems and expose safe pause, resume, single-step,
 
 Use one session as the authority for a running world when simulation timing must stay independent from display timing.
 
-For the task-first workflow, read [Run a fixed-step game session](engine-sessions.md). Import every API on this page from `@antiky/framework`.
+For the task-first workflow, read [Run a fixed-step game session](../framework/engine-sessions.md). Import every API on this page from `@antiky/framework`.
 
 ## Example
 

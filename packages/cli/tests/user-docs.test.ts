@@ -42,14 +42,14 @@ test('the generated framework API reference covers every public area and is curr
   ], { cwd: repositoryRoot });
 
   const pages = await Promise.all([
-    'api-reference.md',
-    'api-identity.md',
-    'api-engine-session.md',
-    'api-inspection.md',
-    'api-point-light-core.md',
-    'api-point-light-commands.md',
-    'api-point-light-integration.md',
-  ].map((name) => readFile(new URL(`framework/${name}`, userDocsRoot), 'utf8')));
+    'reference.md',
+    'identity.md',
+    'engine-session.md',
+    'inspection.md',
+    'point-light-core.md',
+    'point-light-commands.md',
+    'point-light-integration.md',
+  ].map((name) => readFile(new URL(`api/${name}`, userDocsRoot), 'utf8')));
 
   assert.match(pages[0]!, /import \{ createEngineSession \} from '@antiky\/framework'/);
   assert.match(pages[0]!, /Choose an API area/);

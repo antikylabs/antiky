@@ -7,12 +7,15 @@ import { canonical } from '@/lib/site';
 
 const DOCS_ROOT = resolve(process.cwd(), '../../docs/user-facing-docs');
 
-const DOCS_SECTIONS = [
+const PRODUCT_DOCS_SECTIONS = [
   { directory: 'framework', label: 'Framework' },
   { directory: 'cli', label: 'CLI' },
   { directory: 'mcp', label: 'MCP' },
   { directory: 'studio', label: 'Studio' },
 ] as const;
+
+const API_DOCS_SECTION = { directory: 'api', label: 'API Reference' } as const;
+const DOCS_SECTIONS = [...PRODUCT_DOCS_SECTIONS, API_DOCS_SECTION] as const;
 
 const CONTRIBUTOR_PAGE = {
   relativePath: 'DOCUMENTATION_STANDARDS_A.md',
@@ -63,7 +66,7 @@ function sourcePathToSlug(relativePath: string): string[] | null {
   if (normalizedPath === 'README.md') return [];
   if (normalizedPath === CONTRIBUTOR_PAGE.relativePath) return CONTRIBUTOR_PAGE.slug;
 
-  const match = normalizedPath.match(/^(framework|cli|mcp|studio)\/(.+)\.md$/);
+  const match = normalizedPath.match(/^(framework|cli|mcp|studio|api)\/(.+)\.md$/);
   return match ? [match[1]!, match[2]!] : null;
 }
 
@@ -203,13 +206,17 @@ export async function getDocsNavigation(): Promise<DocsNavigationSection[]> {
   });
 
   return [
-    ...DOCS_SECTIONS.map(({ directory, label }) => ({
+    ...PRODUCT_DOCS_SECTIONS.map(({ directory, label }) => ({
       label,
       pages: ordered(entries.filter((entry) => entry.section === directory)),
     })),
     {
       label: 'Contributing',
       pages: ordered(entries.filter((entry) => entry.slug[0] === 'contributing')),
+    },
+    {
+      label: API_DOCS_SECTION.label,
+      pages: ordered(entries.filter((entry) => entry.section === API_DOCS_SECTION.directory)),
     },
   ]
     .filter((section) => section.pages.length > 0);

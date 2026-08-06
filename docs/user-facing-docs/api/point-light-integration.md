@@ -9,7 +9,7 @@ Project authored lights into runtime, renderer, inspection, world, and event vie
 
 Use these adapters to keep framework records independent from renderer objects while giving tools a consistent read-only model.
 
-For the task-first workflow, read [Point lights: Renderer integration](point-lights.md#send-changes-to-your-renderer). Import every API on this page from `@antiky/framework`.
+For the task-first workflow, read [Point lights: Renderer integration](../framework/point-lights.md#send-changes-to-your-renderer). Import every API on this page from `@antiky/framework`.
 
 ## Example
 
