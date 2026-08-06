@@ -16,6 +16,9 @@ For an online game, a client cannot accept a physics result as authoritative gam
 [ADR 0012](0012-server-authoritative-simulation_H.md) gives this authority only to a server
 `EngineSession`.
 
+In a local game, its local game client owns all necessary game authority. The local `EngineSession`
+can own that authority.
+
 Some client physics results are only for graphics. Particles, cloth, debris, water, and secondary
 animation are examples.
 
@@ -89,7 +92,7 @@ interface (API).
 
 - Online clients cannot set authoritative physics state.
 - An online client GPU can keep temporary physics state on the GPU.
-- A local single-player game can keep authoritative physics state on the GPU.
+- A local game can keep authoritative physics state on the GPU.
 - Usual simulation work has no data round trips between the CPU and GPU.
 - GPU work can use GPU-only physics state in the same simulation step.
 - CPU code cannot read GPU-only physics state in the same simulation step.
@@ -105,3 +108,4 @@ interface (API).
 
 - `40991f9dd41f9e2b996c22f5875d77990ddd2c45` — Clarified same-step GPU use and GPU-to-CPU readback.
 - `9858394c6688762af6c23dee4aab4c29ef8239bd` — Clarified local single-player GPU authority.
+- `720a66321241d1ba9f27c32d9991f4baefad93ba` — Defined the authority owner for a local game.
