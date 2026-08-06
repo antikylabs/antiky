@@ -34,6 +34,7 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0016: Give platform work to the game host](framework/0016-give-platform-work-to-game-host_H.md)
 - [0017: Stop an engine session after a game-code fault](framework/0017-stop-engine-session-after-game-code-fault_H.md)
 - [0018: Select physics authority and physics execution independently](framework/0018-select-physics-authority-and-execution-independently_H.md)
+- [0019: Use Rapier for CPU physics and Nexus for GPU physics](framework/0019-use-rapier-for-cpu-physics-and-nexus-for-gpu-physics_H.md)
 
 ### CLI
 
