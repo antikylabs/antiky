@@ -1,32 +1,19 @@
 @media (max-width: 1080px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1.3fr) minmax(240px, .75fr);
+    grid-template-rows: minmax(300px, 1.25fr) minmax(180px, .75fr);
+  }
+}
+
+@media (max-width: 720px) {
   body {
     overflow: auto;
   }
 
   .studio-shell {
+    grid-template-rows: 58px auto auto 30px;
     height: auto;
     min-height: 100dvh;
-  }
-
-  .workspace {
-    grid-template-columns: minmax(250px, .7fr) minmax(410px, 1.3fr);
-    grid-template-rows: 520px 360px 250px;
-    overflow: visible;
-  }
-
-  .game-panel {
-    border-right: 0;
-  }
-
-  .inspection-panel,
-  .activity-panel {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 720px) {
-  .studio-shell {
-    grid-template-rows: 58px auto auto 30px;
   }
 
   .project-context,
@@ -52,17 +39,14 @@
   }
 
   .workspace {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .terminal-panel,
-  .game-panel,
-  .inspection-panel,
-  .activity-panel {
-    min-height: 390px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
+    grid-template-areas:
+      "game"
+      "terminal"
+      "inspection"
+      "activity";
+    grid-template-columns: 1fr;
+    grid-template-rows: 330px 190px 300px 240px;
+    overflow: visible;
   }
 
   .activity-record summary {

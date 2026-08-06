@@ -9,7 +9,10 @@ import type { DevelopmentSnapshot } from '@antiky/cli/development';
 import type { StudioDevelopmentState } from '../development/coordinator.ts';
 import { StudioShell } from './StudioShell.tsx';
 
-const shellStyles = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
+const shellStyles = [
+  readFileSync(new URL('../styles.css', import.meta.url), 'utf8'),
+  readFileSync(new URL('../responsive.css', import.meta.url), 'utf8'),
+].join('\n');
 
 const ROOT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const LIGHT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';
@@ -164,6 +167,10 @@ test('workspace follows the website game-first layout contract', () => {
   assert.match(
     shellStyles,
     /grid-template-areas:\s*"game inspection"\s*"terminal activity"/,
+  );
+  assert.match(
+    shellStyles,
+    /@media \(max-width: 720px\)[\s\S]*grid-template-areas:\s*"game"\s*"terminal"\s*"inspection"\s*"activity"/,
   );
   for (const area of surfaceOrder) {
     assert.match(shellStyles, new RegExp(`\\.${area}-panel\\s*\\{[^}]*grid-area:\\s*${area}`, 's'));

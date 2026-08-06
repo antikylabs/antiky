@@ -235,11 +235,16 @@ button:focus-visible {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(270px, .72fr) minmax(420px, 1.7fr) minmax(290px, .82fr);
-  grid-template-rows: minmax(310px, 1fr) minmax(190px, 30%);
+  grid-template-areas:
+    "game inspection"
+    "terminal activity";
+  grid-template-columns: minmax(0, 1.55fr) minmax(270px, .7fr);
+  grid-template-rows: minmax(330px, 1.4fr) minmax(180px, .8fr);
+  gap: 1px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  background: var(--line);
 }
 
 .panel {
@@ -268,15 +273,20 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
-.terminal-panel,
 .game-panel {
-  border-right: 1px solid var(--line);
+  grid-area: game;
 }
 
-.terminal-panel,
-.game-panel,
+.terminal-panel {
+  grid-area: terminal;
+}
+
 .inspection-panel {
-  border-bottom: 1px solid var(--line);
+  grid-area: inspection;
+}
+
+.activity-panel {
+  grid-area: activity;
 }
 
 .terminal-surface,
@@ -378,10 +388,6 @@ button:focus-visible {
 .inspection-body {
   height: calc(100% - 76px);
   overflow: auto;
-}
-
-.activity-panel {
-  grid-column: 1 / -1;
 }
 
 .activity-panel .panel-heading {

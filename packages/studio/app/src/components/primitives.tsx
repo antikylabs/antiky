@@ -5,11 +5,16 @@ export type PanelProps = Readonly<{
   title: string;
   children: ReactNode;
   actions?: ReactNode;
+  workspaceArea: 'activity' | 'game' | 'inspection' | 'terminal';
 }>;
 
-export function Panel({ className, title, children, actions }: PanelProps) {
+export function Panel({ className, title, children, actions, workspaceArea }: PanelProps) {
   return (
-    <section className={`panel ${className}`} aria-label={title}>
+    <section
+      aria-label={title}
+      className={`panel ${className}`}
+      data-workspace-area={workspaceArea}
+    >
       <header className="panel-heading">
         <h2>{title}</h2>
         {actions}

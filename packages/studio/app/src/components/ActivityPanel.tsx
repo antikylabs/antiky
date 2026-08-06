@@ -167,6 +167,7 @@ export function ActivityPanel({
       actions={<span className="panel-state">Event and development-session history</span>}
       className="activity-panel"
       title="Activity"
+      workspaceArea="activity"
     >
       <Tabs active={active} label="Activity views" labels={labels} onSelect={(label) => setActive(label as typeof active)} />
       <div className="activity-body">

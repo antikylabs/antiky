@@ -111,20 +111,11 @@ export function StudioShell({ platform, context, development, actions }: StudioS
       </nav>
 
       <div className="workspace">
-        <Panel actions={<span className="panel-state">Local</span>} className="terminal-panel" title="Terminal">
-          <div className="terminal-surface" data-terminal-platform={platform}>
-            {platform === 'native' ? <NativeTerminal /> : (
-              <EmptyState title="Native terminal unavailable">
-                Open this project in the desktop app to use the embedded terminal.
-              </EmptyState>
-            )}
-          </div>
-        </Panel>
-
         <Panel
           actions={<span className="panel-state">{current ? snapshot?.connection.state : connectionLabel}</span>}
           className="game-panel"
           title="Live game"
+          workspaceArea="game"
         >
           <div className="game-stage">
             {current && snapshot ? (
@@ -138,6 +129,21 @@ export function StudioShell({ platform, context, development, actions }: StudioS
                 {stale
                   ? 'The last snapshot is retained below as stale. Reconnect before using the game view.'
                   : 'The configured game appears here when the development host is available.'}
+              </EmptyState>
+            )}
+          </div>
+        </Panel>
+
+        <Panel
+          actions={<span className="panel-state">Local</span>}
+          className="terminal-panel"
+          title="Terminal"
+          workspaceArea="terminal"
+        >
+          <div className="terminal-surface" data-terminal-platform={platform}>
+            {platform === 'native' ? <NativeTerminal /> : (
+              <EmptyState title="Native terminal unavailable">
+                Open this project in the desktop app to use the embedded terminal.
               </EmptyState>
             )}
           </div>

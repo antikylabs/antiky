@@ -147,6 +147,7 @@ export function InspectionPanel({
       actions={<span className="panel-state">{count} entities{stale ? ' · stale' : ''}</span>}
       className="inspection-panel"
       title="Inspection"
+      workspaceArea="inspection"
     >
       <Tabs active={active} label="Inspection views" labels={labels} onSelect={(label) => setActive(label as typeof active)} />
       <div className="inspection-body">
