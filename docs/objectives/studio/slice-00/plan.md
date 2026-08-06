@@ -282,6 +282,8 @@ Record revisions, dependency versions, ports, IDs, retained ranges, dropped coun
 truncation facts, measurements, captures, and changed user pages. Do not save call payloads, secrets,
 private paths, or terminal contents in slice evidence.
 
+Update any architecture and user facing docs needed under docs/architecture and docs/user-facing-docs according to their guidelines.
+
 Write `receipt.json`, `confirmation-checks.md`, and `facts.json` under `outputs/{run-id}/`. Add only
 required measurements, captures, and bounded logs. Update `../slice-list.md` before closeout. Write
 `slice-summary.md` in this slice folder for the owner.

@@ -12,6 +12,8 @@
   [Website](https://antikylabs.com) &nbsp;·&nbsp; [Developer docs](docs/user-facing-docs/README.md) &nbsp;·&nbsp; [Vision](docs/VISION_DIRECTION_H.md) &nbsp;·&nbsp; [Discord](https://discord.gg/3Qs2uejUf9)
 </p>
 
+> Note: Antiky and its sub products (cli, framework, studio, demos) are all under heavy development and unstable atm. 
+
 # Antiky
 
 Antiky is an emerging game framework and local development runtime from Antiky Labs. It is built
