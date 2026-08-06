@@ -13,6 +13,8 @@ For the task-first workflow, read [Run a fixed-step game session](engine-session
 
 ## Example
 
+`sessionId` and `worldId` are stable IDs. `move` is game logic; the host supplies elapsed time and current input each frame.
+
 ```ts
 import { createEngineSession } from '@antiky/framework';
 

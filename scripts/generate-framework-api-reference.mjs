@@ -203,7 +203,12 @@ function publicExports(program) {
 function validateContent(exports) {
   const configuredSources = new Set();
   for (const area of API_AREAS) {
-    if (!area.slug.startsWith('api-') || area.modules.length === 0) {
+    if (
+      !area.slug.startsWith('api-')
+      || area.modules.length === 0
+      || !area.exampleDescription?.trim()
+      || !area.example?.trim()
+    ) {
       fail(`invalid area configuration for ${area.title}`);
     }
     for (const module of area.modules) {
@@ -342,6 +347,8 @@ function renderArea(area, exports, fingerprint) {
     `For the task-first workflow, read [${area.guide.label}](${area.guide.href}). Import every API on this page from \`@antiky/framework\`.`,
     '',
     '## Example',
+    '',
+    area.exampleDescription,
     '',
     '```ts',
     area.example,

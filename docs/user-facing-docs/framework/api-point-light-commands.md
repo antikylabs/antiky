@@ -13,6 +13,8 @@ For the task-first workflow, read [Point lights: Change power](point-lights.md#c
 
 ## Example
 
+`untrustedCommand` comes from a file, tool, or request boundary. `lights` is the world’s authoring service, and `trustedContext` is created by the host.
+
 ```ts
 import { parseSetPointLightPowerCommand } from '@antiky/framework';
 

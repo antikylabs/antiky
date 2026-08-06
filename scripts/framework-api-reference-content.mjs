@@ -5,6 +5,7 @@ export const API_AREAS = Object.freeze([
     summary: 'Create and validate stable UUIDv7 identities for worlds, entities, commands, and sessions.',
     useWhen: 'Use branded IDs at storage and command boundaries so different identity kinds cannot be mixed accidentally.',
     guide: { href: 'point-lights.md#keep-ids-stable', label: 'Point lights: Keep IDs stable' },
+    exampleDescription: '`savedWorldId` is an unknown value read from persisted game data. Create an ID for a new record; parse an ID that already exists.',
     example: `import { createEntityId, parseWorldId } from '@antiky/framework';
 
 const entityId = createEntityId();
@@ -23,6 +24,7 @@ const worldId = parseWorldId(savedWorldId);`,
     summary: 'Run deterministic fixed-step systems and expose safe pause, resume, single-step, command, and disposal controls.',
     useWhen: 'Use one session as the authority for a running world when simulation timing must stay independent from display timing.',
     guide: { href: 'engine-sessions.md', label: 'Run a fixed-step game session' },
+    exampleDescription: '`sessionId` and `worldId` are stable IDs. `move` is game logic; the host supplies elapsed time and current input each frame.',
     example: `import { createEngineSession } from '@antiky/framework';
 
 const session = createEngineSession({
@@ -58,6 +60,7 @@ session.advance(elapsedSeconds, currentInput);`,
     summary: 'Publish immutable runtime snapshots, bounded world views, and declared event history to development tools.',
     useWhen: 'Use inspection as a read-only adapter boundary; keep live engine objects, credentials, and renderer resources out of it.',
     guide: { href: 'inspection.md', label: 'Publish runtime inspection' },
+    exampleDescription: 'Create the initial immutable snapshot before exposing the store to development adapters.',
     example: `import {
   INSPECTION_SCHEMA_VERSION,
   createInspectionSnapshot,
@@ -97,6 +100,7 @@ const store = createInspectionStore(createInspectionSnapshot({
     summary: 'Validate point-light records and manage the authoritative lights for one world.',
     useWhen: 'Use records for isolated values and the authoring service when lights need stable identity, revisions, history, and renderer handoff.',
     guide: { href: 'point-lights.md', label: 'Add point lights' },
+    exampleDescription: 'Create validated component records before placing them in a point-light authoring service.',
     example: `import {
   POINT_LIGHT_SCHEMA_VERSION,
   TRANSFORM_SCHEMA_VERSION,
@@ -133,6 +137,7 @@ const light = createPointLight({
     summary: 'Validate versioned power-change commands, trusted execution context, results, and accepted facts.',
     useWhen: 'Use these parsers at tool or process boundaries; create trusted context in the host instead of accepting authority from a command.',
     guide: { href: 'point-lights.md#change-power-while-the-game-runs', label: 'Point lights: Change power' },
+    exampleDescription: '`untrustedCommand` comes from a file, tool, or request boundary. `lights` is the world’s authoring service, and `trustedContext` is created by the host.',
     example: `import { parseSetPointLightPowerCommand } from '@antiky/framework';
 
 const command = parseSetPointLightPowerCommand(untrustedCommand);
@@ -155,6 +160,7 @@ if (result.code !== 'ACCEPTED' && result.code !== 'NO_OP') {
     summary: 'Project authored lights into runtime, renderer, inspection, world, and event views.',
     useWhen: 'Use these adapters to keep framework records independent from renderer objects while giving tools a consistent read-only model.',
     guide: { href: 'point-lights.md#send-changes-to-your-renderer', label: 'Point lights: Renderer integration' },
+    exampleDescription: '`lights` is a `PointLightAuthoringService`; `rendererLights` is your renderer adapter. Acknowledge only after every renderer update succeeds.',
     example: `import { inspectPointLightWorld } from '@antiky/framework';
 
 const { world, events } = inspectPointLightWorld(lights);

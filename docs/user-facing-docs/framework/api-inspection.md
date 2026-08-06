@@ -13,6 +13,8 @@ For the task-first workflow, read [Publish runtime inspection](inspection.md). I
 
 ## Example
 
+Create the initial immutable snapshot before exposing the store to development adapters.
+
 ```ts
 import {
   INSPECTION_SCHEMA_VERSION,

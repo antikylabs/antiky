@@ -13,6 +13,8 @@ For the task-first workflow, read [Point lights: Keep IDs stable](point-lights.m
 
 ## Example
 
+`savedWorldId` is an unknown value read from persisted game data. Create an ID for a new record; parse an ID that already exists.
+
 ```ts
 import { createEntityId, parseWorldId } from '@antiky/framework';
 

@@ -13,6 +13,8 @@ For the task-first workflow, read [Point lights: Renderer integration](point-lig
 
 ## Example
 
+`lights` is a `PointLightAuthoringService`; `rendererLights` is your renderer adapter. Acknowledge only after every renderer update succeeds.
+
 ```ts
 import { inspectPointLightWorld } from '@antiky/framework';
 

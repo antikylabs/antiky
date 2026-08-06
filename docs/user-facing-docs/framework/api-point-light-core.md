@@ -13,6 +13,8 @@ For the task-first workflow, read [Add point lights](point-lights.md). Import ev
 
 ## Example
 
+Create validated component records before placing them in a point-light authoring service.
+
 ```ts
 import {
   POINT_LIGHT_SCHEMA_VERSION,

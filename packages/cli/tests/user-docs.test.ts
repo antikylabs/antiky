@@ -59,6 +59,9 @@ test('the generated framework API reference covers every public area and is curr
   assert.match(pages[4]!, /### `createPointLightAuthoringService`/);
   assert.match(pages[5]!, /### `parseSetPointLightPowerCommand`/);
   assert.match(pages[6]!, /### `inspectPointLightWorld`/);
+  assert.match(pages[1]!, /`savedWorldId` is an unknown value read from persisted game data/);
+  assert.match(pages[5]!, /`untrustedCommand` comes from a file, tool, or request boundary/);
+  assert.match(pages[6]!, /`rendererLights` is your renderer adapter/);
 });
 
 test('the Studio guide describes the game-first responsive workspace', async () => {
