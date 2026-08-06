@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "runId": "studio-s00-feedback-08-20260806T181038Z",
   "status": "PASS",
-  "startedAt": "2026-08-06T20:50:50.352Z",
-  "completedAt": "2026-08-06T20:51:38.958Z",
-  "implementationRevision": "dabf749f9bbb27ced73ac214642168b5083023ac",
+  "startedAt": "2026-08-06T21:11:24.451Z",
+  "completedAt": "2026-08-06T21:12:16.849Z",
+  "implementationRevision": "757eccbe75236cbbb64f81da10cfafdc65c748e1",
   "checks": [
     {
       "name": "Workspace hierarchy",
@@ -22,6 +22,16 @@
       "evidence": "Visible focus, reduced motion, a movable title bar, and the responsive public workflow are present."
     },
     {
+      "name": "SSPS active-user reporting",
+      "status": "PASS",
+      "evidence": "The launched desktop app reports presence for site 268, and production website pages expose the SSPS live count in the global footer."
+    },
+    {
+      "name": "Git LFS image storage",
+      "status": "PASS",
+      "evidence": "50 tracked PNG and JPEG files are valid working-tree images backed by LFS pointers."
+    },
+    {
       "name": "Run-scoped captures",
       "status": "PASS",
       "evidence": "6 reference, before, desktop, intermediate, narrow, and focus captures have the expected dimensions."
@@ -29,10 +39,34 @@
   ],
   "commands": [
     {
+      "name": "Tracked image inventory",
+      "command": "git ls-files -- *.png *.jpeg",
+      "exitCode": 0,
+      "durationMilliseconds": 10,
+      "status": "PASS",
+      "summary": "The tracked PNG and JPEG inventory was recorded."
+    },
+    {
+      "name": "Git LFS image inventory",
+      "command": "git lfs ls-files --name-only",
+      "exitCode": 0,
+      "durationMilliseconds": 258,
+      "status": "PASS",
+      "summary": "The Git LFS inventory was recorded."
+    },
+    {
+      "name": "Git LFS pointer audit",
+      "command": "git lfs fsck --pointers",
+      "exitCode": 0,
+      "durationMilliseconds": 1517,
+      "status": "PASS",
+      "summary": "Every current PNG and JPEG has a valid local LFS object and index pointer."
+    },
+    {
       "name": "Repository checks",
       "command": "npm run check",
       "exitCode": 0,
-      "durationMilliseconds": 28980,
+      "durationMilliseconds": 33658,
       "status": "PASS",
       "summary": "Repository typechecks and all workspace tests passed."
     },
@@ -40,7 +74,7 @@
       "name": "Studio web build",
       "command": "npm run build --workspace @antiky/studio-app",
       "exitCode": 0,
-      "durationMilliseconds": 1315,
+      "durationMilliseconds": 1323,
       "status": "PASS",
       "summary": "The portable Studio application build passed."
     },
@@ -48,7 +82,7 @@
       "name": "Studio native build",
       "command": "npm run build --workspace @antiky/studio-tauri",
       "exitCode": 0,
-      "durationMilliseconds": 18280,
+      "durationMilliseconds": 15137,
       "status": "PASS",
       "summary": "The Tauri application and macOS bundle build passed."
     },
@@ -56,7 +90,7 @@
       "name": "Whitespace audit",
       "command": "git diff --check",
       "exitCode": 0,
-      "durationMilliseconds": 16,
+      "durationMilliseconds": 11,
       "status": "PASS",
       "summary": "The current patch has no whitespace errors."
     },
@@ -64,7 +98,7 @@
       "name": "Revision",
       "command": "git rev-parse HEAD",
       "exitCode": 0,
-      "durationMilliseconds": 9,
+      "durationMilliseconds": 8,
       "status": "PASS",
       "summary": "The exact checked revision was recorded."
     }
@@ -110,6 +144,6 @@
   "browserControl": {
     "status": "UNAVAILABLE",
     "classification": "EVIDENCE_FAILURE",
-    "detail": "Browser Control reported no attached browser. Native Computer Use captures are present; browser appearance remains pending owner review."
+    "detail": "Browser Control reported no attached browser. Native Computer Use captures are present and owner-approved; the missing browser capture remains a recorded evidence limitation."
   }
 }

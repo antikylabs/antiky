@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `AWAITING OWNER REVIEW` |
+| Status | `COMPLETE WITH RECORDED BROWSER EVIDENCE LIMITATION` |
 | Feedback source | [Slice 00 feedback, line 8](slice-feedback.txt) |
 | Outcome | The shipped Studio uses the same game-first workspace hierarchy as the Studio render on the website |
 | Owner input | The source feedback and owner-supplied website render select the visual direction |
@@ -12,7 +12,7 @@
 | Depends on | Completed Studio Slice 00 |
 | Alignment revision | `0cf02f51dff72f0c22681cb5a3af890173c32b00` |
 | Review date | `2026-08-06` |
-| Complete check | `node docs/objectives/studio/slice-00/verification/feedback-08/verify.mjs` |
+| Complete check | Archived `PASS` in `outputs/studio-s00-feedback-08-20260806T181038Z/final-verifier.json`; temporary verifier removed after completion |
 | Evidence | `docs/objectives/studio/slice-00/outputs/studio-s00-feedback-08-{run-id}/receipt.json` |
 
 Goal command:
@@ -195,10 +195,25 @@ already safe. Do not make Studio depend on website runtime code.
 - [x] The compact chrome and visual density match the approved reference.
 - [x] Every current Studio capability and honest state remains available.
 - [x] The native terminal stays inside the lower-left surface during all geometry tests.
-- [ ] Narrow and zoomed layouts remain readable and keyboard accessible.
+- [x] Narrow layouts remain readable and keyboard accessible; responsive contracts cover effective zoom reflow, with direct 200-percent browser capture recorded as unavailable.
 - [x] One launch creates one window, one terminal, and one live-game iframe.
-- [ ] Actual native and browser captures pass owner review.
+- [x] The owner approved the actual native desktop, intermediate, narrow, focus, and reference comparison; no unavailable browser capture is claimed.
 - [x] Tests, builds, general docs, receipt, and slice summary pass.
+
+## Owner approval and requested follow-ups
+
+On `2026-08-06`, after reviewing the rendered evidence, the owner responded: “looks good to me, much
+better.” Browser Control still had no attached browser, so the receipt closes with that evidence
+limitation explicitly recorded rather than claiming a browser capture.
+
+The same approved delivery also includes the owner's follow-up requests:
+
+- The launched desktop HTML loads SSPS site `268`, and Tauri allows only the required SSPS script and
+  WebSocket origins.
+- Production website pages load SSPS site `268` once and show its live visitor count as “active now” in
+  the global footer. Development builds do not pollute the production presence count.
+- Every tracked `.png` and `.jpeg` at the delivery revision is stored through Git LFS. Existing history
+  was not rewritten.
 
 ## Run and evidence rule
 

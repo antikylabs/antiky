@@ -19,8 +19,8 @@ ownership boundaries. Complete one feedback plan and its evidence before the nex
 
 | Order | Feedback | Start gate | Reason for this position |
 | --- | --- | --- | --- |
-| 1 | [08: Match the website layout](feedback-08-website-layout-plan.md) | Ready now | It is the first owner priority. It establishes the workspace that all later Studio states must preserve. |
-| 2 | [09: Theme the embedded terminal](feedback-09-terminal-theme-plan.md) | Feedback 08 complete | It is the second owner priority. It uses the terminal panel geometry and chrome established by Feedback 08. |
+| 1 | [08: Match the website layout](feedback-08-website-layout-plan.md) | Complete | The owner approved the website-derived workspace; the unavailable browser capture remains a recorded evidence limitation. |
+| 2 | [09: Theme the embedded terminal](feedback-09-terminal-theme-plan.md) | Ready now; Feedback 08 complete | It is the second owner priority. It uses the terminal panel geometry and chrome established by Feedback 08. |
 | 3 | [01: Open an Antiky project](feedback-01-open-project-plan.md) | Ready now, but deferred until 08 and 09 pass | It defines the shared project boundary for the remaining workflow. |
 | 4 | [02: Initialize an Antiky project](feedback-02-init-project-plan.md) | Feedback 01 complete | It must create the exact manifest that Feedback 01 accepts. |
 | 5 | [03: Load a game as a project](feedback-03-load-game-plan.md) | Feedback 01 and 02 complete | It adds the launcher and project-switch lifecycle on the accepted boundary. |
@@ -92,8 +92,8 @@ For each feedback item:
 
 Do not start Feedback 01 until both priority items meet these gates:
 
-- [ ] Feedback 08 has approved desktop, narrow, zoom, and native-terminal-boundary captures.
-- [ ] Feedback 08 preserves one live-game iframe and does not reproduce the white-game or duplicate-window defects.
+- [x] Feedback 08 has owner-approved desktop, narrow, and native-terminal-boundary captures; direct browser zoom capture is an explicit recorded limitation.
+- [x] Feedback 08 preserves one live-game iframe and does not reproduce the white-game or duplicate-window defects.
 - [ ] Feedback 09 has an audited visual-only Ghostty profile with no command or input keys.
 - [ ] Feedback 09 preserves the user's shell, prompt, profile, keybindings, and history. It does not change
   the current terminal working-directory rule.

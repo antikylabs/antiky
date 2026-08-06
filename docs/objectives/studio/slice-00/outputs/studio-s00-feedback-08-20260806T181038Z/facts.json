@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "feedbackId": "studio-slice-00-feedback-08",
   "runId": "studio-s00-feedback-08-20260806T181038Z",
-  "state": "AWAITING_OWNER_REVIEW",
+  "state": "COMPLETE_WITH_RECORDED_EVIDENCE_LIMITATION",
   "outcome": "Studio uses the website's game-first workspace hierarchy while it keeps the real game, native terminal, inspection data, activity data, controls, and connection states.",
-  "implementationRevision": "dabf749f9bbb27ced73ac214642168b5083023ac",
+  "implementationRevision": "757eccbe75236cbbb64f81da10cfafdc65c748e1",
   "websiteReferenceRevision": "0cf02f51dff72f0c22681cb5a3af890173c32b00",
   "layout": {
     "desktopAreas": [
@@ -60,9 +60,28 @@
     "descriptorRemovedAfterRun": true,
     "releasedPorts": [3010, 3011]
   },
+  "followUps": {
+    "ssps": {
+      "siteId": 268,
+      "desktopScript": true,
+      "desktopCspScriptOrigin": "https://usessps.com",
+      "desktopCspWebSocketOrigin": "wss://usessps.com",
+      "websiteProductionOnly": true,
+      "websiteLiveCountTarget": "data-ssps-live-count",
+      "websiteLabel": "active now"
+    },
+    "gitLfs": {
+      "patterns": ["*.png", "*.jpeg"],
+      "trackedImages": 50,
+      "allTrackedImagesUseLfs": true,
+      "workingTreeImagesValidated": true,
+      "pointerAudit": "PASS",
+      "historyRewritten": false
+    }
+  },
   "visualEvidence": {
-    "nativeStatus": "CAPTURED_PENDING_OWNER_REVIEW",
-    "browserStatus": "UNAVAILABLE",
+    "nativeStatus": "OWNER_APPROVED",
+    "browserStatus": "UNAVAILABLE_RECORDED_LIMITATION",
     "browserFailureClass": "EVIDENCE_FAILURE",
     "browserReason": "Browser Control reported no attached browser.",
     "canonicalReference": "captures/reference-owner-desktop-1672x941.png",
@@ -70,13 +89,17 @@
     "primaryNativeIntermediate": "captures/after-native-intermediate-connected-safe-988x768.jpeg",
     "primaryNativeNarrow": "captures/after-native-narrow-connected-safe-753x825.jpeg",
     "primaryNativeFocus": "captures/after-native-narrow-terminal-focus-safe-753x825.jpeg",
-    "ownerApproved": false
+    "ownerApproved": true,
+    "ownerApprovalDate": "2026-08-06"
   },
   "verification": {
     "completeVerifier": "PASS",
     "repositoryChecks": "PASS",
     "studioWebBuild": "PASS",
     "studioNativeBuild": "PASS",
+    "websiteBuildAndTests": "PASS",
+    "sspsContract": "PASS",
+    "gitLfsPointerAudit": "PASS",
     "documentationContract": "PASS",
     "brometalInstalled": "0.15.0",
     "brometalLatestAtReview": "0.15.0"

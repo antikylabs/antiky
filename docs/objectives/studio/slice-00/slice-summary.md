@@ -4,7 +4,7 @@ Studio Slice 00 is complete. Antiky now has one macOS Studio workspace that uses
 
 ## Feedback 08 layout update
 
-The Feedback 08 implementation is ready for owner visual review. Studio now follows the website's
+The owner approved the Feedback 08 implementation on `2026-08-06`. Studio now follows the website's
 game-first hierarchy. The larger live game is in the upper left, Inspection is in the upper right,
 Terminal is below the game, and Activity is below Inspection. A narrow window stacks those surfaces
 as Live game, Terminal, Inspection, and Activity.
@@ -19,10 +19,21 @@ bar is a native drag region, and keyboard focus on the terminal has a visible bo
 showed one window, one terminal, and one non-white live-game iframe at desktop, intermediate, and
 narrow sizes.
 
-The complete repository checks and both Studio builds pass. Native captures are in the
+The complete repository checks and both Studio builds pass. Owner-approved native captures are in the
 [Feedback 08 evidence run](outputs/studio-s00-feedback-08-20260806T181038Z/confirmation-checks.md).
-Browser Control had no attached browser, so browser capture and owner approval remain open before the
-feedback plan can close.
+Browser Control had no attached browser, so no browser capture is claimed. The feedback is complete with
+that evidence limitation retained in the receipt.
+
+## Live presence and image storage follow-up
+
+The launched desktop app now loads SSPS site `268`. Its Tauri policy permits the SSPS script and presence
+WebSocket without widening other network access. Production website pages load the same configured script
+and show the current live visitor count as “active now” in the global footer. The website omits this
+integration in development so local sessions do not inflate the published count.
+
+Git now routes every `.png` and `.jpeg` through Git LFS. The current delivery converts all 50 tracked image
+assets to LFS pointers without rewriting existing history. Working-tree checkouts remain ordinary usable
+images.
 
 ## What changed in the repository
 
@@ -74,6 +85,13 @@ npm run check
 npm run build --workspace @antiky/studio-tauri
 ```
 
+Audit image storage:
+
+```sh
+git lfs fsck --pointers
+git lfs ls-files
+```
+
 Open Studio:
 
 ```sh
@@ -103,4 +121,7 @@ From another terminal, these commands exercise the same host:
 
 Press `Ctrl-C` in the development terminal when done. The CLI must stop its child processes and remove `.antiky/dev-session.json`.
 
-The completed run is recorded in the [Slice 00 receipt](outputs/studio-s00-20260806T043040Z/receipt.json). Automated visual capture was unavailable in this run, so the receipt does not claim a screenshot. Native process, webview connection, semantic data, terminal-surface, build, test, and cleanup evidence passed.
+The original completed run is recorded in the [Slice 00 receipt](outputs/studio-s00-20260806T043040Z/receipt.json).
+The approved layout and follow-up delivery are recorded in the
+[Feedback 08 receipt](outputs/studio-s00-feedback-08-20260806T181038Z/receipt.json). Native process,
+webview connection, semantic data, terminal-surface, SSPS, LFS, build, test, and cleanup evidence passed.
