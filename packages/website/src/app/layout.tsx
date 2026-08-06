@@ -56,6 +56,13 @@ const SITE_SCHEMA = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          data-site="HELZNBFB"
+          defer
+          src="https://cdn.usefathom.com/script.js"
+        />
+      </head>
       <body>
         <script
           type="application/ld+json"
