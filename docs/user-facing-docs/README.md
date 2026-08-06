@@ -11,6 +11,8 @@ agents, and Studio. Start with the task you want to complete.
   their power while the game runs.
 - [Publish runtime inspection](framework/inspection.md) so development tools can read diagnostics,
   measurements, and game state.
+- Use the [framework API reference](framework/api-reference.md) for every public export, exact
+  TypeScript signatures, limits, result codes, and guidance on choosing the right API area.
 
 ## CLI
 
