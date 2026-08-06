@@ -29,6 +29,17 @@ When you develop inside the Antiky source repository without a linked CLI binary
 Run the CLI directly from an interactive terminal. A shell wrapper that detaches its child from the
 terminal's foreground process group cannot pass `Ctrl-C` to Antiky for orderly shutdown.
 
+### Terminal appearance and shell ownership
+
+Studio applies an Antiky color profile to the embedded terminal surface, including its background,
+text, cursor, selection, and ANSI palette. Your normal shell still starts in the selected project.
+Studio does not replace your prompt, run a startup command, add a banner, write shell history, or
+select a font family. Your shell profiles and Ghostty settings outside Studio's visual color keys
+continue to apply.
+
+If Studio cannot load its packaged terminal color profile, the Terminal panel shows a clear error.
+The rest of the workspace remains available.
+
 `antiky dev` starts the game, shader watcher, inspection service, and MCP server together. Studio
 finds the local session descriptor and attaches automatically. If the development command was
 already running for the selected project, Studio attaches to that session instead of starting a

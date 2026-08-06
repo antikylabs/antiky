@@ -108,7 +108,7 @@ from the user's Ghostty configuration. Do not report an unrelated user warning a
 ## Required reading
 
 - [Source feedback](slice-feedback.txt)
-- [Feedback 08](feedback-08-website-layout-plan.md)
+- [Feedback 08](_completed/feedback-08-website-layout-plan.md)
 - [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
 - [Website design language](../../../../packages/website/DESIGN.md)
 - [Website terminal reference](../../../../packages/website/src/app/studio/page.tsx)

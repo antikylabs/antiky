@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "writer": "Studio Feedback 09 goal runner",
+  "validator": "Terminal profile, native bridge, build, input, capture, contrast, and shell-ownership audit",
+  "feedbackId": "studio-slice-00-feedback-09",
+  "runId": "studio-s00-feedback-09-20260806T222222Z",
+  "state": "AWAITING_NATIVE_EVIDENCE_AND_OWNER_REVIEW",
+  "result": "PENDING",
+  "outcome": "The embedded Ghostty surface uses an audited Antiky color profile while the user keeps control of the shell, prompt, profile, font family, commands, environment, history, and coding agent.",
+  "startedAt": "2026-08-06T22:22:22Z",
+  "lastVerifiedAt": "2026-08-06T23:04:00Z",
+  "sourceRevision": "3ca3c9482bbd22dcb51865c41cc728374cb0be90",
+  "implementationRevision": "b447bd7a966d26ff9f1dd9d439f5f0bb683fab48",
+  "alignmentRevision": "0cf02f51dff72f0c22681cb5a3af890173c32b00",
+  "checkpointCommits": [
+    { "id": "CP-00", "commit": "da1681f", "status": "PASS" },
+    { "id": "CP-01", "commit": "2c49b70", "status": "PASS" },
+    { "id": "CP-02", "commit": "b184bd7", "status": "PASS" },
+    { "id": "CP-03", "commit": "1ab98a6", "status": "PASS" },
+    { "id": "ERROR-CONTRACT", "commit": "b447bd7", "status": "PASS" },
+    { "id": "CP-04", "commit": null, "status": "PENDING" }
+  ],
+  "runSetup": {
+    "worktree": ".",
+    "branch": "feat/voxel-demo-work",
+    "platform": "macOS 26.5.2 arm64",
+    "node": "v22.15.0",
+    "npm": "10.9.2",
+    "rustc": "1.97.1",
+    "cargo": "1.97.1",
+    "timeZone": "America/Chicago",
+    "dependencyLockSha256": "7d487c555b75008846360d0c0c6ebc604da6d549c89f8939507055ce1a6327bb",
+    "profileSha256": "600561e5c74d70745bca16f7ce67fa4e9eca4e5ecf399a03e8094254c940ea1f",
+    "ghosttyRevision": "f948d4207655f31ae9b95fa039e73524df43cd13",
+    "brometal": "0.15.0",
+    "outputDirectory": "docs/objectives/studio/slice-00/outputs/studio-s00-feedback-09-20260806T222222Z"
+  },
+  "attempts": [
+    {
+      "id": "attempt-001",
+      "checkpoint": "CP-00",
+      "result": "FAIL",
+      "failureClass": "EXPECTED_RED",
+      "disposition": "The profile contract first failed because the Antiky resource did not exist. The audited profile and complete palette then passed."
+    },
+    {
+      "id": "attempt-002",
+      "checkpoint": "CP-01",
+      "result": "FAIL",
+      "failureClass": "EXPECTED_RED",
+      "disposition": "The packaging contract first failed because Tauri had no terminal resource mapping. Exact source and bundle path tests then passed."
+    },
+    {
+      "id": "attempt-003",
+      "checkpoint": "CP-02",
+      "result": "FAIL",
+      "failureClass": "EXPECTED_RED",
+      "disposition": "The bridge contract first failed because it did not validate an isolated profile or load it after user configuration. Native and Rust contracts then passed."
+    },
+    {
+      "id": "attempt-004",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "PRODUCT_DEFECT",
+      "disposition": "A cold native launch showed a white bootstrap frame. Native-window, HTML-bootstrap, AppKit-view, loading, and error backgrounds now use #08090b."
+    },
+    {
+      "id": "attempt-005",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "TEST_DEFECT",
+      "disposition": "The first AppKit color assertion used the wrong Objective-C selector spelling. The corrected assertion passed against the unchanged implementation."
+    },
+    {
+      "id": "attempt-006",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "OPERATOR_ERROR",
+      "disposition": "A test-name filter was passed through npm to Cargo with the wrong argument boundary. The complete native package command then passed."
+    },
+    {
+      "id": "attempt-007",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "PRODUCT_DEFECT",
+      "disposition": "Changing the SSPS preference raced terminal teardown and left the workspace on Opening terminal. A red lifecycle test led to one serialized close-before-reload path; packaged on-off-on checks then passed."
+    },
+    {
+      "id": "attempt-008",
+      "checkpoint": "CP-03",
+      "result": "FAIL",
+      "failureClass": "PRODUCT_DEFECT",
+      "disposition": "Command-V did not reach Ghostty. A red bridge regression led to explicit Command-C and Command-V handling while other Command shortcuts remain with AppKit; packaged paste then passed."
+    },
+    {
+      "id": "attempt-009",
+      "checkpoint": "CP-03",
+      "result": "LIMITED",
+      "failureClass": "TOOL_INPUT_LIMITATION",
+      "disposition": "Computer Use did not type non-ASCII text into the native view. An ASCII-only printf fixture emitted lambda, arrow, dragon, and accented text through the real PTY and proved Unicode rendering."
+    },
+    {
+      "id": "attempt-010",
+      "checkpoint": "EVIDENCE",
+      "result": "FAIL",
+      "failureClass": "TRANSIENT",
+      "disposition": "The restricted sandbox denied the repository check's loopback listener. The identical npm run check passed with scoped loopback permission."
+    },
+    {
+      "id": "attempt-011",
+      "checkpoint": "EVIDENCE",
+      "result": "PENDING",
+      "failureClass": "AUTHORIZATION_REQUIRED",
+      "disposition": "The environment denied the isolated zsh-marker launch. No alternate or indirect launch was attempted."
+    },
+    {
+      "id": "attempt-012",
+      "checkpoint": "EVIDENCE",
+      "result": "PENDING",
+      "failureClass": "AUTHORIZATION_REQUIRED",
+      "disposition": "Computer Use denied the copied missing-profile app, and the follow-up original-bundle launch was interrupted. The exact resource was restored and its source and bundle hashes match."
+    },
+    {
+      "id": "attempt-013",
+      "checkpoint": "ERROR-CONTRACT",
+      "result": "FAIL",
+      "failureClass": "EXPECTED_RED",
+      "disposition": "The React error-shape test first failed because the formatter was not exported. The formatter and exact two-field Rust serialization then passed."
+    },
+    {
+      "id": "attempt-014",
+      "checkpoint": "EVIDENCE",
+      "result": "FAIL",
+      "failureClass": "VERIFIER_DEFECT",
+      "disposition": "The first verifier required pre-existing app bundles before it ran build commands. It now validates declarations first, builds debug and release bundles, and then compares every packaged profile digest."
+    }
+  ],
+  "tests": [
+    {
+      "command": "npm test --workspace @antiky/studio-app",
+      "status": "PASS",
+      "evidence": "7 files and 31 tests passed."
+    },
+    {
+      "command": "npm test --workspace @antiky/studio-tauri",
+      "status": "PASS",
+      "evidence": "16 Node contract tests, 4 Rust unit tests, and 5 Rust integration tests passed."
+    },
+    {
+      "command": "npm run build --workspace @antiky/studio-app",
+      "status": "PASS",
+      "evidence": "TypeScript and the Vite production build passed."
+    },
+    {
+      "command": "npm run build --workspace @antiky/studio-tauri",
+      "status": "PASS",
+      "evidence": "The release native binary built with pinned Ghostty."
+    },
+    {
+      "command": "npm exec --workspace @antiky/studio-tauri tauri -- build --debug --bundles app --no-sign",
+      "status": "PASS",
+      "evidence": "The debug macOS app bundle contains the audited profile and supplied the native captures."
+    },
+    {
+      "command": "npm exec --workspace @antiky/studio-tauri tauri -- build --bundles app --no-sign",
+      "status": "PASS",
+      "evidence": "The source-development outputs and release macOS app bundle contain the same audited profile digest as source and the debug bundle."
+    },
+    {
+      "command": "npm run check",
+      "status": "PASS",
+      "evidence": "All workspace typechecks, tests, shader builds, documentation generation, and the production website build passed with scoped loopback permission."
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS",
+      "evidence": "No whitespace error was reported."
+    },
+    {
+      "command": "git lfs fsck --pointers",
+      "status": "PASS",
+      "evidence": "All current PNG and JPEG pointers and local LFS objects passed."
+    },
+    {
+      "command": "cargo fmt --check",
+      "status": "PASS",
+      "evidence": "The native Rust source is formatted."
+    }
+  ],
+  "contrast": {
+    "status": "PASS",
+    "background": "#08090b",
+    "defaultTextRatio": 18.08,
+    "accentRatio": 6.09,
+    "minimumForegroundAnsiRatio": 4.61,
+    "evidence": "contrast.json"
+  },
+  "acceptanceChecks": [
+    { "id": "VISUAL-PROFILE", "status": "PASS", "evidence": "Audited resource, contrast.json, and native captures" },
+    { "id": "ALLOWLIST", "status": "PASS", "evidence": "JavaScript and Rust exact-value, size, path, and key tests" },
+    { "id": "SHELL-OWNERSHIP", "status": "PENDING", "evidence": "Static and ordinary real-zsh checks pass; isolated marker authorization remains required" },
+    { "id": "NO-STARTUP-INPUT", "status": "PASS", "evidence": "Profile, bridge, native surface configuration, and real prompt inspection" },
+    { "id": "PACKAGING-AND-DIAGNOSTICS", "status": "PASS", "evidence": "Source/development/debug/release bundle hash equality and native diagnostic tests" },
+    { "id": "INPUT-FOCUS-CLIPBOARD-RESIZE-REOPEN", "status": "PENDING", "evidence": "Unicode, paste, Command-V, Control-C, focus, resize, close, and reopen pass; long output, mouse selection/copy, and zoom await renewed UI authorization" },
+    { "id": "NATIVE-ERROR-STATE", "status": "PENDING", "evidence": "Automated missing/malformed-profile behavior passes; actual native capture requires renewed authorization" },
+    { "id": "OWNER-VISUAL-REVIEW", "status": "PENDING", "evidence": "Native captures await owner approval" },
+    { "id": "CHECKS-DOCS-RECEIPT", "status": "PENDING", "evidence": "Checks and docs pass; final receipt and slice closeout wait for the two evidence gates" }
+  ],
+  "shellFixture": {
+    "status": "PENDING",
+    "requiredEvidence": "One isolated zsh launch with exactly one profile marker and no Antiky prompt, command, banner, or history entry.",
+    "currentEvidence": "An ordinary packaged zsh launch showed the user's prompt and no Antiky content. Source and profile audits show no command or input field."
+  },
+  "nativeErrorState": {
+    "status": "PENDING",
+    "requiredEvidence": "One actual native capture with the stable in-panel missing-profile error and a usable Studio shell.",
+    "automatedEvidence": "Missing, malformed, unsupported, oversized, invalid UTF-8, symlink, and Ghostty diagnostic cases pass with ANTIKY_TERMINAL_THEME_INVALID."
+  },
+  "remainingNativeInteraction": {
+    "status": "PENDING",
+    "requiredEvidence": "One actual native pass for long output, mouse selection and copy, and page zoom.",
+    "currentEvidence": "Unicode, paste, Command-V, Control-C, focus, resize, close, reopen, and singleton behavior pass."
+  },
+  "ownerReview": {
+    "status": "PENDING",
+    "requestedCaptures": [
+      "captures/themed-reopened.png",
+      "captures/themed-ansi-unicode.png",
+      "captures/themed-clipboard-focus.png",
+      "captures/themed-control-c.png",
+      "captures/themed-resized.png"
+    ]
+  },
+  "visualEvidence": {
+    "status": "PENDING_OWNER_REVIEW",
+    "before": "captures/before-terminal.png",
+    "beforeInputAndReopen": "captures/themed-reopened.png",
+    "ansiAndUnicode": "captures/themed-ansi-unicode.png",
+    "clipboardAndFocus": "captures/themed-clipboard-focus.png",
+    "controlC": "captures/themed-control-c.png",
+    "resized": "captures/themed-resized.png",
+    "errorState": null
+  },
+  "unexpectedResults": [
+    {
+      "class": "SSPS-TERMINAL-LIFECYCLE",
+      "result": "RESOLVED",
+      "detail": "The settings reload now waits for the shared native terminal close queue."
+    },
+    {
+      "class": "COMMAND-CLIPBOARD",
+      "result": "RESOLVED",
+      "detail": "Command-C and Command-V now reach Ghostty while other Command equivalents remain with AppKit."
+    },
+    {
+      "class": "NATIVE-UI-AUTHORIZATION",
+      "result": "RECORDED_PENDING_GATE",
+      "detail": "The environment denied additional Computer Use after the interrupted missing-profile capture."
+    }
+  ],
+  "deliveryAuthority": {
+    "repositoryWrites": "Studio Feedback 09 implementation, related SSPS terminal-lifecycle regression, general Studio documentation, and run-scoped evidence only.",
+    "localProcesses": "Tests, builds, packaged Studio acceptance, and temporary fixtures; all temporary verification directories were removed.",
+    "network": "Official Ghostty, Tauri, and SSPS documentation reads only; no deployment.",
+    "secrets": "No credential, absolute project path, or retained runtime transcript is stored in structured evidence.",
+    "productionDeployment": false
+  },
+  "rollback": {
+    "lastKnownGoodRevision": "b447bd7",
+    "trigger": "A white startup frame, mismatched terminal colors, unsafe profile key, lost shell ownership, duplicate terminal, input regression, or unstable profile error.",
+    "action": "Create a corrective or revert commit to the last passing checkpoint and rerun the complete verifier. Do not rewrite shared history."
+  },
+  "artifacts": [
+    { "path": "baseline.json", "byteLength": 788, "sha256": "fa96f842715c9a34eac52ddeae6cfe8924899c335464e7c5b79e90e614fe131b", "purpose": "Unthemed native baseline" },
+    { "path": "contrast.json", "byteLength": 1708, "sha256": "fd03b3055b5ac68664a3087876ddc4f5d7d2fd1492f535c29383bffdd3d7fbe1", "purpose": "Frozen palette and contrast audit" },
+    { "path": "captures/before-terminal.png", "byteLength": 68010, "sha256": "0b715550136051f3da9c032ea0e18844c7da72eb20f14f1f42e3a2b59e80f774", "purpose": "Native terminal before the theme" },
+    { "path": "captures/themed-ansi-unicode.png", "byteLength": 108212, "sha256": "ec16c4751b1da5198c3180553ee49570eca75295d046bbc4e0cdbfc6920bc3cd", "purpose": "Complete ANSI palette and Unicode output" },
+    { "path": "captures/themed-clipboard-focus.png", "byteLength": 77947, "sha256": "b6e73b86db432143ddbe4de583b57b289d3ca5da91091f6c9a7514f282147fd4", "purpose": "Command paste and focused terminal boundary" },
+    { "path": "captures/themed-control-c.png", "byteLength": 81159, "sha256": "8224c223a226fc12bcd92f1e338e41f11d286c8e4f200c44cbf9d3ce5b7b88b8", "purpose": "Foreground process interrupted with Control-C" },
+    { "path": "captures/themed-reopened.png", "byteLength": 66473, "sha256": "3c8438914a8e4b39c18e5b6521bcc7b8ee8fcaff9fd9300302a304581a9e926e", "purpose": "One native window and a fresh terminal before input after reopen" },
+    { "path": "captures/themed-resized.png", "byteLength": 104548, "sha256": "e2db3a494a72cb10baa1c09f1f56c3a3700b2b4691a751dd49d47034b9a2f868", "purpose": "Terminal geometry and colors after native resize" }
+  ]
+}
