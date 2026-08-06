@@ -28,8 +28,6 @@ change the recommendation. Change the status to `ANSWERED` after all answers are
 - ADR 0018 selects physics authority independently from CPU or GPU execution. The server owns
   online authority and starts with CPU physics. Client GPU physics stays temporary unless the local
   session owns authority.
-- Use CPU physics for the Slice 03 character motor because game code and inspection need its result
-  in the same simulation step. This is a workload decision, not a Framework-wide CPU rule.
 
 ## Question 1: Should we accept a narrow authoritative-physics ADR now?
 
@@ -41,24 +39,55 @@ temporary client GPU physics, and makes CPU the first server implementation.
 
 ### Recommendation
 
-Use ADR 0018. Keep Slice 03 character movement and collision authoritative in the local
-`EngineSession`. Use CPU execution because game logic, headless tests, inspection, and actor
-snapshots need the result. Let the motor query a small `CharacterPhysicsWorld` interface. Keep
-Town's collider and walk-surface adapter private. Keep contacts and runtime handles temporary.
-
-This does not add a CPU-to-GPU round trip. The renderer receives a derived actor snapshot, and the
-GPU does not return it to the CPU. BroMetal can continue to do shading, visual animation, and useful
-interpolation on the GPU. A GPU character motor would require readback for the CPU consumers in
-this slice, so it is not suitable for this workload.
-
-Do not add a public general physics service or a Rapier dependency. Reconsider Rapier after a
-second physics consumer or measurements prove that the current motor is not enough.
+Keep ADR 0018 as the architecture decision. Do not select one execution device for all client
+physics. Do not add a public general physics service or select a physics library in this decision.
 
 ### Owner answer
 
 `APPROVE — Use ADR 0018 without creating a Framework-wide CPU physics rule.`
 
-## Question 2: Should the tested character motor become a Framework API?
+## Question 2: Should Slice 03 keep character simulation on the CPU?
+
+### Context
+
+The same simulation step can stay entirely on the GPU. GPU physics can feed subsequent GPU
+gameplay and rendering work without readback.
+
+The current Town implementation has CPU consumers that use actor physics state:
+
+- NPC intent reads the current motor position before each step.
+- `EngineSession` reads a synchronous state digest after each completed step.
+- Camera, sprite, standee-side, and depth-of-field preparation read actor state.
+- The planned `list_actors` and `get_actor` Tools need bounded actor snapshots.
+
+A complete GPU design can move collision queries, NPC intent, actor state, the state digest, and
+render preparation into ordered GPU work. CPU inspection can then use an asynchronous bounded
+snapshot. The current `EngineSession` has synchronous system and digest callbacks. It has no GPU
+completion, GPU snapshot, or GPU fault contract.
+
+Slice 03 has only nine actors and reports 1,152 bytes of actor uploads for each frame. No
+measurement shows a CPU physics limit.
+
+### Recommendation
+
+Keep the Slice 03 character workload on the CPU. This is the smallest complete path through the
+current `EngineSession`, headless tests, server-first physics, state digests, and inspection.
+
+Treat `KinematicCharacterMotor` as an explicit CPU gameplay motor, not the universal Antiky physics
+API. Do not create a partial GPU port or duplicate CPU and GPU character implementations.
+
+Plan a GPU-resident physics slice when a real workload has many interacting objects or when a game
+needs GPU-authoritative local simulation. That slice must move all same-step consumers to the GPU
+and define asynchronous snapshots, step completion, inspection, digest, and fault behavior.
+
+If Slice 03 must prove that GPU path now, expand and research the slice before implementation. Do
+not keep the current CPU plan and add GPU math inside it.
+
+### Owner answer
+
+`PENDING`
+
+## Question 3: Should the tested character motor become a Framework API?
 
 ### Context
 
@@ -86,7 +115,7 @@ This accepts the reusable deep module without publishing a general body, world, 
 
 `PENDING`
 
-## Question 3: Which actor identities and inspection Tools should developers use?
+## Question 4: Which actor identities and inspection Tools should developers use?
 
 ### Context
 
@@ -107,7 +136,7 @@ behavior or storage API. Do not expose runtime indexes and do not add movement m
 
 `PENDING`
 
-## Question 4: What behavior may change during the move?
+## Question 5: What behavior may change during the move?
 
 ### Context
 

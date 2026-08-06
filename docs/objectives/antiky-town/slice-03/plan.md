@@ -33,8 +33,8 @@ Goal command:
 - Give all nine actors stable entity IDs and shared read-only inspection Tools.
 - Publish actor inspection and render poses only after all nine actor updates succeed.
 - Make the renderer consume the last completed actor snapshot without changing simulation.
-- Do not add a general physics service, physics dependency, ECS, movement command log, or GPU
-  character motor in this slice.
+- Owner question 2 must select the CPU path or expand this plan for a complete GPU path.
+- Do not add a partial GPU port, per-step GPU readback, or duplicate CPU and GPU motors.
 
 ## Outcome
 
@@ -52,12 +52,12 @@ only owner of simulation time.
 
 ### Non-goals
 
-- General rigid bodies, forces, joints, broadphase services, Rapier, or GPU physics.
+- General rigid bodies, forces, joints, broadphase services, Rapier, or a partial GPU physics path.
 - Network prediction, rollback, durable movement frames, abilities, animation graphs, or navmesh work.
 - A general actor model, public scheduler, ECS query API, or RenderDriver.
 - Moving static Town content through assets. Slice 04 owns that work.
 
-## Chosen shape
+## Recommended shape pending owner question 2
 
 ```text
 browser semantic input or deterministic NPC intent
@@ -130,22 +130,35 @@ compiler with a thin WebGPU runtime and no scene graph. Version 0.15.0 supports 
 storage buffers, GPU-resident render targets, and typed asynchronous GPU errors. No upgrade is
 needed.
 
-ADR 0018 selects physics authority independently from its execution device. Online authority stays
-on the server. A client can keep temporary prediction and presentation physics on the GPU when only
-GPU work needs the result.
+ADR 0018 selects physics authority independently from its execution device. Same-step physics and
+gameplay can stay entirely on the GPU. CPU code needs an asynchronous snapshot only when it reads
+GPU state.
 
-Slice 03 keeps character positions, collision, paths, contacts, and digests on the CPU because game
-code and inspection need them in the same simulation step. This is a decision for this workload,
+The current Slice 03 design has these CPU consumers:
+
+- NPC intent reads the current actor position.
+- `EngineSession` reads a state digest after each synchronous system step.
+- Camera, sprite, standee-side, and depth-of-field preparation read actor state.
+- The proposed actor Tools read bounded actor snapshots.
+
+A complete GPU design can move collision queries, NPC intent, actor state, the state digest, and
+render preparation into ordered GPU work. It must also add asynchronous snapshot, step-completion,
+inspection, digest, and fault contracts. The current `EngineSession` does not have these contracts.
+
+The recommended Slice 03 path keeps this nine-actor workload on the CPU. It has no measured CPU
+limit, and its reported actor upload is only 1,152 bytes for each frame. This is a workload choice,
 not a general Framework rule. Keep sprite shading, visual animation, and useful interpolation on
 the GPU. Publish one bounded nine-actor snapshot for each presentation, keep GPU resources stable,
-and perform no readback. The current reported actor upload is only 1,152 bytes per frame. Do not add
-a compute or shared-storage actor pipeline before Slice 05 supplies a measured render-driver
-boundary.
+and perform no readback.
+
+If owner question 2 selects GPU execution, update this plan before implementation. Do not add a
+partial compute pipeline to the current CPU plan.
 
 The complete [`UNDER_REVIEW_A.md`](../../../adr/UNDER_REVIEW_A.md) was reviewed. Candidate 1 became
-ADR 0018 and owner question 1 is approved. The game-host decision that was candidate 13 is accepted
-as ADR 0016. Candidates 2, 3, 8, and 15 do not block this slice because it adds no general runtime
-schema, ECS storage, event store, or extension API.
+ADR 0018 and owner question 1 is approved. Owner question 2 now selects the Slice 03 execution
+device. The game-host decision that was candidate 13 is accepted as ADR 0016. Candidates 2, 3, 8,
+and 15 do not block this slice because it adds no general runtime schema, ECS storage, event store,
+or extension API.
 
 ## Current state and reference
 
