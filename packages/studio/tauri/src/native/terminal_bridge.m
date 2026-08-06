@@ -101,6 +101,22 @@ static void send_mouse_button(
   if (self.surface != NULL) ghostty_surface_set_focus(self.surface, false);
   return YES;
 }
+- (BOOL)performKeyEquivalent:(NSEvent *)event {
+  if (event.type != NSEventTypeKeyDown ||
+      self.window.firstResponder != self ||
+      self.surface == NULL) {
+    return [super performKeyEquivalent:event];
+  }
+  NSEventModifierFlags flags = event.modifierFlags;
+  if ((flags & NSEventModifierFlagControl) == 0 ||
+      (flags & NSEventModifierFlagCommand) != 0) {
+    return [super performKeyEquivalent:event];
+  }
+  ghostty_input_action_e action =
+      event.isARepeat ? GHOSTTY_ACTION_REPEAT : GHOSTTY_ACTION_PRESS;
+  send_key(event, action);
+  return YES;
+}
 - (void)keyDown:(NSEvent *)event {
   send_key(event, event.isARepeat ? GHOSTTY_ACTION_REPEAT : GHOSTTY_ACTION_PRESS);
 }
@@ -371,7 +387,7 @@ void antiky_terminal_close(void) {
   antiky_view = nil;
   if (surface != NULL) {
     ghostty_surface_set_focus(surface, false);
-    ghostty_surface_request_close(surface);
+    // Direct teardown frees the surface. An interactive close calls back into this host.
     ghostty_surface_free(surface);
   }
   if (antiky_app != NULL) {

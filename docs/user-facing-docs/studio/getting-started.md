@@ -87,8 +87,9 @@ and select **Retry** if you do not want to wait for the next automatic connectio
 An incompatible snapshot is handled the same way. Check the Diagnostics tab and the terminal for a
 stable error code. Do not edit `.antiky/dev-session.json`.
 
-Press `Ctrl-C` in the development terminal before you close Studio. This lets `antiky dev` stop its
-owned processes, close its listeners, and remove its session descriptor.
+Press `Ctrl-C` in the embedded terminal to stop its foreground command. Studio stays open. If the
+command is `antiky dev`, the CLI stops its owned processes, closes its listeners, and removes its
+session descriptor. Studio then shows the disconnected state until you start the command again.
 
 See [Connect Studio to a running game](development-connection.md) for the typed connection boundary.
 See [Runtime inspection](../framework/inspection.md) to publish hierarchy, store, and event data
