@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "studio-slice-00",
+  "runId": "studio-s00-20260806T043040Z",
+  "status": "in-progress",
+  "sourceRevision": "b77eae8535a5ed41c8c2b2971ac6d94a2614cf6f",
+  "files": [
+    {
+      "path": "baseline.json",
+      "sha256": "736a3a4fc25d32fb0c87ed0eb512a225e901c2cf5aaf129d35bcf767f1886149",
+      "purpose": "Frozen environment, package, service, and qualification baseline"
+    },
+    {
+      "path": "ghostty-probe.json",
+      "sha256": "ffaad883a9c02828c08e64f54fdf6215070c18122699dddb99c9f3a7d7b7c872",
+      "purpose": "Pinned full-libghostty native-surface proof"
+    }
+  ]
+}

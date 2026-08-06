@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "studio-slice-00",
+  "runId": "studio-s00-20260806T043040Z",
+  "startedAt": "2026-08-06T04:30:40Z",
+  "source": {
+    "revision": "b77eae8535a5ed41c8c2b2971ac6d94a2614cf6f",
+    "branch": "feat/voxel-demo-work",
+    "worktree": ".",
+    "packageLockSha256": "dc873c125259ed1f1670b67f11ba3d5e3c4996b53d5e1920166e4bc78640a4b0",
+    "antikyConfigSha256": "d956f75153e3e64257f2585a3585edc6bdb5a308127a0dbd1138348bccc6e186"
+  },
+  "environment": {
+    "platform": "macOS 26.5.2 (25F84)",
+    "architecture": "arm64",
+    "node": "22.15.0",
+    "npm": "10.9.2",
+    "rustc": "1.97.1",
+    "cargo": "1.97.1",
+    "xcode": "26.6",
+    "locale": "en_US.UTF-8",
+    "collationLocale": "C.UTF-8",
+    "timezone": "America/Chicago",
+    "browserViewport": {
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "isolation": {
+    "host": "127.0.0.1",
+    "gamePort": 3010,
+    "servicePort": 3011,
+    "studioPort": 1420,
+    "portsInitiallyFree": true,
+    "outputDirectory": "docs/objectives/studio/slice-00/outputs/studio-s00-20260806T043040Z",
+    "nativeBuildDirectory": "<system-temp>/antiky-studio-s00.yVZeyv"
+  },
+  "dependencies": {
+    "brometal": {
+      "installed": "0.15.0",
+      "latestRegistryVersion": "0.15.0",
+      "current": true
+    },
+    "ghostty": {
+      "revision": "f948d4207655f31ae9b95fa039e73524df43cd13",
+      "sourceArchiveSha256": "d7051e56f4edbca4a316c9785265e06ce0776f74004026a2395bb881c009fa99",
+      "declaredVersion": "1.3.2-dev",
+      "minimumZig": "0.16.0"
+    },
+    "zig": {
+      "version": "0.16.0",
+      "aarch64MacosArchiveSha256": "b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489"
+    }
+  },
+  "baselineChecks": {
+    "repositoryCheck": {
+      "command": "npm run check",
+      "result": "pass",
+      "cliTests": 50,
+      "demoNodeTests": 42,
+      "demoVitestSuites": 1,
+      "frameworkTests": 55,
+      "websiteTests": 2
+    },
+    "developmentSession": {
+      "sessionId": "45718191-bf43-48cd-b3e7-2a0b58a9df6a",
+      "servicesHealthy": true,
+      "runtimeState": "connection-waiting",
+      "runtimeReason": "No controllable browser was available to attach the Town runtime.",
+      "shutdownClean": true,
+      "descriptorRemoved": true,
+      "portsFreed": true
+    },
+    "browserControl": {
+      "result": "unavailable",
+      "availableBrowsers": 0,
+      "classification": "evidence-failure",
+      "impact": "No browser baseline capture or connected browser runtime was possible during preflight."
+    },
+    "ghosttyBuild": {
+      "command": "zig build -Doptimize=ReleaseFast -Dxcframework-target=native -Demit-macos-app=false",
+      "result": "pass",
+      "artifact": "GhosttyKit.xcframework/macos-arm64/libghostty-internal.a",
+      "artifactSizeBytes": 134956904,
+      "surfaceProbe": {
+        "result": "pass",
+        "focus": true,
+        "clipping": true,
+        "rendererLayerAttached": true,
+        "resize": true,
+        "unicodeInput": true,
+        "childExitAction": true,
+        "processExited": true,
+        "disposed": true,
+        "macosExitCodeReliable": false
+      }
+    }
+  },
+  "attempts": [
+    {
+      "operation": "npm run check",
+      "attempt": 1,
+      "result": "fail",
+      "classification": "transient-environment",
+      "reason": "The sandbox denied isolated loopback listener binds with EPERM."
+    },
+    {
+      "operation": "npm run check",
+      "attempt": 2,
+      "result": "pass",
+      "classification": "baseline"
+    },
+    {
+      "operation": "install Zig with Homebrew",
+      "attempt": 1,
+      "result": "fail",
+      "classification": "transient-toolchain",
+      "reason": "An unrelated untrusted tap shadowed the Zig formula."
+    },
+    {
+      "operation": "install Zig from the qualified Homebrew formula",
+      "attempt": 2,
+      "result": "fail",
+      "classification": "transient-toolchain",
+      "reason": "The same unrelated tap prevented formula resolution."
+    },
+    {
+      "operation": "use the official pinned Zig archive in isolated temporary storage",
+      "attempt": 3,
+      "result": "pass",
+      "classification": "qualified-fallback"
+    },
+    {
+      "operation": "link the native Ghostty surface probe",
+      "attempt": 1,
+      "result": "fail",
+      "classification": "qualification",
+      "reason": "The full static library requires explicit IOSurface and C++ runtime linkage."
+    },
+    {
+      "operation": "link the native Ghostty surface probe",
+      "attempt": 2,
+      "result": "pass",
+      "classification": "qualification"
+    },
+    {
+      "operation": "validate the native Ghostty surface",
+      "attempt": 1,
+      "result": "fail",
+      "classification": "test-strengthening",
+      "reason": "The first resize assertion observed asynchronous initialization instead of two exact requested sizes."
+    },
+    {
+      "operation": "validate the native Ghostty surface",
+      "attempt": 2,
+      "result": "pass",
+      "classification": "qualification",
+      "reason": "The strict probe matched both requested sizes and validated input from a bounded terminal marker."
+    },
+    {
+      "operation": "inspect the temporary AppKit probe with Computer Use",
+      "attempt": 1,
+      "result": "fail",
+      "classification": "evidence-failure",
+      "reason": "Computer Use did not register the temporary application bundle as an addressable app."
+    }
+  ],
+  "deliveryAuthority": {
+    "dependencyDownloads": true,
+    "nativeToolInstallation": true,
+    "productionDeployment": false,
+    "persistentUserData": false,
+    "worldMutationBeyondExistingDevelopmentControls": false,
+    "agentAuthorityExpansion": false
+  }
+}

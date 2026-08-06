@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-20260806T043040Z",
+  "hypothesis": "HYP-00",
+  "status": "pass",
+  "dependency": {
+    "ghosttyRevision": "f948d4207655f31ae9b95fa039e73524df43cd13",
+    "zigVersion": "0.16.0",
+    "target": "macos-arm64"
+  },
+  "checks": {
+    "focus": true,
+    "clipping": true,
+    "rendererLayerAttached": true,
+    "resize": true,
+    "unicodeInput": true,
+    "childExitAction": true,
+    "processExited": true,
+    "disposed": true,
+    "timedOut": false
+  },
+  "measurements": {
+    "initialWidthPx": 1280,
+    "initialHeightPx": 640,
+    "finalWidthPx": 1520,
+    "finalHeightPx": 720,
+    "childRuntimeMs": 7047
+  },
+  "observations": {
+    "rendererHealthActionObserved": false,
+    "macosReportedExitCode": 0,
+    "macosExitCodeUsedAsProof": false,
+    "reason": "Ghostty documents unreliable child exit codes through its macOS login wrapper. Input proof uses a bounded success marker read from the terminal surface."
+  },
+  "visualInspection": {
+    "status": "unavailable",
+    "classification": "evidence-failure",
+    "reason": "Computer Use could not address the temporary application bundle. The probe verified the attached native renderer layer without storing terminal contents."
+  }
+}
