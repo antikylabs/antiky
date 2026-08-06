@@ -9,6 +9,7 @@ import type {
 } from '../development/useStudioDevelopment.ts';
 import { ActivityPanel } from './ActivityPanel.tsx';
 import { InspectionPanel } from './InspectionPanel.tsx';
+import { LiveGameFrame } from './LiveGameFrame.tsx';
 import { EmptyState, Panel } from './primitives.tsx';
 
 const brandUrl = new URL(
@@ -127,13 +128,10 @@ export function StudioShell({ platform, context, development, actions }: StudioS
         >
           <div className="game-stage">
             {current && snapshot ? (
-              <iframe
-                allow="autoplay; fullscreen; gamepad"
-                allowFullScreen
-                referrerPolicy="no-referrer"
-                sandbox="allow-same-origin allow-scripts allow-pointer-lock"
-                src={snapshot.config.gameUrl}
-                title="Live Antiky game"
+              <LiveGameFrame
+                developmentSessionId={snapshot.developmentSessionId}
+                gameUrl={snapshot.config.gameUrl}
+                runtimeConnected={snapshot.connection.state === 'connected'}
               />
             ) : (
               <EmptyState title={stale ? 'Live game disconnected' : 'No live game'}>

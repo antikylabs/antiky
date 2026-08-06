@@ -172,6 +172,7 @@ test('connected Studio renders the live game and every semantic inspection surfa
     'Redacted',
   ]) assert.match(html, new RegExp(value));
   assert.match(html, /src="http:\/\/127\.0\.0\.1:3010\/demos\/town-study"/);
+  assert.match(html, /allow="autoplay; fullscreen; gamepad; webgpu"/);
   assert.doesNotMatch(html, /contenteditable|Save changes|Edit component/i);
 });
 
