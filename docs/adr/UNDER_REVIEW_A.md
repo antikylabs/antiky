@@ -8,10 +8,6 @@ This document can grow faster than the accepted ADR set. An entry stays here unt
 
 ## Draft candidates
 
-### 1. Authoritative physics
-
-**Why this is here:** Antiky has not defined authoritative physics behavior across browsers, runtimes without graphics, saves, replays, and online profiles. **What it helps:** A decision prevents solver details, temporary handles, and inconsistent results from leaking into world semantics. **Summary:** Each applicable world would use one private physics adapter. Runtime world state would receive calculated results, while durable state would retain semantic data only. **AI-suggested direction:** Test Rapier privately for one real 2D or 3D case and authority model. Keep central processing unit results authoritative and graphics processing unit simulation presentational.
-
 ### 2. Runtime schema
 
 **Why this is here:** Components, commands, events, tools, and persisted data need compatible runtime definitions before Antiky exposes a public schema. **What it helps:** One contract supports validation, Studio controls, agent tools, storage, compatibility checks, and later migrations. **Summary:** Antiky would own semantic definitions, a restricted JSON Schema subset, an immutable catalog, and unchangeable schema views for each running session. Validator libraries would remain private. **AI-suggested direction:** Prove one real component-and-command path first. Add migrations, plugins, and broader schema types only when a concrete boundary requires them.
