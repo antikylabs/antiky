@@ -10,7 +10,7 @@
 | Owner input | `NONE` |
 | Architecture decisions | [Studio 0001](../../../adr/studio/0001-ai-integrations_H.md), [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md), [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md), and [CLI 0001](../../../adr/cli/0001-use-mcp-tools-for-development_H.md) |
 | Depends on | The current `antiky dev` host, inspection service, and MCP server |
-| Alignment revision | `36dd25ca57c0b250415c3c9141e085ed70a9fc14` |
+| Alignment revision | `ed47200bbf7e2009f8e48258bf117306f97aee03` |
 | Review date | `2026-08-05` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/verify.mjs` |
 | Evidence | `docs/objectives/studio/slice-00/outputs/{run-id}/receipt.json` |
@@ -24,9 +24,9 @@ Goal command:
 ## Review summary
 
 - Add the portable React and Vite app and the Tauri-hosted native `libghostty` terminal.
-- Let the terminal, live game frame, and status display use the existing `antiky dev` session.
+- Make Studio and the CLI use the same typed client and the existing `antiky dev` host.
 - Make Studio look and feel like the current Antiky Labs website became a desktop application.
-- Do not add hierarchy, inspectors, feedback, editing, a second engine runtime, or release packaging.
+- Do not add hierarchy, editing, a second service or client stack, or release packaging.
 
 ## Outcome
 
@@ -54,33 +54,35 @@ starts `antiky dev`, and works beside the actual running Antiky Town canvas in t
 ## Chosen shape
 
 ```text
-Tauri window
-  +-- packages/studio/app web view
-  |     +-- Antiky header, session status, and terminal reservation
-  |     +-- live game frame -> configured game URL -> Town runtime -> BroMetal -> WebGPU
-  |     `-- EditorHost contract -> validated development snapshot
-  `-- packages/studio/tauri
-        +-- native libghostty surface <-> PTY <-> user's shell or coding agent
-        `-- project and session adapter -> .antiky descriptor -> antiky dev inspection service
+Node bootstrap for CLI -------+
+Studio EditorHost bootstrap --+-> shared @antiky/cli DevelopmentClient
+                                  -> existing antiky dev development service
+                                      +-> CLI output
+                                      +-> Studio status and live game URL
+                                      `-> MCP adapter and tests use the same service behavior
 
-user or agent -> terminal -> antiky CLI or MCP -----+
-Studio status -> EditorHost -> development service -+-> the same Antiky session
+Tauri window -> Studio app web view
+             `-> native libghostty surface <-> PTY <-> user's shell or coding agent
 ```
 
 | Owner | Owns in this slice | Does not own |
 | --- | --- | --- |
-| `packages/studio/app` | React workspace, layout, status presentation, live game frame, host contract, and browser fallback | Tauri, PTY, credentials, shell processes, engine state, or BroMetal |
-| `packages/studio/tauri` | Native window adapter, project context, session credential, authenticated reads, `libghostty` surface, PTY, focus, resize, and disposal | Editor behavior, engine rules, terminal transcript interpretation, or arbitrary web-exposed process commands |
-| `@antiky/cli` development service | Process, build, connection, diagnostics, capture, session, and MCP facts | Studio layout or terminal state |
+| `packages/studio/app` | React workspace, layout, status presentation, live game frame, shared development-client use, host contract, and browser fallback | Tauri, PTY, session discovery, shell processes, engine state, or BroMetal |
+| `packages/studio/tauri` | Native window, bounded local-session discovery, `libghostty` surface, PTY, focus, resize, and disposal | Development requests, DTO projections, engine rules, terminal transcript interpretation, or arbitrary web-exposed process commands |
+| `@antiky/cli` development surface | Shared client contract and implementation, Node bootstrap, process, build, connection, diagnostics, capture, session, and MCP facts | Studio layout or terminal state |
 | Game page and Framework | Live world, simulation, inspection, canvas, and BroMetal rendering | Studio workspace state |
+
+`antiky dev` is the only development host. Tauri is a desktop host, not another Antiky development
+host. The CLI and Studio must call the same `DevelopmentClient` methods. Environment-specific code
+can find a connection, but it must not copy request logic, projections, validation, or engine rules.
 
 Use React 19 and Vite. Both already run here, and Tauri recommends a static SPA. Next.js would bring
 server concerns into the client; another UI stack would add a toolchain before a workflow proves a
 need. Record an ADR before a later slice makes this a contributor-facing promise.
 
 Use a native host-owned `libghostty` surface in the reserved terminal rectangle. The app sends only
-bounds, focus, and lifecycle intent. The terminal is the explicit user-controlled shell; page code
-gets no arbitrary command API. Do not substitute xterm.js or a new renderer if the embed fails.
+bounds, focus, and lifecycle intent to this surface. `EditorHost` supplies bounded connection data,
+but it does not mirror the development API. Page code gets no arbitrary command API.
 
 ## Required reading
 
@@ -133,7 +135,7 @@ language before this plan. No owner question remains. Town Slices 01 and 02 are 
 | Development session and typed client | `USE` | [`@antiky/cli` export](../../../../packages/cli/src/index.ts), [`DevelopmentClient`](../../../../packages/cli/src/development/client.ts), and [`development-session.test.ts`](../../../../packages/cli/tests/development-session.test.ts) |
 | CLI and MCP service parity | `USE` | [`mcp/server.ts`](../../../../packages/cli/src/mcp/server.ts) and [`mcp-server.test.ts`](../../../../packages/cli/tests/mcp-server.test.ts) |
 | Actual Town browser runtime | `USE` | [`LiveDemoStage.tsx`](../../../../packages/demos/src/react/LiveDemoStage.tsx) and current development-session integration tests |
-| Browser-safe development validation | `EXTEND` | Types exist, but [`client.ts`](../../../../packages/cli/src/development/client.ts) bootstraps through Node files |
+| Shared development client | `EXTEND` | [`client.ts`](../../../../packages/cli/src/development/client.ts) combines reusable HTTP behavior with Node-only config and descriptor discovery |
 | Portable Studio app and Tauri terminal host | `CREATE` | `packages/studio` contains only its license and placeholder; root workspaces also miss `packages/studio/*` |
 | Hierarchy, inspection editing, and feedback | `DEFER` | Architecture describes them; this slice has no implementing capability or outcome need |
 
@@ -141,8 +143,6 @@ language before this plan. No owner question remains. Town Slices 01 and 02 are 
 | --- | --- | --- |
 | `HYP-00`: full `libghostty` can supply the native terminal surface without a custom renderer | Build one clipped, resizable macOS surface in `CP-00` and exercise its PTY, input, focus, and disposal | `CREATE` the isolated Tauri adapter only after it passes; otherwise record `AUTHORITY_BLOCK` and stop |
 
-- `antiky dev` already supervises the game, shaders, inspection, and MCP endpoints; Codex already has
-  the repository's Antiky MCP URL.
 - The website supplies the canonical mark, fonts, near-black surfaces, violet action color,
   hairlines, status colors, spacing, and radii.
 - The concept render supplies the top frame, adjacent work areas, dominant Town view, and compact
@@ -164,17 +164,21 @@ language before this plan. No owner question remains. Town Slices 01 and 02 are 
   states, a game-frame adapter, and a responsive two-area workspace.
 - Keep the website's exact colors, fonts, radii, focus, status meanings, and brand artwork. Add a
   token-parity test, not a separate palette. Import no Next.js component or page stylesheet.
-- Add a browser-safe `@antiky/cli/development` export for development DTO validation. Keep config and
-  session-file bootstrap in trusted hosts. Preserve current CLI behavior and tests.
-- Create `packages/studio/tauri` as a Tauri 2 Rust package. Its adapter validates the selected
-  project and session, retains the credential, reads the existing service, and returns bounded data.
+- Add a browser-safe `@antiky/cli/development` export that creates the same `DevelopmentClient` from
+  validated connection data. Keep `connectDevelopmentClient(configPath)` as the CLI Node bootstrap.
+  Both paths must use one request, validation, error, and projection implementation.
+- Give `EditorHost` one connection-bootstrap capability. Each platform finds bounded connection
+  data and gives it to the shared client. Keep credentials out of React state, logs, and errors.
+- Create `packages/studio/tauri` as a Tauri 2 Rust package for native file access and the terminal.
+  It must not fetch development snapshots or duplicate Antiky service routes.
+- Allow the exact Studio origin on the existing protected host routes. Add no second service.
 - At `CP-00`, pin a Ghostty commit and prove a clipped, resizable native `libghostty` surface on the
   current macOS development target. Prefer the full native surface. Reject a custom
   `libghostty-vt` web renderer because it would make Antiky own text rendering, shaping, and session UI.
 - Start one PTY and login shell only after the terminal opens. Keep its stream in the native surface;
   expose no transcript reader or general `runCommand` bridge.
-- Watch the selected project's existing `.antiky` session descriptor. Attach when `antiky dev`
-  starts, detach on stop, and load only the exact loopback game URL from the validated config.
+- Watch the existing `.antiky` session descriptor. Create or dispose the shared client when
+  `antiky dev` starts or stops. Load only its validated game URL.
 
 ### User-facing documentation
 
@@ -186,25 +190,25 @@ language before this plan. No owner question remains. Town Slices 01 and 02 are 
 ## Data and authority path
 
 ```text
-selected project and validated config
-  -> Tauri reads the local session descriptor and retains its credential
-  -> existing inspection service returns the authoritative development snapshot
-  -> shared browser-safe validator accepts or rejects the snapshot
-  -> Studio presents bounded status and the exact configured game URL
+selected project -> platform bootstrap finds bounded local connection data
+  -> shared @antiky/cli DevelopmentClient validates it
+  -> existing antiky dev service returns the authoritative development snapshot
+  -> the same shared client validates and projects the result for CLI or Studio
+  -> Studio presents status and the exact configured game URL
 
 terminal input -> libghostty -> PTY -> user's shell or agent -> Antiky CLI or MCP
 ```
 
 Session and runtime IDs come from `antiky dev`; Studio creates neither. The game and Framework stay
-authoritative. The host returns no credential, session file, transcript, or private path to the UI,
-logs, or evidence. Snapshot order follows published revisions, and stale state stays visibly stale.
+authoritative. Bootstrap data stays inside the shared client and does not enter UI state, logs, or
+evidence. Snapshot order follows published revisions, and stale state stays visibly stale.
 
 ## Safe behavior
 
 | Event | Required result |
 | --- | --- |
 | No session descriptor or `antiky dev` is stopped | Keep the terminal usable, show `Not connected`, and retry with a bounded interval |
-| Invalid config, descriptor, credential, host, origin, URL, schema, or session ID | Reject it, load no frame, expose no secret, and show one stable recovery message |
+| Invalid config, descriptor, credential, host, origin, URL, schema, or session ID | The shared client rejects it, loads no frame, exposes no secret, and returns one stable error |
 | Game or inspection service disconnects | Remove stale live state, keep the shell open, and reconnect only to the selected project |
 | `libghostty` cannot initialize or its pinned API does not support the native surface | Save the probe evidence and stop; do not substitute another terminal or renderer |
 | Terminal child exits | Show its exit state and require an explicit reopen; do not disturb the game session |
@@ -212,26 +216,29 @@ logs, or evidence. Snapshot order follows published revisions, and stale state s
 | Studio window closes | Close the PTY and terminal surface once; a child `antiky dev` receives normal terminal teardown and performs its own cleanup |
 
 Use default-deny Tauri capabilities. Grant page code only named Studio host operations, never the
-generic shell plugin. Allow exact configured loopback URLs and exclude bridges from game artifacts.
+generic shell plugin. Allow exact configured loopback URLs. Keep Tauri, bootstrap adapters, and
+Studio code out of game artifacts.
 
 ## Implementation checkpoints
 
 | ID | Deliverable | Main proof | Commit message |
 | --- | --- | --- | --- |
 | `CP-00` | Capture website, Town, session, and package baselines; compare native surface and custom-render options; pin and prove `libghostty` | Native macOS terminal probe, dependency receipt, and recorded decision | `Qualify Studio terminal host` |
-| `CP-01` | Add nested workspaces, React and Vite app, `EditorHost`, browser host, visual tokens, brand, and responsive shell | Unit, import-boundary, accessibility, token-parity, browser build, and reference captures | `Add Studio workspace` |
+| `CP-01` | Extract the browser-safe shared development client; add nested workspaces, React and Vite app, `EditorHost`, visual tokens, brand, and responsive shell | Shared client contract, CLI regression, import-boundary, accessibility, token-parity, browser build, and reference captures | `Add Studio workspace` |
 | `CP-02` | Add Tauri host, native terminal surface, PTY, focus, resize, and exact cleanup | Rust unit tests plus terminal input, resize, child-exit, and three-cycle smoke checks | `Embed Studio terminal` |
-| `CP-03` | Add shared snapshot validation, native credential bridge, session watch, live game frame, status, and general docs | CLI contract tests; Studio attach, disconnect, reconnect, canvas, CLI, and MCP parity | `Connect Studio to Antiky dev` |
+| `CP-03` | Add thin browser and Tauri bootstraps, exact-origin host access, session watch, live game frame, status, and general docs | Shared client contract tests; Studio attach, disconnect, reconnect, canvas, CLI, and MCP parity | `Connect Studio to Antiky dev` |
 | `CP-04` | Run the temporary complete verifier and write the receipt and slice summary | One clean complete run with desktop and browser captures | `Verify Studio Slice 00` |
 
 ## Test plan
 
-- Test `EditorHost` capabilities and every connection state, exact loopback URL validation, rejected
+- Run one contract suite against the Node-bootstrapped and direct browser-safe client. Prove equal
+  methods, requests, projections, results, errors, session checks, and current CLI behavior.
+- Test `EditorHost` bootstrap and every connection state, exact loopback URL validation, rejected
   data, and the ban on Tauri, Node, MCP, Framework internals, demo, and BroMetal imports in the app.
 - Test the Studio token contract against the website's canonical CSS variables, font packages,
   radii, focus color, and status colors. Capture desktop and narrow browser layouts.
-- Test the Tauri config and descriptor boundary with missing, oversized, malformed, escaped, stale,
-  mismatched, and non-loopback inputs; confirm credential redaction.
+- Test the Tauri file boundary with missing, oversized, malformed, escaped, stale, mismatched, and
+  non-loopback inputs. Confirm credential redaction and no duplicated development request routes.
 - Unit-test the small `libghostty` Rust boundary with a fake. Smoke-test shell startup, Unicode,
   color, modifiers, scrollback, resize, scale, focus, child exit, reopen, and exact disposal.
 - From the embedded terminal, run `npm run antiky -- dev`. Confirm Studio attaches to that session,
@@ -257,6 +264,8 @@ shared script folder. Delete it after final outputs pass.
   exit, reopen, and disposal.
 - [ ] Starting `antiky dev` in the terminal attaches the status display and actual Town game frame to
   the same session used by CLI and MCP.
+- [ ] Studio and CLI use the same `DevelopmentClient` implementation; Tauri contains no second
+  development service, HTTP client, projection layer, or engine rule.
 - [ ] Browser mode uses the same website-aligned workspace, identifies unavailable native features,
   and shows no unimplemented hierarchy, inspector, or feedback UI.
 - [ ] Missing, invalid, stale, disconnected, failed-build, busy-port, and close paths leave an honest,
