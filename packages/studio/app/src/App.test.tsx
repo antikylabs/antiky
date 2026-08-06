@@ -22,3 +22,10 @@ test('browser Studio shell exposes the complete read-only workspace with an hone
   assert.match(html, /Start .*antiky dev.* to connect/);
   assert.doesNotMatch(html, /contenteditable|Edit component|Save changes/i);
 });
+
+test('native Studio shell mounts the embedded terminal surface', () => {
+  const html = renderToStaticMarkup(<App platform="native" />);
+
+  assert.match(html, /Embedded native terminal/);
+  assert.doesNotMatch(html, /Terminal is ready to open/);
+});

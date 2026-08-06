@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-20260806T043040Z",
+  "checkpoint": "CP-03",
+  "status": "pass",
+  "dependency": {
+    "ghosttyRevision": "f948d4207655f31ae9b95fa039e73524df43cd13",
+    "zigVersion": "0.16.0",
+    "target": "macos-arm64"
+  },
+  "checks": {
+    "rootCommand": "npm run dev:studio",
+    "cachedDependencyPreparation": true,
+    "releaseTauriBuild": true,
+    "defaultDenyCapability": true,
+    "nativeSurfaceInvoked": true,
+    "singleLoginShell": true,
+    "lifecycleCycles": 3,
+    "orphanProcessesAfterEachCycle": 0
+  },
+  "supportingProof": {
+    "terminalInputFocusResizeUnicodeAndChildExit": "ghostty-probe.json",
+    "nativeContracts": 3,
+    "frontendTests": 4,
+    "tauriConfigurationTests": 3,
+    "clippyWarnings": 0
+  },
+  "visualInspection": {
+    "status": "unavailable",
+    "classification": "evidence-failure",
+    "reason": "No controllable browser instance was available; native process and surface lifecycle were verified without capturing terminal contents."
+  }
+}

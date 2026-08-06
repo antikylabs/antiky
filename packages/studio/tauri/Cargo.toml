@@ -1,0 +1,22 @@
+[package]
+name = "antiky-studio"
+version = "0.0.0"
+description = "Native host for Antiky Studio"
+authors = ["Antiky Labs"]
+edition = "2024"
+rust-version = "1.85"
+
+[lib]
+name = "antiky_studio_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+cc = "=1.4.0"
+tauri-build = { version = "=2.6.3", features = [] }
+
+[dependencies]
+futures-channel = "=0.3.33"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+tauri = { version = "=2.11.5", features = [] }
+url = "=2.5.8"

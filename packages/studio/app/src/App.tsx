@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { NativeTerminal } from './NativeTerminal.tsx';
+
 const brandUrl = new URL(
   '../../../website/public/brand/antiky-labs-wordmark-and-text-white.svg',
   import.meta.url,
@@ -63,13 +65,6 @@ function ControlIcon({ children }: Readonly<{ children: ReactNode }>) {
 }
 
 export function App({ platform }: AppProps) {
-  const terminalTitle = platform === 'browser'
-    ? 'Native terminal unavailable'
-    : 'Terminal is ready to open';
-  const terminalCopy = platform === 'browser'
-    ? 'Open this project in the desktop app to use the embedded terminal.'
-    : 'Start a shell or coding agent without leaving this workspace.';
-
   return (
     <main className="studio-shell">
       <header className="titlebar">
@@ -106,7 +101,13 @@ export function App({ platform }: AppProps) {
           title="Terminal"
         >
           <div className="terminal-surface" data-terminal-platform={platform}>
-            <EmptyState title={terminalTitle}>{terminalCopy}</EmptyState>
+            {platform === 'native' ? (
+              <NativeTerminal />
+            ) : (
+              <EmptyState title="Native terminal unavailable">
+                Open this project in the desktop app to use the embedded terminal.
+              </EmptyState>
+            )}
           </div>
         </Panel>
 

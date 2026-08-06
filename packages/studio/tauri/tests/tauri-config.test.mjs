@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import { access, readFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import test from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+const packageDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
+
+test('Tauri uses the existing Antiky brand mark as its native icon', async () => {
+  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
+  assert.deepEqual(config.bundle.icon, [
+    '../../website/public/brand/antiky-labs-wordmark-white.png',
+  ]);
+  await access(resolve(packageDirectory, config.bundle.icon[0]));
+});
+
+test('the main window can invoke only the bounded Studio command surface', async () => {
+  const capability = JSON.parse(await readFile(
+    resolve(packageDirectory, 'capabilities/main.json'),
+    'utf8',
+  ));
+  assert.deepEqual(capability.permissions, [
+    'allow-studio-context',
+    'allow-discover-development-connection',
+    'allow-terminal-open',
+    'allow-terminal-layout',
+    'allow-terminal-focus',
+    'allow-terminal-close',
+    'allow-terminal-status',
+  ]);
+});

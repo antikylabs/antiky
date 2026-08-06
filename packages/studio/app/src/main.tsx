@@ -6,6 +6,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './App.tsx';
+import './terminal.css';
 import './styles.css';
 
 const root = document.querySelector('#root');
@@ -13,6 +14,6 @@ if (!root) throw new Error('Antiky Studio requires a root element.');
 
 createRoot(root).render(
   <StrictMode>
-    <App platform="browser" />
+    <App platform={window.__TAURI_INTERNALS__ ? 'native' : 'browser'} />
   </StrictMode>,
 );
