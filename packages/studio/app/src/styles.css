@@ -77,6 +77,11 @@ summary:focus-visible,
   gap: 24px;
   padding: 0 16px;
   background: var(--surface-raised);
+  user-select: none;
+}
+
+.titlebar > * {
+  pointer-events: none;
 }
 
 .brand-lockup {

@@ -81,10 +81,14 @@ pub(crate) async fn terminal_open(
 #[tauri::command]
 pub(crate) async fn terminal_layout(
     window: WebviewWindow,
-    bounds: TerminalBounds,
+    bounds: Option<TerminalBounds>,
 ) -> Result<(), NativeError> {
-    let bounds = bounds.validate()?;
-    run_on_main_thread(window, move |_| native::layout(bounds)).await
+    let bounds = bounds.map(TerminalBounds::validate).transpose()?;
+    run_on_main_thread(window, move |_| match bounds {
+        Some(bounds) => native::layout(bounds),
+        None => native::hide(),
+    })
+    .await
 }
 
 #[tauri::command]

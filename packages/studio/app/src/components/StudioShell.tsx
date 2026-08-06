@@ -63,7 +63,7 @@ export function StudioShell({ platform, context, development, actions }: StudioS
 
   return (
     <main className={`studio-shell connection-${development.status}`}>
-      <header className="titlebar">
+      <header className="titlebar" data-tauri-drag-region="true">
         <div className="brand-lockup">
           <img alt="Antiky Labs" src={brandUrl} />
           <span>Studio</span>

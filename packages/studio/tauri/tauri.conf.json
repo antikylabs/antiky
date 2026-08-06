@@ -16,7 +16,7 @@
         "title": "Antiky Studio",
         "width": 1440,
         "height": 900,
-        "minWidth": 960,
+        "minWidth": 720,
         "minHeight": 680,
         "center": true,
         "hiddenTitle": true,

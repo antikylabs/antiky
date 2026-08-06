@@ -101,10 +101,16 @@ static void send_mouse_button(
 - (BOOL)acceptsFirstMouse:(NSEvent *)event { (void)event; return YES; }
 - (BOOL)becomeFirstResponder {
   if (self.surface != NULL) ghostty_surface_set_focus(self.surface, true);
+  self.layer.borderColor = [NSColor colorWithSRGBRed:(139.0 / 255.0)
+                                               green:(124.0 / 255.0)
+                                                blue:1.0
+                                               alpha:1.0].CGColor;
+  self.layer.borderWidth = 2.0;
   return YES;
 }
 - (BOOL)resignFirstResponder {
   if (self.surface != NULL) ghostty_surface_set_focus(self.surface, false);
+  self.layer.borderWidth = 0.0;
   return YES;
 }
 - (BOOL)performKeyEquivalent:(NSEvent *)event {
@@ -368,8 +374,18 @@ int32_t antiky_terminal_layout(
     write_error(error, error_capacity, "Native terminal is not open.");
     return 1;
   }
+  antiky_view.hidden = NO;
   antiky_view.frame = native_frame(antiky_view.superview, x, y, width, height);
   update_surface_geometry();
+  return 0;
+}
+
+int32_t antiky_terminal_hide(char *error, size_t error_capacity) {
+  if (![NSThread isMainThread] || antiky_view == nil || antiky_view.superview == nil) {
+    write_error(error, error_capacity, "Native terminal is not open.");
+    return 1;
+  }
+  antiky_view.hidden = YES;
   return 0;
 }
 

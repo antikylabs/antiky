@@ -219,6 +219,106 @@ test('connected Studio renders the live game and every semantic inspection surfa
   assert.doesNotMatch(html, /contenteditable|Save changes|Edit component/i);
 });
 
+test('every connection shell keeps one complete and honestly labeled workspace', () => {
+  const states: readonly StudioDevelopmentState[] = [
+    {
+      ...development,
+      status: 'connecting',
+      developmentSessionId: null,
+      snapshot: null,
+      mcpCallLog: null,
+    },
+    {
+      ...development,
+      status: 'connected',
+      snapshot: {
+        ...development.snapshot!,
+        connection: { state: 'waiting' },
+      },
+    },
+    {
+      ...development,
+      status: 'connected',
+      snapshot: {
+        ...development.snapshot!,
+        connection: { state: 'unavailable' },
+      },
+      issue: { code: 'ANTIKY_RUNTIME_UNAVAILABLE', message: 'The runtime is unavailable.' },
+    },
+    {
+      ...development,
+      status: 'stale',
+      issue: { code: 'ANTIKY_SESSION_UNAVAILABLE', message: 'The retained view is stale.' },
+    },
+    {
+      ...development,
+      status: 'disconnected',
+      developmentSessionId: null,
+      snapshot: null,
+      mcpCallLog: null,
+      issue: { code: 'ANTIKY_SESSION_UNAVAILABLE', message: 'No session is available.' },
+    },
+  ];
+
+  for (const state of states) {
+    const html = renderToStaticMarkup(
+      <StudioShell
+        actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+        context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+        development={state}
+        platform="native"
+      />,
+    );
+    const surfaceOrder = [...html.matchAll(/data-workspace-area="([^"]+)"/g)]
+      .map((match) => match[1]);
+    assert.deepEqual(surfaceOrder, ['game', 'terminal', 'inspection', 'activity']);
+    for (const label of ['Live game', 'Terminal', 'Inspection', 'Activity']) {
+      assert.equal((html.match(new RegExp(`aria-label="${label}"`, 'g')) ?? []).length, 1);
+    }
+    assert.equal((html.match(/<iframe/g) ?? []).length, state.status === 'connected' ? 1 : 0);
+  }
+});
+
+test('keyboard order reaches controls, game, terminal, inspection, and activity', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+      development={development}
+      platform="native"
+    />,
+  );
+  const orderedMarkers = [
+    '>Resume</button>',
+    '>Step</button>',
+    'title="Live Antiky game"',
+    'aria-label="Embedded native terminal"',
+    'aria-label="Inspection views"',
+    'aria-label="Activity views"',
+  ];
+  let previousIndex = -1;
+  for (const marker of orderedMarkers) {
+    const index = html.indexOf(marker);
+    assert.ok(index > previousIndex, `${marker} must follow the prior keyboard surface`);
+    previousIndex = index;
+  }
+});
+
+test('the custom title bar remains a usable native window drag region', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+      development={development}
+      platform="native"
+    />,
+  );
+
+  assert.match(html, /<header class="titlebar" data-tauri-drag-region="true">/);
+  assert.match(shellStyles, /\.titlebar\s*>\s*\*\s*\{[^}]*pointer-events:\s*none;/s);
+  assert.match(shellStyles, /\.titlebar\s*\{[^}]*user-select:\s*none;/s);
+});
+
 test('a lost session keeps retained inspection visibly stale and removes the live game', () => {
   const html = renderToStaticMarkup(
     <StudioShell

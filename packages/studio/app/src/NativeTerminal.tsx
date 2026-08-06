@@ -15,6 +15,15 @@ type TerminalBounds = Readonly<{
   height: number;
 }>;
 
+type ViewportLike = Readonly<{
+  width: number;
+  height: number;
+}>;
+
+const MINIMUM_WIDTH = 80;
+const MINIMUM_HEIGHT = 40;
+const MAXIMUM_GEOMETRY = 16_384;
+
 let nativeCommandQueue = Promise.resolve();
 
 function enqueueNativeCommand(operation: () => Promise<void>) {
@@ -29,58 +38,146 @@ function displayError(reason: unknown) {
   return 'The native terminal could not be opened.';
 }
 
-export function terminalBoundsForRect(rect: RectLike): TerminalBounds | null {
-  const values = [rect.left, rect.top, rect.width, rect.height];
-  if (values.some((value) => !Number.isFinite(value) || value < 0)
-    || rect.width < 80
-    || rect.height < 40) return null;
+export function terminalBoundsForRect(
+  rect: RectLike,
+  viewport?: ViewportLike,
+): TerminalBounds | null {
+  const rectValues = [rect.left, rect.top, rect.width, rect.height];
+  if (rectValues.some((value) => !Number.isFinite(value))
+    || rect.width < 0
+    || rect.height < 0
+    || rect.width > MAXIMUM_GEOMETRY
+    || rect.height > MAXIMUM_GEOMETRY) return null;
+
+  if (!viewport) {
+    if (rect.left < 0
+      || rect.top < 0
+      || rect.width < MINIMUM_WIDTH
+      || rect.height < MINIMUM_HEIGHT
+      || rect.left + rect.width > MAXIMUM_GEOMETRY
+      || rect.top + rect.height > MAXIMUM_GEOMETRY) return null;
+    return {
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  }
+
+  const viewportValues = [viewport.width, viewport.height];
+  if (viewportValues.some((value) => (
+    !Number.isFinite(value) || value <= 0 || value > MAXIMUM_GEOMETRY
+  ))) return null;
+  const left = Math.max(0, rect.left);
+  const top = Math.max(0, rect.top);
+  const right = Math.min(viewport.width, rect.left + rect.width);
+  const bottom = Math.min(viewport.height, rect.top + rect.height);
+  const width = right - left;
+  const height = bottom - top;
+  if (width < MINIMUM_WIDTH || height < MINIMUM_HEIGHT) return null;
   return {
-    x: rect.left,
-    y: rect.top,
-    width: rect.width,
-    height: rect.height,
+    x: left,
+    y: top,
+    width,
+    height,
   };
 }
 
+function sameBounds(left: TerminalBounds | null | undefined, right: TerminalBounds | null) {
+  if (left === null || left === undefined || right === null) return left === right;
+  return left.x === right.x
+    && left.y === right.y
+    && left.width === right.width
+    && left.height === right.height;
+}
+
 export function NativeTerminal() {
-  const mount = useRef<HTMLDivElement>(null);
+  const viewport = useRef<HTMLDivElement>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
   useEffect(() => {
-    const element = mount.current;
+    const element = viewport.current;
     if (!element) return undefined;
 
     let active = true;
     let opened = false;
-    let latestBounds = terminalBoundsForRect(element.getBoundingClientRect());
+    let opening = false;
+    let animationFrame: number | null = null;
+    let lastSubmittedBounds: TerminalBounds | null | undefined;
+
+    const readBounds = () => terminalBoundsForRect(
+      element.getBoundingClientRect(),
+      { width: window.innerWidth, height: window.innerHeight },
+    );
 
     const reportFailure = (reason: unknown) => {
       if (active) setFailure(displayError(reason));
     };
-    const observer = new ResizeObserver(() => {
-      latestBounds = terminalBoundsForRect(element.getBoundingClientRect());
-      if (!opened || !latestBounds) return;
-      const bounds = latestBounds;
-      void enqueueNativeCommand(() => invoke('terminal_layout', { bounds })).catch(reportFailure);
-    });
-    observer.observe(element);
 
-    if (latestBounds) {
-      const bounds = latestBounds;
+    const submitLayout = (bounds: TerminalBounds | null) => {
+      if (sameBounds(lastSubmittedBounds, bounds)) return;
+      const submittedBounds = bounds;
+      lastSubmittedBounds = submittedBounds;
+      void enqueueNativeCommand(async () => {
+        await invoke('terminal_layout', { bounds: submittedBounds });
+        if (active) setFailure(null);
+      }).catch((reason) => {
+        lastSubmittedBounds = undefined;
+        reportFailure(reason);
+      });
+    };
+
+    const synchronize = () => {
+      animationFrame = null;
+      if (!active) return;
+      const bounds = readBounds();
+      if (opened) {
+        submitLayout(bounds);
+        return;
+      }
+      if (opening || !bounds) return;
+      opening = true;
       void enqueueNativeCommand(async () => {
         await invoke('terminal_open', { bounds });
         opened = true;
-        if (active && latestBounds) {
-          await invoke('terminal_layout', { bounds: latestBounds });
+        opening = false;
+        if (!active) {
+          await invoke('terminal_close');
+          opened = false;
+          return;
         }
-      }).catch(reportFailure);
-    } else {
-      setFailure('The terminal panel is too small to open.');
-    }
+        const currentBounds = readBounds();
+        await invoke('terminal_layout', { bounds: currentBounds });
+        lastSubmittedBounds = currentBounds;
+        if (active) setFailure(null);
+      }).catch((reason) => {
+        opening = false;
+        reportFailure(reason);
+      });
+    };
+
+    const scheduleSynchronization = () => {
+      if (!active || animationFrame !== null) return;
+      animationFrame = window.requestAnimationFrame(synchronize);
+    };
+
+    const observer = new ResizeObserver(scheduleSynchronization);
+    const visualViewport = window.visualViewport;
+    observer.observe(element);
+    window.addEventListener('resize', scheduleSynchronization);
+    document.addEventListener('scroll', scheduleSynchronization, true);
+    visualViewport?.addEventListener('resize', scheduleSynchronization);
+    visualViewport?.addEventListener('scroll', scheduleSynchronization);
+    scheduleSynchronization();
 
     return () => {
       active = false;
       observer.disconnect();
+      window.removeEventListener('resize', scheduleSynchronization);
+      document.removeEventListener('scroll', scheduleSynchronization, true);
+      visualViewport?.removeEventListener('resize', scheduleSynchronization);
+      visualViewport?.removeEventListener('scroll', scheduleSynchronization);
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
       void enqueueNativeCommand(async () => {
         if (opened) await invoke('terminal_close');
         opened = false;
@@ -88,15 +185,22 @@ export function NativeTerminal() {
     };
   }, []);
 
+  const focusTerminal = () => {
+    void enqueueNativeCommand(() => invoke('terminal_focus')).catch((reason) => {
+      setFailure(displayError(reason));
+    });
+  };
+
   return (
     <div
       aria-label="Embedded native terminal"
       className="native-terminal-mount"
-      ref={mount}
+      onFocus={focusTerminal}
       role="application"
+      tabIndex={0}
     >
+      <div className="native-terminal-viewport" ref={viewport} />
       {failure && <p className="native-terminal-error">{failure}</p>}
     </div>
   );
 }
-

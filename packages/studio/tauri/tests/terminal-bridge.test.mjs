@@ -73,3 +73,18 @@ test('modifier-only events never ask AppKit for keyboard text', async () => {
   );
   assert.match(sendKey, /NSString \*text = hasKeyboardText/);
 });
+
+test('terminal layout hides offscreen geometry and restores visible geometry', async () => {
+  const source = await bridgeSource;
+  const layout = source.match(
+    /int32_t antiky_terminal_layout\([\s\S]*?\n\}/,
+  )?.[0];
+  const hide = source.match(
+    /int32_t antiky_terminal_hide\([\s\S]*?\n\}/,
+  )?.[0];
+
+  assert.ok(layout, 'native terminal layout must remain explicit and inspectable');
+  assert.ok(hide, 'native terminal hide must remain explicit and inspectable');
+  assert.match(layout, /antiky_view\.hidden = NO/);
+  assert.match(hide, /antiky_view\.hidden = YES/);
+});

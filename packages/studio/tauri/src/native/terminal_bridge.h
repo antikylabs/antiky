@@ -30,9 +30,9 @@ int32_t antiky_terminal_layout(
     double height,
     char *error,
     size_t error_capacity);
+int32_t antiky_terminal_hide(char *error, size_t error_capacity);
 int32_t antiky_terminal_focus(char *error, size_t error_capacity);
 void antiky_terminal_close(void);
 antiky_terminal_status_s antiky_terminal_status(void);
 
 #endif
-

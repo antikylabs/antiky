@@ -49,6 +49,7 @@ unsafe extern "C" {
         error: *mut c_char,
         error_capacity: usize,
     ) -> i32;
+    fn antiky_terminal_hide(error: *mut c_char, error_capacity: usize) -> i32;
     fn antiky_terminal_focus(error: *mut c_char, error_capacity: usize) -> i32;
     fn antiky_terminal_close();
     fn antiky_terminal_status() -> BridgeStatus;
@@ -104,6 +105,12 @@ pub(crate) fn layout(bounds: TerminalBounds) -> Result<(), NativeError> {
             error.len(),
         )
     };
+    bridge_result(code, &error)
+}
+
+pub(crate) fn hide() -> Result<(), NativeError> {
+    let mut error = [0; ERROR_CAPACITY];
+    let code = unsafe { antiky_terminal_hide(error.as_mut_ptr(), error.len()) };
     bridge_result(code, &error)
 }
 

@@ -29,3 +29,11 @@ test('the main window can invoke only the bounded Studio command surface', async
     'allow-terminal-status',
   ]);
 });
+
+test('the main window can reach the website narrow-layout breakpoint', async () => {
+  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
+  const [mainWindow] = config.app.windows;
+
+  assert.ok(mainWindow.minWidth <= 760);
+  assert.ok(mainWindow.width > mainWindow.minWidth);
+});
