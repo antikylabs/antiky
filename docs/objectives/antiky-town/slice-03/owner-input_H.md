@@ -25,35 +25,38 @@ change the recommendation. Change the status to `ANSWERED` after all answers are
 - Semantic movement input and movement results are temporary. They do not enter durable history.
 - Keep `town-study` runnable as the reference.
 - Humans and agents use the same development service through `antiky tool` and MCP Tools.
-- Keep authoritative collision on the CPU so the same code can run in a browser, headless test, or
-  future server. Keep suitable shading, visual animation, and interpolation on the GPU with no
-  readback.
+- ADR 0018 selects physics authority independently from CPU or GPU execution. The server owns
+  online authority and starts with CPU physics. Client GPU physics stays temporary unless the local
+  session owns authority.
+- Use CPU physics for the Slice 03 character motor because game code and inspection need its result
+  in the same simulation step. This is a workload decision, not a Framework-wide CPU rule.
 
 ## Question 1: Should we accept a narrow authoritative-physics ADR now?
 
 ### Context
 
-[`UNDER_REVIEW_A.md` candidate 1](../../../adr/UNDER_REVIEW_A.md#1-authoritative-physics) is needed
-before Framework owns character collision behavior. Antiky also needs headless and future server
-simulation. GPU readback cannot be part of that authority path.
+[ADR 0018](../../../adr/framework/0018-select-physics-authority-and-execution-independently_H.md)
+now defines physics authority and execution. It keeps online authority on the server, permits
+temporary client GPU physics, and makes CPU the first server implementation.
 
 ### Recommendation
 
-Accept a narrow ADR before implementation. Keep character movement and collision authoritative on
-the CPU. Let the motor query a small `CharacterPhysicsWorld` interface. Keep Town's collider and
-walk-surface adapter private. Keep contacts and runtime handles temporary.
+Use ADR 0018. Keep Slice 03 character movement and collision authoritative in the local
+`EngineSession`. Use CPU execution because game logic, headless tests, inspection, and actor
+snapshots need the result. Let the motor query a small `CharacterPhysicsWorld` interface. Keep
+Town's collider and walk-surface adapter private. Keep contacts and runtime handles temporary.
 
 This does not add a CPU-to-GPU round trip. The renderer receives a derived actor snapshot, and the
 GPU does not return it to the CPU. BroMetal can continue to do shading, visual animation, and useful
-interpolation on the GPU. A GPU-authoritative motor would require readback for browser inspection
-and a different implementation for headless or server use, so it is not suitable for this slice.
+interpolation on the GPU. A GPU character motor would require readback for the CPU consumers in
+this slice, so it is not suitable for this workload.
 
 Do not add a public general physics service or a Rapier dependency. Reconsider Rapier after a
 second physics consumer or measurements prove that the current motor is not enough.
 
 ### Owner answer
 
-`PENDING`
+`APPROVE — Use ADR 0018 without creating a Framework-wide CPU physics rule.`
 
 ## Question 2: Should the tested character motor become a Framework API?
 

@@ -129,7 +129,7 @@ partial updates. Future GPU culling or derived render data belongs behind Slice 
 authoritative or require readback.
 
 The complete [`UNDER_REVIEW_A.md`](../../../adr/UNDER_REVIEW_A.md) was reviewed. Candidate 11 needs
-the narrow ADR in owner question 1. Candidate 1 is inherited from Slice 03. Candidates 2, 3, 15,
+the narrow ADR in owner question 1. ADR 0018 is inherited from Slice 03. Candidates 2, 3, 15,
 and 16 do not block this slice because Town schemas stay private and this adds no ECS, extension API,
 or shipped package.
 

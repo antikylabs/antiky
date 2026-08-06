@@ -10,16 +10,15 @@ For a short review, answer the questions in [`owner-input_H.md`](owner-input_H.m
 | Owner | Antiky Framework maintainers |
 | Outcome | The hero and eight NPCs advance through the shipped fixed `EngineSession` and expose stable actor inspection |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
-| Architecture decisions | Accepted ADRs below; [authoritative-physics candidate](../../../adr/UNDER_REVIEW_A.md#1-authoritative-physics) must become an accepted ADR |
+| Architecture decisions | Accepted ADRs below, including [ADR 0018](../../../adr/framework/0018-select-physics-authority-and-execution-independently_H.md) |
 | Depends on | [`../slice-02/plan.md`](../slice-02/plan.md) complete, including ADRs 0016 and 0017 |
-| Alignment revision | `8aa85b0e6f75db80be0a2a3720ef78c16adb675b` |
+| Alignment revision | `dd5ddae179da2ce2c9eb27a45a34f1c28ecbb6ed` |
 | Review date | `2026-08-05` |
 | Complete check | `node --experimental-strip-types --experimental-transform-types docs/objectives/antiky-town/slice-03/verification/verify.mjs` |
 | Evidence | `docs/objectives/antiky-town/slice-03/outputs/{run-id}/receipt.json` |
 
 The goal runner must read the complete owner-input file. It must stop on a `PENDING` answer. Slice
-02 and its hardening work are complete. Implementation must still stop until the required physics
-ADR is accepted and BroMetal is current.
+02 and its hardening work are complete. ADR 0018 is accepted, and BroMetal is current.
 
 Goal command:
 
@@ -34,7 +33,8 @@ Goal command:
 - Give all nine actors stable entity IDs and shared read-only inspection Tools.
 - Publish actor inspection and render poses only after all nine actor updates succeed.
 - Make the renderer consume the last completed actor snapshot without changing simulation.
-- Do not add a general physics service, physics dependency, ECS, movement command log, or GPU authority.
+- Do not add a general physics service, physics dependency, ECS, movement command log, or GPU
+  character motor in this slice.
 
 ## Outcome
 
@@ -104,6 +104,7 @@ the complete actor system succeeds. Rendering can interpolate but cannot write a
 - [ADR 0015: Support WebGPU only](../../../adr/framework/0015-webgpu-support-only_H.md)
 - [ADR 0016: Give platform work to the game host](../../../adr/framework/0016-give-platform-work-to-game-host_H.md)
 - [ADR 0017: Stop a session after a game-code fault](../../../adr/framework/0017-stop-engine-session-after-game-code-fault_H.md)
+- [ADR 0018: Select physics authority and execution independently](../../../adr/framework/0018-select-physics-authority-and-execution-independently_H.md)
 - [ADR 0001: Use MCP Tools for local development](../../../adr/cli/0001-use-mcp-tools-for-development_H.md)
 - [`world-and-session-model_A.md`](../../../architecture/framework/world-and-session-model_A.md)
 - [`authoritative-online-runtime_A.md`](../../../architecture/framework/authoritative-online-runtime_A.md)
@@ -129,18 +130,22 @@ compiler with a thin WebGPU runtime and no scene graph. Version 0.15.0 supports 
 storage buffers, GPU-resident render targets, and typed asynchronous GPU errors. No upgrade is
 needed.
 
-BroMetal can keep a presentation simulation on the GPU with no readback. That is not the authority
-path for character movement: collision changes gameplay, must run headlessly, and will later run on
-servers. Keep positions, collision, paths, contacts, and digests on the CPU. Keep sprite shading,
-visual animation, and any useful interpolation on the GPU. Publish one bounded nine-actor snapshot
-for each presentation, keep GPU resources stable, and perform no readback. The current reported
-actor upload is only 1,152 bytes per frame. Do not add a compute or shared-storage actor pipeline
-before Slice 05 supplies a measured render-driver boundary.
+ADR 0018 selects physics authority independently from its execution device. Online authority stays
+on the server. A client can keep temporary prediction and presentation physics on the GPU when only
+GPU work needs the result.
 
-The complete [`UNDER_REVIEW_A.md`](../../../adr/UNDER_REVIEW_A.md) was reviewed. Candidate 1 still
-needs the narrow ADR in owner question 1. The game-host decision that was candidate 13 is now
-accepted as ADR 0016. Candidates 2, 3, 8, and 15 do not block this slice because it adds no general
-runtime schema, ECS storage, event store, or extension API.
+Slice 03 keeps character positions, collision, paths, contacts, and digests on the CPU because game
+code and inspection need them in the same simulation step. This is a decision for this workload,
+not a general Framework rule. Keep sprite shading, visual animation, and useful interpolation on
+the GPU. Publish one bounded nine-actor snapshot for each presentation, keep GPU resources stable,
+and perform no readback. The current reported actor upload is only 1,152 bytes per frame. Do not add
+a compute or shared-storage actor pipeline before Slice 05 supplies a measured render-driver
+boundary.
+
+The complete [`UNDER_REVIEW_A.md`](../../../adr/UNDER_REVIEW_A.md) was reviewed. Candidate 1 became
+ADR 0018 and owner question 1 is approved. The game-host decision that was candidate 13 is accepted
+as ADR 0016. Candidates 2, 3, 8, and 15 do not block this slice because it adds no general runtime
+schema, ECS storage, event store, or extension API.
 
 ## Current state and reference
 
@@ -279,7 +284,8 @@ shared script folder. Delete it after the final outputs pass.
 
 ## Completion checks
 
-- [ ] Owner input is `ANSWERED`, Slice 02 is complete, and the required physics ADR is accepted.
+- [ ] Owner input is `ANSWERED`.
+- [x] Slice 02 is complete, and ADR 0018 is accepted.
 - [ ] Framework owns a motor that advances exactly one supplied step, and the original regressions still pass.
 - [ ] The session is the only clock and all nine actors produce repeatable completed-step state.
 - [ ] Stable actor IDs and direct, CLI, MCP, and Studio-compatible inspection agree.
