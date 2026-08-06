@@ -21,7 +21,7 @@ that a slice has not implemented.
 | --- | --- |
 | [`AGENTS.md`](AGENTS.md) | Directs agents to the shared workflow and Studio-specific sources. |
 | [`slice-list.md`](slice-list.md) | Lists active Studio slices. |
-| [`slice-00/plan.md`](slice-00/plan.md) | Opens the first terminal-and-canvas development workspace. |
+| [`slice-00/plan.md`](slice-00/plan.md) | Opens the first live development and inspection workspace. |
 | [Shared slice workflow](../antiky-town/SLICE_WORKFLOW_A.md) | Controls planning, implementation, evidence, and closeout. |
 | [Studio architecture](../../architecture/studio/overview_A.md) | Defines the editor, host, and shared-service boundaries. |
 
