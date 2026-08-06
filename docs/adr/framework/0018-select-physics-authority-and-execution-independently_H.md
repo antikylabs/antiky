@@ -23,7 +23,10 @@ Some client code must use a physics result in the same simulation step. Camera r
 inspection, and game logic are examples.
 
 GPU readback copies GPU data to the CPU. GPU readback is asynchronous. The CPU receives readback
-data in a later simulation step.
+data in a subsequent simulation step.
+
+GPU work can calculate physics state. Subsequent GPU work can use that state in the same simulation
+step without GPU readback.
 
 A GPU snapshot copies a specified quantity of GPU state for CPU use.
 
@@ -58,10 +61,10 @@ can use these results for prediction or graphics.
 
 A server result can correct or replace each client result.
 
-Antiky will use GPU execution if only GPU work uses the physics state. This rule is for temporary
-prediction and graphics work.
+Antiky will use GPU execution if only GPU work must use the physics state in that simulation step.
+CPU code can use a subsequent GPU snapshot.
 
-Antiky can use client CPU execution if client code must use the result in the same simulation step.
+Antiky can use CPU execution if CPU code must use the result in the same simulation step.
 
 A server will first use CPU execution. After tests identify a performance limit, the server can use
 GPU execution.
@@ -85,7 +88,8 @@ interface (API).
 - Online clients cannot set authoritative physics state.
 - Client GPU work can keep temporary physics state on the GPU.
 - Usual simulation work has no data round trips between the CPU and GPU.
-- Client code cannot read GPU-only physics state in the same simulation step.
+- GPU work can use GPU-only physics state in the same simulation step.
+- CPU code cannot read GPU-only physics state in the same simulation step.
 - Client prediction can be different from server state.
 - The client must correct an incorrect prediction.
 - A headless server can use CPU physics without graphics support.
@@ -93,3 +97,7 @@ interface (API).
 - Each physics workload must identify its result as authoritative or temporary.
 - Each physics workload must identify the code that uses its result.
 - Physics library selection can change without a change to this decision.
+
+## Revision history
+
+- `40991f9dd41f9e2b996c22f5875d77990ddd2c45` — Clarified same-step GPU use and GPU-to-CPU readback.
