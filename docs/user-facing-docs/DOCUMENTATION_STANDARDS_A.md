@@ -1,3 +1,7 @@
+---
+publish: false
+---
+
 # User documentation standards
 
 These standards apply to documentation for people who use Antiky to make their own games. The
@@ -144,6 +148,20 @@ milestones, demos, or repository verification runs.
 Public documentation must stand on its own. Do not require a reader to follow an ADR, architecture
 record, or objective to complete a public task. Internal records may link to public docs, but public
 docs should link only to other public docs unless a contributor-only section is clearly labeled.
+
+## Control website publication
+
+Markdown pages in the public product folders are published to the website by default. Add this
+frontmatter when a page belongs in the documentation source tree but should remain repository-only:
+
+```yaml
+---
+publish: false
+---
+```
+
+An unpublished page must not appear in website navigation, search, the sitemap, Markdown routes, or
+`llms.txt`. Do not link to an unpublished page from a published page.
 
 ## Keep advanced detail, but put it in the right place
 

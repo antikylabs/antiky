@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import CopyMarkdownButton from '@/components/CopyMarkdownButton';
+import DocsSearch from '@/components/DocsSearch';
 import {
   getDocsEntries,
   getDocsEntry,
   getDocsNavigation,
+  getDocsSearchRecords,
   renderDocsMarkdown,
   type DocsEntry,
   type DocsNavigationSection,
@@ -48,23 +51,32 @@ export default async function DocsPage({ params }: DocsPageProps) {
   const currentIndex = orderedEntries.findIndex((candidate) => candidate.href === entry.href);
   const previous = currentIndex > 0 ? orderedEntries[currentIndex - 1] : undefined;
   const next = currentIndex < orderedEntries.length - 1 ? orderedEntries[currentIndex + 1] : undefined;
+  const searchRecords = getDocsSearchRecords(entries);
 
   return (
     <div className="docs-layout wrap">
       <aside className="docs-sidebar" aria-label="Documentation navigation">
+        <DocsSearch records={searchRecords} />
         <DocsNavigation activeHref={entry.href} navigation={navigation} />
       </aside>
 
       <div className="docs-main">
         <details className="docs-mobile-navigation">
           <summary>Browse documentation</summary>
+          <DocsSearch records={searchRecords} />
           <DocsNavigation activeHref={entry.href} navigation={navigation} />
         </details>
 
-        <p className="docs-breadcrumb">
-          <Link href="/docs">Docs</Link>
-          {entry.section && <><span>/</span><span>{entry.section}</span></>}
-        </p>
+        <div className="docs-page-tools">
+          <p className="docs-breadcrumb">
+            <Link href="/docs">Docs</Link>
+            {entry.section && <><span>/</span><span>{entry.section}</span></>}
+          </p>
+          <div className="docs-page-actions">
+            <CopyMarkdownButton markdown={entry.source} />
+            <a className="docs-markdown-link" href={entry.markdownHref}>View Markdown</a>
+          </div>
+        </div>
         <article
           className="docs-prose"
           dangerouslySetInnerHTML={{ __html: renderDocsMarkdown(entry) }}

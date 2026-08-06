@@ -3,6 +3,7 @@ import 'server-only';
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, join, normalize, resolve } from 'node:path';
 import { Marked } from 'marked';
+import { canonical } from '@/lib/site';
 
 const DOCS_ROOT = resolve(process.cwd(), '../../docs/user-facing-docs');
 
@@ -28,10 +29,19 @@ export type DocsEntry = {
   description: string;
   headings: DocsHeading[];
   href: string;
+  markdownHref: string;
   relativePath: string;
   section: string | null;
   slug: string[];
   source: string;
+  title: string;
+};
+
+export type DocsSearchRecord = {
+  content: string;
+  description: string;
+  href: string;
+  section: string;
   title: string;
 };
 
@@ -42,6 +52,10 @@ export type DocsNavigationSection = {
 
 function docsHref(slug: string[]): string {
   return slug.length === 0 ? '/docs' : `/docs/${slug.join('/')}`;
+}
+
+function docsMarkdownHref(slug: string[]): string {
+  return slug.length === 0 ? '/docs/index.html.md' : `${docsHref(slug)}.md`;
 }
 
 function sourcePathToSlug(relativePath: string): string[] | null {
@@ -61,6 +75,21 @@ function plainText(markdown: string): string {
     .replace(/<[^>]+>/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function parseDocsSource(rawSource: string, relativePath: string): { publish: boolean; source: string } {
+  const frontmatter = rawSource.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if (!frontmatter) return { publish: true, source: rawSource };
+
+  const publishSetting = frontmatter[1]!.match(/^publish:\s*(\S+)\s*$/m)?.[1];
+  if (publishSetting && publishSetting !== 'true' && publishSetting !== 'false') {
+    throw new Error(`${relativePath} has an invalid publish setting; use true or false.`);
+  }
+
+  return {
+    publish: publishSetting !== 'false',
+    source: rawSource.slice(frontmatter[0].length),
+  };
 }
 
 function headingText(markdown: string): string {
@@ -113,8 +142,11 @@ function pageHeadings(source: string): DocsHeading[] {
   return headings;
 }
 
-async function readEntry(relativePath: string): Promise<DocsEntry> {
-  const source = await readFile(join(DOCS_ROOT, relativePath), 'utf8');
+async function readEntry(relativePath: string): Promise<DocsEntry | null> {
+  const rawSource = await readFile(join(DOCS_ROOT, relativePath), 'utf8');
+  const { publish, source } = parseDocsSource(rawSource, relativePath);
+  if (!publish) return null;
+
   const slug = sourcePathToSlug(relativePath);
   if (!slug) throw new Error(`Unsupported public documentation path: ${relativePath}`);
 
@@ -122,6 +154,7 @@ async function readEntry(relativePath: string): Promise<DocsEntry> {
     description: pageDescription(source),
     headings: pageHeadings(source),
     href: docsHref(slug),
+    markdownHref: docsMarkdownHref(slug),
     relativePath,
     section: slug.length > 1 && slug[0] !== 'contributing' ? slug[0]! : null,
     slug,
@@ -138,11 +171,12 @@ export async function getDocsEntries(): Promise<DocsEntry[]> {
       .map((name) => `${directory}/${name}`);
   }));
 
-  return Promise.all([
+  const entries = await Promise.all([
     readEntry('README.md'),
     ...sectionPaths.flat().map(readEntry),
     readEntry(CONTRIBUTOR_PAGE.relativePath),
   ]);
+  return entries.filter((entry): entry is DocsEntry => entry !== null);
 }
 
 export async function getDocsEntry(slug: string[]): Promise<DocsEntry | undefined> {
@@ -177,7 +211,44 @@ export async function getDocsNavigation(): Promise<DocsNavigationSection[]> {
       label: 'Contributing',
       pages: ordered(entries.filter((entry) => entry.slug[0] === 'contributing')),
     },
+  ]
+    .filter((section) => section.pages.length > 0);
+}
+
+export function getDocsSearchRecords(entries: DocsEntry[]): DocsSearchRecord[] {
+  return entries.map((entry) => ({
+    content: plainText(entry.source),
+    description: entry.description,
+    href: entry.href,
+    section: entry.section ?? 'Overview',
+    title: entry.title,
+  }));
+}
+
+export function renderLlmsTxt(entries: DocsEntry[], navigation: DocsNavigationSection[]): string {
+  const home = entries.find((entry) => entry.slug.length === 0);
+  if (!home) throw new Error('The documentation home is required to generate llms.txt.');
+
+  const lines = [
+    '# Antiky Documentation',
+    '',
+    `> ${home.description}`,
+    '',
+    'These are the public docs for developers building games with Antiky Framework, CLI, MCP, and Studio.',
+    '',
+    '## Overview',
+    '',
+    `- [${home.title}](${canonical(home.markdownHref)}): ${home.description}`,
   ];
+
+  for (const section of navigation) {
+    lines.push('', `## ${section.label}`, '');
+    for (const page of section.pages) {
+      lines.push(`- [${page.title}](${canonical(page.markdownHref)}): ${page.description}`);
+    }
+  }
+
+  return `${lines.join('\n')}\n`;
 }
 
 function escapeHtml(value: string): string {

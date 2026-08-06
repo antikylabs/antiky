@@ -28,9 +28,3 @@ agents, and Studio. Start with the task you want to complete.
 
 - [Connect Studio to a development session](studio/development-connection.md) and use the same live
   state as the CLI and MCP clients.
-
-## Documentation contributors
-
-Read the [documentation standards](DOCUMENTATION_STANDARDS_A.md) before you add or change a
-user-facing page. Planning records, implementation reports, and demo verification belong elsewhere
-in the repository.
