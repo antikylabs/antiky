@@ -23,8 +23,11 @@ antiky dev
 When you develop inside the Antiky source repository without a linked CLI binary, use:
 
 ```sh
-npm run antiky -- dev
+./node_modules/.bin/antiky dev
 ```
+
+Run the CLI directly from an interactive terminal. A shell wrapper that detaches its child from the
+terminal's foreground process group cannot pass `Ctrl-C` to Antiky for orderly shutdown.
 
 `antiky dev` starts the game, shader watcher, inspection service, and MCP server together. Studio
 finds the local session descriptor and attaches automatically. If the development command was

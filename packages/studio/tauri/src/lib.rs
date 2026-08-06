@@ -36,9 +36,9 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("Antiky Studio native host failed to start");
 
-    app.run(|_, event| {
-        if matches!(event, tauri::RunEvent::Exit) {
-            native::close();
-        }
-    });
+    // Tao delivers application termination from AppKit's `sendEvent:` callback. Destroying the
+    // native terminal there mutates AppKit state reentrantly and aborts at the Rust/Objective-C
+    // boundary. Process exit closes the PTY and reclaims the terminal; explicit terminal closes
+    // still use the bounded `terminal_close` command while the application is running.
+    app.run(|_, _| {});
 }

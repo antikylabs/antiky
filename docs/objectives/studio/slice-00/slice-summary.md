@@ -61,7 +61,7 @@ npm run dev:studio
 In the embedded terminal, start the complete development session:
 
 ```sh
-npm run antiky -- dev
+./node_modules/.bin/antiky dev
 ```
 
 Confirm that the Town appears. Open the Hierarchy, Stores, Events, MCP calls, and Diagnostics tabs. Pause the game, advance one step, and resume it.
@@ -69,8 +69,8 @@ Confirm that the Town appears. Open the Hierarchy, Stores, Events, MCP calls, an
 From another terminal, these commands exercise the same host:
 
 ```sh
-npm run antiky -- tool get_world_inspection
-npm run antiky -- tool get_event_log
+./node_modules/.bin/antiky tool get_world_inspection
+./node_modules/.bin/antiky tool get_event_log
 ```
 
 Press `Ctrl-C` in the development terminal when done. The CLI must stop its child processes and remove `.antiky/dev-session.json`.
