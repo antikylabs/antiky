@@ -20,13 +20,23 @@
     display: none;
   }
 
+  .titlebar {
+    gap: 12px;
+    padding-inline: 10px;
+  }
+
+  .titlebar-page-button {
+    min-height: 40px;
+    margin-left: auto;
+  }
+
   .brand-lockup {
     min-width: 0;
     border-right: 0;
   }
 
   .connection-state {
-    margin-left: auto;
+    margin-left: 0;
   }
 
   .controlbar {
@@ -60,6 +70,28 @@
     grid-template-columns: 1fr;
     grid-template-rows: 330px 190px 300px 220px;
     overflow: visible;
+  }
+
+  .settings-page {
+    min-height: calc(100dvh - 124px);
+  }
+
+  .settings-page-inner {
+    padding: 32px 18px 52px;
+  }
+
+  .settings-section {
+    margin-top: 30px;
+  }
+
+  .setting-row {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .setting-switch {
+    min-height: 44px;
+    justify-content: flex-start;
   }
 
   .activity-record summary {

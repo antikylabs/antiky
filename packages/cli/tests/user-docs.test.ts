@@ -38,3 +38,11 @@ test('the Studio guide describes the game-first responsive workspace', async () 
   assert.match(source, /terminal is below the game/i);
   assert.match(source, /stack in this order:\s*Live game,\s*Terminal,\s*Inspection,\s*Activity/i);
 });
+
+test('the Studio guide explains the optional online presence signal', async () => {
+  const source = await readFile(new URL('../../../docs/user-facing-docs/studio/getting-started.md', import.meta.url), 'utf8');
+
+  assert.match(source, /Settings.*Online presence signal/is);
+  assert.match(source, /does not send\s+project names, commands, activity, or usage information/i);
+  assert.match(source, /active-user count on the Antiky website/i);
+});

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { NativeTerminal } from '../NativeTerminal.tsx';
 import type { StudioDevelopmentState } from '../development/coordinator.ts';
 import type {
@@ -11,6 +13,7 @@ import { ActivityPanel } from './ActivityPanel.tsx';
 import { InspectionPanel } from './InspectionPanel.tsx';
 import { LiveGameFrame } from './LiveGameFrame.tsx';
 import { EmptyState, Panel } from './primitives.tsx';
+import { SettingsPage } from './SettingsPage.tsx';
 
 const brandUrl = new URL(
   '../../../../website/public/brand/antiky-labs-wordmark-and-text-white.svg',
@@ -24,6 +27,10 @@ type StudioShellProps = Readonly<{
   context: StudioContext;
   development: StudioDevelopmentState;
   actions: StudioShellActions;
+  initialPage?: 'settings' | 'workspace';
+  onPageChange?(page: 'settings' | 'workspace'): void;
+  onSspsPresenceChange?(enabled: boolean): boolean;
+  sspsPresenceEnabled?: boolean;
 }>;
 
 function ControlIcon({ children }: Readonly<{ children: string }>) {
@@ -43,7 +50,18 @@ function recoveryMessage(platform: StudioPlatform): string {
     : 'Start antiky dev and open this project in the desktop app to connect.';
 }
 
-export function StudioShell({ platform, context, development, actions }: StudioShellProps) {
+export function StudioShell({
+  platform,
+  context,
+  development,
+  actions,
+  initialPage = 'workspace',
+  onPageChange = () => undefined,
+  onSspsPresenceChange = () => false,
+  sspsPresenceEnabled = true,
+}: StudioShellProps) {
+  const [page, setPage] = useState(initialPage);
+  const settingsOpen = platform === 'native' && page === 'settings';
   const current = development.status === 'connected';
   const stale = development.status === 'stale';
   const snapshot = development.snapshot;
@@ -60,9 +78,13 @@ export function StudioShell({ platform, context, development, actions }: StudioS
     && pending === null;
   const connectionLabel = statusLabel(development);
   const projectLabel = context.projectName || 'No project selected';
+  const changePage = (nextPage: 'settings' | 'workspace') => {
+    setPage(nextPage);
+    onPageChange(nextPage);
+  };
 
   return (
-    <main className={`studio-shell connection-${development.status}`}>
+    <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'}`}>
       <header className="titlebar" data-tauri-drag-region="true">
         <div className="brand-lockup">
           <img alt="Antiky Labs" src={brandUrl} />
@@ -71,13 +93,30 @@ export function StudioShell({ platform, context, development, actions }: StudioS
         <div className="project-context" title={context.projectDirectory || undefined}>
           <strong>{projectLabel}</strong>
         </div>
+        {platform === 'native' && (
+          <button
+            aria-label={settingsOpen ? 'Return to workspace' : 'Open Settings'}
+            className="titlebar-page-button"
+            onClick={() => changePage(settingsOpen ? 'workspace' : 'settings')}
+            type="button"
+          >
+            {settingsOpen ? 'Workspace' : 'Settings'}
+          </button>
+        )}
         <div className="connection-state" aria-label={`Development host ${connectionLabel.toLowerCase()}`}>
           <span className={`status-dot status-${development.status}`} />
           {connectionLabel}
         </div>
       </header>
 
-      <nav className="controlbar" aria-label="Simulation controls">
+      {settingsOpen ? (
+        <div aria-label="Settings context" className="controlbar settings-contextbar">
+          <span className="controlbar-label">Studio</span>
+          <strong>Settings</strong>
+          <span>Preferences are saved on this device.</span>
+        </div>
+      ) : (
+        <nav className="controlbar" aria-label="Simulation controls">
         <span className="controlbar-label">Simulation</span>
         <div className="control-actions">
           {(development.issue || development.status === 'disconnected') && (
@@ -108,9 +147,16 @@ export function StudioShell({ platform, context, development, actions }: StudioS
           </span>
           {development.issue && <span className="control-issue">{development.issue.message}</span>}
         </div>
-      </nav>
+        </nav>
+      )}
 
-      <div className="workspace">
+      {settingsOpen ? (
+        <SettingsPage
+          onSspsPresenceChange={onSspsPresenceChange}
+          sspsPresenceEnabled={sspsPresenceEnabled}
+        />
+      ) : (
+        <div className="workspace">
         <Panel
           actions={<span className="panel-state">{current ? snapshot?.connection.state : connectionLabel}</span>}
           className="game-panel"
@@ -156,7 +202,8 @@ export function StudioShell({ platform, context, development, actions }: StudioS
           snapshot={snapshot}
           stale={stale}
         />
-      </div>
+        </div>
+      )}
 
       <footer className="statusbar">
         <span><span className={`status-dot status-${development.status}`} />{connectionLabel}</span>

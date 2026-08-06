@@ -84,6 +84,25 @@ summary:focus-visible,
   pointer-events: none;
 }
 
+.titlebar-page-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.titlebar-page-button:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
 .brand-lockup {
   display: flex;
   align-items: center;
@@ -171,6 +190,20 @@ summary:focus-visible,
   gap: 6px;
   padding: 6px 12px;
   background: var(--surface);
+}
+
+.settings-contextbar strong {
+  color: var(--text);
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.settings-contextbar > span:last-child {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 9px;
 }
 
 .controlbar-label {

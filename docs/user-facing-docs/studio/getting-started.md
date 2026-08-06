@@ -60,6 +60,19 @@ The workspace has these areas:
 The inspection panels are read-only. Studio does not expose component editing or private engine,
 renderer, or GPU objects.
 
+## Control the online presence signal
+
+Open **Settings**, then find **Online presence signal**. The setting is on by default. Turn it off if
+you do not want this Studio instance to appear in the online count.
+
+SSPS receives only the signal needed to count this Studio instance as online. Antiky does not send
+project names, commands, activity, or usage information through this signal. It only helps display
+the active-user count on the Antiky website.
+
+Changing the setting reloads Studio so the signal starts or stops immediately. Turning it off also
+removes the SSPS visitor ID that was stored on this device. The preference stays off until you turn
+it on again.
+
 ## Pause and advance the game
 
 Select **Pause** to add the development-tool pause reason. Select **Step** while paused to advance

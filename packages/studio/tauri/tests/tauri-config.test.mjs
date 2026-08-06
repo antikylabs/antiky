@@ -39,14 +39,14 @@ test('the main window can reach the website narrow-layout breakpoint', async () 
   assert.ok(mainWindow.width > mainWindow.minWidth);
 });
 
-test('the launched desktop app reports presence through the bounded SSPS integration', async () => {
+test('the launched desktop app can opt out of the bounded SSPS integration before it loads', async () => {
   const index = await readFile(resolve(appDirectory, 'index.html'), 'utf8');
   const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
 
-  assert.match(
+  assert.doesNotMatch(
     index,
     /<script async src="https:\/\/usessps\.com\/ssps\.js" data-site-id="268"><\/script>/,
-    'the desktop HTML must load the configured SSPS site',
+    'the desktop HTML must not load SSPS before the saved preference is read',
   );
   assert.match(
     config.app.security.csp,
