@@ -5,11 +5,13 @@
 | Field | Value |
 | --- | --- |
 | Status | `READY` |
+| Owner | Antiky Studio maintainers |
 | Outcome | One Tauri window shows a working `libghostty` terminal beside the live Antiky Town canvas and reports the shared `antiky dev` session |
 | Owner input | `NONE` |
 | Architecture decisions | [Studio 0001](../../../adr/studio/0001-ai-integrations_H.md), [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md), [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md), and [CLI 0001](../../../adr/cli/0001-use-mcp-tools-for-development_H.md) |
 | Depends on | The current `antiky dev` host, inspection service, and MCP server |
-| Alignment revision | `6cc1a04c18f26b571a637a2232ea2522ad587a03` |
+| Alignment revision | `36dd25ca57c0b250415c3c9141e085ed70a9fc14` |
+| Review date | `2026-08-05` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/verify.mjs` |
 | Evidence | `docs/objectives/studio/slice-00/outputs/{run-id}/receipt.json` |
 
@@ -107,10 +109,12 @@ The research used current primary sources on `2026-08-05`.
 | [Tauri frontend guidance](https://v2.tauri.app/start/frontend/) and [capabilities](https://v2.tauri.app/security/capabilities/) | Tauri hosts static SPAs and limits native access through explicit capabilities. | Use React and Vite behind `EditorHost`; expose no general shell API to the web view. |
 | [`libghostty`](https://github.com/ghostty-org/ghostty) and [Ghostling](https://github.com/ghostty-org/ghostling) | `libghostty` is embeddable and its terminal core is proven, but it has no tagged library version and API signatures still move. `libghostty-vt` supplies state, not a full renderer or session UI. | Pin one reviewed Ghostty commit and isolate it in Tauri. Prove the native surface before building the workspace around it. |
 
-BroMetal is pinned and installed at `0.15.0`; that matches the
-[latest published package](https://registry.npmjs.org/brometal/latest) on the review date. Studio
-does not import BroMetal, send per-frame render data, or read GPU state. The existing game page keeps
-all BroMetal work. No upgrade or new CPU-to-GPU path is needed for this slice.
+`npm ls brometal --all` reports the installed `0.15.0`; it matches the
+[latest package](https://registry.npmjs.org/brometal/latest). Its
+[README](https://github.com/ericdrowell/brometal) and
+[changelog](https://github.com/ericdrowell/brometal/blob/main/CHANGELOG.md) keep shaders and WebGPU
+resources below game rules. Studio imports no BroMetal API, sends no per-frame data, and reads no GPU
+state. The existing game page keeps GPU work without a canvas copy or readback. Upgrade work is `N/A`.
 
 The accepted Studio and CLI ADRs above control the slice. The complete
 [`UNDER_REVIEW_A.md`](../../../adr/UNDER_REVIEW_A.md) was reviewed. Candidates 5, 6, 7, and 12 do not
@@ -120,12 +124,25 @@ authority model, stop and create owner input before implementation continues.
 
 ## Current state and reference
 
-- `packages/studio` contains only its license and placeholder. There is no application or native host.
-- Root npm workspaces discover `packages/*`, not the required nested `packages/studio/*` packages.
+The owner fixed the package locations, `libghostty`, concept-render use, and seamless website visual
+language before this plan. No owner question remains. Town Slices 01 and 02 are complete in the
+[Town slice list](../../antiky-town/slice-list.md).
+
+| Capability | Decision | Source and proof |
+| --- | --- | --- |
+| Development session and typed client | `USE` | [`@antiky/cli` export](../../../../packages/cli/src/index.ts), [`DevelopmentClient`](../../../../packages/cli/src/development/client.ts), and [`development-session.test.ts`](../../../../packages/cli/tests/development-session.test.ts) |
+| CLI and MCP service parity | `USE` | [`mcp/server.ts`](../../../../packages/cli/src/mcp/server.ts) and [`mcp-server.test.ts`](../../../../packages/cli/tests/mcp-server.test.ts) |
+| Actual Town browser runtime | `USE` | [`LiveDemoStage.tsx`](../../../../packages/demos/src/react/LiveDemoStage.tsx) and current development-session integration tests |
+| Browser-safe development validation | `EXTEND` | Types exist, but [`client.ts`](../../../../packages/cli/src/development/client.ts) bootstraps through Node files |
+| Portable Studio app and Tauri terminal host | `CREATE` | `packages/studio` contains only its license and placeholder; root workspaces also miss `packages/studio/*` |
+| Hierarchy, inspection editing, and feedback | `DEFER` | Architecture describes them; this slice has no implementing capability or outcome need |
+
+| Hypothesis | Probe | Result rule |
+| --- | --- | --- |
+| `HYP-00`: full `libghostty` can supply the native terminal surface without a custom renderer | Build one clipped, resizable macOS surface in `CP-00` and exercise its PTY, input, focus, and disposal | `CREATE` the isolated Tauri adapter only after it passes; otherwise record `AUTHORITY_BLOCK` and stop |
+
 - `antiky dev` already supervises the game, shaders, inspection, and MCP endpoints; Codex already has
   the repository's Antiky MCP URL.
-- `DevelopmentClient` is typed, but its bootstrap imports Node file APIs. Studio needs browser-safe
-  validation and a host-owned credential bridge, not a copied engine client.
 - The website supplies the canonical mark, fonts, near-black surfaces, violet action color,
   hairlines, status colors, spacing, and radii.
 - The concept render supplies the top frame, adjacent work areas, dominant Town view, and compact
@@ -257,12 +274,14 @@ Use the shared workflow for normal isolation, permissions, retries, rollback, an
   checkout, and one output directory. Fail on a busy port; do not choose another silently.
 - Retry: use the shared retry limits. A failed native embed is a design result, not a reason to add a
   fallback implementation.
-- Rollback: stop Studio and its PTY, let `antiky dev` clean up, and correct or revert to the last
-  passing checkpoint. The slice adds no durable game-data migration.
+- Rollback: credential exposure, an orphan process, a native crash, or failed checkpoint proof starts
+  rollback. Stop Studio and its PTY, let `antiky dev` clean up, correct or revert to the last passing
+  checkpoint, and rerun its proof. The slice adds no schema or durable game-data migration.
 - Special authority: dependency downloads and native tool installation need the normal owner or
   environment permission. The slice needs no new engine mutation authority.
-- After completion: the owner runs the documented Studio command, starts `antiky dev` in its terminal,
-  checks the live Town and status, and records the next workflow as feedback before another slice.
+- After completion: Studio maintainers own the behavior and use the complete check plus attach smoke
+  as health signals. Put human feedback in `docs/objectives/01-FEEDBACK_H.txt` and agent findings in
+  `02-AGENT-FINDINGS_A.txt`. Replace or retire the native terminal only through an approved direction.
 
 Record revisions, platform and dependency versions, path labels, ports, session IDs, attempts,
 measurements, and artifacts. Redact credentials and private paths. List every changed user page.
