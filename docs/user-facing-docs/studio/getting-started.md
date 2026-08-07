@@ -6,15 +6,44 @@ host report without reading terminal output or browser internals.
 
 ## Open the workspace
 
-The current Studio is a macOS source-development build. Release packaging is not available yet.
-From the Antiky workspace that contains your game project, run:
+An [Antiky project](projects.md) has one named `<name>.antiky` manifest at its project root. Start
+the macOS source-development app with:
 
 ```sh
 npm run dev:studio
 ```
 
-Studio selects the directory where you started the command. Its terminal opens in that directory.
-Run the normal development command in the embedded terminal:
+Studio starts at the launcher. Select **Open project**, then choose the project's `.antiky` file.
+Studio reads at most 64 KiB, validates the manifest without running project code, and uses the file's
+canonical parent directory as the project root. The workspace shows the project name, manifest path,
+schema version, and project root.
+
+Use **Open project** in an active workspace to switch projects. If the new file is invalid, Studio
+reports the error and leaves the current workspace unchanged. Invalid input includes a missing,
+oversized, malformed, incompatible, or unsafe file. Canceling the picker also keeps the current
+workspace.
+
+Build the local macOS application bundle with:
+
+```sh
+npm run build --workspace @antiky/studio-tauri
+```
+
+The bundle is under `packages/studio/tauri/target/release/bundle/macos/`. It registers `.antiky` as an
+Antiky Studio document type. Double-click one `.antiky` file in Finder to open the same validated
+workspace. Opening another `.antiky` file while Studio runs switches the existing window after
+validation.
+
+If a project still uses the old `antiky.config.json`, migrate it once from the project root:
+
+```sh
+antiky migrate --name "Harbor Lights" --output harbor-lights.antiky
+```
+
+The visible `.antiky` file is tracked project input. The hidden `.antiky/` directory holds ignored
+local development state. Do not rename the runtime directory to match the manifest.
+
+Run the normal development command in the embedded terminal after the project opens:
 
 ```sh
 antiky dev

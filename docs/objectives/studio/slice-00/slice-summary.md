@@ -35,6 +35,30 @@ Git now routes every `.png` and `.jpeg` through Git LFS. The current delivery co
 assets to LFS pointers without rewriting existing history. Working-tree checkouts remain ordinary usable
 images.
 
+## Feedback 01 project boundary
+
+Antiky now uses one named `<name>.antiky` JSON manifest as the visible project boundary. The repository
+project is `antiky-town.antiky`. The old `antiky.config.json` file no longer remains as another source of
+truth. The CLI accepts an explicit manifest or exactly one manifest in the current directory. It also
+provides `antiky migrate` for an old project.
+
+Studio starts at an **Open project** launcher when no project is active. Its native picker accepts one
+`.antiky` file. The packaged macOS app owns the `.antiky` Finder association and handles cold and warm
+file-open events in the same window. Studio reads a bounded source without running project code. The
+shared `@antiky/cli/project` parser then validates the schema. A separate native validation phase resolves
+the canonical project root and working directories before activation.
+
+An active workspace shows the project name, manifest path, schema version, and project root. A canceled or
+invalid replacement keeps the current workspace. A different valid project clears the old terminal and
+development view before activation. The hidden `.antiky/` directory remains ignored local runtime state.
+
+Automated CLI, Studio, Rust, Tauri configuration, bundle, documentation, and Git LFS checks cover the
+boundary. The generated macOS `Info.plist` contains the owned `dev.antiky.project` document type.
+Owner-approved native interaction verified the launcher, picker, Settings toggle, focus order,
+cancellation, invalid replacement, and cold and warm Finder opening. The
+[Feedback 01 evidence run](outputs/studio-s00-feedback-01-20260806T233318Z/confirmation-checks.md)
+contains the native captures and final verifier result.
+
 ## What changed in the repository
 
 ### Framework
@@ -97,6 +121,21 @@ Open Studio:
 ```sh
 npm run dev:studio
 ```
+
+Select **Open project** and choose `antiky-town.antiky`. Confirm that Studio shows **Antiky Town**, the
+manifest path, schema `1`, and the repository root. Cancel a second open and confirm that the workspace
+does not change. Select an invalid `.antiky` fixture and confirm that Studio reports the error without
+replacing the current project.
+
+Build the local Finder-integrated bundle:
+
+```sh
+npm run build --workspace @antiky/studio-tauri
+```
+
+Double-click `antiky-town.antiky` in Finder. Confirm that the bundle opens the same project. Open the same
+file again while Studio runs, then open a second valid fixture. Confirm that Studio reuses one window and
+updates the project identity only after validation.
 
 In the embedded terminal, start the complete development session:
 

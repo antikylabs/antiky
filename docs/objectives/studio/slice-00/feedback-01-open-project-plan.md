@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `IN PROGRESS` |
+| Status | `IN PROGRESS — FINAL VERIFICATION` |
 | Feedback source | [Slice 00 feedback, line 1](slice-feedback.txt) |
 | Outcome | A user opens one `<name>.antiky` file and Studio binds one workspace to that file's project root |
 | Owner input | The source feedback supplies the product direction |
@@ -167,12 +167,12 @@ Node CLI owns file discovery and loading. The Studio app imports the same pure p
 
 ## Completion checks
 
-- [ ] One `.antiky` file defines one project root and one validated project description.
-- [ ] Finder and Studio can open the same valid manifest.
-- [ ] CLI and Studio reject the same invalid manifests with stable, useful errors.
-- [ ] Studio never starts project code during validation.
-- [ ] The old config does not remain as a second source of truth.
-- [ ] Actual visual usability evidence is linked in the receipt.
+- [x] One `.antiky` file defines one project root and one validated project description.
+- [x] Finder and Studio can open the same valid manifest.
+- [x] CLI and Studio reject the same invalid manifests with stable, useful errors.
+- [x] Studio never starts project code during validation.
+- [x] The old config does not remain as a second source of truth.
+- [x] Actual visual usability evidence is linked in the receipt.
 - [ ] User-facing docs, builds, tests, cleanup, and the complete check pass.
 - [ ] The receipt validates and the slice summary records the change.
 

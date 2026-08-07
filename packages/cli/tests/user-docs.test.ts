@@ -80,6 +80,37 @@ test('the Studio guide explains the optional online presence signal', async () =
   assert.match(source, /active-user count on the Antiky website/i);
 });
 
+test('the Studio guide explains opening and switching one validated Antiky project', async () => {
+  const source = await readFile(new URL('../../../docs/user-facing-docs/studio/getting-started.md', import.meta.url), 'utf8');
+
+  assert.match(source, /<name>\.antiky/);
+  assert.match(source, /Open project/i);
+  assert.match(source, /project name, manifest path,\s*schema version, and project root/i);
+  assert.match(source, /invalid.*current workspace.*unchanged/is);
+  assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
+});
+
+test('the dedicated Projects guide documents the public project workflow', async () => {
+  const [source, index] = await Promise.all([
+    readFile(new URL('../../../docs/user-facing-docs/studio/projects.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/user-facing-docs/README.md', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(index, /\[Create and open an Antiky project\]\(studio\/projects\.md\)/);
+  assert.match(source, /^# Antiky projects$/m);
+  assert.match(source, /<name>\.antiky/);
+  assert.match(source, /"schemaVersion": 1/);
+  assert.match(source, /"development": \{/);
+  assert.match(source, /"network": \{/);
+  assert.match(source, /"build": \{/);
+  assert.match(source, /antiky dev --project path\/to\/harbor-lights\.antiky/);
+  assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
+  assert.match(source, /Finder/i);
+  assert.match(source, /Open project/i);
+  assert.match(source, /invalid.*current project.*unchanged/is);
+  assert.match(source, /\.antiky\/.*local runtime state/is);
+});
+
 test('the CLI guide defines the one project manifest and its migration path', async () => {
   const source = await readFile(new URL('../../../docs/user-facing-docs/cli/development.md', import.meta.url), 'utf8');
 

@@ -75,9 +75,9 @@ not require one model provider.
 
 [![Antiky architecture overview](docs/user-facing-docs/assets/antiky-architecture.png)](docs/architecture/README.md)
 
-The CLI owns local configuration, child processes, builds, connections, and cleanup. The framework
-owns semantic game facts and engine rules. MCP adapts those shared services today. The future
-Studio will use the same boundary instead of implementing a second engine control path.
+The CLI owns project loading, child processes, builds, connections, and cleanup. The framework owns
+semantic game facts and engine rules. MCP and Studio adapt those shared services instead of
+implementing another engine control path.
 
 ## Quick start from source
 
@@ -104,6 +104,11 @@ npm run antiky -- tool list_point_lights
 
 Press `Ctrl-C` in the development terminal to stop every owned process and release the local ports.
 
+Start Studio with `npm run dev:studio`, select **Open project**, and choose `antiky-town.antiky`.
+The local packaged macOS app also registers `.antiky` files for Finder. See
+[Inspect a running game in Studio](docs/user-facing-docs/studio/getting-started.md) for launcher,
+picker, project switching, and workspace guidance.
+
 The public command is `antiky dev`. This repository uses `npm run antiky -- dev` until the CLI is
 packaged for installation. See [Run Antiky locally](docs/user-facing-docs/cli/development.md) for
 project manifest, inspection, lifecycle, and stable errors. See
@@ -116,6 +121,7 @@ security boundary.
 | --- | --- |
 | Start the complete Antiky development session | `npm run antiky -- dev` |
 | Start the website | `npm run dev -- website` |
+| Start Antiky Studio | `npm run dev:studio` |
 | Start one focused game or demo | `npm run dev -- demos <slug>` |
 | Watch Framework types | `npm run dev -- framework` |
 | Compile generated shaders | `npm run shaders` |

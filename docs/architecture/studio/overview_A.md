@@ -69,7 +69,7 @@ The current local connection uses this path:
 ```text
 Framework queries and commands -> antiky dev -> DevelopmentClient -> Studio panels
                                           `-> MCP Tool adapter -> MCP clients
-Tauri host -> bounded connection discovery and native terminal only
+Tauri host -> bounded project files, connection discovery, and native terminal
 ```
 
 The Tauri host reads the selected project's session descriptor. It gives one bounded connection to
@@ -94,6 +94,24 @@ The web UI depends on a narrow host contract for operations such as:
 Tauri controls application windows, installation packages, operating-system features, local
 processes, file-system permissions, and secure process messages. Only the host adapter imports Tauri.
 Panels and engine clients do not import it.
+
+The current local project boundary uses one named `<name>.antiky` JSON manifest. The parent directory
+of its canonical path is the project root. Tauri owns the file picker, Finder association, bounded file
+read, canonical paths, and native open events. It does not interpret the manifest schema.
+
+The portable app imports the pure parser from `@antiky/cli/project`. The Node CLI imports the same parser
+and owns explicit-path loading plus current-directory discovery. A project selection has two native
+phases. Validation resolves project-relative working directories without running project code. Activation
+updates the one active project only after shared schema validation and native path validation pass.
+
+```text
+Finder or native picker -> bounded Tauri source -> shared project parser -> native path validation
+CLI path or discovery -> bounded Node source -------^                     -> one active project
+```
+
+The canonical manifest path is local project identity. A SHA-256 content hash is its revision. Studio
+keeps the current workspace when a new file fails. A valid different revision clears retained connection,
+inspection, and terminal state before activation.
 
 This design lets Studio use a normal browser, a different desktop application, or a remote
 environment. It does not require a large portability framework.
