@@ -30,6 +30,48 @@ impl NativeError {
         }
     }
 
+    pub(crate) fn project_not_found() -> Self {
+        Self {
+            code: "ANTIKY_PROJECT_NOT_FOUND",
+            message: "The selected Antiky project does not exist.".into(),
+        }
+    }
+
+    pub(crate) fn project_not_file() -> Self {
+        Self {
+            code: "ANTIKY_PROJECT_NOT_FILE",
+            message: "The selected Antiky project is not a regular file.".into(),
+        }
+    }
+
+    pub(crate) fn project_too_large() -> Self {
+        Self {
+            code: "ANTIKY_PROJECT_TOO_LARGE",
+            message: "The project manifest exceeds 65536 bytes.".into(),
+        }
+    }
+
+    pub(crate) fn project_invalid(message: impl Into<String>) -> Self {
+        Self {
+            code: "ANTIKY_PROJECT_INVALID",
+            message: message.into(),
+        }
+    }
+
+    pub(crate) fn project_path_escape(message: impl Into<String>) -> Self {
+        Self {
+            code: "ANTIKY_PROJECT_PATH_ESCAPE",
+            message: message.into(),
+        }
+    }
+
+    pub(crate) fn project_ambiguous() -> Self {
+        Self {
+            code: "ANTIKY_PROJECT_AMBIGUOUS",
+            message: "Open exactly one .antiky project file.".into(),
+        }
+    }
+
     pub(crate) fn terminal_theme_invalid() -> Self {
         Self {
             code: "ANTIKY_TERMINAL_THEME_INVALID",

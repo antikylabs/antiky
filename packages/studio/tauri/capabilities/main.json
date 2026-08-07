@@ -5,7 +5,12 @@
   "windows": ["main"],
   "platforms": ["macOS"],
   "permissions": [
-    "allow-studio-context",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "allow-project-initial-event",
+    "allow-project-select",
+    "allow-project-validate",
+    "allow-project-activate",
     "allow-discover-development-connection",
     "allow-terminal-open",
     "allow-terminal-layout",

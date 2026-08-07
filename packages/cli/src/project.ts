@@ -1,5 +1,7 @@
 import { AntikyCliError } from './errors.ts';
 
+export { AntikyCliError } from './errors.ts';
+
 export const ANTIKY_PROJECT_SCHEMA_VERSION = 1 as const;
 export const ANTIKY_PROJECT_MAX_BYTES = 64 * 1024;
 

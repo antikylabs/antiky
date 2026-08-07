@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import type { AntikyProject } from '@antiky/cli/project';
+
 import { NativeTerminal } from '../NativeTerminal.tsx';
 import type { StudioDevelopmentState } from '../development/coordinator.ts';
 import type {
@@ -9,6 +11,7 @@ import type {
   StudioDevelopmentActions,
   StudioPlatform,
 } from '../development/useStudioDevelopment.ts';
+import type { NativeProjectError } from '../editor/types.ts';
 import { ActivityPanel } from './ActivityPanel.tsx';
 import { InspectionPanel } from './InspectionPanel.tsx';
 import { LiveGameFrame } from './LiveGameFrame.tsx';
@@ -28,6 +31,11 @@ type StudioShellProps = Readonly<{
   development: StudioDevelopmentState;
   actions: StudioShellActions;
   initialPage?: 'settings' | 'workspace';
+  page?: 'settings' | 'workspace';
+  project?: Pick<AntikyProject, 'manifestPath' | 'projectRoot' | 'schemaVersion'> | null;
+  projectIssue?: NativeProjectError | null;
+  projectOpening?: boolean;
+  onOpenProject?(): void;
   onPageChange?(page: 'settings' | 'workspace'): void;
   onSspsPresenceChange?(enabled: boolean): boolean | Promise<boolean>;
   sspsPresenceEnabled?: boolean;
@@ -56,11 +64,17 @@ export function StudioShell({
   development,
   actions,
   initialPage = 'workspace',
+  page: controlledPage,
+  project = null,
+  projectIssue = null,
+  projectOpening = false,
+  onOpenProject = () => undefined,
   onPageChange = () => undefined,
   onSspsPresenceChange = () => false,
   sspsPresenceEnabled = true,
 }: StudioShellProps) {
-  const [page, setPage] = useState(initialPage);
+  const [localPage, setLocalPage] = useState(initialPage);
+  const page = controlledPage ?? localPage;
   const settingsOpen = platform === 'native' && page === 'settings';
   const current = development.status === 'connected';
   const stale = development.status === 'stale';
@@ -79,12 +93,12 @@ export function StudioShell({
   const connectionLabel = statusLabel(development);
   const projectLabel = context.projectName || 'No project selected';
   const changePage = (nextPage: 'settings' | 'workspace') => {
-    setPage(nextPage);
+    setLocalPage(nextPage);
     onPageChange(nextPage);
   };
 
   return (
-    <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'}`}>
+    <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'} platform-${platform}${!settingsOpen && project ? ' has-project-boundary' : ''}`}>
       <header className="titlebar" data-tauri-drag-region="true">
         <div className="brand-lockup">
           <img alt="Antiky Labs" src={brandUrl} />
@@ -93,6 +107,14 @@ export function StudioShell({
         <div className="project-context" title={context.projectDirectory || undefined}>
           <strong>{projectLabel}</strong>
         </div>
+        {platform === 'native' && project && (
+          <button
+            className="titlebar-page-button"
+            disabled={projectOpening}
+            onClick={onOpenProject}
+            type="button"
+          >{projectOpening ? 'Opening…' : 'Open project'}</button>
+        )}
         {platform === 'native' && (
           <button
             aria-label={settingsOpen ? 'Return to workspace' : 'Open Settings'}
@@ -148,6 +170,17 @@ export function StudioShell({
           {development.issue && <span className="control-issue">{development.issue.message}</span>}
         </div>
         </nav>
+      )}
+
+      {!settingsOpen && project && (
+        <div className="project-boundary" aria-label="Active project boundary">
+          <span><strong>Manifest</strong>{project.manifestPath}</span>
+          <span><strong>Schema {project.schemaVersion}</strong></span>
+          <span><strong>Project root</strong>{project.projectRoot}</span>
+          {projectIssue && (
+            <span className="project-open-issue" role="alert">{projectIssue.message}</span>
+          )}
+        </div>
       )}
 
       {settingsOpen ? (

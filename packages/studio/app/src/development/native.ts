@@ -39,15 +39,6 @@ function readString(value: unknown, minimum: number, maximum: number): string {
   return value;
 }
 
-export function parseStudioContext(value: unknown): StudioContext {
-  const record = readObject(value);
-  checkExactKeys(record, ['projectDirectory', 'projectName']);
-  return Object.freeze({
-    projectDirectory: readString(record.projectDirectory, 1, 4_096),
-    projectName: readString(record.projectName, 1, 128),
-  });
-}
-
 export function parseNativeDevelopmentConnection(value: unknown): DevelopmentConnection {
   const record = readObject(value);
   checkExactKeys(record, [
@@ -87,10 +78,6 @@ export function parseNativeDevelopmentConnection(value: unknown): DevelopmentCon
     inspectionUrl,
     credential: readString(record.credential, 32, 512),
   });
-}
-
-export async function readNativeStudioContext(): Promise<StudioContext> {
-  return parseStudioContext(await invoke<unknown>('studio_context'));
 }
 
 export async function discoverNativeDevelopmentConnection(): Promise<DevelopmentConnection> {

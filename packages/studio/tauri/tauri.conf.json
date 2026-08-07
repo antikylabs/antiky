@@ -30,7 +30,22 @@
     }
   },
   "bundle": {
-    "active": false,
+    "active": true,
+    "targets": ["app"],
+    "fileAssociations": [
+      {
+        "ext": ["antiky"],
+        "name": "Antiky Project",
+        "description": "Antiky project manifest",
+        "mimeType": "application/x-antiky-project",
+        "role": "Editor",
+        "rank": "Owner",
+        "exportedType": {
+          "identifier": "dev.antiky.project",
+          "conformsTo": ["public.json", "public.data"]
+        }
+      }
+    ],
     "resources": {
       "resources/terminal/antiky-studio.ghostty": "terminal/antiky-studio.ghostty"
     },

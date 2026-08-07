@@ -16,6 +16,23 @@
     min-height: 100dvh;
   }
 
+  .studio-shell.has-project-boundary {
+    grid-template-rows: 50px auto auto auto minmax(0, 1fr) 30px;
+  }
+
+  .project-boundary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    padding-block: 9px;
+  }
+
+  .project-boundary .project-open-issue {
+    flex-basis: auto;
+    text-align: left;
+    white-space: normal;
+  }
+
   .project-context {
     display: none;
   }

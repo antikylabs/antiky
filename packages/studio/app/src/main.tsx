@@ -22,6 +22,7 @@ import './inspection.css';
 import './activity.css';
 import './terminal.css';
 import './settings.css';
+import './launcher.css';
 import './responsive.css';
 
 const root = document.querySelector('#root');

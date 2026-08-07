@@ -180,6 +180,36 @@ test('workspace follows the website game-first layout contract', () => {
   }
 });
 
+test('native workspace shows the active project boundary and can open a replacement', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      context={{ projectDirectory: '/projects/harbor', projectName: 'Harbor Lights' }}
+      development={development}
+      onOpenProject={() => undefined}
+      platform="native"
+      project={{
+        manifestPath: '/projects/harbor/harbor-lights.antiky',
+        projectRoot: '/projects/harbor',
+        schemaVersion: 1,
+      }}
+      projectIssue={{
+        code: 'ANTIKY_PROJECT_INVALID',
+        message: 'The replacement manifest is not valid JSON. Harbor Lights remains active.',
+      }}
+    />,
+  );
+
+  assert.match(html, /<button[^>]*>Open project<\/button>/);
+  assert.match(html, /Harbor Lights/);
+  assert.match(html, /harbor-lights\.antiky/);
+  assert.match(html, /Schema 1/);
+  assert.match(html, /\/projects\/harbor/);
+  assert.match(html, /role="alert"/);
+  assert.match(html, /replacement manifest is not valid JSON/);
+  assert.match(html, /Harbor Lights remains active/);
+});
+
 test('workspace chrome uses the compact website dimensions', () => {
   assert.match(
     shellStyles,
@@ -318,8 +348,13 @@ test('the custom title bar remains a usable native window drag region', () => {
   );
 
   assert.match(html, /<header class="titlebar" data-tauri-drag-region="true">/);
+  assert.match(html, /class="studio-shell [^"]*platform-native/);
   assert.match(shellStyles, /\.titlebar\s*>\s*\*\s*\{[^}]*pointer-events:\s*none;/s);
   assert.match(shellStyles, /\.titlebar\s*\{[^}]*user-select:\s*none;/s);
+  assert.match(
+    shellStyles,
+    /\.studio-shell\.platform-native \.titlebar\s*\{[^}]*padding-left:\s*78px/s,
+  );
 });
 
 test('a lost session keeps retained inspection visibly stale and removes the live game', () => {

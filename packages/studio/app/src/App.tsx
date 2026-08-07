@@ -1,8 +1,12 @@
+import { useState } from 'react';
+
+import { ProjectLauncher } from './components/ProjectLauncher.tsx';
 import { StudioShell } from './components/StudioShell.tsx';
 import {
   useStudioDevelopment,
   type StudioPlatform,
 } from './development/useStudioDevelopment.ts';
+import { useEditorProject } from './editor/useEditorProject.ts';
 
 export type StudioPage = 'settings' | 'workspace';
 
@@ -33,16 +37,38 @@ export function App({
   platform,
   sspsPresenceEnabled = true,
 }: AppProps) {
-  const view = useStudioDevelopment(platform);
+  const [page, setPage] = useState(initialPage);
+  const editor = useEditorProject(platform);
+  const view = useStudioDevelopment(platform, editor.state.project);
+  const changePage = (nextPage: StudioPage) => {
+    setPage(nextPage);
+    onPageChange(nextPage);
+  };
+
+  if (platform === 'native' && page === 'workspace' && editor.state.project === null) {
+    return (
+      <ProjectLauncher
+        issue={editor.state.issue}
+        onOpenProject={() => { void editor.openProject(); }}
+        onOpenSettings={() => changePage('settings')}
+        opening={editor.state.opening}
+      />
+    );
+  }
+
   return (
     <StudioShell
       actions={view.actions}
       context={view.context}
       development={view.development}
-      initialPage={initialPage}
-      onPageChange={onPageChange}
+      onOpenProject={() => { void editor.openProject(); }}
+      onPageChange={changePage}
       onSspsPresenceChange={onSspsPresenceChange}
       platform={platform}
+      page={page}
+      project={editor.state.project}
+      projectIssue={editor.state.issue}
+      projectOpening={editor.state.opening}
       sspsPresenceEnabled={sspsPresenceEnabled}
     />
   );

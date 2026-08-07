@@ -35,7 +35,12 @@ test('the main window can invoke only the bounded Studio command surface', async
     'utf8',
   ));
   assert.deepEqual(capability.permissions, [
-    'allow-studio-context',
+    'core:event:allow-listen',
+    'core:event:allow-unlisten',
+    'allow-project-initial-event',
+    'allow-project-select',
+    'allow-project-validate',
+    'allow-project-activate',
     'allow-discover-development-connection',
     'allow-terminal-open',
     'allow-terminal-layout',
@@ -43,6 +48,47 @@ test('the main window can invoke only the bounded Studio command surface', async
     'allow-terminal-close',
     'allow-terminal-status',
   ]);
+});
+
+test('the local macOS app bundle owns the named Antiky project association', async () => {
+  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
+
+  assert.equal(config.bundle.active, true);
+  assert.deepEqual(config.bundle.targets, ['app']);
+  assert.deepEqual(config.bundle.fileAssociations, [{
+    ext: ['antiky'],
+    name: 'Antiky Project',
+    description: 'Antiky project manifest',
+    mimeType: 'application/x-antiky-project',
+    role: 'Editor',
+    rank: 'Owner',
+    exportedType: {
+      identifier: 'dev.antiky.project',
+      conformsTo: ['public.json', 'public.data'],
+    },
+  }]);
+});
+
+test('project state exists before macOS can deliver a cold Finder open event', async () => {
+  const source = await readFile(resolve(packageDirectory, 'src/lib.rs'), 'utf8');
+  const stateRegistration = source.indexOf('.manage(StudioState');
+  const setup = source.indexOf('.setup(|app|');
+
+  assert.notEqual(stateRegistration, -1, 'Studio state must be registered on the builder');
+  assert.ok(
+    stateRegistration < setup,
+    'Finder can deliver RunEvent::Opened before the setup callback initializes resources',
+  );
+});
+
+test('the native project picker accepts one file and restricts selection to .antiky', async () => {
+  const picker = await readFile(resolve(packageDirectory, 'src/native/project_picker.m'), 'utf8');
+
+  assert.match(picker, /setCanChooseFiles:YES/);
+  assert.match(picker, /setCanChooseDirectories:NO/);
+  assert.match(picker, /setAllowsMultipleSelection:NO/);
+  assert.match(picker, /setAllowedFileTypes:@\[@"antiky"\]/);
+  assert.match(picker, /NSModalResponseOK/);
 });
 
 test('the main window can reach the website narrow-layout breakpoint', async () => {

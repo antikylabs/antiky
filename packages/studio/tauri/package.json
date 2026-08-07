@@ -8,7 +8,7 @@
     "predev": "npm run prepare:ghostty",
     "dev": "tauri dev",
     "prebuild": "npm run prepare:ghostty",
-    "build": "tauri build --no-bundle",
+    "build": "tauri build --bundles app",
     "pretest": "npm run prepare:ghostty",
     "test": "node --test tests/*.test.mjs && cargo test",
     "pretypecheck": "npm run prepare:ghostty",

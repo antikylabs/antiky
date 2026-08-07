@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { renderToStaticMarkup } from 'react-dom/server';
 import { test } from 'vitest';
 
 import { App, resolveInitialStudioPage, studioPageHref } from './App.tsx';
+
+const launcherStyles = readFileSync(new URL('./launcher.css', import.meta.url), 'utf8');
 
 test('browser Studio shell exposes the complete read-only workspace with an honest terminal state', () => {
   const html = renderToStaticMarkup(<App platform="browser" />);
@@ -23,11 +26,22 @@ test('browser Studio shell exposes the complete read-only workspace with an hone
   assert.doesNotMatch(html, /contenteditable|Edit component|Save changes/i);
 });
 
-test('native Studio shell mounts the embedded terminal surface', () => {
+test('native Studio starts at the project launcher without opening a terminal', () => {
   const html = renderToStaticMarkup(<App platform="native" />);
 
-  assert.match(html, /Embedded native terminal/);
-  assert.doesNotMatch(html, /Terminal is ready to open/);
+  assert.match(html, /<h1[^>]*>Open a project<\/h1>/);
+  assert.match(html, /Choose an? <code>\.antiky<\/code> file\./);
+  assert.match(html, /<button[^>]*>Choose file<\/button>/);
+  assert.doesNotMatch(html, /Project boundary steps|validates the manifest|project root/i);
+  assert.doesNotMatch(html, /Embedded native terminal/);
+  assert.match(
+    launcherStyles,
+    /\.project-launcher \.titlebar\s*\{[^}]*padding-left:\s*78px/s,
+  );
+  assert.match(
+    launcherStyles,
+    /\.launcher-copy h1\s*\{[^}]*font-size:\s*clamp\(30px, 4vw, 42px\)[^}]*white-space:\s*nowrap/s,
+  );
 });
 
 test('native Studio has a Settings page that explains and controls the online presence signal', () => {

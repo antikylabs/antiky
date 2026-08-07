@@ -1,7 +1,10 @@
 use std::path::{Path, PathBuf};
 
 const COMMANDS: &[&str] = &[
-    "studio_context",
+    "project_initial_event",
+    "project_select",
+    "project_validate",
+    "project_activate",
     "discover_development_connection",
     "terminal_open",
     "terminal_layout",
@@ -28,6 +31,7 @@ fn main() {
 
     cc::Build::new()
         .file("src/native/terminal_bridge.m")
+        .file("src/native/project_picker.m")
         .include(&include)
         .flag("-fobjc-arc")
         .flag("-fblocks")
@@ -44,12 +48,15 @@ fn main() {
         "IOSurface",
         "Metal",
         "QuartzCore",
+        "UniformTypeIdentifiers",
     ] {
         println!("cargo:rustc-link-lib=framework={framework}");
     }
     println!("cargo:rustc-link-lib=c++");
     println!("cargo:rerun-if-changed=src/native/terminal_bridge.h");
     println!("cargo:rerun-if-changed=src/native/terminal_bridge.m");
+    println!("cargo:rerun-if-changed=src/native/project_picker.h");
+    println!("cargo:rerun-if-changed=src/native/project_picker.m");
 
     let attributes = tauri_build::Attributes::new()
         .app_manifest(tauri_build::AppManifest::new().commands(COMMANDS));

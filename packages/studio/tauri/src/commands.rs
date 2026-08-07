@@ -1,37 +1,35 @@
 use std::ffi::c_void;
-use std::path::PathBuf;
+use std::sync::{Mutex, OnceLock};
 
 use futures_channel::oneshot;
-use serde::Serialize;
 use tauri::{State, WebviewWindow};
 
 use crate::{
-    DevelopmentConnection, NativeError, TerminalBounds, TerminalTheme, native,
-    read_development_connection,
+    DevelopmentConnection, NativeError, NativeProjectEvent, NativeProjectSource,
+    ProjectActivationRequest, ProjectHost, ProjectValidationRequest, TerminalBounds, TerminalTheme,
+    ValidatedProjectBoundary, native, project_picker::pick_project, read_development_connection,
 };
 
 pub(crate) struct StudioState {
-    pub project_directory: PathBuf,
-    pub terminal_theme: Result<TerminalTheme, NativeError>,
+    pub project: Mutex<ProjectHost>,
+    pub terminal_theme: OnceLock<Result<TerminalTheme, NativeError>>,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct StudioContext {
-    project_directory: String,
-    project_name: String,
+fn project_host(
+    state: &StudioState,
+) -> Result<std::sync::MutexGuard<'_, ProjectHost>, NativeError> {
+    state
+        .project
+        .lock()
+        .map_err(|_| NativeError::native_unavailable("Project state is unavailable."))
 }
 
-fn context_from_state(state: &StudioState) -> StudioContext {
-    StudioContext {
-        project_directory: state.project_directory.to_string_lossy().into_owned(),
-        project_name: state
-            .project_directory
-            .file_name()
-            .and_then(|name| name.to_str())
-            .unwrap_or("Project")
-            .to_owned(),
-    }
+fn terminal_theme(state: &StudioState) -> Result<&TerminalTheme, NativeError> {
+    let configured = state
+        .terminal_theme
+        .get()
+        .ok_or_else(|| NativeError::native_unavailable("Studio resources are not initialized."))?;
+    configured.as_ref().map_err(Clone::clone)
 }
 
 async fn run_on_main_thread<T, F>(window: WebviewWindow, operation: F) -> Result<T, NativeError>
@@ -52,15 +50,48 @@ where
 }
 
 #[tauri::command]
-pub(crate) fn studio_context(state: State<'_, StudioState>) -> StudioContext {
-    context_from_state(state.inner())
+pub(crate) fn project_initial_event(
+    state: State<'_, StudioState>,
+) -> Result<Option<NativeProjectEvent>, NativeError> {
+    Ok(project_host(state.inner())?.initial_event())
+}
+
+#[tauri::command]
+pub(crate) async fn project_select(
+    window: WebviewWindow,
+    state: State<'_, StudioState>,
+) -> Result<Option<NativeProjectSource>, NativeError> {
+    let path = run_on_main_thread(window, |_| pick_project()).await?;
+    match path {
+        Some(path) => project_host(state.inner())?
+            .stage_open(&path, false)
+            .map(Some),
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
+pub(crate) fn project_validate(
+    state: State<'_, StudioState>,
+    request: ProjectValidationRequest,
+) -> Result<ValidatedProjectBoundary, NativeError> {
+    project_host(state.inner())?.validate(request)
+}
+
+#[tauri::command]
+pub(crate) fn project_activate(
+    state: State<'_, StudioState>,
+    request: ProjectActivationRequest,
+) -> Result<(), NativeError> {
+    project_host(state.inner())?.activate(request)
 }
 
 #[tauri::command]
 pub(crate) fn discover_development_connection(
     state: State<'_, StudioState>,
 ) -> Result<DevelopmentConnection, NativeError> {
-    read_development_connection(&state.project_directory)
+    let project_directory = project_host(state.inner())?.active_project_root()?;
+    read_development_connection(&project_directory)
 }
 
 #[tauri::command]
@@ -70,12 +101,8 @@ pub(crate) async fn terminal_open(
     bounds: TerminalBounds,
 ) -> Result<(), NativeError> {
     let bounds = bounds.validate()?;
-    let project_directory = state.project_directory.clone();
-    let terminal_theme = state
-        .terminal_theme
-        .as_ref()
-        .map_err(|error| error.clone())?
-        .revalidate()?;
+    let project_directory = project_host(state.inner())?.active_project_root()?;
+    let terminal_theme = terminal_theme(state.inner())?.revalidate()?;
     run_on_main_thread(window, move |window| {
         let parent = window
             .ns_view()

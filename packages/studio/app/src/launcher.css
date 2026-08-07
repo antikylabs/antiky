@@ -1,0 +1,106 @@
+.project-launcher {
+  display: grid;
+  grid-template-rows: 50px minmax(0, 1fr);
+  width: 100vw;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 72% 26%, rgba(139, 124, 255, .13), transparent 34%),
+    linear-gradient(135deg, #050506 0%, #090a0d 58%, #07070a 100%);
+}
+
+.project-launcher .titlebar-page-button {
+  margin-left: auto;
+}
+
+.project-launcher .titlebar {
+  padding-left: 78px;
+}
+
+.launcher-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: clamp(44px, 8vw, 100px);
+}
+
+.launcher-copy {
+  width: min(720px, 100%);
+  text-align: center;
+}
+
+.launcher-copy h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 560;
+  letter-spacing: -.035em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.launcher-copy > p {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.launcher-copy code {
+  color: var(--text);
+  font-family: var(--mono);
+}
+
+.launcher-copy > button {
+  min-height: 44px;
+  margin-top: 22px;
+  padding: 0 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 72%, white);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #08080b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.launcher-copy > button:disabled {
+  opacity: .62;
+  cursor: wait;
+}
+
+.launcher-issue {
+  display: grid;
+  gap: 5px;
+  margin-top: 22px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--error) 45%, var(--line));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--error) 7%, var(--surface));
+}
+
+.launcher-issue strong {
+  color: var(--error);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.launcher-issue span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .launcher-stage {
+    padding: 48px 24px;
+  }
+
+  .launcher-copy > button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .launcher-copy h1 {
+    white-space: normal;
+  }
+}

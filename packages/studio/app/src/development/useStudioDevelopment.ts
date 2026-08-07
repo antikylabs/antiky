@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { AntikyProject } from '@antiky/cli/project';
+
 import {
   createStudioCoordinator,
   createStudioInitialState,
@@ -9,7 +11,6 @@ import {
 } from './coordinator.ts';
 import {
   discoverNativeDevelopmentConnection,
-  readNativeStudioContext,
   type StudioContext,
 } from './native.ts';
 
@@ -33,14 +34,30 @@ const browserContext: StudioContext = Object.freeze({
   projectName: 'Browser workspace',
 });
 
-export function useStudioDevelopment(platform: StudioPlatform): StudioDevelopmentView {
-  const [context, setContext] = useState<StudioContext>(browserContext);
+const emptyNativeContext: StudioContext = Object.freeze({
+  projectDirectory: '',
+  projectName: 'No project selected',
+});
+
+export function useStudioDevelopment(
+  platform: StudioPlatform,
+  project: AntikyProject | null = null,
+): StudioDevelopmentView {
   const [development, setDevelopment] = useState(createStudioInitialState);
+  const [developmentKey, setDevelopmentKey] = useState<string | null>(null);
   const coordinator = useRef<StudioCoordinator | null>(null);
+  const projectKey = platform === 'native' && project
+    ? `${project.manifestPath}:${project.revision}`
+    : null;
+  const context: StudioContext = platform === 'browser'
+    ? browserContext
+    : project
+      ? Object.freeze({ projectDirectory: project.projectRoot, projectName: project.name })
+      : emptyNativeContext;
 
   useEffect(() => {
-    if (platform !== 'native') {
-      setContext(browserContext);
+    setDevelopmentKey(projectKey);
+    if (platform !== 'native' || projectKey === null) {
       setDevelopment(createStudioInitialState());
       return undefined;
     }
@@ -53,9 +70,6 @@ export function useStudioDevelopment(platform: StudioPlatform): StudioDevelopmen
       },
     });
     coordinator.current = nextCoordinator;
-    void readNativeStudioContext().then((nextContext) => {
-      if (active) setContext(nextContext);
-    }).catch(() => undefined);
     void nextCoordinator.start();
 
     return () => {
@@ -63,7 +77,7 @@ export function useStudioDevelopment(platform: StudioPlatform): StudioDevelopmen
       if (coordinator.current === nextCoordinator) coordinator.current = null;
       nextCoordinator.stop();
     };
-  }, [platform]);
+  }, [platform, projectKey]);
 
   const runControl = useCallback(async (control: StudioControl): Promise<void> => {
     const current = coordinator.current;
@@ -81,7 +95,7 @@ export function useStudioDevelopment(platform: StudioPlatform): StudioDevelopmen
 
   return Object.freeze({
     context,
-    development,
+    development: developmentKey === projectKey ? development : createStudioInitialState(),
     actions: Object.freeze({
       pause: () => runControl('pause'),
       resume: () => runControl('resume'),

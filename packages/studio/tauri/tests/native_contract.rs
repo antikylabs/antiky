@@ -1,9 +1,11 @@
 use std::fs::{create_dir_all, write};
+use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use antiky_studio_lib::{
-    TerminalBounds, read_development_connection, resolve_project_directory, resolve_terminal_theme,
+    TerminalBounds, read_development_connection, read_project_source, resolve_project_directory,
+    resolve_terminal_theme, validate_project_source,
 };
 
 const TERMINAL_THEME: &str = include_str!("../resources/terminal/antiky-studio.ghostty");
@@ -79,6 +81,49 @@ fn project_resolution_prefers_npm_launch_context_and_requires_a_directory() {
     );
     std::fs::remove_dir_all(selected).expect("selected cleanup");
     std::fs::remove_dir_all(fallback).expect("fallback cleanup");
+}
+
+#[test]
+fn project_source_reading_is_bounded_canonical_and_symlink_safe() {
+    let project = fixture_directory("project-source");
+    let manifest = project.join("harbor.antiky");
+    write(&manifest, "{\"schemaVersion\":1}\n").expect("project manifest");
+
+    let source = read_project_source(&manifest, 7).expect("valid project source");
+    assert_eq!(source.selection_id, 7);
+    assert_eq!(
+        source.manifest_path,
+        manifest.canonicalize().expect("canonical manifest")
+    );
+    assert_eq!(
+        source.project_root,
+        project.canonicalize().expect("canonical root")
+    );
+    assert_eq!(source.revision.len(), 64);
+
+    let boundary = validate_project_source(&source, ".", ".").expect("valid boundary");
+    assert_eq!(boundary.selection_id, 7);
+    assert_eq!(boundary.development_working_directory, source.project_root);
+    assert_eq!(boundary.build_working_directory, source.project_root);
+
+    let outside = fixture_directory("project-source-outside");
+    symlink(&outside, project.join("linked")).expect("linked outside directory");
+    let escaped = validate_project_source(&source, "linked", ".")
+        .expect_err("working-directory escape must fail");
+    assert_eq!(escaped.code(), "ANTIKY_PROJECT_PATH_ESCAPE");
+
+    let linked_manifest = project.join("linked.antiky");
+    symlink(&manifest, &linked_manifest).expect("linked manifest");
+    let linked = read_project_source(&linked_manifest, 8).expect_err("manifest link must fail");
+    assert_eq!(linked.code(), "ANTIKY_PROJECT_PATH_ESCAPE");
+
+    let oversized = project.join("oversized.antiky");
+    write(&oversized, " ".repeat(65_537)).expect("oversized manifest");
+    let too_large = read_project_source(&oversized, 9).expect_err("oversized must fail");
+    assert_eq!(too_large.code(), "ANTIKY_PROJECT_TOO_LARGE");
+
+    std::fs::remove_dir_all(project).expect("project cleanup");
+    std::fs::remove_dir_all(outside).expect("outside cleanup");
 }
 
 #[test]
