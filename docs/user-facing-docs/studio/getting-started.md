@@ -89,6 +89,7 @@ The workspace has these areas:
 | Live game | Use the configured game page without a second renderer |
 | Terminal | Run a shell, coding agent, or Antiky command in the selected project |
 | Pause, Resume, and Step | Control the connected fixed-step engine session |
+| Restart game and Stop game | Reload or shut down the managed game session |
 | Hierarchy | Read all published entities, component summaries, and `ChildOf` relationships |
 | Stores | Read bounded authoring, runtime, and render views that the game publishes |
 | Snapshot | Inspect the complete current development and Framework snapshot |
@@ -115,12 +116,23 @@ Changing the setting reloads Studio so the signal starts or stops immediately. T
 removes the SSPS visitor ID that was stored on this device. The preference stays off until you turn
 it on again.
 
+## Restart or stop the game
+
+Select **Restart game**. It reloads the current game runtime without replacing the project service.
+Studio waits for the new runtime before publishing its current state. If the game is already
+stopped or unavailable, the same control recreates the managed project service instead.
+
+Select **Stop game** to stop the managed game host, compiler, shader watcher, inspection service,
+and MCP endpoint. The Studio window and terminal remain available. After **Stop game**, select
+**Restart game** to start a fresh managed project service for the same validated project.
+
 ## Pause and advance the game
 
 Select **Pause** to add the development-tool pause reason. Select **Step** while paused to advance
-exactly one fixed simulation step. Studio sends the completed-step count from the current snapshot,
-so a repeated or stale step cannot advance the game twice. Select **Resume** to remove only the
-tool pause reason. A user or visibility pause can keep the game paused.
+exactly one fixed simulation step and one presented frame. The paused canvas remains visible before
+and after that frame. Studio sends the completed-step count from the current snapshot, so a repeated
+or stale step cannot advance the game twice. Select **Resume** to remove only the tool pause reason.
+A user or visibility pause can keep the game paused.
 
 The controls are unavailable when the game does not publish an engine session, another control is
 pending, or the displayed data is not current.
@@ -145,10 +157,10 @@ persisted and does not enter a game build, event stream, capture, or terminal tr
 
 ## Recover from a stopped session
 
-If the managed project service stops, Studio keeps the live game mounted and marks the last
-structured view as stale. It does not present retained data as current. Brief polling failures leave
-the current workspace in place while Studio reconnects. The terminal remains available. Select
-**Retry** to ask Studio to start the same validated project service again.
+If the managed project service stops unexpectedly, Studio keeps the live game mounted and marks the
+last structured view as stale. It does not present retained data as current. Brief polling failures
+leave the current workspace in place while Studio reconnects. The terminal remains available.
+Select **Retry** to ask Studio to start the same validated project service again.
 
 An incompatible snapshot is handled the same way. Check the Diagnostics tab and the terminal for a
 stable error code. Do not edit `.antiky/dev-session.json`.

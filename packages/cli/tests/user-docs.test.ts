@@ -88,6 +88,15 @@ test('the Studio guide explains the optional online presence signal', async () =
   assert.match(source, /active-user count on the Antiky website/i);
 });
 
+test('the Studio guide explains game lifecycle and single-step controls', async () => {
+  const source = await readFile(new URL('../../../docs/user-facing-docs/studio/getting-started.md', import.meta.url), 'utf8');
+
+  assert.match(source, /\*\*Restart game\*\*.*reloads.*current game runtime/is);
+  assert.match(source, /after.*\*\*Stop game\*\*.*fresh managed project service/is);
+  assert.match(source, /\*\*Stop game\*\*.*terminal.*available/is);
+  assert.match(source, /\*\*Step\*\*.*exactly one.*presented frame/is);
+});
+
 test('the Studio guide explains opening and switching one validated Antiky project', async () => {
   const source = await readFile(new URL('../../../docs/user-facing-docs/studio/getting-started.md', import.meta.url), 'utf8');
 
