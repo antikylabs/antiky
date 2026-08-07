@@ -2,9 +2,10 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@antiky/demos'],
-  // Every demo is a hand-written WebGL2 module in this repository; there are no
-  // remote assets, so nothing here needs image or font domain configuration.
+  async rewrites() {
+    return [{ source: '/docs/:path*\\.md', destination: '/docs-markdown/:path*' }];
+  },
+  // Demo assets are local, so no image or font domains need configuration.
 };
 
 export default nextConfig;

@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { DEMOS, type DemoMeta } from '@antiky/demos/catalog';
-import { CodePanes, DemoStage, type ShaderSources } from '@antiky/demos/react';
+import DemoStage from '@/components/DemoStage';
+import { DEMOS, type DemoMeta } from '@/lib/demos';
 import { ArrowLeft, ArrowRight, ArrowUpRight } from '@/components/Icons';
 
 type Props = {
@@ -12,10 +12,9 @@ type Props = {
   prev: DemoMeta;
   next: DemoMeta;
   index: number;
-  sources?: ShaderSources;
 };
 
-export default function DemoDeck({ demo, prev, next, index, sources }: Props) {
+export default function DemoDeck({ demo, prev, next, index }: Props) {
   const router = useRouter();
 
   useEffect(() => {
@@ -53,7 +52,7 @@ export default function DemoDeck({ demo, prev, next, index, sources }: Props) {
           slug={demo.slug}
           label={`${demo.title} — interactive live study`}
           controlMode={demo.controlMode}
-          poster={demo.slug === 'town-study' ? '/media/town-study-poster.png' : undefined}
+          poster={demo.poster}
         />
       </div>
 
@@ -78,8 +77,6 @@ export default function DemoDeck({ demo, prev, next, index, sources }: Props) {
           </ul>
         </div>
       </section>
-
-      {sources ? <section className="source-section wrap"><h2>Authored once. Compiled twice.</h2><CodePanes sources={sources} /></section> : null}
     </>
   );
 }

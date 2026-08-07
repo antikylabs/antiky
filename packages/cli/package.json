@@ -1,0 +1,26 @@
+{
+  "name": "@antiky/cli",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "antiky": "./src/bin.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./development": "./src/development/index.ts",
+    "./project": "./src/project.ts",
+    "./studio-worker": "./src/studio-worker.ts"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --experimental-transform-types --test tests/actions.test.ts tests/browser-envelope.test.ts tests/build-tracker.test.ts tests/cli.test.ts tests/project.test.ts tests/studio-launch.test.ts tests/development-browser-client.test.ts tests/development-import-boundary.test.mjs tests/development-session.test.ts tests/mcp-call-log.test.ts tests/mcp-server.test.ts tests/point-light-development.test.ts tests/runtime-connection.test.ts tests/session-development.test.ts tests/user-docs.test.ts tests/world-development.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@antiky/framework": "0.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3"
+  }
+}

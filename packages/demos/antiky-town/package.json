@@ -1,0 +1,25 @@
+{
+  "name": "@antiky/demo-antiky-town",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "npm run shaders:prod && vite build",
+    "dev": "vite build --watch",
+    "shaders": "brometal dev --once",
+    "shaders:watch": "brometal dev",
+    "shaders:prod": "brometal prod",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/composition.test.ts tests/point-light-adapter.test.ts src/town/physics/character-motor.test.ts src/town/practical-light-input.test.ts && vitest run src/town/art/town-validation.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@antiky/framework": "0.0.0",
+    "brometal": "0.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3",
+    "vite": "8.2.0",
+    "vitest": "4.1.10"
+  }
+}

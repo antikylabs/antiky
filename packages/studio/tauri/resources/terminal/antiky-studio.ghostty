@@ -1,0 +1,24 @@
+# Antiky Studio owns visual keys only. The user's shell and terminal behavior stay unchanged.
+background = #08090b
+foreground = #f4f4f1
+cursor-color = #8b7cff
+cursor-text = #08090b
+selection-background = #8b7cff
+selection-foreground = #08090b
+
+palette = 0=#08090b
+palette = 1=#ff6b6b
+palette = 2=#48c78e
+palette = 3=#e9b64f
+palette = 4=#8b7cff
+palette = 5=#d48cff
+palette = 6=#5cc8d7
+palette = 7=#a6a6ae
+palette = 8=#787982
+palette = 9=#ff9a9a
+palette = 10=#7eddae
+palette = 11=#f3d37c
+palette = 12=#a69bff
+palette = 13=#e8b3ff
+palette = 14=#8ce8f0
+palette = 15=#f4f4f1

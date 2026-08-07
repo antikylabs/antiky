@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Antiky Studio",
+  "version": "0.0.0",
+  "identifier": "dev.antiky.studio",
+  "build": {
+    "beforeDevCommand": "npm run dev --workspace @antiky/studio-app",
+    "beforeBuildCommand": "npm run build --workspace @antiky/studio-app",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../app/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Antiky Studio",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 720,
+        "minHeight": 680,
+        "center": true,
+        "backgroundColor": "#08090b",
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay"
+      }
+    ],
+    "security": {
+      "capabilities": ["main"],
+      "csp": "default-src 'self'; script-src 'self' https://usessps.com; img-src 'self' asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src ipc: http://ipc.localhost http://127.0.0.1:* wss://usessps.com; frame-src http://127.0.0.1:*"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app"],
+    "fileAssociations": [
+      {
+        "ext": ["antiky"],
+        "name": "Antiky Project",
+        "description": "Antiky project manifest",
+        "mimeType": "application/x-antiky-project",
+        "role": "Editor",
+        "rank": "Owner",
+        "exportedType": {
+          "identifier": "dev.antiky.project",
+          "conformsTo": ["public.json", "public.data"]
+        }
+      }
+    ],
+    "resources": {
+      "resources/node": "project-service/node",
+      "resources/project-service.mjs": "project-service/project-service.mjs",
+      "resources/terminal/antiky-studio.ghostty": "terminal/antiky-studio.ghostty"
+    },
+    "icon": [
+      "../../website/public/brand/antiky-labs-wordmark-white.png"
+    ]
+  }
+}

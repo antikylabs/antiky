@@ -1,0 +1,13 @@
+cleanup - merge massive PR to main
+marketing - update website
+marketing - add screenshots of real studio to website and readme
+cleanup - organize demos into demos/antiky, demos/brometal
+studio - fix status bar and duplicate information
+studio - full screen game
+studio - make panels resizeable
+antiky - finish porting brometal demo to antiky
+studio - add studio click on scene and comment
+studio - studio attach/detach
+antiky - antiky framework input capture and controls
+antiky - marketing - find open source threejs or brometal games and redo in antiky
+marketing - setup awesome-antiky and awesome-brometal

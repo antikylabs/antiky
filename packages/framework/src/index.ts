@@ -1,7 +1,12 @@
-/**
- * Public Antiky Framework entry point.
- *
- * Reusable capabilities will be added here as the demos prove they are needed.
- * The package is intentionally empty at the start of the demo/framework loop.
- */
-export {};
+/** Public Antiky Framework entry point. */
+export * from './identity/ids.ts';
+export * from './inspection/events.ts';
+export * from './inspection/snapshot.ts';
+export * from './inspection/world.ts';
+export * from './point-light/commands.ts';
+export * from './point-light/inspection.ts';
+export * from './point-light/projections.ts';
+export * from './point-light/records.ts';
+export * from './point-light/service.ts';
+export * from './point-light/world-inspection.ts';
+export * from './sessions/engine-session/index.ts';

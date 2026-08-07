@@ -3,22 +3,39 @@
   "private": true,
   "version": "0.0.0",
   "workspaces": [
-    "packages/*"
+    "packages/cli",
+    "packages/framework",
+    "packages/website",
+    "packages/demos/*",
+    "packages/studio/*"
   ],
   "scripts": {
+    "antiky": "node --experimental-strip-types --experimental-transform-types packages/cli/src/bin.ts",
+    "portRelease": "node scripts/port-release.mjs",
+    "postinstall": "node scripts/patch-brometal.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:website": "node scripts/dev.mjs website",
     "dev:framework": "node scripts/dev.mjs framework",
     "dev:demos": "node scripts/dev.mjs demos",
+    "dev:studio": "npm run dev --workspace @antiky/studio-tauri",
+    "dev:studio:web": "npm run dev --workspace @antiky/studio-app",
+    "docs:api": "npm run docs:api --workspace @antiky/framework",
+    "docs:api:check": "npm run docs:api:check --workspace @antiky/framework",
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "shaders": "npm run shaders --workspace @antiky/demos"
+    "test": "sh docs/adr/tag-hash.test.sh && node --test scripts/port-release.test.mjs scripts/repository-policy.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader-output-parity.test.mjs && npm test --workspaces --if-present",
+    "check": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "next": "15.5.22",
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
   },
   "engines": {
     "node": ">=22"
   },
   "overrides": {
-    "postcss": "8.5.25",
-    "sharp": "0.35.3"
+    "postcss": "$postcss",
+    "sharp": "$sharp"
   }
 }

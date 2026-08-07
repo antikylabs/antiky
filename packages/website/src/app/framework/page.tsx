@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { DemoStage } from '@antiky/demos/react';
+import DemoStage from '@/components/DemoStage';
 import { BROMETAL_URL, BROMETAL_VERSION } from '@/lib/site';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
 

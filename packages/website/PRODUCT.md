@@ -64,7 +64,7 @@ framework. The framework must not depend on either consumer.
 
 - The website workspace is runnable and is being prepared for a complete marketing and editorial
   replacement.
-- The existing live demo harness and backend controls have been preserved in the demos workspace.
+- The live demo harness runs WebGPU through BroMetal and owns loading, pausing, input, and teardown.
 - The initial public demo program is planned; its first demo and ordering remain open.
 - The Antiky Framework workspace exists but is intentionally empty.
 - BroMetal is available today and powers the current rendering work.
@@ -127,16 +127,12 @@ the Framework story.
 
 ## Evidence on Hand
 
-Confirmed source material and working evidence include:
+Confirmed public source material and working evidence include:
 
-- the reviewed Antiky Labs product documents under `../../../docs/antikylabs/`;
 - the runnable website workspace under this directory;
-- the live demo harness, backend controls, demo registry, renderers, art helpers, and BroMetal shaders
-  under `../demos/`;
-- the scaffolded framework workspace under `../framework/`;
-- active voxel-art research under `../../../docs/lab-research/voxel-art/`;
-- active engine-composition and physics research under `../../../docs/lab-research/`; and
-- documented BroMetal contributions under `../../../docs/PRs-To-Brometal/`.
+- the live WebGPU demo harness, registry, renderers, art helpers, and BroMetal shaders under `../demos/`;
+- the scaffolded framework workspace under `../framework/`; and
+- deliberately published research and contribution artifacts when they are available on public surfaces.
 
 The existing technical demos are available as implementation evidence and salvage material. They are
 not automatically the approved initial public demo program or the creative direction for the new

@@ -1,0 +1,133 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import type { AntikyProject } from '@antiky/cli/project';
+
+import {
+  createStudioCoordinator,
+  createStudioConnectingState,
+  createStudioInitialState,
+  type StudioControl,
+  type StudioCoordinator,
+  type StudioDevelopmentState,
+} from './coordinator.ts';
+import {
+  restartNativeDevelopmentConnection,
+  startNativeDevelopmentConnection,
+  stopNativeDevelopmentConnection,
+  type StudioContext,
+} from './native.ts';
+
+export type StudioPlatform = 'browser' | 'native';
+
+export type StudioDevelopmentActions = Readonly<{
+  pause(): Promise<void>;
+  resume(): Promise<void>;
+  step(): Promise<void>;
+  refresh(): Promise<void>;
+  restartGame(): Promise<void>;
+  stopGame(): Promise<void>;
+}>;
+
+export type StudioDevelopmentView = Readonly<{
+  context: StudioContext;
+  development: StudioDevelopmentState;
+  actions: StudioDevelopmentActions;
+}>;
+
+const browserContext: StudioContext = Object.freeze({
+  projectDirectory: '',
+  projectName: 'Browser workspace',
+});
+
+const emptyNativeContext: StudioContext = Object.freeze({
+  projectDirectory: '',
+  projectName: 'No project selected',
+});
+
+export function developmentStateForProject(
+  developmentKey: string | null,
+  projectKey: string | null,
+  development: StudioDevelopmentState,
+): StudioDevelopmentState {
+  if (developmentKey === projectKey) return development;
+  return projectKey === null ? createStudioInitialState() : createStudioConnectingState();
+}
+
+export function useStudioDevelopment(
+  platform: StudioPlatform,
+  project: AntikyProject | null = null,
+): StudioDevelopmentView {
+  const [development, setDevelopment] = useState(createStudioInitialState);
+  const [developmentKey, setDevelopmentKey] = useState<string | null>(null);
+  const coordinator = useRef<StudioCoordinator | null>(null);
+  const projectKey = platform === 'native' && project
+    ? `${project.manifestPath}:${project.revision}`
+    : null;
+  const context: StudioContext = platform === 'browser'
+    ? browserContext
+    : project
+      ? Object.freeze({ projectDirectory: project.projectRoot, projectName: project.name })
+      : emptyNativeContext;
+
+  useEffect(() => {
+    setDevelopmentKey(projectKey);
+    if (platform !== 'native' || projectKey === null) {
+      setDevelopment(createStudioInitialState());
+      return undefined;
+    }
+
+    let active = true;
+    const nextCoordinator = createStudioCoordinator({
+      discoverConnection: startNativeDevelopmentConnection,
+      onState: (state) => {
+        if (active) setDevelopment(state);
+      },
+      restartConnection: async () => { await restartNativeDevelopmentConnection(); },
+      stopConnection: stopNativeDevelopmentConnection,
+    });
+    coordinator.current = nextCoordinator;
+    void nextCoordinator.start();
+
+    return () => {
+      active = false;
+      if (coordinator.current === nextCoordinator) coordinator.current = null;
+      nextCoordinator.stop();
+      void stopNativeDevelopmentConnection();
+    };
+  }, [platform, projectKey]);
+
+  const runControl = useCallback(async (control: StudioControl): Promise<void> => {
+    const current = coordinator.current;
+    if (!current) return;
+    try {
+      await current[control]();
+    } catch {
+      // The coordinator publishes a bounded issue for the UI.
+    }
+  }, []);
+
+  const refresh = useCallback(async (): Promise<void> => {
+    await coordinator.current?.refresh();
+  }, []);
+
+  const runGameLifecycle = useCallback(async (action: 'restartGame' | 'stopGame'): Promise<void> => {
+    try {
+      await coordinator.current?.[action]();
+    } catch {
+      // The coordinator publishes a bounded issue for the UI.
+    }
+  }, []);
+
+  return Object.freeze({
+    context,
+    development: developmentStateForProject(developmentKey, projectKey, development),
+    actions: Object.freeze({
+      pause: () => runControl('pause'),
+      resume: () => runControl('resume'),
+      step: () => runControl('step'),
+      refresh,
+      restartGame: () => runGameLifecycle('restartGame'),
+      stopGame: () => runGameLifecycle('stopGame'),
+    }),
+  });
+}

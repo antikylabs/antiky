@@ -1,0 +1,26 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "Only the bounded Antiky Studio native bridge is available to the main window.",
+  "windows": ["main"],
+  "platforms": ["macOS"],
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "allow-project-initial-event",
+    "allow-project-select",
+    "allow-project-create",
+    "allow-project-recents",
+    "allow-project-open-recent",
+    "allow-project-validate",
+    "allow-project-activate",
+    "allow-development-start",
+    "allow-development-stop",
+    "allow-discover-development-connection",
+    "allow-terminal-open",
+    "allow-terminal-layout",
+    "allow-terminal-focus",
+    "allow-terminal-close",
+    "allow-terminal-status"
+  ]
+}

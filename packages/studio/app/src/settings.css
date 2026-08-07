@@ -1,0 +1,147 @@
+.settings-page {
+  position: fixed;
+  z-index: 20;
+  inset: 50px 0 30px;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(139, 124, 255, .08), transparent 30%),
+    var(--bg);
+}
+
+.project-launcher + .settings-page {
+  bottom: 0;
+}
+
+.settings-page-inner {
+  width: min(820px, 100%);
+  margin: 0 auto;
+  padding: clamp(36px, 6vw, 72px) clamp(24px, 5vw, 64px) 72px;
+}
+
+.settings-heading > span,
+.settings-section-heading > span {
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.settings-heading h1 {
+  margin: 8px 0 0;
+  font-family: var(--display);
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 560;
+  letter-spacing: -.035em;
+}
+
+.settings-heading p {
+  max-width: 54ch;
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.settings-section {
+  margin-top: 42px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(11, 12, 14, .9);
+}
+
+.settings-section-heading {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-section-heading h2 {
+  margin: 4px 0 0;
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 550;
+  letter-spacing: -.02em;
+}
+
+.setting-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 32px;
+  padding: 24px 20px;
+}
+
+.setting-row h3 {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.setting-row p {
+  max-width: 66ch;
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.setting-row .setting-reload-note {
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.setting-row .setting-error {
+  color: var(--error);
+}
+
+.setting-switch {
+  display: inline-flex;
+  min-width: 76px;
+  min-height: 34px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.setting-switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  transition: background 160ms ease-out, border-color 160ms ease-out;
+}
+
+.setting-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  transition: background 160ms ease-out, transform 160ms ease-out;
+}
+
+.setting-switch[aria-checked='true'] .setting-switch-track {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 28%, var(--surface-soft));
+}
+
+.setting-switch[aria-checked='true'] .setting-switch-thumb {
+  background: var(--text);
+  transform: translateX(16px);
+}

@@ -1,0 +1,357 @@
+.docs-layout {
+  display: grid;
+  grid-template-columns: minmax(190px, 230px) minmax(0, 780px) minmax(150px, 190px);
+  justify-content: center;
+  gap: clamp(36px, 5vw, 76px);
+  min-height: calc(100vh - 68px);
+}
+
+.docs-sidebar,
+.docs-toc {
+  align-self: start;
+  position: sticky;
+  top: 100px;
+  max-height: calc(100vh - 132px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.docs-sidebar {
+  padding: 54px 0 80px;
+}
+
+.docs-sidebar nav,
+.docs-mobile-navigation nav {
+  display: grid;
+  gap: 2px;
+}
+
+.docs-sidebar section,
+.docs-mobile-navigation section {
+  display: grid;
+  gap: 2px;
+  margin-top: 28px;
+}
+
+.docs-sidebar h2,
+.docs-mobile-navigation h2,
+.docs-toc > p {
+  margin: 0 0 8px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.docs-sidebar a,
+.docs-mobile-navigation a {
+  padding: 7px 10px;
+  border-left: 1px solid transparent;
+  border-radius: 0 5px 5px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.docs-sidebar a:hover,
+.docs-mobile-navigation a:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.docs-sidebar a.active,
+.docs-mobile-navigation a.active {
+  border-left-color: var(--accent);
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.docs-main {
+  min-width: 0;
+  padding: 52px 0 120px;
+}
+
+.docs-breadcrumb {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 34px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.docs-breadcrumb a:hover {
+  color: var(--text);
+}
+
+.docs-mobile-navigation {
+  display: none;
+}
+
+.docs-prose {
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.72;
+}
+
+.docs-prose > :first-child {
+  margin-top: 0;
+}
+
+.docs-prose h1,
+.docs-prose h2,
+.docs-prose h3 {
+  color: var(--text);
+  scroll-margin-top: 96px;
+}
+
+.docs-prose h1 {
+  max-width: 15ch;
+  margin: 0 0 26px;
+  font-size: clamp(3rem, 6vw, 5.3rem);
+  line-height: .96;
+}
+
+.docs-prose h2 {
+  margin: 72px 0 20px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-size: clamp(1.85rem, 3vw, 2.7rem);
+  line-height: 1.05;
+}
+
+.docs-prose h3 {
+  margin: 42px 0 15px;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.docs-prose h1 a,
+.docs-prose h2 a,
+.docs-prose h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.docs-prose p,
+.docs-prose ul,
+.docs-prose ol,
+.docs-prose blockquote,
+.docs-prose pre,
+.docs-prose table {
+  margin: 18px 0 0;
+}
+
+.docs-prose h1 + p {
+  max-width: 64ch;
+  color: #ceced2;
+  font-size: clamp(1.04rem, 1.4vw, 1.18rem);
+  line-height: 1.6;
+}
+
+.docs-prose ul,
+.docs-prose ol {
+  padding-left: 24px;
+}
+
+.docs-prose li + li {
+  margin-top: 8px;
+}
+
+.docs-prose a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 4px;
+}
+
+.docs-prose a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.docs-prose code {
+  padding: 2px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-raised);
+  color: #dedee2;
+  font-family: var(--mono);
+  font-size: .82em;
+}
+
+.docs-prose pre {
+  overflow-x: auto;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #08090b;
+  color: #d6d6da;
+  line-height: 1.65;
+}
+
+.docs-prose pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+}
+
+.docs-prose blockquote {
+  padding: 12px 18px;
+  border-left: 2px solid var(--accent);
+  background: var(--surface);
+}
+
+.docs-prose table {
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.docs-prose th,
+.docs-prose td {
+  min-width: 130px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.docs-prose th {
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 570;
+}
+
+.docs-prose hr {
+  height: 1px;
+  margin: 52px 0;
+  border: 0;
+  background: var(--line);
+}
+
+.docs-toc {
+  padding-top: 58px;
+}
+
+.docs-toc nav {
+  display: grid;
+  gap: 10px;
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
+}
+
+.docs-toc a {
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.docs-toc a:hover {
+  color: var(--text);
+}
+
+.docs-toc a.nested {
+  padding-left: 10px;
+}
+
+.docs-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 88px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.docs-pager a {
+  display: grid;
+  gap: 5px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.docs-pager a:hover {
+  border-color: var(--line-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.docs-pager a.next {
+  text-align: right;
+}
+
+.docs-pager a span {
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+  .docs-layout {
+    grid-template-columns: minmax(190px, 220px) minmax(0, 780px);
+  }
+
+  .docs-toc {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .docs-layout {
+    display: block;
+  }
+
+  .docs-sidebar {
+    display: none;
+  }
+
+  .docs-main {
+    padding-top: 28px;
+  }
+
+  .docs-mobile-navigation {
+    display: block;
+    margin-bottom: 34px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+
+  .docs-mobile-navigation summary {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .docs-mobile-navigation nav {
+    padding: 0 8px 12px;
+  }
+
+  .docs-prose h1 {
+    font-size: clamp(2.8rem, 13vw, 4.2rem);
+  }
+
+  .docs-pager {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-pager > span {
+    display: none;
+  }
+}

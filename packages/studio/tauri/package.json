@@ -1,0 +1,21 @@
+{
+  "name": "@antiky/studio-tauri",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "prepare:ghostty": "node scripts/prepare-ghostty.mjs",
+    "prepare:project-service": "npm run build:project-service --workspace @antiky/studio-app",
+    "predev": "npm run prepare:ghostty && npm run prepare:project-service",
+    "dev": "tauri dev",
+    "prebuild": "npm run prepare:ghostty && npm run prepare:project-service",
+    "build": "tauri build --bundles app",
+    "pretest": "npm run prepare:ghostty && npm run prepare:project-service",
+    "test": "node --test tests/*.test.mjs && cargo test",
+    "pretypecheck": "npm run prepare:ghostty && npm run prepare:project-service",
+    "typecheck": "cargo check"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.4"
+  }
+}

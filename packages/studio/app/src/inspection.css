@@ -1,0 +1,176 @@
+.inspection-body {
+  display: block;
+  place-items: initial;
+}
+
+.inspection-body > [role='tabpanel'] {
+  min-height: 100%;
+}
+
+.inspection-view {
+  padding: 10px 12px 24px;
+}
+
+.view-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 30px;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.view-summary code,
+.record-id {
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 8px;
+  overflow-wrap: anywhere;
+}
+
+.count-badge {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 8px;
+}
+
+.entity-tree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.child-tree {
+  margin: 7px 0 0 10px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+.entity-record,
+.store-record {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(41, 42, 49, .72);
+  border-radius: 0;
+  background: transparent;
+}
+
+.entity-record > summary,
+.store-record > summary,
+.component-record > summary,
+.store-entry > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 31px;
+  padding: 0 9px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.entity-record > summary::-webkit-details-marker,
+.store-record > summary::-webkit-details-marker,
+.component-record > summary::-webkit-details-marker,
+.store-entry > summary::-webkit-details-marker {
+  display: none;
+}
+
+.entity-record > summary::before,
+.store-record > summary::before,
+.component-record > summary::before,
+.store-entry > summary::before {
+  content: '›';
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-family: var(--mono);
+}
+
+.entity-record[open] > summary::before,
+.store-record[open] > summary::before,
+.component-record[open] > summary::before,
+.store-entry[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.entity-label,
+.store-record > summary > span:first-of-type {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 540;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-meta {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 8px;
+}
+
+.entity-record > .record-id,
+.store-record > .record-id {
+  display: block;
+  padding: 0 9px 8px 29px;
+}
+
+.component-list,
+.store-entries {
+  display: grid;
+  gap: 1px;
+  padding: 0 7px 7px 22px;
+}
+
+.component-record,
+.store-entry {
+  border: 0;
+  border-top: 1px solid rgba(41, 42, 49, .72);
+  border-radius: 0;
+  background: var(--surface);
+}
+
+.component-record summary code,
+.store-entry summary {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.component-record summary span {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 8px;
+}
+
+.component-record p {
+  margin: 0;
+  padding: 0 9px 7px 29px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.component-record .json-record,
+.store-entry .json-record {
+  padding: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.store-entry .record-id {
+  display: block;
+  padding: 0 8px 8px;
+}
+
+.inspection-body > [role='tabpanel'] > .json-record {
+  padding: 12px;
+}

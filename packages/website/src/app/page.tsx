@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { DemoStage } from '@antiky/demos/react';
+import DemoStage from '@/components/DemoStage';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
 
 const WORK = [
@@ -9,6 +9,12 @@ const WORK = [
     status: 'Emerging',
     title: 'Antiky Framework',
     body: 'A 2.3D game framework taking shape on top of BroMetal—built for 2D characters and objects inside spatial 3D worlds.',
+  },
+  {
+    href: '/studio',
+    status: 'Source preview',
+    title: 'Antiky Studio',
+    body: 'A native development workspace for the running game, terminal, simulation controls, and structured runtime state.',
   },
   {
     href: '/demos',

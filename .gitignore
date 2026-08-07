@@ -14,9 +14,15 @@
 
 # production
 **/build
+**/dist/
+packages/website/public/demo-builds/
+packages/website/public/.demo-builds-stage-*/
 
 # local design workbench
 **/.impeccable/
+
+# local Antiky development sessions
+**/.antiky/
 
 # misc
 .DS_Store
@@ -37,3 +43,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# internal stuff
+docs/_internal
+
+# disposable objective evidence
+docs/objectives/**/outputs/
+docs/objectives/**/verification/
