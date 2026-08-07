@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "game": {
+  "name": "Antiky Town",
+  "development": {
     "command": [
       "npm",
       "run",
@@ -36,5 +37,13 @@
     "host": "127.0.0.1",
     "gamePort": 3010,
     "inspectionPort": 3011
+  },
+  "build": {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "workingDirectory": "."
   }
 }

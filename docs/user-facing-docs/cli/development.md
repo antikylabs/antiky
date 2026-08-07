@@ -6,33 +6,36 @@ development session and stops them together.
 
 ## Start a development session
 
-From the directory that contains `antiky.config.json`, run:
+From the directory that contains exactly one `<name>.antiky` project manifest, run:
 
 ```sh
 antiky dev
 ```
 
-After startup, Antiky prints the config path, game URL, inspection URL, MCP URL, development-session
+After startup, Antiky prints the project path, game URL, inspection URL, MCP URL, development-session
 ID, and service names. Keep this terminal open while you work.
 
-Use another config file when needed:
+Select a project explicitly when you are outside its directory:
 
 ```sh
-antiky dev --config path/to/antiky.config.json
+antiky dev --project path/to/harbor-lights.antiky
 ```
 
-Antiky checks the complete config and reserves both configured ports before it starts any child
-process. If the config is invalid or a port is busy, nothing starts.
+An explicit path takes priority. Without one, Antiky accepts exactly one `.antiky` file in the
+current directory. It does not search parent directories. Antiky validates the complete manifest
+and reserves both ports before it starts a child process. If validation fails or a port is busy,
+nothing starts.
 
 ## Configure your project
 
-Put `antiky.config.json` at your project root. Change the commands and game URL to match your
-project:
+Put one named `.antiky` file at your project root. The filename identifies the project to Finder,
+Studio, the CLI, and source control. Change the name, commands, and game URL to match your project:
 
 ```json
 {
   "schemaVersion": 1,
-  "game": {
+  "name": "Harbor Lights",
+  "development": {
     "command": [
       "npm",
       "run",
@@ -59,12 +62,21 @@ project:
     "host": "127.0.0.1",
     "gamePort": 3010,
     "inspectionPort": 3011
+  },
+  "build": {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "workingDirectory": "."
   }
 }
 ```
 
-`workingDirectory` is relative to the config file and must stay inside its directory. Command
-arguments can use these placeholders:
+All fields are required. `name` is the display name. Each `workingDirectory` uses forward slashes,
+is relative to the project manifest, and must stay inside the project root. Command arguments can
+use these placeholders:
 
 | Placeholder | Value |
 | --- | --- |
@@ -75,12 +87,30 @@ arguments can use these placeholders:
 | `{gameWidth}` | The viewport width |
 | `{gameHeight}` | The viewport height |
 
-Antiky passes each expanded argument directly to the process without using a shell. The optional
-`viewport` defaults to `1280x720`. The game process also receives `ANTIKY_GAME_WIDTH` and
+Antiky passes each expanded argument directly to the process without using a shell. The game
+process also receives `ANTIKY_GAME_WIDTH` and
 `ANTIKY_GAME_HEIGHT`.
 
 The game URL must use HTTP at the configured game address. Development services bind only to the
 IPv4 loopback address `127.0.0.1`; Antiky rejects LAN and wildcard hosts.
+
+The manifest is strict JSON with a 64 KiB limit. Antiky rejects unknown fields, unsupported schema
+versions, invalid UTF-8, unsafe paths, symbolic-link escapes, and working directories that do not
+exist. The canonical manifest path is project identity. Its SHA-256 content digest is the project
+revision.
+
+### Migrate an older project
+
+If your project still has `antiky.config.json`, run this command once from the project root:
+
+```sh
+antiky migrate --name "Harbor Lights" --output harbor-lights.antiky
+```
+
+Use `--config path/to/antiky.config.json` only when the old file has another location. Migration
+validates the old development settings, adds the required build command, and creates the new file
+without overwriting an existing manifest. Check the new project with `antiky dev`, then remove the
+old config from your project. Normal development commands do not read it.
 
 ## Inspect the running session
 
@@ -93,7 +123,7 @@ antiky inspect
 The command prints the current development snapshot as JSON. It includes:
 
 - The development-session ID and accepted build revision.
-- The resolved config and local addresses.
+- The validated project and local addresses.
 - Game and shader process health.
 - The latest build result, changed path, and duration.
 - Runtime connection and cleanup health.
@@ -120,8 +150,8 @@ Pass one JSON object after a tool that needs input:
 antiky tool get_point_light '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'
 ```
 
-You can use `--input '<json>'` instead of the positional object. Add `--config path` when the
-config file is not in the current directory.
+You can use `--input '<json>'` instead of the positional object. Add `--project path` when the
+project manifest is not in the current directory.
 
 The command connects to the session's MCP endpoint, calls the named tool, and prints its structured
 result as JSON. Invalid JSON, an unknown tool, or rejected arguments return a nonzero exit code.
@@ -180,7 +210,7 @@ Code that integrates with the same services can use `connectDevelopmentClient`:
 ```ts
 import { connectDevelopmentClient } from '@antiky/cli';
 
-const client = await connectDevelopmentClient('antiky.config.json');
+const client = await connectDevelopmentClient('harbor-lights.antiky');
 const development = await client.readDevelopmentSnapshot();
 const sessionStatus = await client.getSessionStatus();
 const world = await client.getWorldInspection();
@@ -275,9 +305,9 @@ log as an event store, terminal transcript, caller identity record, or durable a
 
 ## Follow source changes
 
-Antiky watches source, shader, asset, and config files under the configured working directory. It
-accepts a revision only after the changed build reaches a newer ready game process. A browser reload
-can change the runtime-instance ID without changing the development-session ID.
+Antiky watches source, shader, asset, and project-manifest files under the development working
+directory. It accepts a revision only after the changed build reaches a newer ready game process.
+A browser reload can change the runtime-instance ID without changing the development-session ID.
 
 For a shader change, Antiky waits for the matching generated shader before it accepts a ready
 runtime. A failed update leaves the accepted revision and generated shader unchanged and adds a
@@ -293,9 +323,11 @@ Antiky attempts every cleanup operation even when one operation fails. A failed 
 cleanup state to `failed` and makes a normal stop return a nonzero status instead of reporting that
 cleanup finished successfully.
 
-Antiky stores the random session credential in `.antiky/dev-session.json` with mode `0600`.
-It does not print the credential or put it in the game URL, diagnostics, or inspection results.
-Antiky removes the descriptor when the session stops.
+The visible `<name>.antiky` manifest is tracked project input. The hidden `.antiky/` directory is
+temporary development state. Antiky writes `.antiky/.gitignore` before it writes the random session
+credential to `.antiky/dev-session.json` with mode `0600`. It does not print the credential or put
+it in the game URL, diagnostics, or inspection results. Antiky removes the descriptor when the
+session stops and keeps the ignore marker.
 
 ## Collect host diagnostics
 
@@ -314,8 +346,14 @@ The CLI writes a stable error code before its message:
 
 - `ANTIKY_ARGUMENT_INVALID`: the command, option, JSON tool input, or development action input is
   not supported.
-- `ANTIKY_CONFIG_NOT_FOUND`: the selected config file does not exist.
-- `ANTIKY_CONFIG_INVALID`: JSON, fields, paths, commands, URLs, or ports are invalid.
+- `ANTIKY_PROJECT_NOT_FOUND`: no selected project exists, or discovery found no `.antiky` file.
+- `ANTIKY_PROJECT_AMBIGUOUS`: discovery found more than one `.antiky` file.
+- `ANTIKY_PROJECT_NOT_FILE`: the selected path is not a regular file.
+- `ANTIKY_PROJECT_TOO_LARGE`: the manifest is larger than 64 KiB.
+- `ANTIKY_PROJECT_INCOMPATIBLE`: the schema version is not supported.
+- `ANTIKY_PROJECT_INVALID`: JSON, fields, commands, URLs, ports, or portable paths are invalid.
+- `ANTIKY_PROJECT_PATH_ESCAPE`: a manifest link or resolved working directory escapes the project.
+- `ANTIKY_PROJECT_EXISTS`: migration would overwrite an existing project manifest.
 - `ANTIKY_PORT_BUSY`: a configured port cannot be reserved. No child starts.
 - `ANTIKY_CHILD_START_FAILED`: an owned process could not start. Any partial start is cleaned up.
 - `ANTIKY_CHILD_STOP_FAILED`: an owned child process group remained active after shutdown attempts.
@@ -329,7 +367,7 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_CAPTURE_INVALID`: the game returned invalid or oversized PNG data.
 - `ANTIKY_CAPTURE_SAVE_FAILED`: Antiky could not save a valid frame capture.
 
-Fix a config or port error and run the command again. Do not edit the local session descriptor.
+Fix a project or port error and run the command again. Do not edit the local session descriptor.
 
 To connect an agent, use the [MCP overview](../mcp/overview.md). It covers the Streamable HTTP
 endpoint, the `antiky mcp` standard-input/output adapter, and the local security boundary.

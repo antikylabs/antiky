@@ -1,5 +1,5 @@
-import { loadAntikyConfig } from '../config.ts';
 import { readSessionDescriptor } from '../host/session-descriptor.ts';
+import { loadAntikyProject } from '../project-node.ts';
 import {
   createDevelopmentClient,
   type DevelopmentClient,
@@ -9,10 +9,10 @@ import type { DevelopmentSnapshot } from './types.ts';
 export type { DevelopmentClient } from './browser-client.ts';
 
 export async function connectDevelopmentClient(
-  configPath = 'antiky.config.json',
+  projectPath?: string,
 ): Promise<DevelopmentClient> {
-  const config = await loadAntikyConfig(configPath);
-  const descriptor = await readSessionDescriptor(config);
+  const project = await loadAntikyProject(projectPath);
+  const descriptor = await readSessionDescriptor(project);
   return createDevelopmentClient({
     inspectionUrl: descriptor.inspectionUrl,
     developmentSessionId: descriptor.developmentSessionId,
@@ -21,8 +21,8 @@ export async function connectDevelopmentClient(
 }
 
 export async function inspectDevelopmentSession(
-  configPath = 'antiky.config.json',
+  projectPath?: string,
 ): Promise<DevelopmentSnapshot> {
-  const client = await connectDevelopmentClient(configPath);
+  const client = await connectDevelopmentClient(projectPath);
   return client.readDevelopmentSnapshot();
 }

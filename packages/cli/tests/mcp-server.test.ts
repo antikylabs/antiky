@@ -100,8 +100,11 @@ const developmentSnapshot = {
   developmentSessionId: 'development-mcp-001',
   acceptedBuildRevision: 3,
   startedAt: '2026-08-04T00:00:00.000Z',
-  config: {
-    path: '/project/antiky.config.json',
+  project: {
+    name: 'Test project',
+    manifestPath: '/project/test.antiky',
+    projectRoot: '/project',
+    revision: 'a'.repeat(64),
     gameUrl: 'http://127.0.0.1:3010/demos/town-study',
     host: '127.0.0.1',
     gamePort: 3010,
@@ -351,7 +354,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
 
   const descriptionGuidance: Record<string, readonly RegExp[]> = {
     get_dev_status: [/call this first/i, /takes no arguments/i],
-    get_latest_build: [/after a source, shader, asset, or config change/i, /accepted revision/i],
+    get_latest_build: [/after a source, shader, asset, or project-manifest change/i, /accepted revision/i],
     get_runtime_status: [/before .*dev_reload.*capture_frame/i, /null inspection/i],
     get_render_stats: [/renderer health or performance/i, /does not capture/i],
     get_diagnostics: [/build is not ready/i, /stable code/i],

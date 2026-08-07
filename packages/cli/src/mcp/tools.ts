@@ -113,7 +113,7 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
   },
   {
     name: 'get_latest_build',
-    description: 'Call after a source, shader, asset, or config change to determine whether the newest build is ready. It returns the accepted revision plus the latest build attempt, change kind, result, changed path, and timing. Use the accepted revision—not filesystem timing—to decide whether reloading or inspecting the runtime is safe. It takes no arguments.',
+    description: 'Call after a source, shader, asset, or project-manifest change to determine whether the newest build is ready. It returns the accepted revision plus the latest build attempt, change kind, result, changed path, and timing. Use the accepted revision—not filesystem timing—to decide whether reloading or inspecting the runtime is safe. It takes no arguments.',
     inputSchema: emptyInputSchema,
     annotations: readToolAnnotations,
   },
@@ -224,7 +224,7 @@ export function projectMcpReadTool(
         developmentSessionId: snapshot.developmentSessionId,
         acceptedBuildRevision: snapshot.acceptedBuildRevision,
         startedAt: snapshot.startedAt,
-        config: snapshot.config,
+        project: snapshot.project,
         processes: snapshot.processes,
         connection: snapshot.connection,
         cleanup: snapshot.cleanup,

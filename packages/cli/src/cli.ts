@@ -2,7 +2,6 @@ import { resolve } from 'node:path';
 
 import { ID_KINDS, generateId, type IdKind } from '@antiky/framework';
 
-import { loadAntikyConfig } from './config.ts';
 import { connectDevelopmentClient, inspectDevelopmentSession } from './development/client.ts';
 import { AntikyCliError } from './errors.ts';
 import {
@@ -13,12 +12,14 @@ import {
 import { startDevelopmentSession } from './host/session.ts';
 import { callMcpTool } from './mcp/client.ts';
 import { runMcpServer } from './mcp/server.ts';
+import { loadAntikyProject, migrateAntikyConfig } from './project-node.ts';
 
 export const CLI_USAGE = `Usage:
-  antiky dev [--config path]
-  antiky inspect [--config path]
-  antiky mcp [--config path]
-  antiky tool <name> [json] [--config path]
+  antiky dev [--project path]
+  antiky inspect [--project path]
+  antiky mcp [--project path]
+  antiky tool <name> [json] [--project path]
+  antiky migrate --name name --output path [--config path]
   antiky generate id <world|entity|command|session> [--json]`;
 
 const MAX_TOOL_INPUT_BYTES = 64 * 1024;
@@ -32,16 +33,16 @@ export type RunCliOptions = Readonly<{
   diagnosticSink?: CliDiagnosticSink;
 }>;
 
-function parseConfigPath(args: readonly string[]): string {
-  if (args.length === 0) return resolve('antiky.config.json');
-  if (args.length === 2 && args[0] === '--config' && args[1]) return resolve(args[1]);
+function parseProjectPath(args: readonly string[]): string | undefined {
+  if (args.length === 0) return undefined;
+  if (args.length === 2 && args[0] === '--project' && args[1]) return resolve(args[1]);
   throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
 }
 
 type ToolInvocation = Readonly<{
   name: string;
   input: Readonly<Record<string, unknown>>;
-  configPath: string;
+  projectPath?: string;
 }>;
 
 type GenerateIdInvocation = Readonly<{
@@ -89,20 +90,20 @@ function parseToolInvocation(args: readonly string[]): ToolInvocation {
     invalidToolInvocation('Expected an MCP tool name.');
   }
 
-  let configPath = resolve('antiky.config.json');
+  let projectPath: string | undefined;
   let input: Readonly<Record<string, unknown>> = Object.freeze({});
-  let hasConfig = false;
+  let hasProject = false;
   let hasInput = false;
   for (let index = 0; index < options.length;) {
     const argument = options[index]!;
-    if (argument === '--config') {
+    if (argument === '--project') {
       const value = options[index + 1];
       if (!value || value.startsWith('--')) {
-        invalidToolInvocation('Expected a value after --config.');
+        invalidToolInvocation('Expected a value after --project.');
       }
-      if (hasConfig) invalidToolInvocation('Option --config can be used only once.');
-      configPath = resolve(value);
-      hasConfig = true;
+      if (hasProject) invalidToolInvocation('Option --project can be used only once.');
+      projectPath = resolve(value);
+      hasProject = true;
       index += 2;
       continue;
     }
@@ -124,7 +125,41 @@ function parseToolInvocation(args: readonly string[]): ToolInvocation {
     index += 1;
   }
 
-  return Object.freeze({ name, input, configPath });
+  return Object.freeze({ name, input, ...(projectPath === undefined ? {} : { projectPath }) });
+}
+
+type MigrationInvocation = Readonly<{
+  configPath: string;
+  outputPath: string;
+  projectName: string;
+}>;
+
+function parseMigrationInvocation(args: readonly string[]): MigrationInvocation {
+  const values = new Map<string, string>();
+  for (let index = 0; index < args.length; index += 2) {
+    const option = args[index];
+    const value = args[index + 1];
+    if (
+      !option
+      || !['--config', '--output', '--name'].includes(option)
+      || !value
+      || value.startsWith('--')
+      || values.has(option)
+    ) {
+      throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+    }
+    values.set(option, value);
+  }
+  const outputPath = values.get('--output');
+  const projectName = values.get('--name');
+  if (!outputPath || !projectName) {
+    throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+  return Object.freeze({
+    configPath: resolve(values.get('--config') ?? 'antiky.config.json'),
+    outputPath: resolve(outputPath),
+    projectName,
+  });
 }
 
 async function executeCli(
@@ -138,6 +173,7 @@ async function executeCli(
     && command !== 'inspect'
     && command !== 'mcp'
     && command !== 'tool'
+    && command !== 'migrate'
     && command !== 'generate'
   ) {
     throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
@@ -150,28 +186,34 @@ async function executeCli(
       : `${id}\n`);
     return 0;
   }
+  if (command === 'migrate') {
+    const invocation = parseMigrationInvocation(commandArgs);
+    const project = await migrateAntikyConfig(invocation);
+    io.stdout(`Created ${project.manifestPath}\n`);
+    return 0;
+  }
   if (command === 'tool') {
     const invocation = parseToolInvocation(commandArgs);
-    const config = await loadAntikyConfig(invocation.configPath);
-    const result = await callMcpTool(config, invocation.name, invocation.input);
+    const project = await loadAntikyProject(invocation.projectPath);
+    const result = await callMcpTool(project, invocation.name, invocation.input);
     io.stdout(`${JSON.stringify(result.structuredContent, null, 2)}\n`);
     return result.isError ? 1 : 0;
   }
-  const configPath = parseConfigPath(commandArgs);
+  const projectPath = parseProjectPath(commandArgs);
 
   if (command === 'inspect') {
-    const snapshot = await inspectDevelopmentSession(configPath);
+    const snapshot = await inspectDevelopmentSession(projectPath);
     io.stdout(`${JSON.stringify(snapshot, null, 2)}\n`);
     return 0;
   }
   if (command === 'mcp') {
-    const client = await connectDevelopmentClient(configPath);
+    const client = await connectDevelopmentClient(projectPath);
     await runMcpServer(client, process.stdin, io.stdout);
     return 0;
   }
 
-  const config = await loadAntikyConfig(configPath);
-  const session = await startDevelopmentSession(config, {
+  const project = await loadAntikyProject(projectPath);
+  const session = await startDevelopmentSession(project, {
     writeOutput: (line) => io.stdout(`${line}\n`),
     diagnosticSink,
   });

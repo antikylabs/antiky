@@ -19,7 +19,7 @@ export const DEVELOPMENT_SCHEMA_VERSION = 1 as const;
 export type DevelopmentProcessState = 'starting' | 'running' | 'stopped' | 'failed';
 export type DevelopmentConnectionState = 'waiting' | 'connected' | 'unavailable';
 export type DevelopmentCleanupState = 'active' | 'stopping' | 'stopped' | 'failed';
-export type DevelopmentChangeKind = 'initial' | 'source' | 'shader' | 'asset' | 'config';
+export type DevelopmentChangeKind = 'initial' | 'source' | 'shader' | 'asset' | 'project';
 export type DevelopmentBuildResult = 'pending' | 'ready' | 'failed';
 
 export type DevelopmentBuildSnapshot = Readonly<{
@@ -47,8 +47,11 @@ export type DevelopmentSnapshot = Readonly<{
   developmentSessionId: string;
   acceptedBuildRevision: number;
   startedAt: string;
-  config: Readonly<{
-    path: string;
+  project: Readonly<{
+    name: string;
+    manifestPath: string;
+    projectRoot: string;
+    revision: string;
     gameUrl: string;
     host: '127.0.0.1';
     gamePort: number;

@@ -90,7 +90,7 @@ npm install
 npm run antiky -- dev
 ```
 
-The repository's [`antiky.config.json`](antiky.config.json) starts the focused Antiky Town game
+The repository's [`antiky-town.antiky`](antiky-town.antiky) starts the focused Antiky Town game
 host, shader watcher, inspection service, and Streamable HTTP MCP endpoint. The CLI prints the game,
 inspection, and MCP URLs after startup.
 
@@ -106,7 +106,7 @@ Press `Ctrl-C` in the development terminal to stop every owned process and relea
 
 The public command is `antiky dev`. This repository uses `npm run antiky -- dev` until the CLI is
 packaged for installation. See [Run Antiky locally](docs/user-facing-docs/cli/development.md) for
-project configuration, inspection, lifecycle, and stable errors. See
+project manifest, inspection, lifecycle, and stable errors. See
 [Connect an MCP client](docs/user-facing-docs/mcp/overview.md) for agent configuration and the local
 security boundary.
 

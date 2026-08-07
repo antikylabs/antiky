@@ -29,8 +29,11 @@ const development: StudioDevelopmentState = {
     developmentSessionId: 'development-studio-001',
     acceptedBuildRevision: 4,
     startedAt: '2026-08-05T12:00:00.000Z',
-    config: {
-      path: '/project/antiky.config.json',
+    project: {
+      name: 'Test project',
+      manifestPath: '/project/test.antiky',
+      projectRoot: '/project',
+      revision: 'a'.repeat(64),
       gameUrl: 'http://127.0.0.1:3010/demos/town-study',
       host: '127.0.0.1',
       gamePort: 3010,

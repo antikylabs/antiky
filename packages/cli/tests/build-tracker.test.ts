@@ -72,6 +72,10 @@ test('build revisions advance only when a changed build reaches a newer ready ru
     assert.equal(tracker.snapshot().result, 'ready');
     assert.equal(tracker.snapshot().changeKind, 'shader');
     assert.deepEqual(tracker.diagnostics(), []);
+
+    tracker.noteFileChange(join(rootDirectory, 'harbor-lights.antiky'));
+    assert.equal(tracker.acceptRuntime(readyRuntime('runtime-build-004')), 4);
+    assert.equal(tracker.snapshot().changeKind, 'project');
   } finally {
     await tracker.stop();
   }

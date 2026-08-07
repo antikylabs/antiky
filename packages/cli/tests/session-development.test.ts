@@ -39,8 +39,11 @@ function snapshot(publishSession = true): DevelopmentSnapshot {
     developmentSessionId: 'development-session-projection-001',
     acceptedBuildRevision: 1,
     startedAt: '2026-08-05T03:00:00.000Z',
-    config: {
-      path: '/game/antiky.config.json',
+    project: {
+      name: 'Test game',
+      manifestPath: '/game/test.antiky',
+      projectRoot: '/game',
+      revision: 'a'.repeat(64),
       gameUrl: 'http://127.0.0.1:3010/game',
       host: '127.0.0.1',
       gamePort: 3010,

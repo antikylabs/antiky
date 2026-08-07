@@ -3,7 +3,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { createServer as createNetServer, type Server as NetServer } from 'node:net';
 import { join } from 'node:path';
 
-import type { AntikyConfig } from '../config.ts';
+import type { AntikyProject } from '../project.ts';
 import { createBuildTracker } from './build-tracker.ts';
 import { createDevelopmentActionBroker } from './actions.ts';
 import {
@@ -172,7 +172,7 @@ function waitForSpawn(child: ChildProcess): Promise<void> {
 }
 
 export async function startDevelopmentSession(
-  config: AntikyConfig,
+  project: AntikyProject,
   options: DevelopmentSessionOptions = {},
 ): Promise<DevelopmentSession> {
   const writeOutput = options.writeOutput ?? ((line: string) => process.stdout.write(`${line}\n`));
@@ -183,13 +183,13 @@ export async function startDevelopmentSession(
   let inspectionReservation: NetServer | undefined;
   try {
     gameReservation = await reservePort(
-      config.network.host,
-      config.network.gamePort,
+      project.network.host,
+      project.network.gamePort,
       '$.network.gamePort',
     );
     inspectionReservation = await reservePort(
-      config.network.host,
-      config.network.inspectionPort,
+      project.network.host,
+      project.network.inspectionPort,
       '$.network.inspectionPort',
     );
   } catch (cause) {
@@ -221,15 +221,15 @@ export async function startDevelopmentSession(
   });
   reportSession('info', 'ANTIKY_SESSION_STARTING');
   const credential = randomBytes(32).toString('base64url');
-  const inspectionUrl = `http://${config.network.host}:${config.network.inspectionPort}`;
+  const inspectionUrl = `http://${project.network.host}:${project.network.inspectionPort}`;
   const mcpUrl = `${inspectionUrl}/mcp`;
-  const descriptorPath = getSessionDescriptorPath(config.path);
+  const descriptorPath = getSessionDescriptorPath(project.manifestPath);
   const startedAtMilliseconds = Date.now();
   const startedAt = new Date(startedAtMilliseconds).toISOString();
   let launchMilliseconds: number | undefined;
   const buildTracker = createBuildTracker({
     developmentSessionId: id,
-    rootDirectory: config.game.workingDirectory,
+    rootDirectory: project.development.workingDirectory,
     ...(options.buildFailureTimeoutMilliseconds === undefined
       ? {}
       : { failureTimeoutMilliseconds: options.buildFailureTimeoutMilliseconds }),
@@ -257,7 +257,7 @@ export async function startDevelopmentSession(
 
   const actionBroker = createDevelopmentActionBroker({
     developmentSessionId: id,
-    rootDirectory: config.game.workingDirectory,
+    rootDirectory: project.development.workingDirectory,
     diagnosticSink,
     readRuntimeContext: () => {
       const runtime = runtimeConnection.read();
@@ -280,13 +280,16 @@ export async function startDevelopmentSession(
       developmentSessionId: id,
       acceptedBuildRevision: build.revision,
       startedAt,
-      config: Object.freeze({
-        path: config.path,
-        gameUrl: config.game.url,
-        host: config.network.host,
-        gamePort: config.network.gamePort,
-        inspectionPort: config.network.inspectionPort,
-        viewport: config.game.viewport,
+      project: Object.freeze({
+        name: project.name,
+        manifestPath: project.manifestPath,
+        projectRoot: project.projectRoot,
+        revision: project.revision,
+        gameUrl: project.development.url,
+        host: project.network.host,
+        gamePort: project.network.gamePort,
+        inspectionPort: project.network.inspectionPort,
+        viewport: project.development.viewport,
       }),
       processes: Object.freeze({
         game: processSnapshot(processRecords.game),
@@ -306,10 +309,10 @@ export async function startDevelopmentSession(
   };
 
   const inspectionServer = createInspectionServer({
-    host: config.network.host,
-    port: config.network.inspectionPort,
+    host: project.network.host,
+    port: project.network.inspectionPort,
     developmentSessionId: id,
-    gameUrl: config.game.url,
+    gameUrl: project.development.url,
     credential,
     diagnosticSink,
     readDevelopmentSnapshot: snapshot,
@@ -423,16 +426,16 @@ export async function startDevelopmentSession(
   ): Promise<void> => {
     const detached = process.platform !== 'win32';
     const child = spawn(command[0]!, command.slice(1), {
-      cwd: config.game.workingDirectory,
+      cwd: project.development.workingDirectory,
       detached,
       env: {
         ...process.env,
-        ANTIKY_HOST: config.network.host,
-        ANTIKY_GAME_PORT: String(config.network.gamePort),
-        ANTIKY_INSPECTION_PORT: String(config.network.inspectionPort),
-        ANTIKY_GAME_URL: config.game.url,
-        ANTIKY_GAME_WIDTH: String(config.game.viewport.width),
-        ANTIKY_GAME_HEIGHT: String(config.game.viewport.height),
+        ANTIKY_HOST: project.network.host,
+        ANTIKY_GAME_PORT: String(project.network.gamePort),
+        ANTIKY_INSPECTION_PORT: String(project.network.inspectionPort),
+        ANTIKY_GAME_URL: project.development.url,
+        ANTIKY_GAME_WIDTH: String(project.development.viewport.width),
+        ANTIKY_GAME_HEIGHT: String(project.development.viewport.height),
         ANTIKY_INSPECTION_URL: inspectionUrl,
         ANTIKY_MCP_URL: mcpUrl,
       },
@@ -479,22 +482,22 @@ export async function startDevelopmentSession(
     await writeSessionDescriptor(descriptorPath, {
       schemaVersion: 1,
       developmentSessionId: id,
-      configHash: config.hash,
+      projectRevision: project.revision,
       inspectionUrl,
       credential,
       ownerPid: process.pid,
     });
     reportSession('info', 'ANTIKY_COMPONENT_STARTED', 'session-descriptor');
-    await spawnManaged('shaders', config.game.shaderCommand);
+    await spawnManaged('shaders', project.development.shaderCommand);
     await closeNetServer(gameReservation);
     gameReservation = undefined;
-    await spawnManaged('game', config.game.command);
+    await spawnManaged('game', project.development.command);
     launchMilliseconds = Date.now() - startedAtMilliseconds;
     await buildTracker.watch(options.watchPaths ?? [
-      config.path,
-      join(config.game.workingDirectory, 'packages', 'demos', 'src'),
-      join(config.game.workingDirectory, 'packages', 'demos', 'dev-host'),
-      join(config.game.workingDirectory, 'src'),
+      project.manifestPath,
+      join(project.development.workingDirectory, 'packages', 'demos', 'src'),
+      join(project.development.workingDirectory, 'packages', 'demos', 'dev-host'),
+      join(project.development.workingDirectory, 'src'),
     ]);
     reportSession('info', 'ANTIKY_COMPONENT_STARTED', 'build-watcher');
   } catch (cause) {
@@ -510,8 +513,8 @@ export async function startDevelopmentSession(
   reportSession('info', 'ANTIKY_SESSION_READY');
 
   writeOutput(`Antiky development session ${id}`);
-  writeOutput(`Config: ${config.path}`);
-  writeOutput(`Game: ${config.game.url}`);
+  writeOutput(`Project: ${project.manifestPath}`);
+  writeOutput(`Game: ${project.development.url}`);
   writeOutput(`Inspection: ${inspectionUrl}`);
   writeOutput(`MCP: ${mcpUrl}`);
   writeOutput('Services: game, shaders, inspection, mcp');

@@ -79,3 +79,16 @@ test('the Studio guide explains the optional online presence signal', async () =
   assert.match(source, /does not send\s+project names, commands, activity, or usage information/i);
   assert.match(source, /active-user count on the Antiky website/i);
 });
+
+test('the CLI guide defines the one project manifest and its migration path', async () => {
+  const source = await readFile(new URL('../../../docs/user-facing-docs/cli/development.md', import.meta.url), 'utf8');
+
+  assert.match(source, /<name>\.antiky/);
+  assert.match(source, /"schemaVersion": 1/);
+  assert.match(source, /"name": "Harbor Lights"/);
+  assert.match(source, /"development": \{/);
+  assert.match(source, /"build": \{/);
+  assert.match(source, /antiky dev --project path\/to\/harbor-lights\.antiky/);
+  assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
+  assert.doesNotMatch(source, /ANTIKY_CONFIG_(?:NOT_FOUND|INVALID)/);
+});

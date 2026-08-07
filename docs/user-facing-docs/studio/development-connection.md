@@ -12,8 +12,8 @@ From the game project, run:
 antiky dev
 ```
 
-Wait for Antiky to print the game and inspection URLs. If you use a non-default config file, pass
-the same config path when a Node.js client connects.
+Wait for Antiky to print the game and inspection URLs. If you use an explicit project manifest,
+pass the same manifest path when a Node.js client connects.
 
 ## Create the connection
 
@@ -22,7 +22,7 @@ Node.js code can use `connectDevelopmentClient` from `@antiky/cli`:
 ```ts
 import { connectDevelopmentClient } from '@antiky/cli';
 
-const client = await connectDevelopmentClient('/path/to/antiky.config.json');
+const client = await connectDevelopmentClient('/path/to/harbor-lights.antiky');
 const snapshot = await client.readDevelopmentSnapshot();
 
 console.log(snapshot.connection);
@@ -88,5 +88,5 @@ launch a second game process, create another inspection service, parse terminal 
 shared client's validation.
 
 See [Inspect a running game in Studio](getting-started.md) for the complete workspace. See
-[Run Antiky locally](../cli/development.md) for configuration and cleanup. See the [MCP tool
+[Run Antiky locally](../cli/development.md) for the project manifest and cleanup. See the [MCP tool
 reference](../mcp/tools.md) for the equivalent agent and terminal operations.

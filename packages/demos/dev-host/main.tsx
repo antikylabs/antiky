@@ -44,8 +44,8 @@ function FocusedGameHost() {
   if (!demo) {
     return (
       <main className="antiky-dev-error" role="alert">
-        <h1>Game configuration could not be loaded</h1>
-        <p>No demo is registered under <code>{slug}</code>. Check the game command in <code>antiky.config.json</code> and restart <code>antiky dev</code>.</p>
+        <h1>Game project could not be loaded</h1>
+        <p>No demo is registered under <code>{slug}</code>. Check the development command in your <code>.antiky</code> project manifest and restart <code>antiky dev</code>.</p>
       </main>
     );
   }

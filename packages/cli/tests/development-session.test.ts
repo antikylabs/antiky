@@ -25,7 +25,7 @@ import {
   AntikyCliError,
   connectDevelopmentClient,
   inspectDevelopmentSession,
-  loadAntikyConfig,
+  loadAntikyProject,
   runCli,
   startDevelopmentSession,
 } from '../src/index.ts';
@@ -45,7 +45,7 @@ async function makeProject(options: {
 } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'antiky-session-'));
   const marker = join(directory, 'children.log');
-  const configPath = join(directory, 'antiky.config.json');
+  const projectPath = join(directory, 'session.antiky');
   const gameCommand = options.gameCommand ?? [
     process.execPath,
     fixture,
@@ -55,7 +55,8 @@ async function makeProject(options: {
   ];
   const config = {
     schemaVersion: 1,
-    game: {
+    name: 'Development session fixture',
+    development: {
       command: gameCommand,
       shaderCommand: [
         process.execPath,
@@ -66,15 +67,20 @@ async function makeProject(options: {
       ],
       workingDirectory: '.',
       url: `http://127.0.0.1:${GAME_PORT}/demos/town-study`,
+      viewport: { width: 960, height: 540 },
     },
     network: {
       host: '127.0.0.1',
       gamePort: GAME_PORT,
       inspectionPort: INSPECTION_PORT,
     },
+    build: {
+      command: ['npm', 'run', 'build'],
+      workingDirectory: '.',
+    },
   };
-  await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`);
-  return { directory, marker, configPath };
+  await writeFile(projectPath, `${JSON.stringify(config, null, 2)}\n`);
+  return { directory, marker, projectPath };
 }
 
 async function waitFor(
@@ -120,20 +126,20 @@ function processExists(processId: number): boolean {
 
 test('development session starts both children, publishes health, and cleans up', async () => {
   const project = await makeProject();
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const lines: string[] = [];
   const diagnostics: unknown[] = [];
   const session = await startDevelopmentSession(config, {
     writeOutput: (line) => lines.push(line),
     diagnosticSink: (event: unknown) => diagnostics.push(event),
   });
-  const descriptor = join(dirname(project.configPath), '.antiky', 'dev-session.json');
+  const descriptor = join(dirname(project.projectPath), '.antiky', 'dev-session.json');
   try {
     await waitFor(async () => (
       await canRead(project.marker)
       && (await readFile(project.marker, 'utf8')).split('\n').length >= 3
     ));
-    const snapshot = await inspectDevelopmentSession(project.configPath);
+    const snapshot = await inspectDevelopmentSession(project.projectPath);
     assert.equal(snapshot.developmentSessionId, session.id);
     assert.equal(snapshot.processes.game.state, 'running');
     assert.equal(snapshot.processes.shaders.state, 'running');
@@ -144,11 +150,15 @@ test('development session starts both children, publishes health, and cleans up'
     assert.equal(snapshot.measurements.owner, 'cli');
     assert.equal(snapshot.inspection, null);
     assert.doesNotMatch(JSON.stringify(snapshot), /credential/i);
-    assert.ok(lines.some((line) => line.includes(config.game.url)));
+    assert.ok(lines.some((line) => line.includes(config.development.url)));
     assert.ok(lines.some((line) => line.includes(session.id)));
 
     const descriptorMode = (await stat(descriptor)).mode & 0o777;
     assert.equal(descriptorMode, 0o600);
+    assert.equal(
+      await readFile(join(project.directory, '.antiky', '.gitignore'), 'utf8'),
+      '*\n!.gitignore\n',
+    );
 
     const firstLaunchDuration = snapshot.measurements.launchMilliseconds;
     await new Promise((resolve) => setTimeout(resolve, 30));
@@ -159,6 +169,7 @@ test('development session starts both children, publishes health, and cleans up'
     assert.equal(result.exitCode, 0);
   }
   assert.equal(await canRead(descriptor), false);
+  assert.equal(await canRead(join(project.directory, '.antiky', '.gitignore')), true);
   assert.equal(await portIsFree(GAME_PORT), true);
   assert.equal(await portIsFree(INSPECTION_PORT), true);
   const diagnosticCodes = diagnostics.flatMap((event) => (
@@ -182,7 +193,7 @@ test('development session starts both children, publishes health, and cleans up'
 
 test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
   const project = await makeProject();
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const lines: string[] = [];
   const session = await startDevelopmentSession(config, {
     writeOutput: (line) => lines.push(line),
@@ -253,8 +264,8 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
     const toolExitCode = await runCli([
       'tool',
       'get_dev_status',
-      '--config',
-      project.configPath,
+      '--project',
+      project.projectPath,
     ], {
       stdout: (text) => toolOutput.push(text),
       stderr: () => {},
@@ -273,8 +284,8 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
     const unavailableExitCode = await runCli([
       'tool',
       'list_point_lights',
-      '--config',
-      project.configPath,
+      '--project',
+      project.projectPath,
     ], {
       stdout: (text) => unavailableOutput.push(text),
       stderr: () => {},
@@ -301,7 +312,7 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
     });
     assert.equal(unknownCall.status, 200);
 
-    const client = await connectDevelopmentClient(project.configPath);
+    const client = await connectDevelopmentClient(project.projectPath);
     const callLog = await client.getMcpCallLog();
     assert.deepEqual(callLog.calls.map((call) => call.toolName), [
       'get_dev_status',
@@ -384,7 +395,7 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
     );
 
     await assert.rejects(
-      () => runCli(['tool', 'not_a_real_tool', '--config', project.configPath]),
+      () => runCli(['tool', 'not_a_real_tool', '--project', project.projectPath]),
       (error: unknown) => (
         error instanceof AntikyCliError
         && error.code === 'ANTIKY_ARGUMENT_INVALID'
@@ -461,7 +472,7 @@ test('busy ports reject before either child starts', async () => {
   await new Promise<void>((resolve) => blocker.listen(GAME_PORT, '127.0.0.1', resolve));
 
   try {
-    const config = await loadAntikyConfig(project.configPath);
+    const config = await loadAntikyProject(project.projectPath);
     await assert.rejects(
       () => startDevelopmentSession(config),
       (error: unknown) => (
@@ -483,7 +494,7 @@ test('a busy inspection port also rejects before either child starts', async () 
   await new Promise<void>((resolve) => blocker.listen(INSPECTION_PORT, '127.0.0.1', resolve));
 
   try {
-    const config = await loadAntikyConfig(project.configPath);
+    const config = await loadAntikyProject(project.projectPath);
     await assert.rejects(
       () => startDevelopmentSession(config),
       (error: unknown) => (
@@ -501,7 +512,7 @@ test('a busy inspection port also rejects before either child starts', async () 
 
 test('a partial spawn failure stops the first child and releases every resource', async () => {
   const project = await makeProject({ gameCommand: ['antiky-command-that-does-not-exist'] });
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
 
   await assert.rejects(
     () => startDevelopmentSession(config),
@@ -519,7 +530,7 @@ test('a partial spawn failure stops the first child and releases every resource'
 
 test('one child failure stops its sibling and reports the child exit', async () => {
   const project = await makeProject({ shaderBehavior: 'fail' });
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const session = await startDevelopmentSession(config);
   const result = await session.stopped;
 
@@ -531,12 +542,12 @@ test('one child failure stops its sibling and reports the child exit', async () 
 
 test('cleanup kills a child process group after its leader exits', async () => {
   const project = await makeProject({ gameBehavior: 'run' });
-  const source = JSON.parse(await readFile(project.configPath, 'utf8')) as {
-    game: { command: string[] };
+  const source = JSON.parse(await readFile(project.projectPath, 'utf8')) as {
+    development: { command: string[] };
   };
-  source.game.command = [process.execPath, fixture, 'game-parent', project.marker, 'orphan'];
-  await writeFile(project.configPath, `${JSON.stringify(source, null, 2)}\n`);
-  const config = await loadAntikyConfig(project.configPath);
+  source.development.command = [process.execPath, fixture, 'game-parent', project.marker, 'orphan'];
+  await writeFile(project.projectPath, `${JSON.stringify(source, null, 2)}\n`);
+  const config = await loadAntikyProject(project.projectPath);
   const session = await startDevelopmentSession(config);
   let groupId: number | undefined;
 
@@ -564,7 +575,7 @@ test('cleanup kills a child process group after its leader exits', async () => {
 
 test('cleanup attempts every resource and settles when one cleanup operation fails', async () => {
   const project = await makeProject();
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const attempted: string[] = [];
   const diagnostics: unknown[] = [];
   const session = await startDevelopmentSession(config, {
@@ -638,8 +649,8 @@ test('SIGINT stops the CLI session and releases both ports', async () => {
     '--experimental-transform-types',
     cli,
     'dev',
-    '--config',
-    project.configPath,
+    '--project',
+    project.projectPath,
   ], { stdio: ['ignore', 'pipe', 'pipe'] });
   let stdout = '';
   let stderr = '';
@@ -676,8 +687,8 @@ test('terminal SIGINT through the npm antiky wrapper leaves no child group or de
     'antiky',
     '--',
     'dev',
-    '--config',
-    project.configPath,
+    '--project',
+    project.projectPath,
   ], {
     cwd: repositoryRoot,
     detached: true,
@@ -747,9 +758,9 @@ test('terminal SIGINT through the npm antiky wrapper leaves no child group or de
 
 test('browser publication, direct reads, CLI inspection, and a typed client share one snapshot', async () => {
   const project = await makeProject();
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const session = await startDevelopmentSession(config, { writeOutput: () => {} });
-  const origin = new URL(config.game.url).origin;
+  const origin = new URL(config.development.url).origin;
 
   try {
     const bootstrapResponse = await fetch(`${session.inspectionUrl}/v1/browser/bootstrap`, {
@@ -764,7 +775,7 @@ test('browser publication, direct reads, CLI inspection, and a typed client shar
     };
     assert.equal(bootstrap.schemaVersion, 1);
     assert.equal(bootstrap.developmentSessionId, session.id);
-    assert.equal(bootstrap.gameUrl, config.game.url);
+    assert.equal(bootstrap.gameUrl, config.development.url);
 
     const frameworkSnapshot = createInspectionSnapshot({
       schemaVersion: 1,
@@ -806,8 +817,8 @@ test('browser publication, direct reads, CLI inspection, and a typed client shar
     });
 
     const direct = session.snapshot();
-    const cliInspection = await inspectDevelopmentSession(project.configPath);
-    const client = await connectDevelopmentClient(project.configPath);
+    const cliInspection = await inspectDevelopmentSession(project.projectPath);
+    const client = await connectDevelopmentClient(project.projectPath);
     const studioCompatible = await client.readDevelopmentSnapshot();
 
     assert.equal(direct.connection.state, 'connected');
@@ -823,12 +834,12 @@ test('browser publication, direct reads, CLI inspection, and a typed client shar
 
 test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one point-light service', async () => {
   const project = await makeProject();
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const session = await startDevelopmentSession(config, {
     writeOutput: () => {},
     actionTimeoutMilliseconds: 1000,
   });
-  const origin = new URL(config.game.url).origin;
+  const origin = new URL(config.development.url).origin;
   const worldId = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
   const visibleId = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abd');
   const headlessId = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abe');
@@ -965,9 +976,9 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
     };
 
     await publish();
-    const client = await connectDevelopmentClient(project.configPath);
+    const client = await connectDevelopmentClient(project.projectPath);
     const directBefore = inspectPointLightService(service);
-    const cliBefore = await inspectDevelopmentSession(project.configPath);
+    const cliBefore = await inspectDevelopmentSession(project.projectPath);
     const typedList = await client.listPointLights();
     const typedLight = await client.getPointLight(visibleId);
     const mcpList = await callMcp(1, 'list_point_lights');
@@ -976,8 +987,8 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
     const humanListExitCode = await runCli([
       'tool',
       'list_point_lights',
-      '--config',
-      project.configPath,
+      '--project',
+      project.projectPath,
     ], {
       stdout: (text) => humanListOutput.push(text),
       stderr: () => {},
@@ -987,8 +998,8 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
       'tool',
       'get_point_light',
       JSON.stringify({ entityId: visibleId }),
-      '--config',
-      project.configPath,
+      '--project',
+      project.projectPath,
     ], {
       stdout: (text) => humanLightOutput.push(text),
       stderr: () => {},
@@ -1081,12 +1092,12 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
 
 test('direct, typed-client, HTTP, MCP, and human CLI session controls share one result', async () => {
   const project = await makeProject();
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const development = await startDevelopmentSession(config, {
     writeOutput: () => {},
     actionTimeoutMilliseconds: 1000,
   });
-  const origin = new URL(config.game.url).origin;
+  const origin = new URL(config.development.url).origin;
   const runtimeInstanceId = 'runtime-session-controls-001';
   const engine = createEngineSession({
     sessionId: parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0'),
@@ -1204,7 +1215,7 @@ test('direct, typed-client, HTTP, MCP, and human CLI session controls share one 
     };
 
     await publish();
-    const client = await connectDevelopmentClient(project.configPath);
+    const client = await connectDevelopmentClient(project.projectPath);
     assert.deepEqual((await client.getSessionStatus()).session, engine.readStatus());
 
     const typedPending = client.pauseSimulation();
@@ -1238,8 +1249,8 @@ test('direct, typed-client, HTTP, MCP, and human CLI session controls share one 
     const humanPending = runCli([
       'tool',
       'resume_simulation',
-      '--config',
-      project.configPath,
+      '--project',
+      project.projectPath,
     ], {
       stdout: (text) => humanOutput.push(text),
       stderr: () => {},
@@ -1316,9 +1327,9 @@ test('unexpected inspection failures emit a safe request-correlated diagnostic',
 
 test('browser boundary rejects unauthorized, wrong-origin, stale, malformed, and oversized messages', async () => {
   const project = await makeProject();
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const session = await startDevelopmentSession(config, { writeOutput: () => {} });
-  const origin = new URL(config.game.url).origin;
+  const origin = new URL(config.development.url).origin;
   const snapshot = createInspectionSnapshot({
     schemaVersion: 1,
     runtime: { instanceId: 'runtime-security-001', lifecycle: 'ready' },
@@ -1426,12 +1437,12 @@ test('browser boundary rejects unauthorized, wrong-origin, stale, malformed, and
 
 test('disconnect, reconnect, controlled reload, and capture preserve related identities', async () => {
   const project = await makeProject();
-  const config = await loadAntikyConfig(project.configPath);
+  const config = await loadAntikyProject(project.projectPath);
   const session = await startDevelopmentSession(config, {
     writeOutput: () => {},
     actionTimeoutMilliseconds: 1000,
   });
-  const origin = new URL(config.game.url).origin;
+  const origin = new URL(config.development.url).origin;
 
   try {
     const bootstrapResponse = await fetch(`${session.inspectionUrl}/v1/browser/bootstrap`, {
@@ -1502,7 +1513,7 @@ test('disconnect, reconnect, controlled reload, and capture preserve related ide
     assert.equal(session.snapshot().developmentSessionId, developmentSessionId);
     assert.equal(session.snapshot().acceptedBuildRevision, 1);
 
-    const client = await connectDevelopmentClient(project.configPath);
+    const client = await connectDevelopmentClient(project.projectPath);
     const reloadPromise = client.requestReload();
     const reloadAction = await pollAction('runtime-reconnect-002');
     assert.equal(reloadAction.kind, 'reload');

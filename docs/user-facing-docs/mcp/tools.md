@@ -12,7 +12,7 @@ the action you need.
 | Tool | Use it when | Changes state |
 | --- | --- | --- |
 | `get_dev_status` | You need to orient to a session | No |
-| `get_latest_build` | A source, shader, asset, or config file changed | No |
+| `get_latest_build` | A source, shader, asset, or project file changed | No |
 | `get_runtime_status` | You need the game connection or complete framework snapshot | No |
 | `get_render_stats` | You need renderer measurements, not an image | No |
 | `get_diagnostics` | A build, runtime, or action is not working | No |
@@ -48,14 +48,14 @@ antiky tool get_point_light '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}
 ```
 
 Use `--input '<json>'` instead of positional JSON if that is easier for your shell. Add
-`--config path/to/antiky.config.json` when you are outside the project directory.
+`--project path/to/harbor-lights.antiky` when you are outside the project directory.
 
 ## Development state tools
 
 ### `get_dev_status`
 
 Call this first. It takes no input and returns the development-session ID, accepted build revision,
-resolved config, process health, runtime connection, cleanup state, and CLI timing measurements.
+validated project, process health, runtime connection, cleanup state, and CLI timing measurements.
 
 ```sh
 antiky tool get_dev_status
@@ -63,8 +63,8 @@ antiky tool get_dev_status
 
 ### `get_latest_build`
 
-Call this after a source, shader, asset, or config change. It takes no input and returns the accepted
-revision plus the latest build attempt, change kind, result, changed path, and duration. Use the
+Call this after a source, shader, asset, or project-manifest change. It takes no input and returns
+the accepted revision plus the latest build attempt, change kind, result, changed path, and duration. Use the
 accepted revision—not file timing—to decide whether a reload is safe.
 
 ```sh

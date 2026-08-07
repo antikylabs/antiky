@@ -26,7 +26,7 @@ fn write_descriptor(project: &Path, inspection_url: &str, extra: &str) {
     write(
         directory.join("dev-session.json"),
         format!(
-            "{{\"schemaVersion\":1,\"developmentSessionId\":\"development-native-001\",\"configHash\":\"hash-001\",\"inspectionUrl\":\"{inspection_url}\",\"credential\":\"{}\",\"ownerPid\":42{extra}}}",
+            "{{\"schemaVersion\":1,\"developmentSessionId\":\"development-native-001\",\"projectRevision\":\"hash-001\",\"inspectionUrl\":\"{inspection_url}\",\"credential\":\"{}\",\"ownerPid\":42{extra}}}",
             "a".repeat(48),
         ),
     )

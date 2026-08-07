@@ -15,7 +15,7 @@ const MAX_DESCRIPTOR_BYTES: u64 = 8_192;
 pub struct DevelopmentConnection {
     schema_version: u8,
     pub development_session_id: String,
-    config_hash: String,
+    project_revision: String,
     pub inspection_url: String,
     pub credential: String,
     owner_pid: u32,
@@ -64,7 +64,7 @@ pub fn read_development_connection(
 
     if connection.schema_version != 1
         || !bounded_identifier(&connection.development_session_id, 256)
-        || !bounded_identifier(&connection.config_hash, 256)
+        || !bounded_identifier(&connection.project_revision, 256)
         || !bounded_identifier(&connection.credential, 512)
         || connection.credential.len() < 32
         || connection.owner_pid == 0

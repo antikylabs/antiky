@@ -17,7 +17,7 @@ test('native host responses are accepted only with their bounded exact shape', (
   const connection = parseNativeDevelopmentConnection({
     schemaVersion: 1,
     developmentSessionId: 'development-studio-001',
-    configHash: 'config-hash',
+    projectRevision: 'project-revision',
     inspectionUrl: 'http://127.0.0.1:3011',
     credential: 'a'.repeat(48),
     ownerPid: 123,
@@ -33,7 +33,7 @@ test('native host responses are accepted only with their bounded exact shape', (
   assert.throws(() => parseNativeDevelopmentConnection({
     schemaVersion: 1,
     developmentSessionId: 'development-studio-001',
-    configHash: 'config-hash',
+    projectRevision: 'project-revision',
     inspectionUrl: 'http://localhost:3011',
     credential: 'a'.repeat(48),
     ownerPid: 123,

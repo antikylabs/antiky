@@ -53,7 +53,7 @@ export function parseNativeDevelopmentConnection(value: unknown): DevelopmentCon
   checkExactKeys(record, [
     'schemaVersion',
     'developmentSessionId',
-    'configHash',
+    'projectRevision',
     'inspectionUrl',
     'credential',
     'ownerPid',
@@ -81,7 +81,7 @@ export function parseNativeDevelopmentConnection(value: unknown): DevelopmentCon
     || url.username.length > 0
     || url.password.length > 0
   ) invalidNativeResponse();
-  readString(record.configHash, 1, 256);
+  readString(record.projectRevision, 1, 256);
   return Object.freeze({
     developmentSessionId: readString(record.developmentSessionId, 1, 128),
     inspectionUrl,

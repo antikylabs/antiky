@@ -54,7 +54,7 @@ function classify(path: string): Exclude<DevelopmentChangeKind, 'initial'> | nul
   const lower = path.toLowerCase();
   if (lower.endsWith('.shader.ts')) return 'shader';
   if (/\.(?:ts|tsx|js|jsx|css)$/.test(lower) && !/\.test\.[^.]+$/.test(lower)) return 'source';
-  if (basename(lower) === 'antiky.config.json') return 'config';
+  if (lower.endsWith('.antiky')) return 'project';
   return assetExtensions.has(extension(lower)) ? 'asset' : null;
 }
 

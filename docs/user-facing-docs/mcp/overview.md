@@ -42,7 +42,7 @@ standard-input/output adapter:
   "mcpServers": {
     "antiky": {
       "command": "antiky",
-      "args": ["mcp", "--config", "/absolute/path/to/antiky.config.json"]
+      "args": ["mcp", "--project", "/absolute/path/to/harbor-lights.antiky"]
     }
   }
 }
@@ -89,7 +89,7 @@ For a tool with input, pass one quoted JSON object:
 antiky tool get_point_light '{"entityId":"018f0f3a-7b2c-7a1d-8e2f-123456789abd"}'
 ```
 
-See [Run Antiky locally](../cli/development.md) for CLI configuration and errors.
+See [Run Antiky locally](../cli/development.md) for the project manifest and CLI errors.
 
 ## Keep the endpoint local
 

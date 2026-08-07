@@ -2,17 +2,19 @@ import { randomUUID } from 'node:crypto';
 import { chmod, mkdir, readFile, rename, rm, rmdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-import type { AntikyConfig } from '../config.ts';
 import { AntikyCliError } from '../errors.ts';
+import type { AntikyProject } from '../project.ts';
 
 const SESSION_DIRECTORY = '.antiky';
 const SESSION_FILE = 'dev-session.json';
+const SESSION_IGNORE_FILE = '.gitignore';
+const SESSION_IGNORE_SOURCE = '*\n!.gitignore\n';
 const MAX_DESCRIPTOR_BYTES = 8192;
 
 export type SessionDescriptor = Readonly<{
   schemaVersion: 1;
   developmentSessionId: string;
-  configHash: string;
+  projectRevision: string;
   inspectionUrl: string;
   credential: string;
   ownerPid: number;
@@ -29,6 +31,9 @@ export async function writeSessionDescriptor(
   const directory = dirname(path);
   await mkdir(directory, { recursive: true, mode: 0o700 });
   await chmod(directory, 0o700);
+  const ignorePath = join(directory, SESSION_IGNORE_FILE);
+  await writeFile(ignorePath, SESSION_IGNORE_SOURCE, { encoding: 'utf8', mode: 0o644 });
+  await chmod(ignorePath, 0o644);
   const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
   try {
     await writeFile(temporaryPath, `${JSON.stringify(descriptor, null, 2)}\n`, {
@@ -58,11 +63,11 @@ function isDescriptor(value: unknown): value is SessionDescriptor {
   const record = value as Record<string, unknown>;
   const keys = Object.keys(record).sort();
   const expectedKeys = [
-    'configHash',
     'credential',
     'developmentSessionId',
     'inspectionUrl',
     'ownerPid',
+    'projectRevision',
     'schemaVersion',
   ];
   return keys.length === expectedKeys.length
@@ -70,8 +75,8 @@ function isDescriptor(value: unknown): value is SessionDescriptor {
     && record.schemaVersion === 1
     && typeof record.developmentSessionId === 'string'
     && record.developmentSessionId.length > 0
-    && typeof record.configHash === 'string'
-    && record.configHash.length > 0
+    && typeof record.projectRevision === 'string'
+    && record.projectRevision.length > 0
     && typeof record.inspectionUrl === 'string'
     && typeof record.credential === 'string'
     && record.credential.length >= 32
@@ -79,8 +84,8 @@ function isDescriptor(value: unknown): value is SessionDescriptor {
     && (record.ownerPid as number) > 0;
 }
 
-export async function readSessionDescriptor(config: AntikyConfig): Promise<SessionDescriptor> {
-  const path = getSessionDescriptorPath(config.path);
+export async function readSessionDescriptor(project: AntikyProject): Promise<SessionDescriptor> {
+  const path = getSessionDescriptorPath(project.manifestPath);
   let descriptor: SessionDescriptor;
   try {
     const source = await readFile(path, 'utf8');
@@ -91,15 +96,18 @@ export async function readSessionDescriptor(config: AntikyConfig): Promise<Sessi
   } catch {
     throw new AntikyCliError(
       'ANTIKY_SESSION_UNAVAILABLE',
-      `No active Antiky session was found for ${config.path}.`,
+      `No active Antiky session was found for ${project.manifestPath}.`,
     );
   }
 
-  const expectedUrl = `http://${config.network.host}:${config.network.inspectionPort}`;
-  if (descriptor.configHash !== config.hash || descriptor.inspectionUrl !== expectedUrl) {
+  const expectedUrl = `http://${project.network.host}:${project.network.inspectionPort}`;
+  if (
+    descriptor.projectRevision !== project.revision
+    || descriptor.inspectionUrl !== expectedUrl
+  ) {
     throw new AntikyCliError(
       'ANTIKY_SESSION_UNAVAILABLE',
-      'The Antiky session descriptor does not match the selected config.',
+      'The Antiky session descriptor does not match the selected project.',
     );
   }
   return descriptor;

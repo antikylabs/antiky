@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 
 import { ID_KINDS, isUuidV7 } from '@antiky/framework';
@@ -71,4 +74,37 @@ test('an unexpected CLI failure emits a safe diagnostic and a bounded public err
     code: 'ANTIKY_CLI_FAILED',
     component: 'cli',
   }]);
+});
+
+test('antiky migrate creates an explicitly named project and normal commands reject --config', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'antiky-cli-migrate-'));
+  const configPath = join(directory, 'antiky.config.json');
+  const outputPath = join(directory, 'sample.antiky');
+  await writeFile(configPath, `${JSON.stringify({
+    schemaVersion: 1,
+    game: {
+      command: ['node', 'game.mjs'],
+      shaderCommand: ['node', 'shaders.mjs'],
+      workingDirectory: '.',
+      url: 'http://127.0.0.1:43100/',
+      viewport: { width: 960, height: 540 },
+    },
+    network: { host: '127.0.0.1', gamePort: 43100, inspectionPort: 43101 },
+  }, null, 2)}\n`);
+
+  const migrated = output();
+  assert.equal(await runCli([
+    'migrate',
+    '--config', configPath,
+    '--output', outputPath,
+    '--name', 'Sample Project',
+  ], migrated.io), 0);
+  assert.match(migrated.stdout.join(''), /Created .*sample\.antiky/u);
+  assert.equal(JSON.parse(await readFile(outputPath, 'utf8')).name, 'Sample Project');
+
+  await assert.rejects(
+    () => runCli(['inspect', '--config', configPath]),
+    (error: unknown) => error instanceof AntikyCliError
+      && error.code === 'ANTIKY_ARGUMENT_INVALID',
+  );
 });

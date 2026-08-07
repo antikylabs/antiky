@@ -1,5 +1,5 @@
-import type { AntikyConfig } from '../config.ts';
 import { AntikyCliError } from '../errors.ts';
+import type { AntikyProject } from '../project.ts';
 import { MCP_HTTP_PATH, MCP_PROTOCOL_VERSION } from './server.ts';
 
 const MCP_ACCEPT = 'application/json, text/event-stream';
@@ -104,11 +104,11 @@ async function postMcp(
 }
 
 export async function callMcpTool(
-  config: AntikyConfig,
+  project: AntikyProject,
   name: string,
   argumentsValue: Readonly<Record<string, unknown>>,
 ): Promise<McpToolCallResult> {
-  const url = `http://${config.network.host}:${config.network.inspectionPort}${MCP_HTTP_PATH}`;
+  const url = `http://${project.network.host}:${project.network.inspectionPort}${MCP_HTTP_PATH}`;
   const initializeResponse = readResponse(await postMcp(url, {
     jsonrpc: '2.0',
     id: 1,

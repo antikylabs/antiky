@@ -167,7 +167,7 @@ export function StudioShell({
             {current && snapshot ? (
               <LiveGameFrame
                 developmentSessionId={snapshot.developmentSessionId}
-                gameUrl={snapshot.config.gameUrl}
+                gameUrl={snapshot.project.gameUrl}
                 runtimeConnected={snapshot.connection.state === 'connected'}
               />
             ) : (
