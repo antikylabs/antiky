@@ -54,6 +54,16 @@ current directory. It does not search parent directories. Antiky validates the c
 and reserves both ports before it starts a child process. If validation fails or a port is busy,
 nothing starts.
 
+On macOS, open the same selected project in the installed desktop application with:
+
+```sh
+antiky studio --project path/to/harbor-lights.antiky
+```
+
+You can omit `--project` under the same current-directory discovery rule. The command validates the
+manifest before it opens Antiky Studio. It does not start development services; Studio owns those
+services after it accepts the project.
+
 ## Configure your project
 
 The initializer uses the following defaults. The filename identifies the project to Finder, Studio,
@@ -392,6 +402,8 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_CHILD_STOP_FAILED`: an owned child process group remained active after shutdown attempts.
 - `ANTIKY_INTERNAL_ERROR`: the CLI failed unexpectedly; use the correlated diagnostic event.
 - `ANTIKY_SESSION_UNAVAILABLE`: `antiky inspect` cannot find or reach the selected session.
+- `ANTIKY_STUDIO_UNAVAILABLE`: the platform is unsupported, or macOS could not open the installed
+  Antiky Studio application.
 - `ANTIKY_UNAUTHORIZED`: the inspection service rejected the session credential.
 - `ANTIKY_RUNTIME_UNAVAILABLE`: a runtime-backed read or action needs a connected game process.
 - `ANTIKY_ACTION_BUSY`: another controlled development action is still active.

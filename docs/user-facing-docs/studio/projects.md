@@ -72,6 +72,16 @@ Select **Open project** in the workspace to choose a different project. You can 
 `.antiky` file in Finder after Antiky Studio is installed. Finder opens the same Studio window when
 Studio is already running.
 
+On macOS, you can open the project from a terminal instead:
+
+```sh
+antiky studio --project path/to/harbor-lights.antiky
+```
+
+Run `antiky studio` without `--project` from a directory that contains exactly one `.antiky` file.
+The CLI validates the manifest before it asks macOS to open Antiky Studio. It does not start the game
+compiler, development host, or project service; Studio starts them after it accepts the project.
+
 If a replacement manifest is invalid, Studio reports the error and leaves the current project
 unchanged. Canceling the file picker also leaves the current project unchanged. Studio does not run
 project commands while it validates a manifest.

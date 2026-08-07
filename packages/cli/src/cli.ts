@@ -14,9 +14,11 @@ import { callMcpTool } from './mcp/client.ts';
 import { runMcpServer } from './mcp/server.ts';
 import { initializeAntikyProject } from './project-initializer.ts';
 import { loadAntikyProject, migrateAntikyConfig } from './project-node.ts';
+import { launchStudioProject } from './studio-launch.ts';
 
 export const CLI_USAGE = `Usage:
   antiky init [name] [--directory path]
+  antiky studio [--project path]
   antiky dev [--project path]
   antiky inspect [--project path]
   antiky mcp [--project path]
@@ -38,6 +40,7 @@ export type CliIo = Readonly<{
 
 export type RunCliOptions = Readonly<{
   diagnosticSink?: CliDiagnosticSink;
+  studioLauncher?: (manifestPath: string) => Promise<void>;
 }>;
 
 function parseProjectPath(args: readonly string[]): string | undefined {
@@ -225,10 +228,12 @@ async function executeCli(
   args: readonly string[],
   io: CliIo,
   diagnosticSink: CliDiagnosticSink,
+  studioLauncher: (manifestPath: string) => Promise<void>,
 ): Promise<number> {
   const [command, ...commandArgs] = args;
   if (
     command !== 'init'
+    && command !== 'studio'
     && command !== 'dev'
     && command !== 'inspect'
     && command !== 'mcp'
@@ -277,6 +282,13 @@ async function executeCli(
     return result.isError ? 1 : 0;
   }
   const projectPath = parseProjectPath(commandArgs);
+
+  if (command === 'studio') {
+    const project = await loadAntikyProject(projectPath);
+    await studioLauncher(project.manifestPath);
+    io.stdout(`Opened ${project.manifestPath} in Antiky Studio\n`);
+    return 0;
+  }
 
   if (command === 'inspect') {
     const snapshot = await inspectDevelopmentSession(projectPath);
@@ -334,8 +346,9 @@ export async function runCli(
   options: RunCliOptions = {},
 ): Promise<number> {
   const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
+  const studioLauncher = options.studioLauncher ?? launchStudioProject;
   try {
-    return await executeCli(args, io, diagnosticSink);
+    return await executeCli(args, io, diagnosticSink, studioLauncher);
   } catch (cause: unknown) {
     if (cause instanceof AntikyCliError) throw cause;
     emitCliDiagnostic(diagnosticSink, {

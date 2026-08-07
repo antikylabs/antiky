@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chmod, mkdir, mkdtemp, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, realpath, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -55,6 +55,68 @@ test('antiky init uses the folder name and creates only the frozen manifest', as
   assert.match(result.stdout.join(''), /Created .*harbor-lights\.antiky/);
   assert.match(result.stdout.join(''), /antiky dev/);
   assert.match(result.stdout.join(''), /Antiky Studio/);
+});
+
+test('antiky studio validates and opens one explicit project without starting development', async () => {
+  const directory = await emptyProjectDirectory('studio-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const manifestPath = join(directory, 'studio-project.antiky');
+  const launched: string[] = [];
+  const result = output();
+
+  assert.equal(await runCli(['studio', '--project', manifestPath], result.io, {
+    studioLauncher: async (path: string) => { launched.push(path); },
+  }), 0);
+
+  assert.deepEqual(launched, [await realpath(manifestPath)]);
+  assert.match(result.stdout.join(''), /Opened .*studio-project\.antiky in Antiky Studio/u);
+});
+
+test('antiky studio discovers the one project in the current directory', async () => {
+  const directory = await emptyProjectDirectory('discovered-studio-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const launched: string[] = [];
+  const previousDirectory = process.cwd();
+  try {
+    process.chdir(directory);
+    assert.equal(await runCli(['studio'], output().io, {
+      studioLauncher: async (path: string) => { launched.push(path); },
+    }), 0);
+  } finally {
+    process.chdir(previousDirectory);
+  }
+
+  assert.deepEqual(launched, [await realpath(join(directory, 'discovered-studio-project.antiky'))]);
+});
+
+test('antiky studio rejects an invalid project before asking the OS to open Studio', async () => {
+  const directory = await emptyProjectDirectory('invalid-studio-project');
+  const manifestPath = join(directory, 'invalid-studio-project.antiky');
+  await writeFile(manifestPath, '{}\n');
+  let launches = 0;
+
+  await assert.rejects(
+    () => runCli(['studio', '--project', manifestPath], output().io, {
+      studioLauncher: async () => { launches += 1; },
+    }),
+    expectCliError('ANTIKY_PROJECT_INVALID'),
+  );
+  assert.equal(launches, 0);
+});
+
+test('antiky studio has the same bounded project option as other project commands', async () => {
+  for (const args of [
+    ['studio', '--project'],
+    ['studio', '--project', 'one.antiky', '--project', 'two.antiky'],
+    ['studio', '--unknown'],
+  ]) {
+    await assert.rejects(
+      () => runCli(args),
+      (error: unknown) => error instanceof AntikyCliError
+        && error.code === 'ANTIKY_ARGUMENT_INVALID'
+        && /antiky studio \[--project path\]/.test(error.message),
+    );
+  }
 });
 
 test('antiky init keeps a Unicode display name and normalizes its file slug', async () => {
