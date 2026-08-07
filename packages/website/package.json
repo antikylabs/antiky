@@ -7,7 +7,7 @@
     "dev": "next dev",
     "prebuild": "npm run docs:api:check --workspace @antiky/framework && npm run demos:stage",
     "build": "next build",
-    "demos:stage": "node ../../scripts/build-public-demos.mjs",
+    "demos:stage": "node scripts/build-public-demos.mjs",
     "start": "next start -p 3010",
     "test": "npm run build && node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit"

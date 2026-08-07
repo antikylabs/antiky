@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "npm run shaders:prod && vite build && node ../../../scripts/build-demo-artifact.mjs --slug antiky-town --name \"Antiky Town\" --source project=. --source artifact-builder=../../../scripts/build-demo-artifact.mjs",
+    "build": "npm run shaders:prod && vite build",
     "dev": "vite build --watch",
     "shaders": "brometal dev --once",
     "shaders:watch": "brometal dev",

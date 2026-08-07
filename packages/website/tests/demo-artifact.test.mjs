@@ -1,21 +1,21 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cp, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
-import { promisify } from 'node:util';
+
+import { buildPublishedDemo } from '../scripts/build-public-demos.mjs';
 
 const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
 const demos = ['antiky-town', 'town-study', 'shader-study'];
-const execute = promisify(execFile);
+const publication = JSON.parse(await readFile(new URL('../demo-publication.json', import.meta.url), 'utf8'));
 
 async function buildDemo(slug) {
-  await execute('npm', ['run', 'build', '--workspace', `@antiky/demo-${slug}`], {
-    cwd: repositoryRoot,
-  });
+  const demo = publication.demos.find((candidate) => candidate.slug === slug);
+  assert.ok(demo, `Missing publication entry for ${slug}`);
+  await buildPublishedDemo({ repositoryRoot, demo });
 }
 
 function sha256(source) {

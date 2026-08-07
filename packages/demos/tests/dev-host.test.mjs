@@ -60,3 +60,17 @@ test('every public demo owns its source without a shared demo package', async ()
     assert.doesNotMatch(source, /@antiky\/demo-/);
   }
 });
+
+test('every public demo owns its build without repository artifact tooling', async () => {
+  for (const slug of publicDemos) {
+    const directory = new URL(`${slug}/`, demosDirectory);
+    const metadata = JSON.parse(await readFile(new URL('package.json', directory), 'utf8'));
+    for (const [name, command] of Object.entries(metadata.scripts ?? {})) {
+      assert.doesNotMatch(command, /\.\.\//, `${slug} ${name} escapes its project`);
+      assert.doesNotMatch(command, /build-demo-artifact/, `${slug} ${name} builds a website artifact`);
+    }
+  }
+  await assert.rejects(() => access(new URL('../../../scripts/build-demo-artifact.mjs', import.meta.url)));
+  await assert.rejects(() => access(new URL('../../../scripts/build-public-demos.mjs', import.meta.url)));
+  await assert.rejects(() => access(new URL('../../../scripts/stage-demo-artifacts.mjs', import.meta.url)));
+});

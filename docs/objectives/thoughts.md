@@ -38,11 +38,11 @@ The fix should do these things:
 
 Yes. Website demo orchestration belongs to the website while it has only one product consumer.
 
-[`build-public-demos.mjs`](../../scripts/build-public-demos.mjs) and
-[`stage-demo-artifacts.mjs`](../../scripts/stage-demo-artifacts.mjs) exist for the website build and
+[`build-public-demos.mjs`](../../packages/website/scripts/build-public-demos.mjs) and
+[`stage-demo-artifacts.mjs`](../../packages/website/scripts/stage-demo-artifacts.mjs) exist for the website build and
 its tests. They should live under `packages/website/scripts/`.
 
-[`build-demo-artifact.mjs`](../../scripts/build-demo-artifact.mjs) is also called by each demo
+[`build-demo-artifact.mjs`](../../packages/website/scripts/build-demo-artifact.mjs) is owned by the website
 package. That does not make it a shared product capability. It means each supposedly standalone
 demo still reaches outside its project for repository tooling. Today, only website publication
 uses the resulting `antiky-artifact.json` contract.

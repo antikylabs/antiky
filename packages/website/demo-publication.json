@@ -8,7 +8,7 @@
       "projectDirectory": "packages/demos/antiky-town",
       "sources": [
         { "label": "project", "path": "packages/demos/antiky-town" },
-        { "label": "artifact-builder", "path": "scripts/build-demo-artifact.mjs" }
+        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
       ]
     },
     {
@@ -18,7 +18,7 @@
       "projectDirectory": "packages/demos/town-study",
       "sources": [
         { "label": "project", "path": "packages/demos/town-study" },
-        { "label": "artifact-builder", "path": "scripts/build-demo-artifact.mjs" }
+        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
       ]
     },
     {
@@ -28,7 +28,7 @@
       "projectDirectory": "packages/demos/shader-study",
       "sources": [
         { "label": "project", "path": "packages/demos/shader-study" },
-        { "label": "artifact-builder", "path": "scripts/build-demo-artifact.mjs" }
+        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
       ]
     }
   ]

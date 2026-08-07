@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { buildDemoArtifact } from '../../../scripts/build-demo-artifact.mjs';
-import { stageDemoArtifacts } from '../../../scripts/stage-demo-artifacts.mjs';
+import { buildDemoArtifact } from '../scripts/build-demo-artifact.mjs';
+import { stageDemoArtifacts } from '../scripts/stage-demo-artifacts.mjs';
 
 const sourceRoot = new URL('../src/', import.meta.url);
 

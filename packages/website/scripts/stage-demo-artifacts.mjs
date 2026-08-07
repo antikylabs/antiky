@@ -281,7 +281,7 @@ export async function stageDemoArtifacts({ repositoryRoot, publicationPath, dest
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  const repositoryRoot = path.resolve(import.meta.dirname, '..');
+  const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
   await stageDemoArtifacts({
     repositoryRoot,
     publicationPath: path.join(repositoryRoot, 'packages/website/demo-publication.json'),
