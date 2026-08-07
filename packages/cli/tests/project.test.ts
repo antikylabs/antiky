@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import {
   mkdir,
   mkdtemp,
@@ -104,6 +105,15 @@ test('the pure parser creates one immutable Unicode project description', () => 
   assert.ok(Object.isFrozen(project.development));
   assert.ok(Object.isFrozen(project.development.command));
   assert.ok(Object.isFrozen(project.build));
+});
+
+test('the initialized project fixture has the frozen schema-default digest', async () => {
+  const source = await readFile(new URL('fixtures/initialized-project.antiky', import.meta.url));
+  assert.equal(
+    createHash('sha256').update(source).digest('hex'),
+    '8cf37dd375750d31d54a7af6e8080354d372633482c4db1b5359354b92decf7f',
+  );
+  assert.equal(parseAntikyProjectManifest(source.toString('utf8')).name, 'Harbor Lights');
 });
 
 test('the parser rejects unknown fields, malformed JSON, incompatible versions, and controls', () => {

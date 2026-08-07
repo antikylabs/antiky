@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-feedback-02-20260807T035239Z",
+  "capturedAt": "2026-08-07T03:52:39Z",
+  "sourceRevision": "228997a07b6a0ace98be490fc014ab640f9ace39",
+  "branch": "feat/voxel-demo-work",
+  "worktree": ".",
+  "dependencyLockSha256": "7d487c555b75008846360d0c0c6ebc604da6d549c89f8939507055ce1a6327bb",
+  "planSha256": "73c42475f51995272683ed29fa5aa373a7f9c320a28f3740903d8aeea22c8d90",
+  "runtime": {
+    "platform": "macOS 26.5.2 arm64",
+    "node": "v22.15.0",
+    "npm": "10.9.2",
+    "locale": "en_US.UTF-8",
+    "timeZone": "America/Chicago"
+  },
+  "dependencies": {
+    "brometalInstalled": "0.15.0",
+    "brometalLatest": "0.15.0",
+    "renderPathChange": false
+  },
+  "reference": {
+    "cliInitCommandPresent": false,
+    "pureManifestBuilderPresent": false,
+    "atomicProjectInitializerPresent": false,
+    "feedback01ProjectParser": "PASS",
+    "feedback01StudioOpen": "PASS"
+  },
+  "isolation": {
+    "fixtureRoot": "operating-system temporary directory",
+    "ports": [3010, 3011],
+    "externalServices": "none"
+  },
+  "rollbackRevision": "228997a07b6a0ace98be490fc014ab640f9ace39"
+}

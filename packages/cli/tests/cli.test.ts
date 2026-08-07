@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -17,6 +17,120 @@ function output() {
     io: { stdout: (text: string) => stdout.push(text), stderr: () => {} },
   };
 }
+
+async function emptyProjectDirectory(name: string): Promise<string> {
+  const parent = await mkdtemp(join(tmpdir(), 'antiky-cli-init-'));
+  const directory = join(parent, name);
+  await mkdir(directory);
+  return directory;
+}
+
+function expectCliError(code: string) {
+  return (error: unknown): boolean => {
+    assert.ok(error instanceof AntikyCliError);
+    assert.equal(error.code, code);
+    return true;
+  };
+}
+
+test('antiky init help describes one non-interactive manifest command', async () => {
+  const help = output();
+
+  assert.equal(await runCli(['init', '--help'], help.io), 0);
+  assert.match(help.stdout.join(''), /antiky init \[name\] \[--directory path\]/);
+  assert.match(help.stdout.join(''), /creates one \.antiky project manifest/i);
+});
+
+test('antiky init uses the folder name and creates only the frozen manifest', async () => {
+  const directory = await emptyProjectDirectory('Harbor Lights');
+  const expected = await readFile(new URL('fixtures/initialized-project.antiky', import.meta.url), 'utf8');
+  const result = output();
+
+  assert.equal(await runCli(['init', '--directory', directory], result.io), 0);
+
+  const manifestPath = join(directory, 'harbor-lights.antiky');
+  assert.deepEqual(await readdir(directory), ['harbor-lights.antiky']);
+  assert.equal(await readFile(manifestPath, 'utf8'), expected);
+  assert.equal((await stat(manifestPath)).isFile(), true);
+  assert.match(result.stdout.join(''), /Created .*harbor-lights\.antiky/);
+  assert.match(result.stdout.join(''), /antiky dev/);
+  assert.match(result.stdout.join(''), /Antiky Studio/);
+});
+
+test('antiky init keeps a Unicode display name and normalizes its file slug', async () => {
+  const directory = await emptyProjectDirectory('existing-game');
+
+  assert.equal(await runCli([
+    'init',
+    'Crème Brûlée',
+    '--directory', directory,
+  ], output().io), 0);
+
+  const path = join(directory, 'creme-brulee.antiky');
+  assert.deepEqual(await readdir(directory), ['creme-brulee.antiky']);
+  assert.equal(JSON.parse(await readFile(path, 'utf8')).name, 'Crème Brûlée');
+});
+
+test('antiky init never replaces the same or a differently named project', async () => {
+  const initialized = await emptyProjectDirectory('First Project');
+  assert.equal(await runCli(['init', '--directory', initialized], output().io), 0);
+  const manifestPath = join(initialized, 'first-project.antiky');
+  const before = await readFile(manifestPath, 'utf8');
+
+  await assert.rejects(
+    () => runCli(['init', '--directory', initialized]),
+    expectCliError('ANTIKY_PROJECT_EXISTS'),
+  );
+  assert.equal(await readFile(manifestPath, 'utf8'), before);
+  assert.deepEqual(await readdir(initialized), ['first-project.antiky']);
+
+  const existing = await emptyProjectDirectory('Another Project');
+  await writeFile(join(existing, 'already-here.antiky'), 'keep this exact content\n');
+  await assert.rejects(
+    () => runCli(['init', 'New Name', '--directory', existing]),
+    expectCliError('ANTIKY_PROJECT_EXISTS'),
+  );
+  assert.equal(await readFile(join(existing, 'already-here.antiky'), 'utf8'), 'keep this exact content\n');
+  assert.deepEqual(await readdir(existing), ['already-here.antiky']);
+});
+
+test('antiky init returns stable errors for unsafe names and invalid targets', async () => {
+  const directory = await emptyProjectDirectory('valid-target');
+  for (const name of ['../escape', 'bad\\path', '東京']) {
+    await assert.rejects(
+      () => runCli(['init', name, '--directory', directory]),
+      expectCliError('ANTIKY_PROJECT_NAME_INVALID'),
+    );
+  }
+  assert.deepEqual(await readdir(directory), []);
+
+  const parent = await mkdtemp(join(tmpdir(), 'antiky-cli-init-target-'));
+  const file = join(parent, 'not-a-directory');
+  await writeFile(file, 'unchanged\n');
+  await assert.rejects(
+    () => runCli(['init', '--directory', file]),
+    expectCliError('ANTIKY_PROJECT_DIRECTORY_INVALID'),
+  );
+  await assert.rejects(
+    () => runCli(['init', '--directory', join(parent, 'missing')]),
+    expectCliError('ANTIKY_PROJECT_DIRECTORY_INVALID'),
+  );
+  assert.equal(await readFile(file, 'utf8'), 'unchanged\n');
+});
+
+test('antiky init reports a create failure and leaves an unwritable target unchanged', async () => {
+  const directory = await emptyProjectDirectory('read-only-project');
+  await chmod(directory, 0o555);
+  try {
+    await assert.rejects(
+      () => runCli(['init', '--directory', directory]),
+      expectCliError('ANTIKY_PROJECT_CREATE_FAILED'),
+    );
+    assert.deepEqual(await readdir(directory), []);
+  } finally {
+    await chmod(directory, 0o755);
+  }
+});
 
 test('antiky generate id uses the framework generator for every supported kind', async () => {
   for (const kind of ID_KINDS) {

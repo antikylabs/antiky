@@ -4,13 +4,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` until Feedback 01 defines the project manifest |
+| Status | `IN PROGRESS` — Feedback 01 is complete and run `studio-s00-feedback-02-20260807T035239Z` is active |
 | Feedback source | [Slice 00 feedback, line 2](slice-feedback.txt) |
 | Outcome | `antiky init` creates one safe `.antiky` project manifest in a selected game folder |
 | Owner input | The source feedback supplies the product direction |
 | Architecture decisions | Feedback 01 project-boundary ADR and [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | [Feedback 01](feedback-01-open-project-plan.md) |
-| Alignment revision | `dd0eda5d8c4f4273e0cab8b3a5bfa843b8d17b40` |
+| Alignment revision | `228997a07b6a0ace98be490fc014ab640f9ace39` |
 | Review date | `2026-08-06` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-02/verify.mjs` |
 | Evidence | `docs/objectives/studio/slice-00/outputs/studio-s00-feedback-02-{run-id}/receipt.json` |
@@ -145,3 +145,6 @@ CLI arguments -> normalized name and target -> manifest builder -> shared parser
 - Keep Feedback 01's passing manifest parser as the rollback point.
 - Roll back if initialization overwrites data, runs project code, or produces a file Studio cannot open.
 - CLI maintainers own the initializer. Project creation feedback stays in `slice-feedback.txt`.
+
+Run `studio-s00-feedback-02-20260807T035239Z` uses the current worktree. No other delivery run is
+active. The run uses disposable directories under the operating-system temporary directory.
