@@ -104,8 +104,9 @@ npm run antiky -- tool list_point_lights
 
 Press `Ctrl-C` in the development terminal to stop every owned process and release the local ports.
 
-Start Studio with `npm run dev:studio`, select **Open project**, and choose `antiky-town.antiky`.
-The local packaged macOS app also registers `.antiky` files for Finder. See
+Start Studio with `npm run dev:studio`, then reopen a recent project, create one in an existing game
+folder, or select **Open project** and choose `antiky-town.antiky`. The local packaged macOS app also
+registers `.antiky` files for Finder. See
 [Inspect a running game in Studio](docs/user-facing-docs/studio/getting-started.md) for launcher,
 picker, project switching, and workspace guidance.
 

@@ -19,7 +19,14 @@ The command creates only the project manifest. Start the macOS source-developmen
 npm run dev:studio
 ```
 
-Studio starts at the launcher. Select **Open project**, then choose the project's `.antiky` file.
+Studio starts at the launcher. To initialize an existing game folder there, enter its project name,
+select **Create project**, and choose the folder. Studio creates the same manifest as `antiky init`
+and opens it. To open an existing manifest, select **Open project** and choose its `.antiky` file.
+
+Projects that opened successfully appear under **Recent projects** the next time the launcher opens.
+Select an available entry to reopen it. Studio stores this bounded history on your device, not in
+the project, and keeps a moved or deleted project visible with a missing-file status.
+
 Studio reads at most 64 KiB, validates the manifest without running project code, and uses the file's
 canonical parent directory as the project root. The workspace shows the project name, manifest path,
 schema version, and project root.
