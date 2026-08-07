@@ -6,10 +6,9 @@ Use this template with the [Slice Delivery Workflow](SLICE_WORKFLOW_A.md). A rea
 short human-readable contract. It is not a blank execution ledger.
 
 Keep the real plan at 300 lines or fewer. Remove all template instructions and unused sections.
-Record run-specific facts in the evidence receipt.
+Record durable run facts in `slice-summary.md`.
 
-Create the plan as `slice-NN/plan.md`. Create `slice-NN/outputs/README.md` with the output layout
-from the workflow.
+Create the plan as `slice-NN/plan.md`. Create `slice-NN/slice-summary.md` only at closeout.
 
 If the slice needs owner judgment, create `slice-NN/owner-input_H.md`. Follow the
 [owner-input rules](SLICE_WORKFLOW_A.md#owner-input). Put each question, context, recommendation,
@@ -31,8 +30,8 @@ and inline answer block in that file. Do not copy the questions into the plan.
 | Architecture decisions | `<links or NONE>` |
 | Depends on | `<earlier slice or NONE>` |
 | Alignment revision | `<full Git revision>` |
-| Complete check | `<one temporary command; replace it with the saved result when complete>` |
-| Evidence | `docs/objectives/<objective>/slice-<NN>/outputs/{run-id}/receipt.json` |
+| Complete check | `<one temporary command; replace it with the final command and result when complete>` |
+| Closeout | `docs/objectives/<objective>/slice-<NN>/slice-summary.md` |
 
 `<State that the goal runner must read the owner-input file and stop on a pending answer. Remove
 this text when no owner-input file exists.>`
@@ -194,9 +193,9 @@ Name the concrete boundaries and cases. Use a table only when exact mapping help
 
 For a reported error, add a failing regression test before the fix.
 
-Put all temporary verification code in this slice's `verification/` folder. Do not add the command
-or its tests to a package manifest. Do not create a shared root verification library. After the
-slice is complete, delete its `verification/` folder and keep only the saved results in `outputs/`.
+Put all temporary verification code in this slice's ignored `verification/` folder. Do not add the
+command or its tests to a package manifest. Do not create a shared root verification library. After
+the slice is complete, delete its `verification/` and `outputs/` folders.
 
 ## Completion checks
 
@@ -209,11 +208,11 @@ slice is complete, delete its `verification/` folder and keep only the saved res
 - [ ] `<affected user-facing documentation matches the shipped behavior, or N/A has a reason>`
 - [ ] `<repository check passes>`
 - [ ] `<complete slice check passes from one clean start>`
-- [ ] `<evidence receipt validates and links all required proof>`
+- [ ] `<slice-summary.md records the commit, commands, results, and essential measurements>`
 
 ## Run and evidence rule
 
-Reference the shared workflow for normal isolation, permissions, retries, rollback, and receipt
+Reference the shared workflow for normal isolation, permissions, retries, rollback, and evidence
 content. Add only rules that are special to this slice.
 
 - Isolation: `<slice-specific collision or resource rule>`
@@ -222,15 +221,16 @@ content. Add only rules that are special to this slice.
 - Special authority: `<new permission or NONE>`
 - After completion: `<owner, health check, and feedback path>`
 
-Record actual revisions, environment values, ports, identities, dependency versions, attempts,
-measurements, and artifacts in the evidence receipt. Do not pre-fill empty tables in the plan.
+Record detailed run data in ignored local evidence or a retained CI artifact. Do not pre-fill empty
+tables in the plan.
 
-List every changed page under `docs/user-facing-docs/` in the receipt. If none changed, record `N/A`
-and the reason.
+List every changed page under `docs/user-facing-docs/` in `slice-summary.md`. If none changed, record
+`N/A` and the reason.
 
-Write `receipt.json`, `confirmation-checks.md`, and `facts.json` under this slice's
-`outputs/{run-id}/` directory. Add measurements, captures, and logs only when the plan needs them.
+Write temporary reports under this slice's ignored `outputs/{run-id}/` directory or to a CI artifact.
+Do not commit that directory.
 
 Update `../slice-list.md` from the run's facts before closeout.
 
-Write a `slice-summary.md` that tells the owner/human what they need to know about the slice development, what changed in the repo, what was added to CLI/Framework/Studio, and how to test. Also note any decisions that were made that might require an ADR. Keep it simple and straight forward and put it under this slice's directory.
+Write a short `slice-summary.md` for the owner. State what changed, the final commit, how to test,
+the pass or fail results, essential measurements, changed user documentation, and possible ADR needs.

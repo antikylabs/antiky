@@ -5,15 +5,15 @@
 | Field | Value |
 | --- | --- |
 | Status | `COMPLETE` |
-| Feedback source | [Slice 00 feedback, line 1](slice-feedback.txt) |
+| Feedback source | [Slice 00 feedback, line 1](../slice-feedback.txt) |
 | Outcome | A user opens one `<name>.antiky` file and Studio binds one workspace to that file's project root |
 | Owner input | The source feedback supplies the product direction |
-| Architecture decisions | [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) and [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
+| Architecture decisions | [Studio 0002](../../../../adr/studio/0002-tauri-portable-web-editor_H.md) and [Studio 0004](../../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | Completed Studio Slice 00 |
 | Alignment revision | `306435a1647901d0021035746c9fe623d9ea27ac` |
 | Review date | `2026-08-06` |
-| Complete check | Archived `PASS` in `outputs/studio-s00-feedback-01-20260806T233318Z/final-verifier.json`; temporary verifier removed after completion |
-| Evidence | [Run `studio-s00-feedback-01-20260806T233318Z`](outputs/studio-s00-feedback-01-20260806T233318Z/receipt.json) |
+| Complete check | Archived `PASS`; temporary verifier removed after completion |
+| Closeout | [Studio Slice 00 summary](../slice-summary.md) |
 
 Goal command:
 
@@ -85,13 +85,13 @@ Node CLI owns file discovery and loading. The Studio app imports the same pure p
 
 ## Required reading
 
-- [Source feedback](slice-feedback.txt)
-- [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
-- [Studio architecture](../../../architecture/studio/overview_A.md)
-- [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) and [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md)
-- [ADRs under review](../../../adr/UNDER_REVIEW_A.md)
-- [Development harness research](../../general-stuff/DEV_HARNESS_RESEARCH_A.md)
-- [Website design](../../../../packages/website/DESIGN.md) and [Good Engineering](../../../GOOD_ENGINEERING_H.md)
+- [Source feedback](../slice-feedback.txt)
+- [Studio objective guidance](../../AGENTS.md) and [slice workflow](../../../antiky-town/SLICE_WORKFLOW_A.md)
+- [Studio architecture](../../../../architecture/studio/overview_A.md)
+- [Studio 0002](../../../../adr/studio/0002-tauri-portable-web-editor_H.md) and [Studio 0004](../../../../adr/studio/0004-share-engine-services-with-cli_H.md)
+- [ADRs under review](../../../../adr/UNDER_REVIEW_A.md)
+- [Development harness research](../../../general-stuff/DEV_HARNESS_RESEARCH_A.md)
+- [Website design](../../../../../packages/website/DESIGN.md) and [Good Engineering](../../../../GOOD_ENGINEERING_H.md)
 
 ## Research and decision review
 

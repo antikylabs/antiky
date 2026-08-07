@@ -1,18 +1,32 @@
-# Slice List
+# Antiky Town roadmap
 
-Update this list after every slice run. New facts can add a slice, reorder slices, or change a slice
-direction.
+This file is the only active Town roadmap. Update it after each completed slice or a material
+qualification result.
 
-- [x] Slice 01 — Change one market lamp through the shared framework service.
-- [x] Slice 02 — Add the fixed-step `EngineSession` clock.
-- [ ] Slice 03 — Move character simulation into the framework.
-- [ ] Slice 04 — Compile town content through framework-owned assets.
-- [ ] Slice 05 — Add render preparation and the BroMetal adapter.
-- [ ] Slice 06 — Add stable selection, editing, and undo.
-- [ ] Slice 07 — Port the remaining authored town objects.
-- [ ] Slice 08 — Prove full-rebuild and small-update parity.
-- [ ] Slice 09 — Add versioned asset manifests and safe replacement.
-- [ ] Slice 10 — Add durable events and snapshots behind the proven contracts.
-- [ ] Slice 11 — Add compatibility tests for older stored schemas.
-- [ ] Slice 12 — Add independent product versions and a tested release-promotion path.
-- [ ] SLice 13 — Add global lighting similar to unreal engine lumen global illumination
+## Completed
+
+- Slice 00 — Complete: Add the development host and minimum inspection path.
+- Slice 01 — Complete: Change one market lamp through the shared Framework service.
+- Slice 02 — Complete: Add the fixed-step `EngineSession` clock and controls.
+
+## Next slice — Planning
+
+Qualify the Nexus and BroMetal integration, then move the playable hero through a GPU physics path.
+Preserve approved collision behavior and use no per-step CPU readback.
+
+No executable plan exists yet. Before the slice can become `READY`, complete the dependency research,
+bounded integration probe, failure design, owner decisions, and visible reference required by
+[`IMPLEMENTATION_PLAN_A.md`](IMPLEMENTATION_PLAN_A.md).
+
+## Unordered backlog
+
+Choose one player-visible result after the hero slice. Current candidates include:
+
+- Add repeatable NPC movement through the qualified physics path.
+- Add one useful Town interaction with selection, inspection, edit, and undo.
+- Improve Town lighting, including a qualified global-illumination direction.
+- Add an asset boundary only when a visible feature requires it.
+- Improve Town render preparation where measurements show a real problem.
+
+Framework extraction follows proof. Website delivery, Studio polish, documentation infrastructure,
+and planning-evidence cleanup do not become Town gameplay slices.

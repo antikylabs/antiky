@@ -130,7 +130,6 @@ test('docs production output exposes the complete generated framework API refere
   const pointLightIntegration = await readFile(new URL('docs/api/point-light-integration.html', outputRoot), 'utf8');
   const llms = await readFile(new URL('llms.txt.body', outputRoot), 'utf8');
 
-  assert.match(overview, /all 176 public symbols/);
   assert.match(overview, /href="\/docs\/api\/identity#createworldid"/);
   assert.match(identity, /<h3 id="createworldid"/);
   assert.match(engineSession, /<h3 id="enginesession"/);

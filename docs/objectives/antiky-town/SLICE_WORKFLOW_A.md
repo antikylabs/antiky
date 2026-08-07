@@ -16,9 +16,9 @@ This guide has these companion documents:
 
 - [`SLICE_PLAN_TEMPLATE_A.md`](SLICE_PLAN_TEMPLATE_A.md) is the copyable plan contract.
 - [`slice-list.md`](slice-list.md) is the short, changeable slice roadmap.
-- [`slice-00/plan.md`](slice-00/plan.md) applies the contract to the development harness.
-- [`slice-00/owner-input_H.md`](slice-00/owner-input_H.md) is a real owner-input example.
-- [`slice-01/plan.md`](slice-01/plan.md) applies the contract to the first market lamp.
+- [`_completed/slice-00/plan.md`](_completed/slice-00/plan.md) records the development harness.
+- [`_completed/slice-00/owner-input_H.md`](_completed/slice-00/owner-input_H.md) is an owner-input example.
+- [`_completed/slice-01/plan.md`](_completed/slice-01/plan.md) records the first market lamp.
 
 Update this guide and the template when the framework adds a new feature area that later slices
 must check. Do not rewrite the process only because one slice needs a special task.
@@ -39,7 +39,7 @@ a large table before it starts. A new team member must be able to read the plan 
 implementation first.
 
 Keep a real slice plan at 300 lines or fewer. If it becomes longer, move shared rules to this
-workflow. Record run-specific facts in the evidence receipt. Put owner questions in the separate
+workflow. Record durable run facts in the slice summary. Put owner questions in the separate
 owner-input file.
 
 An owner can approve a longer plan when the slice has an unusual safety or migration need. Record
@@ -53,7 +53,7 @@ the reason in the plan.
 | Slice plan template | Defines the short structure of a real slice plan | When every future slice must answer a new implementation question |
 | One real slice plan | Defines one outcome, its work, its gates, and its proof | During planning and implementation of that slice |
 | Owner-input file | Gives the owner only the questions that need human judgment | When a product, visual, scope, or public-contract question changes |
-| Slice outputs | Stores run receipts, confirmation checks, facts, measurements, and supporting artifacts | During one named slice run |
+| Slice summary | Keeps the commit, commands, results, and essential measurements after closeout | At slice closeout |
 | Slice list | Gives the next short slice sequence | After every slice run |
 | User-facing documentation | Explains how to use the shipped framework, CLI, and Studio behavior | In the same checkpoint that changes that behavior |
 
@@ -61,19 +61,19 @@ The workflow and template are rules. A real slice plan is an executable contract
 
 ## Slice folder
 
-Keep each slice contract and its delivery outputs together:
+Keep each slice contract and its durable closeout together:
 
 ```text
 slice-NN/
   plan.md
   owner-input_H.md       optional; only when owner judgment is required
-  verification/           temporary; remove after completion
+  slice-summary.md        durable closeout facts
+  verification/          ignored; remove after completion
     verify.mjs           complete slice check
     tests/               tests for slice-specific evidence and policy
-  outputs/
-    README.md
+  outputs/               ignored local evidence; remove after completion
     {run-id}/
-      receipt.json
+      verification.json
       confirmation-checks.md
       facts.json
       measurements.json  when measurements apply
@@ -84,23 +84,24 @@ slice-NN/
 Keep product and framework implementation in `packages/`. Do not copy implementation files into the
 slice folder.
 
-Keep temporary verification code in the active slice's `verification/` folder. This code can include
+Keep temporary verification code in the active slice's ignored `verification/` folder. This code can include
 the complete check, fixtures, browser controls, probes, report code, and tests for those files. Do
 not create a shared verification framework for slice work. A small amount of duplication is better
 than permanent infrastructure for short-lived delivery work.
 
 Do not add slice commands or tests to the root package manifest or a product package manifest. Do
 not put slice verification code in the repository `scripts/` folder. After a slice is complete,
-delete its `verification/` folder. Keep its plan and saved results in `outputs/`.
+delete its `verification/` and `outputs/` folders. Keep its plan and `slice-summary.md`.
 
 Keep durable usage guidance in `docs/user-facing-docs/`. It is product documentation, not a slice
-output. The slice receipt links each page that the run changed.
+output. The slice summary names each page that the run changed.
 
-Each run writes to a new output directory. It must not overwrite an earlier run. The receipt lists
-each stored output and its digest.
+Each run writes temporary evidence to a new ignored output directory or a CI artifact. It must not
+overwrite an earlier run. Keep raw captures, logs, and machine reports out of Git.
 
-`confirmation-checks.md` gives a short human summary. `facts.json` contains machine-readable facts.
-The other outputs exist only when the plan needs them.
+Write one short `slice-summary.md` before closeout. It must name the delivered result, commit,
+verification commands, pass or fail results, and essential measurements. Link an external artifact
+only when its retention policy makes the link useful.
 
 Do not store credentials, tokens, private keys, or other secrets in a slice output.
 
@@ -141,13 +142,13 @@ needs no owner decision, state that fact in the plan and do not create an empty 
 | Gate | A condition that must pass; points cannot offset a failed gate |
 | Owner input | A human-owned file with the decisions that an implementation goal must consume |
 | Evidence | A repeatable result that proves a claim |
-| Slice output | A confirmation, fact, measurement, receipt, capture, or log that one run creates outside product code |
+| Slice output | A temporary confirmation, fact, measurement, capture, or log that one run creates outside product code |
 | Checkpoint | A small implementation stage that leaves the repository in a valid state |
 | Drift | A change to the framework, architecture, or slice scope after the plan snapshot |
 | Run | One named execution of an approved slice plan |
 | Attempt | One execution or retry of a step within a run |
 | Run setup | The recorded source, environment, configuration, and isolated resources for a run |
-| Evidence receipt | A machine-readable record that links the run, actions, results, and artifacts |
+| Slice summary | The compact durable record of a completed slice |
 | Last-known-good revision | The latest checkpoint that passed its required proof |
 | Correlation ID | An ID that links one action to its logs, results, and artifacts |
 | CPU | Central processing unit; it owns authoritative game state in the normal render path |
@@ -195,7 +196,7 @@ The agent that runs this goal must follow these rules:
 18. Commit small, working checkpoints.
 19. Update affected pages in `docs/user-facing-docs/` with the checkpoint that changes behavior.
 20. Update `slice-list.md` from the run's facts before closeout.
-21. Mark the goal complete only after all checks pass and the saved results are complete.
+21. Mark the goal complete only after all checks pass and the slice summary is complete.
 
 If work needs new owner authority, the agent adds one question with context to the owner-input file.
 It reports the exact blocked work. It must not invent permission to continue.
@@ -214,11 +215,8 @@ Remove all template instructions that do not describe the real slice.
 If the slice needs owner judgment, also create `slice-NN/owner-input_H.md`. Link it from the control
 block and required-reading list. Do not copy the questions into the plan.
 
-Create `slice-NN/outputs/README.md`. The goal writes each run to `slice-NN/outputs/{run-id}/`.
-
-Create `slice-NN/verification/` when the slice needs executable verification. Put all temporary
-verification code in that folder. Do not add a root package command for it. Delete the folder after
-the final results are saved and checked.
+Create ignored `slice-NN/outputs/` or `slice-NN/verification/` folders only when the run needs them.
+Do not add a root package command for temporary verification. Delete both folders after closeout.
 
 The real plan must name:
 
@@ -228,7 +226,7 @@ The real plan must name:
 - One reference.
 - One complete verification command.
 - The current repository revision and review date.
-- One receipt at `slice-NN/outputs/{run-id}/receipt.json`.
+- One durable `slice-NN/slice-summary.md` closeout.
 - One isolation rule and one software rollback rule.
 - Each affected user-facing documentation area, or `N/A` with a reason.
 
@@ -304,7 +302,7 @@ Define how one agent can run the plan without sharing hidden state with another 
 contract before the first implementation change.
 
 State the slice-specific isolation, permission, retry, and rollback rules in the plan. Record these
-run-specific values in the evidence receipt instead of pre-filling a large plan table:
+run-specific values in temporary evidence instead of pre-filling a large plan table:
 
 - A unique run ID and attempt IDs that increase.
 - The source revision, worktree, branch, dependency lock hash, and configuration hash.
@@ -314,10 +312,10 @@ run-specific values in the evidence receipt instead of pre-filling a large plan 
 - The events that start or resume work. Use bounded polling only when no event source exists.
 - The delivery permissions for reads, writes, commands, network use, deployment, and secrets.
 - Failure classes, retry limits, checkpoint resume rules, and software rollback.
-- The version and location of the machine-readable evidence receipt.
+- The temporary evidence location and retention rule.
 
-Use `N/A` with a reason in the receipt when a field cannot affect the slice. Do not record a secret
-in a digest input, log, receipt, or artifact.
+Use `N/A` with a reason when a field cannot affect the slice. Do not record a secret in a digest
+input, log, summary, or artifact.
 
 ### 6. State one outcome
 
@@ -429,7 +427,7 @@ Name tests and evidence before code work starts. Include:
 - Reference appearance.
 - Relevant performance limits.
 - Run-setup validation and resource isolation.
-- Evidence-receipt validation and end-to-end correlation.
+- Temporary evidence validation and end-to-end correlation.
 - Retry, resume, and software rollback behavior.
 - Delivery permissions and after-completion ownership.
 - User-facing documentation links, examples, and checks when public behavior changes.
@@ -461,13 +459,14 @@ Do not start the next checkpoint when the current checkpoint has an unexplained 
 ### 16. Close with evidence
 
 Run the complete verification command. Record each completion check and rubric result in the
-evidence receipt. Keep a short completion checklist in the plan.
+temporary run evidence. Keep a short completion checklist in the plan.
 
 Run the goal audit after the normal tests. The audit asks whether the completed result satisfies the
 original outcome, not only whether all task boxes have checks.
 
-Validate the machine-readable receipt. Resolve each recorded failure. Complete the learning and
-after-completion records. A final green run does not erase an earlier unexplained failure.
+Resolve each recorded failure. Complete the learning and after-completion records. Write the final
+commit, commands, results, and essential measurements in `slice-summary.md`. A final green run does
+not erase an earlier unexplained failure.
 
 ## User-facing documentation rule
 
@@ -482,7 +481,7 @@ The plan names the expected pages. If implementation discovers another affected 
 record the drift. Describe only behavior that the slice ships. Keep commands and examples valid.
 Update or remove stale guidance when behavior changes.
 
-If no user-facing documentation changes, record `N/A` and the reason in the receipt. A slice cannot
+If no user-facing documentation changes, record `N/A` and the reason in the summary. A slice cannot
 use `N/A` when it changes how a person uses the framework, CLI, or Studio.
 
 ## Evidence rules
@@ -509,28 +508,18 @@ Evidence must include enough context to repeat it:
 - Actual result.
 - Artifact or output location, when one exists.
 
-The complete verifier writes its outputs to `slice-NN/outputs/{run-id}/`. Every run writes:
+The complete verifier writes raw evidence to an ignored `slice-NN/outputs/{run-id}/` directory or a
+CI artifact. Write structured facts, measurements, captures, and logs only when the plan needs them.
+Validate machine-readable evidence before closeout. Remove ignored local evidence after closeout.
 
-- `receipt.json` with the versioned output manifest and completion result.
-- `confirmation-checks.md` with the short human-readable verification result.
-- `facts.json` with stable machine-readable facts learned or confirmed by the run.
+The durable `slice-summary.md` must contain:
 
-Write `measurements.json`, `captures/`, and `logs/` only when the plan needs them.
-
-The receipt must contain:
-
-- The slice ID, run ID, source revision, final revision, and checkpoint commits.
-- The run-setup values or their hashes.
-- Every attempt, failure class, retry, resume, and rollback result.
-- The build, service, runtime, command, event, projection, and capture IDs that apply.
-- Every readiness, acceptance, and rubric result.
-- Each artifact location and its digest when the artifact is stored.
-- Process measures for retries, interventions, permission escalations, flaky checks, and blocked time.
-- The final completion result.
-
-Write the receipt to a temporary file. Validate it. Then rename it to the final path. A reader must
-never see a partial receipt. A Markdown table can summarize the receipt. It cannot replace the
-receipt.
+- The delivered result and final commit.
+- The verification commands and pass or fail results.
+- Essential measurements and accepted limitations.
+- Each resolved failure that affects later work.
+- Changed user-facing documentation, or `N/A` with a reason.
+- An external artifact link only when a retention policy keeps that link valid.
 
 A plan checkbox is not evidence. A screenshot cannot prove identity, permission, revision, or
 authority. Structured inspection cannot prove visual quality. Use both when the outcome needs both.
@@ -584,13 +573,13 @@ Each plan must name:
 - The checks that prove the restored revision is safe.
 
 Preserve shared Git history. Use a new corrective or revert commit when committed work must be
-removed. Record the rollback and its proof in the receipt.
+removed. Record an important rollback and its proof in the slice summary.
 
 ### Delivery permissions
 
-The evidence receipt must list each operation that changes the repository, runtime, network,
+Temporary run evidence must list each operation that changes the repository, runtime, network,
 deployment, or an external system. The plan must name unusual or high-risk authority that is
-specific to the slice.
+specific to the slice. Put an important authority decision in the slice summary.
 
 For each changing operation, record the required capability, allowed scope, grant source, expiry,
 revocation method, and audit evidence.
@@ -601,7 +590,7 @@ delivery permissions do not grant product permissions.
 
 ## Standard evidence shapes
 
-Every run records these shapes in its evidence receipt. A real plan includes a table only when the
+Use these shapes in temporary evidence when they apply. A real plan includes a table only when the
 table helps a reviewer understand a slice-specific relationship.
 
 ### Run setup
@@ -617,7 +606,7 @@ table helps a reviewer understand a slice-specific relationship.
 
 | Operation | Required capability | Allowed scope | Grant and expiry | Audit evidence |
 | --- | --- | --- | --- | --- |
-| One changing operation | Narrow permission | Exact target | Owner or policy; end condition | Receipt entry or external record |
+| One changing operation | Narrow permission | Exact target | Owner or policy; end condition | Temporary evidence or external record |
 
 ### Readiness matrix
 
@@ -711,7 +700,7 @@ same typed inspection service. They must not each rebuild world facts in a diffe
 
 ## Readiness hard gates
 
-Every plan or evidence receipt must cover these gates when they apply:
+Every plan and completed slice summary must cover these gates when they apply:
 
 - The owner-input file is answered and the goal uses its answers.
 - Every earlier slice is complete.
@@ -733,8 +722,8 @@ Every plan or evidence receipt must cover these gates when they apply:
 - Routine controls and evidence are programmatic.
 - Delivery permissions are explicit and limited to the slice.
 - Failure classes, retry limits, resume rules, and rollback are defined.
-- The evidence receipt has a writer, validator, version, and location. A bootstrap checkpoint can
-  supply the base tool before other implementation work starts.
+- Temporary evidence has a defined writer, validator, location, and retention rule.
+- The slice summary has an owner and a required closeout path.
 - After-completion ownership, feedback, and retirement rules are defined.
 - Open ADR work that changes this slice is resolved.
 - Affected user-facing documentation and its checks are named, or `N/A` has a valid reason.
@@ -766,7 +755,7 @@ Score these dimensions:
 | Failure and recovery | Invalid input and failed replacement preserve safe state and return stable errors |
 | Lifecycle and security | Authority is explicit; start, reconnect, reload, dispose, and shutdown are safe |
 | Reference and performance | Appearance and measured budgets match the reference or an approved difference |
-| Reproduction and handoff | One command runs verification; user-facing docs, evidence, and commits let another person repeat it |
+| Reproduction and handoff | One command runs verification; user-facing docs, the summary, and commits let another person repeat it |
 | Autonomous execution | The run is isolated, permissioned, traceable, resumable, and free of unexplained retries |
 | Operation and learning | Health, feedback, rollback, retirement, and unexpected-result dispositions are recorded |
 
@@ -777,7 +766,7 @@ missing work.
 
 A slice is complete only when all of these statements are true:
 
-1. Every required completion check and receipt gate is `PASS`.
+1. Every required completion check is `PASS`.
 2. Every applicable rubric dimension scores `3`.
 3. Every `N/A` row has an accepted reason.
 4. The complete verification command passes from a clean start.
@@ -786,11 +775,11 @@ A slice is complete only when all of these statements are true:
 7. The plan has no unresolved placeholder or blocker. Its owner-input file has no pending answer
    when that file exists.
 8. The run state is `CLOSED`.
-9. The evidence receipt validates and links every required result.
+9. The slice summary records every required durable result.
 10. Every failed attempt has a resolved classification and disposition.
 11. The after-completion contract names its owner and feedback path.
 12. The final goal audit confirms the original outcome.
-13. The run outputs are inside the slice folder and the receipt lists them.
+13. Raw run outputs are in ignored local storage or a CI artifact, not Git.
 14. Affected pages in `docs/user-facing-docs/` match the shipped behavior and pass their checks.
 15. `slice-list.md` reflects the facts learned during the run.
 
@@ -823,9 +812,8 @@ Classify each unexpected result or owner intervention at closeout. Use one of th
 4. Record an accepted product decision when the result is not a defect.
 
 Record unplanned interventions, retries, flaky checks, permission escalations, missed checks, and
-blocked time. Use the completed receipt as an evaluation case for later delivery runs. Change the
-shared workflow only when the lesson applies to later slices. Do not add a global rule for one local
-exception.
+blocked time. Put durable lessons in the slice summary. Change the shared workflow only when the
+lesson applies to later slices. Do not add a global rule for one local exception.
 
 Update `slice-list.md` after each slice run. A new fact can add an unknown slice, reorder planned
 slices, remove unnecessary work, or change a later slice direction. Keep each list item to one short

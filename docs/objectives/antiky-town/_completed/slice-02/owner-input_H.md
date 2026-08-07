@@ -51,7 +51,7 @@ general host API, journal API, checkpoint API, or high-frequency event policy to
 
 ### Context
 
-[`UNDER_REVIEW_A.md` candidate 13](../../../adr/UNDER_REVIEW_A.md#13-game-client-host-lifecycle-and-semantic-input)
+[`UNDER_REVIEW_A.md` candidate 13](../../../../adr/UNDER_REVIEW_A.md#13-game-client-host-lifecycle-and-semantic-input)
 is necessary for this slice. The browser currently owns input, pause, visibility, and the render
 loop. `EngineSession` must own fixed simulation time and step assignment.
 

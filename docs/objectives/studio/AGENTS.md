@@ -9,7 +9,8 @@ Before planning or implementation, read the relevant Studio architecture and ADR
 [`../general-stuff`](../general-stuff/).
 
 Keep Studio web code in `packages/studio/app` and native Tauri code in `packages/studio/tauri`.
-Keep user documentation general. Keep temporary verification in the active slice folder, remove it
-after completion, and never add slice-only verification commands to a package manifest.
+Keep user documentation general. Keep temporary verification and raw run output in ignored active
+slice folders. Remove both after completion. Keep durable closeout facts in `slice-summary.md`.
+Never add slice-only verification commands to a package manifest.
 
 Write plans and maintained documentation in ASD-STE100 Issue 9 style.

@@ -5,11 +5,11 @@
 | Field | Value |
 | --- | --- |
 | Status | `IN PROGRESS` |
-| Feedback source | [Slice 00 feedback, line 9](slice-feedback.txt) |
+| Feedback source | [Slice 00 feedback, line 9](../slice-feedback.txt) |
 | Outcome | The real Ghostty terminal opens with an Antiky Studio visual profile and the user's normal shell behavior |
 | Owner input | The source feedback selects the Studio visual language and the existing ADRs preserve agent choice |
-| Architecture decisions | [Studio 0001](../../../adr/studio/0001-ai-integrations_H.md) and [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) |
-| Depends on | [Completed Feedback 08](_completed/feedback-08-website-layout-plan.md) |
+| Architecture decisions | [Studio 0001](../../../../adr/studio/0001-ai-integrations_H.md) and [Studio 0002](../../../../adr/studio/0002-tauri-portable-web-editor_H.md) |
+| Depends on | [Completed Feedback 08](feedback-08-website-layout-plan.md) |
 | Alignment revision | `0cf02f51dff72f0c22681cb5a3af890173c32b00` |
 | Review date | `2026-08-06` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-09/verify.mjs` |
@@ -107,19 +107,19 @@ from the user's Ghostty configuration. Do not report an unrelated user warning a
 
 ## Required reading
 
-- [Source feedback](slice-feedback.txt)
-- [Feedback 08](_completed/feedback-08-website-layout-plan.md)
-- [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
-- [Website design language](../../../../packages/website/DESIGN.md)
-- [Website terminal reference](../../../../packages/website/src/app/studio/page.tsx)
-- [Development harness research](../../general-stuff/DEV_HARNESS_RESEARCH_A.md) and
-  [inspection tooling direction](../../general-stuff/INSPECTION_TOOLING_A.md)
-- [Studio architecture](../../../architecture/studio/overview_A.md)
-- [Studio 0001](../../../adr/studio/0001-ai-integrations_H.md) and
-  [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md)
-- [ADRs under review](../../../adr/UNDER_REVIEW_A.md) in full
-- [Studio getting started](../../../user-facing-docs/studio/getting-started.md)
-- [Good Engineering](../../../GOOD_ENGINEERING_H.md)
+- [Source feedback](../slice-feedback.txt)
+- [Feedback 08](feedback-08-website-layout-plan.md)
+- [Studio objective guidance](../../AGENTS.md) and [slice workflow](../../../antiky-town/SLICE_WORKFLOW_A.md)
+- [Website design language](../../../../../packages/website/DESIGN.md)
+- [Website terminal reference](../../../../../packages/website/src/app/studio/page.tsx)
+- [Development harness research](../../../general-stuff/DEV_HARNESS_RESEARCH_A.md) and
+  [inspection tooling direction](../../../general-stuff/INSPECTION_TOOLING_A.md)
+- [Studio architecture](../../../../architecture/studio/overview_A.md)
+- [Studio 0001](../../../../adr/studio/0001-ai-integrations_H.md) and
+  [Studio 0002](../../../../adr/studio/0002-tauri-portable-web-editor_H.md)
+- [ADRs under review](../../../../adr/UNDER_REVIEW_A.md) in full
+- [Studio getting started](../../../../user-facing-docs/studio/getting-started.md)
+- [Good Engineering](../../../../GOOD_ENGINEERING_H.md)
 
 ## Research and decision review
 

@@ -13,7 +13,7 @@ This plan is the implementation contract. The accepted owner decisions are in
 | Depends on | [`../slice-00/plan.md`](../slice-00/plan.md) completed |
 | Alignment revision | `c59085bf6f2f887023675b7e1297900862b5177e` |
 | Complete check | Finished; see the saved results below |
-| Evidence | [`outputs/s01-20260805T014602Z/receipt.json`](outputs/s01-20260805T014602Z/receipt.json) |
+| Closeout | [Slice 01 summary](slice-summary.md) |
 
 The goal runner must read the owner-input file and completed Slice 00 evidence. It must stop on a
 `PENDING` answer or incomplete Slice 00. Run `/goal implement docs/objectives/antiky-town/slice-01/plan.md until complete`.
@@ -106,14 +106,14 @@ slot `0` before the frame loop.
 
 - [`owner-input_H.md`](owner-input_H.md)
 - [`../slice-00/plan.md`](../slice-00/plan.md) and its completed outputs
-- [`SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
-- [`IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
-- [ADR 0001: Use MCP Tools for local development](../../../adr/cli/0001-use-mcp-tools-for-development_H.md)
-- [ADR 0007: Use commands to change world state](../../../adr/framework/0007-commands-as-mutation-boundary_H.md)
-- [ADR 0009: Keep authoring, runtime, and render state separate](../../../adr/framework/0009-separate-state-projections_H.md)
-- [ADR 0011: Use stable IDs and temporary numeric aliases](../../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
-- [`rendering-and-assets_A.md`](../../../architecture/framework/rendering-and-assets_A.md)
-- [`GOOD_ENGINEERING_H.md`](../../../GOOD_ENGINEERING_H.md)
+- [`SLICE_WORKFLOW_A.md`](../../SLICE_WORKFLOW_A.md)
+- [`IMPLEMENTATION_PLAN_A.md`](../../IMPLEMENTATION_PLAN_A.md)
+- [ADR 0001: Use MCP Tools for local development](../../../../adr/cli/0001-use-mcp-tools-for-development_H.md)
+- [ADR 0007: Use commands to change world state](../../../../adr/framework/0007-commands-as-mutation-boundary_H.md)
+- [ADR 0009: Keep authoring, runtime, and render state separate](../../../../adr/framework/0009-separate-state-projections_H.md)
+- [ADR 0011: Use stable IDs and temporary numeric aliases](../../../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
+- [`rendering-and-assets_A.md`](../../../../architecture/framework/rendering-and-assets_A.md)
+- [`GOOD_ENGINEERING_H.md`](../../../../GOOD_ENGINEERING_H.md)
 
 ## Framework deliverable
 

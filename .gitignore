@@ -46,3 +46,7 @@ next-env.d.ts
 
 # internal stuff
 docs/_internal
+
+# disposable objective evidence
+docs/objectives/**/outputs/
+docs/objectives/**/verification/

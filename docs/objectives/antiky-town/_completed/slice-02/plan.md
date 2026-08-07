@@ -10,12 +10,12 @@ For a short review, answer the questions in [`owner-input_H.md`](owner-input_H.m
 | Owner | Antiky Framework maintainers |
 | Outcome | One `EngineSession` advances Antiky Town in bounded fixed steps and supports pause, resume, and one-step control |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
-| Architecture decisions | Accepted framework ADRs below, including [ADR 0016](../../../adr/framework/0016-give-platform-work-to-game-host_H.md) |
+| Architecture decisions | Accepted framework ADRs below, including [ADR 0016](../../../../adr/framework/0016-give-platform-work-to-game-host_H.md) |
 | Depends on | [`../slice-01/plan.md`](../slice-01/plan.md) completed |
 | Alignment revision | `ae7099001fbcad25d77dbe3638df82e5798d7621` |
 | Review date | `2026-08-04` |
 | Complete check | `node --experimental-strip-types --experimental-transform-types docs/objectives/antiky-town/slice-02/verification/verify.mjs` |
-| Evidence | [`outputs/s02-20260805T145240Z/receipt.json`](outputs/s02-20260805T145240Z/receipt.json) |
+| Closeout | [Slice 02 summary](slice-summary.md) |
 
 The goal runner must read the complete owner-input file. It must stop on a `PENDING` answer. It
 must also stop until the required host-lifecycle ADR is accepted and BroMetal is current.
@@ -81,25 +81,25 @@ features.
 ## Required reading
 
 - [`owner-input_H.md`](owner-input_H.md)
-- [Objective agent guidance](../AGENTS.md); [`CLAUDE.md`](../CLAUDE.md) routes to it.
-- [`../SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
-- [`../IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
-- [`../SLICE_FEEDBACK_H.txt`](../SLICE_FEEDBACK_H.txt)
-- [General development-harness research](../../general-stuff/DEV_HARNESS_RESEARCH_A.md)
-- [General inspection direction](../../general-stuff/INSPECTION_TOOLING_A.md)
-- [General release and versioning direction](../../general-stuff/RELEASE_VERSIONING_A.md)
-- [ADR 0006: Keep BroMetal inside the render driver](../../../adr/framework/0006-brometal-render-driver_H.md)
-- [ADR 0007: Use commands to change world state](../../../adr/framework/0007-commands-as-mutation-boundary_H.md)
-- [ADR 0008: Let EngineSession own worlds](../../../adr/framework/0008-engine-session-owns-worlds_H.md)
-- [ADR 0009: Keep state projections separate](../../../adr/framework/0009-separate-state-projections_H.md)
-- [ADR 0010: Serialize at boundaries](../../../adr/framework/0010-serialize-at-boundaries_H.md)
-- [ADR 0011: Use stable IDs](../../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
-- [ADR 0013: Give simulation all inputs explicitly](../../../adr/framework/0013-explicit-simulation-inputs_H.md)
-- [ADR 0001: Use MCP Tools for local development](../../../adr/cli/0001-use-mcp-tools-for-development_H.md)
-- [`world-and-session-model_A.md`](../../../architecture/framework/world-and-session-model_A.md)
-- [`commands-events-and-persistence_A.md`](../../../architecture/framework/commands-events-and-persistence_A.md)
-- [`rendering-and-assets_A.md`](../../../architecture/framework/rendering-and-assets_A.md)
-- [`GOOD_ENGINEERING_H.md`](../../../GOOD_ENGINEERING_H.md)
+- [Objective agent guidance](../../AGENTS.md); [`CLAUDE.md`](../../CLAUDE.md) routes to it.
+- [`../../SLICE_WORKFLOW_A.md`](../../SLICE_WORKFLOW_A.md)
+- [`../../IMPLEMENTATION_PLAN_A.md`](../../IMPLEMENTATION_PLAN_A.md)
+- [`../../SLICE_FEEDBACK_H.txt`](../../SLICE_FEEDBACK_H.txt)
+- [General development-harness research](../../../general-stuff/DEV_HARNESS_RESEARCH_A.md)
+- [General inspection direction](../../../general-stuff/INSPECTION_TOOLING_A.md)
+- [General release and versioning direction](../../../general-stuff/RELEASE_VERSIONING_A.md)
+- [ADR 0006: Keep BroMetal inside the render driver](../../../../adr/framework/0006-brometal-render-driver_H.md)
+- [ADR 0007: Use commands to change world state](../../../../adr/framework/0007-commands-as-mutation-boundary_H.md)
+- [ADR 0008: Let EngineSession own worlds](../../../../adr/framework/0008-engine-session-owns-worlds_H.md)
+- [ADR 0009: Keep state projections separate](../../../../adr/framework/0009-separate-state-projections_H.md)
+- [ADR 0010: Serialize at boundaries](../../../../adr/framework/0010-serialize-at-boundaries_H.md)
+- [ADR 0011: Use stable IDs](../../../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
+- [ADR 0013: Give simulation all inputs explicitly](../../../../adr/framework/0013-explicit-simulation-inputs_H.md)
+- [ADR 0001: Use MCP Tools for local development](../../../../adr/cli/0001-use-mcp-tools-for-development_H.md)
+- [`world-and-session-model_A.md`](../../../../architecture/framework/world-and-session-model_A.md)
+- [`commands-events-and-persistence_A.md`](../../../../architecture/framework/commands-events-and-persistence_A.md)
+- [`rendering-and-assets_A.md`](../../../../architecture/framework/rendering-and-assets_A.md)
+- [`GOOD_ENGINEERING_H.md`](../../../../GOOD_ENGINEERING_H.md)
 
 ## Research and decision review
 
@@ -133,13 +133,13 @@ buffers are later candidates behind the Slice 05 `RenderDriver`; GPU state stays
 The shared release and versioning direction was reviewed; Slice 02 changes no release policy.
 
 Accepted ADRs require one session writer, explicit fixed inputs, stable order, separate state copies,
-and Tools instead of duplicate MCP Resources. The complete [`UNDER_REVIEW_A.md`](../../../adr/UNDER_REVIEW_A.md)
+and Tools instead of duplicate MCP Resources. The complete [`UNDER_REVIEW_A.md`](../../../../adr/UNDER_REVIEW_A.md)
 was reviewed. Candidate 13 needs a narrow accepted ADR because this slice moves timing and input
 across the browser-host boundary. Candidates 1, 6, and 15 do not block this fixed-clock slice.
 
 ## Current state and reference
 
-- Slice 01 is complete and its [receipt](../slice-01/outputs/s01-20260805T014602Z/receipt.json)
+- Slice 01 is complete and its [summary](../slice-01/slice-summary.md)
   proves the point-light, CLI, MCP, and focused-host paths.
 - `LiveDemoStage` owns browser input, visibility, the BroMetal loop, and UI pause.
 - `brometal-town` derives variable frame time, caps it at `0.05` seconds, and owns current actor,

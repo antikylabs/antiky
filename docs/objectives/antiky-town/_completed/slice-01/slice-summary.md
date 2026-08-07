@@ -30,8 +30,8 @@ in-memory development state. Rebuilding the runtime starts again from the author
   deleting the old change.
 - Separate authoring, runtime, and render views, plus point-light inspection data.
 
-The public usage guide is in [Point Lights](../../../user-facing-docs/framework/point-lights.md),
-with inspection details in [Runtime Inspection](../../../user-facing-docs/framework/inspection.md).
+The public usage guide is in [Point Lights](../../../../user-facing-docs/framework/point-lights.md),
+with inspection details in [Runtime Inspection](../../../../user-facing-docs/framework/inspection.md).
 
 ### CLI and MCP
 
@@ -47,7 +47,7 @@ endpoint is `http://127.0.0.1:3011/mcp` with the default configuration. Slice 01
 - `correct_point_light_power`
 
 The MCP interface uses tools only; it does not duplicate this data as MCP Resources. See
-[Antiky Development CLI](../../../user-facing-docs/cli/development.md) for the client API and tool
+[Antiky Development CLI](../../../../user-facing-docs/cli/development.md) for the client API and tool
 arguments. A person can call the same endpoint with `antiky tool <name>`; for example,
 `antiky tool list_point_lights`.
 
@@ -64,7 +64,7 @@ stops its GPU render loop, and resuming starts that loop once.
 
 No Studio screen or panel was added in this slice. A future Studio interface can use the same
 `connectDevelopmentClient` methods as the CLI and MCP service; it does not need a separate game
-runtime or a copy of the lamp state. See [Studio Development Connection](../../../user-facing-docs/studio/development-connection.md).
+runtime or a copy of the lamp state. See [Studio Development Connection](../../../../user-facing-docs/studio/development-connection.md).
 
 ## How to test
 
@@ -98,5 +98,5 @@ Then:
 If ports `3010` or `3011` are already in use, stop the existing process before starting this test.
 
 The completed Slice 01 run and its detailed checks are saved in
-[Slice 01 Confirmation Checks](outputs/s01-20260805T014602Z/confirmation-checks.md). The exact
+The Slice 01 closeout checks passed. The exact
 implementation contract remains in [the Slice 01 plan](plan.md).

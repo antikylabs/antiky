@@ -19,8 +19,8 @@ bar is a native drag region, and keyboard focus on the terminal has a visible bo
 showed one window, one terminal, and one non-white live-game iframe at desktop, intermediate, and
 narrow sizes.
 
-The complete repository checks and both Studio builds pass. Owner-approved native captures are in the
-[Feedback 08 evidence run](outputs/studio-s00-feedback-08-20260806T181038Z/confirmation-checks.md).
+The complete repository checks and both Studio builds pass. The owner approved the Feedback 08
+native captures during the completed run.
 Browser Control had no attached browser, so no browser capture is claimed. The feedback is complete with
 that evidence limitation retained in the receipt.
 
@@ -55,9 +55,7 @@ development view before activation. The hidden `.antiky/` directory remains igno
 Automated CLI, Studio, Rust, Tauri configuration, bundle, documentation, and Git LFS checks cover the
 boundary. The generated macOS `Info.plist` contains the owned `dev.antiky.project` document type.
 Owner-approved native interaction verified the launcher, picker, Settings toggle, focus order,
-cancellation, invalid replacement, and cold and warm Finder opening. The
-[Feedback 01 evidence run](outputs/studio-s00-feedback-01-20260806T233318Z/confirmation-checks.md)
-contains the native captures and final verifier result.
+cancellation, invalid replacement, and cold and warm Finder opening. The final verifier passed.
 
 ## Feedback 06 and 07 demo delivery
 
@@ -78,12 +76,10 @@ visibility, pause, error recovery, and disposal. Production website source impor
 rejects missing, stale, changed, extra, invalid, excessive, unsafe, or symlinked output with stable codes and
 the affected demo slug.
 
-The [Feedback 06 evidence](outputs/studio-s00-feedback-06-20260807T163700Z/confirmation-checks.md) records
-clean portable builds and actual packaged-Studio interaction with all three manifests. The native views
-were not stored because they displayed private absolute paths. The
-[Feedback 07 evidence](outputs/studio-s00-feedback-07-20260807T163700Z/confirmation-checks.md) records the
-production website and staging checks. Browser Control had no attached browser, so no browser capture is
-claimed.
+Feedback 06 recorded clean portable builds and packaged-Studio interaction with all three manifests.
+The native views were not stored because they displayed private absolute paths. Feedback 07 recorded
+the production website and staging checks. Browser Control had no attached browser, so no browser
+capture is claimed.
 
 ## What changed in the repository
 
@@ -203,10 +199,6 @@ From another terminal, these commands exercise the same host:
 
 Press `Ctrl-C` in the development terminal when done. The CLI must stop its child processes and remove `.antiky/dev-session.json`.
 
-The original completed run is recorded in the [Slice 00 receipt](outputs/studio-s00-20260806T043040Z/receipt.json).
-The approved layout and follow-up delivery are recorded in the
-[Feedback 08 receipt](outputs/studio-s00-feedback-08-20260806T181038Z/receipt.json). Demo project and website
-delivery are recorded in the [Feedback 06 receipt](outputs/studio-s00-feedback-06-20260807T163700Z/receipt.json)
-and [Feedback 07 receipt](outputs/studio-s00-feedback-07-20260807T163700Z/receipt.json). Native process,
-webview connection, semantic data, terminal-surface, SSPS, LFS, artifact, build, test, and cleanup evidence
-passed with the recorded capture limitations.
+The original Slice 00 run, approved layout follow-up, demo delivery, and website delivery passed.
+Native process, webview connection, semantic data, terminal-surface, SSPS, LFS, artifact, build,
+test, and cleanup checks passed with the recorded capture limitations.

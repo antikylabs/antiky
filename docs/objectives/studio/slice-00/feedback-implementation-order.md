@@ -19,15 +19,15 @@ ownership boundaries. Complete one feedback plan and its evidence before the nex
 
 | Order | Feedback | Start gate | Reason for this position |
 | --- | --- | --- | --- |
-| 1 | [08: Match the website layout](feedback-08-website-layout-plan.md) | Complete | The owner approved the website-derived workspace; the unavailable browser capture remains a recorded evidence limitation. |
-| 2 | [09: Theme the embedded terminal](feedback-09-terminal-theme-plan.md) | Ready now; Feedback 08 complete | It is the second owner priority. It uses the terminal panel geometry and chrome established by Feedback 08. |
-| 3 | [01: Open an Antiky project](feedback-01-open-project-plan.md) | Ready now, but deferred until 08 and 09 pass | It defines the shared project boundary for the remaining workflow. |
+| 1 | [08: Match the website layout](_completed/feedback-08-website-layout-plan.md) | Complete | The owner approved the website-derived workspace; the unavailable browser capture remains a recorded evidence limitation. |
+| 2 | [09: Theme the embedded terminal](_completed/feedback-09-terminal-theme-plan.md) | Ready now; Feedback 08 complete | It is the second owner priority. It uses the terminal panel geometry and chrome established by Feedback 08. |
+| 3 | [01: Open an Antiky project](_completed/feedback-01-open-project-plan.md) | Ready now, but deferred until 08 and 09 pass | It defines the shared project boundary for the remaining workflow. |
 | 4 | [02: Initialize an Antiky project](feedback-02-init-project-plan.md) | Feedback 01 complete | It must create the exact manifest that Feedback 01 accepts. |
 | 5 | [03: Load a game as a project](feedback-03-load-game-plan.md) | Feedback 01 and 02 complete | It adds the launcher and project-switch lifecycle on the accepted boundary. |
-| 6 | [04: Start development with the project](feedback-04-auto-start-development-plan.md) | Superseded | Studio now starts the CLI project-service worker directly; it does not invoke a CLI command. |
-| 7 | [05: Start the terminal in the project](feedback-05-terminal-project-directory-plan.md) | Feedback 03 complete | It binds the already themed terminal to the active project without making it a process supervisor. |
-| 8 | [06: Make demos real projects](feedback-06-demo-projects-plan.md) | Complete with recorded capture limitation | Each demo proves the complete project, development, and terminal workflow. |
-| 9 | [07: Display compiled demos](feedback-07-website-demo-artifacts-plan.md) | Complete with recorded browser limitation | The website consumes outputs from stable standalone demo projects. |
+| 6 | [04: Start development with the project](_completed/feedback-04-auto-start-development-plan.md) | Superseded | Studio now starts the CLI project-service worker directly; it does not invoke a CLI command. |
+| 7 | [05: Start the terminal in the project](_ignored/feedback-05-terminal-project-directory-plan.md) | Feedback 03 complete | It binds the already themed terminal to the active project without making it a process supervisor. |
+| 8 | [06: Make demos real projects](_completed/feedback-06-demo-projects-plan.md) | Complete with recorded capture limitation | Each demo proves the complete project, development, and terminal workflow. |
+| 9 | [07: Display compiled demos](_completed/feedback-07-website-demo-artifacts-plan.md) | Complete with recorded browser limitation | The website consumes outputs from stable standalone demo projects. |
 
 Feedback 04 and Feedback 05 share Feedback 03 as their formal dependency. They can use separate branches
 after Feedback 03. The recommended sequential run completes Feedback 04 first because development-session

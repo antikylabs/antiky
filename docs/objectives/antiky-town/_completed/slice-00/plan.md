@@ -10,11 +10,11 @@ This plan is the implementation contract. The accepted owner decisions are in
 | Status | `COMPLETE` |
 | Outcome | One command starts, inspects, and stops the current town through Antiky |
 | Owner input | [`owner-input_H.md`](owner-input_H.md) |
-| Architecture decision | [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
+| Architecture decision | [ADR 0004: Make CLI and Studio use the same engine services](../../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | None |
 | Alignment revision | `441563bcce94abd76fb6813869e603e13f116b5a` |
 | Complete check | Finished; see the saved results below |
-| Evidence | [`outputs/s00-20260804T205140Z/receipt.json`](outputs/s00-20260804T205140Z/receipt.json) |
+| Closeout | Completion results and measurements are recorded in this plan |
 
 The goal runner must read the owner-input file before implementation. It must stop if the file has a
 `PENDING` answer. It must use the inline answers as part of this contract.
@@ -84,15 +84,15 @@ process health, or cleanup time. The CLI development host owns these meanings.
 ## Required reading
 
 - [`owner-input_H.md`](owner-input_H.md)
-- [`SLICE_WORKFLOW_A.md`](../SLICE_WORKFLOW_A.md)
-- [`DEV_HARNESS_RESEARCH_A.md`](../../general-stuff/DEV_HARNESS_RESEARCH_A.md)
-- [`INSPECTION_TOOLING_A.md`](../../general-stuff/INSPECTION_TOOLING_A.md)
-- [`IMPLEMENTATION_PLAN_A.md`](../IMPLEMENTATION_PLAN_A.md)
-- [ADR 0003: Use one engine API for humans and agents](../../../adr/framework/0003-agent-native_H.md)
-- [ADR 0004: Make CLI and Studio use the same engine services](../../../adr/studio/0004-share-engine-services-with-cli_H.md)
-- [`framework/overview_A.md`](../../../architecture/framework/overview_A.md)
-- [`studio/overview_A.md`](../../../architecture/studio/overview_A.md)
-- [`GOOD_ENGINEERING_H.md`](../../../GOOD_ENGINEERING_H.md)
+- [`SLICE_WORKFLOW_A.md`](../../SLICE_WORKFLOW_A.md)
+- [`DEV_HARNESS_RESEARCH_A.md`](../../../general-stuff/DEV_HARNESS_RESEARCH_A.md)
+- [`INSPECTION_TOOLING_A.md`](../../../general-stuff/INSPECTION_TOOLING_A.md)
+- [`IMPLEMENTATION_PLAN_A.md`](../../IMPLEMENTATION_PLAN_A.md)
+- [ADR 0003: Use one engine API for humans and agents](../../../../adr/framework/0003-agent-native_H.md)
+- [ADR 0004: Make CLI and Studio use the same engine services](../../../../adr/studio/0004-share-engine-services-with-cli_H.md)
+- [`framework/overview_A.md`](../../../../architecture/framework/overview_A.md)
+- [`studio/overview_A.md`](../../../../architecture/studio/overview_A.md)
+- [`GOOD_ENGINEERING_H.md`](../../../../GOOD_ENGINEERING_H.md)
 
 ## Current state
 
@@ -169,7 +169,7 @@ Slice 00 proves a Studio-compatible connection contract. It does not build a Stu
 desktop host. Studio implementation starts after the first town port.
 
 Do not integrate WebGPU Inspector. Use it only as a design reference. Antiky's native inspection
-scope is defined in [`INSPECTION_TOOLING_A.md`](../../general-stuff/INSPECTION_TOOLING_A.md).
+scope is defined in [`INSPECTION_TOOLING_A.md`](../../../general-stuff/INSPECTION_TOOLING_A.md).
 
 ## User-facing documentation deliverable
 

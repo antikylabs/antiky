@@ -5,10 +5,10 @@
 | Field | Value |
 | --- | --- |
 | Status | `COMPLETE WITH RECORDED BROWSER EVIDENCE LIMITATION` |
-| Feedback source | [Slice 00 feedback, line 8](slice-feedback.txt) |
+| Feedback source | [Slice 00 feedback, line 8](../slice-feedback.txt) |
 | Outcome | The shipped Studio uses the same game-first workspace hierarchy as the Studio render on the website |
 | Owner input | The source feedback and owner-supplied website render select the visual direction |
-| Architecture decisions | [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) and [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
+| Architecture decisions | [Studio 0002](../../../../adr/studio/0002-tauri-portable-web-editor_H.md) and [Studio 0004](../../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
 | Depends on | Completed Studio Slice 00 |
 | Alignment revision | `0cf02f51dff72f0c22681cb5a3af890173c32b00` |
 | Review date | `2026-08-06` |
@@ -49,8 +49,8 @@ visual reference while it continues to show real game, terminal, inspection, and
 ### Visual reference boundary
 
 The canonical reference is the rendered Studio window in
-[`packages/website/src/app/studio/page.tsx`](../../../../packages/website/src/app/studio/page.tsx) and
-[`studio.css`](../../../../packages/website/src/app/studio/studio.css). The owner-supplied render confirms
+[`packages/website/src/app/studio/page.tsx`](../../../../../packages/website/src/app/studio/page.tsx) and
+[`studio.css`](../../../../../packages/website/src/app/studio/studio.css). The owner-supplied render confirms
 the intended result. Its panel hierarchy, proportions, spacing, color restraint, and density are normative.
 Its static town image and sample records are illustrative. Studio must continue to render the live project.
 
@@ -93,19 +93,19 @@ already safe. Do not make Studio depend on website runtime code.
 
 ## Required reading
 
-- [Source feedback](slice-feedback.txt)
-- [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
-- [Website design language](../../../../packages/website/DESIGN.md)
-- [Website Studio render](../../../../packages/website/src/app/studio/page.tsx) and
-  [its styles](../../../../packages/website/src/app/studio/studio.css)
-- [Development harness research](../../general-stuff/DEV_HARNESS_RESEARCH_A.md) and
-  [inspection tooling direction](../../general-stuff/INSPECTION_TOOLING_A.md)
-- [Studio architecture](../../../architecture/studio/overview_A.md)
-- [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) and
-  [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md)
-- [ADRs under review](../../../adr/UNDER_REVIEW_A.md) in full
-- [Studio getting started](../../../user-facing-docs/studio/getting-started.md)
-- [Good Engineering](../../../GOOD_ENGINEERING_H.md)
+- [Source feedback](../slice-feedback.txt)
+- [Studio objective guidance](../../AGENTS.md) and [slice workflow](../../../antiky-town/SLICE_WORKFLOW_A.md)
+- [Website design language](../../../../../packages/website/DESIGN.md)
+- [Website Studio render](../../../../../packages/website/src/app/studio/page.tsx) and
+  [its styles](../../../../../packages/website/src/app/studio/studio.css)
+- [Development harness research](../../../general-stuff/DEV_HARNESS_RESEARCH_A.md) and
+  [inspection tooling direction](../../../general-stuff/INSPECTION_TOOLING_A.md)
+- [Studio architecture](../../../../architecture/studio/overview_A.md)
+- [Studio 0002](../../../../adr/studio/0002-tauri-portable-web-editor_H.md) and
+  [Studio 0004](../../../../adr/studio/0004-share-engine-services-with-cli_H.md)
+- [ADRs under review](../../../../adr/UNDER_REVIEW_A.md) in full
+- [Studio getting started](../../../../user-facing-docs/studio/getting-started.md)
+- [Good Engineering](../../../../GOOD_ENGINEERING_H.md)
 
 ## Research and decision review
 

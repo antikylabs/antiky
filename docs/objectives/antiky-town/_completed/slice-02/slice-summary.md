@@ -25,8 +25,8 @@ The Framework does not contain Antiky Town keyboard rules, browser lifecycle cod
 host, or a durable event for each step. A game can add a bounded server input journal or checkpoint
 policy later without making high-frequency history a Framework default.
 
-See [Engine Sessions](../../../user-facing-docs/framework/engine-sessions.md) and
-[Runtime Inspection](../../../user-facing-docs/framework/inspection.md).
+See [Engine Sessions](../../../../user-facing-docs/framework/engine-sessions.md) and
+[Runtime Inspection](../../../../user-facing-docs/framework/inspection.md).
 
 ### CLI and MCP
 
@@ -47,8 +47,8 @@ instead of advancing twice.
 The CLI also supports `antiky generate id <world|entity|command|session>`. It delegates ID creation
 to the Framework.
 
-See [Antiky Development CLI](../../../user-facing-docs/cli/development.md) and
-[MCP Tools](../../../user-facing-docs/mcp/tools.md).
+See [Antiky Development CLI](../../../../user-facing-docs/cli/development.md) and
+[MCP Tools](../../../../user-facing-docs/mcp/tools.md).
 
 ### Demo and rendering
 
@@ -79,7 +79,7 @@ matched the Slice 01 reference with `0.995923` similarity.
 
 ## Architecture decision
 
-[ADR 0016](../../../adr/framework/0016-give-platform-work-to-game-host_H.md) was required and is
+[ADR 0016](../../../../adr/framework/0016-give-platform-work-to-game-host_H.md) was required and is
 accepted. It keeps platform events and presentation callbacks in the client host. It gives fixed
 time, system order, and step IDs to `EngineSession`. Slice 02 did not publish a general host API.
 
@@ -115,4 +115,4 @@ first terminal when done. The CLI must stop its child processes and remove the d
 descriptor.
 
 The completed run is recorded in the
-[Slice 02 receipt](outputs/s02-20260805T145240Z/receipt.json).
+The Slice 02 closeout checks passed.

@@ -9,7 +9,7 @@
 | Outcome | `antiky init` creates one safe `.antiky` project manifest in a selected game folder |
 | Owner input | The source feedback supplies the product direction |
 | Architecture decisions | Feedback 01 project-boundary ADR and [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
-| Depends on | [Feedback 01](feedback-01-open-project-plan.md) |
+| Depends on | [Feedback 01](_completed/feedback-01-open-project-plan.md) |
 | Alignment revision | `228997a07b6a0ace98be490fc014ab640f9ace39` |
 | Review date | `2026-08-06` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-02/verify.mjs` |
@@ -63,7 +63,7 @@ CLI arguments -> normalized name and target -> manifest builder -> shared parser
 
 - [Source feedback](slice-feedback.txt)
 - [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
-- [Feedback 01](feedback-01-open-project-plan.md) and its accepted project-boundary ADR
+- [Feedback 01](_completed/feedback-01-open-project-plan.md) and its accepted project-boundary ADR
 - [Studio architecture](../../../architecture/studio/overview_A.md)
 - [CLI development guide](../../../user-facing-docs/cli/development.md)
 - [ADRs under review](../../../adr/UNDER_REVIEW_A.md)

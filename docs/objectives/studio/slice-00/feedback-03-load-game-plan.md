@@ -9,7 +9,7 @@
 | Outcome | Studio starts as a project launcher and loads one selected game into one complete workspace |
 | Owner input | The source feedback supplies the product direction |
 | Architecture decisions | Feedback 01 project-boundary ADR, [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md), and [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) |
-| Depends on | [Feedback 01](feedback-01-open-project-plan.md) and [Feedback 02](feedback-02-init-project-plan.md) |
+| Depends on | [Feedback 01](_completed/feedback-01-open-project-plan.md) and [Feedback 02](feedback-02-init-project-plan.md) |
 | Alignment revision | `dd0eda5d8c4f4273e0cab8b3a5bfa843b8d17b40` |
 | Review date | `2026-08-06` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-03/verify.mjs` |
@@ -68,7 +68,7 @@ shared parser owns project meaning.
 
 - [Source feedback](slice-feedback.txt)
 - [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
-- [Feedback 01](feedback-01-open-project-plan.md) and [Feedback 02](feedback-02-init-project-plan.md)
+- [Feedback 01](_completed/feedback-01-open-project-plan.md) and [Feedback 02](feedback-02-init-project-plan.md)
 - [Studio architecture](../../../architecture/studio/overview_A.md)
 - [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) and [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md)
 - [ADRs under review](../../../adr/UNDER_REVIEW_A.md)

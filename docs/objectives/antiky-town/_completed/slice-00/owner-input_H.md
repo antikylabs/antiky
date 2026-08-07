@@ -28,7 +28,7 @@ Your review on 2026-08-04 supplied these requirements:
 - The CLI owns local launch, process, build, connection, and cleanup work.
 - CLI and Studio are separate clients of the same engine services.
 
-[ADR 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) records the CLI and Studio
+[ADR 0004](../../../../adr/studio/0004-share-engine-services-with-cli_H.md) records the CLI and Studio
 decision.
 
 ## Question 1: Which town must the CLI launch first?

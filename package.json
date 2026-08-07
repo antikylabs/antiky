@@ -23,8 +23,7 @@
     "docs:api:check": "npm run docs:api:check --workspace @antiky/framework",
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "shaders": "npm run shaders --workspace @antiky/demo-antiky-town && npm run shaders --workspace @antiky/demo-town-study && npm run shaders --workspace @antiky/demo-shader-study",
-    "test": "sh docs/adr/tag-hash.test.sh && node --test scripts/port-release.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader-output-parity.test.mjs && npm test --workspaces --if-present",
+    "test": "sh docs/adr/tag-hash.test.sh && node --test scripts/port-release.test.mjs scripts/repository-policy.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader-output-parity.test.mjs && npm test --workspaces --if-present",
     "check": "npm run typecheck && npm test"
   },
   "dependencies": {

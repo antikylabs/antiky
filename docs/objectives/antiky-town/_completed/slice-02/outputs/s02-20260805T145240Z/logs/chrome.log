@@ -1,5 +1,0 @@
-
-DevTools listening on ws://127.0.0.1:9322/devtools/browser/ca06da1e-b846-4f49-9bb0-dceab968faff
-Trying to load the allocator multiple times. This is *not* supported.
-[14272:47067561:0805/095314.654978:ERROR:content/browser/gpu/gpu_process_host.cc:1089] GPU process exited unexpectedly: exit_code=15
-[14272:47067561:0805/095314.676928:ERROR:content/browser/network_service_instance_impl.cc:721] Network service crashed or was terminated, restarting service.

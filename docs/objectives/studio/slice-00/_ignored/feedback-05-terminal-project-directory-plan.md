@@ -5,11 +5,11 @@
 | Field | Value |
 | --- | --- |
 | Status | `NOT READY` until Feedback 03 supplies an explicit project context |
-| Feedback source | [Slice 00 feedback, line 5](slice-feedback.txt) |
+| Feedback source | [Slice 00 feedback, line 5](../slice-feedback.txt) |
 | Outcome | Each Studio terminal starts in the root of the project open in that window |
 | Owner input | The source feedback supplies the product direction |
-| Architecture decisions | [Studio 0001](../../../adr/studio/0001-ai-integrations_H.md) and [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) |
-| Depends on | [Feedback 03](feedback-03-load-game-plan.md) |
+| Architecture decisions | [Studio 0001](../../../../adr/studio/0001-ai-integrations_H.md) and [Studio 0002](../../../../adr/studio/0002-tauri-portable-web-editor_H.md) |
+| Depends on | [Feedback 03](../feedback-03-load-game-plan.md) |
 | Alignment revision | `dd0eda5d8c4f4273e0cab8b3a5bfa843b8d17b40` |
 | Review date | `2026-08-06` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-05/verify.mjs` |
@@ -59,13 +59,13 @@ current project identity. Tauri verifies that identity against native state befo
 
 ## Required reading
 
-- [Source feedback](slice-feedback.txt)
-- [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
-- [Feedback 03](feedback-03-load-game-plan.md)
-- [Studio architecture](../../../architecture/studio/overview_A.md)
-- [Studio 0001](../../../adr/studio/0001-ai-integrations_H.md) and [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md)
-- [Studio getting started](../../../user-facing-docs/studio/getting-started.md)
-- [ADRs under review](../../../adr/UNDER_REVIEW_A.md) and [Good Engineering](../../../GOOD_ENGINEERING_H.md)
+- [Source feedback](../slice-feedback.txt)
+- [Studio objective guidance](../../AGENTS.md) and [slice workflow](../../../antiky-town/SLICE_WORKFLOW_A.md)
+- [Feedback 03](../feedback-03-load-game-plan.md)
+- [Studio architecture](../../../../architecture/studio/overview_A.md)
+- [Studio 0001](../../../../adr/studio/0001-ai-integrations_H.md) and [Studio 0002](../../../../adr/studio/0002-tauri-portable-web-editor_H.md)
+- [Studio getting started](../../../../user-facing-docs/studio/getting-started.md)
+- [ADRs under review](../../../../adr/UNDER_REVIEW_A.md) and [Good Engineering](../../../../GOOD_ENGINEERING_H.md)
 
 ## Research and decision review
 
@@ -76,7 +76,7 @@ current project identity. Tauri verifies that identity against native state befo
   commands run from their normal package roots. Antiky preserves that expectation.
 - PlayCanvas keeps editable project commands in its downloaded npm project. Antiky uses the same
   explicit working-directory rule.
-- [Studio 0001](../../../adr/studio/0001-ai-integrations_H.md) makes the terminal the user's coding-tool
+- [Studio 0001](../../../../adr/studio/0001-ai-integrations_H.md) makes the terminal the user's coding-tool
   surface. A correct working directory lets Codex see the intended project without an extra `cd`.
 - The existing libghostty bridge already accepts a project directory. This plan replaces the inferred
   `INIT_CWD` value with the explicit validated project root.
