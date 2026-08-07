@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR 0006](0006-use-cli-project-services-directly_H.md)
 
 ## Context
 

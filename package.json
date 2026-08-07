@@ -21,7 +21,7 @@
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "shaders": "npm run shaders --workspace @antiky/demos",
-    "test": "node --test scripts/port-release.test.mjs && npm test --workspaces --if-present",
+    "test": "sh docs/adr/tag-hash.test.sh && node --test scripts/port-release.test.mjs && npm test --workspaces --if-present",
     "check": "npm run typecheck && npm test"
   },
   "dependencies": {

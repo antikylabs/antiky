@@ -37,10 +37,13 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0017: Stop an engine session after a game-code fault](framework/0017-stop-engine-session-after-game-code-fault_H.md)
 - [0018: Select physics authority and physics execution independently](framework/0018-select-physics-authority-and-execution-independently_H.md)
 - [0019: Use Rapier for CPU physics and Nexus for GPU physics](framework/0019-use-rapier-for-cpu-physics-and-nexus-for-gpu-physics_H.md)
+- [0020: Keep game code and game hosts in different modules](framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md)
 
 ### CLI
 
 - [0001: Use MCP Tools for local development operations](cli/0001-use-mcp-tools-for-development_H.md)
+- [0002: Supply CLI project services through a library API](cli/0002-supply-cli-project-services-through-a-library-api_H.md)
+- [0003: Make CLI project services the development authority](cli/0003-make-cli-project-services-the-development-authority_H.md)
 
 ### Studio
 
@@ -49,6 +52,7 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0003: Attach each feedback comment to its exact target](studio/0003-contextual-feedback-queue_H.md)
 - [0004: Make CLI and Studio use the same engine services](studio/0004-share-engine-services-with-cli_H.md)
 - [0005: Use one Antiky project manifest](studio/0005-use-one-antiky-project-manifest_H.md)
+- [0006: Use CLI project services directly](studio/0006-use-cli-project-services-directly_H.md)
 
 ## Minimal format
 

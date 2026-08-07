@@ -50,4 +50,7 @@ default_entry=$(printf -- "- \`%s\` — Prior version before this in-place revis
 grep -Fqx -e "$first_entry" "$adr_file" || fail "explicit note was not appended"
 grep -Fqx -e "$default_entry" "$adr_file" || fail "default note was not appended"
 
+planning_references=$(rg -n '\]\([^)]*objectives/' "$script_dir" --glob '*_H.md' || true)
+[ -z "$planning_references" ] || fail "ADRs must not depend on objective or planning documents"
+
 echo "PASS: tag-hash.sh"

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR 0020](0020-keep-game-code-and-game-hosts-in-different-modules_H.md)
 
 ## Context
 
