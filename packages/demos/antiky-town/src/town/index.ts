@@ -91,19 +91,19 @@ const NPC_COUNT = 8;
 const NPC_WALKER_INDICES = [0, 1, 3, 4, 0, 1, 3, 4] as const;
 const NPC_START_PROGRESS = [0.08, 0.38, 0.64, 0.82, 0.55, 0.76, 0.18, 0.43] as const;
 const MATERIAL_ATLAS_URL = new URL(
-  '../assets/textures/town-material-atlas-v1.png',
+  '../../assets/textures/town-material-atlas-v1.png',
   import.meta.url,
 ).href;
 const PROP_ATLAS_URL = new URL(
-  '../assets/textures/town-prop-atlas-v2.png',
+  '../../assets/textures/town-prop-atlas-v2.png',
   import.meta.url,
 ).href;
 const VEGETATION_ATLAS_URL = new URL(
-  '../assets/textures/town-vegetation-atlas-v2.png',
+  '../../assets/textures/town-vegetation-atlas-v2.png',
   import.meta.url,
 ).href;
 const ACTOR_ATLAS_URL = new URL(
-  '../assets/sprites/antiky-wayfarer-cardinal-atlas.png',
+  '../../assets/sprites/antiky-wayfarer-cardinal-atlas.png',
   import.meta.url,
 ).href;
 

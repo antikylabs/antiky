@@ -3,7 +3,7 @@ import type {
   PointLightRenderChanges,
 } from '@antiky/framework';
 
-import type { TownSlotZeroPowerSource } from '@antiky/demo-town-support/practical-light-input';
+import type { TownSlotZeroPowerSource } from '../town/practical-light-input.ts';
 import { MARKET_LAMP_WEST_01_ID } from '../content/point-lights.ts';
 
 type PendingReplacement = Readonly<{

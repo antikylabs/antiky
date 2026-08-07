@@ -15,7 +15,7 @@ import type {
   TownGameSetup,
   TownRuntime,
   TownRuntimeBuilder,
-} from '@antiky/demo-town-support/town-runtime';
+} from '../src/town/town-runtime.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import { createAntikyTownDemoFactory } from '../src/composition.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner

@@ -1,6 +1,6 @@
 # Town Study
 
-Town Study is an Antiky game project. Its default entry contains town simulation and rendering code.
+A self-contained Antiky game project. Its default entry owns the town simulation and rendering code.
 The Antiky CLI, Studio, website, or a test host supplies the canvas and platform loop.
 
 Open `town-study.antiky` in Studio, or run:

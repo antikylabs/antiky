@@ -7,8 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const execute = promisify(execFile);
-const packageDirectory = fileURLToPath(new URL('../../demo-support/town/', import.meta.url));
-const sourceDirectory = new URL('../../demo-support/town/src/', import.meta.url);
+const townPackages = ['antiky-town', 'town-study'].map((slug) => ({
+  slug,
+  packageDirectory: fileURLToPath(new URL(`../${slug}/`, import.meta.url)),
+  sourceDirectory: new URL(`../${slug}/src/town/`, import.meta.url),
+}));
 const brometalEntry = fileURLToPath(import.meta.resolve('brometal'));
 const brometalDirectory = path.resolve(path.dirname(brometalEntry), '..');
 const compiler = path.join(brometalDirectory, 'dist/cli/index.js');
@@ -43,22 +46,24 @@ async function readOutputs(paths) {
 }
 
 test('development and production shader compilation produce identical tracked output', async () => {
-  const paths = await generatedFiles(sourceDirectory);
-  const original = await readOutputs(paths);
-  try {
-    await execute(compiler, ['dev', '--once'], { cwd: packageDirectory });
-    const development = await readOutputs(paths);
-    await execute(compiler, ['prod'], { cwd: packageDirectory });
-    const production = await readOutputs(paths);
-    for (const path of paths) {
-      assert.ok(
-        production.get(path.href).equals(development.get(path.href)),
-        `${fileURLToPath(path)} differs between compiler modes`,
-      );
+  for (const townPackage of townPackages) {
+    const paths = await generatedFiles(townPackage.sourceDirectory);
+    const original = await readOutputs(paths);
+    try {
+      await execute(compiler, ['dev', '--once'], { cwd: townPackage.packageDirectory });
+      const development = await readOutputs(paths);
+      await execute(compiler, ['prod'], { cwd: townPackage.packageDirectory });
+      const production = await readOutputs(paths);
+      for (const path of paths) {
+        assert.ok(
+          production.get(path.href).equals(development.get(path.href)),
+          `${townPackage.slug}: ${fileURLToPath(path)} differs between compiler modes`,
+        );
+      }
+    } finally {
+      await Promise.all(paths.map(async (path) => {
+        await writeFile(fileURLToPath(path), original.get(path.href));
+      }));
     }
-  } finally {
-    await Promise.all(paths.map(async (path) => {
-      await writeFile(fileURLToPath(path), original.get(path.href));
-    }));
   }
 });

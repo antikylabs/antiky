@@ -513,7 +513,7 @@ export type StaticWorldOptions = {
   sampleGround?: CharacterWorldAdapter['sampleGround'];
 };
 
-/** Small-list adapter used by the Town Study's authored obstacle boxes. */
+/** Small-list adapter used by the project's authored obstacle boxes. */
 export class StaticCharacterWorldAdapter implements CharacterWorldAdapter {
   readonly colliders: readonly Readonly<CharacterCollider>[];
   readonly sampleGround?: CharacterWorldAdapter['sampleGround'];

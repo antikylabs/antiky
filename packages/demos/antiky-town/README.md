@@ -1,6 +1,6 @@
 # Antiky Town
 
-Antiky Town is an Antiky game project. It combines the town renderer with an `EngineSession` and
+A self-contained Antiky game project. It owns its town renderer and combines it with an `EngineSession` and
 point-light authoring behavior. The project contains game code only. A delivery host supplies the
 canvas, platform input, timing, and development services.
 

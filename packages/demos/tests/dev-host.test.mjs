@@ -37,11 +37,26 @@ test('game projects contain no delivery host or sibling-demo source imports', as
     assert.doesNotMatch(source, /@antiky\/(?:cli|studio|website)/);
     assert.doesNotMatch(source, /(?:node:http|node:net|createServer\s*\()/);
     assert.doesNotMatch(source, /\.\.\/+(?:antiky-town|town-study|shader-study)(?:\/|['"])/);
-    assert.doesNotMatch(source, /(?:React|createRoot|<canvas|document\.createElement\(['"]canvas)/);
+    assert.doesNotMatch(source, /(?:React|createRoot|<canvas|document\.body\.appendChild)/);
   }
   await assert.rejects(() => access(new URL('dev-host/', demosDirectory)));
   await assert.rejects(() => access(new URL('package.json', demosDirectory)));
   await assert.rejects(() => access(new URL('src/', demosDirectory)));
   await assert.rejects(() => access(new URL('src/react/', demosDirectory)));
   await assert.rejects(() => access(new URL('src/runtime.ts', demosDirectory)));
+});
+
+test('every public demo owns its source without a shared demo package', async () => {
+  await assert.rejects(() => access(new URL('../../demo-support/town/package.json', import.meta.url)));
+  for (const slug of publicDemos) {
+    const directory = new URL(`${slug}/`, demosDirectory);
+    const metadata = JSON.parse(await readFile(new URL('package.json', directory), 'utf8'));
+    const demoDependencies = Object.keys(metadata.dependencies ?? {})
+      .filter((name) => name.startsWith('@antiky/demo-'));
+    assert.deepEqual(demoDependencies, [], `${slug} depends on shared demo source`);
+    const source = (await Promise.all((await sourceFiles(new URL('src/', directory))).map(
+      (path) => readFile(path, 'utf8'),
+    ))).join('\n');
+    assert.doesNotMatch(source, /@antiky\/demo-/);
+  }
 });

@@ -8,7 +8,6 @@
       "projectDirectory": "packages/demos/antiky-town",
       "sources": [
         { "label": "project", "path": "packages/demos/antiky-town" },
-        { "label": "town-support", "path": "packages/demo-support/town" },
         { "label": "artifact-builder", "path": "scripts/build-demo-artifact.mjs" }
       ]
     },
@@ -19,7 +18,6 @@
       "projectDirectory": "packages/demos/town-study",
       "sources": [
         { "label": "project", "path": "packages/demos/town-study" },
-        { "label": "town-support", "path": "packages/demo-support/town" },
         { "label": "artifact-builder", "path": "scripts/build-demo-artifact.mjs" }
       ]
     },

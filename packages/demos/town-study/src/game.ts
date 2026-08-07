@@ -1,6 +1,6 @@
 import { createRenderer } from 'brometal';
 import type { GameModuleEntry } from '@antiky/framework/game';
-import { createTownGameFactory } from '@antiky/demo-town-support';
+import { createTownGameFactory } from './town/index.ts';
 
 const factory = createTownGameFactory();
 

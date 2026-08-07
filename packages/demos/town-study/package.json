@@ -4,21 +4,22 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "npm run shaders:prod && vite build && node ../../../scripts/build-demo-artifact.mjs --slug town-study --name \"Town Study\" --source project=. --source town-support=../../demo-support/town --source artifact-builder=../../../scripts/build-demo-artifact.mjs",
+    "build": "npm run shaders:prod && vite build && node ../../../scripts/build-demo-artifact.mjs --slug town-study --name \"Town Study\" --source project=. --source artifact-builder=../../../scripts/build-demo-artifact.mjs",
     "dev": "vite build --watch",
-    "shaders:watch": "npm run shaders:watch --workspace @antiky/demo-town-support",
-    "shaders:prod": "npm run shaders:prod --workspace @antiky/demo-town-support",
-    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/game.test.ts",
+    "shaders": "brometal dev --once",
+    "shaders:watch": "brometal dev",
+    "shaders:prod": "brometal prod",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/game.test.ts src/town/physics/character-motor.test.ts src/town/practical-light-input.test.ts && vitest run src/town/art/town-validation.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@antiky/demo-town-support": "0.0.0",
     "@antiky/framework": "0.0.0",
     "brometal": "0.15.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
     "typescript": "^5.8.3",
-    "vite": "8.2.0"
+    "vite": "8.2.0",
+    "vitest": "4.1.10"
   }
 }

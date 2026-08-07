@@ -6,7 +6,6 @@
     "packages/cli",
     "packages/framework",
     "packages/website",
-    "packages/demo-support/*",
     "packages/demos/*",
     "packages/studio/*"
   ],
@@ -24,7 +23,7 @@
     "docs:api:check": "node scripts/generate-framework-api-reference.mjs --check",
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "shaders": "npm run shaders --workspace @antiky/demo-town-support && npm run shaders --workspace @antiky/demo-shader-study",
+    "shaders": "npm run shaders --workspace @antiky/demo-antiky-town && npm run shaders --workspace @antiky/demo-town-study && npm run shaders --workspace @antiky/demo-shader-study",
     "test": "sh docs/adr/tag-hash.test.sh && node --test scripts/port-release.test.mjs packages/demos/tests/artifact.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader-output-parity.test.mjs && npm test --workspaces --if-present",
     "check": "npm run typecheck && npm test"
   },

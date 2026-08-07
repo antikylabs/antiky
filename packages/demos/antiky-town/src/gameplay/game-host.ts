@@ -7,7 +7,7 @@ import {
 } from '@antiky/framework';
 import type { GameInstance, GameMovementInput } from '@antiky/framework/game';
 
-import type { TownRuntime } from '@antiky/demo-town-support/town-runtime';
+import type { TownRuntime } from '../town/town-runtime.ts';
 
 export type TownSemanticInput = Readonly<{
   movement: Readonly<{

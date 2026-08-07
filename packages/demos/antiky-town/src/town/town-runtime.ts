@@ -11,7 +11,7 @@ export type TownGameSetup = GameHostContext & Readonly<{
   renderer: Renderer;
 }>;
 
-/** Private update/render seam shared by the Town Study adapter and Antiky Town. */
+/** Private update/render seam used by Antiky Town's fixed-step host. */
 export type TownRuntime = Readonly<{
   update(deltaSeconds: number, movement: GameMovementInput): void;
   render(): void;

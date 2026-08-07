@@ -18,7 +18,7 @@ import type {
   TownGameSetup,
   TownRuntime,
   TownRuntimeBuilder,
-} from '@antiky/demo-town-support/town-runtime';
+} from './town/town-runtime.ts';
 import { createAntikyTownPointLightService } from './content/point-lights.ts';
 import {
   createAntikyTownGameHost,
