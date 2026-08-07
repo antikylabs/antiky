@@ -54,14 +54,14 @@ function hash(source) {
   return createHash('sha256').update(source).digest('hex');
 }
 
-async function filesBelow(root, relative = '') {
+async function filesBelow(root, relative = '', slug = '') {
   const entries = await readdir(path.join(root, relative), { withFileTypes: true });
   entries.sort((left, right) => left.name.localeCompare(right.name, 'en'));
   const files = [];
   for (const entry of entries) {
     const child = path.join(relative, entry.name);
-    if (entry.isSymbolicLink()) fail('ANTIKY_ARTIFACT_SYMLINK', '', child);
-    if (entry.isDirectory()) files.push(...await filesBelow(root, child));
+    if (entry.isSymbolicLink()) fail('ANTIKY_ARTIFACT_SYMLINK', slug, child);
+    if (entry.isDirectory()) files.push(...await filesBelow(root, child, slug));
     else if (entry.isFile()) files.push(child.split(path.sep).join('/'));
   }
   return files;
@@ -186,7 +186,38 @@ async function verifyOneArtifact(repositoryRoot, approved) {
   );
   const dist = path.join(projectDirectory, 'dist');
   const manifestPath = path.join(dist, MANIFEST_NAME);
-  const manifestBytes = await readFile(manifestPath);
+  let distMetadata;
+  try {
+    distMetadata = await lstat(dist);
+  } catch (cause) {
+    if (cause?.code === 'ENOENT') {
+      fail('ANTIKY_ARTIFACT_MANIFEST_MISSING', approved.slug, `${MANIFEST_NAME} is missing`);
+    }
+    fail('ANTIKY_ARTIFACT_MANIFEST_INVALID', approved.slug, 'Artifact output cannot be inspected');
+  }
+  if (distMetadata.isSymbolicLink()) fail('ANTIKY_ARTIFACT_SYMLINK', approved.slug, 'dist');
+  if (!distMetadata.isDirectory()) {
+    fail('ANTIKY_ARTIFACT_MANIFEST_INVALID', approved.slug, 'Artifact output is not a directory');
+  }
+  let manifestMetadata;
+  try {
+    manifestMetadata = await lstat(manifestPath);
+  } catch (cause) {
+    if (cause?.code === 'ENOENT') {
+      fail('ANTIKY_ARTIFACT_MANIFEST_MISSING', approved.slug, `${MANIFEST_NAME} is missing`);
+    }
+    fail('ANTIKY_ARTIFACT_MANIFEST_INVALID', approved.slug, 'Manifest cannot be inspected');
+  }
+  if (manifestMetadata.isSymbolicLink()) fail('ANTIKY_ARTIFACT_SYMLINK', approved.slug, MANIFEST_NAME);
+  if (!manifestMetadata.isFile()) {
+    fail('ANTIKY_ARTIFACT_MANIFEST_INVALID', approved.slug, 'Manifest is not a file');
+  }
+  let manifestBytes;
+  try {
+    manifestBytes = await readFile(manifestPath);
+  } catch {
+    fail('ANTIKY_ARTIFACT_MANIFEST_INVALID', approved.slug, 'Manifest cannot be read');
+  }
   if (manifestBytes.byteLength > MAX_MANIFEST_BYTES) {
     fail('ANTIKY_ARTIFACT_MANIFEST_INVALID', approved.slug, 'Manifest is too large');
   }
@@ -200,7 +231,7 @@ async function verifyOneArtifact(repositoryRoot, approved) {
     fail('ANTIKY_ARTIFACT_STALE', approved.slug, 'Source revision does not match the current source');
   }
 
-  const actualFiles = await filesBelow(dist);
+  const actualFiles = await filesBelow(dist, '', approved.slug);
   const expectedFiles = [...manifest.files.map((file) => file.path), MANIFEST_NAME].sort();
   if (actualFiles.length !== expectedFiles.length || actualFiles.some((file, index) => file !== expectedFiles[index])) {
     fail('ANTIKY_ARTIFACT_FILE_SET_INVALID', approved.slug, 'Build output has missing or extra files');
