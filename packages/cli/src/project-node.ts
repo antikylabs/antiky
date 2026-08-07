@@ -134,10 +134,35 @@ export async function discoverAntikyProjectManifest(directory = process.cwd()): 
   return realpath(resolve(root, manifest.name));
 }
 
+async function selectAntikyProjectManifest(projectPath?: string): Promise<string> {
+  if (projectPath === undefined) return discoverAntikyProjectManifest();
+
+  const selectedPath = resolve(projectPath);
+  if (extname(selectedPath) === '.antiky') return selectedPath;
+
+  let metadata;
+  try {
+    metadata = await lstat(selectedPath);
+  } catch (cause: unknown) {
+    if ((cause as NodeJS.ErrnoException).code === 'ENOENT') {
+      projectError('ANTIKY_PROJECT_NOT_FOUND', `Antiky project does not exist: ${selectedPath}`);
+    }
+    throw cause;
+  }
+  if (metadata.isSymbolicLink()) {
+    projectError(
+      'ANTIKY_PROJECT_PATH_ESCAPE',
+      `Antiky project directory must not be a symbolic link: ${selectedPath}`,
+    );
+  }
+  if (!metadata.isDirectory()) {
+    projectError('ANTIKY_PROJECT_INVALID', `Expected a .antiky project or directory: ${selectedPath}`);
+  }
+  return discoverAntikyProjectManifest(selectedPath);
+}
+
 export async function loadAntikyProject(projectPath?: string): Promise<AntikyProject> {
-  const selectedPath = projectPath === undefined
-    ? await discoverAntikyProjectManifest()
-    : resolve(projectPath);
+  const selectedPath = await selectAntikyProjectManifest(projectPath);
   if (extname(selectedPath) !== '.antiky') {
     projectError('ANTIKY_PROJECT_INVALID', `Expected a .antiky project: ${selectedPath}`);
   }

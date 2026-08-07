@@ -72,6 +72,21 @@ test('antiky studio validates and opens one explicit project without starting de
   assert.match(result.stdout.join(''), /Opened .*studio-project\.antiky in Antiky Studio/u);
 });
 
+test('antiky studio accepts a positional project directory or manifest', async () => {
+  const directory = await emptyProjectDirectory('positional-studio-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const manifestPath = join(directory, 'positional-studio-project.antiky');
+  const canonicalManifestPath = await realpath(manifestPath);
+
+  for (const target of [directory, manifestPath]) {
+    const launched: string[] = [];
+    assert.equal(await runCli(['studio', target], output().io, {
+      studioLauncher: async (path: string) => { launched.push(path); },
+    }), 0);
+    assert.deepEqual(launched, [canonicalManifestPath]);
+  }
+});
+
 test('antiky studio discovers the one project in the current directory', async () => {
   const directory = await emptyProjectDirectory('discovered-studio-project');
   assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
@@ -104,17 +119,19 @@ test('antiky studio rejects an invalid project before asking the OS to open Stud
   assert.equal(launches, 0);
 });
 
-test('antiky studio has the same bounded project option as other project commands', async () => {
+test('antiky studio accepts only one bounded project target', async () => {
   for (const args of [
     ['studio', '--project'],
     ['studio', '--project', 'one.antiky', '--project', 'two.antiky'],
+    ['studio', 'one', 'two'],
+    ['studio', 'one', '--project', 'two'],
     ['studio', '--unknown'],
   ]) {
     await assert.rejects(
       () => runCli(args),
       (error: unknown) => error instanceof AntikyCliError
         && error.code === 'ANTIKY_ARGUMENT_INVALID'
-        && /antiky studio \[--project path\]/.test(error.message),
+        && /antiky studio \[path \| --project path\]/.test(error.message),
     );
   }
 });

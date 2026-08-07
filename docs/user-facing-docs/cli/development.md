@@ -57,12 +57,13 @@ nothing starts.
 On macOS, open the same selected project in the installed desktop application with:
 
 ```sh
-antiky studio --project path/to/harbor-lights.antiky
+antiky studio path/to/harbor-lights
 ```
 
-You can omit `--project` under the same current-directory discovery rule. The command validates the
-manifest before it opens Antiky Studio. It does not start development services; Studio owns those
-services after it accepts the project.
+The positional path can select the project directory or its `.antiky` manifest. The older
+`--project path` form selects the same target. You can omit the path under the same current-directory
+discovery rule. The command validates the manifest before it opens Antiky Studio. It does not start
+development services; Studio owns those services after it accepts the project.
 
 ## Configure your project
 

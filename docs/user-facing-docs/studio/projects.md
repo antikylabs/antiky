@@ -75,12 +75,14 @@ Studio is already running.
 On macOS, you can open the project from a terminal instead:
 
 ```sh
-antiky studio --project path/to/harbor-lights.antiky
+antiky studio path/to/harbor-lights
 ```
 
-Run `antiky studio` without `--project` from a directory that contains exactly one `.antiky` file.
-The CLI validates the manifest before it asks macOS to open Antiky Studio. It does not start the game
-compiler, development host, or project service; Studio starts them after it accepts the project.
+The path can be a project directory or its `.antiky` manifest. You can also use `--project path` for
+the same explicit selection. Run `antiky studio` without a path from a directory that contains
+exactly one `.antiky` file. The CLI validates the manifest before it asks macOS to open Antiky
+Studio. It does not start the game compiler, development host, or project service; Studio starts
+them after it accepts the project.
 
 If a replacement manifest is invalid, Studio reports the error and leaves the current project
 unchanged. Canceling the file picker also leaves the current project unchanged. Studio does not run

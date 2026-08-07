@@ -18,7 +18,7 @@ import { launchStudioProject } from './studio-launch.ts';
 
 export const CLI_USAGE = `Usage:
   antiky init [name] [--directory path]
-  antiky studio [--project path]
+  antiky studio [path | --project path]
   antiky dev [--project path]
   antiky inspect [--project path]
   antiky mcp [--project path]
@@ -47,6 +47,13 @@ function parseProjectPath(args: readonly string[]): string | undefined {
   if (args.length === 0) return undefined;
   if (args.length === 2 && args[0] === '--project' && args[1]) return resolve(args[1]);
   throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+}
+
+function parseStudioProjectPath(args: readonly string[]): string | undefined {
+  if (args.length === 1 && args[0] && !args[0].startsWith('--')) {
+    return resolve(args[0]);
+  }
+  return parseProjectPath(args);
 }
 
 type ToolInvocation = Readonly<{
@@ -281,7 +288,9 @@ async function executeCli(
     io.stdout(`${JSON.stringify(result.structuredContent, null, 2)}\n`);
     return result.isError ? 1 : 0;
   }
-  const projectPath = parseProjectPath(commandArgs);
+  const projectPath = command === 'studio'
+    ? parseStudioProjectPath(commandArgs)
+    : parseProjectPath(commandArgs);
 
   if (command === 'studio') {
     const project = await loadAntikyProject(projectPath);

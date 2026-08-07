@@ -115,7 +115,7 @@ test('the dedicated Projects guide documents the public project workflow', async
   assert.match(source, /"network": \{/);
   assert.match(source, /"build": \{/);
   assert.match(source, /antiky dev --project path\/to\/harbor-lights\.antiky/);
-  assert.match(source, /antiky studio --project path\/to\/harbor-lights\.antiky/);
+  assert.match(source, /antiky studio path\/to\/harbor-lights/);
   assert.match(source, /validates.*before.*open.*Antiky Studio/is);
   assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
   assert.match(source, /Finder/i);
@@ -136,7 +136,7 @@ test('the CLI guide defines the one project manifest and its migration path', as
   assert.match(source, /"development": \{/);
   assert.match(source, /"build": \{/);
   assert.match(source, /antiky dev --project path\/to\/harbor-lights\.antiky/);
-  assert.match(source, /antiky studio --project path\/to\/harbor-lights\.antiky/);
+  assert.match(source, /antiky studio path\/to\/harbor-lights/);
   assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
   assert.doesNotMatch(source, /ANTIKY_CONFIG_(?:NOT_FOUND|INVALID)/);
   assert.match(source, /ANTIKY_PROJECT_NAME_INVALID/);
