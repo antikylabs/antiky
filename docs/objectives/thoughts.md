@@ -188,3 +188,86 @@ Antiky Town until the real integration proves a reusable Framework boundary.
 After that slice, select the next player-visible Town feature. Extract a Framework service only
 when that feature or a second game proves the boundary. Keep website delivery, Studio polish,
 documentation infrastructure, and evidence cleanup out of the Town gameplay roadmap.
+
+## 8. Prevent these regressions
+
+Do not rely on this feedback file or an agent instruction as the only protection. Guidance helps a
+contributor choose correctly, but it does not stop an incorrect change from merging.
+
+Use the strongest guardrail that fits each concern:
+
+| Concern | Durable source | Required enforcement |
+| --- | --- | --- |
+| Product architecture and ownership | An accepted ADR | Package-boundary, import, and behavior tests |
+| Repository organization | `GOOD_ENGINEERING_H.md` and the nearest scoped `AGENTS.md` | Path and dependency tests |
+| User-facing language and visual style | The product design and writing standards | Focused semantic assertions and human visual review |
+| Generated API documentation | The public package export map | A completeness test that derives its expectations from that map |
+| Temporary planning evidence | The slice workflow and `.gitignore` | A test that rejects tracked output and verification files |
+| Active product direction | One canonical active roadmap | Link, status, and stale-path checks |
+
+The order of protection matters:
+
+1. Delete obsolete code, paths, and copied status text.
+2. Record a durable architecture decision in an ADR when the decision changes product ownership or
+   a compatibility boundary.
+3. Put repository and writing rules in the nearest scoped instruction or standard.
+4. Add a failing regression test at the narrowest boundary that can prove the rule.
+5. Run that test from the normal repository check and continuous integration.
+6. Require human review only for product and visual judgments that a test cannot make.
+
+### Required gates for this feedback
+
+When the fixes in this document are implemented, include these gates:
+
+- Framework API generation must enumerate every public entry in
+  `packages/framework/package.json`. A new entry or symbol without documentation must fail the
+  Framework test.
+- Demo tests must reject source imports, dependencies, build commands, and artifact tooling that
+  escape a standalone demo project for another demo or unowned repository helper.
+- Website-only build and publication tools must stay inside the website package. If a tool becomes
+  a real multi-product contract, move it to the product that owns that contract and add its own
+  tests.
+- Root scripts must be limited to tools with real cross-workspace ownership. Do not use the root as
+  a default location for code that has one consumer.
+- The API-reference check must validate the generated files without letting the website build
+  repair stale documentation as a side effect.
+- `UNDER_REVIEW_A.md` candidates must have an explicit current state. A resolved candidate must
+  name its accepted ADR. A partially proved candidate must state the remaining decision.
+- Objective `verification/` and run-specific `outputs/` files must be ignored and must not be
+  tracked. A repository test must reject them if an ignore rule is bypassed.
+- Continuous integration must run `git lfs fsck --pointers` so a tracked PNG, JPEG, or JPG cannot
+  silently return to normal Git storage.
+- Antiky Town must have one canonical active roadmap. Indexes and completed records must link to
+  it instead of copying its current status.
+- A roadmap check must reject known retired paths, superseded architecture presented as current,
+  and completed slices presented as pending work.
+
+### Style and copy protection
+
+Do not freeze complete pages or paragraphs in snapshot tests. Those tests make useful copy changes
+expensive and usually protect wording instead of meaning.
+
+Put stable product language rules in the relevant design or documentation standard. Test only the
+meaning that must not regress. For example, a launcher test can require one direct instruction to
+open a `.antiky` file. It should not require a numbered explanation of manifest validation or
+project-root discovery.
+
+Keep a visual baseline only for an intentional, maintained reference. Use human review for balance,
+hierarchy, spacing, and tone. Use automated checks for objective facts such as overlap, clipping,
+minimum dimensions, contrast, and responsive breakpoints.
+
+### Definition of done for each fix
+
+A fix from this feedback is not complete until all these statements are true:
+
+- The obsolete implementation or document is removed.
+- One authoritative source states the surviving rule.
+- A focused regression test fails against the old shape and passes against the new shape.
+- The normal repository check runs that test.
+- User-facing documentation and the active roadmap match the shipped behavior.
+- No temporary evidence, generated build output, or unrelated working-tree change enters the
+  commit.
+
+This structure gives each layer one job. ADRs prevent architectural amnesia. Scoped standards guide
+judgment. Tests detect drift. Continuous integration blocks it. A single source of truth prevents
+documents from disagreeing again.
