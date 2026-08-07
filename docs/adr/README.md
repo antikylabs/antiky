@@ -67,6 +67,10 @@ This format is based on the original ADR format from Michael Nygard. Each ADR ha
 Each short record contains one important decision. Record numbers always increase. The project keeps
 records after a new decision replaces them.
 
+An ADR must contain the facts and requirements that support its decision. An ADR must not use an
+objective, goal, feedback record, or implementation plan as authority. A planning document can link
+to an ADR. An ADR cannot link back to that planning document.
+
 The [MADR minimal template](https://github.com/adr/madr/blob/4.0.0/template/adr-template-minimal.md)
 also includes the options that authors considered. Antiky usually keeps that analysis in the related
 AIP. An ADR includes it only when readers need it to understand the decision.

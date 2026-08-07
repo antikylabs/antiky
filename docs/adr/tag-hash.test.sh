@@ -4,14 +4,19 @@ set -eu
 
 script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
 tag_hash="$script_dir/tag-hash.sh"
+validate="$script_dir/validate.sh"
 test_dir=$(mktemp -d "${TMPDIR:-/tmp}/antiky-tag-hash.XXXXXX")
 adr_file="$test_dir/test-adr.md"
+bad_adr_file="$test_dir/bad-adr_H.md"
 
 cleanup() {
   status=$?
   trap - EXIT HUP INT TERM
   if [ -f "$adr_file" ]; then
     rm "$adr_file"
+  fi
+  if [ -f "$bad_adr_file" ]; then
+    rm "$bad_adr_file"
   fi
   if [ -d "$test_dir" ]; then
     rmdir "$test_dir"
@@ -50,7 +55,31 @@ default_entry=$(printf -- "- \`%s\` — Prior version before this in-place revis
 grep -Fqx -e "$first_entry" "$adr_file" || fail "explicit note was not appended"
 grep -Fqx -e "$default_entry" "$adr_file" || fail "default note was not appended"
 
-planning_references=$(rg -n '\]\([^)]*objectives/' "$script_dir" --glob '*_H.md' || true)
-[ -z "$planning_references" ] || fail "ADRs must not depend on objective or planning documents"
+cat > "$bad_adr_file" <<'EOF'
+# 9999: Bad planning dependency
+
+## Status
+
+Accepted
+
+## Context
+
+The [demo game goal](../../objectives/studio/slice-00/demo-game-goal.md) gives this rule.
+
+## Decision
+
+We will use the rule.
+
+## Consequences
+
+- The planning document controls this record.
+EOF
+
+bad_output=$("$validate" "$bad_adr_file" 2>&1) && bad_status=0 || bad_status=$?
+[ "$bad_status" -eq 1 ] || fail "planning dependency should fail ADR validation"
+printf '%s\n' "$bad_output" | grep -Fq 'must not reference objective or planning documents' || \
+  fail "planning dependency should have a clear validation error"
+
+"$validate" "$script_dir"
 
 echo "PASS: tag-hash.sh"
