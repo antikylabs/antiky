@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { access, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -191,6 +191,33 @@ test('development session starts both children, publishes health, and cleans up'
   )));
 });
 
+test('development session owns the game host when the project command only watches builds', async () => {
+  const project = await makeProject();
+  await mkdir(join(project.directory, 'dist'));
+  await writeFile(join(project.directory, 'dist', 'antiky.game.js'), 'export default () => ({ frame() {}, dispose() {} });\n');
+  const config = await loadAntikyProject(project.projectPath);
+  const session = await startDevelopmentSession(config, { writeOutput: () => {} });
+
+  try {
+    const response = await fetch(config.development.url);
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('content-type') ?? '', /^text\/html/);
+    const html = await response.text();
+    assert.match(html, /<canvas[^>]+id="antiky-game"/);
+    assert.match(html, /src="\/__antiky__\/host\.js"/);
+
+    const moduleResponse = await fetch(`${new URL(config.development.url).origin}/__antiky__/build/antiky.game.js`);
+    assert.equal(moduleResponse.status, 200);
+    assert.match(moduleResponse.headers.get('content-type') ?? '', /^text\/javascript/);
+    assert.match(await moduleResponse.text(), /export default/);
+
+    const escaped = await fetch(`${new URL(config.development.url).origin}/__antiky__/build/%2e%2e/session.antiky`);
+    assert.equal(escaped.status, 404);
+  } finally {
+    await session.stop('normal');
+  }
+});
+
 test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
   const project = await makeProject();
   const config = await loadAntikyProject(project.projectPath);
@@ -202,7 +229,7 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
   try {
     assert.equal(session.mcpUrl, `${session.inspectionUrl}/mcp`);
     assert.ok(lines.includes(`MCP: ${session.mcpUrl}`));
-    assert.ok(lines.includes('Services: game, shaders, inspection, mcp'));
+    assert.ok(lines.includes('Services: game host, game build, shaders, inspection, mcp'));
 
     const initialize = await fetch(session.mcpUrl, {
       method: 'POST',
@@ -605,6 +632,7 @@ test('cleanup attempts every resource and settles when one cleanup operation fai
       'inspection-port-reservation',
       'session-descriptor',
       'build-watcher',
+      'game-host',
       'shaders-child',
       'game-child',
       'inspection-server',

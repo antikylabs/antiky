@@ -1,8 +1,8 @@
 # Run Antiky locally
 
-Run `antiky dev` to start everything you need for local game development: your game process,
-shader watcher, runtime inspection, and MCP server. The command keeps those services in one
-development session and stops them together.
+Run `antiky dev` to start everything you need for local game development: your game compiler,
+shader watcher, host canvas, runtime inspection, and MCP server. The command keeps those services
+in one development session and stops them together.
 
 ## Initialize an existing game directory
 
@@ -110,9 +110,14 @@ use these placeholders:
 | `{gameWidth}` | The viewport width |
 | `{gameHeight}` | The viewport height |
 
-Antiky passes each expanded argument directly to the process without using a shell. The game
-process also receives `ANTIKY_GAME_WIDTH` and
-`ANTIKY_GAME_HEIGHT`.
+Antiky passes each expanded argument directly to the process without using a shell. The
+development command is a compiler watcher. It must write `dist/antiky.game.js` relative to
+`development.workingDirectory`; it must not run a web server or bind the game port. The process
+also receives `ANTIKY_GAME_WIDTH` and `ANTIKY_GAME_HEIGHT`.
+
+The compiled file exports the [game module entry](../framework/game-modules.md). Antiky owns the
+development server, canvas, input listeners, presentation clock, inspection service, and MCP
+endpoint. It serves emitted chunks and assets beside the game module from the same `dist` folder.
 
 The game URL must use HTTP at the configured game address. Development services bind only to the
 IPv4 loopback address `127.0.0.1`; Antiky rejects LAN and wildcard hosts.
@@ -147,7 +152,7 @@ The command prints the current development snapshot as JSON. It includes:
 
 - The development-session ID and accepted build revision.
 - The validated project and local addresses.
-- Game and shader process health.
+- Game-compiler and shader process health.
 - The latest build result, changed path, and duration.
 - Runtime connection and cleanup health.
 - CLI launch measurements and development diagnostics.

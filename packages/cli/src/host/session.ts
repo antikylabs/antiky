@@ -22,6 +22,7 @@ import {
   type CliDiagnosticSink,
 } from './diagnostics.ts';
 import { createInspectionServer } from './inspection-server.ts';
+import { createDevelopmentGameHost } from './game-server.ts';
 import { createRuntimeConnection } from './runtime-connection.ts';
 import {
   getSessionDescriptorPath,
@@ -49,6 +50,7 @@ export type DevelopmentCleanupOperation =
   | 'inspection-port-reservation'
   | 'session-descriptor'
   | 'build-watcher'
+  | 'game-host'
   | 'game-child'
   | 'shaders-child'
   | 'inspection-server';
@@ -343,6 +345,13 @@ export async function startDevelopmentSession(
       actionBroker.stepSimulation(expectedCompletedStepCount)
     ),
   });
+  const gameHost = createDevelopmentGameHost({
+    host: project.network.host,
+    port: project.network.gamePort,
+    gameUrl: project.development.url,
+    projectName: project.name,
+    projectDirectory: project.development.workingDirectory,
+  });
 
   const stop = (
     reason: DevelopmentStopReason = 'normal',
@@ -377,6 +386,10 @@ export async function startDevelopmentSession(
         {
           name: 'build-watcher',
           operation: () => buildTracker.stop(),
+        },
+        {
+          name: 'game-host',
+          operation: () => gameHost.stop(),
         },
         ...children.map((child) => ({
           name: `${child.name}-child` as const,
@@ -491,6 +504,8 @@ export async function startDevelopmentSession(
     await spawnManaged('shaders', project.development.shaderCommand);
     await closeNetServer(gameReservation);
     gameReservation = undefined;
+    await gameHost.start();
+    reportSession('info', 'ANTIKY_COMPONENT_STARTED', 'game-host');
     await spawnManaged('game', project.development.command);
     launchMilliseconds = Date.now() - startedAtMilliseconds;
     await buildTracker.watch(options.watchPaths ?? [
@@ -517,7 +532,7 @@ export async function startDevelopmentSession(
   writeOutput(`Game: ${project.development.url}`);
   writeOutput(`Inspection: ${inspectionUrl}`);
   writeOutput(`MCP: ${mcpUrl}`);
-  writeOutput('Services: game, shaders, inspection, mcp');
+  writeOutput('Services: game host, game build, shaders, inspection, mcp');
 
   return Object.freeze({
     id,

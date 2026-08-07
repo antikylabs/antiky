@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./game": "./src/game/host.ts"
   },
   "scripts": {
     "dev": "tsc --noEmit --watch --preserveWatchOutput",

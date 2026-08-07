@@ -134,3 +134,15 @@ test('the CLI guide defines the one project manifest and its migration path', as
   assert.match(source, /ANTIKY_PROJECT_CREATE_FAILED/);
   assert.match(source, /ANTIKY_PROJECT_INIT_INTERRUPTED/);
 });
+
+test('the game-module guide keeps game code separate from the development host', async () => {
+  const [source, index] = await Promise.all([
+    readFile(new URL('../../../docs/user-facing-docs/framework/game-modules.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/user-facing-docs/README.md', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(index, /\[Build a game module\]\(framework\/game-modules\.md\)/);
+  assert.match(source, /dist\/antiky\.game\.js/);
+  assert.match(source, /must not bind the configured game port/i);
+  assert.match(source, /Do not import CLI, Studio, website, Node\.js, or\s+server modules/i);
+});

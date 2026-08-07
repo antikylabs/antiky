@@ -98,7 +98,7 @@ directories. Zero or multiple `.antiky` files produce an error instead of select
 | --- | --- |
 | `schemaVersion` | Selects the manifest format. The current value is `1`. |
 | `name` | Supplies the project name shown in Studio and development output. |
-| `development.command` | Starts the game development process. |
+| `development.command` | Watches and compiles the game to `dist/antiky.game.js`. |
 | `development.shaderCommand` | Starts the shader watcher. |
 | `development.workingDirectory` | Selects the working directory for both development commands. |
 | `development.url` | Supplies the loopback page that Studio displays as the live game. |

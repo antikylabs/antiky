@@ -5,6 +5,8 @@ agents, and Studio. Start with the task you want to complete.
 
 ## Framework
 
+- [Build a game module](framework/game-modules.md) that mounts on a host-owned canvas without
+  owning a server or development service.
 - [Run a fixed-step game session](framework/engine-sessions.md) to keep game rules independent from
   display timing and support pause, resume, and single-step development controls.
 - [Add point lights](framework/point-lights.md) to place local light sources in a world and change

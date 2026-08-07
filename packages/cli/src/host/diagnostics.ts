@@ -29,6 +29,7 @@ export type CliDiagnosticComponent =
   | 'inspection-port-reservation'
   | 'session-descriptor'
   | 'build-watcher'
+  | 'game-host'
   | 'game-child'
   | 'shaders-child'
   | 'inspection-server'
