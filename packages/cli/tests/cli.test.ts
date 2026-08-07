@@ -42,7 +42,7 @@ test('antiky init help describes one non-interactive manifest command', async ()
 });
 
 test('antiky init uses the folder name and creates only the frozen manifest', async () => {
-  const directory = await emptyProjectDirectory('Harbor Lights');
+  const directory = await emptyProjectDirectory('harbor-lights');
   const expected = await readFile(new URL('fixtures/initialized-project.antiky', import.meta.url), 'utf8');
   const result = output();
 

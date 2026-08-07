@@ -12,15 +12,22 @@ import {
 import { startDevelopmentSession } from './host/session.ts';
 import { callMcpTool } from './mcp/client.ts';
 import { runMcpServer } from './mcp/server.ts';
+import { initializeAntikyProject } from './project-initializer.ts';
 import { loadAntikyProject, migrateAntikyConfig } from './project-node.ts';
 
 export const CLI_USAGE = `Usage:
+  antiky init [name] [--directory path]
   antiky dev [--project path]
   antiky inspect [--project path]
   antiky mcp [--project path]
   antiky tool <name> [json] [--project path]
   antiky migrate --name name --output path [--config path]
   antiky generate id <world|entity|command|session> [--json]`;
+
+export const INIT_USAGE = `Usage:
+  antiky init [name] [--directory path]
+
+Creates one .antiky project manifest in an existing game directory.`;
 
 const MAX_TOOL_INPUT_BYTES = 64 * 1024;
 
@@ -49,6 +56,58 @@ type GenerateIdInvocation = Readonly<{
   kind: IdKind;
   json: boolean;
 }>;
+
+type InitInvocation =
+  | Readonly<{ help: true }>
+  | Readonly<{ help: false; name?: string; directory: string }>;
+
+function parseInitInvocation(args: readonly string[]): InitInvocation {
+  if (args.length === 1 && args[0] === '--help') return Object.freeze({ help: true });
+
+  let name: string | undefined;
+  let directory = process.cwd();
+  let hasDirectory = false;
+  for (let index = 0; index < args.length;) {
+    const argument = args[index]!;
+    if (argument === '--directory') {
+      const value = args[index + 1];
+      if (!value || value.startsWith('--') || hasDirectory) {
+        throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', INIT_USAGE);
+      }
+      directory = resolve(value);
+      hasDirectory = true;
+      index += 2;
+      continue;
+    }
+    if (argument.startsWith('--') || name !== undefined) {
+      throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', INIT_USAGE);
+    }
+    name = argument;
+    index += 1;
+  }
+  return Object.freeze({ help: false, ...(name === undefined ? {} : { name }), directory });
+}
+
+async function initializeProjectForCli(
+  invocation: Exclude<InitInvocation, { help: true }>,
+) {
+  const controller = new AbortController();
+  const interrupt = () => controller.abort();
+  process.once('SIGINT', interrupt);
+  process.once('SIGTERM', interrupt);
+  process.once('SIGHUP', interrupt);
+  try {
+    return await initializeAntikyProject({
+      ...(invocation.name === undefined ? {} : { name: invocation.name }),
+      directory: invocation.directory,
+      signal: controller.signal,
+    });
+  } finally {
+    process.off('SIGINT', interrupt);
+    process.off('SIGTERM', interrupt);
+    process.off('SIGHUP', interrupt);
+  }
+}
 
 function parseGenerateIdInvocation(args: readonly string[]): GenerateIdInvocation {
   const [noun, kind, option, ...rest] = args;
@@ -169,7 +228,8 @@ async function executeCli(
 ): Promise<number> {
   const [command, ...commandArgs] = args;
   if (
-    command !== 'dev'
+    command !== 'init'
+    && command !== 'dev'
     && command !== 'inspect'
     && command !== 'mcp'
     && command !== 'tool'
@@ -177,6 +237,23 @@ async function executeCli(
     && command !== 'generate'
   ) {
     throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+  if (command === 'init') {
+    const invocation = parseInitInvocation(commandArgs);
+    if (invocation.help) {
+      io.stdout(`${INIT_USAGE}\n`);
+      return 0;
+    }
+    const project = await initializeProjectForCli(invocation);
+    io.stdout([
+      `Created ${project.manifestPath}`,
+      '',
+      'Next:',
+      `  Run antiky dev in ${project.projectRoot}`,
+      `  Open ${project.manifestPath} in Antiky Studio`,
+      '',
+    ].join('\n'));
+    return 0;
   }
   if (command === 'generate') {
     const invocation = parseGenerateIdInvocation(commandArgs);

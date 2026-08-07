@@ -256,6 +256,35 @@ export function parseAntikyProjectManifest(source: string): AntikyProjectManifes
   });
 }
 
+export function buildAntikyProjectManifest(projectName: string): AntikyProjectManifest {
+  return parseAntikyProjectManifest(JSON.stringify({
+    schemaVersion: ANTIKY_PROJECT_SCHEMA_VERSION,
+    name: projectName,
+    development: {
+      command: ['npm', 'run', 'dev'],
+      shaderCommand: ['npm', 'run', 'shaders:watch'],
+      workingDirectory: '.',
+      url: 'http://127.0.0.1:3010/',
+      viewport: { width: 1280, height: 720 },
+    },
+    network: {
+      host: LOOPBACK_HOST,
+      gamePort: 3010,
+      inspectionPort: 3011,
+    },
+    build: {
+      command: ['npm', 'run', 'build'],
+      workingDirectory: '.',
+    },
+  }));
+}
+
+export function formatAntikyProjectManifest(manifest: AntikyProjectManifest): string {
+  const source = `${JSON.stringify(manifest, null, 2)}\n`;
+  parseAntikyProjectManifest(source);
+  return source;
+}
+
 function expandCommand(
   command: readonly string[],
   replacements: Readonly<Record<string, string>>,

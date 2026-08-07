@@ -7,4 +7,5 @@ export * from './host/session.ts';
 export * from './mcp/server.ts';
 export * from './mcp/tools.ts';
 export * from './project-node.ts';
+export * from './project-initializer.ts';
 export * from './project.ts';

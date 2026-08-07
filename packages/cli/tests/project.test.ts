@@ -4,6 +4,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  readdir,
   realpath,
   stat,
   symlink,
@@ -19,12 +20,17 @@ import { fileURLToPath } from 'node:url';
 import {
   ANTIKY_PROJECT_SCHEMA_VERSION,
   AntikyCliError,
+  buildAntikyProjectManifest,
   describeAntikyProject,
   discoverAntikyProjectManifest,
+  formatAntikyProjectManifest,
+  initializeAntikyProject,
   loadAntikyProject,
   migrateAntikyConfig,
   parseAntikyProjectManifest,
 } from '../src/index.ts';
+// @ts-ignore direct TypeScript source import for the Node strip-types runner
+import { createAntikyProjectManifestFile } from '../src/project-initializer.ts';
 // @ts-ignore explicit TypeScript extension is for the direct test runner
 import {
   removeSessionDescriptor,
@@ -114,6 +120,56 @@ test('the initialized project fixture has the frozen schema-default digest', asy
     '8cf37dd375750d31d54a7af6e8080354d372633482c4db1b5359354b92decf7f',
   );
   assert.equal(parseAntikyProjectManifest(source.toString('utf8')).name, 'Harbor Lights');
+  assert.equal(
+    formatAntikyProjectManifest(buildAntikyProjectManifest('Harbor Lights')),
+    source.toString('utf8'),
+  );
+});
+
+test('the Node initializer returns the same canonical project that the loader reads', async () => {
+  const directory = await projectDirectory('antiky-initialize-project-');
+  const initialized = await initializeAntikyProject({
+    name: 'Crème Brûlée',
+    directory,
+  });
+  const loaded = await loadAntikyProject(join(directory, 'creme-brulee.antiky'));
+
+  assert.equal(initialized.name, 'Crème Brûlée');
+  assert.equal(initialized.manifestPath, loaded.manifestPath);
+  assert.equal(initialized.projectRoot, await realpath(directory));
+  assert.equal(initialized.revision, loaded.revision);
+});
+
+test('the atomic writer removes malformed and interrupted temporary files', async () => {
+  const malformedDirectory = await projectDirectory('antiky-initialize-malformed-');
+  await assert.rejects(
+    () => createAntikyProjectManifestFile({
+      directory: malformedDirectory,
+      fileName: 'malformed.antiky',
+      source: '{ malformed json',
+    }),
+    expectProjectError('ANTIKY_PROJECT_INVALID'),
+  );
+  assert.deepEqual(await readdir(malformedDirectory), []);
+
+  const interruptedDirectory = await projectDirectory('antiky-initialize-interrupted-');
+  let checks = 0;
+  const signal = {
+    get aborted() {
+      checks += 1;
+      return checks >= 3;
+    },
+  } as AbortSignal;
+  await assert.rejects(
+    () => createAntikyProjectManifestFile({
+      directory: interruptedDirectory,
+      fileName: 'interrupted.antiky',
+      source: formatAntikyProjectManifest(buildAntikyProjectManifest('Interrupted')),
+      signal,
+    }),
+    expectProjectError('ANTIKY_PROJECT_INIT_INTERRUPTED'),
+  );
+  assert.deepEqual(await readdir(interruptedDirectory), []);
 });
 
 test('the parser rejects unknown fields, malformed JSON, incompatible versions, and controls', () => {
