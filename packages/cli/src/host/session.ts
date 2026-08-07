@@ -351,6 +351,7 @@ export async function startDevelopmentSession(
     host: project.network.host,
     port: project.network.gamePort,
     gameUrl: project.development.url,
+    inspectionUrl,
     projectName: project.name,
     projectDirectory: project.development.workingDirectory,
   });

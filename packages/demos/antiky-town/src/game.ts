@@ -18,6 +18,7 @@ const game: GameModuleEntry = async (context) => {
     const instance = await factory({ ...context, renderer });
     let disposed = false;
     return Object.freeze({
+      ...(instance.inspection === undefined ? {} : { inspection: instance.inspection }),
       frame(platformTimeSeconds: number): void {
         if (!disposed) instance.frame(platformTimeSeconds);
       },

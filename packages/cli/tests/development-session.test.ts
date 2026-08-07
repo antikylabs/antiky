@@ -207,6 +207,19 @@ test('development session owns the game host when the project command only watch
     assert.match(html, /<canvas[^>]+id="antiky-game"/);
     assert.match(html, /src="\/__antiky__\/host\.js"/);
 
+    const hostScriptResponse = await fetch(
+      `${new URL(config.development.url).origin}/__antiky__/host.js`,
+    );
+    assert.equal(hostScriptResponse.status, 200);
+    const hostScript = await hostScriptResponse.text();
+    assert.match(hostScript, new RegExp(`http://127\\.0\\.0\\.1:${INSPECTION_PORT}`));
+    assert.match(hostScript, /\/v1\/browser\/bootstrap/);
+    assert.match(hostScript, /\/v1\/runtime\/snapshot/);
+    assert.match(hostScript, /\/v1\/runtime\/action/);
+    assert.match(hostScript, /\/v1\/runtime\/disconnect/);
+    assert.doesNotMatch(hostScript, /Bearer [A-Za-z0-9_-]{32,}/);
+    assert.doesNotThrow(() => new Function(hostScript));
+
     const moduleResponse = await fetch(`${new URL(config.development.url).origin}/__antiky__/build/antiky.game.js`);
     assert.equal(moduleResponse.status, 200);
     assert.match(moduleResponse.headers.get('content-type') ?? '', /^text\/javascript/);
@@ -216,6 +229,36 @@ test('development session owns the game host when the project command only watch
     assert.equal(escaped.status, 404);
   } finally {
     await session.stop('normal');
+  }
+});
+
+test('public demo manifests mount their compiled module in the CLI-owned host', async () => {
+  for (const slug of ['antiky-town', 'town-study', 'shader-study']) {
+    const projectPath = join(repositoryRoot, 'packages', 'demos', slug, `${slug}.antiky`);
+    const config = await loadAntikyProject(projectPath);
+    const session = await startDevelopmentSession(config, { writeOutput: () => {} });
+    try {
+      let hostResponse: Response | undefined;
+      await waitFor(async () => {
+        hostResponse = await fetch(config.development.url);
+        return hostResponse.status === 200;
+      }, 10_000);
+      assert.ok(hostResponse);
+      assert.match(await hostResponse.text(), /<canvas[^>]+id="antiky-game"/);
+
+      const moduleUrl = `${new URL(config.development.url).origin}/__antiky__/build/antiky.game.js`;
+      const moduleResponse = await fetch(moduleUrl);
+      assert.equal(moduleResponse.status, 200, slug);
+      assert.match(moduleResponse.headers.get('content-type') ?? '', /^text\/javascript/);
+      assert.ok((await moduleResponse.arrayBuffer()).byteLength > 1_000, slug);
+      const snapshot = session.snapshot();
+      assert.equal(snapshot.processes.game.state, 'running', slug);
+      assert.equal(snapshot.processes.shaders.state, 'running', slug);
+    } finally {
+      await session.stop('normal');
+    }
+    assert.equal(await portIsFree(config.network.gamePort), true, slug);
+    assert.equal(await portIsFree(config.network.inspectionPort), true, slug);
   }
 });
 

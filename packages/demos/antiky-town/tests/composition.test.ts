@@ -138,9 +138,24 @@ test('Antiky Town advances through one private session and renders once per pres
   assert.ok(service);
   assert.ok(host);
   assert.ok(evidence);
+  assert.ok(instance.inspection);
   assert.equal(inspectPointLightService(service).runtime.instanceId, RUNTIME_ID);
   assert.deepEqual(host.readStatus().systemOrder, ['town-update']);
   assert.equal(host.readStatus().sessionId, SESSION_ID);
+
+  const inspection = instance.inspection.snapshot({
+    runtimeInstanceId: RUNTIME_ID,
+    lifecycle: 'running',
+    frameCount: 12,
+    framesPerSecond: 60,
+    canvasWidth: 960,
+    canvasHeight: 540,
+    measurements: { instances: 4, drawCalls: 2, uploadBytesPerFrame: 128 },
+  });
+  assert.equal(inspection.session?.sessionId, SESSION_ID);
+  assert.equal(inspection.pointLights?.runtime.instanceId, RUNTIME_ID);
+  assert.equal(inspection.world?.worldId, service.worldId);
+  assert.equal(inspection.events?.worldId, service.worldId);
 
   const result = service.submitPointLightPower({
     protocolVersion: 1,
@@ -182,6 +197,15 @@ test('Antiky Town advances through one private session and renders once per pres
     controlRevision: 0,
     worldRevision: 1,
   });
+
+  assert.ok(instance.inspection.pauseSimulation);
+  assert.ok(instance.inspection.resumeSimulation);
+  const paused = await instance.inspection.pauseSimulation();
+  assert.equal(paused.result.code, 'PAUSED');
+  assert.equal(paused.session.mode, 'paused');
+  const resumed = await instance.inspection.resumeSimulation();
+  assert.equal(resumed.result.code, 'RESUMED');
+  assert.equal(resumed.session.mode, 'running');
 
   instance.frame(10);
   assert.equal(evidence.updates.length, 0);

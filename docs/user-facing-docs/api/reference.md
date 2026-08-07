@@ -1,6 +1,6 @@
 ---
 generated: scripts/generate-framework-api-reference.mjs
-frameworkSource: sha256:cc03a10aa5d92459
+frameworkSource: sha256:abec93cf7a78bb76
 ---
 
 # Framework API reference

@@ -59,7 +59,7 @@ const validManifest = {
 } as const;
 
 const repositoryManifest = fileURLToPath(
-  new URL('../../../antiky-town.antiky', import.meta.url),
+  new URL('../../demos/antiky-town/antiky-town.antiky', import.meta.url),
 );
 
 async function projectDirectory(prefix = 'antiky-project-'): Promise<string> {
@@ -317,7 +317,7 @@ test('migration writes one exclusive manifest with development parity', async ()
   );
 });
 
-test('the repository manifest is the only project source and preserves the focused town host', async () => {
+test('the repository demo manifest owns its project and preserves the focused town host', async () => {
   const project = await loadAntikyProject(repositoryManifest);
   const root = dirname(repositoryManifest);
 

@@ -2,12 +2,17 @@ import {
   EngineSessionValidationError,
   createEngineSession,
   createSessionId,
+  inspectPointLightService,
   type EngineSession,
   type PointLightAuthoringService,
   type PointLightCommandResult,
   type SessionId,
 } from '@antiky/framework';
-import type { GameInstance } from '@antiky/framework/game';
+import {
+  createGameInspectionSnapshot,
+  type GameInstance,
+  type GameInspectionPort,
+} from '@antiky/framework/game';
 
 import type {
   TownGameSetup,
@@ -108,9 +113,34 @@ export function createAntikyTownDemoFactory(
       const ownedSession = session;
       const host = createAntikyTownGameHost(ownedSession, ownedTown, setup.movement);
       const pointLightService = createSessionPointLightService(service, ownedSession);
+      const inspection: GameInspectionPort = Object.freeze({
+        snapshot: (state) => createGameInspectionSnapshot(state, {
+          session: host.readStatus(),
+          pointLights: inspectPointLightService(pointLightService),
+        }),
+        setPointLightPower: (command, context) => (
+          pointLightService.submitPointLightPower(command, context)
+        ),
+        correctPointLightPower: (request, context) => (
+          pointLightService.correctPointLightPower(request, context)
+        ),
+        pauseSimulation() {
+          const result = host.pause('tool');
+          return Object.freeze({ result, session: host.readStatus() });
+        },
+        resumeSimulation() {
+          const result = host.resume('tool');
+          return Object.freeze({ result, session: host.readStatus() });
+        },
+        stepSimulation(expectedCompletedStepCount) {
+          const result = host.step(expectedCompletedStepCount);
+          return Object.freeze({ result, session: host.readStatus() });
+        },
+      });
       let disposed = false;
       const instance = Object.freeze({
         pointLightService,
+        inspection,
         frame(platformTimeSeconds: number): void {
           if (!disposed) setup.renderer.present(() => host.present(platformTimeSeconds));
         },

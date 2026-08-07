@@ -147,4 +147,7 @@ test('the game-module guide keeps game code separate from the development host',
   assert.match(source, /dist\/antiky\.game\.js/);
   assert.match(source, /must not bind the configured game port/i);
   assert.match(source, /Do not import CLI, Studio, website, Node\.js, or\s+server modules/i);
+  assert.match(source, /optional semantic inspection port/i);
+  assert.match(source, /host owns.*credential.*snapshot publication.*action polling/is);
+  assert.match(source, /does not contain.*inspection transport/i);
 });
