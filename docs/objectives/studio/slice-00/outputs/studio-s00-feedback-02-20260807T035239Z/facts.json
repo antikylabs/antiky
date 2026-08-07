@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-feedback-02-20260807T035239Z",
+  "facts": {
+    "feedback01ProjectBoundaryComplete": true,
+    "installedBrometalVersion": "0.15.0",
+    "latestBrometalVersionAtReview": "0.15.0",
+    "renderPathChange": false,
+    "initCommandImplemented": true,
+    "pureManifestBuilderImplemented": true,
+    "createOnlyWriterImplemented": true,
+    "generatedManifestSha256": "8cf37dd375750d31d54a7af6e8080354d372633482c4db1b5359354b92decf7f",
+    "generatedRootManifestCount": 1,
+    "generatedDevelopmentCommandsStarted": true,
+    "generatedDevelopmentCommandExitCodeAfterSigint": 130,
+    "cliContractTestsPassed": 76,
+    "studioAppTestsPassed": 37,
+    "studioAppBuildPassed": true,
+    "cliToStudioParityPassed": true,
+    "userDocumentationTestsPassed": 7,
+    "gitLfsPointerAuditPassed": true,
+    "repositoryCheckPassed": false,
+    "runBlocked": true,
+    "repositoryCheckBlockerRevision": "c4db0c6ffad5fdcbf547df9a622022e14145d90d",
+    "repositoryCheckBlocker": "The demo cleanup removed runtime and React files that current demo and website sources still import.",
+    "implementationRevision": "7fc838901f87bfe848583151deae4220fa5ce301",
+    "finalVerifierResult": "FAIL"
+  }
+}

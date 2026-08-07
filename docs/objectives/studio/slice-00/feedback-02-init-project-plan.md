@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `IN PROGRESS` — Feedback 01 is complete and run `studio-s00-feedback-02-20260807T035239Z` is active |
+| Status | `BLOCKED` — Feedback 02 passes, but the pre-existing demo cleanup prevents the repository gate |
 | Feedback source | [Slice 00 feedback, line 2](slice-feedback.txt) |
 | Outcome | `antiky init` creates one safe `.antiky` project manifest in a selected game folder |
 | Owner input | The source feedback supplies the product direction |
