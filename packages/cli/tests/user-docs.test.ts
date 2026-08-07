@@ -76,6 +76,7 @@ test('the Studio guide describes the game-first responsive workspace', async () 
   assert.match(source, /terminal is below the game/i);
   assert.match(source, /stack in this order:\s*Live game,\s*Terminal,\s*Inspection,\s*Activity/i);
   assert.match(source, /Studio starts the project service automatically/i);
+  assert.match(source, /Settings.*over.*workspace.*does not (?:reload|restart)/is);
   assert.doesNotMatch(source, /Run `antiky dev` in the embedded terminal/i);
 });
 
@@ -95,9 +96,18 @@ test('the Studio guide explains opening and switching one validated Antiky proje
   assert.match(source, /Open project/i);
   assert.match(source, /Create project/i);
   assert.match(source, /Recent projects/i);
-  assert.match(source, /project name, manifest path,\s*schema version, and project root/i);
+  assert.doesNotMatch(source, /project name, manifest path,\s*schema version, and project root/i);
   assert.match(source, /invalid.*current workspace.*unchanged/is);
   assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
+});
+
+test('the Studio connection guide explains the isolated loopback game host', async () => {
+  const source = await readFile(new URL('../../../docs/user-facing-docs/studio/development-connection.md', import.meta.url), 'utf8');
+
+  assert.match(source, /loopback game host/i);
+  assert.match(source, /isolated iframe/i);
+  assert.match(source, /127\.0\.0\.1.*not.*public/is);
+  assert.match(source, /same.*game host.*`antiky dev`/is);
 });
 
 test('the dedicated Projects guide documents the public project workflow', async () => {

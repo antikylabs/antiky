@@ -11,6 +11,13 @@ starts a packaged worker that imports `@antiky/cli`, loads the active `.antiky` 
 the project-service library directly. The worker returns one bounded `DevelopmentConnection` to
 the native host after the service starts.
 
+The service also starts a loopback game host for the generated game page and compiled
+`dist/antiky.game.js` module. Studio displays that page in an isolated iframe, so browser and WebGPU
+behavior stays separate from the native application boundary. The same game host is used when you
+run `antiky dev`; Studio does not create a second renderer. It listens on `127.0.0.1`, so it is
+available only on your computer, not on the public network. A browser game still needs an HTTP
+origin for module loading and isolation, even though the game appears inside the desktop window.
+
 The portable Studio webview does not import Node.js modules. It receives the bounded connection
 from the native host and creates the browser-safe client:
 

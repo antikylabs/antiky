@@ -28,8 +28,8 @@ Select an available entry to reopen it. Studio stores this bounded history on yo
 the project, and keeps a moved or deleted project visible with a missing-file status.
 
 Studio reads at most 64 KiB, validates the manifest without running project code, and uses the file's
-canonical parent directory as the project root. The workspace shows the project name, manifest path,
-schema version, and project root.
+canonical parent directory as the project root. The workspace shows the project name in the title
+bar without adding manifest or schema details to the working area.
 
 Use **Open project** in an active workspace to switch projects. If the new file is invalid, Studio
 reports the error and leaves the current workspace unchanged. Invalid input includes a missing,
@@ -104,6 +104,9 @@ renderer, or GPU objects.
 Open **Settings**, then find **Online presence signal**. The setting is on by default. Turn it off if
 you do not want this Studio instance to appear in the online count.
 
+Settings opens over the current workspace. Opening or closing it does not reload the game, restart
+the project service, or replace the terminal session.
+
 SSPS receives only the signal needed to count this Studio instance as online. Antiky does not send
 project names, commands, activity, or usage information through this signal. It only helps display
 the active-user count on the Antiky website.
@@ -142,8 +145,9 @@ persisted and does not enter a game build, event stream, capture, or terminal tr
 
 ## Recover from a stopped session
 
-If the managed project service stops, Studio removes the live game and marks the last structured
-view as stale. It does not present retained data as current. The terminal remains available. Select
+If the managed project service stops, Studio keeps the live game mounted and marks the last
+structured view as stale. It does not present retained data as current. Brief polling failures leave
+the current workspace in place while Studio reconnects. The terminal remains available. Select
 **Retry** to ask Studio to start the same validated project service again.
 
 An incompatible snapshot is handled the same way. Check the Diagnostics tab and the terminal for a
