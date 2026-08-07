@@ -11,14 +11,18 @@ const sourceDirectory = new URL('../src/', import.meta.url);
 const compiler = fileURLToPath(new URL('../node_modules/.bin/brometal', import.meta.url));
 
 test('BroMetal version and cut-out shader support match the repository contract', async () => {
-  const [metadataSource, declarations] = await Promise.all([
+  const [metadataSource, declarations, contextDeclarations, webgpuRuntime] = await Promise.all([
     readFile(new URL('../node_modules/brometal/package.json', import.meta.url), 'utf8'),
     readFile(new URL('../node_modules/brometal/dist/index.d.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../node_modules/brometal/dist/runtime/context.d.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../node_modules/brometal/dist/runtime/webgpu.js', import.meta.url), 'utf8'),
   ]);
   const metadata = JSON.parse(metadataSource);
 
   assert.equal(metadata.version, '0.15.0');
   assert.match(declarations, /\bdiscard\b/);
+  assert.match(contextDeclarations, /present\(callback: \(\) => void\): void;/);
+  assert.match(webgpuRuntime, /present\(callback\) \{/);
 });
 
 async function generatedFiles(directory) {

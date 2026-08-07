@@ -1,7 +1,23 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { access, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const packageRoot = path.resolve(import.meta.dirname, '../packages/demos/node_modules/brometal');
+const packageCandidates = [
+  path.resolve(import.meta.dirname, '../node_modules/brometal'),
+  path.resolve(import.meta.dirname, '../packages/demos/node_modules/brometal'),
+];
+let packageRoot;
+for (const candidate of packageCandidates) {
+  try {
+    await access(path.join(candidate, 'package.json'));
+    packageRoot = candidate;
+    break;
+  } catch {
+    // Try the next npm workspace installation location.
+  }
+}
+if (packageRoot === undefined) {
+  throw new Error('BroMetal is not installed. Run npm install before applying the repository patch.');
+}
 const metadata = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
 
 if (metadata.version !== '0.15.0') {
@@ -14,6 +30,16 @@ async function replace(relativePath, before, after) {
   if (source.includes(after)) return;
   if (!source.includes(before)) throw new Error(`BroMetal patch target changed: ${relativePath}`);
   await writeFile(file, source.replace(before, after));
+}
+
+async function replaceSection(relativePath, beforeStart, beforeEnd, after) {
+  const file = path.join(packageRoot, relativePath);
+  const source = await readFile(file, 'utf8');
+  if (source.includes(after)) return;
+  const start = source.indexOf(beforeStart);
+  const end = source.indexOf(beforeEnd, start);
+  if (start < 0 || end < 0) throw new Error(`BroMetal patch target changed: ${relativePath}`);
+  await writeFile(file, `${source.slice(0, start)}${after}${source.slice(end)}`);
 }
 
 await replace(
@@ -60,4 +86,101 @@ await replace(
   'dist/runtime/context.js',
   'BroMetal requires it — shaders are compiled to WGSL and compute passes have no WebGL equivalent.',
   'BroMetal requires it — shaders and compute passes run on WebGPU.',
+);
+await replace(
+  'dist/runtime/context.d.ts',
+  '    loop(callback: (elapsedSeconds: number) => void): () => void;\n',
+  '    present(callback: () => void): void;\n    loop(callback: (elapsedSeconds: number) => void): () => void;\n',
+);
+await replaceSection(
+  'dist/runtime/webgpu.js',
+  '        loop(callback) {\n',
+  '        drawTo(target, draw, options = {}) {\n',
+  `        present(callback) {
+            if (needsResize || observer === null) {
+                needsResize = false;
+                resizeToDisplaySize(canvas, window.devicePixelRatio || 1);
+                if (depthTexture === null || depthTexture.width !== canvas.width || depthTexture.height !== canvas.height) {
+                    depthTexture?.destroy();
+                    depthTexture = device.createTexture({
+                        size: [canvas.width, canvas.height],
+                        format: 'depth24plus',
+                        sampleCount: internals.sampleCount,
+                        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+                    });
+                    depthView = depthTexture.createView();
+                    if (internals.sampleCount > 1) {
+                        msaaTexture?.destroy();
+                        msaaTexture = device.createTexture({
+                            size: [canvas.width, canvas.height],
+                            format,
+                            sampleCount: internals.sampleCount,
+                            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+                        });
+                        msaaView = msaaTexture.createView();
+                    }
+                }
+            }
+            internals.frame++;
+            const [r, g, b, a] = internals.clearColor;
+            const encoder = device.createCommandEncoder();
+            const swapchainView = context.getCurrentTexture().createView();
+            internals.pass = encoder.beginRenderPass({
+                colorAttachments: [
+                    msaaView !== null
+                        ? {
+                            view: msaaView,
+                            resolveTarget: swapchainView,
+                            clearValue: { r, g, b, a },
+                            loadOp: 'clear',
+                            storeOp: 'discard',
+                        }
+                        : {
+                            view: swapchainView,
+                            clearValue: { r, g, b, a },
+                            loadOp: 'clear',
+                            storeOp: 'store',
+                        },
+                ],
+                depthStencilAttachment: {
+                    view: depthView,
+                    depthClearValue: 1,
+                    depthLoadOp: 'clear',
+                    depthStoreOp: 'store',
+                },
+            });
+            internals.passFormat = format;
+            internals.passSamples = internals.sampleCount;
+            internals.passDepth = true;
+            try {
+                callback();
+            }
+            finally {
+                internals.pass.end();
+                internals.pass = null;
+                device.queue.submit([encoder.finish()]);
+            }
+        },
+        loop(callback) {
+            let frameId = 0;
+            let running = true;
+            const startedAt = performance.now();
+            const frame = (now) => {
+                if (!running)
+                    return;
+                renderer.present(() => callback((now - startedAt) / 1000));
+                frameId = requestAnimationFrame(frame);
+            };
+            frameId = requestAnimationFrame(frame);
+            const stop = () => {
+                running = false;
+                cancelAnimationFrame(frameId);
+            };
+            activeStops.add(stop);
+            return () => {
+                stop();
+                activeStops.delete(stop);
+            };
+        },
+`,
 );
