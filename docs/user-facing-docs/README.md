@@ -14,8 +14,8 @@ agents, and Studio. Start with the task you want to complete.
 
 ## CLI
 
-- [Run a local development session](cli/development.md) with the game, shader watcher, inspection
-  service, and MCP server started together, or generate stable IDs for game data.
+- [Initialize a project and run a local development session](cli/development.md) with one manifest,
+  the game, shader watcher, inspection service, and MCP server.
 
 ## MCP
 

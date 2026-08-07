@@ -6,8 +6,14 @@ host report without reading terminal output or browser internals.
 
 ## Open the workspace
 
-An [Antiky project](projects.md) has one named `<name>.antiky` manifest at its project root. Start
-the macOS source-development app with:
+An [Antiky project](projects.md) has one named `<name>.antiky` manifest at its project root. If an
+existing game folder has no manifest, run this command in that folder:
+
+```sh
+antiky init
+```
+
+The command creates only the project manifest. Start the macOS source-development app with:
 
 ```sh
 npm run dev:studio

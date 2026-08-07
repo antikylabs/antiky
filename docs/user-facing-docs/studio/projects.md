@@ -5,8 +5,26 @@ Studio and the CLI the same project name, development commands, network ports, a
 
 ## Create the project manifest
 
-Put one `.antiky` file in the top level of your project. Give the file a useful name, such as
-`harbor-lights.antiky`:
+Run this command from the top level of an existing game directory:
+
+```sh
+antiky init
+```
+
+The command uses the folder name for the display name and safe lowercase file slug. You can supply
+both values explicitly from another directory:
+
+```sh
+antiky init "Harbor Lights" --directory path/to/harbor-lights
+```
+
+Initialization creates one `.antiky` manifest. It does not install dependencies, run scripts, or
+create source files. It does not initialize Git or contact a remote service.
+
+The command does not overwrite a project. It rejects a directory that contains any `.antiky` file.
+It also removes temporary files after a failed or interrupted write.
+
+The generated `harbor-lights.antiky` file has these defaults:
 
 ```json
 {
@@ -36,6 +54,9 @@ Put one `.antiky` file in the top level of your project. Give the file a useful 
 
 The directory that contains the manifest is the project root. The development and build working
 directories are relative to that root. Keep those paths inside the project.
+
+Edit the development and build commands when your package scripts use different names. The
+initializer does not inspect or run `package.json`.
 
 The manifest is strict JSON. Every field in the example is required, unknown fields are rejected,
 and only schema version 1 is supported. The maximum file size is 64 KiB.

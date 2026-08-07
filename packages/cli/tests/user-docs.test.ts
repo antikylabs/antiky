@@ -84,6 +84,7 @@ test('the Studio guide explains opening and switching one validated Antiky proje
   const source = await readFile(new URL('../../../docs/user-facing-docs/studio/getting-started.md', import.meta.url), 'utf8');
 
   assert.match(source, /<name>\.antiky/);
+  assert.match(source, /antiky init/);
   assert.match(source, /Open project/i);
   assert.match(source, /project name, manifest path,\s*schema version, and project root/i);
   assert.match(source, /invalid.*current workspace.*unchanged/is);
@@ -99,6 +100,9 @@ test('the dedicated Projects guide documents the public project workflow', async
   assert.match(index, /\[Create and open an Antiky project\]\(studio\/projects\.md\)/);
   assert.match(source, /^# Antiky projects$/m);
   assert.match(source, /<name>\.antiky/);
+  assert.match(source, /antiky init "Harbor Lights" --directory path\/to\/harbor-lights/);
+  assert.match(source, /does not install dependencies, run scripts, or\s+create source files/i);
+  assert.match(source, /does not overwrite/i);
   assert.match(source, /"schemaVersion": 1/);
   assert.match(source, /"development": \{/);
   assert.match(source, /"network": \{/);
@@ -115,6 +119,9 @@ test('the CLI guide defines the one project manifest and its migration path', as
   const source = await readFile(new URL('../../../docs/user-facing-docs/cli/development.md', import.meta.url), 'utf8');
 
   assert.match(source, /<name>\.antiky/);
+  assert.match(source, /antiky init \[name\] \[--directory path\]/);
+  assert.match(source, /antiky init "Harbor Lights" --directory path\/to\/harbor-lights/);
+  assert.match(source, /creates only the manifest/i);
   assert.match(source, /"schemaVersion": 1/);
   assert.match(source, /"name": "Harbor Lights"/);
   assert.match(source, /"development": \{/);
@@ -122,4 +129,8 @@ test('the CLI guide defines the one project manifest and its migration path', as
   assert.match(source, /antiky dev --project path\/to\/harbor-lights\.antiky/);
   assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
   assert.doesNotMatch(source, /ANTIKY_CONFIG_(?:NOT_FOUND|INVALID)/);
+  assert.match(source, /ANTIKY_PROJECT_NAME_INVALID/);
+  assert.match(source, /ANTIKY_PROJECT_DIRECTORY_INVALID/);
+  assert.match(source, /ANTIKY_PROJECT_CREATE_FAILED/);
+  assert.match(source, /ANTIKY_PROJECT_INIT_INTERRUPTED/);
 });

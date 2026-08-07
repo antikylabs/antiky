@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
+import { initializeAntikyProject } from '@antiky/cli';
 import { test } from 'vitest';
 
 import {
@@ -150,6 +153,32 @@ test('Studio accepts the repository project manifest through the shared CLI pars
   assert.equal(manager.read().project?.manifestPath, projectSource.manifestPath);
   assert.equal(manager.read().project?.projectRoot, projectSource.projectRoot);
   assert.equal(Object.isFrozen(manager.read().project), true);
+  manager.stop();
+});
+
+test('Studio opens a project created by antiky init without translating its manifest', async () => {
+  const parent = await mkdtemp(join(tmpdir(), 'antiky-studio-initialized-'));
+  const directory = join(parent, 'harbor-lights');
+  await mkdir(directory);
+  const initialized = await initializeAntikyProject({ directory });
+  const sourceText = await readFile(initialized.manifestPath, 'utf8');
+  const projectSource: NativeProjectSource = Object.freeze({
+    schemaVersion: 1,
+    selectionId: 25,
+    manifestPath: initialized.manifestPath,
+    projectRoot: initialized.projectRoot,
+    revision: initialized.revision,
+    source: sourceText,
+  });
+  const native = fakeHost({ kind: 'opened', project: projectSource });
+  const manager = createProjectManager({ host: native.host });
+
+  await manager.start();
+
+  assert.equal(manager.read().project?.name, initialized.name);
+  assert.equal(manager.read().project?.manifestPath, initialized.manifestPath);
+  assert.equal(manager.read().project?.projectRoot, initialized.projectRoot);
+  assert.equal(manager.read().project?.revision, initialized.revision);
   manager.stop();
 });
 

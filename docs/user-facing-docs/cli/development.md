@@ -4,6 +4,34 @@ Run `antiky dev` to start everything you need for local game development: your g
 shader watcher, runtime inspection, and MCP server. The command keeps those services in one
 development session and stops them together.
 
+## Initialize an existing game directory
+
+Use this command shape to add Antiky project data to an existing game directory:
+
+```text
+antiky init [name] [--directory path]
+```
+
+Run `antiky init` in the game directory to use its folder name. A folder named `harbor-lights`
+gets the display name `Harbor Lights` and the file `harbor-lights.antiky`.
+
+Supply a name and another existing directory when you need explicit values:
+
+```sh
+antiky init "Harbor Lights" --directory path/to/harbor-lights
+```
+
+The command creates only the manifest. It does not install dependencies, run package scripts,
+create source files, initialize Git, or contact a remote service. It prints the created manifest
+path and the next `antiky dev` and Studio actions.
+
+The name stays visible in the manifest. Antiky converts it to a safe lowercase file slug. It keeps
+Unicode letters in the display name when they can produce a non-empty ASCII slug.
+
+The target must be an existing writable directory and not a symbolic link. The command rejects a
+directory that already contains any `.antiky` file. It never replaces that file. A failed or
+interrupted command removes its temporary files.
+
 ## Start a development session
 
 From the directory that contains exactly one `<name>.antiky` project manifest, run:
@@ -28,8 +56,8 @@ nothing starts.
 
 ## Configure your project
 
-Put one named `.antiky` file at your project root. The filename identifies the project to Finder,
-Studio, the CLI, and source control. Change the name, commands, and game URL to match your project:
+The initializer uses the following defaults. The filename identifies the project to Finder, Studio,
+the CLI, and source control. Change the commands and game URL to match your project:
 
 ```json
 {
@@ -39,12 +67,7 @@ Studio, the CLI, and source control. Change the name, commands, and game URL to 
     "command": [
       "npm",
       "run",
-      "game:dev",
-      "--",
-      "--host",
-      "{host}",
-      "--port",
-      "{gamePort}"
+      "dev"
     ],
     "shaderCommand": [
       "npm",
@@ -52,7 +75,7 @@ Studio, the CLI, and source control. Change the name, commands, and game URL to 
       "shaders:watch"
     ],
     "workingDirectory": ".",
-    "url": "http://127.0.0.1:3010/game",
+    "url": "http://127.0.0.1:3010/",
     "viewport": {
       "width": 1280,
       "height": 720
@@ -346,6 +369,11 @@ The CLI writes a stable error code before its message:
 
 - `ANTIKY_ARGUMENT_INVALID`: the command, option, JSON tool input, or development action input is
   not supported.
+- `ANTIKY_PROJECT_NAME_INVALID`: `antiky init` cannot make a safe project name and file slug.
+- `ANTIKY_PROJECT_DIRECTORY_INVALID`: the initialization target is missing, is not a directory,
+  or is a symbolic link.
+- `ANTIKY_PROJECT_CREATE_FAILED`: the initializer cannot write, commit, or clean its manifest files.
+- `ANTIKY_PROJECT_INIT_INTERRUPTED`: a signal stopped initialization before the atomic commit.
 - `ANTIKY_PROJECT_NOT_FOUND`: no selected project exists, or discovery found no `.antiky` file.
 - `ANTIKY_PROJECT_AMBIGUOUS`: discovery found more than one `.antiky` file.
 - `ANTIKY_PROJECT_NOT_FILE`: the selected path is not a regular file.
@@ -353,7 +381,7 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_PROJECT_INCOMPATIBLE`: the schema version is not supported.
 - `ANTIKY_PROJECT_INVALID`: JSON, fields, commands, URLs, ports, or portable paths are invalid.
 - `ANTIKY_PROJECT_PATH_ESCAPE`: a manifest link or resolved working directory escapes the project.
-- `ANTIKY_PROJECT_EXISTS`: migration would overwrite an existing project manifest.
+- `ANTIKY_PROJECT_EXISTS`: initialization or migration would add a second project manifest.
 - `ANTIKY_PORT_BUSY`: a configured port cannot be reserved. No child starts.
 - `ANTIKY_CHILD_START_FAILED`: an owned process could not start. Any partial start is cleaned up.
 - `ANTIKY_CHILD_STOP_FAILED`: an owned child process group remained active after shutdown attempts.
