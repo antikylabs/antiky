@@ -117,7 +117,9 @@ export async function discoverAntikyProjectManifest(directory = process.cwd()): 
     }
     throw cause;
   }
-  const manifests = entries.filter((entry) => entry.name.endsWith('.antiky'));
+  const manifests = entries.filter((entry) => (
+    entry.name.endsWith('.antiky') && (entry.isFile() || entry.isSymbolicLink())
+  ));
   if (manifests.length === 0) {
     projectError('ANTIKY_PROJECT_NOT_FOUND', `No .antiky project exists in: ${root}`);
   }

@@ -220,6 +220,7 @@ test('the parser rejects unsafe portable paths and unknown command placeholders'
 test('Node discovery accepts exactly one current-directory manifest and explicit paths win', async () => {
   const directory = await projectDirectory();
   const manifestPath = await writeManifest(directory);
+  await mkdir(join(directory, '.antiky'));
 
   assert.equal(await discoverAntikyProjectManifest(directory), await realpath(manifestPath));
   assert.equal((await loadAntikyProject(manifestPath)).manifestPath, await realpath(manifestPath));
