@@ -134,24 +134,60 @@ test('one coordinator owns polling and replaces all live data when the session c
   coordinator.stop();
 });
 
-test('a disconnected poll retains the last view only as visibly stale data', async () => {
+test('transient poll failures do not flap a connected workspace and recovery is atomic', async () => {
   let available = true;
+  const states: string[] = [];
   const coordinator = createStudioCoordinator({
     async discoverConnection() {
       if (!available) throw { code: 'ANTIKY_SESSION_UNAVAILABLE', message: 'No session.' };
       return connection('development-stale-001');
     },
     createClient() { return clientFor(snapshot('development-stale-001'), []); },
+    onState: (state) => states.push(state.status),
     schedule: () => () => undefined,
   });
   await coordinator.start();
   available = false;
   await coordinator.refresh();
+  await coordinator.refresh();
 
-  const state = coordinator.read();
-  assert.equal(state.status, 'stale');
-  assert.equal(state.snapshot?.developmentSessionId, 'development-stale-001');
-  assert.equal(state.issue?.code, 'ANTIKY_SESSION_UNAVAILABLE');
+  assert.equal(coordinator.read().status, 'connected');
+  assert.equal(coordinator.read().issue, null);
+
+  await coordinator.refresh();
+  assert.equal(coordinator.read().status, 'stale');
+  assert.equal(coordinator.read().snapshot?.developmentSessionId, 'development-stale-001');
+  assert.equal(coordinator.read().issue?.code, 'ANTIKY_SESSION_UNAVAILABLE');
+
+  const beforeRepeatedFailure = coordinator.read().updateSequence;
+  await coordinator.refresh();
+  assert.equal(coordinator.read().updateSequence, beforeRepeatedFailure);
+
+  available = true;
+  await coordinator.refresh();
+  assert.equal(coordinator.read().status, 'connected');
+  assert.equal(coordinator.read().issue, null);
+  assert.deepEqual(states.filter((status) => status === 'connecting'), ['connecting']);
+  coordinator.stop();
+});
+
+test('repeated unavailable startup polls publish one stable disconnected state', async () => {
+  const coordinator = createStudioCoordinator({
+    discoverConnection: async () => {
+      throw { code: 'ANTIKY_SESSION_UNAVAILABLE', message: 'No session.' };
+    },
+    schedule: () => () => undefined,
+  });
+
+  await coordinator.start();
+  assert.equal(coordinator.read().status, 'connecting');
+  await coordinator.refresh();
+  assert.equal(coordinator.read().status, 'connecting');
+  await coordinator.refresh();
+  assert.equal(coordinator.read().status, 'disconnected');
+  const disconnectedSequence = coordinator.read().updateSequence;
+  await coordinator.refresh();
+  assert.equal(coordinator.read().updateSequence, disconnectedSequence);
   coordinator.stop();
 });
 

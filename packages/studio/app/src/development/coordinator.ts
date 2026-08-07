@@ -44,6 +44,8 @@ type CoordinatorOptions = Readonly<{
   pollIntervalMilliseconds?: number;
 }>;
 
+const CONNECTION_FAILURE_THRESHOLD = 3;
+
 export interface StudioCoordinator {
   read(): StudioDevelopmentState;
   start(): Promise<void>;
@@ -70,6 +72,11 @@ export const createStudioInitialState = (): StudioDevelopmentState => Object.fre
   lastControlResult: null,
   issue: null,
   updateSequence: 0,
+});
+
+export const createStudioConnectingState = (): StudioDevelopmentState => Object.freeze({
+  ...createStudioInitialState(),
+  status: 'connecting',
 });
 
 const defaultSchedule: Scheduler = (callback, delayMilliseconds) => {
@@ -107,6 +114,10 @@ function sameConnection(
     && left.credential === right.credential;
 }
 
+function sameIssue(left: StudioIssue | null, right: StudioIssue): boolean {
+  return left?.code === right.code && left.message === right.message;
+}
+
 export function createStudioCoordinator(options: CoordinatorOptions): StudioCoordinator {
   const makeClient = options.createClient ?? createDevelopmentClient;
   const schedule = options.schedule ?? defaultSchedule;
@@ -118,6 +129,7 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
   let connection: DevelopmentConnection | null = null;
   let inFlight: Promise<void> | null = null;
   let cancelScheduled: (() => void) | null = null;
+  let consecutiveFailures = 0;
 
   const publish = (patch: Partial<StudioDevelopmentState>): void => {
     state = Object.freeze({
@@ -143,18 +155,9 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
     try {
       const discovered = await options.discoverConnection();
       if (!isCurrent(pollGeneration)) return;
-      let pollClient = client;
-      if (!sameConnection(connection, discovered) || !pollClient) {
-        publish({
-          status: 'connecting',
-          developmentSessionId: discovered.developmentSessionId,
-          snapshot: null,
-          mcpCallLog: null,
-          lastControlResult: null,
-          issue: null,
-        });
-        pollClient = makeClient(discovered);
-      }
+      const pollClient = sameConnection(connection, discovered) && client
+        ? client
+        : makeClient(discovered);
       const [snapshot, mcpCallLog] = await Promise.all([
         pollClient.readDevelopmentSnapshot(),
         pollClient.getMcpCallLog(),
@@ -164,6 +167,7 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
         snapshot.developmentSessionId !== discovered.developmentSessionId
         || mcpCallLog.developmentSessionId !== discovered.developmentSessionId
       ) throw new Error('Development responses belong to different sessions.');
+      consecutiveFailures = 0;
       connection = discovered;
       client = pollClient;
       publish({
@@ -175,11 +179,14 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
       });
     } catch (cause: unknown) {
       if (!isCurrent(pollGeneration)) return;
-      client = null;
-      connection = null;
+      consecutiveFailures += 1;
+      if (consecutiveFailures < CONNECTION_FAILURE_THRESHOLD) return;
+      const issue = normalizeIssue(cause);
+      const status = state.snapshot ? 'stale' : 'disconnected';
+      if (state.status === status && sameIssue(state.issue, issue)) return;
       publish({
-        status: state.snapshot ? 'stale' : 'disconnected',
-        issue: normalizeIssue(cause),
+        status,
+        issue,
       });
     }
   };
@@ -253,6 +260,7 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
       cancelScheduled = null;
       client = null;
       connection = null;
+      consecutiveFailures = 0;
     },
     refresh,
     pause: () => control('pause'),

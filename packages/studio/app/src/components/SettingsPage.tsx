@@ -25,7 +25,12 @@ export function SettingsPage({
   };
 
   return (
-    <section aria-labelledby="settings-title" className="settings-page">
+    <section
+      aria-labelledby="settings-title"
+      aria-modal="true"
+      className="settings-page"
+      role="dialog"
+    >
       <div className="settings-page-inner">
         <header className="settings-heading">
           <span>Studio preferences</span>

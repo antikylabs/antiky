@@ -180,7 +180,7 @@ test('workspace follows the website game-first layout contract', () => {
   }
 });
 
-test('native workspace shows the active project boundary and can open a replacement', () => {
+test('native workspace names the active project without spending a row on manifest metadata', () => {
   const html = renderToStaticMarkup(
     <StudioShell
       actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
@@ -202,12 +202,39 @@ test('native workspace shows the active project boundary and can open a replacem
 
   assert.match(html, /<button[^>]*>Open project<\/button>/);
   assert.match(html, /Harbor Lights/);
-  assert.match(html, /harbor-lights\.antiky/);
-  assert.match(html, /Schema 1/);
-  assert.match(html, /\/projects\/harbor/);
+  assert.doesNotMatch(html, /harbor-lights\.antiky/);
+  assert.doesNotMatch(html, /Schema 1/);
+  assert.doesNotMatch(html, /Project root/);
+  assert.doesNotMatch(html, /class="project-boundary"/);
   assert.match(html, /role="alert"/);
   assert.match(html, /replacement manifest is not valid JSON/);
   assert.match(html, /Harbor Lights remains active/);
+});
+
+test('Settings overlays one still-mounted workspace instead of replacing its surfaces', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+      development={development}
+      page="settings"
+      platform="native"
+      project={{
+        manifestPath: '/project/antiky-town.antiky',
+        projectRoot: '/project',
+        schemaVersion: 1,
+      }}
+    />,
+  );
+
+  for (const label of ['Live game', 'Terminal', 'Inspection', 'Activity']) {
+    assert.equal((html.match(new RegExp(`aria-label="${label}"`, 'g')) ?? []).length, 1);
+  }
+  assert.match(html, /<iframe/);
+  assert.match(html, /aria-label="Embedded native terminal"/);
+  assert.match(html, /role="dialog"/);
+  assert.match(html, /<h1[^>]*>Settings<\/h1>/);
+  assert.ok(html.indexOf('data-workspace-area="game"') < html.indexOf('role="dialog"'));
 });
 
 test('workspace chrome uses the compact website dimensions', () => {
@@ -308,7 +335,7 @@ test('every connection shell keeps one complete and honestly labeled workspace',
     for (const label of ['Live game', 'Terminal', 'Inspection', 'Activity']) {
       assert.equal((html.match(new RegExp(`aria-label="${label}"`, 'g')) ?? []).length, 1);
     }
-    assert.equal((html.match(/<iframe/g) ?? []).length, state.status === 'connected' ? 1 : 0);
+    assert.equal((html.match(/<iframe/g) ?? []).length, state.snapshot ? 1 : 0);
   }
 });
 
@@ -378,7 +405,7 @@ test('the custom title bar remains a usable native window drag region', () => {
   );
 });
 
-test('a lost session keeps retained inspection visibly stale and removes the live game', () => {
+test('a lost session keeps the live game mounted with the retained stale inspection', () => {
   const html = renderToStaticMarkup(
     <StudioShell
       actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
@@ -396,7 +423,8 @@ test('a lost session keeps retained inspection visibly stale and removes the liv
   assert.match(html, /Retained snapshot — not current/);
   assert.match(html, /Retained activity — not current/);
   assert.match(html, /Embedded native terminal/);
-  assert.doesNotMatch(html, /<iframe/);
+  assert.match(html, /<iframe/);
+  assert.match(html, /Reconnecting/);
 });
 
 test('an unavailable runtime keeps its recovery frame but disables simulation controls', () => {

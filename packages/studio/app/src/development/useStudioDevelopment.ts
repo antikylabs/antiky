@@ -4,6 +4,7 @@ import type { AntikyProject } from '@antiky/cli/project';
 
 import {
   createStudioCoordinator,
+  createStudioConnectingState,
   createStudioInitialState,
   type StudioControl,
   type StudioCoordinator,
@@ -39,6 +40,15 @@ const emptyNativeContext: StudioContext = Object.freeze({
   projectDirectory: '',
   projectName: 'No project selected',
 });
+
+export function developmentStateForProject(
+  developmentKey: string | null,
+  projectKey: string | null,
+  development: StudioDevelopmentState,
+): StudioDevelopmentState {
+  if (developmentKey === projectKey) return development;
+  return projectKey === null ? createStudioInitialState() : createStudioConnectingState();
+}
 
 export function useStudioDevelopment(
   platform: StudioPlatform,
@@ -97,7 +107,7 @@ export function useStudioDevelopment(
 
   return Object.freeze({
     context,
-    development: developmentKey === projectKey ? development : createStudioInitialState(),
+    development: developmentStateForProject(developmentKey, projectKey, development),
     actions: Object.freeze({
       pause: () => runControl('pause'),
       resume: () => runControl('resume'),

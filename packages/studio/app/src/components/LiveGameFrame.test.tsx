@@ -1,30 +1,22 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
+import { renderToStaticMarkup } from 'react-dom/server';
 import { test } from 'vitest';
 
-import {
-  advanceGameFrameAttempt,
-  gameFrameRetryDelay,
-} from './LiveGameFrame.tsx';
+import { LiveGameFrame } from './LiveGameFrame.tsx';
 
-test('a failed first game navigation receives a new iframe attempt', () => {
-  const initial = { identity: 'development-001:http://127.0.0.1:3010', attempt: 0 };
-  const retry = advanceGameFrameAttempt(initial, initial.identity);
+const source = readFileSync(new URL('./LiveGameFrame.tsx', import.meta.url), 'utf8');
 
-  assert.deepEqual(retry, { ...initial, attempt: 1 });
-  assert.notEqual(`${initial.identity}:${initial.attempt}`, `${retry.identity}:${retry.attempt}`);
-});
-
-test('game frame retries back off and a new development session starts fresh', () => {
-  assert.deepEqual(
-    [0, 1, 2, 3, 20].map(gameFrameRetryDelay),
-    [1_000, 2_000, 4_000, 4_000, 4_000],
+test('the live game frame has one stable mount for a development session', () => {
+  const html = renderToStaticMarkup(
+    <LiveGameFrame
+      developmentSessionId="development-001"
+      gameUrl="http://127.0.0.1:3010"
+    />,
   );
-  assert.deepEqual(
-    advanceGameFrameAttempt(
-      { identity: 'development-old:http://127.0.0.1:3010', attempt: 3 },
-      'development-new:http://127.0.0.1:3010',
-    ),
-    { identity: 'development-new:http://127.0.0.1:3010', attempt: 0 },
-  );
+
+  assert.equal((html.match(/<iframe/g) ?? []).length, 1);
+  assert.match(html, /src="http:\/\/127\.0\.0\.1:3010"/);
+  assert.doesNotMatch(source, /setTimeout|useEffect|useState|attempt/);
 });

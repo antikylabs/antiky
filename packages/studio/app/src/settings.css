@@ -1,10 +1,17 @@
 .settings-page {
+  position: fixed;
+  z-index: 20;
+  inset: 50px 0 30px;
   min-width: 0;
   min-height: 0;
   overflow: auto;
   background:
     radial-gradient(circle at 78% 12%, rgba(139, 124, 255, .08), transparent 30%),
     var(--bg);
+}
+
+.project-launcher + .settings-page {
+  bottom: 0;
 }
 
 .settings-page-inner {

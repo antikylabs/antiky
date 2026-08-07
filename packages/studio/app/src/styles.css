@@ -57,15 +57,12 @@ summary:focus-visible,
 }
 
 .studio-shell {
+  position: relative;
   display: grid;
   grid-template-rows: 50px 44px minmax(0, 1fr) 30px;
   width: 100vw;
   height: 100dvh;
   background: var(--bg);
-}
-
-.studio-shell.has-project-boundary {
-  grid-template-rows: 50px 44px 32px minmax(0, 1fr) 30px;
 }
 
 .studio-shell.platform-native .titlebar {
@@ -200,20 +197,6 @@ summary:focus-visible,
   background: var(--surface);
 }
 
-.settings-contextbar strong {
-  color: var(--text);
-  font-family: var(--display);
-  font-size: 13px;
-  font-weight: 550;
-}
-
-.settings-contextbar > span:last-child {
-  margin-left: auto;
-  color: var(--text-faint);
-  font-family: var(--mono);
-  font-size: 9px;
-}
-
 .controlbar-label {
   margin-right: 5px;
   color: var(--text-faint);
@@ -266,41 +249,12 @@ summary:focus-visible,
   text-transform: uppercase;
 }
 
-.project-boundary {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 22px;
-  padding: 0 12px;
+.project-open-issue {
   overflow: hidden;
-  border-bottom: 1px solid var(--line);
-  background: #090a0c;
-  color: var(--text-faint);
-  font-family: var(--mono);
-  font-size: 9px;
-}
-
-.project-boundary span {
-  min-width: 0;
-  overflow: hidden;
+  max-width: 420px;
+  color: var(--warning);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.project-boundary span:first-child {
-  flex: 1 1 auto;
-}
-
-.project-boundary strong {
-  margin-right: 7px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.project-boundary .project-open-issue {
-  flex: 0 1 42%;
-  color: var(--warning);
-  text-align: right;
 }
 
 .control-actions {
@@ -415,8 +369,23 @@ summary:focus-visible,
 }
 
 .game-stage {
+  position: relative;
   background: var(--media);
   box-shadow: inset 0 0 0 1px #111216;
+}
+
+.game-connection-note {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: rgba(9, 10, 13, .82);
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  pointer-events: none;
 }
 
 .game-stage iframe {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { ProjectLauncher } from './components/ProjectLauncher.tsx';
+import { SettingsPage } from './components/SettingsPage.tsx';
 import { StudioShell } from './components/StudioShell.tsx';
 import {
   useStudioDevelopment,
@@ -40,24 +41,34 @@ export function App({
   const [page, setPage] = useState(initialPage);
   const editor = useEditorProject(platform);
   const view = useStudioDevelopment(platform, editor.state.project);
+  const settingsOpen = platform === 'native' && page === 'settings';
   const changePage = (nextPage: StudioPage) => {
     setPage(nextPage);
     onPageChange(nextPage);
   };
 
-  if (platform === 'native' && page === 'workspace' && editor.state.project === null) {
+  if (platform === 'native' && editor.state.project === null) {
     return (
-      <ProjectLauncher
-        creating={editor.state.creating}
-        issue={editor.state.issue}
-        loadingRecentProjects={editor.state.loadingRecentProjects}
-        onCreateProject={(name) => { void editor.createProject(name); }}
-        onOpenProject={() => { void editor.openProject(); }}
-        onOpenRecentProject={(manifestPath) => { void editor.openRecentProject(manifestPath); }}
-        onOpenSettings={() => changePage('settings')}
-        opening={editor.state.opening}
-        recentProjects={editor.state.recentProjects}
-      />
+      <>
+        <ProjectLauncher
+          creating={editor.state.creating}
+          issue={editor.state.issue}
+          loadingRecentProjects={editor.state.loadingRecentProjects}
+          onCreateProject={(name) => { void editor.createProject(name); }}
+          onOpenProject={() => { void editor.openProject(); }}
+          onOpenRecentProject={(manifestPath) => { void editor.openRecentProject(manifestPath); }}
+          onOpenSettings={() => changePage(settingsOpen ? 'workspace' : 'settings')}
+          opening={editor.state.opening}
+          recentProjects={editor.state.recentProjects}
+          settingsOpen={settingsOpen}
+        />
+        {settingsOpen && (
+          <SettingsPage
+            onSspsPresenceChange={onSspsPresenceChange}
+            sspsPresenceEnabled={sspsPresenceEnabled}
+          />
+        )}
+      </>
     );
   }
 

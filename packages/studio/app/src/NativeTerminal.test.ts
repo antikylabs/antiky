@@ -64,6 +64,14 @@ test('native terminal is keyboard reachable with a visible focus boundary', () =
   assert.match(terminalStyles, /\.native-terminal-mount:focus-visible\s*\{[^}]*outline:/s);
 });
 
+test('Settings hides the native surface without unmounting or closing its session', () => {
+  const html = renderToStaticMarkup(createElement(NativeTerminal, { visible: false }));
+
+  assert.match(html, /data-terminal-visible="false"/);
+  assert.match(terminalSource, /visibilityRef/);
+  assert.match(terminalSource, /terminal_layout/);
+});
+
 test('native terminal resynchronizes after element, viewport, and scroll geometry changes', () => {
   assert.match(terminalSource, /new ResizeObserver\(scheduleSynchronization\)/);
   assert.match(terminalSource, /window\.addEventListener\('resize', scheduleSynchronization\)/);

@@ -17,6 +17,7 @@ type ProjectLauncherProps = Readonly<{
   onOpenSettings(): void;
   opening: boolean;
   recentProjects: readonly NativeRecentProject[];
+  settingsOpen?: boolean;
 }>;
 
 function projectName(manifestPath: string): string {
@@ -35,6 +36,7 @@ export function ProjectLauncher({
   onOpenSettings,
   opening,
   recentProjects,
+  settingsOpen = false,
 }: ProjectLauncherProps) {
   const [name, setName] = useState('');
   const busy = creating || opening;
@@ -52,13 +54,18 @@ export function ProjectLauncher({
           <span>Studio</span>
         </div>
         <button
-          aria-label="Open Settings"
+          aria-label={settingsOpen ? 'Return to projects' : 'Open Settings'}
           className="titlebar-page-button"
           onClick={onOpenSettings}
           type="button"
-        >Settings</button>
+        >{settingsOpen ? 'Workspace' : 'Settings'}</button>
       </header>
-      <section className="launcher-stage" aria-label="Project launcher">
+      <section
+        aria-hidden={settingsOpen || undefined}
+        className="launcher-stage"
+        inert={settingsOpen}
+        aria-label="Project launcher"
+      >
         <div className="launcher-card launcher-create">
           <span className="launcher-eyebrow">New</span>
           <h1 id="launcher-heading">Create a project</h1>

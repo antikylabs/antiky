@@ -96,10 +96,17 @@ function sameBounds(left: TerminalBounds | null | undefined, right: TerminalBoun
     && left.height === right.height;
 }
 
-export function NativeTerminal() {
+type NativeTerminalProps = Readonly<{
+  visible?: boolean;
+}>;
+
+export function NativeTerminal({ visible = true }: NativeTerminalProps) {
   const viewport = useRef<HTMLDivElement>(null);
+  const visibilityRef = useRef(visible);
+  const synchronizeRef = useRef<(() => void) | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  visibilityRef.current = visible;
 
   useEffect(() => {
     const element = viewport.current;
@@ -111,10 +118,12 @@ export function NativeTerminal() {
     let animationFrame: number | null = null;
     let lastSubmittedBounds: TerminalBounds | null | undefined;
 
-    const readBounds = () => terminalBoundsForRect(
-      element.getBoundingClientRect(),
-      { width: window.innerWidth, height: window.innerHeight },
-    );
+    const readBounds = () => visibilityRef.current
+      ? terminalBoundsForRect(
+        element.getBoundingClientRect(),
+        { width: window.innerWidth, height: window.innerHeight },
+      )
+      : null;
 
     const reportFailure = (reason: unknown) => {
       if (active) {
@@ -175,6 +184,7 @@ export function NativeTerminal() {
       if (!active || animationFrame !== null) return;
       animationFrame = window.requestAnimationFrame(synchronize);
     };
+    synchronizeRef.current = scheduleSynchronization;
 
     const observer = new ResizeObserver(scheduleSynchronization);
     const visualViewport = window.visualViewport;
@@ -193,12 +203,17 @@ export function NativeTerminal() {
       visualViewport?.removeEventListener('resize', scheduleSynchronization);
       visualViewport?.removeEventListener('scroll', scheduleSynchronization);
       if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
+      synchronizeRef.current = null;
       if (opened) {
         opened = false;
         void closeNativeTerminal();
       }
     };
   }, []);
+
+  useEffect(() => {
+    synchronizeRef.current?.();
+  }, [visible]);
 
   const focusTerminal = () => {
     void enqueueNativeCommand(() => invoke('terminal_focus')).catch((reason) => {
@@ -210,9 +225,10 @@ export function NativeTerminal() {
     <div
       aria-label="Embedded native terminal"
       className="native-terminal-mount"
+      data-terminal-visible={visible}
       onFocus={focusTerminal}
       role="application"
-      tabIndex={0}
+      tabIndex={visible ? 0 : -1}
     >
       <div className="native-terminal-viewport" ref={viewport} />
       {!ready && !failure && (

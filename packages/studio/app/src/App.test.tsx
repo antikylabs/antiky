@@ -6,6 +6,8 @@ import { test } from 'vitest';
 
 import { App, resolveInitialStudioPage, studioPageHref } from './App.tsx';
 import { ProjectLauncher } from './components/ProjectLauncher.tsx';
+import { createStudioInitialState } from './development/coordinator.ts';
+import { developmentStateForProject } from './development/useStudioDevelopment.ts';
 
 const launcherStyles = readFileSync(new URL('./launcher.css', import.meta.url), 'utf8');
 
@@ -96,6 +98,8 @@ test('native Studio has a Settings page that explains and controls the online pr
   assert.match(html, /role="switch"/);
   assert.match(html, /aria-checked="true"/);
   assert.match(html, />On<\/span>/);
+  assert.match(html, /<h1[^>]*>Create a project<\/h1>/);
+  assert.match(html, /<button[^>]*>Workspace<\/button>/);
   assert.doesNotMatch(html, /aria-label="Live game"/);
 });
 
@@ -107,4 +111,15 @@ test('Studio page routing keeps Settings reload-safe without pinning later works
   const location = { pathname: '/studio', search: '?project=demo' };
   assert.equal(studioPageHref(location, 'settings'), '/studio?project=demo#settings');
   assert.equal(studioPageHref(location, 'workspace'), '/studio?project=demo');
+});
+
+test('a newly selected project starts visibly connecting instead of flashing disconnected', () => {
+  const state = developmentStateForProject(
+    null,
+    '/project/harbor.antiky:revision-1',
+    createStudioInitialState(),
+  );
+
+  assert.equal(state.status, 'connecting');
+  assert.equal(state.snapshot, null);
 });

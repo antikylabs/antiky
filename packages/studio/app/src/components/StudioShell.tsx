@@ -92,19 +92,22 @@ export function StudioShell({
     && pending === null;
   const connectionLabel = statusLabel(development);
   const projectLabel = context.projectName || 'No project selected';
+  const gameReconnecting = snapshot !== null && (
+    development.status !== 'connected' || snapshot.connection.state !== 'connected'
+  );
   const changePage = (nextPage: 'settings' | 'workspace') => {
     setLocalPage(nextPage);
     onPageChange(nextPage);
   };
 
   return (
-    <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'} platform-${platform}${!settingsOpen && project ? ' has-project-boundary' : ''}`}>
+    <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'} platform-${platform}`}>
       <header className="titlebar" data-tauri-drag-region="true">
         <div className="brand-lockup">
           <img alt="Antiky Labs" src={brandUrl} />
           <span>Studio</span>
         </div>
-        <div className="project-context" title={context.projectDirectory || undefined}>
+        <div className="project-context">
           <strong>{projectLabel}</strong>
         </div>
         {platform === 'native' && project && (
@@ -131,14 +134,12 @@ export function StudioShell({
         </div>
       </header>
 
-      {settingsOpen ? (
-        <div aria-label="Settings context" className="controlbar settings-contextbar">
-          <span className="controlbar-label">Studio</span>
-          <strong>Settings</strong>
-          <span>Preferences are saved on this device.</span>
-        </div>
-      ) : (
-        <nav className="controlbar" aria-label="Simulation controls">
+      <nav
+        aria-hidden={settingsOpen || undefined}
+        className="controlbar"
+        inert={settingsOpen}
+        aria-label="Simulation controls"
+      >
         <span className="controlbar-label">Simulation</span>
         <div className="control-actions">
           {(development.issue || development.status === 'disconnected') && (
@@ -168,28 +169,17 @@ export function StudioShell({
               : recoveryMessage(platform)}
           </span>
           {development.issue && <span className="control-issue">{development.issue.message}</span>}
-        </div>
-        </nav>
-      )}
-
-      {!settingsOpen && project && (
-        <div className="project-boundary" aria-label="Active project boundary">
-          <span><strong>Manifest</strong>{project.manifestPath}</span>
-          <span><strong>Schema {project.schemaVersion}</strong></span>
-          <span><strong>Project root</strong>{project.projectRoot}</span>
           {projectIssue && (
             <span className="project-open-issue" role="alert">{projectIssue.message}</span>
           )}
         </div>
-      )}
+      </nav>
 
-      {settingsOpen ? (
-        <SettingsPage
-          onSspsPresenceChange={onSspsPresenceChange}
-          sspsPresenceEnabled={sspsPresenceEnabled}
-        />
-      ) : (
-        <div className="workspace">
+      <div
+        aria-hidden={settingsOpen || undefined}
+        className="workspace"
+        inert={settingsOpen}
+      >
         <Panel
           actions={<span className="panel-state">{current ? snapshot?.connection.state : connectionLabel}</span>}
           className="game-panel"
@@ -197,17 +187,21 @@ export function StudioShell({
           workspaceArea="game"
         >
           <div className="game-stage">
-            {current && snapshot ? (
-              <LiveGameFrame
-                developmentSessionId={snapshot.developmentSessionId}
-                gameUrl={snapshot.project.gameUrl}
-                runtimeConnected={snapshot.connection.state === 'connected'}
-              />
+            {snapshot ? (
+              <>
+                <LiveGameFrame
+                  developmentSessionId={snapshot.developmentSessionId}
+                  gameUrl={snapshot.project.gameUrl}
+                />
+                {gameReconnecting && (
+                  <span className="game-connection-note" role="status">
+                    {stale ? 'Reconnecting…' : 'Waiting for game…'}
+                  </span>
+                )}
+              </>
             ) : (
-              <EmptyState title={stale ? 'Live game disconnected' : 'No live game'}>
-                {stale
-                  ? 'The last snapshot is retained below as stale. Reconnect before using the game view.'
-                  : 'The configured game appears here when the development host is available.'}
+              <EmptyState title="No live game">
+                The configured game appears here when the development host is available.
               </EmptyState>
             )}
           </div>
@@ -220,7 +214,7 @@ export function StudioShell({
           workspaceArea="terminal"
         >
           <div className="terminal-surface" data-terminal-platform={platform}>
-            {platform === 'native' ? <NativeTerminal /> : (
+            {platform === 'native' ? <NativeTerminal visible={!settingsOpen} /> : (
               <EmptyState title="Native terminal unavailable">
                 Open this project in the desktop app to use the embedded terminal.
               </EmptyState>
@@ -235,7 +229,13 @@ export function StudioShell({
           snapshot={snapshot}
           stale={stale}
         />
-        </div>
+      </div>
+
+      {settingsOpen && (
+        <SettingsPage
+          onSspsPresenceChange={onSspsPresenceChange}
+          sspsPresenceEnabled={sspsPresenceEnabled}
+        />
       )}
 
       <footer className="statusbar">
