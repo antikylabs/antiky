@@ -133,7 +133,7 @@ test('project manager handles cold open, cancel, same-project reopen, invalid in
 
 test('Studio accepts the repository project manifest through the shared CLI parser', async () => {
   const sourceText = await readFile(
-    new URL('../../../../../antiky-town.antiky', import.meta.url),
+    new URL('../../../../demos/antiky-town/antiky-town.antiky', import.meta.url),
     'utf8',
   );
   const projectSource: NativeProjectSource = Object.freeze({
