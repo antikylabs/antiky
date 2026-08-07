@@ -312,6 +312,27 @@ test('every connection shell keeps one complete and honestly labeled workspace',
   }
 });
 
+test('native Studio reports its managed startup without asking for antiky dev', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+      development={{
+        ...development,
+        status: 'disconnected',
+        developmentSessionId: null,
+        snapshot: null,
+        mcpCallLog: null,
+        issue: { code: 'ANTIKY_SESSION_UNAVAILABLE', message: 'The managed host could not start.' },
+      }}
+      platform="native"
+    />,
+  );
+
+  assert.match(html, /Studio starts this project host automatically/i);
+  assert.doesNotMatch(html, /antiky dev/i);
+});
+
 test('keyboard order reaches controls, game, terminal, inspection, and activity', () => {
   const html = renderToStaticMarkup(
     <StudioShell

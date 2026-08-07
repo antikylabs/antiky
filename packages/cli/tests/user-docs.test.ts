@@ -70,6 +70,8 @@ test('the Studio guide describes the game-first responsive workspace', async () 
   assert.match(source, /live game in the larger upper-left area/i);
   assert.match(source, /terminal is below the game/i);
   assert.match(source, /stack in this order:\s*Live game,\s*Terminal,\s*Inspection,\s*Activity/i);
+  assert.match(source, /Studio starts the project service automatically/i);
+  assert.doesNotMatch(source, /Run `antiky dev` in the embedded terminal/i);
 });
 
 test('the Studio guide explains the optional online presence signal', async () => {

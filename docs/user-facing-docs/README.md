@@ -32,8 +32,8 @@ agents, and Studio. Start with the task you want to complete.
   Finder, and the CLI.
 - [Inspect a running game in Studio](studio/getting-started.md) beside a native terminal, simulation
   controls, hierarchy, stores, event history, and MCP call history.
-- [Connect Studio to a development session](studio/development-connection.md) through the same typed
-  client used by CLI and MCP adapters.
+- [Connect Studio to a project service](studio/development-connection.md) through the same lifecycle
+  library and typed client used by CLI and MCP adapters.
 
 ## API reference
 

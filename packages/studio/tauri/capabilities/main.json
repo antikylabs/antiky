@@ -11,6 +11,8 @@
     "allow-project-select",
     "allow-project-validate",
     "allow-project-activate",
+    "allow-development-start",
+    "allow-development-stop",
     "allow-discover-development-connection",
     "allow-terminal-open",
     "allow-terminal-layout",

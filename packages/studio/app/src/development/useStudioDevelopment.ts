@@ -10,7 +10,8 @@ import {
   type StudioDevelopmentState,
 } from './coordinator.ts';
 import {
-  discoverNativeDevelopmentConnection,
+  startNativeDevelopmentConnection,
+  stopNativeDevelopmentConnection,
   type StudioContext,
 } from './native.ts';
 
@@ -64,7 +65,7 @@ export function useStudioDevelopment(
 
     let active = true;
     const nextCoordinator = createStudioCoordinator({
-      discoverConnection: discoverNativeDevelopmentConnection,
+      discoverConnection: startNativeDevelopmentConnection,
       onState: (state) => {
         if (active) setDevelopment(state);
       },
@@ -76,6 +77,7 @@ export function useStudioDevelopment(
       active = false;
       if (coordinator.current === nextCoordinator) coordinator.current = null;
       nextCoordinator.stop();
+      void stopNativeDevelopmentConnection();
     };
   }, [platform, projectKey]);
 

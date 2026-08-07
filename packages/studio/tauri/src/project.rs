@@ -174,6 +174,13 @@ impl ProjectHost {
             .map(|boundary| boundary.project_root.clone())
             .ok_or_else(NativeError::project_not_found)
     }
+
+    pub(crate) fn active_project_identity(&self) -> Result<(PathBuf, String), NativeError> {
+        self.active
+            .as_ref()
+            .map(|boundary| (boundary.manifest_path.clone(), boundary.revision.clone()))
+            .ok_or_else(NativeError::project_not_found)
+    }
 }
 
 #[cfg(test)]

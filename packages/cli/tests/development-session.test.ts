@@ -34,6 +34,7 @@ import { createInspectionServer } from '../src/host/inspection-server.ts';
 
 const fixture = fileURLToPath(new URL('fixtures/managed-child.mjs', import.meta.url));
 const cli = fileURLToPath(new URL('../src/bin.ts', import.meta.url));
+const studioWorker = fileURLToPath(new URL('../src/studio-worker.ts', import.meta.url));
 const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const GAME_PORT = 43100;
 const INSPECTION_PORT = 43101;
@@ -215,6 +216,49 @@ test('development session owns the game host when the project command only watch
     assert.equal(escaped.status, 404);
   } finally {
     await session.stop('normal');
+  }
+});
+
+test('Studio worker imports the project service and stops it through a structured lifecycle', async () => {
+  const project = await makeProject();
+  await mkdir(join(project.directory, 'dist'));
+  await writeFile(join(project.directory, 'dist', 'antiky.game.js'), 'export default () => ({ frame() {}, dispose() {} });\n');
+  const child = spawn(process.execPath, [
+    '--experimental-strip-types',
+    '--experimental-transform-types',
+    studioWorker,
+    project.projectPath,
+  ], { stdio: ['pipe', 'pipe', 'pipe'] });
+  child.stdout.setEncoding('utf8');
+  child.stderr.setEncoding('utf8');
+  let stdout = '';
+  let stderr = '';
+  child.stdout.on('data', (chunk: string) => { stdout += chunk; });
+  child.stderr.on('data', (chunk: string) => { stderr += chunk; });
+
+  try {
+    await waitFor(() => stdout.includes('\n'));
+    const ready = JSON.parse(stdout.trim()) as {
+      type: string;
+      connection: { developmentSessionId: string; inspectionUrl: string; credential: string };
+    };
+    assert.equal(ready.type, 'ready');
+    assert.ok(ready.connection.developmentSessionId.length > 0);
+    assert.equal(ready.connection.inspectionUrl, `http://127.0.0.1:${INSPECTION_PORT}`);
+    assert.ok(ready.connection.credential.length >= 32);
+    const gameResponse = await fetch(`http://127.0.0.1:${GAME_PORT}/demos/town-study`);
+    assert.equal(gameResponse.status, 200);
+    await gameResponse.text();
+
+    child.stdin.write(`${JSON.stringify({ type: 'stop' })}\n`);
+    const exit = await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) => {
+      child.once('exit', (code, signal) => resolve({ code, signal }));
+    });
+    assert.deepEqual(exit, { code: 0, signal: null }, stderr);
+    assert.equal(await portIsFree(GAME_PORT), true);
+    assert.equal(await portIsFree(INSPECTION_PORT), true);
+  } finally {
+    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
   }
 });
 

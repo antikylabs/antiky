@@ -83,3 +83,21 @@ export function parseNativeDevelopmentConnection(value: unknown): DevelopmentCon
 export async function discoverNativeDevelopmentConnection(): Promise<DevelopmentConnection> {
   return parseNativeDevelopmentConnection(await invoke<unknown>('discover_development_connection'));
 }
+
+let lifecycleTail: Promise<void> = Promise.resolve();
+
+function enqueueLifecycle<T>(operation: () => Promise<T>): Promise<T> {
+  const result = lifecycleTail.then(operation, operation);
+  lifecycleTail = result.then(() => undefined, () => undefined);
+  return result;
+}
+
+export function startNativeDevelopmentConnection(): Promise<DevelopmentConnection> {
+  return enqueueLifecycle(async () => (
+    parseNativeDevelopmentConnection(await invoke<unknown>('development_start'))
+  ));
+}
+
+export function stopNativeDevelopmentConnection(): Promise<void> {
+  return enqueueLifecycle(async () => { await invoke('development_stop'); });
+}

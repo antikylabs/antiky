@@ -54,6 +54,26 @@ fn valid_loopback_origin(value: &str) -> bool {
         && value == format!("http://127.0.0.1:{port}")
 }
 
+impl DevelopmentConnection {
+    pub(crate) fn is_valid(&self) -> bool {
+        self.schema_version == 1
+            && bounded_identifier(&self.development_session_id, 256)
+            && bounded_identifier(&self.project_revision, 256)
+            && bounded_identifier(&self.credential, 512)
+            && self.credential.len() >= 32
+            && self.owner_pid > 0
+            && valid_loopback_origin(&self.inspection_url)
+    }
+
+    pub(crate) fn project_revision(&self) -> &str {
+        &self.project_revision
+    }
+
+    pub(crate) fn owner_pid(&self) -> u32 {
+        self.owner_pid
+    }
+}
+
 pub fn read_development_connection(
     project_directory: &Path,
 ) -> Result<DevelopmentConnection, NativeError> {
@@ -62,14 +82,7 @@ pub fn read_development_connection(
     let connection: DevelopmentConnection = serde_json::from_slice(&read_bounded(file)?)
         .map_err(|_| NativeError::session_unavailable())?;
 
-    if connection.schema_version != 1
-        || !bounded_identifier(&connection.development_session_id, 256)
-        || !bounded_identifier(&connection.project_revision, 256)
-        || !bounded_identifier(&connection.credential, 512)
-        || connection.credential.len() < 32
-        || connection.owner_pid == 0
-        || !valid_loopback_origin(&connection.inspection_url)
-    {
+    if !connection.is_valid() {
         return Err(NativeError::session_unavailable());
     }
     Ok(connection)

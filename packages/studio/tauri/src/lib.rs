@@ -1,5 +1,6 @@
 mod commands;
 mod connection;
+mod development;
 mod error;
 mod native;
 mod project;
@@ -10,6 +11,8 @@ mod terminal_theme;
 pub use connection::{
     DevelopmentConnection, read_development_connection, resolve_project_directory,
 };
+pub(crate) use development::DevelopmentHost;
+pub use development::{resolve_project_runtime, resolve_project_service};
 pub use error::NativeError;
 pub(crate) use project::ProjectHost;
 pub use project::{
@@ -20,9 +23,9 @@ pub use terminal::TerminalBounds;
 pub use terminal_theme::{TerminalTheme, resolve_terminal_theme};
 
 use commands::{
-    StudioState, discover_development_connection, project_activate, project_initial_event,
-    project_select, project_validate, terminal_close, terminal_focus, terminal_layout,
-    terminal_open, terminal_status,
+    StudioState, development_start, development_stop, discover_development_connection,
+    project_activate, project_initial_event, project_select, project_validate, terminal_close,
+    terminal_focus, terminal_layout, terminal_open, terminal_status,
 };
 use std::sync::{Mutex, OnceLock};
 use tauri::{Emitter, Manager, RunEvent, path::BaseDirectory};
@@ -61,6 +64,9 @@ pub fn run() {
     let app = tauri::Builder::default()
         .manage(StudioState {
             project: Mutex::new(ProjectHost::default()),
+            development: Mutex::new(DevelopmentHost::default()),
+            project_runtime: OnceLock::new(),
+            project_service: OnceLock::new(),
             terminal_theme: OnceLock::new(),
         })
         .setup(|app| {
@@ -83,6 +89,46 @@ pub fn run() {
                 .map_err(|_| {
                     NativeError::native_unavailable("Studio resources are already initialized.")
                 })?;
+            let project_service = match (
+                paths.resource_dir(),
+                paths.resolve(
+                    development::PROJECT_SERVICE_RESOURCE_PATH,
+                    BaseDirectory::Resource,
+                ),
+            ) {
+                (Ok(resource_root), Ok(candidate)) => {
+                    resolve_project_service(&resource_root, &candidate)
+                }
+                _ => Err(NativeError::native_unavailable(
+                    "The Studio project service is missing or invalid.",
+                )),
+            };
+            app.state::<StudioState>()
+                .project_service
+                .set(project_service)
+                .map_err(|_| {
+                    NativeError::native_unavailable("Studio resources are already initialized.")
+                })?;
+            let project_runtime = match (
+                paths.resource_dir(),
+                paths.resolve(
+                    development::PROJECT_RUNTIME_RESOURCE_PATH,
+                    BaseDirectory::Resource,
+                ),
+            ) {
+                (Ok(resource_root), Ok(candidate)) => {
+                    resolve_project_runtime(&resource_root, &candidate)
+                }
+                _ => Err(NativeError::native_unavailable(
+                    "The Studio project service is missing or invalid.",
+                )),
+            };
+            app.state::<StudioState>()
+                .project_runtime
+                .set(project_runtime)
+                .map_err(|_| {
+                    NativeError::native_unavailable("Studio resources are already initialized.")
+                })?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -90,6 +136,8 @@ pub fn run() {
             project_select,
             project_validate,
             project_activate,
+            development_start,
+            development_stop,
             discover_development_connection,
             terminal_open,
             terminal_layout,

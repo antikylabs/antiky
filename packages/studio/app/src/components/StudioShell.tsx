@@ -54,7 +54,7 @@ function statusLabel(development: StudioDevelopmentState): string {
 
 function recoveryMessage(platform: StudioPlatform): string {
   return platform === 'native'
-    ? 'Start antiky dev in the terminal, then retry the connection.'
+    ? 'Studio starts this project host automatically. Retry if startup did not complete.'
     : 'Start antiky dev and open this project in the desktop app to connect.';
 }
 

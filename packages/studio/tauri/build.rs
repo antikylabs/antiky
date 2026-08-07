@@ -5,6 +5,8 @@ const COMMANDS: &[&str] = &[
     "project_select",
     "project_validate",
     "project_activate",
+    "development_start",
+    "development_stop",
     "discover_development_connection",
     "terminal_open",
     "terminal_layout",

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import { access, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import test from 'node:test';
@@ -41,6 +42,8 @@ test('the main window can invoke only the bounded Studio command surface', async
     'allow-project-select',
     'allow-project-validate',
     'allow-project-activate',
+    'allow-development-start',
+    'allow-development-stop',
     'allow-discover-development-connection',
     'allow-terminal-open',
     'allow-terminal-layout',
@@ -158,6 +161,50 @@ test('the Studio terminal theme is a complete visual-only Ghostty profile', asyn
   assert.deepEqual(paletteIndexes, Array.from({ length: 16 }, (_, index) => index));
   assert.doesNotMatch(profile, /(?:command|input|keybind|font-family|working-directory|config-file)\s*=/);
   assert.deepEqual(config.bundle.resources, {
+    'resources/node': 'project-service/node',
+    'resources/project-service.mjs': 'project-service/project-service.mjs',
     'resources/terminal/antiky-studio.ghostty': 'terminal/antiky-studio.ghostty',
+  });
+});
+
+test('Studio packages a project-service worker instead of an antiky dev command adapter', async () => {
+  const [config, source] = await Promise.all([
+    readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(packageDirectory, 'src/development.rs'), 'utf8'),
+  ]);
+
+  assert.equal(
+    config.bundle.resources['resources/project-service.mjs'],
+    'project-service/project-service.mjs',
+  );
+  assert.equal(config.bundle.resources['resources/node'], 'project-service/node');
+  await access(resolve(packageDirectory, 'resources/node'));
+  await access(resolve(packageDirectory, 'resources/project-service.mjs'));
+  assert.doesNotMatch(source, /antiky\s+dev|Command::new\([^)]*antiky/);
+  assert.doesNotMatch(source, /Command::new\("node"\)/);
+  assert.match(source, /project-service\.mjs/);
+});
+
+test('the packaged runtime can execute the bundled project-service worker', async () => {
+  const runtime = resolve(packageDirectory, 'resources/node');
+  const worker = resolve(packageDirectory, 'resources/project-service.mjs');
+  const child = spawn(runtime, [worker], { stdio: ['ignore', 'pipe', 'pipe'] });
+  let stdout = '';
+  let stderr = '';
+  child.stdout.setEncoding('utf8');
+  child.stderr.setEncoding('utf8');
+  child.stdout.on('data', (chunk) => { stdout += chunk; });
+  child.stderr.on('data', (chunk) => { stderr += chunk; });
+  const exit = await new Promise((resolveExit) => {
+    child.once('exit', (code, signal) => resolveExit({ code, signal }));
+  });
+
+  assert.deepEqual(exit, { code: 1, signal: null }, stderr);
+  assert.deepEqual(JSON.parse(stdout), {
+    type: 'error',
+    error: {
+      code: 'ANTIKY_ARGUMENT_INVALID',
+      message: 'The Studio project service needs one project manifest path.',
+    },
   });
 });

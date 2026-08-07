@@ -4,6 +4,7 @@ import { createServer as createNetServer, type Server as NetServer } from 'node:
 import { join } from 'node:path';
 
 import type { AntikyProject } from '../project.ts';
+import type { DevelopmentConnection } from '../development/browser-client.ts';
 import { createBuildTracker } from './build-tracker.ts';
 import { createDevelopmentActionBroker } from './actions.ts';
 import {
@@ -70,6 +71,7 @@ export type DevelopmentSessionOptions = Readonly<{
 
 export interface DevelopmentSession {
   readonly id: string;
+  readonly connection: DevelopmentConnection;
   readonly inspectionUrl: string;
   readonly mcpUrl: string;
   readonly descriptorPath: string;
@@ -536,6 +538,11 @@ export async function startDevelopmentSession(
 
   return Object.freeze({
     id,
+    connection: Object.freeze({
+      inspectionUrl,
+      developmentSessionId: id,
+      credential,
+    }),
     inspectionUrl,
     mcpUrl,
     descriptorPath,

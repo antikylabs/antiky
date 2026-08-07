@@ -49,20 +49,10 @@ antiky migrate --name "Harbor Lights" --output harbor-lights.antiky
 The visible `.antiky` file is tracked project input. The hidden `.antiky/` directory holds ignored
 local development state. Do not rename the runtime directory to match the manifest.
 
-Run the normal development command in the embedded terminal after the project opens:
-
-```sh
-antiky dev
-```
-
-When you develop inside the Antiky source repository without a linked CLI binary, use:
-
-```sh
-./node_modules/.bin/antiky dev
-```
-
-Run the CLI directly from an interactive terminal. A shell wrapper that detaches its child from the
-terminal's foreground process group cannot pass `Ctrl-C` to Antiky for orderly shutdown.
+Studio starts the project service automatically after it validates and activates the project. The
+service starts the game compiler, shader watcher, game host, inspection service, and MCP endpoint.
+Studio stops the complete session when you close or replace the project. You do not need to run
+`antiky dev` in the embedded terminal.
 
 ### Terminal appearance and shell ownership
 
@@ -73,12 +63,8 @@ select a font family. Your shell profiles and Ghostty settings outside Studio's 
 continue to apply.
 
 If Studio cannot load its packaged terminal color profile, the Terminal panel shows a clear error.
-The rest of the workspace remains available.
-
-`antiky dev` starts the game, shader watcher, inspection service, and MCP server together. Studio
-finds the local session descriptor and attaches automatically. If the development command was
-already running for the selected project, Studio attaches to that session instead of starting a
-second game.
+The rest of the workspace remains available. The terminal stays available for your shell, build
+commands, tests, and coding tools. It does not own Studio's project-service lifecycle.
 
 ## Use the workspace
 
@@ -136,7 +122,7 @@ The Events and MCP calls tabs answer different questions:
 | Log | Owner and lifetime | What it contains |
 | --- | --- | --- |
 | Events | Framework; the source declares `runtime-instance`, `session`, or `durable` lifetime | Accepted domain facts that a game chose to event-source |
-| MCP calls | Development host; in-memory for one `antiky dev` session | MCP Tool names, bounded arguments, result or error, timing, and available correlation IDs |
+| MCP calls | Development host; in-memory for one project-service session | MCP Tool names, bounded arguments, result or error, timing, and available correlation IDs |
 
 Simulation steps, diagnostics, and MCP traffic do not become event-sourcing facts. Reading the MCP
 call log does not create another MCP call. Studio shows the retained range, capacity, dropped count,
@@ -149,17 +135,17 @@ persisted and does not enter a game build, event stream, capture, or terminal tr
 
 ## Recover from a stopped session
 
-If `antiky dev` stops, Studio removes the live game and marks the last structured view as stale. It
-does not present retained data as current. The terminal remains available. Start `antiky dev` again
-and select **Retry** if you do not want to wait for the next automatic connection attempt.
+If the managed project service stops, Studio removes the live game and marks the last structured
+view as stale. It does not present retained data as current. The terminal remains available. Select
+**Retry** to ask Studio to start the same validated project service again.
 
 An incompatible snapshot is handled the same way. Check the Diagnostics tab and the terminal for a
 stable error code. Do not edit `.antiky/dev-session.json`.
 
-Press `Ctrl-C` in the embedded terminal to stop its foreground command. Studio stays open. If the
-command is `antiky dev`, the CLI stops its owned processes, closes its listeners, and removes its
-session descriptor. Studio then shows the disconnected state until you start the command again.
+Press `Ctrl-C` in the embedded terminal to stop its foreground command. Studio stays open, and its
+managed game host and development services keep running. Close or replace the project to stop that
+session.
 
-See [Connect Studio to a running game](development-connection.md) for the typed connection boundary.
+See [Connect Studio to a project service](development-connection.md) for the typed connection boundary.
 See [Runtime inspection](../framework/inspection.md) to publish hierarchy, store, and event data
 from your game.

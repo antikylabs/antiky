@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "prepare:ghostty": "node scripts/prepare-ghostty.mjs",
-    "predev": "npm run prepare:ghostty",
+    "prepare:project-service": "npm run build:project-service --workspace @antiky/studio-app",
+    "predev": "npm run prepare:ghostty && npm run prepare:project-service",
     "dev": "tauri dev",
-    "prebuild": "npm run prepare:ghostty",
+    "prebuild": "npm run prepare:ghostty && npm run prepare:project-service",
     "build": "tauri build --bundles app",
-    "pretest": "npm run prepare:ghostty",
+    "pretest": "npm run prepare:ghostty && npm run prepare:project-service",
     "test": "node --test tests/*.test.mjs && cargo test",
-    "pretypecheck": "npm run prepare:ghostty",
+    "pretypecheck": "npm run prepare:ghostty && npm run prepare:project-service",
     "typecheck": "cargo check"
   },
   "devDependencies": {
