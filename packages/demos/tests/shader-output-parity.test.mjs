@@ -1,21 +1,24 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
+import path from 'node:path';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const execute = promisify(execFile);
-const packageDirectory = fileURLToPath(new URL('../', import.meta.url));
-const sourceDirectory = new URL('../src/', import.meta.url);
-const compiler = fileURLToPath(new URL('../node_modules/.bin/brometal', import.meta.url));
+const packageDirectory = fileURLToPath(new URL('../../demo-support/town/', import.meta.url));
+const sourceDirectory = new URL('../../demo-support/town/src/', import.meta.url);
+const brometalEntry = fileURLToPath(import.meta.resolve('brometal'));
+const brometalDirectory = path.resolve(path.dirname(brometalEntry), '..');
+const compiler = path.join(brometalDirectory, 'dist/cli/index.js');
 
 test('BroMetal version and cut-out shader support match the repository contract', async () => {
   const [metadataSource, declarations, contextDeclarations, webgpuRuntime] = await Promise.all([
-    readFile(new URL('../node_modules/brometal/package.json', import.meta.url), 'utf8'),
-    readFile(new URL('../node_modules/brometal/dist/index.d.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../node_modules/brometal/dist/runtime/context.d.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../node_modules/brometal/dist/runtime/webgpu.js', import.meta.url), 'utf8'),
+    readFile(path.join(brometalDirectory, 'package.json'), 'utf8'),
+    readFile(path.join(brometalDirectory, 'dist/index.d.ts'), 'utf8'),
+    readFile(path.join(brometalDirectory, 'dist/runtime/context.d.ts'), 'utf8'),
+    readFile(path.join(brometalDirectory, 'dist/runtime/webgpu.js'), 'utf8'),
   ]);
   const metadata = JSON.parse(metadataSource);
 

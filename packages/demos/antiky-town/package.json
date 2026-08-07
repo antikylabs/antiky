@@ -1,0 +1,24 @@
+{
+  "name": "@antiky/demo-antiky-town",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "npm run shaders:prod && vite build",
+    "dev": "vite build --watch",
+    "shaders:watch": "npm run shaders:watch --workspace @antiky/demo-town-support",
+    "shaders:prod": "npm run shaders:prod --workspace @antiky/demo-town-support",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/composition.test.ts tests/point-light-adapter.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@antiky/demo-town-support": "0.0.0",
+    "@antiky/framework": "0.0.0",
+    "brometal": "0.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3",
+    "vite": "8.2.0"
+  }
+}

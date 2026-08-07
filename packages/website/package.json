@@ -3,16 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "predev": "npm run shaders --workspace @antiky/demos",
     "dev": "next dev",
-    "prebuild": "node ../../scripts/generate-framework-api-reference.mjs && npm run shaders:prod --workspace @antiky/demos",
+    "prebuild": "node ../../scripts/generate-framework-api-reference.mjs",
     "build": "next build",
     "start": "next start -p 3010",
     "test": "npm run build && node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@antiky/demos": "0.0.0",
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/space-grotesk": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
