@@ -21,6 +21,9 @@
     "nativeEvidenceCaptureCount": 5,
     "coldFinderOpenVerified": true,
     "settingsPresenceToggleVerified": true,
-    "projectsAdrAsdSte100Issue9": true
+    "projectsAdrAsdSte100Issue9": true,
+    "implementationRevision": "5295b1c36704a7b7bc650d3cb30f52df4475a670",
+    "documentationRevision": "7b0b0f2",
+    "finalVerifierResult": "PASS"
   }
 }

@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `IN PROGRESS — FINAL VERIFICATION` |
+| Status | `COMPLETE` |
 | Feedback source | [Slice 00 feedback, line 1](slice-feedback.txt) |
 | Outcome | A user opens one `<name>.antiky` file and Studio binds one workspace to that file's project root |
 | Owner input | The source feedback supplies the product direction |
@@ -12,7 +12,7 @@
 | Depends on | Completed Studio Slice 00 |
 | Alignment revision | `306435a1647901d0021035746c9fe623d9ea27ac` |
 | Review date | `2026-08-06` |
-| Complete check | `node docs/objectives/studio/slice-00/verification/feedback-01/verify.mjs` |
+| Complete check | Archived `PASS` in `outputs/studio-s00-feedback-01-20260806T233318Z/final-verifier.json`; temporary verifier removed after completion |
 | Evidence | [Run `studio-s00-feedback-01-20260806T233318Z`](outputs/studio-s00-feedback-01-20260806T233318Z/receipt.json) |
 
 Goal command:
@@ -173,8 +173,8 @@ Node CLI owns file discovery and loading. The Studio app imports the same pure p
 - [x] Studio never starts project code during validation.
 - [x] The old config does not remain as a second source of truth.
 - [x] Actual visual usability evidence is linked in the receipt.
-- [ ] User-facing docs, builds, tests, cleanup, and the complete check pass.
-- [ ] The receipt validates and the slice summary records the change.
+- [x] User-facing docs, builds, tests, cleanup, and the complete check pass.
+- [x] The receipt validates and the slice summary records the change.
 
 ## Run and evidence rule
 

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "runId": "studio-s00-feedback-01-20260806T233318Z",
-  "generatedAt": "2026-08-07T00:41:01.889Z",
-  "result": "FAIL",
+  "generatedAt": "2026-08-07T03:39:20.103Z",
+  "result": "PASS",
   "checks": [
     {
       "name": "One tracked project manifest",
@@ -32,29 +32,29 @@
     {
       "name": "User documentation",
       "status": "PASS",
-      "evidence": "Studio opening, Finder opening, manifest identity, safe rejection, and legacy migration are documented."
+      "evidence": "The dedicated Projects guide covers Studio, Finder, manifest identity, safe rejection, CLI use, and migration."
     },
     {
       "name": "Actual native usability evidence",
-      "status": "FAIL",
-      "evidence": "Visual usability evidence is not approved"
+      "status": "PASS",
+      "evidence": "The receipt and five native captures prove launcher, settings, picker, identity, keyboard, safe rejection, and Finder behavior."
     }
   ],
   "commands": [
     {
       "name": "CLI contracts",
       "command": "npm run test --workspace @antiky/cli",
-      "status": "FAIL",
-      "exitCode": 1,
-      "durationMilliseconds": 6791,
-      "evidence": "AUTHORITY_BLOCK: the sandbox denied a required 127.0.0.1 listener with EPERM."
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMilliseconds": 3109,
+      "evidence": "All CLI project, host, migration, lifecycle, MCP, and documentation contracts pass."
     },
     {
       "name": "Studio app contracts",
       "command": "npm run test --workspace @antiky/studio-app",
       "status": "PASS",
       "exitCode": 0,
-      "durationMilliseconds": 716,
+      "durationMilliseconds": 595,
       "evidence": "All portable Studio, launcher, project-manager, and native-adapter contracts pass."
     },
     {
@@ -62,7 +62,7 @@
       "command": "npm run test --workspace @antiky/studio-tauri",
       "status": "PASS",
       "exitCode": 0,
-      "durationMilliseconds": 2315,
+      "durationMilliseconds": 825,
       "evidence": "All Tauri configuration, picker, file-event, project-boundary, terminal, and Rust contracts pass."
     },
     {
@@ -70,23 +70,23 @@
       "command": "npm run build --workspace @antiky/studio-tauri",
       "status": "PASS",
       "exitCode": 0,
-      "durationMilliseconds": 15866,
+      "durationMilliseconds": 12970,
       "evidence": "The release macOS .app and its web payload build with the .antiky association."
     },
     {
       "name": "Repository checks",
       "command": "npm run check",
-      "status": "FAIL",
-      "exitCode": 1,
-      "durationMilliseconds": 6584,
-      "evidence": "AUTHORITY_BLOCK: the sandbox denied a required 127.0.0.1 listener with EPERM."
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMilliseconds": 24771,
+      "evidence": "All workspace tests, typechecks, generated docs, shaders, and production builds pass."
     },
     {
       "name": "Rust formatting",
       "command": "cargo fmt --manifest-path packages/studio/tauri/Cargo.toml --check",
       "status": "PASS",
       "exitCode": 0,
-      "durationMilliseconds": 161,
+      "durationMilliseconds": 67,
       "evidence": "Native Rust source is formatted."
     },
     {
@@ -94,7 +94,7 @@
       "command": "git diff --check",
       "status": "PASS",
       "exitCode": 0,
-      "durationMilliseconds": 16,
+      "durationMilliseconds": 28,
       "evidence": "Git reports no whitespace errors."
     },
     {
@@ -102,14 +102,14 @@
       "command": "git lfs fsck --pointers",
       "status": "PASS",
       "exitCode": 0,
-      "durationMilliseconds": 262,
+      "durationMilliseconds": 227,
       "evidence": "All routed PNG and JPEG objects and pointers pass Git LFS validation."
     }
   ],
   "summary": {
-    "passedChecks": 6,
-    "failedChecks": 1,
-    "passedCommands": 6,
-    "failedCommands": 2
+    "passedChecks": 7,
+    "failedChecks": 0,
+    "passedCommands": 8,
+    "failedCommands": 0
   }
 }

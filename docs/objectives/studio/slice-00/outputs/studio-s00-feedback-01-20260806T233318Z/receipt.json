@@ -4,19 +4,20 @@
   "validator": "Project contract, CLI, native host, Studio app, build, capture, and artifact audit",
   "feedbackId": "studio-slice-00-feedback-01",
   "runId": "studio-s00-feedback-01-20260806T233318Z",
-  "state": "CLOSING",
-  "result": "PENDING_FINAL_VERIFIER",
+  "state": "CLOSED",
+  "result": "PASS",
   "outcome": "A user opens one named .antiky file and Studio binds one workspace to its validated project root.",
   "startedAt": "2026-08-06T23:33:18Z",
   "blockedAt": "2026-08-07T00:39:24Z",
   "resumedAt": "2026-08-07T03:00:00Z",
+  "completedAt": "2026-08-07T03:42:15Z",
   "sourceRevision": "306435a1647901d0021035746c9fe623d9ea27ac",
   "implementationRevision": "5295b1c36704a7b7bc650d3cb30f52df4475a670",
   "checkpointCommits": [
     { "id": "CP-00", "commit": "c3fd536", "status": "PASS" },
     { "id": "CP-01", "commit": "ef36519", "status": "PASS" },
     { "id": "CP-02", "commit": "5295b1c", "status": "PASS" },
-    { "id": "CP-03", "commit": null, "status": "PENDING_COMMIT" }
+    { "id": "CP-03", "commit": "7b0b0f2", "status": "PASS" }
   ],
   "runSetup": {
     "worktree": ".",
@@ -136,8 +137,22 @@
     {
       "id": "attempt-014",
       "checkpoint": "CP-03",
-      "result": "PENDING",
-      "disposition": "All scoped CLI, Studio, native, documentation, build, formatting, and LFS checks pass. The final verifier will run in a clean worktree so unrelated demo edits in the shared worktree remain untouched."
+      "result": "PASS",
+      "disposition": "The clean-worktree verifier passed all 7 static checks and all 8 commands, including the full repository check, release bundle, formatting, whitespace, and LFS audits."
+    },
+    {
+      "id": "attempt-015",
+      "checkpoint": "CP-03",
+      "result": "FAIL_THEN_PASS",
+      "failureClass": "ENVIRONMENT_SETUP",
+      "disposition": "The first isolated dependency install omitted workspace command links and the prepared Ghostty cache. The verifier worktree reused the repository's locked dependency tree and verified cache, then the full repository check passed."
+    },
+    {
+      "id": "attempt-016",
+      "checkpoint": "CP-03",
+      "result": "FAIL_THEN_PASS",
+      "failureClass": "TEST_DEFECT",
+      "disposition": "The first dedicated-guide verifier expected shorter headings than the published guide. The corrected assertion checks the actual Antiky Projects headings, and the complete verifier passed."
     }
   ],
   "readiness": [
@@ -161,7 +176,7 @@
     { "id": "FINDER-AND-PICKER", "status": "PASS", "evidence": "captures/03-project-open.jpeg and captures/05-finder-open.jpeg; native picker cancel and warm-open checks also passed through Computer Use." },
     { "id": "SAFE-REJECTION", "status": "PASS", "evidence": "Parser, Node loader, Rust boundary, project manager, and Tauri adapter rejection tests" },
     { "id": "VISUAL-USABILITY", "status": "PASS", "evidence": "captures/01-launcher.jpeg, captures/02-settings.jpeg, and captures/04-invalid-replacement.jpeg; accessibility inspection also verified Settings then Choose file keyboard order." },
-    { "id": "DOCS-BUILDS-CHECKS", "status": "PENDING_FINAL_VERIFIER", "evidence": "The dedicated Projects guide, scoped CLI and Studio suites, native tests, release bundle, formatting, whitespace, and LFS checks pass." }
+    { "id": "DOCS-BUILDS-CHECKS", "status": "PASS", "evidence": "The dedicated Projects guide and final-verifier.json; all 7 checks and all 8 commands pass in the clean CP-03 worktree." }
   ],
   "adrAudit": {
     "standard": "ASD-STE100 Issue 9, 2025-01-15",
@@ -178,20 +193,31 @@
   },
   "artifacts": [
     { "path": "baseline.json", "sha256": "b4dfa16cf6e8254590b62779180f13366f7fa8ea18742973c30b54b49f847dc8", "purpose": "Pre-change project and Studio host baseline" },
-    { "path": "facts.json", "sha256": "966a4fb41b0fe2aac904eed2a12ef0c3c108bbc7bfbd428e109f66ebcfe0f401", "purpose": "Readiness and dependency facts" },
-    { "path": "confirmation-checks.md", "sha256": "b98169ba8acf68dfd8dcaa64f6952e940e2f33d3085bb4e7472d7756223c6caa", "purpose": "Human-readable run status" },
+    { "path": "facts.json", "sha256": "cdc442172d98ea3d9878f4626792da82d76066e477d00b89c7167e3550e30383", "purpose": "Readiness and dependency facts" },
+    { "path": "confirmation-checks.md", "sha256": "5e9093d1e5c9d96ee9ebdd9f02b740a3e41e0dbcce9f14ee916e8470955578bb", "purpose": "Human-readable run status" },
     { "path": "captures/01-launcher.jpeg", "sha256": "5d0ab824266bb46af5e7a5cf9a7cd6f30205882e302ebb04dcca96116eb5820a", "purpose": "Corrected launcher copy, scale, and macOS title-bar inset" },
     { "path": "captures/02-settings.jpeg", "sha256": "fc248b6bc39c609d3825263c5f268374c0d4058bb3957efd4311b74669c670c8", "purpose": "Online-presence privacy setting and disclosure" },
     { "path": "captures/03-project-open.jpeg", "sha256": "b8146f76a3ef6ba42f54b87ee652dd42e8d47c24c780e38bc21fd0a470cb3818", "purpose": "Picker-opened project workspace and identity" },
     { "path": "captures/04-invalid-replacement.jpeg", "sha256": "5b2a05ad09ec7daf12355a372b041b6ed735bec01892d13ef341d878ea860083", "purpose": "Invalid replacement error with the current project preserved" },
     { "path": "captures/05-finder-open.jpeg", "sha256": "645cd340837b0700b8d850eb939777f24de0664a76fc9feb9f5bd0df52ec4195", "purpose": "Cold Finder launch into the selected project" },
-    { "path": "final-verifier.json", "sha256": null, "purpose": "Complete product, command, bundle, documentation, and evidence gate audit" }
+    { "path": "final-verifier.json", "sha256": "1ebced11611e7d5d4518d618cd8058c56c17186d4059e9204182d0ec202e8db2", "purpose": "Complete product, command, bundle, documentation, and evidence gate audit" }
+  ],
+  "cleanup": [
+    { "item": "Temporary clean verification worktree and copied dependencies", "status": "PASS" },
+    { "item": "Temporary invalid .antiky fixture", "status": "PASS" },
+    { "item": "Verifier source directory after archived results", "status": "PASS" }
   ],
   "processMeasures": {
-    "retryCount": 3,
+    "retryCount": 5,
     "permissionEscalationCount": 9,
     "ownerInterventionCount": 1,
     "flakyCheckCount": 0,
     "blockedSeconds": 0
+  },
+  "summary": {
+    "staticChecks": { "passed": 7, "failed": 0 },
+    "commands": { "passed": 8, "failed": 0 },
+    "nativeCaptures": 5,
+    "outcome": "One validated .antiky file now opens the same project in Studio, the native picker, Finder, and the CLI."
   }
 }
