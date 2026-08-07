@@ -4,11 +4,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` until Feedback 03 loads explicit projects |
+| Status | `SUPERSEDED` by the demo-game goal and accepted project-service ADRs |
 | Feedback source | [Slice 00 feedback, line 4](slice-feedback.txt) |
 | Outcome | Opening a project starts or attaches to its CLI-owned development session without terminal work |
 | Owner input | The source feedback supplies the product direction |
-| Architecture decisions | [Studio 0004](../../../adr/studio/0004-share-engine-services-with-cli_H.md) and [CLI 0001](../../../adr/cli/0001-use-mcp-tools-for-development_H.md) |
+| Architecture decisions | [CLI 0002](../../../adr/cli/0002-supply-cli-project-services-through-a-library-api_H.md), [CLI 0003](../../../adr/cli/0003-make-cli-project-services-the-development-authority_H.md), and [Studio 0006](../../../adr/studio/0006-use-cli-project-services-directly_H.md) |
 | Depends on | [Feedback 03](feedback-03-load-game-plan.md) |
 | Alignment revision | `dd0eda5d8c4f4273e0cab8b3a5bfa843b8d17b40` |
 | Review date | `2026-08-06` |
@@ -25,6 +25,16 @@ Goal command:
 
 > I don't want to have to launch a separate `npm antiky dev` after opening studio. That should be
 > done automatically on opening a project. The terminal should be for me starting codex or something.
+
+## Superseded
+
+This plan is retained only as historical planning context. It must not be implemented.
+
+The accepted design does not launch an `antiky dev` shell command or attach Studio to a separately
+started CLI process. Studio packages and starts the CLI project-service library worker directly. That
+worker owns the game host, project build, inspection, MCP, and cleanup under one Studio-controlled
+lifecycle. The implemented behavior and evidence are part of
+[Feedback 06](feedback-06-demo-projects-plan.md).
 
 ## Outcome
 

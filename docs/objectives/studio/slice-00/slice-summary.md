@@ -31,7 +31,7 @@ WebSocket without widening other network access. Production website pages load t
 and show the current live visitor count as “active now” in the global footer. The website omits this
 integration in development so local sessions do not inflate the published count.
 
-Git now routes every `.png` and `.jpeg` through Git LFS. The current delivery converts all 50 tracked image
+Git now routes every `.png` and `.jpeg` through Git LFS. The current delivery converts all 61 tracked image
 assets to LFS pointers without rewriting existing history. Working-tree checkouts remain ordinary usable
 images.
 
@@ -59,6 +59,32 @@ cancellation, invalid replacement, and cold and warm Finder opening. The
 [Feedback 01 evidence run](outputs/studio-s00-feedback-01-20260806T233318Z/confirmation-checks.md)
 contains the native captures and final verifier result.
 
+## Feedback 06 and 07 demo delivery
+
+Antiky Town, Town Study, and Shader Study are now independent Antiky projects. Each project owns one
+`.antiky` manifest, package, game entry, shaders, assets, tests, and documentation. Each build emits one
+portable `dist/antiky.game.js` and a deterministic artifact manifest. The project folders contain game
+code, not a server, canvas host, inspection server, MCP endpoint, or process supervisor.
+
+The CLI package now owns the authoritative development project service. `antiky dev` uses that service for
+terminal workflows. Studio packages the same service as a library worker and starts it directly when a
+project opens; Studio does not run a shell CLI command or wait for a separately launched host. The service
+owns the development canvas, module delivery, project watchers, inspection, MCP, credentials, and cleanup.
+Antiky Town supplies its optional semantic inspection through the generic Framework game-module port.
+
+The website owns a separate delivery host. Its editorial catalog approves the three public demos, its build
+validates and stages only compiled artifacts, and its canvas host owns input, presentation timing,
+visibility, pause, error recovery, and disposal. Production website source imports no demo source. Staging
+rejects missing, stale, changed, extra, invalid, excessive, unsafe, or symlinked output with stable codes and
+the affected demo slug.
+
+The [Feedback 06 evidence](outputs/studio-s00-feedback-06-20260807T163700Z/confirmation-checks.md) records
+clean portable builds and actual packaged-Studio interaction with all three manifests. The native views
+were not stored because they displayed private absolute paths. The
+[Feedback 07 evidence](outputs/studio-s00-feedback-07-20260807T163700Z/confirmation-checks.md) records the
+production website and staging checks. Browser Control had no attached browser, so no browser capture is
+claimed.
+
 ## What changed in the repository
 
 ### Framework
@@ -69,7 +95,9 @@ The point-light service is the first adapter. It publishes authoring, runtime, a
 
 ### CLI and MCP
 
-The browser-safe development client now reads world inspection, event history, and the development-session MCP call log. `antiky dev` remains the only development host.
+The browser-safe development client now reads world inspection, event history, and the development-session
+MCP call log. The CLI project service is the single development authority. Both `antiky dev` and Studio's
+packaged worker enter that service instead of implementing separate hosts.
 
 MCP gained two read-only Tools:
 
@@ -81,6 +109,9 @@ The host also keeps up to 100 complete MCP Tool calls in memory for the current 
 ### Studio
 
 `packages/studio/app` now contains the portable React workspace. `packages/studio/tauri` hosts it on macOS and embeds the pinned `libghostty` terminal.
+
+Opening a project starts the packaged CLI project service directly. The terminal remains an independent
+user shell in the selected project root.
 
 The first workspace includes:
 
@@ -122,10 +153,11 @@ Open Studio:
 npm run dev:studio
 ```
 
-Select **Open project** and choose `antiky-town.antiky`. Confirm that Studio shows **Antiky Town**, the
-manifest path, schema `1`, and the repository root. Cancel a second open and confirm that the workspace
-does not change. Select an invalid `.antiky` fixture and confirm that Studio reports the error without
-replacing the current project.
+Select **Open project** and choose `packages/demos/antiky-town/antiky-town.antiky`. Confirm that Studio
+shows **Antiky Town**, starts its managed project service without terminal input, and connects the live
+game. Cancel a second open and confirm that the workspace does not change. Open Town Study and Shader
+Study in turn, and confirm that each replacement reaches one connected live game without mixed project
+state.
 
 Build the local Finder-integrated bundle:
 
@@ -137,13 +169,24 @@ Double-click `antiky-town.antiky` in Finder. Confirm that the bundle opens the s
 file again while Studio runs, then open a second valid fixture. Confirm that Studio reuses one window and
 updates the project identity only after validation.
 
-In the embedded terminal, start the complete development session:
+To test the same project service from a separate terminal instead of Studio:
 
 ```sh
-./node_modules/.bin/antiky dev
+npm run antiky -- dev --project packages/demos/antiky-town/antiky-town.antiky
 ```
 
-Confirm that the Town appears. Open the Hierarchy, Stores, Events, MCP calls, and Diagnostics tabs. Pause the game, advance one step, and resume it.
+Do not run that command inside Studio for normal use. Studio already owns its development lifecycle.
+Confirm that the Town appears. Open the Hierarchy, Stores, Events, MCP calls, and Diagnostics tabs. Pause
+the game, advance one step, and resume it.
+
+Build and test compiled website delivery:
+
+```sh
+npm test --workspace @antiky/website
+```
+
+Confirm that `/demos/antiky-town`, `/demos/town-study`, and `/demos/shader-study` are generated and that
+website production source imports no demo source package.
 
 For the Feedback 08 layout, resize Studio from a wide window to its minimum width. Confirm that the
 wide workspace uses two rows and two columns, and that the narrow workspace stacks Live game,
@@ -162,5 +205,8 @@ Press `Ctrl-C` in the development terminal when done. The CLI must stop its chil
 
 The original completed run is recorded in the [Slice 00 receipt](outputs/studio-s00-20260806T043040Z/receipt.json).
 The approved layout and follow-up delivery are recorded in the
-[Feedback 08 receipt](outputs/studio-s00-feedback-08-20260806T181038Z/receipt.json). Native process,
-webview connection, semantic data, terminal-surface, SSPS, LFS, build, test, and cleanup evidence passed.
+[Feedback 08 receipt](outputs/studio-s00-feedback-08-20260806T181038Z/receipt.json). Demo project and website
+delivery are recorded in the [Feedback 06 receipt](outputs/studio-s00-feedback-06-20260807T163700Z/receipt.json)
+and [Feedback 07 receipt](outputs/studio-s00-feedback-07-20260807T163700Z/receipt.json). Native process,
+webview connection, semantic data, terminal-surface, SSPS, LFS, artifact, build, test, and cleanup evidence
+passed with the recorded capture limitations.

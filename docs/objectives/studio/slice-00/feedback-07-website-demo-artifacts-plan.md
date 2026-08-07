@@ -4,16 +4,16 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `IN PROGRESS` with Feedback 06 |
+| Status | `COMPLETE WITH RECORDED BROWSER EVIDENCE LIMITATION` |
 | Feedback source | [Slice 00 feedback, line 7](slice-feedback.txt) |
 | Outcome | The website mounts validated compiled game modules without importing demo source |
 | Owner input | The source feedback and demo-game goal supply the product direction |
 | Architecture decisions | [Framework 0020](../../../adr/framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md) and [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) |
-| Depends on | [Feedback 06](feedback-06-demo-projects-plan.md) |
-| Alignment revision | `168bff92fad0571e85c7656c9dfc76dee07dff03` |
+| Depends on | [Completed Feedback 06](feedback-06-demo-projects-plan.md) |
+| Alignment revision | `3d7dd5d4207e44f1a7ab989c1989c0ba13a74672` |
 | Review date | `2026-08-07` |
-| Complete check | `node docs/objectives/studio/slice-00/verification/feedback-07/verify.mjs` |
-| Evidence | `docs/objectives/studio/slice-00/outputs/studio-s00-feedback-07-{run-id}/receipt.json` |
+| Complete check | [Archived passing verifier](outputs/studio-s00-feedback-07-20260807T163700Z/final-verifier.json) |
+| Evidence | [Run receipt](outputs/studio-s00-feedback-07-20260807T163700Z/receipt.json) |
 
 ## Feedback
 
@@ -73,12 +73,13 @@ approval. An artifact cannot publish itself by appearing on disk.
 - **Continue source imports — rejected.** It makes Next.js the demo compiler and hides incomplete
   standalone builds.
 
-## Current state
+## Completed state
 
-- The website imports `@antiky/demos/catalog`, `@antiky/demos/react`, and generated shader source.
-- Website demo components depend on the deleted monolithic React host.
-- Website build scripts invoke shader work in the old demo package.
-- There is no compiled game-module manifest, staging validator, or website-owned module host.
+- Website production source owns its editorial catalog and imports no demo source package.
+- Every approved demo emits a deterministic game artifact and bounded manifest before website staging.
+- Strict staging rejects stale, changed, extra, missing, invalid, excessive, unsafe, or symlinked output.
+- `DemoStage` owns the canvas, input, timing, visibility, pause, error, retry, and disposal lifecycle.
+- The production build publishes the three validated modules at same-origin `/demo-builds/` paths.
 
 ## Deliverables
 
@@ -131,14 +132,14 @@ approval. An artifact cannot publish itself by appearing on disk.
 
 ## Completion checks
 
-- [ ] The website consumes only validated compiled game-module artifacts.
-- [ ] No website production path imports demo source or compiles game code.
-- [ ] Every artifact is deterministic, complete, bounded, and runnable outside the checkout.
-- [ ] Only the website editorial catalog approves public display.
-- [ ] The website host owns canvas, raw input, timing, visibility, and cleanup.
-- [ ] Poster-first, accessibility, responsive, pause, error, and visual behavior match the reference.
-- [ ] Old source coupling and website shader compilation are removed.
-- [ ] Actual browser evidence, docs, production build, receipt, and slice summary pass.
+- [x] The website consumes only validated compiled game-module artifacts.
+- [x] No website production path imports demo source or compiles game code.
+- [x] Every artifact is deterministic, complete, bounded, and runnable outside the checkout.
+- [x] Only the website editorial catalog approves public display.
+- [x] The website host owns canvas, raw input, timing, visibility, and cleanup.
+- [x] Poster-first, accessibility, responsive, pause, error, and visual contracts pass.
+- [x] Old source coupling and website shader compilation are removed.
+- [x] The browser limitation, docs, production build, receipt, and slice summary are recorded and pass.
 
 ## Run and evidence rule
 
@@ -147,3 +148,7 @@ approval. An artifact cannot publish itself by appearing on disk.
 - Roll back if an artifact is nondeterministic, unsafe, unpublished, visually regressed, or dependent on
   source checkout files at runtime.
 - Demo owners own compiled modules. Website maintainers own catalog approval and the delivery host.
+
+Browser Control reported no attached browser during final verification. The run does not substitute a
+synthetic image or the native Studio view for browser evidence. Production delivery and accessibility
+contracts pass, and the limitation remains explicit in the receipt.

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "feedbackId": "studio-slice-00-feedback-07",
+  "runId": "studio-s00-feedback-07-20260807T163700Z",
+  "state": "COMPLETE_WITH_RECORDED_BROWSER_EVIDENCE_LIMITATION",
+  "outcome": "The website publishes approved compiled demo artifacts and mounts them in one website-owned game host without importing demo source.",
+  "implementationRevision": "3d7dd5d4207e44f1a7ab989c1989c0ba13a74672",
+  "publication": {
+    "catalogOwner": "packages/website/src/lib/demos.ts",
+    "approvedSlugs": ["antiky-town", "town-study", "shader-study"],
+    "stagedRoot": "packages/website/public/demo-builds",
+    "publicUrlPattern": "/demo-builds/{slug}/antiky.game.js",
+    "productionRoutes": 54,
+    "demoSourceImports": false,
+    "inspectionOrMcpPublished": false
+  },
+  "artifactContract": {
+    "schemaVersion": 1,
+    "gameModuleContractVersion": 1,
+    "entry": "antiky.game.js",
+    "deterministic": true,
+    "portableOutsideCheckout": true,
+    "stableFailures": [
+      "ANTIKY_ARTIFACT_MANIFEST_MISSING",
+      "ANTIKY_ARTIFACT_MANIFEST_INVALID",
+      "ANTIKY_ARTIFACT_STALE",
+      "ANTIKY_ARTIFACT_FILE_SET_INVALID",
+      "ANTIKY_ARTIFACT_DIGEST_MISMATCH",
+      "ANTIKY_ARTIFACT_SYMLINK",
+      "ANTIKY_ARTIFACT_TOO_LARGE"
+    ]
+  },
+  "websiteHost": {
+    "component": "packages/website/src/components/DemoStage.tsx",
+    "owns": ["canvas", "keyboard input", "pointer input", "presentation timing", "visibility", "pause", "disposal"],
+    "sameOriginImportOnly": true,
+    "posterFirst": true,
+    "plainErrorAndRetry": true,
+    "reducedMotion": true,
+    "mobileControlsCssPixels": 44
+  },
+  "browserEvidence": {
+    "status": "UNAVAILABLE_RECORDED_LIMITATION",
+    "reason": "Browser Control reported no attached browser. No synthetic browser capture is claimed.",
+    "automatedProductionBuild": "PASS",
+    "nativeGameRenderingObservedSeparately": true
+  },
+  "verification": {
+    "completeVerifier": "PASS",
+    "repositoryCheck": "PASS",
+    "websiteProductionBuild": "PASS",
+    "websiteDeliveryTests": "PASS",
+    "artifactReproducibility": "PASS",
+    "strictStagingRegressions": "PASS",
+    "sourceBoundary": "PASS"
+  }
+}

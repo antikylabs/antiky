@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "feedbackId": "studio-slice-00-feedback-06",
+  "runId": "studio-s00-feedback-06-20260807T163700Z",
+  "state": "COMPLETE_WITH_RECORDED_EVIDENCE_LIMITATION",
+  "outcome": "Each public demo is a hostless Antiky project that compiles one portable game module for CLI, Studio, website, and test hosts.",
+  "implementationRevision": "6607a9c81840c7a58b3ec2b526d3742134a8228a",
+  "projects": [
+    {
+      "slug": "antiky-town",
+      "workspace": "@antiky/demo-antiky-town",
+      "manifest": "packages/demos/antiky-town/antiky-town.antiky",
+      "entry": "dist/antiky.game.js",
+      "artifactBytes": 9194343,
+      "artifactSha256": "a01ccd5aaf593929af50f540a753e471822975bdfe6d02932dfd4ede2599f609"
+    },
+    {
+      "slug": "town-study",
+      "workspace": "@antiky/demo-town-study",
+      "manifest": "packages/demos/town-study/town-study.antiky",
+      "entry": "dist/antiky.game.js",
+      "artifactBytes": 9117617,
+      "artifactSha256": "6055d3ea5a36d57da0ffa267ef36eab44dc0389dba148e417a334ccc70712341"
+    },
+    {
+      "slug": "shader-study",
+      "workspace": "@antiky/demo-shader-study",
+      "manifest": "packages/demos/shader-study/shader-study.antiky",
+      "entry": "dist/antiky.game.js",
+      "artifactBytes": 21612,
+      "artifactSha256": "f6ca6612359588bc7c8d18944d96501d3ce6320064d63c08fb88129e849c7065"
+    }
+  ],
+  "ownership": {
+    "gameProjects": ["game logic", "assets", "shaders", "tests", "portable build output"],
+    "cliProjectService": ["canvas host", "loopback delivery", "input", "timing", "inspection", "MCP", "process cleanup"],
+    "studio": "Packages and starts the CLI project-service worker directly; it does not invoke a shell CLI command.",
+    "deletedHostRestored": false,
+    "siblingDemoSourceImports": false
+  },
+  "inspection": {
+    "frameworkPort": "GameInspectionPort",
+    "optional": true,
+    "hostTransportOwned": true,
+    "antikyTownWorldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
+    "antikyTownEntities": 2,
+    "antikyTownDrawCalls": 16
+  },
+  "nativeStudioObservation": {
+    "tool": "Computer Use",
+    "application": "current packaged Antiky Studio macOS bundle",
+    "openedProjects": ["antiky-town.antiky", "town-study.antiky", "shader-study.antiky"],
+    "allLiveGamesConnected": true,
+    "projectSwitchingPassed": true,
+    "antikyTownPauseStep": { "before": 2984, "after": 2985 },
+    "antikyTownResumeState": "RUNNING",
+    "descriptorRemovedAfterQuit": true,
+    "portsReleasedAfterQuit": [3010, 3011]
+  },
+  "visualEvidence": {
+    "status": "OBSERVED_NOT_PERSISTED",
+    "reason": "The actual native views contained workstation-private absolute paths. The output policy forbids storing those paths, so no screenshot is claimed."
+  },
+  "verification": {
+    "completeVerifier": "PASS",
+    "repositoryCheck": "PASS",
+    "demoProjects": "PASS",
+    "cliDevelopmentHost": "PASS",
+    "studioApplication": "PASS",
+    "studioNativeHost": "PASS",
+    "documentation": "PASS"
+  }
+}

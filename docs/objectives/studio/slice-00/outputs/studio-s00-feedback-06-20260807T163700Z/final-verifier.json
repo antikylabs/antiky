@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-feedback-06-20260807T163700Z",
+  "status": "PASS",
+  "startedAt": "2026-08-07T16:45:11.094Z",
+  "completedAt": "2026-08-07T16:45:30.329Z",
+  "implementationRevision": "6607a9c81840c7a58b3ec2b526d3742134a8228a",
+  "checks": [
+    {
+      "name": "Independent demo projects",
+      "status": "PASS",
+      "evidence": "Three manifest-owned workspaces compile game modules and contain no CLI, Studio, website, or server imports."
+    },
+    {
+      "name": "Host and inspection ownership",
+      "status": "PASS",
+      "evidence": "CLI owns the development host, Studio imports that service directly, and Framework supplies the optional generic inspection port."
+    }
+  ],
+  "commands": [
+    {
+      "name": "Demo project contracts",
+      "command": "node --test packages/demos/tests/artifact.test.mjs packages/demos/tests/dev-host.test.mjs",
+      "exitCode": 0,
+      "durationMilliseconds": 5749,
+      "status": "PASS",
+      "summary": "Portable artifact and host-boundary tests pass from clean output."
+    },
+    {
+      "name": "CLI development host",
+      "command": "npm test --workspace @antiky/cli",
+      "exitCode": 0,
+      "durationMilliseconds": 3226,
+      "status": "PASS",
+      "summary": "CLI host, lifecycle, inspection, MCP, cleanup, and public demo tests pass."
+    },
+    {
+      "name": "Studio application",
+      "command": "npm test --workspace @antiky/studio-app",
+      "exitCode": 0,
+      "durationMilliseconds": 839,
+      "status": "PASS",
+      "summary": "Studio project service, game frame, controls, and project UI tests pass."
+    },
+    {
+      "name": "Studio native host",
+      "command": "npm test --workspace @antiky/studio-tauri",
+      "exitCode": 0,
+      "durationMilliseconds": 9406,
+      "status": "PASS",
+      "summary": "Packaged project-service and native lifecycle tests pass."
+    },
+    {
+      "name": "Whitespace audit",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "durationMilliseconds": 12,
+      "status": "PASS",
+      "summary": "The checked patch contains no whitespace errors."
+    }
+  ]
+}

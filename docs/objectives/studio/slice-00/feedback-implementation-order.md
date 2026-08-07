@@ -24,10 +24,10 @@ ownership boundaries. Complete one feedback plan and its evidence before the nex
 | 3 | [01: Open an Antiky project](feedback-01-open-project-plan.md) | Ready now, but deferred until 08 and 09 pass | It defines the shared project boundary for the remaining workflow. |
 | 4 | [02: Initialize an Antiky project](feedback-02-init-project-plan.md) | Feedback 01 complete | It must create the exact manifest that Feedback 01 accepts. |
 | 5 | [03: Load a game as a project](feedback-03-load-game-plan.md) | Feedback 01 and 02 complete | It adds the launcher and project-switch lifecycle on the accepted boundary. |
-| 6 | [04: Start development with the project](feedback-04-auto-start-development-plan.md) | Feedback 03 complete | It gives the loaded project one CLI-owned development session. |
+| 6 | [04: Start development with the project](feedback-04-auto-start-development-plan.md) | Superseded | Studio now starts the CLI project-service worker directly; it does not invoke a CLI command. |
 | 7 | [05: Start the terminal in the project](feedback-05-terminal-project-directory-plan.md) | Feedback 03 complete | It binds the already themed terminal to the active project without making it a process supervisor. |
-| 8 | [06: Make demos real projects](feedback-06-demo-projects-plan.md) | Feedback 01 through 05 integration complete | Each demo must prove the complete project, development, and terminal workflow. |
-| 9 | [07: Display compiled demos](feedback-07-website-demo-artifacts-plan.md) | Feedback 06 complete and its artifact ADR accepted | The website must consume outputs from stable standalone demo projects. |
+| 8 | [06: Make demos real projects](feedback-06-demo-projects-plan.md) | Complete with recorded capture limitation | Each demo proves the complete project, development, and terminal workflow. |
+| 9 | [07: Display compiled demos](feedback-07-website-demo-artifacts-plan.md) | Complete with recorded browser limitation | The website consumes outputs from stable standalone demo projects. |
 
 Feedback 04 and Feedback 05 share Feedback 03 as their formal dependency. They can use separate branches
 after Feedback 03. The recommended sequential run completes Feedback 04 first because development-session
@@ -40,7 +40,7 @@ Owner-priority visual track
 08 layout -> 09 terminal theme
 
 Project and distribution track
-                                           +-> 04 auto development --+
+                                           +-> 04 superseded --------+
 01 project boundary -> 02 init -> 03 load -+                          +-> 06 demos -> 07 website artifacts
                                            +-> 05 terminal directory +
 ```
@@ -106,6 +106,6 @@ Do not start Feedback 01 until both priority items meet these gates:
 - [ ] The final Studio preserves the approved website-derived layout and terminal theme.
 - [ ] Opening one `.antiky` project starts or attaches to one CLI-owned development session.
 - [ ] The terminal remains an independent user shell in the active project root.
-- [ ] Every demo is a standalone project and the website consumes only validated compiled artifacts.
-- [ ] General user documentation describes the finished product behavior without slice terminology.
+- [x] Every demo is a standalone project and the website consumes only validated compiled artifacts.
+- [x] General user documentation describes the finished product behavior without slice terminology.
 - [ ] The Slice 00 summary gives the owner simple launch, use, and test instructions.

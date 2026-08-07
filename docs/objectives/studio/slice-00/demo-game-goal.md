@@ -1,4 +1,5 @@
-This builds on @docs/objectives/studio/slice-00/feedback-06-demo-projects-plan.md and @docs/objectives/studio/slice-00/feedback-07-website-demo-artifacts-plan.md
+This goal completes [real demo projects](feedback-06-demo-projects-plan.md) and
+[compiled website demos](feedback-07-website-demo-artifacts-plan.md).
 
 Architecture decisions:
 
@@ -31,4 +32,6 @@ AC:
 2. [x] Update CLI package with whatever it needs to be the authoritative game host during development for an antiky package.
 3. [x] Update studio to use that game host, importing cli package code directly and executing it to get the live host running and mcps started etc so that its entire startup loop is controlled by the studio not by studio+dev-cli-calls-over-bash-etc...
 4. [x] Update docs/objectives/studio/slice-00/feedback-06-demo-projects-plan.md and docs/objectives/studio/slice-00/feedback-07-website-demo-artifacts-plan.md as needed after AC 1,2,3 are done.
-5. Work on docs/objectives/studio/slice-00/feedback-06-demo-projects-plan.md and docs/objectives/studio/slice-00/feedback-07-website-demo-artifacts-plan.md until complete.
+5. [x] Complete both plans and archive their passing evidence:
+   - [Feedback 06 receipt](outputs/studio-s00-feedback-06-20260807T163700Z/receipt.json)
+   - [Feedback 07 receipt](outputs/studio-s00-feedback-07-20260807T163700Z/receipt.json)

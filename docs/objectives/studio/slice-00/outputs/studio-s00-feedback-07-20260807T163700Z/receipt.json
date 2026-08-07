@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "writer": "Studio Feedback 07 goal runner",
+  "validator": "Artifact determinism, strict staging, website publication, host ownership, accessibility, production build, and repository audit",
+  "feedbackId": "studio-slice-00-feedback-07",
+  "runId": "studio-s00-feedback-07-20260807T163700Z",
+  "state": "COMPLETE_WITH_RECORDED_BROWSER_EVIDENCE_LIMITATION",
+  "result": "PASS",
+  "outcome": "The website mounts approved compiled game modules in its own canvas host without importing demo source.",
+  "startedAt": "2026-08-07T16:37:00Z",
+  "verificationCompletedAt": "2026-08-07T16:48:42.509Z",
+  "sourceRevision": "168bff92fad0571e85c7656c9dfc76dee07dff03",
+  "implementationRevision": "3d7dd5d4207e44f1a7ab989c1989c0ba13a74672",
+  "checkpointCommits": [
+    { "id": "CP-01-04", "commit": "3a60955", "status": "PASS" },
+    { "id": "STRICT-FAILURES", "commit": "3d7dd5d", "status": "PASS" }
+  ],
+  "runSetup": {
+    "worktree": ".",
+    "branch": "feat/voxel-demo-work",
+    "platform": "macOS 26.5.2 arm64",
+    "node": "v22.15.0",
+    "npm": "10.9.2",
+    "timeZone": "America/Chicago",
+    "dependencyLockSha256": "6efce8799b4902bec5b7f6efdf02c2e8cecfb8fb1e4220b0a55d8c9bd80ef4c8",
+    "websitePort": 3010,
+    "outputDirectory": "docs/objectives/studio/slice-00/outputs/studio-s00-feedback-07-20260807T163700Z"
+  },
+  "attempts": [
+    {
+      "id": "attempt-001",
+      "checkpoint": "COMPLETE-CHECK",
+      "result": "FAIL_THEN_PASS",
+      "failureClass": "EVIDENCE_DEFECT",
+      "disposition": "The first verifier looked for the staged URL in the host component instead of the catalog helper that owns it. The corrected assertion passed against unchanged product code."
+    },
+    {
+      "id": "attempt-002",
+      "checkpoint": "STRICT-STAGING",
+      "result": "EXPECTED_FAIL_THEN_PASS",
+      "failureClass": "PRODUCT_DEFECT",
+      "disposition": "Missing manifests and symlinks did not always include both the stable code and demo slug. Red regressions now pass with the hardened staging boundary."
+    },
+    {
+      "id": "attempt-003",
+      "checkpoint": "BROWSER-EVIDENCE",
+      "result": "LIMITED",
+      "failureClass": "EVIDENCE_FAILURE",
+      "disposition": "Browser Control reported no attached browser. Production build and host/accessibility contracts pass; no browser capture is claimed."
+    },
+    {
+      "id": "attempt-004",
+      "checkpoint": "COMPLETE-CHECK",
+      "result": "PASS",
+      "disposition": "Artifact reproducibility, website production build, delivery tests, strict failures, and the final verifier passed."
+    }
+  ],
+  "acceptance": [
+    { "id": "COMPILED-ONLY", "status": "PASS", "evidence": "Website import-boundary and publication tests" },
+    { "id": "DETERMINISTIC", "status": "PASS", "evidence": "Two clean builds compare manifest and entry bytes" },
+    { "id": "EDITORIAL-CATALOG", "status": "PASS", "evidence": "Website-owned catalog and explicit publication JSON" },
+    { "id": "STRICT-STAGING", "status": "PASS", "evidence": "Stale, digest, extra-file, symlink, and missing-manifest regressions" },
+    { "id": "HOST-OWNERSHIP", "status": "PASS", "evidence": "Website host source contract for canvas, input, timing, visibility, pause, and disposal" },
+    { "id": "ACCESSIBILITY", "status": "PASS", "evidence": "Poster, retry, focus, reduced-motion, and 44-pixel control contracts" },
+    { "id": "PRODUCTION", "status": "PASS", "evidence": "54-route Next.js build and three staged demo routes" },
+    { "id": "COMPLETE-CHECK", "status": "PASS", "evidence": "final-verifier.json and npm run check" }
+  ],
+  "browserControl": {
+    "status": "UNAVAILABLE",
+    "classification": "EVIDENCE_FAILURE",
+    "detail": "No attached browser was available. No synthetic or native image is presented as browser evidence."
+  },
+  "artifacts": [
+    { "path": "baseline.json", "sha256": "61bd24cff8651fc1a108223f13120f6a6db8555c9696969e95af03d3fa2b8ddd", "purpose": "Run environment and starting boundary" },
+    { "path": "facts.json", "sha256": "1b7b1660df602e17e4da67f125990ecf540074f073ee59966cdb772544305174", "purpose": "Artifact, staging, publication, host, and evidence facts" },
+    { "path": "confirmation-checks.md", "sha256": "4307e130eb681c01cca244e1841751d1d5d5eae068bc1507bbf6398da67a3654", "purpose": "Human-readable completion ledger" },
+    { "path": "final-verifier.json", "sha256": "97dbccc7e9452494c7615a3631212920c07eb563cbe047510b8ee647bc5a3c43", "purpose": "Executable complete-check result" }
+  ],
+  "afterCompletion": {
+    "owner": "Website and demo maintainers",
+    "health": "Artifact tests, delivery tests, website production build, and repository check",
+    "rollbackTrigger": "A website path imports demo source, an unverified file reaches publication, or the host fails to dispose a game instance.",
+    "rollback": "Revert the affected staging or website checkpoint and publish the last verified artifact set."
+  }
+}

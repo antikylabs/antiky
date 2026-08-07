@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "writer": "Studio Feedback 06 goal runner",
+  "validator": "Demo ownership, portable artifact, CLI host, Studio project-service, native interaction, cleanup, documentation, and repository audit",
+  "feedbackId": "studio-slice-00-feedback-06",
+  "runId": "studio-s00-feedback-06-20260807T163700Z",
+  "state": "COMPLETE_WITH_RECORDED_EVIDENCE_LIMITATION",
+  "result": "PASS",
+  "outcome": "Each public demo is a self-contained hostless project that compiles one portable game module for CLI, Studio, website, and test hosts.",
+  "startedAt": "2026-08-07T16:37:00Z",
+  "verificationCompletedAt": "2026-08-07T16:45:30.329Z",
+  "sourceRevision": "168bff92fad0571e85c7656c9dfc76dee07dff03",
+  "implementationRevision": "6607a9c81840c7a58b3ec2b526d3742134a8228a",
+  "checkpointCommits": [
+    { "id": "ARCHITECTURE", "commit": "3348260", "status": "PASS" },
+    { "id": "CLI-HOST", "commit": "5593b97", "status": "PASS" },
+    { "id": "STUDIO-SERVICE", "commit": "168bff9", "status": "PASS" },
+    { "id": "CP-01-03", "commit": "af456e3", "status": "PASS" },
+    { "id": "HOST-RENDER", "commit": "849079d", "status": "PASS" },
+    { "id": "INSPECTION", "commit": "4e28730", "status": "PASS" },
+    { "id": "STUDIO-DEMO", "commit": "38d365c", "status": "PASS" },
+    { "id": "CLEAN-TEST", "commit": "6607a9c", "status": "PASS" }
+  ],
+  "runSetup": {
+    "worktree": ".",
+    "branch": "feat/voxel-demo-work",
+    "platform": "macOS 26.5.2 arm64",
+    "node": "v22.15.0",
+    "npm": "10.9.2",
+    "rustc": "1.97.1",
+    "cargo": "1.97.1",
+    "timeZone": "America/Chicago",
+    "dependencyLockSha256": "6efce8799b4902bec5b7f6efdf02c2e8cecfb8fb1e4220b0a55d8c9bd80ef4c8",
+    "ports": [3010, 3011],
+    "outputDirectory": "docs/objectives/studio/slice-00/outputs/studio-s00-feedback-06-20260807T163700Z"
+  },
+  "attempts": [
+    {
+      "id": "attempt-001",
+      "checkpoint": "NATIVE-EVIDENCE",
+      "result": "FAIL_THEN_PASS",
+      "failureClass": "OPERATOR_ERROR",
+      "disposition": "The native picker selection first appeared disabled because an accessibility click did not select the row. Typing the manifest name selected it; the existing UTI picker was retained unchanged."
+    },
+    {
+      "id": "attempt-002",
+      "checkpoint": "NATIVE-EVIDENCE",
+      "result": "PASS",
+      "disposition": "The packaged Studio opened all three manifests. Antiky Town paused, stepped once, resumed, and published its generic inspection view."
+    },
+    {
+      "id": "attempt-003",
+      "checkpoint": "REPOSITORY-CHECK",
+      "result": "FAIL_THEN_PASS",
+      "failureClass": "TEST_DEFECT",
+      "disposition": "The artifact test assumed ignored dist output already existed. The failing clean-check case now builds every artifact it inspects."
+    },
+    {
+      "id": "attempt-004",
+      "checkpoint": "COMPLETE-CHECK",
+      "result": "PASS",
+      "disposition": "The Feedback 06 verifier and full repository check passed after the clean-test correction."
+    }
+  ],
+  "acceptance": [
+    { "id": "PROJECTS", "status": "PASS", "evidence": "Three independent manifest-owned workspaces and demo boundary tests" },
+    { "id": "PORTABLE", "status": "PASS", "evidence": "Clean artifact import and deterministic rebuild tests" },
+    { "id": "CLI-HOST", "status": "PASS", "evidence": "CLI development-session tests mount all three public manifests" },
+    { "id": "STUDIO-HOST", "status": "PASS", "evidence": "Packaged service tests and actual native project switching" },
+    { "id": "INSPECTION", "status": "PASS", "evidence": "Framework, CLI, Antiky Town, and native interaction checks" },
+    { "id": "CLEANUP", "status": "PASS", "evidence": "Native quit removed the descriptor and released ports 3010 and 3011" },
+    { "id": "DOCUMENTATION", "status": "PASS", "evidence": "Project and game-module user documentation contracts" },
+    { "id": "COMPLETE-CHECK", "status": "PASS", "evidence": "final-verifier.json and npm run check" }
+  ],
+  "visualEvidence": {
+    "status": "OBSERVED_NOT_PERSISTED",
+    "tool": "Computer Use",
+    "reason": "The live Studio views displayed workstation-private absolute paths. Output policy forbids retaining them, so no screenshot artifact is claimed."
+  },
+  "artifacts": [
+    { "path": "baseline.json", "sha256": "ab8ba1560e0f1d9073026b6d3efa687883b3e61336959c05e610550604122406", "purpose": "Run environment and starting boundary" },
+    { "path": "facts.json", "sha256": "1f46c281ad892e18fa9b7a03ae7094c40037976c638743d7afe4710096797ec2", "purpose": "Project, host, artifact, inspection, and native facts" },
+    { "path": "confirmation-checks.md", "sha256": "d231feecedc0935fd0c5e6c6ae134be64f2d4cc119d577cda27afb96cdd9937e", "purpose": "Human-readable completion ledger" },
+    { "path": "final-verifier.json", "sha256": "bb131f94431d1957b30aba208d078f9ae25181c727d088cd0d8fe8d9f2d35552", "purpose": "Executable complete-check result" }
+  ],
+  "afterCompletion": {
+    "owner": "Demo, CLI, and Studio maintainers",
+    "health": "Demo boundary and artifact tests, CLI development-session tests, Studio service tests, and repository check",
+    "rollbackTrigger": "A demo needs host code or sibling source, a compiled module fails outside its folder, or CLI and Studio stop sharing one project service.",
+    "rollback": "Revert the affected checkpoint while preserving the deleted monolithic host boundary."
+  }
+}

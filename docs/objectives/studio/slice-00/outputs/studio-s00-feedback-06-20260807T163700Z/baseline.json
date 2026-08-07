@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-feedback-06-20260807T163700Z",
+  "feedbackId": "studio-slice-00-feedback-06",
+  "startedAt": "2026-08-07T16:37:00Z",
+  "sourceRevision": "168bff92fad0571e85c7656c9dfc76dee07dff03",
+  "branch": "feat/voxel-demo-work",
+  "worktree": ".",
+  "dependencyLockSha256": "6efce8799b4902bec5b7f6efdf02c2e8cecfb8fb1e4220b0a55d8c9bd80ef4c8",
+  "environment": {
+    "platform": "macOS 26.5.2 arm64",
+    "node": "v22.15.0",
+    "npm": "10.9.2",
+    "rustc": "1.97.1",
+    "cargo": "1.97.1",
+    "timeZone": "America/Chicago"
+  },
+  "resources": {
+    "gamePort": 3010,
+    "inspectionPort": 3011,
+    "outputDirectory": "docs/objectives/studio/slice-00/outputs/studio-s00-feedback-06-20260807T163700Z"
+  },
+  "startingBoundary": {
+    "preserveDeletedDemoHost": true,
+    "requiredProjects": ["antiky-town", "town-study", "shader-study"],
+    "requiredOutput": "dist/antiky.game.js",
+    "hostOwners": ["CLI", "Studio", "website", "test host"]
+  }
+}

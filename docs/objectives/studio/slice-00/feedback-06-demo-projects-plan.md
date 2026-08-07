@@ -4,16 +4,16 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `IN PROGRESS` |
+| Status | `COMPLETE WITH RECORDED EVIDENCE LIMITATION` |
 | Feedback source | [Slice 00 feedback, line 6](slice-feedback.txt) |
 | Outcome | Each public demo is a self-contained Antiky game project that compiles one portable game module |
 | Owner input | The source feedback and demo-game goal supply the product direction |
 | Architecture decisions | [Framework 0020](../../../adr/framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md), [CLI 0002](../../../adr/cli/0002-supply-cli-project-services-through-a-library-api_H.md), [CLI 0003](../../../adr/cli/0003-make-cli-project-services-the-development-authority_H.md), and [Studio 0006](../../../adr/studio/0006-use-cli-project-services-directly_H.md) |
 | Depends on | Completed project selection and initialization work |
-| Alignment revision | `168bff92fad0571e85c7656c9dfc76dee07dff03` |
+| Alignment revision | `6607a9c81840c7a58b3ec2b526d3742134a8228a` |
 | Review date | `2026-08-07` |
-| Complete check | `node docs/objectives/studio/slice-00/verification/feedback-06/verify.mjs` |
-| Evidence | `docs/objectives/studio/slice-00/outputs/studio-s00-feedback-06-{run-id}/receipt.json` |
+| Complete check | [Archived passing verifier](outputs/studio-s00-feedback-06-20260807T163700Z/final-verifier.json) |
+| Evidence | [Run receipt](outputs/studio-s00-feedback-06-20260807T163700Z/receipt.json) |
 
 ## Feedback
 
@@ -80,13 +80,14 @@ folders. Otherwise, duplicate the necessary game code and keep the projects inde
   0020 assigns to delivery targets.
 - **Move demo code into Framework — rejected.** Demo-specific rendering is not framework behavior.
 
-## Current state
+## Completed state
 
-- The old generic demo host and React host were deleted and must stay deleted.
-- `@antiky/demos` still contains stale runtime imports, registry exports, scripts, and website coupling.
-- Antiky Town imports Town Study source by a relative path.
-- The website still imports demo catalog and runtime source.
-- No public demo owns a `.antiky` manifest or portable game-module build.
+- The deleted generic demo and React hosts remain deleted.
+- Three independent demo workspaces own their manifests, entries, tests, shaders, assets, and builds.
+- Town rendering is shared through the declared private `@antiky/demo-town-support` package.
+- Every demo emits one portable `dist/antiky.game.js` plus its bounded artifact manifest.
+- CLI and Studio mount those modules through the CLI-owned project service.
+- The website consumes only the compiled artifacts through its own publication catalog and host.
 
 ## Deliverables
 
@@ -133,13 +134,13 @@ folders. Otherwise, duplicate the necessary game code and keep the projects inde
 
 ## Completion checks
 
-- [ ] Every public demo is one real `.antiky` game project with one owned folder.
-- [ ] Every demo tests, type-checks, and compiles without a project-owned host or sibling demo source.
-- [ ] CLI and Studio mount the same compiled module through the CLI-owned development host.
-- [ ] Every compiled module runs outside the checkout and contains no development state or secrets.
-- [ ] Antiky Town inspection and reference render measurements remain correct.
-- [ ] Stale monolithic exports, registry, scripts, and imports are removed.
-- [ ] Actual visual evidence, docs, checks, receipt, and slice summary pass.
+- [x] Every public demo is one real `.antiky` game project with one owned folder.
+- [x] Every demo tests, type-checks, and compiles without a project-owned host or sibling demo source.
+- [x] CLI and Studio mount the same compiled module through the CLI-owned development host.
+- [x] Every compiled module runs outside the checkout and contains no development state or secrets.
+- [x] Antiky Town inspection and reference render measurements remain correct.
+- [x] Stale monolithic exports, registry, scripts, and imports are removed.
+- [x] Native interaction, the recorded capture limitation, docs, checks, receipt, and slice summary pass.
 
 ## Run and evidence rule
 
@@ -148,3 +149,7 @@ folders. Otherwise, duplicate the necessary game code and keep the projects inde
 - Roll back a project if it needs sibling source, adds host code, fails outside the checkout, or changes
   rendering without approved evidence.
 - Demo owners maintain game code. CLI and Studio owners maintain the development host.
+
+The packaged macOS Studio was inspected with Computer Use while it opened all three project manifests.
+Those native views displayed workstation-private absolute paths, so the run records the observations but
+does not store screenshots that would violate the output policy.
