@@ -42,12 +42,27 @@ type TestTownGameSetup = Omit<TownGameSetup, 'movement'> & {
   movement: { x: number; z: number; active: boolean };
 };
 
+type PresentationEvidence = {
+  active: boolean;
+  count: number;
+};
+
+const presentationByRuntime = new Map<string, PresentationEvidence>();
+
 function setup(runtimeInstanceId = RUNTIME_ID): TestTownGameSetup {
+  const presentation: PresentationEvidence = { active: false, count: 0 };
+  presentationByRuntime.set(runtimeInstanceId, presentation);
   return {
     canvas: {} as HTMLCanvasElement,
     renderer: {
       present(callback: () => void) {
-        callback();
+        presentation.count += 1;
+        presentation.active = true;
+        try {
+          callback();
+        } finally {
+          presentation.active = false;
+        }
       },
     } as TownGameSetup['renderer'],
     pointer: { x: 0.5, y: 0.5, down: false, active: false, dragX: 0, dragY: 0, clicked: false },
@@ -88,6 +103,11 @@ function createReferenceTownBuilder(evidenceByRuntime: Map<string, RuntimeEviden
         total += movement.x + movement.z;
       },
       render() {
+        assert.equal(
+          presentationByRuntime.get(townSetup.runtimeInstanceId)?.active,
+          true,
+          'Town rendering must run inside the renderer presentation boundary',
+        );
         evidence.renders += 1;
         const replacement = options.slotZeroPower?.readPendingBasePower();
         if (replacement !== undefined) {
@@ -266,8 +286,10 @@ test('Town pause reasons, retry-safe step, and resumed platform time preserve st
   )(townSetup);
   const host = getAntikyTownGameHost(instance);
   const evidence = evidenceByRuntime.get(townSetup.runtimeInstanceId);
+  const presentation = presentationByRuntime.get(townSetup.runtimeInstanceId);
   assert.ok(host);
   assert.ok(evidence);
+  assert.ok(presentation);
 
   instance.frame(1);
   instance.frame(1 + FIXED_STEP_SECONDS);
@@ -281,11 +303,13 @@ test('Town pause reasons, retry-safe step, and resumed platform time preserve st
   assert.deepEqual(host.readStatus().pauseReasons, ['user']);
   instance.frame(100);
   assert.equal(evidence.renders, 2);
+  assert.equal(presentation.count, 2, 'paused frames must preserve the last presented canvas');
 
   const stepped = host.step(1);
   assert.equal(stepped.code, 'STEPPED');
   assert.equal(evidence.updates.length, 2);
   assert.equal(evidence.renders, 3);
+  assert.equal(presentation.count, 3, 'a step must present exactly one newly rendered frame');
   assert.equal(host.step(1).code, 'STALE_COMPLETED_STEP');
   assert.equal(evidence.updates.length, 2);
   assert.equal(evidence.renders, 3);

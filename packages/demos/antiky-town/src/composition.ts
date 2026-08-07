@@ -111,7 +111,12 @@ export function createAntikyTownDemoFactory(
         services: [service, ownedTown],
       });
       const ownedSession = session;
-      const host = createAntikyTownGameHost(ownedSession, ownedTown, setup.movement);
+      const host = createAntikyTownGameHost(
+        ownedSession,
+        ownedTown,
+        setup.movement,
+        (render) => setup.renderer.present(render),
+      );
       const pointLightService = createSessionPointLightService(service, ownedSession);
       const inspection: GameInspectionPort = Object.freeze({
         snapshot: (state) => createGameInspectionSnapshot(state, {
@@ -142,7 +147,7 @@ export function createAntikyTownDemoFactory(
         pointLightService,
         inspection,
         frame(platformTimeSeconds: number): void {
-          if (!disposed) setup.renderer.present(() => host.present(platformTimeSeconds));
+          if (!disposed) host.present(platformTimeSeconds);
         },
         dispose(): void {
           if (disposed) return;

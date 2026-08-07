@@ -45,12 +45,20 @@ export function captureTownSemanticInput(movement: GameMovementInput): TownSeman
   });
 }
 
+// TODO(framework-game-loop): Remove this temporary driver as Framework takes ownership of
+// standardized input capture, fixed-step presentation, and pause/resume/step orchestration.
+// Antiky Town should retain only its semantic input mapping and town-system composition.
 export function createAntikyTownGameHost(
   session: EngineSession<TownSemanticInput>,
   runtime: TownRuntime,
   movement: GameMovementInput,
+  presentRender: (render: () => void) => void,
 ): AntikyTownGameHost {
   let previousPlatformTime: number | null = null;
+
+  const render = (): void => {
+    presentRender(() => runtime.render());
+  };
 
   const present = (platformTimeSeconds: number): EngineFrameResult => {
     let elapsedSeconds = platformTimeSeconds;
@@ -61,7 +69,7 @@ export function createAntikyTownGameHost(
       previousPlatformTime = platformTimeSeconds;
     }
     const result = session.advance(elapsedSeconds, captureTownSemanticInput(movement));
-    if (result.code === 'ADVANCED') runtime.render();
+    if (result.code === 'ADVANCED') render();
     return result;
   };
 
@@ -82,7 +90,7 @@ export function createAntikyTownGameHost(
       expectedCompletedStepCount,
       captureTownSemanticInput(movement),
     );
-    if (result.renderRequested) runtime.render();
+    if (result.renderRequested) render();
     return result;
   };
 
