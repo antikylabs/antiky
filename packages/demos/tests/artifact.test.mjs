@@ -12,6 +12,12 @@ const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
 const demos = ['antiky-town', 'town-study', 'shader-study'];
 const execute = promisify(execFile);
 
+async function buildDemo(slug) {
+  await execute('npm', ['run', 'build', '--workspace', `@antiky/demo-${slug}`], {
+    cwd: repositoryRoot,
+  });
+}
+
 function sha256(source) {
   return createHash('sha256').update(source).digest('hex');
 }
@@ -20,6 +26,7 @@ test('every demo build describes a bounded portable game artifact', async () => 
   const temporaryRoot = await mkdtemp(path.join(tmpdir(), 'antiky-demo-artifacts-'));
   try {
     for (const slug of demos) {
+      await buildDemo(slug);
       const dist = path.join(repositoryRoot, 'packages/demos', slug, 'dist');
       const manifestSource = await readFile(path.join(dist, 'antiky-artifact.json'), 'utf8');
       const manifest = JSON.parse(manifestSource);
@@ -49,14 +56,10 @@ test('every demo build describes a bounded portable game artifact', async () => 
 
 test('rebuilding the same source produces the same artifact manifest and bytes', async () => {
   const dist = path.join(repositoryRoot, 'packages/demos/shader-study/dist');
-  await execute('npm', ['run', 'build', '--workspace', '@antiky/demo-shader-study'], {
-    cwd: repositoryRoot,
-  });
+  await buildDemo('shader-study');
   const firstManifest = await readFile(path.join(dist, 'antiky-artifact.json'));
   const firstEntry = await readFile(path.join(dist, 'antiky.game.js'));
-  await execute('npm', ['run', 'build', '--workspace', '@antiky/demo-shader-study'], {
-    cwd: repositoryRoot,
-  });
+  await buildDemo('shader-study');
   assert.deepEqual(await readFile(path.join(dist, 'antiky-artifact.json')), firstManifest);
   assert.deepEqual(await readFile(path.join(dist, 'antiky.game.js')), firstEntry);
 });
