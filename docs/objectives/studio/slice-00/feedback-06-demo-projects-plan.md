@@ -4,22 +4,16 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` until Feedback 01 and Feedback 02 define and create projects |
+| Status | `IN PROGRESS` |
 | Feedback source | [Slice 00 feedback, line 6](slice-feedback.txt) |
-| Outcome | Each demo is a self-contained Antiky project that can initialize, launch, test, and compile by itself |
-| Owner input | The source feedback supplies the product direction |
-| Architecture decisions | Feedback 01 project-boundary ADR and [Framework 0016](../../../adr/framework/0016-give-platform-work-to-game-host_H.md) |
-| Depends on | [Feedback 01](feedback-01-open-project-plan.md) and [Feedback 02](feedback-02-init-project-plan.md) |
-| Alignment revision | `dd0eda5d8c4f4273e0cab8b3a5bfa843b8d17b40` |
-| Review date | `2026-08-06` |
+| Outcome | Each public demo is a self-contained Antiky game project that compiles one portable game module |
+| Owner input | The source feedback and demo-game goal supply the product direction |
+| Architecture decisions | [Framework 0020](../../../adr/framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md), [CLI 0002](../../../adr/cli/0002-supply-cli-project-services-through-a-library-api_H.md), [CLI 0003](../../../adr/cli/0003-make-cli-project-services-the-development-authority_H.md), and [Studio 0006](../../../adr/studio/0006-use-cli-project-services-directly_H.md) |
+| Depends on | Completed project selection and initialization work |
+| Alignment revision | `168bff92fad0571e85c7656c9dfc76dee07dff03` |
+| Review date | `2026-08-07` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-06/verify.mjs` |
 | Evidence | `docs/objectives/studio/slice-00/outputs/studio-s00-feedback-06-{run-id}/receipt.json` |
-
-Goal command:
-
-```text
-/goal implement docs/objectives/studio/slice-00/feedback-06-demo-projects-plan.md until complete
-```
 
 ## Feedback
 
@@ -31,155 +25,126 @@ Every public demo proves the same project workflow that an independent Antiky ga
 
 ### Definition of self-contained
 
-A demo project owns its `.antiky` manifest, package manifest, entry page, source, public assets, shader
-inputs and outputs, build config, tests, and documentation in one folder. It can use declared package
-dependencies such as Antiky Framework and BroMetal. It cannot use relative imports from another demo,
-the website, or a slice folder. Its compiled output contains every runtime file it needs.
+A demo owns its `.antiky` manifest, package manifest, game entry, source, assets, shader inputs and
+outputs, build configuration, tests, and documentation. It can use declared package dependencies.
+It cannot use relative imports from another demo, the website, or an objective folder.
+
+The project compiles its default game-module entry to `dist/antiky.game.js`. The output contains all
+required runtime chunks and assets. The project does not contain a server, canvas host, raw-input
+adapter, process supervisor, inspection server, or MCP endpoint.
 
 ### Observable behavior
 
-- `antiky dev --project <demo>/<name>.antiky` launches each demo from its own folder.
-- Studio opens each demo by its `.antiky` file and reaches a ready runtime.
-- The demo package's normal build command creates one static browser artifact.
-- The artifact runs from a clean HTTP server outside the source checkout.
-- The demo package's tests run without starting the website or another demo.
-- Adding a demo means adding one project folder and one deliberate website catalog entry.
+- `antiky dev --project <demo>/<name>.antiky` compiles the game and mounts it in the CLI-owned host.
+- Studio opens the same manifest and starts the same CLI project service without a shell command.
+- Each package build emits one portable ESM game module and all required runtime files.
+- A clean test host can mount the compiled module outside the source checkout.
+- Game tests run without a server, website, Studio, or sibling demo source.
+- Adding a demo needs one project folder and one deliberate website catalog entry.
 
 ### Non-goals
 
+- Do not add host or delivery code to a demo project.
 - Do not name demos after implementation slices or move slice verification into demos.
-- Do not make the website the game host, bundler, or source owner.
 - Do not make one demo import private source from another demo.
-- Do not promote town-specific code into Framework only to remove a relative import.
+- Do not move town-specific code into Framework only to remove a relative import.
 - Do not publish demo npm packages in this plan.
 
 ## Chosen shape
 
-Convert `packages/demos` from one source package into a folder of independent npm workspaces.
+Convert `packages/demos` from one source package into three independent npm workspaces:
 
 ```text
 packages/demos/
-  antiky-town/   -> package.json + antiky-town.antiky + src + public + tests + dist
-  town-study/    -> package.json + town-study.antiky + src + public + tests + dist
-  shader-study/  -> package.json + shader-study.antiky + src + public + tests + dist
+  antiky-town/   -> package.json + antiky-town.antiky + src + assets + tests + dist
+  town-study/    -> package.json + town-study.antiky + src + assets + tests + dist
+  shader-study/  -> package.json + shader-study.antiky + src + assets + tests + dist
 ```
 
-The root workspace list includes `packages/demos/*`. Each project has the same small scripts:
-`dev`, `build`, `test`, `typecheck`, `shaders`, and `shaders:watch` when shaders apply. Vite supplies
-the browser host and static build. Antiky CLI supplies development supervision and inspection.
+The root workspace list includes `packages/demos/*`. Vite compiles the game entries in library mode.
+In development, each `development.command` runs that compiler in watch mode. It does not start a Vite
+HTTP server. The CLI project service supplies the canvas host, loopback server, inspection service,
+MCP endpoint, process supervision, and cleanup. Studio starts the same service through its packaged
+library worker.
 
-Use a declared private package only when two demos have one cohesive reusable module. The current
-Antiky Town relative imports from Town Study must first pass a cohesion probe. If the shared town
-renderer has a narrow stable input and two real consumers, move it to one private package outside
-the demo folders. Otherwise, keep each demo independent even when that needs deliberate duplication.
+Antiky Town and Town Study currently share a cohesive town renderer. If the renderer keeps one narrow
+input and two real consumers, move it to one declared private support package outside both demo
+folders. Otherwise, duplicate the necessary game code and keep the projects independent.
 
 ### Options considered
 
-- **Independent project workspaces — selected.** Each demo proves the external project, Studio, CLI,
-  test, and build path.
-- **Keep one slug-driven demo package — rejected.** It preserves the website and sibling-source
-  coupling reported in the feedback.
-- **Move demo code into Framework — rejected.** Town and study code does not become reusable engine
-  code only because the current folder structure is inconvenient.
-
-## Required reading
-
-- [Source feedback](slice-feedback.txt)
-- [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
-- [Feedback 01](feedback-01-open-project-plan.md) and [Feedback 02](feedback-02-init-project-plan.md)
-- [Development harness research](../../general-stuff/DEV_HARNESS_RESEARCH_A.md)
-- [Framework 0016](../../../adr/framework/0016-give-platform-work-to-game-host_H.md)
-- [ADRs under review](../../../adr/UNDER_REVIEW_A.md)
-- [Website design](../../../../packages/website/DESIGN.md) and [Good Engineering](../../../GOOD_ENGINEERING_H.md)
-
-## Research and decision review
-
-- [Phaser Create Game](https://phaser.io/tutorials/create-game-app) creates normal local projects with
-  their own template and launch instructions. Antiky demos must prove the same external workflow.
-- [Unreal projects](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-projects-and-gameplay)
-  keep each game in one self-contained project directory with a named project file.
-- [Godot](https://docs.godotengine.org/en/latest/tutorials/editor/project_manager.html) installs demos
-  as normal projects that users can open and edit.
-- [Bevy examples](https://github.com/bevyengine/bevy/blob/main/examples/README.md) can run and build as
-  named Cargo examples, but Antiky chooses full project folders because Studio and website artifacts
-  need real project boundaries.
-- [PlayCanvas](https://developer.playcanvas.com/user-manual/editor/projects/downloading/) distinguishes
-  an editable npm project from a self-hostable static build. Antiky projects produce both workflows.
-- [Vite production builds](https://vite.dev/guide/build) produce static artifacts and support relative
-  asset bases. Antiky uses Vite instead of creating a bundler.
-- `npm ls brometal` and the [npm registry](https://registry.npmjs.org/brometal/latest) both report
-  BroMetal `0.15.0` on `2026-08-06`. Each project keeps BroMetal shader compilation at build time. The
-  migration must preserve draw counts, uploads, resources, and zero normal GPU readback.
-- `UNDER_REVIEW_A.md` candidate 16 applies to the compiled artifact. Feedback 07 records the narrow
-  artifact ADR before the website consumes it. This plan proves ordinary static builds without fixing
-  the later website staging manifest or embed protocol.
+- **Independent game-project workspaces — selected.** Each demo proves the external project, CLI,
+  Studio, test-host, and build path.
+- **Keep one slug-driven demo package — rejected.** It preserves sibling-source and website coupling.
+- **Give each project a Vite page and server — rejected.** It restores the host code that Framework
+  0020 assigns to delivery targets.
+- **Move demo code into Framework — rejected.** Demo-specific rendering is not framework behavior.
 
 ## Current state
 
-- `@antiky/demos` owns one catalog, registry, React host, runtime, all demo sources, and all demo tests.
-- The focused Vite host selects a demo slug through environment state.
-- Antiky Town imports Town Study source by relative path.
-- The website imports `@antiky/demos/catalog` and `@antiky/demos/react` source directly.
-- Only the repository root has development configuration. No demo has a `.antiky` file or build output.
+- The old generic demo host and React host were deleted and must stay deleted.
+- `@antiky/demos` still contains stale runtime imports, registry exports, scripts, and website coupling.
+- Antiky Town imports Town Study source by a relative path.
+- The website still imports demo catalog and runtime source.
+- No public demo owns a `.antiky` manifest or portable game-module build.
 
 ## Deliverables
 
-- Create one workspace folder and one valid `.antiky` manifest for each deliberate public demo.
-- Move each demo entry, assets, shaders, build config, tests, and short README into its project.
-- Give each demo a canvas-only Vite application with no website presentation dependency.
-- Resolve all cross-demo relative imports through independence or one proved private package.
-- Remove the slug dispatcher, monolithic registry, and package-wide shader/test scripts after parity.
-- Add ownership-boundary tests that forbid imports from website, slice docs, or sibling demo source.
-- Preserve Framework inspection for Antiky Town without adding inspection obligations to render studies.
-- Update general demo, CLI, and Studio documentation. Keep slice verification in objective folders.
+- Create one workspace folder and one valid `.antiky` manifest for each public demo.
+- Give each demo one default entry that implements `GameModuleEntry` from `@antiky/framework/game`.
+- Compile `dist/antiky.game.js` and required chunks or assets without a project-owned host.
+- Move each demo's shaders, assets, tests, package data, and short README into its project.
+- Resolve all sibling imports through independence or one proved private support package.
+- Remove the stale registry, runtime exports, deleted-host scripts, and monolithic package after parity.
+- Add boundary tests that reject website, objective-folder, CLI, Studio, server, and sibling-demo imports.
+- Preserve Antiky Town engine-session and point-light inspection through the generic game-module contract.
+- Update general demo, CLI, and Studio documentation.
 
 ## Safe behavior
 
-- Build each artifact into its own ignored `dist/` folder. Never write generated output into source.
-- Resolve project-relative paths from the `.antiky` file and reject escapes.
-- Preserve all current public routes and explicitly approved metadata until Feedback 07 switches them.
-- Keep old demo host available until all three independent project builds and references pass.
-- Do not copy secrets, local descriptors, `.antiky/dev-session.json`, source maps with private paths, or
-  development credentials into static artifacts.
+- Preserve the host deletion. Do not restore `packages/demos/dev-host`, the old React host, or the old
+  generic demo runtime.
+- Build each module into its own ignored `dist/` folder. Never write generated output into source.
+- Keep local descriptors, credentials, commands, and absolute paths out of compiled output.
+- Resolve project-relative paths from the `.antiky` manifest and reject escapes.
+- Preserve current public routes and approved website metadata until Feedback 07 switches consumers.
 
 ## Implementation checkpoints
 
 | ID | Deliverable | Main proof | Commit message |
 | --- | --- | --- | --- |
-| `CP-00` | Capture all demo references, dependency graph, artifact needs, and render measurements | Baseline facts and import graph | `Qualify demo projects` |
-| `CP-01` | Convert Shader Study as the smallest complete project | Standalone dev, test, and build | `Make Shader Study a project` |
-| `CP-02` | Convert Town Study and resolve its reusable boundary | Standalone parity and render measures | `Make Town Study a project` |
-| `CP-03` | Convert Antiky Town with Framework inspection and session parity | Studio, CLI, MCP, and render parity | `Make Antiky Town a project` |
-| `CP-04` | Remove monolithic host and update docs | Boundary tests and complete check | `Complete demo project migration` |
+| `CP-00` | Add failing ownership tests and record the current dependency graph | Boundary failures and baseline facts | `Qualify demo projects` |
+| `CP-01` | Convert Shader Study to the game-module contract | CLI host, test host, type check, and build | `Make Shader Study a project` |
+| `CP-02` | Convert Town Study and isolate shared town rendering | Independent imports and render parity | `Make Town Study a project` |
+| `CP-03` | Convert Antiky Town and preserve Framework inspection | Studio, CLI, MCP, controls, and render parity | `Make Antiky Town a project` |
+| `CP-04` | Remove stale monolithic coupling and update docs | Boundary tests and repository check | `Complete demo project migration` |
 
 ## Test plan
 
-- Add a failing boundary test first for the current cross-demo and website-source coupling.
-- From each demo directory, run install-compatible package scripts, `antiky dev`, tests, type check,
-  shader production compile, and static build.
-- Copy each `dist` to a clean temporary directory. Serve it over HTTP and verify all chunks, shaders,
-  textures, sprites, fonts, workers, and routes load without source checkout access.
-- Open each `.antiky` file in Studio. Verify project name, game frame, terminal root, diagnostics, and cleanup.
-- Preserve Antiky Town world inspection, event log, controls, MCP tools, fixed-step behavior, render counts,
-  upload bytes, resources, and no normal GPU readback.
-- Use browser control and Computer Use or owner review for all three visible demos at desktop and narrow
-  sizes. Save actual visual comparisons; code review is not visual evidence.
-- Run each package check independently and then `npm run check` from the repository root.
+- Add a failing boundary test first for current sibling, website, and deleted-host coupling.
+- Run test, type-check, shader, development-build, and production-build scripts in every demo.
+- Start every manifest with the CLI project service and fetch the CLI-owned host and compiled module.
+- Mount every output with a clean test host outside the checkout.
+- Open every manifest in Studio and verify managed startup, game frame, diagnostics, and cleanup.
+- Preserve Antiky Town world inspection, event history, controls, MCP tools, fixed-step behavior, render
+  counts, upload bytes, resource counts, and zero normal GPU readback.
+- Capture actual desktop and narrow visual evidence for all three demos.
+- Run each package check and then `npm run check` from the repository root.
 
 ## Completion checks
 
-- [ ] Every demo is a real `.antiky` project with one owned folder.
-- [ ] Every demo launches, tests, type-checks, and compiles without the website or a sibling demo source.
-- [ ] Every static artifact runs outside the checkout and contains no development state or secrets.
-- [ ] Studio opens every demo through the normal project workflow.
-- [ ] Antiky Town inspection and all reference render measurements remain correct.
-- [ ] The old monolithic registry and focused slug host are removed after parity.
+- [ ] Every public demo is one real `.antiky` game project with one owned folder.
+- [ ] Every demo tests, type-checks, and compiles without a project-owned host or sibling demo source.
+- [ ] CLI and Studio mount the same compiled module through the CLI-owned development host.
+- [ ] Every compiled module runs outside the checkout and contains no development state or secrets.
+- [ ] Antiky Town inspection and reference render measurements remain correct.
+- [ ] Stale monolithic exports, registry, scripts, and imports are removed.
 - [ ] Actual visual evidence, docs, checks, receipt, and slice summary pass.
 
 ## Run and evidence rule
 
-- Use one isolated port pair and output directory for each demo. Never overlap their descriptors.
-- Keep the current `@antiky/demos` host as the rollback point through CP-03.
-- Roll back a project if it needs another demo's source, fails outside the checkout, or changes rendering
-  without approved reference evidence.
-- Demo owners maintain each project. Framework maintainers own only reusable engine behavior.
+- Use one isolated port pair and output directory for each demo.
+- Keep the host deletion as a fixed boundary throughout the migration.
+- Roll back a project if it needs sibling source, adds host code, fails outside the checkout, or changes
+  rendering without approved evidence.
+- Demo owners maintain game code. CLI and Studio owners maintain the development host.

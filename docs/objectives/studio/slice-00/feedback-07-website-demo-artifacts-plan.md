@@ -4,22 +4,16 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `NOT READY` until Feedback 06 creates standalone demo artifacts; CP-00 must accept the artifact ADR |
+| Status | `IN PROGRESS` with Feedback 06 |
 | Feedback source | [Slice 00 feedback, line 7](slice-feedback.txt) |
-| Outcome | The website displays validated compiled demo artifacts without importing demo source code |
-| Owner input | The source feedback selects compiled artifacts; no presentation choice remains open |
-| Architecture decisions | New narrow browser-demo artifact ADR, [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md), and `UNDER_REVIEW_A.md` candidate 16 |
+| Outcome | The website mounts validated compiled game modules without importing demo source |
+| Owner input | The source feedback and demo-game goal supply the product direction |
+| Architecture decisions | [Framework 0020](../../../adr/framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md) and [Studio 0002](../../../adr/studio/0002-tauri-portable-web-editor_H.md) |
 | Depends on | [Feedback 06](feedback-06-demo-projects-plan.md) |
-| Alignment revision | `dd0eda5d8c4f4273e0cab8b3a5bfa843b8d17b40` |
-| Review date | `2026-08-06` |
+| Alignment revision | `168bff92fad0571e85c7656c9dfc76dee07dff03` |
+| Review date | `2026-08-07` |
 | Complete check | `node docs/objectives/studio/slice-00/verification/feedback-07/verify.mjs` |
 | Evidence | `docs/objectives/studio/slice-00/outputs/studio-s00-feedback-07-{run-id}/receipt.json` |
-
-Goal command:
-
-```text
-/goal implement docs/objectives/studio/slice-00/feedback-07-website-demo-artifacts-plan.md until complete
-```
 
 ## Feedback
 
@@ -27,161 +21,129 @@ Goal command:
 
 ## Outcome
 
-The website presents each approved demo as an immutable browser build produced by that demo project.
+The website supplies a delivery host and mounts each approved compiled game module on a
+website-owned canvas.
 
 ### Observable behavior
 
-- The website build first consumes already compiled demo outputs or builds them through their public
-  project build commands.
-- The website does not import demo runtime, renderer, shader, React, registry, or test source.
-- Each demo route loads a staged static artifact through a narrow iframe boundary.
-- The website keeps its editorial title, description, poster, activation, maturity, and navigation.
-- Activation, pause, resume, ready, error, and bounded measurement messages cross one versioned protocol.
-- A stale, missing, incompatible, or corrupt artifact fails the website build with the demo slug and code.
+- The website build stages already compiled demo outputs through their public build commands.
+- Website production code does not import demo source, renderer source, shaders, tests, or registry code.
+- Each demo stage imports one validated `antiky.game.js` artifact and mounts it on its own canvas.
+- The website host owns raw input, presentation timing, visibility, activation, and disposal.
+- The website keeps editorial title, description, poster, maturity, order, and navigation data.
+- A missing, stale, incompatible, oversized, or corrupt artifact fails staging with a stable code and
+  demo slug.
 
 ### Non-goals
 
-- Do not make the website compile game source inside Next.js.
+- Do not compile game source inside Next.js.
+- Do not package a second game host inside each demo artifact.
 - Do not publish arbitrary local projects or discover demos from the filesystem at runtime.
-- Do not deploy unreviewed demos, source maps with private paths, or development services.
-- Do not design native game packages, installers, remote hosting, or a general release marketplace.
-- Do not move editorial metadata into the game project manifest.
+- Do not deploy source maps with private paths or any development service or credential.
+- Do not move website publication approval into the game project manifest.
 
 ## Chosen shape
 
-Each demo build emits `dist/index.html`, hashed runtime assets, and one bounded `antiky-artifact.json`.
-The website staging step validates the manifest and digests, then copies the immutable directory into an
-ignored build-input folder. Next.js copies that folder into its output. The demo route activates it in
-an iframe.
+Each demo emits `dist/antiky.game.js`, optional hashed runtime files, and one bounded
+`antiky-artifact.json`. The website staging command validates every declared file and copies the
+immutable artifact into an ignored build-input folder. Next.js publishes that folder. A small
+website-owned host dynamically imports the module and calls its default `GameModuleEntry`.
 
 ```text
-demo source -> project build -> dist + artifact manifest -> validation and staging
-                                                               |
-website editorial catalog -> Next.js build --------------------+-> `/demo-builds/<slug>/index.html`
-website stage <-> versioned postMessage protocol <-> compiled demo iframe
+demo source -> game-module build -> dist + artifact manifest -> validation and staging
+                                                                    |
+website editorial catalog -> Next.js build -------------------------+-> `/demo-builds/<slug>/`
+                                                                    |
+website canvas host -> import antiky.game.js -> mount game instance
 ```
 
-The artifact manifest records schema version, project name, slug, source revision, entry file, base
-path, file paths, sizes, SHA-256 digests, WebGPU requirement, viewport, and protocol version. It does
-not contain local absolute paths, commands, credentials, timestamps that break reproducibility, or
-development-session data.
+The artifact manifest records schema version, project name, slug, source revision, entry file, file
+paths, sizes, SHA-256 digests, WebGPU requirement, viewport, and game-module contract version. It does
+not contain commands, local paths, timestamps, credentials, development-session data, or a host page.
 
-The website catalog remains the source for public title, copy, tags, poster, order, and publication
-approval. A build artifact cannot publish itself by appearing on disk.
+The website catalog remains the authority for public title, copy, tags, poster, order, and publication
+approval. An artifact cannot publish itself by appearing on disk.
 
 ### Options considered
 
-- **Static artifact in an iframe — selected.** It preserves a standalone game build and keeps the
-  website from becoming the game's module loader. A small message protocol supplies host controls.
-- **Compiled ESM mount function — rejected for now.** It couples the artifact to website React and DOM
-  lifecycle details and does not prove that the game runs by itself.
-- **Continue source imports — rejected.** Next.js remains the demo compiler and hides missing runtime
-  files until website build or deployment.
-
-## Required reading
-
-- [Source feedback](slice-feedback.txt)
-- [Studio objective guidance](../AGENTS.md) and [slice workflow](../../antiky-town/SLICE_WORKFLOW_A.md)
-- [Feedback 06](feedback-06-demo-projects-plan.md)
-- [ADRs under review](../../../adr/UNDER_REVIEW_A.md) in full, especially candidate 16
-- [Website design](../../../../packages/website/DESIGN.md) and [website product rules](../../../../packages/website/PRODUCT.md)
-- [Studio architecture](../../../architecture/studio/overview_A.md)
-- [Good Engineering](../../../GOOD_ENGINEERING_H.md)
-
-## Research and decision review
-
-- [PlayCanvas](https://developer.playcanvas.com/user-manual/editor/projects/downloading/) emits a
-  self-contained static package for direct hosting and a separate editable npm project. Antiky uses
-  the same source-versus-build distinction.
-- [Vite](https://vite.dev/guide/build) builds a static `index.html` application and rewrites assets for
-  a configured base. Relative base support lets one artifact run at its staged website path.
-- [Vite build options](https://vite.dev/config/build-options.html) can emit a bundler manifest, but
-  Antiky needs a separate product-level manifest for identity, complete files, hashes, and protocol.
-- Godot and Unreal export playable builds from editable projects. The website consumes an export, not
-  the editor project.
-- [Phaser templates](https://phaser.io/tutorials/create-game-app) use `npm run build` for production
-  output. [Bevy's web path](https://github.com/bevyengine/bevy/blob/main/examples/README.md) also creates
-  files that must be served over HTTP. Antiky uses the same explicit artifact gate.
-- Unity build output and project source are separate. Antiky preserves that ownership boundary.
-- `npm ls brometal` and the [npm registry](https://registry.npmjs.org/brometal/latest) both report
-  BroMetal `0.15.0` on `2026-08-06`. Shader compilation stays inside each demo build. The website
-  receives only browser-ready WGSL and runtime code, never the BroMetal compiler.
-- `UNDER_REVIEW_A.md` candidate 16 is necessary. Before code work, record and accept a narrow ADR for
-  the browser-demo artifact and embed protocol. Do not use this feedback to decide all shipped games.
+- **Compiled ESM game module — selected.** It gives the website the same portable module boundary as
+  CLI, Studio, and test hosts.
+- **Static iframe application — rejected.** It packages a second host with the game and conflicts with
+  Framework 0020.
+- **Continue source imports — rejected.** It makes Next.js the demo compiler and hides incomplete
+  standalone builds.
 
 ## Current state
 
-- The website imports `@antiky/demos/catalog`, `@antiky/demos/react`, and a generated shader module.
-- `DemoDeck` mounts `DemoStage`, which loads demo source from the monolithic registry at runtime.
-- Website `prebuild` invokes the demo package's shader compiler, then Next.js compiles game source.
-- There is no standalone demo artifact, artifact manifest, staging gate, or embed protocol.
+- The website imports `@antiky/demos/catalog`, `@antiky/demos/react`, and generated shader source.
+- Website demo components depend on the deleted monolithic React host.
+- Website build scripts invoke shader work in the old demo package.
+- There is no compiled game-module manifest, staging validator, or website-owned module host.
 
 ## Deliverables
 
-- Record the narrow browser-demo artifact and iframe protocol in an accepted ADR.
-- Add deterministic artifact-manifest generation to each demo build.
-- Add one durable website staging command. It validates allowed slugs, exact files, hashes, sizes,
-  entry path, base path, source revision, and protocol compatibility.
+- Add deterministic artifact-manifest generation to every public demo build.
+- Add one staging command that validates approved slugs, exact files, hashes, sizes, entry path,
+  source revision, contract version, symlinks, and path containment.
 - Keep staged output generated and ignored. Do not commit duplicate compiled games to website source.
-- Replace source imports and `DemoStage` runtime coupling with an iframe-based compiled-demo stage.
-- Add a small strict message adapter for activate, pause, resume, ready, error, and measurements.
-- Keep poster-first activation, reduced motion, offscreen pause, keyboard controls, text states, and
-  44-pixel mobile actions from the website design system.
-- Remove website shader compilation and demo-source package dependencies after artifact parity.
+- Move editorial catalog data into the website and keep it independent from game manifests.
+- Replace source-coupled demo components with a website-owned canvas host for `GameModuleEntry`.
+- Preserve poster-first activation, reduced motion, offscreen pause, keyboard and pointer controls,
+  text states, and 44-pixel mobile actions.
+- Remove website shader compilation and demo-source dependencies after parity.
 - Update website build documentation and general demo integration guidance.
 
 ## Safe behavior
 
 - Accept only catalog-approved slugs and files inside one staged artifact root.
-- Reject symlinks, path traversal, extra files, missing files, digest mismatch, oversized artifacts,
-  incompatible schemas, and source revisions that do not match the build input.
-- Validate `event.origin`, `event.source`, protocol version, slug, and bounded payload shape for every
-  iframe message. Do not interpret arbitrary messages as engine state.
-- Do not expose inspection, MCP, terminal, credentials, or local file access to a website demo.
-- A failed artifact keeps its verified poster, plain error text, and retry/build guidance.
-- Keep the last passing website build as the software rollback artifact.
+- Reject symlinks, path traversal, extra or missing files, digest mismatch, excessive size,
+  incompatible schemas, and stale source revisions.
+- Import only same-origin staged modules. Do not accept arbitrary module URLs from runtime messages.
+- Validate the module default export and returned game instance before the presentation loop starts.
+- Always call `dispose`, cancel presentation callbacks, and remove platform listeners on deactivation.
+- Do not expose inspection, MCP, terminal, credentials, or local-file access to website demos.
+- A failed module keeps its verified poster and plain error text.
 
 ## Implementation checkpoints
 
 | ID | Deliverable | Main proof | Commit message |
 | --- | --- | --- | --- |
-| `CP-00` | Capture current website/demo behavior and accept the narrow artifact ADR | Reference captures, import graph, and ADR | `Define browser demo artifacts` |
-| `CP-01` | Add deterministic manifests and clean standalone artifacts | Rebuild digest and out-of-checkout tests | `Build demo artifacts` |
-| `CP-02` | Add staging validation and remove source imports | Corruption, path, size, and import-boundary tests | `Stage demos for the website` |
-| `CP-03` | Add compiled-demo stage and protocol while preserving website behavior | Browser, message, accessibility, and visual tests | `Display compiled demos` |
-| `CP-04` | Remove old coupling, update docs, and verify production output | Clean website build and receipt | `Verify compiled website demos` |
+| `CP-00` | Add failing website/demo import-boundary tests | Current source imports fail | `Qualify compiled demo delivery` |
+| `CP-01` | Add deterministic manifests and clean module artifacts | Rebuild digest and out-of-checkout tests | `Build demo artifacts` |
+| `CP-02` | Add strict staging and move editorial catalog data | Corruption and boundary tests | `Stage demos for the website` |
+| `CP-03` | Add the website canvas host and preserve presentation behavior | Host lifecycle, accessibility, and visual tests | `Display compiled demos` |
+| `CP-04` | Remove old coupling and verify production output | Clean build, receipt, and evidence | `Verify compiled website demos` |
 
 ## Test plan
 
-- Add a failing import-boundary test first for the current website-to-demo-source imports.
-- Build each demo twice from identical source. Compare the complete artifact file list and digests.
-- Serve each artifact outside the checkout. Test nested base paths, all assets, WebGPU startup, errors,
-  disposal, and no source or development-service dependency.
-- Test missing manifest, unknown field, bad digest, extra file, symlink, traversal, excessive size,
-  incompatible protocol, unpublished slug, stale revision, and partial staging cleanup.
-- Test iframe source and origin validation, malformed messages, stale messages, duplicate ready, pause,
-  resume, offscreen behavior, reduced motion, retry, and disposal.
-- Verify that the production website output contains the approved artifacts and no demo TypeScript,
-  test files, source maps with private paths, credentials, or `.antiky` development descriptors.
-- Use browser control and owner-reviewed visual captures for poster, activation, live demo, measurements,
-  pause, failure, desktop, narrow layout, zoom, keyboard, and reduced motion.
-- Run all demo builds and tests, website type check and production build, website tests, and `npm run check`.
+- Add a failing import-boundary test first for current website-to-demo-source imports.
+- Build each demo twice from identical source and compare every file path and digest.
+- Copy each artifact outside the checkout and mount it with a clean host.
+- Test missing manifests, unknown fields, bad digests, extra files, symlinks, traversal, excessive size,
+  incompatible contracts, unpublished slugs, stale revisions, and partial staging cleanup.
+- Test invalid module exports, invalid game instances, activation, offscreen pause, reduced motion, retry,
+  listener cleanup, presentation cancellation, and disposal.
+- Verify production output contains approved artifacts and no demo TypeScript, tests, private source maps,
+  credentials, descriptors, inspection endpoints, or MCP code.
+- Capture actual poster, activation, live game, measurement, error, desktop, narrow, zoom, keyboard, and
+  reduced-motion evidence.
+- Run all demo builds and tests, website type check and production build, and `npm run check`.
 
 ## Completion checks
 
-- [ ] The website consumes only validated compiled demo artifacts.
-- [ ] No website production path imports demo runtime or renderer source.
-- [ ] Each artifact is deterministic, complete, bounded, and runnable outside the checkout.
-- [ ] Only the website editorial catalog can approve public display.
-- [ ] The embed protocol is versioned, strict, origin-checked, and free of development authority.
+- [ ] The website consumes only validated compiled game-module artifacts.
+- [ ] No website production path imports demo source or compiles game code.
+- [ ] Every artifact is deterministic, complete, bounded, and runnable outside the checkout.
+- [ ] Only the website editorial catalog approves public display.
+- [ ] The website host owns canvas, raw input, timing, visibility, and cleanup.
 - [ ] Poster-first, accessibility, responsive, pause, error, and visual behavior match the reference.
-- [ ] The old source-coupled host and website shader compile are removed after parity.
+- [ ] Old source coupling and website shader compilation are removed.
 - [ ] Actual browser evidence, docs, production build, receipt, and slice summary pass.
 
 ## Run and evidence rule
 
-- Build into isolated demo outputs and stage into one empty temporary website input for each attempt.
-- Keep the current source-mounted website build as the rollback point through CP-03.
-- Roll back if an artifact is nondeterministic, incomplete, unsafe, unpublished, visually regressed, or
-  dependent on repository source at runtime.
-- Demo owners own artifacts. Website maintainers own catalog approval, staging, and presentation.
+- Build into isolated demo outputs and stage into one empty temporary input for each attempt.
+- Keep each last passing artifact as the software rollback point.
+- Roll back if an artifact is nondeterministic, unsafe, unpublished, visually regressed, or dependent on
+  source checkout files at runtime.
+- Demo owners own compiled modules. Website maintainers own catalog approval and the delivery host.

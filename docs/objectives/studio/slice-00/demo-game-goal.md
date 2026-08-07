@@ -28,7 +28,7 @@ AC:
    - [CLI 0002](../../../adr/cli/0002-supply-cli-project-services-through-a-library-api_H.md)
    - [CLI 0003](../../../adr/cli/0003-make-cli-project-services-the-development-authority_H.md)
    - [Studio 0006](../../../adr/studio/0006-use-cli-project-services-directly_H.md)
-2. Update CLI package with whatever it needs to be the authoritative game host during development for an antiky package.
-3. Update studio to use that game host, importing cli package code directly and executing it to get the live host running and mcps started etc so that its entire startup loop is controlled by the studio not by studio+dev-cli-calls-over-bash-etc...
-4. Update docs/objectives/studio/slice-00/feedback-06-demo-projects-plan.md and docs/objectives/studio/slice-00/feedback-07-website-demo-artifacts-plan.md as needed after AC 1,2,3 are done.
+2. [x] Update CLI package with whatever it needs to be the authoritative game host during development for an antiky package.
+3. [x] Update studio to use that game host, importing cli package code directly and executing it to get the live host running and mcps started etc so that its entire startup loop is controlled by the studio not by studio+dev-cli-calls-over-bash-etc...
+4. [x] Update docs/objectives/studio/slice-00/feedback-06-demo-projects-plan.md and docs/objectives/studio/slice-00/feedback-07-website-demo-artifacts-plan.md as needed after AC 1,2,3 are done.
 5. Work on docs/objectives/studio/slice-00/feedback-06-demo-projects-plan.md and docs/objectives/studio/slice-00/feedback-07-website-demo-artifacts-plan.md until complete.
