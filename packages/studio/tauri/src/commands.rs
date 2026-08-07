@@ -231,6 +231,27 @@ pub(crate) async fn development_start(
 }
 
 #[tauri::command]
+pub(crate) async fn development_restart(
+    app: AppHandle,
+) -> Result<DevelopmentConnection, NativeError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<StudioState>();
+        let (manifest_path, project_revision) =
+            project_host(state.inner())?.active_project_identity()?;
+        let runtime_path = project_runtime(state.inner())?.clone();
+        let worker_path = project_service(state.inner())?.clone();
+        development_host(state.inner())?.restart(
+            &runtime_path,
+            &worker_path,
+            &manifest_path,
+            &project_revision,
+        )
+    })
+    .await
+    .map_err(|_| NativeError::native_unavailable("Studio project restart was cancelled."))?
+}
+
+#[tauri::command]
 pub(crate) async fn development_stop(app: AppHandle) -> Result<(), NativeError> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<StudioState>();

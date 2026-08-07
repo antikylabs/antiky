@@ -4,6 +4,7 @@ import { test, vi } from 'vitest';
 
 import {
   parseNativeDevelopmentConnection,
+  restartNativeDevelopmentConnection,
   startNativeDevelopmentConnection,
   stopNativeDevelopmentConnection,
 } from './native.ts';
@@ -32,7 +33,7 @@ test('native host responses are accepted only with their bounded exact shape', (
   }), /incompatible response/);
 });
 
-test('native development lifecycle uses bounded start and stop commands', async () => {
+test('native development lifecycle uses bounded start, restart, and stop commands', async () => {
   const connection = {
     schemaVersion: 1,
     developmentSessionId: 'development-studio-002',
@@ -41,16 +42,24 @@ test('native development lifecycle uses bounded start and stop commands', async 
     credential: 'b'.repeat(48),
     ownerPid: 456,
   };
-  vi.mocked(invoke).mockResolvedValueOnce(connection).mockResolvedValueOnce(undefined);
+  vi.mocked(invoke)
+    .mockResolvedValueOnce(connection)
+    .mockResolvedValueOnce({ ...connection, developmentSessionId: 'development-studio-003' })
+    .mockResolvedValueOnce(undefined);
 
   assert.equal(
     (await startNativeDevelopmentConnection()).developmentSessionId,
     'development-studio-002',
   );
+  assert.equal(
+    (await restartNativeDevelopmentConnection()).developmentSessionId,
+    'development-studio-003',
+  );
   await stopNativeDevelopmentConnection();
 
   assert.deepEqual(vi.mocked(invoke).mock.calls, [
     ['development_start'],
+    ['development_restart'],
     ['development_stop'],
   ]);
 });

@@ -25,10 +25,10 @@ pub use terminal::TerminalBounds;
 pub use terminal_theme::{TerminalTheme, resolve_terminal_theme};
 
 use commands::{
-    StudioState, development_start, development_stop, discover_development_connection,
-    project_activate, project_create, project_initial_event, project_open_recent, project_recents,
-    project_select, project_validate, terminal_close, terminal_focus, terminal_layout,
-    terminal_open, terminal_status,
+    StudioState, development_restart, development_start, development_stop,
+    discover_development_connection, project_activate, project_create, project_initial_event,
+    project_open_recent, project_recents, project_select, project_validate, terminal_close,
+    terminal_focus, terminal_layout, terminal_open, terminal_status,
 };
 use std::sync::{Mutex, OnceLock};
 use tauri::{Emitter, Manager, RunEvent, path::BaseDirectory};
@@ -156,6 +156,7 @@ pub fn run() {
             project_validate,
             project_activate,
             development_start,
+            development_restart,
             development_stop,
             discover_development_connection,
             terminal_open,

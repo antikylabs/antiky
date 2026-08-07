@@ -23,7 +23,9 @@ const brandUrl = new URL(
   import.meta.url,
 ).href;
 
-export type StudioShellActions = Pick<StudioDevelopmentActions, 'pause' | 'refresh' | 'resume' | 'step'>;
+export type StudioShellActions = Pick<StudioDevelopmentActions,
+  'pause' | 'refresh' | 'restartGame' | 'resume' | 'step' | 'stopGame'
+>;
 
 type StudioShellProps = Readonly<{
   platform: StudioPlatform;
@@ -49,6 +51,7 @@ function statusLabel(development: StudioDevelopmentState): string {
   if (development.status === 'connected') return 'Connected';
   if (development.status === 'connecting') return 'Connecting';
   if (development.status === 'stale') return 'Connection lost · stale view';
+  if (development.status === 'stopped') return 'Stopped';
   return 'Disconnected';
 }
 
@@ -84,12 +87,18 @@ export function StudioShell({
   const mode = session?.mode;
   const lifecycle = inspection?.runtime.lifecycle;
   const pending = development.pendingControl;
+  const pendingLifecycle = development.pendingLifecycle;
   const runtimeAcceptsControls = snapshot?.connection.state === 'connected'
     && (lifecycle === 'ready' || lifecycle === 'running' || lifecycle === 'paused');
   const controlsAvailable = current
     && runtimeAcceptsControls
     && session !== undefined
-    && pending === null;
+    && pending === null
+    && pendingLifecycle === null;
+  const lifecycleControlsAvailable = platform === 'native'
+    && project !== null
+    && pending === null
+    && pendingLifecycle === null;
   const connectionLabel = statusLabel(development);
   const projectLabel = context.projectName || 'No project selected';
   const gameReconnecting = snapshot !== null && (
@@ -160,13 +169,29 @@ export function StudioShell({
             onClick={() => void actions.step()}
             type="button"
           ><ControlIcon>↦</ControlIcon>{pending === 'step' ? 'Stepping' : 'Step'}</button>
+          {platform === 'native' && project && (
+            <>
+              <button
+                disabled={!lifecycleControlsAvailable}
+                onClick={() => void actions.restartGame()}
+                type="button"
+              >{pendingLifecycle === 'restart' ? 'Restarting…' : 'Restart game'}</button>
+              <button
+                disabled={!lifecycleControlsAvailable || development.status === 'stopped'}
+                onClick={() => void actions.stopGame()}
+                type="button"
+              >{pendingLifecycle === 'stop' ? 'Stopping…' : 'Stop game'}</button>
+            </>
+          )}
         </div>
         <div className="session-summary">
           <span className="state-chip">{mode ?? 'No session'}</span>
           <span>
             {session
               ? `Step ${session.clock.completedStepCount} · runtime ${inspection?.runtime.instanceId}`
-              : recoveryMessage(platform)}
+              : development.status === 'stopped'
+                ? 'Game stopped. Restart when you are ready.'
+                : recoveryMessage(platform)}
           </span>
           {development.issue && <span className="control-issue">{development.issue.message}</span>}
           {projectIssue && (
@@ -200,8 +225,10 @@ export function StudioShell({
                 )}
               </>
             ) : (
-              <EmptyState title="No live game">
-                The configured game appears here when the development host is available.
+              <EmptyState title={development.status === 'stopped' ? 'Game stopped' : 'No live game'}>
+                {development.status === 'stopped'
+                  ? 'Restart the game to start a fresh managed session.'
+                  : 'The configured game appears here when the development host is available.'}
               </EmptyState>
             )}
           </div>

@@ -82,6 +82,18 @@ function clientFor(source: DevelopmentSnapshot, calls: string[]): StudioDevelopm
       calls.push(`mcp:${source.developmentSessionId}`);
       return callLog(source.developmentSessionId);
     },
+    async requestReload() {
+      calls.push(`reload:${source.developmentSessionId}`);
+      return {
+        schemaVersion: 1,
+        actionId: 'action-reload-001',
+        developmentSessionId: source.developmentSessionId,
+        buildRevision: source.acceptedBuildRevision,
+        oldRuntimeInstanceId: source.inspection?.runtime.instanceId ?? 'runtime-old',
+        newRuntimeInstanceId: 'runtime-reloaded',
+        result: 'reloaded',
+      };
+    },
     async pauseSimulation(): Promise<DevelopmentSessionControlResult> {
       throw new Error('not used');
     },
@@ -191,6 +203,62 @@ test('repeated unavailable startup polls publish one stable disconnected state',
   coordinator.stop();
 });
 
+test('Restart game reloads a connected runtime without replacing its project service', async () => {
+  const calls: string[] = [];
+  let serviceRestarts = 0;
+  const source = snapshot('development-restart-001');
+  const coordinator = createStudioCoordinator({
+    discoverConnection: async () => connection(source.developmentSessionId),
+    createClient: () => clientFor(source, calls),
+    restartConnection: async () => { serviceRestarts += 1; },
+    schedule: () => () => undefined,
+    stopConnection: async () => undefined,
+  });
+
+  await coordinator.start();
+  await coordinator.restartGame();
+
+  assert.equal(serviceRestarts, 0);
+  assert.equal(calls.filter((call) => call.startsWith('reload:')).length, 1);
+  assert.equal(coordinator.read().status, 'connected');
+  assert.equal(coordinator.read().pendingLifecycle, null);
+  coordinator.stop();
+});
+
+test('Stop game releases the managed service and Restart game starts a fresh session', async () => {
+  const calls: string[] = [];
+  const lifecycle: string[] = [];
+  let sessionId = 'development-stop-001';
+  const coordinator = createStudioCoordinator({
+    discoverConnection: async () => connection(sessionId),
+    createClient: (current) => clientFor(snapshot(current.developmentSessionId), calls),
+    restartConnection: async () => {
+      lifecycle.push('restart');
+      sessionId = 'development-stop-002';
+    },
+    schedule: () => () => undefined,
+    stopConnection: async () => { lifecycle.push('stop'); },
+  });
+
+  await coordinator.start();
+  await coordinator.stopGame();
+
+  assert.deepEqual(lifecycle, ['stop']);
+  assert.equal(coordinator.read().status, 'stopped');
+  assert.equal(coordinator.read().snapshot, null);
+  assert.equal(coordinator.read().developmentSessionId, null);
+  assert.equal(coordinator.read().pendingLifecycle, null);
+
+  await coordinator.restartGame();
+
+  assert.deepEqual(lifecycle, ['stop', 'restart']);
+  assert.equal(coordinator.read().status, 'connected');
+  assert.equal(coordinator.read().developmentSessionId, 'development-stop-002');
+  assert.equal(coordinator.read().snapshot?.developmentSessionId, 'development-stop-002');
+  assert.equal(coordinator.read().pendingLifecycle, null);
+  coordinator.stop();
+});
+
 test('controls serialize calls and refresh immediately after an accepted result', async () => {
   const source = snapshot('development-control-001');
   let releasePause: (() => void) | undefined;
@@ -233,6 +301,7 @@ test('controls serialize calls and refresh immediately after an accepted result'
   const client: StudioDevelopmentClient = {
     async readDevelopmentSnapshot() { reads += 1; return source; },
     async getMcpCallLog() { return callLog(source.developmentSessionId); },
+    async requestReload() { throw new Error('not used'); },
     async pauseSimulation() {
       await new Promise<void>((resolve) => { releasePause = resolve; });
       return accepted;

@@ -24,6 +24,7 @@ const development: StudioDevelopmentState = {
   lastControlResult: null,
   issue: null,
   updateSequence: 1,
+  pendingLifecycle: null,
   snapshot: {
     schemaVersion: 1,
     developmentSessionId: 'development-studio-001',
@@ -154,10 +155,19 @@ const development: StudioDevelopmentState = {
   },
 };
 
+const studioActions = {
+  pause: async () => undefined,
+  refresh: async () => undefined,
+  restartGame: async () => undefined,
+  resume: async () => undefined,
+  step: async () => undefined,
+  stopGame: async () => undefined,
+};
+
 test('workspace follows the website game-first layout contract', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
       development={development}
       platform="native"
@@ -183,7 +193,7 @@ test('workspace follows the website game-first layout contract', () => {
 test('native workspace names the active project without spending a row on manifest metadata', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/projects/harbor', projectName: 'Harbor Lights' }}
       development={development}
       onOpenProject={() => undefined}
@@ -214,7 +224,7 @@ test('native workspace names the active project without spending a row on manife
 test('Settings overlays one still-mounted workspace instead of replacing its surfaces', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
       development={development}
       page="settings"
@@ -251,10 +261,15 @@ test('workspace chrome uses the compact website dimensions', () => {
 test('connected Studio renders the live game and every semantic inspection surface', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
       development={development}
       platform="native"
+      project={{
+        manifestPath: '/project/antiky-town.antiky',
+        projectRoot: '/project',
+        schemaVersion: 1,
+      }}
     />,
   );
 
@@ -276,7 +291,38 @@ test('connected Studio renders the live game and every semantic inspection surfa
   ]) assert.match(html, new RegExp(value));
   assert.match(html, /src="http:\/\/127\.0\.0\.1:3010\/demos\/town-study"/);
   assert.match(html, /allow="autoplay; fullscreen; gamepad; webgpu"/);
+  assert.match(html, /<button[^>]*>Restart game<\/button>/);
+  assert.match(html, /<button[^>]*>Stop game<\/button>/);
   assert.doesNotMatch(html, /contenteditable|Save changes|Edit component/i);
+});
+
+test('a deliberately stopped game has one clear recovery action and no retained frame', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={studioActions}
+      context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+      development={{
+        ...development,
+        status: 'stopped',
+        developmentSessionId: null,
+        snapshot: null,
+        mcpCallLog: null,
+      }}
+      platform="native"
+      project={{
+        manifestPath: '/project/antiky-town.antiky',
+        projectRoot: '/project',
+        schemaVersion: 1,
+      }}
+    />,
+  );
+
+  assert.match(html, /Development host stopped/);
+  assert.match(html, /Game stopped\. Restart when you are ready\./);
+  assert.match(html, /<button[^>]*>Restart game<\/button>/);
+  assert.match(html, /<button[^>]*disabled=""[^>]*>Stop game<\/button>/);
+  assert.doesNotMatch(html, /<iframe/);
+  assert.doesNotMatch(html, />Retry<\/button>/);
 });
 
 test('every connection shell keeps one complete and honestly labeled workspace', () => {
@@ -323,7 +369,7 @@ test('every connection shell keeps one complete and honestly labeled workspace',
   for (const state of states) {
     const html = renderToStaticMarkup(
       <StudioShell
-        actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+        actions={studioActions}
         context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
         development={state}
         platform="native"
@@ -342,7 +388,7 @@ test('every connection shell keeps one complete and honestly labeled workspace',
 test('native Studio reports its managed startup without asking for antiky dev', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
       development={{
         ...development,
@@ -363,7 +409,7 @@ test('native Studio reports its managed startup without asking for antiky dev', 
 test('keyboard order reaches controls, game, terminal, inspection, and activity', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
       development={development}
       platform="native"
@@ -388,7 +434,7 @@ test('keyboard order reaches controls, game, terminal, inspection, and activity'
 test('the custom title bar remains a usable native window drag region', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
       development={development}
       platform="native"
@@ -408,7 +454,7 @@ test('the custom title bar remains a usable native window drag region', () => {
 test('a lost session keeps the live game mounted with the retained stale inspection', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
       development={{
         ...development,
@@ -430,7 +476,7 @@ test('a lost session keeps the live game mounted with the retained stale inspect
 test('an unavailable runtime keeps its recovery frame but disables simulation controls', () => {
   const html = renderToStaticMarkup(
     <StudioShell
-      actions={{ pause: async () => undefined, refresh: async () => undefined, resume: async () => undefined, step: async () => undefined }}
+      actions={studioActions}
       context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
       development={{
         ...development,

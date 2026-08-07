@@ -7,8 +7,9 @@ import {
   type DevelopmentSnapshot,
 } from '@antiky/cli/development';
 
-export type StudioConnectionStatus = 'connecting' | 'connected' | 'stale' | 'disconnected';
+export type StudioConnectionStatus = 'connecting' | 'connected' | 'stale' | 'disconnected' | 'stopped';
 export type StudioControl = 'pause' | 'resume' | 'step';
+export type StudioGameLifecycle = 'restart' | 'stop';
 
 export type StudioIssue = Readonly<{
   code: string;
@@ -21,6 +22,7 @@ export type StudioDevelopmentState = Readonly<{
   snapshot: DevelopmentSnapshot | null;
   mcpCallLog: DevelopmentMcpCallLog | null;
   pendingControl: StudioControl | null;
+  pendingLifecycle: StudioGameLifecycle | null;
   lastControlResult: DevelopmentSessionControlResult | null;
   issue: StudioIssue | null;
   updateSequence: number;
@@ -29,6 +31,7 @@ export type StudioDevelopmentState = Readonly<{
 export type StudioDevelopmentClient = Pick<DevelopmentClient,
   | 'readDevelopmentSnapshot'
   | 'getMcpCallLog'
+  | 'requestReload'
   | 'pauseSimulation'
   | 'resumeSimulation'
   | 'stepSimulation'
@@ -39,6 +42,8 @@ type Scheduler = (callback: () => void, delayMilliseconds: number) => () => void
 type CoordinatorOptions = Readonly<{
   discoverConnection(): Promise<DevelopmentConnection>;
   createClient?: (connection: DevelopmentConnection) => StudioDevelopmentClient;
+  restartConnection?: () => Promise<void>;
+  stopConnection?: () => Promise<void>;
   onState?: (state: StudioDevelopmentState) => void;
   schedule?: Scheduler;
   pollIntervalMilliseconds?: number;
@@ -51,6 +56,8 @@ export interface StudioCoordinator {
   start(): Promise<void>;
   stop(): void;
   refresh(): Promise<void>;
+  restartGame(): Promise<void>;
+  stopGame(): Promise<void>;
   pause(): Promise<DevelopmentSessionControlResult>;
   resume(): Promise<DevelopmentSessionControlResult>;
   step(): Promise<DevelopmentSessionControlResult>;
@@ -69,6 +76,7 @@ export const createStudioInitialState = (): StudioDevelopmentState => Object.fre
   snapshot: null,
   mcpCallLog: null,
   pendingControl: null,
+  pendingLifecycle: null,
   lastControlResult: null,
   issue: null,
   updateSequence: 0,
@@ -206,7 +214,7 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
   };
 
   const control = async (kind: StudioControl): Promise<DevelopmentSessionControlResult> => {
-    if (state.pendingControl) {
+    if (state.pendingControl || state.pendingLifecycle) {
       throw new StudioControlError('CONTROL_BUSY', 'Another simulation control is pending.');
     }
     if (inFlight) await inFlight;
@@ -244,6 +252,103 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
     }
   };
 
+  const restartGame = async (): Promise<void> => {
+    if (state.pendingControl || state.pendingLifecycle) {
+      throw new StudioControlError('CONTROL_BUSY', 'Another Studio control is pending.');
+    }
+    cancelScheduled?.();
+    cancelScheduled = null;
+    publish({ pendingLifecycle: 'restart', issue: null });
+    try {
+      if (inFlight) await inFlight;
+      if (active && state.status === 'connected' && client) {
+        await client.requestReload();
+        await refresh();
+        return;
+      }
+      if (!options.restartConnection) {
+        throw new StudioControlError(
+          'SESSION_UNAVAILABLE',
+          'The managed game service cannot be restarted from this Studio.',
+        );
+      }
+
+      active = false;
+      generation += 1;
+      client = null;
+      connection = null;
+      consecutiveFailures = 0;
+      publish({
+        status: 'connecting',
+        developmentSessionId: null,
+        snapshot: null,
+        mcpCallLog: null,
+        lastControlResult: null,
+      });
+      await options.restartConnection();
+      active = true;
+      generation += 1;
+      await refresh();
+    } catch (cause: unknown) {
+      if (!active) {
+        active = true;
+        generation += 1;
+      }
+      publish({
+        status: state.snapshot ? 'stale' : 'disconnected',
+        issue: normalizeIssue(cause),
+      });
+      scheduleNext();
+      throw cause;
+    } finally {
+      publish({ pendingLifecycle: null });
+    }
+  };
+
+  const stopGame = async (): Promise<void> => {
+    if (state.status === 'stopped') return;
+    if (state.pendingControl || state.pendingLifecycle) {
+      throw new StudioControlError('CONTROL_BUSY', 'Another Studio control is pending.');
+    }
+    if (!options.stopConnection) {
+      throw new StudioControlError(
+        'SESSION_UNAVAILABLE',
+        'The managed game service cannot be stopped from this Studio.',
+      );
+    }
+    cancelScheduled?.();
+    cancelScheduled = null;
+    publish({ pendingLifecycle: 'stop', issue: null });
+    try {
+      if (inFlight) await inFlight;
+      active = false;
+      generation += 1;
+      await options.stopConnection();
+      client = null;
+      connection = null;
+      consecutiveFailures = 0;
+      publish({
+        status: 'stopped',
+        developmentSessionId: null,
+        snapshot: null,
+        mcpCallLog: null,
+        lastControlResult: null,
+        issue: null,
+      });
+    } catch (cause: unknown) {
+      active = true;
+      generation += 1;
+      publish({
+        status: state.snapshot ? 'stale' : 'disconnected',
+        issue: normalizeIssue(cause),
+      });
+      scheduleNext();
+      throw cause;
+    } finally {
+      publish({ pendingLifecycle: null });
+    }
+  };
+
   return Object.freeze({
     read: () => state,
     start(): Promise<void> {
@@ -263,6 +368,8 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
       consecutiveFailures = 0;
     },
     refresh,
+    restartGame,
+    stopGame,
     pause: () => control('pause'),
     resume: () => control('resume'),
     step: () => control('step'),

@@ -11,6 +11,7 @@ import {
   type StudioDevelopmentState,
 } from './coordinator.ts';
 import {
+  restartNativeDevelopmentConnection,
   startNativeDevelopmentConnection,
   stopNativeDevelopmentConnection,
   type StudioContext,
@@ -23,6 +24,8 @@ export type StudioDevelopmentActions = Readonly<{
   resume(): Promise<void>;
   step(): Promise<void>;
   refresh(): Promise<void>;
+  restartGame(): Promise<void>;
+  stopGame(): Promise<void>;
 }>;
 
 export type StudioDevelopmentView = Readonly<{
@@ -79,6 +82,8 @@ export function useStudioDevelopment(
       onState: (state) => {
         if (active) setDevelopment(state);
       },
+      restartConnection: async () => { await restartNativeDevelopmentConnection(); },
+      stopConnection: stopNativeDevelopmentConnection,
     });
     coordinator.current = nextCoordinator;
     void nextCoordinator.start();
@@ -105,6 +110,14 @@ export function useStudioDevelopment(
     await coordinator.current?.refresh();
   }, []);
 
+  const runGameLifecycle = useCallback(async (action: 'restartGame' | 'stopGame'): Promise<void> => {
+    try {
+      await coordinator.current?.[action]();
+    } catch {
+      // The coordinator publishes a bounded issue for the UI.
+    }
+  }, []);
+
   return Object.freeze({
     context,
     development: developmentStateForProject(developmentKey, projectKey, development),
@@ -113,6 +126,8 @@ export function useStudioDevelopment(
       resume: () => runControl('resume'),
       step: () => runControl('step'),
       refresh,
+      restartGame: () => runGameLifecycle('restartGame'),
+      stopGame: () => runGameLifecycle('stopGame'),
     }),
   });
 }

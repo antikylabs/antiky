@@ -98,6 +98,12 @@ export function startNativeDevelopmentConnection(): Promise<DevelopmentConnectio
   ));
 }
 
+export function restartNativeDevelopmentConnection(): Promise<DevelopmentConnection> {
+  return enqueueLifecycle(async () => (
+    parseNativeDevelopmentConnection(await invoke<unknown>('development_restart'))
+  ));
+}
+
 export function stopNativeDevelopmentConnection(): Promise<void> {
   return enqueueLifecycle(async () => { await invoke('development_stop'); });
 }

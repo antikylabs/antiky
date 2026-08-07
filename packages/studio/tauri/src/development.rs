@@ -234,6 +234,17 @@ pub(crate) fn initialize_project(
 }
 
 impl DevelopmentHost {
+    pub(crate) fn restart(
+        &mut self,
+        runtime_path: &Path,
+        worker_path: &Path,
+        manifest_path: &Path,
+        project_revision: &str,
+    ) -> Result<DevelopmentConnection, NativeError> {
+        self.stop()?;
+        self.start(runtime_path, worker_path, manifest_path, project_revision)
+    }
+
     pub(crate) fn start(
         &mut self,
         runtime_path: &Path,
@@ -382,6 +393,10 @@ process.stdin.once('data', () => process.exit(0));
             .start(Path::new("node"), &worker, &manifest, "revision-001")
             .expect("reuse project service");
         assert_eq!(first.development_session_id, second.development_session_id,);
+        let restarted = host
+            .restart(Path::new("node"), &worker, &manifest, "revision-001")
+            .expect("restart project service");
+        assert_ne!(first.owner_pid(), restarted.owner_pid());
         host.stop().expect("stop project service");
         host.stop().expect("repeat stop");
 

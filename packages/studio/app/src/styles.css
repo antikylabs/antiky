@@ -191,6 +191,10 @@ summary:focus-visible,
   background: var(--text-faint);
 }
 
+.status-stopped {
+  background: var(--error);
+}
+
 .controlbar {
   gap: 6px;
   padding: 6px 12px;
