@@ -94,11 +94,11 @@ Do not start Feedback 01 until both priority items meet these gates:
 
 - [x] Feedback 08 has owner-approved desktop, narrow, and native-terminal-boundary captures; direct browser zoom capture is an explicit recorded limitation.
 - [x] Feedback 08 preserves one live-game iframe and does not reproduce the white-game or duplicate-window defects.
-- [ ] Feedback 09 has an audited visual-only Ghostty profile with no command or input keys.
-- [ ] Feedback 09 preserves the user's shell, prompt, profile, keybindings, and history. It does not change
+- [x] Feedback 09 has an audited visual-only Ghostty profile with no command or input keys.
+- [x] Feedback 09 preserves the user's shell, prompt, profile, keybindings, and history. It does not change
   the current terminal working-directory rule.
-- [ ] Feedback 09 has approved first-frame, prompt, ANSI-output, and error-state captures.
-- [ ] Both items pass Studio tests, builds, `npm run check`, documentation review, and receipts.
+- [x] Feedback 09 has approved first-frame, prompt, ANSI-output, and error-state captures.
+- [x] Both items pass Studio tests, builds, `npm run check`, documentation review, and receipts.
 
 ## Final Slice 00 feedback gate
 
