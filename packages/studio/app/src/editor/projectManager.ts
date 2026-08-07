@@ -9,6 +9,7 @@ import type {
   EditorHost,
   NativeProjectError,
   NativeProjectEvent,
+  NativeRecentProject,
   NativeProjectSource,
   ProjectActivationRequest,
 } from './types.ts';
@@ -22,6 +23,9 @@ export type EditorProjectState = Readonly<{
   status: 'empty' | 'ready';
   project: AntikyProject | null;
   issue: EditorProjectIssue | null;
+  recentProjects: readonly NativeRecentProject[];
+  loadingRecentProjects: boolean;
+  creating: boolean;
   opening: boolean;
   updateSequence: number;
 }>;
@@ -36,7 +40,9 @@ export interface ProjectManager {
   read(): EditorProjectState;
   start(): Promise<void>;
   stop(): void;
+  createProject(name: string): Promise<void>;
   openProject(): Promise<void>;
+  openRecentProject(manifestPath: string): Promise<void>;
   settled(): Promise<void>;
 }
 
@@ -44,6 +50,9 @@ export const createEditorProjectInitialState = (): EditorProjectState => Object.
   status: 'empty',
   project: null,
   issue: null,
+  recentProjects: Object.freeze([]),
+  loadingRecentProjects: false,
+  creating: false,
   opening: false,
   updateSequence: 0,
 });
@@ -86,7 +95,17 @@ export function createProjectManager(options: ProjectManagerOptions): ProjectMan
   };
 
   const acceptError = (error: NativeProjectError | unknown): void => {
-    publish({ issue: normalizeIssue(error), opening: false });
+    publish({ issue: normalizeIssue(error), creating: false, opening: false });
+  };
+
+  const refreshRecentProjects = async (): Promise<void> => {
+    publish({ loadingRecentProjects: true });
+    try {
+      const recentProjects = await options.host.listRecentProjects();
+      publish({ recentProjects: Object.freeze([...recentProjects]), loadingRecentProjects: false });
+    } catch {
+      publish({ loadingRecentProjects: false });
+    }
   };
 
   const acceptProject = async (source: NativeProjectSource): Promise<void> => {
@@ -113,7 +132,8 @@ export function createProjectManager(options: ProjectManagerOptions): ProjectMan
         revision: boundary.revision,
       };
       await options.host.activateProject(activation);
-      publish({ status: 'ready', project, issue: null, opening: false });
+      publish({ status: 'ready', project, issue: null, creating: false, opening: false });
+      await refreshRecentProjects();
     } catch (cause: unknown) {
       acceptError(cause);
     }
@@ -143,6 +163,7 @@ export function createProjectManager(options: ProjectManagerOptions): ProjectMan
           return;
         }
         unlisten = nextUnlisten;
+        await refreshRecentProjects();
         const initial = await options.host.readInitialProjectEvent();
         if (active && initial) await enqueue(() => acceptEvent(initial));
       } catch (cause: unknown) {
@@ -154,11 +175,33 @@ export function createProjectManager(options: ProjectManagerOptions): ProjectMan
       unlisten?.();
       unlisten = null;
     },
+    async createProject(name: string): Promise<void> {
+      if (!active) return;
+      publish({ creating: true, issue: null });
+      try {
+        const created = await options.host.createProject(name);
+        if (!created) publish({ creating: false });
+        else await enqueue(() => acceptProject(created));
+      } catch (cause: unknown) {
+        acceptError(cause);
+      }
+    },
     async openProject(): Promise<void> {
       if (!active) return;
-      publish({ opening: true });
+      publish({ opening: true, issue: null });
       try {
         const selected = await options.host.selectProject();
+        if (!selected) publish({ opening: false });
+        else await enqueue(() => acceptProject(selected));
+      } catch (cause: unknown) {
+        acceptError(cause);
+      }
+    },
+    async openRecentProject(manifestPath: string): Promise<void> {
+      if (!active) return;
+      publish({ opening: true, issue: null });
+      try {
+        const selected = await options.host.openRecentProject(manifestPath);
         if (!selected) publish({ opening: false });
         else await enqueue(() => acceptProject(selected));
       } catch (cause: unknown) {

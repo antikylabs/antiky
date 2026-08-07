@@ -5,6 +5,7 @@ import type {
   EditorHost,
   NativeProjectError,
   NativeProjectEvent,
+  NativeRecentProject,
   NativeProjectSource,
   ProjectActivationRequest,
   ProjectValidationRequest,
@@ -53,6 +54,11 @@ function readRevision(value: unknown): string {
   const revision = readString(value, 64);
   if (!/^[a-f0-9]{64}$/u.test(revision)) incompatible();
   return revision;
+}
+
+function readTimestamp(value: unknown): number {
+  if (!Number.isSafeInteger(value) || (value as number) < 0) incompatible();
+  return value as number;
 }
 
 function readNativeError(value: unknown): NativeProjectError {
@@ -132,6 +138,23 @@ export function parseValidatedProjectBoundary(value: unknown): ValidatedProjectB
   });
 }
 
+export function parseNativeRecentProject(value: unknown): NativeRecentProject {
+  const record = readRecord(value);
+  exactKeys(record, ['available', 'lastOpenedAt', 'manifestPath', 'projectRoot']);
+  if (typeof record.available !== 'boolean') incompatible();
+  return Object.freeze({
+    available: record.available,
+    lastOpenedAt: readTimestamp(record.lastOpenedAt),
+    manifestPath: readString(record.manifestPath, 4_096),
+    projectRoot: readString(record.projectRoot, 4_096),
+  });
+}
+
+export function parseNativeRecentProjects(value: unknown): readonly NativeRecentProject[] {
+  if (!Array.isArray(value) || value.length > 20) incompatible();
+  return Object.freeze(value.map(parseNativeRecentProject));
+}
+
 export function createTauriEditorHost(): EditorHost {
   return Object.freeze({
     async readInitialProjectEvent(): Promise<NativeProjectEvent | null> {
@@ -140,6 +163,17 @@ export function createTauriEditorHost(): EditorHost {
     },
     async selectProject(): Promise<NativeProjectSource | null> {
       const value = await invoke<unknown>('project_select');
+      return value === null ? null : parseNativeProjectSource(value);
+    },
+    async createProject(name: string): Promise<NativeProjectSource | null> {
+      const value = await invoke<unknown>('project_create', { name });
+      return value === null ? null : parseNativeProjectSource(value);
+    },
+    async listRecentProjects(): Promise<readonly NativeRecentProject[]> {
+      return parseNativeRecentProjects(await invoke<unknown>('project_recents'));
+    },
+    async openRecentProject(manifestPath: string): Promise<NativeProjectSource | null> {
+      const value = await invoke<unknown>('project_open_recent', { request: { manifestPath } });
       return value === null ? null : parseNativeProjectSource(value);
     },
     async listenProjectEvents(listener: (event: NativeProjectEvent) => void): Promise<() => void> {

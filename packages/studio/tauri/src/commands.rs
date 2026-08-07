@@ -1,13 +1,19 @@
 use std::ffi::c_void;
-use std::sync::{Mutex, OnceLock};
+use std::path::PathBuf;
+use std::sync::{Mutex, MutexGuard, OnceLock};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use futures_channel::oneshot;
 use tauri::{AppHandle, Manager, State, WebviewWindow};
 
 use crate::{
     DevelopmentConnection, DevelopmentHost, NativeError, NativeProjectEvent, NativeProjectSource,
-    ProjectActivationRequest, ProjectHost, ProjectValidationRequest, TerminalBounds, TerminalTheme,
-    ValidatedProjectBoundary, native, project_picker::pick_project, read_development_connection,
+    NativeRecentProject, ProjectActivationRequest, ProjectHost, ProjectValidationRequest,
+    RecentProjectStore, TerminalBounds, TerminalTheme, ValidatedProjectBoundary,
+    development::initialize_project,
+    native,
+    project_picker::{pick_project, pick_project_directory},
+    read_development_connection,
 };
 
 pub(crate) struct StudioState {
@@ -15,7 +21,14 @@ pub(crate) struct StudioState {
     pub development: Mutex<DevelopmentHost>,
     pub project_runtime: OnceLock<Result<std::path::PathBuf, NativeError>>,
     pub project_service: OnceLock<Result<std::path::PathBuf, NativeError>>,
+    pub recent_projects: OnceLock<Mutex<RecentProjectStore>>,
     pub terminal_theme: OnceLock<Result<TerminalTheme, NativeError>>,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct RecentProjectRequest {
+    manifest_path: PathBuf,
 }
 
 fn development_host(
@@ -52,6 +65,15 @@ fn project_host(
         .project
         .lock()
         .map_err(|_| NativeError::native_unavailable("Project state is unavailable."))
+}
+
+fn recent_projects(state: &StudioState) -> Result<MutexGuard<'_, RecentProjectStore>, NativeError> {
+    state
+        .recent_projects
+        .get()
+        .ok_or_else(|| NativeError::native_unavailable("Studio resources are not initialized."))?
+        .lock()
+        .map_err(|_| NativeError::native_unavailable("Recent project state is unavailable."))
 }
 
 fn terminal_theme(state: &StudioState) -> Result<&TerminalTheme, NativeError> {
@@ -101,6 +123,56 @@ pub(crate) async fn project_select(
 }
 
 #[tauri::command]
+pub(crate) async fn project_create(
+    window: WebviewWindow,
+    state: State<'_, StudioState>,
+    name: String,
+) -> Result<Option<NativeProjectSource>, NativeError> {
+    if name.trim().is_empty()
+        || name.chars().count() > 128
+        || name.contains(['/', '\\'])
+        || name.chars().any(char::is_control)
+    {
+        return Err(NativeError::project_creation(
+            "ANTIKY_PROJECT_NAME_INVALID".into(),
+            "Project name must be 1 through 128 characters and must not contain a path or control character.".into(),
+        ));
+    }
+    let directory = run_on_main_thread(window, |_| pick_project_directory()).await?;
+    let Some(directory) = directory else {
+        return Ok(None);
+    };
+    let runtime_path = project_runtime(state.inner())?.clone();
+    let worker_path = project_service(state.inner())?.clone();
+    let manifest_path = tauri::async_runtime::spawn_blocking(move || {
+        initialize_project(&runtime_path, &worker_path, &directory, &name)
+    })
+    .await
+    .map_err(|_| NativeError::native_unavailable("Studio project creation was cancelled."))??;
+    project_host(state.inner())?
+        .stage_open(&manifest_path, false)
+        .map(Some)
+}
+
+#[tauri::command]
+pub(crate) fn project_recents(
+    state: State<'_, StudioState>,
+) -> Result<Vec<NativeRecentProject>, NativeError> {
+    Ok(recent_projects(state.inner())?.list())
+}
+
+#[tauri::command]
+pub(crate) fn project_open_recent(
+    state: State<'_, StudioState>,
+    request: RecentProjectRequest,
+) -> Result<NativeProjectSource, NativeError> {
+    if !recent_projects(state.inner())?.contains(&request.manifest_path) {
+        return Err(NativeError::project_not_found());
+    }
+    project_host(state.inner())?.stage_open(&request.manifest_path, false)
+}
+
+#[tauri::command]
 pub(crate) fn project_validate(
     state: State<'_, StudioState>,
     request: ProjectValidationRequest,
@@ -113,7 +185,20 @@ pub(crate) fn project_activate(
     state: State<'_, StudioState>,
     request: ProjectActivationRequest,
 ) -> Result<(), NativeError> {
-    project_host(state.inner())?.activate(request)
+    let mut recent_projects = recent_projects(state.inner())?;
+    let boundary = project_host(state.inner())?.activate(request)?;
+    let last_opened_at = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .try_into()
+        .unwrap_or(u64::MAX);
+    if let Err(error) =
+        recent_projects.record(&boundary.manifest_path, &boundary.revision, last_opened_at)
+    {
+        eprintln!("{error}");
+    }
+    Ok(())
 }
 
 #[tauri::command]

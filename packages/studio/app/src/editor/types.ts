@@ -18,6 +18,13 @@ export type NativeProjectEvent =
   | Readonly<{ kind: 'opened'; project: NativeProjectSource }>
   | Readonly<{ kind: 'error'; error: NativeProjectError }>;
 
+export type NativeRecentProject = Readonly<{
+  available: boolean;
+  lastOpenedAt: number;
+  manifestPath: string;
+  projectRoot: string;
+}>;
+
 export type ProjectValidationRequest = Readonly<{
   selectionId: number;
   manifestPath: string;
@@ -40,6 +47,9 @@ export type ProjectActivationRequest = Readonly<{
 export interface EditorHost {
   readInitialProjectEvent(): Promise<NativeProjectEvent | null>;
   selectProject(): Promise<NativeProjectSource | null>;
+  createProject(name: string): Promise<NativeProjectSource | null>;
+  listRecentProjects(): Promise<readonly NativeRecentProject[]>;
+  openRecentProject(manifestPath: string): Promise<NativeProjectSource | null>;
   listenProjectEvents(listener: (event: NativeProjectEvent) => void): Promise<() => void>;
   validateProject(request: ProjectValidationRequest): Promise<ValidatedProjectBoundary>;
   activateProject(request: ProjectActivationRequest): Promise<void>;

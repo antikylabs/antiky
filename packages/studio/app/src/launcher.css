@@ -17,44 +17,99 @@
 }
 
 .launcher-stage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(260px, .82fr) minmax(360px, 1.18fr);
+  align-content: center;
+  gap: 18px;
+  width: min(1060px, 100%);
   margin: 0 auto;
-  padding: clamp(44px, 8vw, 100px);
+  padding: clamp(44px, 7vw, 88px);
 }
 
-.launcher-copy {
-  width: min(720px, 100%);
-  text-align: center;
+.launcher-card {
+  min-height: 390px;
+  padding: clamp(26px, 4vw, 42px);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .24);
 }
 
-.launcher-copy h1 {
-  margin: 0;
+.launcher-eyebrow {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.launcher-card h1,
+.launcher-card h2 {
+  margin: 8px 0 0;
   font-family: var(--display);
-  font-size: clamp(30px, 4vw, 42px);
   font-weight: 560;
   letter-spacing: -.035em;
   line-height: 1.05;
+}
+
+.launcher-card h1 {
+  font-size: clamp(30px, 4vw, 42px);
   white-space: nowrap;
 }
 
-.launcher-copy > p {
-  margin: 12px 0 0;
-  color: var(--text-muted);
-  font-size: 14px;
+.launcher-card h2 {
+  font-size: 26px;
 }
 
-.launcher-copy code {
+.launcher-create > p {
+  max-width: 420px;
+  margin: 14px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.launcher-card code {
   color: var(--text);
   font-family: var(--mono);
 }
 
-.launcher-copy > button {
+.launcher-create form {
+  display: grid;
+  gap: 9px;
+  margin-top: 28px;
+}
+
+.launcher-create label {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.launcher-create input {
+  width: 100%;
   min-height: 44px;
-  margin-top: 22px;
-  padding: 0 20px;
+  padding: 0 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  outline: none;
+  background: #090a0d;
+  color: var(--text);
+  font: inherit;
+}
+
+.launcher-create input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.launcher-create form button,
+.launcher-recents-heading > button {
+  min-height: 42px;
+  padding: 0 16px;
   border: 1px solid color-mix(in srgb, var(--accent) 72%, white);
   border-radius: 6px;
   background: var(--accent);
@@ -63,15 +118,97 @@
   cursor: pointer;
 }
 
-.launcher-copy > button:disabled {
-  opacity: .62;
-  cursor: wait;
+.launcher-create form button {
+  justify-self: start;
+  margin-top: 5px;
+}
+
+.launcher-card button:disabled,
+.launcher-card input:disabled {
+  opacity: .58;
+  cursor: not-allowed;
+}
+
+.launcher-recents {
+  min-width: 0;
+}
+
+.launcher-recents-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.launcher-recents-heading > button {
+  flex: none;
+  border-color: var(--line-strong);
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.launcher-empty {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.recent-project-list {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  margin: 18px 0 0;
+  padding: 0 4px 0 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.recent-project-list button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface-raised) 72%, transparent);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.recent-project-list button:not(:disabled):hover,
+.recent-project-list button:not(:disabled):focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface-raised));
+}
+
+.recent-project-list span {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.recent-project-list code,
+.recent-project-list small {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-project-list small {
+  color: var(--warning);
 }
 
 .launcher-issue {
   display: grid;
+  grid-column: 1 / -1;
   gap: 5px;
-  margin-top: 22px;
   padding: 14px 16px;
   border: 1px solid color-mix(in srgb, var(--error) 45%, var(--line));
   border-radius: 6px;
@@ -89,18 +226,38 @@
   font-size: 12px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .launcher-stage {
-    padding: 48px 24px;
+    grid-template-columns: 1fr;
+    align-content: start;
+    padding: 44px 28px;
   }
 
-  .launcher-copy > button {
-    width: 100%;
+  .launcher-card {
+    min-height: auto;
   }
 }
 
-@media (max-width: 420px) {
-  .launcher-copy h1 {
+@media (max-width: 520px) {
+  .launcher-stage {
+    padding: 36px 18px;
+  }
+
+  .launcher-card {
+    padding: 24px;
+  }
+
+  .launcher-card h1 {
     white-space: normal;
+  }
+
+  .launcher-recents-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .launcher-create form button,
+  .launcher-recents-heading > button {
+    width: 100%;
   }
 }

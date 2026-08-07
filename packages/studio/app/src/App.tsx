@@ -48,10 +48,15 @@ export function App({
   if (platform === 'native' && page === 'workspace' && editor.state.project === null) {
     return (
       <ProjectLauncher
+        creating={editor.state.creating}
         issue={editor.state.issue}
+        loadingRecentProjects={editor.state.loadingRecentProjects}
+        onCreateProject={(name) => { void editor.createProject(name); }}
         onOpenProject={() => { void editor.openProject(); }}
+        onOpenRecentProject={(manifestPath) => { void editor.openRecentProject(manifestPath); }}
         onOpenSettings={() => changePage('settings')}
         opening={editor.state.opening}
+        recentProjects={editor.state.recentProjects}
       />
     );
   }

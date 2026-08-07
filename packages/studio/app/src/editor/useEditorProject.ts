@@ -12,7 +12,9 @@ import { createTauriEditorHost } from './tauriHost.ts';
 
 export type EditorProjectView = Readonly<{
   state: EditorProjectState;
+  createProject(name: string): Promise<void>;
   openProject(): Promise<void>;
+  openRecentProject(manifestPath: string): Promise<void>;
 }>;
 
 export function useEditorProject(platform: StudioPlatform): EditorProjectView {
@@ -41,5 +43,13 @@ export function useEditorProject(platform: StudioPlatform): EditorProjectView {
     await manager.current?.openProject();
   }, []);
 
-  return Object.freeze({ state, openProject });
+  const createProject = useCallback(async (name: string): Promise<void> => {
+    await manager.current?.createProject(name);
+  }, []);
+
+  const openRecentProject = useCallback(async (manifestPath: string): Promise<void> => {
+    await manager.current?.openRecentProject(manifestPath);
+  }, []);
+
+  return Object.freeze({ state, createProject, openProject, openRecentProject });
 }

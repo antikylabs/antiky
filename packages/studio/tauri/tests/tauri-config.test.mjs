@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { access, readFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { access, mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -40,6 +41,9 @@ test('the main window can invoke only the bounded Studio command surface', async
     'core:event:allow-unlisten',
     'allow-project-initial-event',
     'allow-project-select',
+    'allow-project-create',
+    'allow-project-recents',
+    'allow-project-open-recent',
     'allow-project-validate',
     'allow-project-activate',
     'allow-development-start',
@@ -92,6 +96,10 @@ test('the native project picker accepts one file and restricts selection to .ant
   assert.match(picker, /setAllowsMultipleSelection:NO/);
   assert.match(picker, /setAllowedFileTypes:@\[@"antiky"\]/);
   assert.match(picker, /NSModalResponseOK/);
+  assert.match(picker, /antiky_project_picker_directory/);
+  assert.match(picker, /setCanChooseDirectories:YES/);
+  assert.match(picker, /setCanCreateDirectories:YES/);
+  assert.match(picker, /setPrompt:@"Create project"/);
 });
 
 test('the main window can reach the website narrow-layout breakpoint', async () => {
@@ -207,4 +215,37 @@ test('the packaged runtime can execute the bundled project-service worker', asyn
       message: 'The Studio project service needs one project manifest path.',
     },
   });
+});
+
+test('the bundled project service can initialize a Studio project', async () => {
+  const runtime = resolve(packageDirectory, 'resources/node');
+  const worker = resolve(packageDirectory, 'resources/project-service.mjs');
+  const directory = await mkdtemp(join(tmpdir(), 'antiky-studio-create-'));
+  try {
+    const child = spawn(
+      runtime,
+      [worker, '--initialize', directory, 'Harbor Lights'],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    const exit = await new Promise((resolveExit) => {
+      child.once('exit', (code, signal) => resolveExit({ code, signal }));
+    });
+
+    assert.deepEqual(exit, { code: 0, signal: null }, stderr);
+    const message = JSON.parse(stdout);
+    assert.deepEqual(message, {
+      type: 'initialized',
+      manifestPath: join(await realpath(directory), 'harbor-lights.antiky'),
+    });
+    const manifest = JSON.parse(await readFile(message.manifestPath, 'utf8'));
+    assert.equal(manifest.name, 'Harbor Lights');
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

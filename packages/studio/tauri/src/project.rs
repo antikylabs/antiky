@@ -148,11 +148,12 @@ impl ProjectHost {
     pub(crate) fn activate(
         &mut self,
         request: ProjectActivationRequest,
-    ) -> Result<(), NativeError> {
+    ) -> Result<ValidatedProjectBoundary, NativeError> {
         let boundary = self
             .prepared
             .as_ref()
-            .ok_or_else(NativeError::project_not_found)?;
+            .ok_or_else(NativeError::project_not_found)?
+            .clone();
         if request.selection_id != boundary.selection_id
             || request.manifest_path != boundary.manifest_path
             || request.revision != boundary.revision
@@ -165,7 +166,7 @@ impl ProjectHost {
         self.pending = None;
         self.prepared = None;
         self.initial_event = None;
-        Ok(())
+        Ok(boundary)
     }
 
     pub(crate) fn active_project_root(&self) -> Result<PathBuf, NativeError> {

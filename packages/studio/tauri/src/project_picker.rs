@@ -5,12 +5,11 @@ use crate::NativeError;
 
 unsafe extern "C" {
     fn antiky_project_picker_open() -> *mut c_char;
+    fn antiky_project_picker_directory() -> *mut c_char;
     fn antiky_project_picker_free(path: *mut c_char);
 }
 
-pub(crate) fn pick_project() -> Result<Option<PathBuf>, NativeError> {
-    // The command dispatches this call to AppKit's main thread before entering the bridge.
-    let pointer = unsafe { antiky_project_picker_open() };
+fn read_picker_path(pointer: *mut c_char) -> Result<Option<PathBuf>, NativeError> {
     if pointer.is_null() {
         return Ok(None);
     }
@@ -25,4 +24,16 @@ pub(crate) fn pick_project() -> Result<Option<PathBuf>, NativeError> {
         ));
     }
     Ok(Some(PathBuf::from(path)))
+}
+
+pub(crate) fn pick_project() -> Result<Option<PathBuf>, NativeError> {
+    // The command dispatches this call to AppKit's main thread before entering the bridge.
+    let pointer = unsafe { antiky_project_picker_open() };
+    read_picker_path(pointer)
+}
+
+pub(crate) fn pick_project_directory() -> Result<Option<PathBuf>, NativeError> {
+    // The command dispatches this call to AppKit's main thread before entering the bridge.
+    let pointer = unsafe { antiky_project_picker_directory() };
+    read_picker_path(pointer)
 }

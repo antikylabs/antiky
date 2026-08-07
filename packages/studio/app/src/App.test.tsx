@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { test } from 'vitest';
 
 import { App, resolveInitialStudioPage, studioPageHref } from './App.tsx';
+import { ProjectLauncher } from './components/ProjectLauncher.tsx';
 
 const launcherStyles = readFileSync(new URL('./launcher.css', import.meta.url), 'utf8');
 
@@ -29,9 +30,12 @@ test('browser Studio shell exposes the complete read-only workspace with an hone
 test('native Studio starts at the project launcher without opening a terminal', () => {
   const html = renderToStaticMarkup(<App platform="native" />);
 
-  assert.match(html, /<h1[^>]*>Open a project<\/h1>/);
-  assert.match(html, /Choose an? <code>\.antiky<\/code> file\./);
-  assert.match(html, /<button[^>]*>Choose file<\/button>/);
+  assert.match(html, /<h1[^>]*>Create a project<\/h1>/);
+  assert.match(html, /<label[^>]*for="project-name"[^>]*>Project name<\/label>/);
+  assert.match(html, /<button[^>]*disabled=""[^>]*>Create project<\/button>/);
+  assert.match(html, /<h2[^>]*>Recent projects<\/h2>/);
+  assert.match(html, /No recent projects yet/);
+  assert.match(html, /<button[^>]*>Open project<\/button>/);
   assert.doesNotMatch(html, /Project boundary steps|validates the manifest|project root/i);
   assert.doesNotMatch(html, /Embedded native terminal/);
   assert.match(
@@ -40,8 +44,43 @@ test('native Studio starts at the project launcher without opening a terminal', 
   );
   assert.match(
     launcherStyles,
-    /\.launcher-copy h1\s*\{[^}]*font-size:\s*clamp\(30px, 4vw, 42px\)[^}]*white-space:\s*nowrap/s,
+    /\.launcher-card h1\s*\{[^}]*font-size:\s*clamp\(30px, 4vw, 42px\)[^}]*white-space:\s*nowrap/s,
   );
+});
+
+test('project launcher shows past projects with missing entries kept visible', () => {
+  const html = renderToStaticMarkup(
+    <ProjectLauncher
+      creating={false}
+      issue={null}
+      loadingRecentProjects={false}
+      onCreateProject={() => undefined}
+      onOpenProject={() => undefined}
+      onOpenRecentProject={() => undefined}
+      onOpenSettings={() => undefined}
+      opening={false}
+      recentProjects={[
+        {
+          available: true,
+          lastOpenedAt: 1_786_089_600_000,
+          manifestPath: '/projects/harbor/harbor.antiky',
+          projectRoot: '/projects/harbor',
+        },
+        {
+          available: false,
+          lastOpenedAt: 1_786_003_200_000,
+          manifestPath: '/projects/moved/forest-study.antiky',
+          projectRoot: '/projects/moved',
+        },
+      ]}
+    />,
+  );
+
+  assert.match(html, />Harbor<\/span>/);
+  assert.match(html, /\/projects\/harbor/);
+  assert.match(html, />Forest Study<\/span>/);
+  assert.match(html, /Project file is missing/);
+  assert.match(html, /aria-disabled="true"/);
 });
 
 test('native Studio has a Settings page that explains and controls the online presence signal', () => {

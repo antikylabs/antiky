@@ -3,6 +3,9 @@ use std::path::{Path, PathBuf};
 const COMMANDS: &[&str] = &[
     "project_initial_event",
     "project_select",
+    "project_create",
+    "project_recents",
+    "project_open_recent",
     "project_validate",
     "project_activate",
     "development_start",

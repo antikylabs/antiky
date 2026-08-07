@@ -4,8 +4,8 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use antiky_studio_lib::{
-    TerminalBounds, read_development_connection, read_project_source, resolve_project_directory,
-    resolve_terminal_theme, validate_project_source,
+    RecentProjectStore, TerminalBounds, read_development_connection, read_project_source,
+    resolve_project_directory, resolve_terminal_theme, validate_project_source,
 };
 
 const TERMINAL_THEME: &str = include_str!("../resources/terminal/antiky-studio.ghostty");
@@ -124,6 +124,61 @@ fn project_source_reading_is_bounded_canonical_and_symlink_safe() {
 
     std::fs::remove_dir_all(project).expect("project cleanup");
     std::fs::remove_dir_all(outside).expect("outside cleanup");
+}
+
+#[test]
+fn recent_projects_are_persistent_bounded_deduplicated_and_keep_missing_entries() {
+    let directory = fixture_directory("recent-projects");
+    let store_path = directory.join("studio-state/recent-projects.json");
+    let mut store = RecentProjectStore::open(store_path.clone());
+
+    for index in 0..22 {
+        let project = directory.join(format!("project-{index}"));
+        create_dir_all(&project).expect("project directory");
+        let manifest = project.join(format!("project-{index}.antiky"));
+        write(&manifest, "{}\n").expect("project manifest");
+        let canonical = manifest.canonicalize().expect("canonical manifest");
+        store
+            .record(&canonical, &format!("{index:064x}"), index)
+            .expect("record recent project");
+    }
+
+    let newest = directory.join("project-21/project-21.antiky");
+    let canonical_newest = newest.canonicalize().expect("canonical newest");
+    store
+        .record(&canonical_newest, &"f".repeat(64), 99)
+        .expect("deduplicate newest");
+    let projects = store.list();
+    assert_eq!(projects.len(), 20);
+    assert_eq!(projects[0].last_opened_at, 99);
+    assert!(projects[0].available);
+
+    std::fs::remove_file(&newest).expect("remove newest manifest");
+    let reloaded = RecentProjectStore::open(store_path.clone());
+    let projects = reloaded.list();
+    assert_eq!(projects.len(), 20);
+    assert_eq!(projects[0].manifest_path, canonical_newest);
+    assert!(!projects[0].available, "missing recents remain visible");
+
+    let linked_store = directory.join("linked-recent-projects.json");
+    std::fs::rename(&store_path, &linked_store).expect("move recent store");
+    symlink(&linked_store, &store_path).expect("link recent store");
+    assert!(
+        RecentProjectStore::open(store_path.clone())
+            .list()
+            .is_empty(),
+        "a recent store must not follow a symbolic link",
+    );
+    std::fs::remove_file(&store_path).expect("remove recent store link");
+    std::fs::rename(&linked_store, &store_path).expect("restore recent store");
+
+    write(&store_path, "{not valid json").expect("corrupt recent store");
+    assert!(
+        RecentProjectStore::open(store_path).list().is_empty(),
+        "a corrupt local store recovers as an empty history",
+    );
+
+    std::fs::remove_dir_all(directory).expect("fixture cleanup");
 }
 
 #[test]

@@ -72,6 +72,23 @@ impl NativeError {
         }
     }
 
+    pub(crate) fn project_creation(code: String, message: String) -> Self {
+        let code = match code.as_str() {
+            "ANTIKY_ARGUMENT_INVALID" => "ANTIKY_ARGUMENT_INVALID",
+            "ANTIKY_PROJECT_CREATE_FAILED" => "ANTIKY_PROJECT_CREATE_FAILED",
+            "ANTIKY_PROJECT_DIRECTORY_INVALID" => "ANTIKY_PROJECT_DIRECTORY_INVALID",
+            "ANTIKY_PROJECT_EXISTS" => "ANTIKY_PROJECT_EXISTS",
+            "ANTIKY_PROJECT_NAME_INVALID" => "ANTIKY_PROJECT_NAME_INVALID",
+            _ => "ANTIKY_NATIVE_UNAVAILABLE",
+        };
+        let message = if message.is_empty() {
+            "Studio could not create the project.".into()
+        } else {
+            message.chars().take(512).collect()
+        };
+        Self { code, message }
+    }
+
     pub(crate) fn terminal_theme_invalid() -> Self {
         Self {
             code: "ANTIKY_TERMINAL_THEME_INVALID",

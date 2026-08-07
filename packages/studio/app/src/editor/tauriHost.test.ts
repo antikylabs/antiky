@@ -5,6 +5,7 @@ import { test } from 'vitest';
 import {
   parseNativeProjectEvent,
   parseNativeProjectEventOrError,
+  parseNativeRecentProjects,
   parseNativeProjectSource,
   parseValidatedProjectBoundary,
 } from './tauriHost.ts';
@@ -62,4 +63,18 @@ test('Tauri project responses require one bounded exact bridge shape', () => {
       message: 'The Studio native host returned an incompatible project event.',
     },
   });
+});
+
+test('Tauri recent-project responses are bounded and exact', () => {
+  const recent = {
+    available: true,
+    lastOpenedAt: 1_786_089_600_000,
+    manifestPath: source.manifestPath,
+    projectRoot: source.projectRoot,
+  };
+  assert.deepEqual(parseNativeRecentProjects([recent]), [recent]);
+
+  assert.throws(() => parseNativeRecentProjects([{ ...recent, lastOpenedAt: -1 }]));
+  assert.throws(() => parseNativeRecentProjects([{ ...recent, unknown: true }]));
+  assert.throws(() => parseNativeRecentProjects(Array.from({ length: 21 }, () => recent)));
 });

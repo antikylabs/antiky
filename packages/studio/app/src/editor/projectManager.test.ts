@@ -45,7 +45,15 @@ function source(selectionId: number, name: string, root: string): NativeProjectS
 
 function fakeHost(initial: NativeProjectEvent | null = null, duplicateInitial = false) {
   let nextSelection: NativeProjectSource | null = null;
+  let nextCreation: NativeProjectSource | null = null;
   let listener: ((event: NativeProjectEvent) => void) | null = null;
+  let recentProjects: Array<{
+    available: boolean;
+    lastOpenedAt: number;
+    manifestPath: string;
+    projectRoot: string;
+  }> = [];
+  const recentSources = new Map<string, NativeProjectSource>();
   const activations: ProjectActivationRequest[] = [];
   const host: EditorHost = {
     readInitialProjectEvent: async () => {
@@ -53,6 +61,9 @@ function fakeHost(initial: NativeProjectEvent | null = null, duplicateInitial = 
       return initial;
     },
     selectProject: async () => nextSelection,
+    createProject: async () => nextCreation,
+    listRecentProjects: async () => recentProjects,
+    openRecentProject: async (manifestPath) => recentSources.get(manifestPath) ?? null,
     listenProjectEvents: async (nextListener) => {
       listener = nextListener;
       return () => { listener = null; };
@@ -71,6 +82,9 @@ function fakeHost(initial: NativeProjectEvent | null = null, duplicateInitial = 
     activations,
     emit: (event: NativeProjectEvent) => listener?.(event),
     host,
+    create: (next: NativeProjectSource | null) => { nextCreation = next; },
+    remember: (next: NativeProjectSource) => { recentSources.set(next.manifestPath, next); },
+    setRecentProjects: (next: typeof recentProjects) => { recentProjects = next; },
     select: (next: NativeProjectSource | null) => { nextSelection = next; },
   };
 }
@@ -193,5 +207,40 @@ test('a cold-open event delivered through both native paths activates once', asy
   assert.equal(manager.read().project?.name, 'Harbor Lights');
   assert.equal(manager.read().issue, null);
   assert.equal(native.activations.length, 1);
+  manager.stop();
+});
+
+test('project manager lists, opens, and creates projects from the startup launcher', async () => {
+  const harbor = source(41, 'Harbor Lights', '/projects/harbor');
+  const forest = source(42, 'Forest Study', '/projects/forest');
+  const native = fakeHost();
+  native.setRecentProjects([
+    {
+      available: true,
+      lastOpenedAt: 1_786_089_600_000,
+      manifestPath: harbor.manifestPath,
+      projectRoot: harbor.projectRoot,
+    },
+  ]);
+  native.remember(harbor);
+  native.create(forest);
+  const manager = createProjectManager({ host: native.host });
+
+  await manager.start();
+  assert.deepEqual(manager.read().recentProjects, [
+    {
+      available: true,
+      lastOpenedAt: 1_786_089_600_000,
+      manifestPath: harbor.manifestPath,
+      projectRoot: harbor.projectRoot,
+    },
+  ]);
+
+  await manager.openRecentProject(harbor.manifestPath);
+  assert.equal(manager.read().project?.name, 'Harbor Lights');
+
+  await manager.createProject('Forest Study');
+  assert.equal(manager.read().project?.name, 'Forest Study');
+  assert.equal(manager.read().creating, false);
   manager.stop();
 });

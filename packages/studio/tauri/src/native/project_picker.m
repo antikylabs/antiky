@@ -33,6 +33,25 @@ char *antiky_project_picker_open(void) {
     }
 }
 
+char *antiky_project_picker_directory(void) {
+    @autoreleasepool {
+        NSOpenPanel *panel = [NSOpenPanel openPanel];
+        [panel setCanChooseFiles:NO];
+        [panel setCanChooseDirectories:YES];
+        [panel setCanCreateDirectories:YES];
+        [panel setAllowsMultipleSelection:NO];
+        [panel setResolvesAliases:NO];
+        [panel setTitle:@"Choose a folder for the Antiky project"];
+        [panel setPrompt:@"Create project"];
+
+        if ([panel runModal] != NSModalResponseOK) {
+            return NULL;
+        }
+        const char *path = [[[panel URL] path] fileSystemRepresentation];
+        return path == NULL ? NULL : strdup(path);
+    }
+}
+
 void antiky_project_picker_free(char *path) {
     free(path);
 }

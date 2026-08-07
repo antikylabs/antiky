@@ -2,6 +2,7 @@ import { createInterface } from 'node:readline';
 
 import { AntikyCliError } from './errors.ts';
 import { startDevelopmentSession, type DevelopmentSession } from './host/session.ts';
+import { initializeAntikyProject } from './project-initializer.ts';
 import { loadAntikyProject } from './project-node.ts';
 
 type StopMessage = Readonly<{ type: 'stop' }>;
@@ -31,6 +32,36 @@ function readStopMessage(source: string): StopMessage {
 
 async function runStudioWorker(): Promise<number> {
   const argumentsValue = process.argv.slice(2);
+  if (argumentsValue[0] === '--initialize') {
+    if (
+      argumentsValue.length !== 3
+      || Buffer.byteLength(argumentsValue[1]!) > 4096
+      || Buffer.byteLength(argumentsValue[2]!) > 512
+    ) {
+      process.stdout.write(`${JSON.stringify({
+        type: 'error',
+        error: {
+          code: 'ANTIKY_ARGUMENT_INVALID',
+          message: 'Studio project creation needs one directory and one project name.',
+        },
+      })}\n`);
+      return 1;
+    }
+    try {
+      const project = await initializeAntikyProject({
+        directory: argumentsValue[1],
+        name: argumentsValue[2],
+      });
+      process.stdout.write(`${JSON.stringify({
+        type: 'initialized',
+        manifestPath: project.manifestPath,
+      })}\n`);
+      return 0;
+    } catch (cause: unknown) {
+      process.stdout.write(`${JSON.stringify({ type: 'error', error: publicError(cause) })}\n`);
+      return 1;
+    }
+  }
   if (argumentsValue.length !== 1 || Buffer.byteLength(argumentsValue[0]!) > 4096) {
     process.stdout.write(`${JSON.stringify({
       type: 'error',

@@ -5,6 +5,7 @@ mod error;
 mod native;
 mod project;
 mod project_picker;
+mod recent_projects;
 mod terminal;
 mod terminal_theme;
 
@@ -19,13 +20,15 @@ pub use project::{
     NativeProjectEvent, NativeProjectSource, ProjectActivationRequest, ProjectValidationRequest,
     ValidatedProjectBoundary, read_project_source, validate_project_source,
 };
+pub use recent_projects::{NativeRecentProject, RecentProjectStore};
 pub use terminal::TerminalBounds;
 pub use terminal_theme::{TerminalTheme, resolve_terminal_theme};
 
 use commands::{
     StudioState, development_start, development_stop, discover_development_connection,
-    project_activate, project_initial_event, project_select, project_validate, terminal_close,
-    terminal_focus, terminal_layout, terminal_open, terminal_status,
+    project_activate, project_create, project_initial_event, project_open_recent, project_recents,
+    project_select, project_validate, terminal_close, terminal_focus, terminal_layout,
+    terminal_open, terminal_status,
 };
 use std::sync::{Mutex, OnceLock};
 use tauri::{Emitter, Manager, RunEvent, path::BaseDirectory};
@@ -67,10 +70,23 @@ pub fn run() {
             development: Mutex::new(DevelopmentHost::default()),
             project_runtime: OnceLock::new(),
             project_service: OnceLock::new(),
+            recent_projects: OnceLock::new(),
             terminal_theme: OnceLock::new(),
         })
         .setup(|app| {
             let paths = app.path();
+            let recent_projects = paths
+                .app_data_dir()
+                .map(|directory| RecentProjectStore::open(directory.join("recent-projects.json")))
+                .map_err(|_| {
+                    NativeError::native_unavailable("Studio application data is unavailable.")
+                })?;
+            app.state::<StudioState>()
+                .recent_projects
+                .set(Mutex::new(recent_projects))
+                .map_err(|_| {
+                    NativeError::native_unavailable("Studio resources are already initialized.")
+                })?;
             let terminal_theme = match (
                 paths.resource_dir(),
                 paths.resolve(
@@ -134,6 +150,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             project_initial_event,
             project_select,
+            project_create,
+            project_recents,
+            project_open_recent,
             project_validate,
             project_activate,
             development_start,
