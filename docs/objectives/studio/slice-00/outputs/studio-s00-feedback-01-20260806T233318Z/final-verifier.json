@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "runId": "studio-s00-feedback-01-20260806T233318Z",
+  "generatedAt": "2026-08-07T00:41:01.889Z",
+  "result": "FAIL",
+  "checks": [
+    {
+      "name": "One tracked project manifest",
+      "status": "PASS",
+      "evidence": "The repository has one named project manifest and no legacy config source."
+    },
+    {
+      "name": "Shared bounded project boundary",
+      "status": "PASS",
+      "evidence": "CLI and Studio share one strict browser-safe parser; Node and native adapters own file access."
+    },
+    {
+      "name": "Native selection and activation boundary",
+      "status": "PASS",
+      "evidence": "Native input is bounded and symlink-aware; validation and activation are separate operations."
+    },
+    {
+      "name": "Packaged file association",
+      "status": "PASS",
+      "evidence": "The local macOS app bundle owns one exported .antiky editor association."
+    },
+    {
+      "name": "Launcher and active project identity",
+      "status": "PASS",
+      "evidence": "A cold start shows Open project; an active workspace shows name, manifest, schema, and root."
+    },
+    {
+      "name": "User documentation",
+      "status": "PASS",
+      "evidence": "Studio opening, Finder opening, manifest identity, safe rejection, and legacy migration are documented."
+    },
+    {
+      "name": "Actual native usability evidence",
+      "status": "FAIL",
+      "evidence": "Visual usability evidence is not approved"
+    }
+  ],
+  "commands": [
+    {
+      "name": "CLI contracts",
+      "command": "npm run test --workspace @antiky/cli",
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationMilliseconds": 6791,
+      "evidence": "AUTHORITY_BLOCK: the sandbox denied a required 127.0.0.1 listener with EPERM."
+    },
+    {
+      "name": "Studio app contracts",
+      "command": "npm run test --workspace @antiky/studio-app",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMilliseconds": 716,
+      "evidence": "All portable Studio, launcher, project-manager, and native-adapter contracts pass."
+    },
+    {
+      "name": "Native host contracts",
+      "command": "npm run test --workspace @antiky/studio-tauri",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMilliseconds": 2315,
+      "evidence": "All Tauri configuration, picker, file-event, project-boundary, terminal, and Rust contracts pass."
+    },
+    {
+      "name": "Local macOS app bundle",
+      "command": "npm run build --workspace @antiky/studio-tauri",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMilliseconds": 15866,
+      "evidence": "The release macOS .app and its web payload build with the .antiky association."
+    },
+    {
+      "name": "Repository checks",
+      "command": "npm run check",
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationMilliseconds": 6584,
+      "evidence": "AUTHORITY_BLOCK: the sandbox denied a required 127.0.0.1 listener with EPERM."
+    },
+    {
+      "name": "Rust formatting",
+      "command": "cargo fmt --manifest-path packages/studio/tauri/Cargo.toml --check",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMilliseconds": 161,
+      "evidence": "Native Rust source is formatted."
+    },
+    {
+      "name": "Whitespace audit",
+      "command": "git diff --check",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMilliseconds": 16,
+      "evidence": "Git reports no whitespace errors."
+    },
+    {
+      "name": "LFS pointer audit",
+      "command": "git lfs fsck --pointers",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMilliseconds": 262,
+      "evidence": "All routed PNG and JPEG objects and pointers pass Git LFS validation."
+    }
+  ],
+  "summary": {
+    "passedChecks": 6,
+    "failedChecks": 1,
+    "passedCommands": 6,
+    "failedCommands": 2
+  }
+}
