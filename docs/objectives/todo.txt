@@ -2,6 +2,8 @@ cleanup - merge massive PR to main
 marketing - update website
 marketing - add screenshots of real studio to website and readme
 cleanup - organize demos into demos/antiky, demos/brometal
+studio - fix terminal to just be `%` no other details
+studio - terminal bug on codex /exit causes weird execute problems
 studio - fix status bar and duplicate information
 studio - full screen game
 studio - make panels resizeable
@@ -11,3 +13,4 @@ studio - studio attach/detach
 antiky - antiky framework input capture and controls
 antiky - marketing - find open source threejs or brometal games and redo in antiky
 marketing - setup awesome-antiky and awesome-brometal
+marketing - documents getting started tutorial, build a game
