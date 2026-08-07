@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { DEMOS } from '@antiky/demos/catalog';
-import { DemoStage } from '@antiky/demos/react';
+import DemoStage from '@/components/DemoStage';
+import { DEMOS } from '@/lib/demos';
 import { BROMETAL_VERSION } from '@/lib/site';
 import { ArrowUpRight } from '@/components/Icons';
 
 export const metadata: Metadata = {
   title: 'Demos',
-  description: 'Two live WebGPU studies from Antiky Labs: a 2.3D town and a typed shader compiled to WGSL.',
+  description: 'Three live WebGPU studies delivered as compiled Antiky game modules.',
   alternates: { canonical: '/demos' },
 };
 
@@ -16,7 +16,7 @@ export default function DemosPage() {
     <>
       <section className="page-hero wrap demos-intro">
         <h1>Run the work.</h1>
-        <p className="status-line"><span className="status-dot status-live" /> Two live studies</p>
+        <p className="status-line"><span className="status-dot status-live" /> Three live studies</p>
         <p className="page-lead">These are small browser experiments, not trailers. Each renders on WebGPU through BroMetal {BROMETAL_VERSION}.</p>
       </section>
 
@@ -24,7 +24,7 @@ export default function DemosPage() {
         {DEMOS.map((demo) => (
           <article className="demo-entry" key={demo.slug}>
             <Link className="demo-entry-media" href={`/demos/${demo.slug}`} aria-label={`Open ${demo.title}`}>
-              <DemoStage slug={demo.slug} variant="thumb" label={`${demo.title} rendered preview`} />
+              <DemoStage slug={demo.slug} variant="thumb" poster={demo.poster} label={`${demo.title} preview`} />
               <span className="demo-open">Open study <ArrowUpRight /></span>
             </Link>
             <div className="demo-entry-copy">

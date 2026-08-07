@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "npm run shaders:prod && vite build",
+    "build": "npm run shaders:prod && vite build && node ../../../scripts/build-demo-artifact.mjs --slug shader-study --name \"Shader Study\" --source project=. --source artifact-builder=../../../scripts/build-demo-artifact.mjs",
     "dev": "vite build --watch",
     "shaders:watch": "brometal dev",
     "shaders:prod": "brometal prod",

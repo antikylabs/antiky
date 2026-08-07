@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { DemoStage } from '@antiky/demos/react';
+import DemoStage from '@/components/DemoStage';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
 
 const WORK = [

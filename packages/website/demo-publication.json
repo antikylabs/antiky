@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "demos": [
+    {
+      "slug": "antiky-town",
+      "projectName": "Antiky Town",
+      "workspace": "@antiky/demo-antiky-town",
+      "projectDirectory": "packages/demos/antiky-town",
+      "sources": [
+        { "label": "project", "path": "packages/demos/antiky-town" },
+        { "label": "town-support", "path": "packages/demo-support/town" },
+        { "label": "artifact-builder", "path": "scripts/build-demo-artifact.mjs" }
+      ]
+    },
+    {
+      "slug": "town-study",
+      "projectName": "Town Study",
+      "workspace": "@antiky/demo-town-study",
+      "projectDirectory": "packages/demos/town-study",
+      "sources": [
+        { "label": "project", "path": "packages/demos/town-study" },
+        { "label": "town-support", "path": "packages/demo-support/town" },
+        { "label": "artifact-builder", "path": "scripts/build-demo-artifact.mjs" }
+      ]
+    },
+    {
+      "slug": "shader-study",
+      "projectName": "Shader Study",
+      "workspace": "@antiky/demo-shader-study",
+      "projectDirectory": "packages/demos/shader-study",
+      "sources": [
+        { "label": "project", "path": "packages/demos/shader-study" },
+        { "label": "artifact-builder", "path": "scripts/build-demo-artifact.mjs" }
+      ]
+    }
+  ]
+}

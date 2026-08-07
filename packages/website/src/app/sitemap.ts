@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { DEMOS } from '@antiky/demos/catalog';
+import { DEMOS } from '@/lib/demos';
 import { getDocsEntries } from '@/lib/docs';
 import { canonical } from '@/lib/site';
 

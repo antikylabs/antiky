@@ -15,6 +15,8 @@
 # production
 **/build
 **/dist/
+packages/website/public/demo-builds/
+packages/website/public/.demo-builds-stage-*/
 
 # local design workbench
 **/.impeccable/
