@@ -5,14 +5,13 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
-import { API_AREAS, SYMBOL_DESCRIPTIONS } from './framework-api-reference-content.mjs';
+import { API_AREAS, SYMBOL_DESCRIPTIONS } from './api-reference-content.mjs';
 
-const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const frameworkRoot = resolve(repositoryRoot, 'packages/framework');
+const frameworkRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repositoryRoot = resolve(frameworkRoot, '../..');
 const frameworkSourceRoot = resolve(frameworkRoot, 'src');
-const frameworkEntry = resolve(frameworkSourceRoot, 'index.ts');
 const docsRoot = resolve(repositoryRoot, 'docs/user-facing-docs/api');
-const generatorPath = 'scripts/generate-framework-api-reference.mjs';
+const generatorPath = 'packages/framework/scripts/generate-api-reference.mjs';
 const printer = ts.createPrinter({
   newLine: ts.NewLineKind.LineFeed,
   removeComments: true,
@@ -175,34 +174,60 @@ function loadProgram() {
   return program;
 }
 
-function publicExports(program) {
-  const sourceFile = program.getSourceFile(frameworkEntry);
-  if (!sourceFile) fail('cannot load packages/framework/src/index.ts');
-  const checker = program.getTypeChecker();
-  const moduleSymbol = checker.getSymbolAtLocation(sourceFile);
-  if (!moduleSymbol) fail('cannot resolve the framework entry module');
-
-  return checker.getExportsOfModule(moduleSymbol).map((exportSymbol) => {
-    const symbol = exportSymbol.flags & ts.SymbolFlags.Alias
-      ? checker.getAliasedSymbol(exportSymbol)
-      : exportSymbol;
-    const declaration = symbol.declarations?.find((candidate) => (
-      candidate.getSourceFile().fileName.startsWith(frameworkSourceRoot)
-    ));
-    if (!declaration) fail(`cannot resolve declaration for ${exportSymbol.name}`);
+async function frameworkEntries() {
+  const metadata = JSON.parse(await readFile(resolve(frameworkRoot, 'package.json'), 'utf8'));
+  if (metadata.name !== '@antiky/framework' || metadata.exports === null || typeof metadata.exports !== 'object') {
+    fail('packages/framework/package.json must have a public exports map');
+  }
+  return Object.entries(metadata.exports).map(([subpath, target]) => {
+    if (
+      (subpath !== '.' && !/^\.\/[a-z][a-z0-9-]*$/.test(subpath))
+      || typeof target !== 'string'
+      || !target.startsWith('./src/')
+      || !target.endsWith('.ts')
+    ) {
+      fail(`unsupported package export ${subpath}`);
+    }
     return {
-      name: exportSymbol.name,
-      source: relative(frameworkSourceRoot, declaration.getSourceFile().fileName).replaceAll('\\', '/'),
-      position: declaration.getStart(declaration.getSourceFile()),
-      kind: declarationKind(declaration),
-      signature: renderSignature(declaration),
+      importPath: subpath === '.' ? metadata.name : `${metadata.name}/${subpath.slice(2)}`,
+      sourcePath: target.slice('./src/'.length),
+      filePath: resolve(frameworkRoot, target),
     };
   });
 }
 
+function publicExports(program, entries) {
+  const checker = program.getTypeChecker();
+  return entries.flatMap((entry) => {
+    const sourceFile = program.getSourceFile(entry.filePath);
+    if (!sourceFile) fail(`cannot load package export source ${entry.sourcePath}`);
+    const moduleSymbol = checker.getSymbolAtLocation(sourceFile);
+    if (!moduleSymbol) fail(`cannot resolve package export ${entry.importPath}`);
+
+    return checker.getExportsOfModule(moduleSymbol).map((exportSymbol) => {
+      const symbol = exportSymbol.flags & ts.SymbolFlags.Alias
+        ? checker.getAliasedSymbol(exportSymbol)
+        : exportSymbol;
+      const declaration = symbol.declarations?.find((candidate) => (
+        candidate.getSourceFile().fileName.startsWith(frameworkSourceRoot)
+      ));
+      if (!declaration) fail(`cannot resolve declaration for ${entry.importPath} export ${exportSymbol.name}`);
+      return {
+        name: exportSymbol.name,
+        packageEntry: entry.importPath,
+        source: relative(frameworkSourceRoot, declaration.getSourceFile().fileName).replaceAll('\\', '/'),
+        position: declaration.getStart(declaration.getSourceFile()),
+        kind: declarationKind(declaration),
+        signature: renderSignature(declaration),
+      };
+    });
+  });
+}
+
 function validateContent(exports) {
-  const configuredSources = new Set();
+  const configuredModules = new Set();
   for (const area of API_AREAS) {
+    const packageEntry = area.packageEntry ?? '@antiky/framework';
     if (
       !/^[a-z][a-z0-9-]+$/.test(area.slug)
       || area.modules.length === 0
@@ -212,15 +237,16 @@ function validateContent(exports) {
       fail(`invalid area configuration for ${area.title}`);
     }
     for (const module of area.modules) {
-      if (configuredSources.has(module.source)) fail(`source ${module.source} appears in more than one area`);
-      configuredSources.add(module.source);
+      const key = `${packageEntry}\0${module.source}`;
+      if (configuredModules.has(key)) fail(`source ${module.source} appears in more than one ${packageEntry} area`);
+      configuredModules.add(key);
     }
   }
 
   const publicNames = new Set(exports.map((entry) => entry.name));
   const undocumented = exports.filter((entry) => !SYMBOL_DESCRIPTIONS[entry.name]);
   const staleDescriptions = Object.keys(SYMBOL_DESCRIPTIONS).filter((name) => !publicNames.has(name));
-  const unassigned = exports.filter((entry) => !configuredSources.has(entry.source));
+  const unassigned = exports.filter((entry) => !configuredModules.has(`${entry.packageEntry}\0${entry.source}`));
   if (undocumented.length > 0) {
     fail(`add descriptions for new exports: ${undocumented.map((entry) => entry.name).join(', ')}`);
   }
@@ -264,9 +290,10 @@ function anchorFor(name) {
 }
 
 function exportsForArea(exports, area) {
+  const packageEntry = area.packageEntry ?? '@antiky/framework';
   const moduleOrder = new Map(area.modules.map((module, index) => [module.source, index]));
   return exports
-    .filter((entry) => moduleOrder.has(entry.source))
+    .filter((entry) => entry.packageEntry === packageEntry && moduleOrder.has(entry.source))
     .sort((left, right) => (
       moduleOrder.get(left.source) - moduleOrder.get(right.source)
       || left.position - right.position
@@ -279,9 +306,9 @@ function renderOverview(exports, fingerprint) {
     ...frontmatter(fingerprint),
     '# Framework API reference',
     '',
-    `This is the complete public API exported by \`@antiky/framework\`. It covers all ${exports.length} public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.`,
+    `This is the complete public API exported by the Antiky Framework package. It covers all ${exports.length} public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.`,
     '',
-    'Import from the package root. Submodule paths are implementation details and are not part of the public contract.',
+    'Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.',
     '',
     '## Quick start',
     '',
@@ -327,15 +354,16 @@ function renderOverview(exports, fingerprint) {
   lines.push(
     '## Keeping the reference current',
     '',
-    `These pages are generated by \`${generatorPath}\` from the framework entry point, source declarations, and concise purpose text. The source fingerprint above changes whenever reachable production framework source changes.`,
+    `These pages are generated by \`${generatorPath}\` from the Framework package export map, source declarations, and concise purpose text. The source fingerprint above changes whenever production Framework source changes.`,
     '',
-    'Run `npm run docs:api` after a framework change. `npm run docs:api:check` and framework tests reject missing descriptions, unassigned modules, or stale generated output. The website build regenerates the reference before publishing.',
+    'Run `npm run docs:api --workspace @antiky/framework` after a Framework change. Framework tests reject missing package entries, descriptions, module assignments, or generated output.',
     '',
   );
   return lines.join('\n');
 }
 
 function renderArea(area, exports, fingerprint) {
+  const packageEntry = area.packageEntry ?? '@antiky/framework';
   const lines = [
     ...frontmatter(fingerprint),
     `# ${area.title}`,
@@ -344,7 +372,7 @@ function renderArea(area, exports, fingerprint) {
     '',
     area.useWhen,
     '',
-    `For the task-first workflow, read [${area.guide.label}](${area.guide.href}). Import every API on this page from \`@antiky/framework\`.`,
+    `For the task-first workflow, read [${area.guide.label}](${area.guide.href}). Import every API on this page from \`${packageEntry}\`.`,
     '',
     '## Example',
     '',
@@ -422,10 +450,10 @@ async function writePages(pages) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.some((arg) => arg !== '--check') || args.length > 1) {
-    fail('usage: node scripts/generate-framework-api-reference.mjs [--check]');
+    fail('usage: node packages/framework/scripts/generate-api-reference.mjs [--check]');
   }
   const program = loadProgram();
-  const exports = publicExports(program);
+  const exports = publicExports(program, await frameworkEntries());
   validateContent(exports);
   const pages = generatedPages(exports, sourceFingerprint(program));
   if (args[0] === '--check') await checkPages(pages);

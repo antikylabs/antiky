@@ -1,5 +1,5 @@
 ---
-generated: scripts/generate-framework-api-reference.mjs
+generated: packages/framework/scripts/generate-api-reference.mjs
 frameworkSource: sha256:abec93cf7a78bb76
 ---
 

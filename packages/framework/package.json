@@ -9,7 +9,9 @@
   },
   "scripts": {
     "dev": "tsc --noEmit --watch --preserveWatchOutput",
-    "test": "node ../../scripts/generate-framework-api-reference.mjs --check && node --experimental-strip-types --experimental-transform-types --test src/game/host.test.ts src/identity/ids.test.ts src/inspection/events.test.ts src/inspection/snapshot.test.ts src/inspection/world.test.ts src/point-light/commands.test.ts src/point-light/command-flow.test.ts src/point-light/inspection.test.ts src/point-light/records.test.ts src/point-light/service.test.ts src/point-light/world-inspection.test.ts src/sessions/engine-session/engine-session.test.ts tests/import-boundary.test.mjs",
+    "docs:api": "node scripts/generate-api-reference.mjs",
+    "docs:api:check": "node scripts/generate-api-reference.mjs --check",
+    "test": "npm run docs:api:check && node --experimental-strip-types --experimental-transform-types --test src/game/host.test.ts src/identity/ids.test.ts src/inspection/events.test.ts src/inspection/snapshot.test.ts src/inspection/world.test.ts src/point-light/commands.test.ts src/point-light/command-flow.test.ts src/point-light/inspection.test.ts src/point-light/records.test.ts src/point-light/service.test.ts src/point-light/world-inspection.test.ts src/sessions/engine-session/engine-session.test.ts tests/import-boundary.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

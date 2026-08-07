@@ -1,13 +1,13 @@
 ---
-generated: scripts/generate-framework-api-reference.mjs
+generated: packages/framework/scripts/generate-api-reference.mjs
 frameworkSource: sha256:abec93cf7a78bb76
 ---
 
 # Framework API reference
 
-This is the complete public API exported by `@antiky/framework`. It covers all 176 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
+This is the complete public API exported by the Antiky Framework package. It covers all 188 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
 
-Import from the package root. Submodule paths are implementation details and are not part of the public contract.
+Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.
 
 ## Quick start
 
@@ -27,6 +27,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 | [Point-light core API](point-light-core.md) | Validate point-light records and manage the authoritative lights for one world. | [Add point lights](../framework/point-lights.md) |
 | [Point-light command API](point-light-commands.md) | Validate versioned power-change commands, trusted execution context, results, and accepted facts. | [Point lights: Change power](../framework/point-lights.md#change-power-while-the-game-runs) |
 | [Point-light integration API](point-light-integration.md) | Project authored lights into runtime, renderer, inspection, world, and event views. | [Point lights: Renderer integration](../framework/point-lights.md#send-changes-to-your-renderer) |
+| [Game host API](game-host.md) | Mount one portable game module with host-owned canvas, input, timing, measurements, inspection, and cleanup. | [Build a game module](../framework/game-modules.md) |
 
 ## Shared rules
 
@@ -63,8 +64,12 @@ Start with a task guide when you are building a feature. Use the pages below whe
 
 [`MAX_POINT_LIGHT_RENDER_SLOT`](point-light-integration.md#max_point_light_render_slot) · [`PointLightRenderBinding`](point-light-integration.md#pointlightrenderbinding) · [`RuntimePointLight`](point-light-integration.md#runtimepointlight) · [`RenderPointLight`](point-light-integration.md#renderpointlight) · [`PointLightStateSnapshot`](point-light-integration.md#pointlightstatesnapshot) · [`PointLightRenderChanges`](point-light-integration.md#pointlightrenderchanges) · [`PointLightProjectionValidationError`](point-light-integration.md#pointlightprojectionvalidationerror) · [`parsePointLightRuntimeInstanceId`](point-light-integration.md#parsepointlightruntimeinstanceid) · [`parsePointLightRenderBindings`](point-light-integration.md#parsepointlightrenderbindings) · [`createPointLightStateSnapshot`](point-light-integration.md#createpointlightstatesnapshot) · [`readRenderChanges`](point-light-integration.md#readrenderchanges) · [`POINT_LIGHT_INSPECTION_SCHEMA_VERSION`](point-light-integration.md#point_light_inspection_schema_version) · [`PointLightInspectionInput`](point-light-integration.md#pointlightinspectioninput) · [`PointLightInspection`](point-light-integration.md#pointlightinspection) · [`PointLightInspectionValidationError`](point-light-integration.md#pointlightinspectionvalidationerror) · [`createPointLightInspection`](point-light-integration.md#createpointlightinspection) · [`inspectPointLightService`](point-light-integration.md#inspectpointlightservice) · [`POINT_LIGHT_AUTHORING_STORE_ID`](point-light-integration.md#point_light_authoring_store_id) · [`POINT_LIGHT_RUNTIME_STORE_ID`](point-light-integration.md#point_light_runtime_store_id) · [`POINT_LIGHT_RENDER_STORE_ID`](point-light-integration.md#point_light_render_store_id) · [`POINT_LIGHT_EVENT_SOURCE_ID`](point-light-integration.md#point_light_event_source_id) · [`TRANSFORM_COMPONENT_TYPE_ID`](point-light-integration.md#transform_component_type_id) · [`POINT_LIGHT_COMPONENT_TYPE_ID`](point-light-integration.md#point_light_component_type_id) · [`PointLightWorldViews`](point-light-integration.md#pointlightworldviews) · [`createPointLightWorldViews`](point-light-integration.md#createpointlightworldviews) · [`inspectPointLightWorld`](point-light-integration.md#inspectpointlightworld)
 
+### Game host API
+
+[`GamePointerInput`](game-host.md#gamepointerinput) · [`GameMovementInput`](game-host.md#gamemovementinput) · [`GameHostMode`](game-host.md#gamehostmode) · [`GameMeasurements`](game-host.md#gamemeasurements) · [`GameHostInspectionState`](game-host.md#gamehostinspectionstate) · [`GameInspectionDetails`](game-host.md#gameinspectiondetails) · [`GameSessionControlResult`](game-host.md#gamesessioncontrolresult) · [`GameInspectionPort`](game-host.md#gameinspectionport) · [`createGameInspectionSnapshot`](game-host.md#creategameinspectionsnapshot) · [`GameHostContext`](game-host.md#gamehostcontext) · [`GameInstance`](game-host.md#gameinstance) · [`GameModuleEntry`](game-host.md#gamemoduleentry)
+
 ## Keeping the reference current
 
-These pages are generated by `scripts/generate-framework-api-reference.mjs` from the framework entry point, source declarations, and concise purpose text. The source fingerprint above changes whenever reachable production framework source changes.
+These pages are generated by `packages/framework/scripts/generate-api-reference.mjs` from the Framework package export map, source declarations, and concise purpose text. The source fingerprint above changes whenever production Framework source changes.
 
-Run `npm run docs:api` after a framework change. `npm run docs:api:check` and framework tests reject missing descriptions, unassigned modules, or stale generated output. The website build regenerates the reference before publishing.
+Run `npm run docs:api --workspace @antiky/framework` after a Framework change. Framework tests reject missing package entries, descriptions, module assignments, or generated output.

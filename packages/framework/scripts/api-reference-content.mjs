@@ -188,6 +188,35 @@ lights.acknowledgePointLightRenderChanges(changes.eventSequence);`,
       },
     ],
   },
+  {
+    slug: 'game-host',
+    title: 'Game host API',
+    packageEntry: '@antiky/framework/game',
+    summary: 'Mount one portable game module with host-owned canvas, input, timing, measurements, inspection, and cleanup.',
+    useWhen: 'Use this entry to define a game module or a delivery host without importing CLI, Studio, website, or server code into the game.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'The host supplies platform services. The game returns one instance that accepts presentation time and supports cleanup.',
+    example: `import type { GameModuleEntry } from '@antiky/framework/game';
+
+const mountGame: GameModuleEntry = ({ canvas, movement, pointer }) => ({
+  frame(platformTimeSeconds) {
+    updateGame({ movement, pointer, platformTimeSeconds });
+    drawGame(canvas);
+  },
+  dispose() {
+    disposeGame();
+  },
+});
+
+export default mountGame;`,
+    modules: [
+      {
+        source: 'game/host.ts',
+        title: 'Game module and host contract',
+        description: 'Keep platform work in the host and expose only semantic game input, measurements, inspection, presentation, and cleanup.',
+      },
+    ],
+  },
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
@@ -382,4 +411,18 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   PointLightWorldViews: 'The paired generic world and event views derived from point-light state.',
   createPointLightWorldViews: 'Validates feature inspection input and maps it to generic world and event views.',
   inspectPointLightWorld: 'Reads a point-light service and returns its generic world and event inspection views.',
+
+  // Game module and host
+  GamePointerInput: 'Current semantic pointer position, button state, and wheel input supplied by a game host.',
+  GameMovementInput: 'Current normalized semantic movement input supplied by a game host.',
+  GameHostMode: 'The presentation purpose selected by the host for one mounted game.',
+  GameMeasurements: 'Optional bounded render measurements that a game reports to its host.',
+  GameHostInspectionState: 'Host-owned lifecycle, canvas, frame, measurement, and error state used for one inspection snapshot.',
+  GameInspectionDetails: 'Optional game-owned session and point-light state added to a host inspection snapshot.',
+  GameSessionControlResult: 'One session-control result paired with the current serializable session status.',
+  GameInspectionPort: 'Optional semantic inspection and control operations supplied by a mounted game.',
+  createGameInspectionSnapshot: 'Combines validated host state with optional game state in one Framework inspection snapshot.',
+  GameHostContext: 'Canvas, runtime identity, semantic input, mode, and measurement callback supplied when a host mounts a game.',
+  GameInstance: 'One mounted game with presentation, cleanup, and optional inspection operations.',
+  GameModuleEntry: 'The default game-module function that creates one game instance from a host context.',
 });

@@ -26,8 +26,8 @@ engineering records.
 ## Verification
 
 Generated framework reference pages live in `api/`. Change
-`scripts/framework-api-reference-content.mjs` or the generator, then run `npm run docs:api`; do not
-hand-edit generated pages.
+`packages/framework/scripts/api-reference-content.mjs` or the Framework generator, then run
+`npm run docs:api --workspace @antiky/framework`; do not hand-edit generated pages.
 
 Update the documentation contract in `packages/cli/tests/user-docs.test.ts` whenever a public name
 or workflow changes. Run that test and the affected package tests before committing.

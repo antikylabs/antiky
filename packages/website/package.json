@@ -5,7 +5,7 @@
   "scripts": {
     "predev": "npm run demos:stage",
     "dev": "next dev",
-    "prebuild": "node ../../scripts/generate-framework-api-reference.mjs && npm run demos:stage",
+    "prebuild": "npm run docs:api:check --workspace @antiky/framework && npm run demos:stage",
     "build": "next build",
     "demos:stage": "node ../../scripts/build-public-demos.mjs",
     "start": "next start -p 3010",

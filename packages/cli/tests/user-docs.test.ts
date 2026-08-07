@@ -37,7 +37,7 @@ test('user-facing documentation has valid local links', async () => {
 
 test('the generated framework API reference covers every public area and is current', async () => {
   await runFile(process.execPath, [
-    resolve(repositoryRoot, 'scripts/generate-framework-api-reference.mjs'),
+    resolve(repositoryRoot, 'packages/framework/scripts/generate-api-reference.mjs'),
     '--check',
   ], { cwd: repositoryRoot });
 
@@ -49,6 +49,7 @@ test('the generated framework API reference covers every public area and is curr
     'point-light-core.md',
     'point-light-commands.md',
     'point-light-integration.md',
+    'game-host.md',
   ].map((name) => readFile(new URL(`api/${name}`, userDocsRoot), 'utf8')));
 
   assert.match(pages[0]!, /import \{ createEngineSession \} from '@antiky\/framework'/);
@@ -59,6 +60,10 @@ test('the generated framework API reference covers every public area and is curr
   assert.match(pages[4]!, /### `createPointLightAuthoringService`/);
   assert.match(pages[5]!, /### `parseSetPointLightPowerCommand`/);
   assert.match(pages[6]!, /### `inspectPointLightWorld`/);
+  assert.match(pages[7]!, /Import every API on this page from `@antiky\/framework\/game`/);
+  assert.match(pages[7]!, /### `GameHostContext`/);
+  assert.match(pages[7]!, /### `GameModuleEntry`/);
+  assert.match(pages[7]!, /### `createGameInspectionSnapshot`/);
   assert.match(pages[1]!, /`savedWorldId` is an unknown value read from persisted game data/);
   assert.match(pages[5]!, /`untrustedCommand` comes from a file, tool, or request boundary/);
   assert.match(pages[6]!, /`rendererLights` is your renderer adapter/);
