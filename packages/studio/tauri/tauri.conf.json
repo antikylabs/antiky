@@ -49,7 +49,8 @@
     "resources": {
       "resources/node": "project-service/node",
       "resources/project-service.mjs": "project-service/project-service.mjs",
-      "resources/terminal/antiky-studio.ghostty": "terminal/antiky-studio.ghostty"
+      "resources/terminal/antiky-studio.ghostty": "terminal/antiky-studio.ghostty",
+      "resources/terminal/antiky-studio.zshrc": "terminal/.zshrc"
     },
     "icon": [
       "../../website/public/brand/antiky-labs-wordmark-white.png"

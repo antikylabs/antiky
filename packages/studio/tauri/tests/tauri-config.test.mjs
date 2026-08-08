@@ -172,6 +172,7 @@ test('the Studio terminal theme is a complete visual-only Ghostty profile', asyn
     'resources/node': 'project-service/node',
     'resources/project-service.mjs': 'project-service/project-service.mjs',
     'resources/terminal/antiky-studio.ghostty': 'terminal/antiky-studio.ghostty',
+    'resources/terminal/antiky-studio.zshrc': 'terminal/.zshrc',
   });
 });
 

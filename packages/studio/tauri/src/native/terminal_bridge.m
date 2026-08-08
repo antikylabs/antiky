@@ -4,6 +4,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <dispatch/dispatch.h>
 #import <ghostty.h>
+#import <stdlib.h>
 
 @interface AntikyGhosttyView : NSView
 @property(nonatomic, assign) ghostty_surface_t surface;
@@ -391,6 +392,18 @@ int32_t antiky_terminal_open(
                                                           alpha:1.0].CGColor;
   [parent addSubview:antiky_view positioned:NSWindowAbove relativeTo:nil];
 
+  NSString *profile_path = [NSString stringWithUTF8String:terminal_profile];
+  const char *shell_config_directory =
+      profile_path.stringByDeletingLastPathComponent.fileSystemRepresentation;
+  const char *user_config_directory = getenv("ZDOTDIR");
+  if (user_config_directory == NULL || user_config_directory[0] == '\0') {
+    user_config_directory = getenv("HOME");
+  }
+  if (user_config_directory == NULL) user_config_directory = "";
+  ghostty_env_var_s shell_environment[] = {
+      {.key = "ZDOTDIR", .value = shell_config_directory},
+      {.key = "ANTIKY_STUDIO_USER_ZDOTDIR", .value = user_config_directory},
+  };
   ghostty_surface_config_s surface_config = ghostty_surface_config_new();
   surface_config.platform_tag = GHOSTTY_PLATFORM_MACOS;
   surface_config.platform.macos.nsview = (__bridge void *)antiky_view;
@@ -398,6 +411,9 @@ int32_t antiky_terminal_open(
   surface_config.scale_factor = parent.window.backingScaleFactor;
   surface_config.font_size = 13;
   surface_config.working_directory = working_directory;
+  surface_config.command = "/bin/zsh";
+  surface_config.env_vars = shell_environment;
+  surface_config.env_var_count = 2;
   surface_config.wait_after_command = true;
   surface_config.context = GHOSTTY_SURFACE_CONTEXT_WINDOW;
   antiky_view.surface = ghostty_surface_new(antiky_app, &surface_config);

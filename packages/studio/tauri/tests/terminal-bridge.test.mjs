@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { spawn } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +13,10 @@ const bridgeSource = readFile(
 );
 const bridgeHeader = readFile(
   resolve(packageDirectory, 'src/native/terminal_bridge.h'),
+  'utf8',
+);
+const shellProfile = readFile(
+  resolve(packageDirectory, 'resources/terminal/antiky-studio.zshrc'),
   'utf8',
 );
 
@@ -40,6 +46,64 @@ test('the bridge validates and loads the Studio profile after user configuration
   assert.ok(userRecursive > userDefaults);
   assert.ok(studioProfile > userRecursive);
   assert.ok(finalize > studioProfile);
+});
+
+test('the Studio terminal uses one minimal non-identifying shell prompt', async () => {
+  const [source, profile] = await Promise.all([bridgeSource, shellProfile]);
+  const open = source.match(
+    /int32_t antiky_terminal_open\([\s\S]*?\n\}\n\nint32_t antiky_terminal_layout/,
+  )?.[0];
+
+  assert.ok(open, 'native terminal open must remain explicit and inspectable');
+  assert.match(open, /surface_config\.command = "\/bin\/zsh"/);
+  assert.match(open, /\.key = "ZDOTDIR", \.value = shell_config_directory/);
+  assert.match(open, /\.key = "ANTIKY_STUDIO_USER_ZDOTDIR", \.value = user_config_directory/);
+  assert.match(open, /surface_config\.env_vars = shell_environment/);
+  assert.match(open, /surface_config\.env_var_count = 2/);
+  assert.match(profile, /PROMPT='%% '/);
+  assert.match(profile, /RPROMPT=''/);
+
+  const fixture = await mkdtemp(join(tmpdir(), 'antiky-terminal-prompt-'));
+  const studioConfig = join(fixture, 'studio');
+  const userConfig = join(fixture, 'generic-user');
+  await mkdir(studioConfig);
+  await mkdir(userConfig);
+  await writeFile(join(studioConfig, '.zshrc'), profile);
+  await writeFile(
+    join(userConfig, '.zshrc'),
+    "export GENERIC_SHELL_FIXTURE=ready\nPROMPT='workstation '\n",
+  );
+
+  try {
+    const child = spawn('/bin/zsh', ['-d', '-i'], {
+      env: {
+        ...process.env,
+        ZDOTDIR: studioConfig,
+        ANTIKY_STUDIO_USER_ZDOTDIR: userConfig,
+      },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.stdin.end('print -r -- "$GENERIC_SHELL_FIXTURE"\nexit\n');
+    const exit = await new Promise((resolveExit) => {
+      child.once('exit', (code, signal) => resolveExit({ code, signal }));
+    });
+
+    assert.deepEqual(exit, { code: 0, signal: null }, stderr);
+    assert.match(stdout, /^ready$/m);
+    const visiblePrompt = stderr
+      .replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '')
+      .replaceAll('\r', '\n');
+    assert.match(visiblePrompt, /(?:^|\n)% /);
+    assert.doesNotMatch(visiblePrompt, /workstation/);
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
 });
 
 test('terminal teardown frees the Ghostty surface without requesting an interactive close', async () => {
