@@ -22,7 +22,12 @@ import type { BufferGeometry, Material } from 'three';
 import type { StudioGameEntry } from './studio-game.ts';
 
 const game: StudioGameEntry = ({ canvas, pointer, report }) => {
-  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: false });
+  const renderer = new WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha: false,
+    preserveDrawingBuffer: true,
+  });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.08;

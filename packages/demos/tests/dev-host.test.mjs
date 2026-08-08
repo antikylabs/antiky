@@ -73,6 +73,13 @@ test('demo dependency boundaries identify Framework, BroMetal, and Three.js proj
   }
 });
 
+test('Three.js showcase frames remain available to the host capture tool', async () => {
+  for (const demo of showcase.filter((entry) => entry.renderer === 'three')) {
+    const source = await readFile(new URL('src/game.ts', demoDirectory(demo)), 'utf8');
+    assert.match(source, /new WebGLRenderer\(\{[^}]*preserveDrawingBuffer:\s*true[^}]*\}\)/s);
+  }
+});
+
 test('game projects contain no delivery host or sibling-demo source imports', async () => {
   for (const demo of showcase) {
     const directory = demoDirectory(demo);
