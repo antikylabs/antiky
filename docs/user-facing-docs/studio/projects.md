@@ -55,8 +55,9 @@ The generated `harbor-lights.antiky` file has these defaults:
 The directory that contains the manifest is the project root. The development and build working
 directories are relative to that root. Keep those paths inside the project.
 
-Edit the development and build commands when your package scripts use different names. The
-initializer does not inspect or run `package.json`.
+Edit the development and build commands when your package scripts use different names. Projects
+that do not compile BroMetal shaders, such as Three.js projects, set `shaderCommand` to `[]` so
+Studio does not start a shader watcher. The initializer does not inspect or run `package.json`.
 
 The manifest is strict JSON. Every field in the example is required, unknown fields are rejected,
 and only schema version 1 is supported. The maximum file size is 64 KiB.
@@ -122,7 +123,7 @@ directories. Zero or multiple `.antiky` files produce an error instead of select
 | `schemaVersion` | Selects the manifest format. The current value is `1`. |
 | `name` | Supplies the project name shown in Studio and development output. |
 | `development.command` | Watches and compiles the game to `dist/antiky.game.js`. |
-| `development.shaderCommand` | Starts the shader watcher. |
+| `development.shaderCommand` | Starts the shader watcher, or skips it when the array is empty. |
 | `development.workingDirectory` | Selects the working directory for both development commands. |
 | `development.url` | Supplies the loopback page that Studio displays as the live game. |
 | `development.viewport` | Supplies the requested game width and height. |

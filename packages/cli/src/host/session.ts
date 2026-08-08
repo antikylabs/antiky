@@ -230,6 +230,7 @@ export async function startDevelopmentSession(
   const descriptorPath = getSessionDescriptorPath(project.manifestPath);
   const startedAtMilliseconds = Date.now();
   const startedAt = new Date(startedAtMilliseconds).toISOString();
+  const hasShaderWatcher = project.development.shaderCommand.length > 0;
   let launchMilliseconds: number | undefined;
   const buildTracker = createBuildTracker({
     developmentSessionId: id,
@@ -240,7 +241,7 @@ export async function startDevelopmentSession(
   });
   const processRecords = {
     game: { state: 'starting' } as ProcessRecord,
-    shaders: { state: 'starting' } as ProcessRecord,
+    shaders: { state: hasShaderWatcher ? 'starting' : 'stopped' } as ProcessRecord,
   };
   let cleanupState: DevelopmentCleanupState = 'active';
   let cleanupMilliseconds: number | undefined;
@@ -504,7 +505,7 @@ export async function startDevelopmentSession(
       ownerPid: process.pid,
     });
     reportSession('info', 'ANTIKY_COMPONENT_STARTED', 'session-descriptor');
-    await spawnManaged('shaders', project.development.shaderCommand);
+    if (hasShaderWatcher) await spawnManaged('shaders', project.development.shaderCommand);
     await closeNetServer(gameReservation);
     gameReservation = undefined;
     await gameHost.start();
@@ -535,7 +536,9 @@ export async function startDevelopmentSession(
   writeOutput(`Game: ${project.development.url}`);
   writeOutput(`Inspection: ${inspectionUrl}`);
   writeOutput(`MCP: ${mcpUrl}`);
-  writeOutput('Services: game host, game build, shaders, inspection, mcp');
+  writeOutput(
+    `Services: game host, game build, ${hasShaderWatcher ? 'shaders, ' : ''}inspection, mcp`,
+  );
 
   return Object.freeze({
     id,

@@ -143,9 +143,12 @@ function readPortableDirectory(value: unknown, path: string): string {
   return directory;
 }
 
-function readCommand(value: unknown, path: string): readonly string[] {
-  if (!Array.isArray(value) || value.length === 0 || value.length > 64) {
-    invalid('Expected an array with 1 through 64 command tokens', path);
+function readCommand(value: unknown, path: string, allowEmpty = false): readonly string[] {
+  if (!Array.isArray(value) || (!allowEmpty && value.length === 0) || value.length > 64) {
+    invalid(
+      `Expected an array with ${allowEmpty ? '0' : '1'} through 64 command tokens`,
+      path,
+    );
   }
   return Object.freeze(value.map((token, index) => {
     const tokenPath = `${path}[${index}]`;
@@ -233,7 +236,11 @@ export function parseAntikyProjectManifest(source: string): AntikyProjectManifes
     name: readName(root.name),
     development: Object.freeze({
       command: readCommand(development.command, '$.development.command'),
-      shaderCommand: readCommand(development.shaderCommand, '$.development.shaderCommand'),
+      shaderCommand: readCommand(
+        development.shaderCommand,
+        '$.development.shaderCommand',
+        true,
+      ),
       workingDirectory: readPortableDirectory(
         development.workingDirectory,
         '$.development.workingDirectory',

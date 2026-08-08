@@ -59,7 +59,7 @@ const validManifest = {
 } as const;
 
 const repositoryManifest = fileURLToPath(
-  new URL('../../demos/antiky-town/antiky-town.antiky', import.meta.url),
+  new URL('../../demos/antiky/antiky-town/antiky-town.antiky', import.meta.url),
 );
 
 async function projectDirectory(prefix = 'antiky-project-'): Promise<string> {
@@ -111,6 +111,19 @@ test('the pure parser creates one immutable Unicode project description', () => 
   assert.ok(Object.isFrozen(project.development));
   assert.ok(Object.isFrozen(project.development.command));
   assert.ok(Object.isFrozen(project.build));
+});
+
+test('the parser accepts an empty shader command for projects without a shader watcher', () => {
+  const manifest = parseAntikyProjectManifest(JSON.stringify({
+    ...validManifest,
+    development: {
+      ...validManifest.development,
+      shaderCommand: [],
+    },
+  }));
+
+  assert.deepEqual(manifest.development.shaderCommand, []);
+  assert.ok(Object.isFrozen(manifest.development.shaderCommand));
 });
 
 test('the initialized project fixture has the frozen schema-default digest', async () => {

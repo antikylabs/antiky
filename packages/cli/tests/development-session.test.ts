@@ -43,6 +43,7 @@ async function makeProject(options: {
   gameBehavior?: 'run' | 'fail';
   shaderBehavior?: 'run' | 'fail';
   gameCommand?: string[];
+  shaderCommand?: string[];
 } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'antiky-session-'));
   const marker = join(directory, 'children.log');
@@ -59,7 +60,7 @@ async function makeProject(options: {
     name: 'Development session fixture',
     development: {
       command: gameCommand,
-      shaderCommand: [
+      shaderCommand: options.shaderCommand ?? [
         process.execPath,
         fixture,
         'shaders',
@@ -192,6 +193,27 @@ test('development session starts both children, publishes health, and cleans up'
   )));
 });
 
+test('development session skips the shader child when no shader watcher is configured', async () => {
+  const project = await makeProject({ shaderCommand: [] });
+  const config = await loadAntikyProject(project.projectPath);
+  const lines: string[] = [];
+  const session = await startDevelopmentSession(config, {
+    writeOutput: (line) => lines.push(line),
+  });
+
+  try {
+    await waitFor(() => canRead(project.marker));
+    const children = (await readFile(project.marker, 'utf8')).trim().split('\n');
+    assert.equal(children.length, 1);
+    assert.match(children[0]!, /^game:\d+$/);
+    assert.equal(session.snapshot().processes.game.state, 'running');
+    assert.equal(session.snapshot().processes.shaders.state, 'stopped');
+    assert.ok(lines.includes('Services: game host, game build, inspection, mcp'));
+  } finally {
+    await session.stop('normal');
+  }
+});
+
 test('development session owns the game host when the project command only watches builds', async () => {
   const project = await makeProject();
   await mkdir(join(project.directory, 'dist'));
@@ -233,8 +255,12 @@ test('development session owns the game host when the project command only watch
 });
 
 test('public demo manifests mount their compiled module in the CLI-owned host', async () => {
-  for (const slug of ['antiky-town', 'town-study', 'shader-study']) {
-    const projectPath = join(repositoryRoot, 'packages', 'demos', slug, `${slug}.antiky`);
+  for (const [category, slug] of [
+    ['antiky', 'antiky-town'],
+    ['brometal', 'town-study'],
+    ['brometal', 'shader-study'],
+  ] as const) {
+    const projectPath = join(repositoryRoot, 'packages', 'demos', category, slug, `${slug}.antiky`);
     const config = await loadAntikyProject(projectPath);
     const session = await startDevelopmentSession(config, { writeOutput: () => {} });
     try {
