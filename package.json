@@ -6,7 +6,7 @@
     "packages/cli",
     "packages/framework",
     "packages/website",
-    "packages/demos/*",
+    "packages/demos/*/*",
     "packages/studio/*"
   ],
   "scripts": {

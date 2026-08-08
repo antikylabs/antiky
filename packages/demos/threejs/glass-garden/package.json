@@ -1,0 +1,19 @@
+{
+  "name": "@antiky/demo-glass-garden",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "three": "0.185.1" },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/three": "0.185.4",
+    "typescript": "^5.8.3",
+    "vite": "8.2.0"
+  }
+}

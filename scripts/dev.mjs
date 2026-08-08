@@ -9,9 +9,14 @@ const workspaces = {
 };
 
 const demoProjects = {
-  'antiky-town': 'packages/demos/antiky-town/antiky-town.antiky',
-  'town-study': 'packages/demos/town-study/town-study.antiky',
-  'shader-study': 'packages/demos/shader-study/shader-study.antiky',
+  'antiky-town': 'packages/demos/antiky/antiky-town/antiky-town.antiky',
+  'point-light-expo': 'packages/demos/antiky/point-light-expo/point-light-expo.antiky',
+  'town-study': 'packages/demos/brometal/town-study/town-study.antiky',
+  'shader-study': 'packages/demos/brometal/shader-study/shader-study.antiky',
+  'solar-forge': 'packages/demos/brometal/solar-forge/solar-forge.antiky',
+  'luminous-reef': 'packages/demos/brometal/luminous-reef/luminous-reef.antiky',
+  'orbital-atlas': 'packages/demos/threejs/orbital-atlas/orbital-atlas.antiky',
+  'glass-garden': 'packages/demos/threejs/glass-garden/glass-garden.antiky',
 };
 
 if (!target || (!(target in workspaces) && target !== 'demos')) {

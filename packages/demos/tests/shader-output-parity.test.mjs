@@ -7,10 +7,13 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const execute = promisify(execFile);
-const townPackages = ['antiky-town', 'town-study'].map((slug) => ({
+const townPackages = [
+  { category: 'antiky', slug: 'antiky-town' },
+  { category: 'brometal', slug: 'town-study' },
+].map(({ category, slug }) => ({
   slug,
-  packageDirectory: fileURLToPath(new URL(`../${slug}/`, import.meta.url)),
-  sourceDirectory: new URL(`../${slug}/src/town/`, import.meta.url),
+  packageDirectory: fileURLToPath(new URL(`../${category}/${slug}/`, import.meta.url)),
+  sourceDirectory: new URL(`../${category}/${slug}/src/town/`, import.meta.url),
 }));
 const brometalEntry = fileURLToPath(import.meta.resolve('brometal'));
 const brometalDirectory = path.resolve(path.dirname(brometalEntry), '..');
