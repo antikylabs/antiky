@@ -311,10 +311,7 @@ async function executeCli(
   }
 
   const project = await loadAntikyProject(projectPath);
-  const session = await startDevelopmentSession(project, {
-    writeOutput: (line) => io.stdout(`${line}\n`),
-    diagnosticSink,
-  });
+  let session: Awaited<ReturnType<typeof startDevelopmentSession>> | undefined;
   let interruptCode = 130;
   let interruptReceived = false;
   const stopForSignal = (exitCode: number) => {
@@ -322,7 +319,7 @@ async function executeCli(
       interruptReceived = true;
       interruptCode = exitCode;
     }
-    void session.stop('interrupt', interruptCode);
+    if (session) void session.stop('interrupt', interruptCode);
   };
   const onInterrupt = () => {
     stopForSignal(130);
@@ -337,6 +334,11 @@ async function executeCli(
   process.on('SIGTERM', onTerminate);
   process.on('SIGHUP', onHangup);
   try {
+    session = await startDevelopmentSession(project, {
+      writeOutput: (line) => io.stdout(`${line}\n`),
+      diagnosticSink,
+    });
+    if (interruptReceived) void session.stop('interrupt', interruptCode);
     const result = await session.stopped;
     return result.reason === 'interrupt' ? interruptCode : result.exitCode;
   } finally {
