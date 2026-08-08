@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import DemoStage from '@/components/DemoStage';
 import { BROMETAL_URL, BROMETAL_VERSION } from '@/lib/site';
@@ -24,17 +25,16 @@ export default function FrameworkPage() {
         <p className="status-line"><span className="status-dot status-emerging" /> Emerging framework</p>
         <p className="page-lead">Antiky Framework is an open-source game framework taking shape on top of BroMetal. Its focus is 2.3D: crisp 2D characters and objects inside spatial, depth-aware environments.</p>
         <div className="actions">
-          <Link className="button button-primary" href="/demos/town-study">Run Town Study <ArrowUpRight /></Link>
+          <Link className="button button-primary" href="/demos/antiky-town">Run Antiky Town <ArrowUpRight /></Link>
           <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">Explore BroMetal {BROMETAL_VERSION} <ArrowUpRight /></a>
         </div>
       </section>
 
-      <section className="wide-media wrap" aria-label="Town Study preview">
+      <section className="wide-media wrap" aria-label="Antiky Town preview">
         <DemoStage
-          slug="town-study"
-          poster="/media/town-study-poster.png"
+          slug="antiky-town"
           controlMode="move"
-          label="Town Study — live framework experiment"
+          label="Antiky Town — live Framework experiment"
         />
       </section>
 
@@ -61,6 +61,19 @@ export default function FrameworkPage() {
           ))}
         </div>
       </section>
+
+      <figure className="framework-architecture wrap" aria-labelledby="framework-architecture-caption">
+        <Image
+          src="/media/antiky-architecture.png"
+          alt="Diagram of the Antiky target architecture from game hosts through engine state and execution"
+          width={1672}
+          height={941}
+          sizes="(max-width: 760px) 100vw, 92vw"
+        />
+        <figcaption id="framework-architecture-caption">
+          Antiky target architecture · the planned system boundary, not a list of completed features
+        </figcaption>
+      </figure>
 
       <section className="closing-cta wrap">
         <p>Want the part that runs today?</p>

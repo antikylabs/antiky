@@ -12,7 +12,7 @@ import type {
   GameMeasurements,
   GameModuleEntry,
 } from '@antiky/framework/game';
-import { demoModuleUrl, findDemo, type DemoSlug } from '@/lib/demos';
+import { demoModuleUrl, demoPosterUrl, findDemo, type DemoSlug } from '@/lib/demos';
 
 type StagePhase = 'poster' | 'ready' | 'loading' | 'running' | 'paused' | 'error';
 
@@ -21,7 +21,6 @@ type Props = Readonly<{
   label: string;
   variant?: 'hero' | 'thumb';
   controlMode?: 'move';
-  poster?: string;
 }>;
 
 type MutablePointer = {
@@ -63,13 +62,14 @@ function movementFromPressed(pressed: ReadonlySet<string>, movement: MutableMove
   movement.active = length > 0;
 }
 
-export default function DemoStage({ slug, label, variant, controlMode, poster }: Props) {
+export default function DemoStage({ slug, label, variant, controlMode }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<Runtime | null>(null);
   const visibleRef = useRef(true);
   const userPausedRef = useRef(false);
   const mountedRef = useRef(true);
-  const [phase, setPhase] = useState<StagePhase>(poster ? 'poster' : 'ready');
+  const poster = demoPosterUrl(slug);
+  const [phase, setPhase] = useState<StagePhase>('poster');
   const [error, setError] = useState('');
   const [measurements, setMeasurements] = useState<GameMeasurements>({});
   const [framesPerSecond, setFramesPerSecond] = useState<number | null>(null);
@@ -265,7 +265,7 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
       ) : phase === 'error' ? (
         <div className="stage-fallback" role="alert">
           <span>{error}</span>
-          <button className="stage-action" type="button" onClick={() => { setPhase(poster ? 'poster' : 'ready'); void activate(); }}>Retry</button>
+          <button className="stage-action" type="button" onClick={() => { setPhase('poster'); void activate(); }}>Retry</button>
         </div>
       ) : phase === 'poster' || phase === 'ready' ? (
         <button className="stage-activate" type="button" onClick={() => void activate()}>

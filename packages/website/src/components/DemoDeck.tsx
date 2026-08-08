@@ -52,7 +52,6 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
           slug={demo.slug}
           label={`${demo.title} — interactive live study`}
           controlMode={demo.controlMode}
-          poster={demo.poster}
         />
       </div>
 

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -8,6 +9,15 @@ import { buildDemoArtifact } from '../scripts/build-demo-artifact.mjs';
 import { stageDemoArtifacts } from '../scripts/stage-demo-artifacts.mjs';
 
 const sourceRoot = new URL('../src/', import.meta.url);
+const publicRoot = new URL('../public/', import.meta.url);
+
+function pngDimensions(source) {
+  assert.deepEqual(source.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  return {
+    width: source.readUInt32BE(16),
+    height: source.readUInt32BE(20),
+  };
+}
 
 async function sourceFiles(directory) {
   const files = [];
@@ -65,6 +75,45 @@ test('the website catalog exposes all renderer families and gates only WebGPU de
   assert.match(catalog, /pillar: 'BroMetal'/);
   assert.match(catalog, /pillar: 'Three\.js'/);
   assert.match(host, /requiresWebGpu && !\('gpu' in navigator\)/);
+});
+
+test('every published demo has a distinct real poster and the catalog groups all renderer families', async () => {
+  const publication = JSON.parse(await readFile(new URL('../demo-publication.json', import.meta.url), 'utf8'));
+  const catalogPage = await readFile(new URL('../.next/server/app/demos.html', import.meta.url), 'utf8');
+  const digests = new Set();
+
+  for (const demo of publication.demos) {
+    const image = await readFile(new URL(`media/demos/${demo.slug}.png`, publicRoot));
+    const { width, height } = pngDimensions(image);
+    assert.ok(width >= 512, `${demo.slug} poster is too narrow`);
+    assert.ok(height >= 288, `${demo.slug} poster is too short`);
+    assert.match(catalogPage, new RegExp(`${demo.slug}\\.png`));
+    digests.add(createHash('sha256').update(image).digest('hex'));
+  }
+
+  assert.equal(digests.size, publication.demos.length, 'Demo posters must not reuse the same image');
+  const groups = [
+    ['framework-demos', 'Antiky Framework', ['antiky-town', 'point-light-expo']],
+    ['brometal-demos', 'BroMetal', ['town-study', 'shader-study', 'solar-forge', 'luminous-reef']],
+    ['threejs-demos', 'Three.js', ['orbital-atlas', 'glass-garden']],
+  ];
+  const groupStarts = groups.map(([id, heading]) => {
+    const marker = `<h2 id="${id}">${heading}</h2>`;
+    const index = catalogPage.indexOf(marker);
+    assert.ok(index >= 0, `Demo catalog is missing ${heading}`);
+    return index;
+  });
+  assert.deepEqual([...groupStarts].sort((left, right) => left - right), groupStarts);
+
+  for (let index = 0; index < groups.length; index += 1) {
+    const section = catalogPage.slice(groupStarts[index], groupStarts[index + 1] ?? catalogPage.length);
+    for (const slug of groups[index][2]) assert.match(section, new RegExp(`href="/demos/${slug}"`));
+  }
+
+  const architecture = await readFile(new URL('media/antiky-architecture.png', publicRoot));
+  const architectureSize = pngDimensions(architecture);
+  assert.ok(architectureSize.width >= 1600);
+  assert.ok(architectureSize.height >= 900);
 });
 
 test('website publication contains only the approved verified artifact files', async () => {

@@ -22,7 +22,7 @@ export default function SiteHeader() {
         <span>{SITE_NAME}</span>
       </Link>
       <nav className="desktop-nav" aria-label="Primary navigation">{links}</nav>
-      <Link className="header-action" href="/demos/town-study">Run a study</Link>
+      <Link className="header-action" href="/demos/antiky-town">Run a study</Link>
       <details className="mobile-menu">
         <summary>Menu</summary>
         <nav aria-label="Mobile navigation">{links}</nav>

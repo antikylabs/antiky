@@ -43,16 +43,16 @@ export default function HomePage() {
   return (
     <>
       <section className="home-hero">
-        <DemoStage slug="town-study" variant="hero" poster="/media/town-study-poster.png" label="Town Study — pixel characters inside a golden-hour voxel town" />
+        <DemoStage slug="antiky-town" variant="hero" label="Antiky Town — Framework-authored lights inside a golden-hour voxel town" />
         <div className="home-hero-copy">
           <h1>Tools for making worlds.</h1>
           <p>Antiky Labs builds playable experiments, an emerging 2.3D framework, and future games.</p>
           <div className="actions">
-            <Link className="button button-primary" href="/demos/town-study">Explore Town Study <ArrowUpRight /></Link>
+            <Link className="button button-primary" href="/demos/antiky-town">Explore Antiky Town <ArrowUpRight /></Link>
             <Link className="text-link" href="/framework">Meet the framework <ArrowRight /></Link>
           </div>
         </div>
-        <p className="media-caption"><span>Live browser scene</span> Cross the bridge and explore the market in real time</p>
+        <p className="media-caption"><span>Framework-powered browser scene</span> Cross the bridge and explore the market in real time</p>
       </section>
 
       <section className="work-index wrap">
@@ -77,7 +77,7 @@ export default function HomePage() {
           <div>
             <p className="lead">We call it 2.3D: crisp 2D characters and objects moving through spatial, depth-aware 3D environments.</p>
             <p>The framework is early. The rendering foundation beneath these studies—BroMetal—is available now.</p>
-            <Link className="text-link" href="/demos">Run both studies <ArrowRight /></Link>
+            <Link className="text-link" href="/demos">Run all eight studies <ArrowRight /></Link>
           </div>
         </div>
       </section>

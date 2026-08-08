@@ -184,13 +184,19 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
 /* Demo index and detail */
 .demos-intro { min-height: 520px; }
 .demo-index { padding-bottom: 150px; }
+.demo-family { padding-top: clamp(82px, 9vw, 132px); }
+.demo-family + .demo-family { margin-top: 24px; }
+.demo-family-head { display: grid; grid-template-columns: 150px minmax(260px, .8fr) minmax(320px, 1fr); gap: clamp(28px, 5vw, 80px); align-items: end; padding-bottom: 42px; }
+.demo-family-head > p:first-child { color: var(--text-faint); font-family: var(--mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; }
+.demo-family-head h2 { font-size: clamp(2.8rem, 5vw, 5.2rem); line-height: .94; }
+.demo-family-head > p:last-child { max-width: 50ch; color: var(--text-muted); }
 .demo-entry { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, .55fr); gap: clamp(36px, 6vw, 90px); align-items: center; padding: 72px 0; border-top: 1px solid var(--line); }
 .demo-entry-media { position: relative; aspect-ratio: 16/9; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .demo-entry-media .stage { position: absolute; inset: 0; }
 .demo-open { position: absolute; right: 14px; bottom: 14px; min-height: 38px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 8px; background: rgba(5,5,6,.88); font-size: 12px; }
 .demo-open .icon { width: 15px; height: 15px; }
 .demo-entry-copy > p:first-child { color: var(--text-faint); font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: .07em; }
-.demo-entry-copy h2 { margin: 20px 0 14px; font-size: clamp(2.1rem, 4vw, 4.2rem); line-height: .98; }
+.demo-entry-copy h3 { margin: 20px 0 14px; font-size: clamp(2.1rem, 4vw, 4.2rem); line-height: .98; }
 .demo-entry-copy > p { color: var(--text-muted); }
 .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 25px; }
 .tag-list span { padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--text-faint); font-family: var(--mono); font-size: 9px; text-transform: uppercase; }
@@ -208,6 +214,10 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
 .demo-notes li + li { margin-top: 12px; }
 .source-section { padding-bottom: 140px; }
 .source-section h2 { margin-bottom: 32px; font-size: clamp(2rem, 4vw, 3.6rem); }
+
+.framework-architecture { padding-bottom: clamp(96px, 10vw, 150px); }
+.framework-architecture img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.framework-architecture figcaption { margin-top: 14px; color: var(--text-faint); font-family: var(--mono); font-size: 10px; letter-spacing: .03em; text-align: right; text-transform: uppercase; }
 
 .codepanes { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #08090b; }
 .codepanes-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 8px; border-bottom: 1px solid var(--line); background: var(--surface); }
@@ -248,6 +258,7 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
   .research-row { grid-template-columns: 112px minmax(0, 1fr) !important; }
   .wide-media, .deck-stage { min-height: 430px; }
   .demo-entry { grid-template-columns: 1fr; }
+  .demo-family-head { grid-template-columns: 110px minmax(220px, .8fr) minmax(260px, 1fr); gap: 28px; }
   .footer-main { grid-template-columns: 1fr; }
 }
 
@@ -289,6 +300,9 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
   .closing-cta { align-items: flex-start; flex-direction: column; }
   .worlds-hero { min-height: 650px; }
   .demo-index { padding-bottom: 90px; }
+  .demo-family { padding-top: 72px; }
+  .demo-family-head { grid-template-columns: 1fr; gap: 14px; padding-bottom: 34px; }
+  .demo-family-head > p:last-child { margin-top: 4px; }
   .demo-entry { padding: 56px 0; }
   .demo-detail-head { align-items: flex-start; flex-direction: column; padding-top: 70px; }
   .deck-stage { height: 68svh; min-height: 460px; padding-inline: 0; }

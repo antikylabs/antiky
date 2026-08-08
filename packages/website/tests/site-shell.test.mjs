@@ -49,3 +49,16 @@ test('production pages report the configured SSPS live visitor count once', asyn
     assert.match(output, /active now/);
   }
 });
+
+test('home and Framework pages feature current Antiky media', async () => {
+  const home = await readFile(new URL('index.html', outputRoot), 'utf8');
+  const framework = await readFile(new URL('framework.html', outputRoot), 'utf8');
+
+  assert.match(home, /href="\/demos\/antiky-town"/);
+  assert.match(home, /antiky-town\.png/);
+  assert.doesNotMatch(home, /href="\/demos\/town-study">Explore Town Study/);
+
+  assert.match(framework, /href="\/demos\/antiky-town"/);
+  assert.match(framework, /antiky-architecture\.png/);
+  assert.match(framework, /Antiky target architecture/);
+});

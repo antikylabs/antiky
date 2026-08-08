@@ -8,10 +8,12 @@ export type DemoSlug =
   | 'orbital-atlas'
   | 'glass-garden';
 
+export type DemoPillar = 'Framework' | 'BroMetal' | 'Three.js';
+
 export type DemoMeta = Readonly<{
   slug: DemoSlug;
   title: string;
-  pillar: 'Framework' | 'BroMetal' | 'Three.js';
+  pillar: DemoPillar;
   tagline: string;
   notes: string;
   proves: readonly string[];
@@ -19,8 +21,33 @@ export type DemoMeta = Readonly<{
   requiresWebGpu: boolean;
   controls?: string;
   controlMode?: 'move';
-  poster?: string;
 }>;
+
+export const DEMO_GROUPS: readonly Readonly<{
+  id: string;
+  pillar: DemoPillar;
+  title: string;
+  description: string;
+}>[] = [
+  {
+    id: 'framework-demos',
+    pillar: 'Framework',
+    title: 'Antiky Framework',
+    description: 'Framework-owned game state and live authoring, rendered through BroMetal.',
+  },
+  {
+    id: 'brometal-demos',
+    pillar: 'BroMetal',
+    title: 'BroMetal',
+    description: 'Pure WebGPU projects that use BroMetal without an Antiky Framework dependency.',
+  },
+  {
+    id: 'threejs-demos',
+    pillar: 'Three.js',
+    title: 'Three.js',
+    description: 'Pure WebGL projects that prove the same portable game host can mount another renderer.',
+  },
+];
 
 /** Editorial approval is deliberate. A staged artifact cannot add itself to this catalog. */
 export const DEMOS: readonly DemoMeta[] = [
@@ -40,7 +67,6 @@ export const DEMOS: readonly DemoMeta[] = [
     requiresWebGpu: true,
     controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
     controlMode: 'move',
-    poster: '/media/town-study-poster.png',
   },
   {
     slug: 'point-light-expo',
@@ -74,7 +100,6 @@ export const DEMOS: readonly DemoMeta[] = [
     requiresWebGpu: true,
     controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
     controlMode: 'move',
-    poster: '/media/town-study-poster.png',
   },
   {
     slug: 'shader-study',
@@ -173,4 +198,8 @@ export function neighbours(slug: string): { prev: DemoMeta; next: DemoMeta; inde
 
 export function demoModuleUrl(slug: DemoSlug): string {
   return `/demo-builds/${slug}/antiky.game.js`;
+}
+
+export function demoPosterUrl(slug: DemoSlug): string {
+  return `/media/demos/${slug}.png`;
 }
