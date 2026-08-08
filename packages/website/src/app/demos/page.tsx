@@ -7,7 +7,7 @@ import { ArrowUpRight } from '@/components/Icons';
 
 export const metadata: Metadata = {
   title: 'Demos',
-  description: 'Three live WebGPU studies delivered as compiled Antiky game modules.',
+  description: 'Eight live Antiky Framework, BroMetal, and Three.js studies in one portable host.',
   alternates: { canonical: '/demos' },
 };
 
@@ -16,8 +16,8 @@ export default function DemosPage() {
     <>
       <section className="page-hero wrap demos-intro">
         <h1>Run the work.</h1>
-        <p className="status-line"><span className="status-dot status-live" /> Three live studies</p>
-        <p className="page-lead">These are small browser experiments, not trailers. Each renders on WebGPU through BroMetal {BROMETAL_VERSION}.</p>
+        <p className="status-line"><span className="status-dot status-live" /> Eight live studies</p>
+        <p className="page-lead">These are live modules, not trailers: two Antiky Framework worlds, four BroMetal {BROMETAL_VERSION} showcases, and two Three.js scenes in the same portable host.</p>
       </section>
 
       <section className="demo-index wrap">

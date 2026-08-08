@@ -83,7 +83,7 @@ function parsePublication(source) {
   for (const demo of publication.demos) {
     exactKeys(
       demo,
-      ['slug', 'projectName', 'workspace', 'projectDirectory', 'sources'],
+      ['slug', 'projectName', 'renderer', 'workspace', 'projectDirectory', 'sources'],
       'ANTIKY_PUBLICATION_INVALID',
       demo?.slug,
       'demo',
@@ -94,6 +94,9 @@ function parsePublication(source) {
     if (slugs.has(demo.slug)) fail('ANTIKY_PUBLICATION_INVALID', demo.slug, 'Slug is duplicated');
     if (typeof demo.projectName !== 'string' || demo.projectName.trim() === '') {
       fail('ANTIKY_PUBLICATION_INVALID', demo.slug, 'Project name is required');
+    }
+    if (!['antiky', 'brometal', 'threejs'].includes(demo.renderer)) {
+      fail('ANTIKY_PUBLICATION_INVALID', demo.slug, 'Renderer is invalid');
     }
     if (typeof demo.workspace !== 'string' || !demo.workspace.startsWith('@antiky/demo-')) {
       fail('ANTIKY_PUBLICATION_INVALID', demo.slug, 'Workspace is invalid');
@@ -143,7 +146,7 @@ function parseManifest(source, approved) {
     || manifest.slug !== approved.slug
     || manifest.projectName !== approved.projectName
     || manifest.entry !== ENTRY_NAME
-    || manifest.requirements.webgpu !== true
+    || manifest.requirements.webgpu !== (approved.renderer !== 'threejs')
     || !Number.isSafeInteger(manifest.viewport.width)
     || manifest.viewport.width < 1
     || !Number.isSafeInteger(manifest.viewport.height)

@@ -33,6 +33,7 @@ function parseArguments(argv) {
     else if (option === '--dist') values.dist = value;
     else if (option === '--width') values.width = value;
     else if (option === '--height') values.height = value;
+    else if (option === '--webgpu') values.webgpu = value;
     else fail(`Unknown option ${option}`);
   }
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(values.slug ?? '')) fail('A valid --slug is required');
@@ -42,6 +43,9 @@ function parseArguments(argv) {
   const height = Number(values.height ?? 720);
   if (!Number.isSafeInteger(width) || width < 1) fail('--width must be a positive integer');
   if (!Number.isSafeInteger(height) || height < 1) fail('--height must be a positive integer');
+  if (values.webgpu !== undefined && !['true', 'false'].includes(values.webgpu)) {
+    fail('--webgpu must be true or false');
+  }
   return {
     slug: values.slug,
     name: values.name.trim(),
@@ -49,6 +53,7 @@ function parseArguments(argv) {
     sources: values.sources,
     width,
     height,
+    webgpu: values.webgpu !== 'false',
   };
 }
 
@@ -138,7 +143,7 @@ export async function buildDemoArtifact(argv) {
     sourceRevision: await computeSourceRevision(options.sources),
     entry: ENTRY_NAME,
     requirements: {
-      webgpu: true,
+      webgpu: options.webgpu,
     },
     viewport: {
       width: options.width,

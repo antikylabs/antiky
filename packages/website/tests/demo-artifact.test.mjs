@@ -9,13 +9,27 @@ import { pathToFileURL } from 'node:url';
 import { buildPublishedDemo } from '../scripts/build-public-demos.mjs';
 
 const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
-const demos = ['antiky-town', 'town-study', 'shader-study'];
 const publication = JSON.parse(await readFile(new URL('../demo-publication.json', import.meta.url), 'utf8'));
+const demos = publication.demos;
+
+test('publication includes the complete renderer showcase', () => {
+  assert.deepEqual(demos.map(({ slug, renderer }) => ({ slug, renderer })), [
+    { slug: 'antiky-town', renderer: 'antiky' },
+    { slug: 'point-light-expo', renderer: 'antiky' },
+    { slug: 'town-study', renderer: 'brometal' },
+    { slug: 'shader-study', renderer: 'brometal' },
+    { slug: 'solar-forge', renderer: 'brometal' },
+    { slug: 'luminous-reef', renderer: 'brometal' },
+    { slug: 'orbital-atlas', renderer: 'threejs' },
+    { slug: 'glass-garden', renderer: 'threejs' },
+  ]);
+});
 
 async function buildDemo(slug) {
-  const demo = publication.demos.find((candidate) => candidate.slug === slug);
+  const demo = demos.find((candidate) => candidate.slug === slug);
   assert.ok(demo, `Missing publication entry for ${slug}`);
   await buildPublishedDemo({ repositoryRoot, demo });
+  return demo;
 }
 
 function sha256(source) {
@@ -25,20 +39,20 @@ function sha256(source) {
 test('every demo build describes a bounded portable game artifact', async () => {
   const temporaryRoot = await mkdtemp(path.join(tmpdir(), 'antiky-demo-artifacts-'));
   try {
-    for (const slug of demos) {
-      await buildDemo(slug);
-      const dist = path.join(repositoryRoot, 'packages/demos', slug, 'dist');
+    for (const demo of demos) {
+      await buildDemo(demo.slug);
+      const dist = path.join(repositoryRoot, demo.projectDirectory, 'dist');
       const manifestSource = await readFile(path.join(dist, 'antiky-artifact.json'), 'utf8');
       const manifest = JSON.parse(manifestSource);
       assert.equal(manifest.schemaVersion, 1);
       assert.equal(manifest.gameModuleContractVersion, 1);
-      assert.equal(manifest.slug, slug);
+      assert.equal(manifest.slug, demo.slug);
       assert.equal(manifest.entry, 'antiky.game.js');
-      assert.equal(manifest.requirements.webgpu, true);
+      assert.equal(manifest.requirements.webgpu, demo.renderer !== 'threejs');
       assert.match(manifest.sourceRevision, /^sha256:[a-f0-9]{64}$/);
       assert.doesNotMatch(manifestSource, /(?:createdAt|timestamp|credential|\.antiky\/|\/Users\/)/i);
 
-      const copiedDist = path.join(temporaryRoot, slug);
+      const copiedDist = path.join(temporaryRoot, demo.slug);
       await cp(dist, copiedDist, { recursive: true });
       for (const file of manifest.files) {
         assert.match(file.path, /^(?!\/)(?!.*\.\.)(?:[a-zA-Z0-9._-]+\/)*[a-zA-Z0-9._-]+$/);
@@ -55,7 +69,9 @@ test('every demo build describes a bounded portable game artifact', async () => 
 });
 
 test('rebuilding the same source produces the same artifact manifest and bytes', async () => {
-  const dist = path.join(repositoryRoot, 'packages/demos/shader-study/dist');
+  const demo = demos.find((candidate) => candidate.slug === 'shader-study');
+  assert.ok(demo);
+  const dist = path.join(repositoryRoot, demo.projectDirectory, 'dist');
   await buildDemo('shader-study');
   const firstManifest = await readFile(path.join(dist, 'antiky-artifact.json'));
   const firstEntry = await readFile(path.join(dist, 'antiky.game.js'));

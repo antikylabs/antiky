@@ -48,6 +48,25 @@ test('website game host owns activation, input, presentation, visibility, and cl
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
+test('the website catalog exposes all renderer families and gates only WebGPU demos', async () => {
+  const catalog = await readFile(new URL('../src/lib/demos.ts', import.meta.url), 'utf8');
+  const host = await readFile(new URL('../src/components/DemoStage.tsx', import.meta.url), 'utf8');
+  for (const slug of [
+    'antiky-town',
+    'point-light-expo',
+    'town-study',
+    'shader-study',
+    'solar-forge',
+    'luminous-reef',
+    'orbital-atlas',
+    'glass-garden',
+  ]) assert.match(catalog, new RegExp(`slug: '${slug}'`));
+  assert.match(catalog, /pillar: 'Framework'/);
+  assert.match(catalog, /pillar: 'BroMetal'/);
+  assert.match(catalog, /pillar: 'Three\.js'/);
+  assert.match(host, /requiresWebGpu && !\('gpu' in navigator\)/);
+});
+
 test('website publication contains only the approved verified artifact files', async () => {
   const publication = JSON.parse(await readFile(new URL('../demo-publication.json', import.meta.url), 'utf8'));
   const stagedRoot = new URL('../public/demo-builds/', import.meta.url);
@@ -90,6 +109,7 @@ test('staging rejects changed source, changed bytes, and extra output', async ()
       demos: [{
         slug: 'fixture',
         projectName: 'Fixture',
+        renderer: 'brometal',
         workspace: '@antiky/demo-fixture',
         projectDirectory: 'project',
         sources: [{ label: 'project', path: 'project' }],
@@ -127,6 +147,7 @@ test('staging reports a missing manifest with a stable code and demo slug', asyn
       demos: [{
         slug: 'fixture',
         projectName: 'Fixture',
+        renderer: 'brometal',
         workspace: '@antiky/demo-fixture',
         projectDirectory: 'project',
         sources: [{ label: 'project', path: 'project' }],
@@ -135,6 +156,34 @@ test('staging reports a missing manifest with a stable code and demo slug', asyn
     await assert.rejects(
       stageDemoArtifacts({ repositoryRoot: root, publicationPath, destination: path.join(root, 'public/demo-builds') }),
       /ANTIKY_ARTIFACT_MANIFEST_MISSING \(fixture\)/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('staging rejects an unapproved renderer label at the publication boundary', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'antiky-stage-renderer-'));
+  const publicationPath = path.join(root, 'publication.json');
+  try {
+    await writeFile(publicationPath, `${JSON.stringify({
+      schemaVersion: 1,
+      demos: [{
+        slug: 'fixture',
+        projectName: 'Fixture',
+        renderer: 'canvas2d',
+        workspace: '@antiky/demo-fixture',
+        projectDirectory: 'project',
+        sources: [{ label: 'project', path: 'project' }],
+      }],
+    })}\n`);
+    await assert.rejects(
+      stageDemoArtifacts({
+        repositoryRoot: root,
+        publicationPath,
+        destination: path.join(root, 'public/demo-builds'),
+      }),
+      /ANTIKY_PUBLICATION_INVALID \(fixture\).*Renderer is invalid/,
     );
   } finally {
     await rm(root, { recursive: true, force: true });

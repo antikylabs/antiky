@@ -33,6 +33,7 @@ export async function buildPublishedDemo({ repositoryRoot, demo }) {
     '--slug', demo.slug,
     '--name', demo.projectName,
     '--dist', path.join(repositoryRoot, demo.projectDirectory, 'dist'),
+    '--webgpu', String(demo.renderer !== 'threejs'),
     ...sourceArguments,
   ]);
 }

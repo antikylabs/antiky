@@ -12,7 +12,7 @@ import type {
   GameMeasurements,
   GameModuleEntry,
 } from '@antiky/framework/game';
-import { demoModuleUrl, type DemoSlug } from '@/lib/demos';
+import { demoModuleUrl, findDemo, type DemoSlug } from '@/lib/demos';
 
 type StagePhase = 'poster' | 'ready' | 'loading' | 'running' | 'paused' | 'error';
 
@@ -73,6 +73,7 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
   const [error, setError] = useState('');
   const [measurements, setMeasurements] = useState<GameMeasurements>({});
   const [framesPerSecond, setFramesPerSecond] = useState<number | null>(null);
+  const requiresWebGpu = findDemo(slug)?.requiresWebGpu ?? true;
 
   const stopRuntime = useCallback(() => {
     const runtime = runtimeRef.current;
@@ -87,7 +88,7 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
     if (runtimeRef.current || phase === 'loading' || variant === 'thumb') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (!('gpu' in navigator)) {
+    if (requiresWebGpu && !('gpu' in navigator)) {
       setError('This demo needs a browser with WebGPU support.');
       setPhase('error');
       return;
@@ -221,7 +222,7 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
       setError(cause instanceof Error ? cause.message : 'The game artifact could not start.');
       setPhase('error');
     }
-  }, [phase, slug, stopRuntime, variant]);
+  }, [phase, requiresWebGpu, slug, stopRuntime, variant]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -269,7 +270,7 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
       ) : phase === 'poster' || phase === 'ready' ? (
         <button className="stage-activate" type="button" onClick={() => void activate()}>
           <span className="stage-play" aria-hidden="true">▶</span>
-          Run {slug === 'shader-study' ? 'Shader Study' : 'the live scene'}
+          Run {findDemo(slug)?.title ?? 'the live scene'}
         </button>
       ) : (
         <>
