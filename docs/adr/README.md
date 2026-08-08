@@ -53,6 +53,7 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0004: Make CLI and Studio use the same engine services](studio/0004-share-engine-services-with-cli_H.md)
 - [0005: Use one Antiky project manifest](studio/0005-use-one-antiky-project-manifest_H.md)
 - [0006: Use CLI project services directly](studio/0006-use-cli-project-services-directly_H.md)
+- [0007: Use Antiky Framework first and select the renderer in the game module](studio/0007-framework-first-allow-others_H.md)
 
 ## Minimal format
 
