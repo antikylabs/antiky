@@ -1,16 +1,36 @@
-cleanup - merge massive PR to main
-marketing - update website
-marketing - add screenshots of real studio to website and readme
-cleanup - organize demos into demos/antiky, demos/brometal
-studio - fix terminal to just be `%` no other details
-studio - terminal bug on codex /exit causes weird execute problems
+# my todo list currently in priority order
+x cleanup - merge massive PR to main
+x studio - fix terminal to just be `%` no other details
+x repo health - create multiple demos
+x cleanup - organize demos into demos/antiky, demos/brometal
+x repo health - create ADR for multi renderer support in studio/cli
+x marketing - add screenshots of real studio to website and readme
+x marketing - update website
+website - move port to soemthing other than
+website - review all marketing and website changes.
+studio - add full screen game
 studio - fix status bar and duplicate information
-studio - full screen game
-studio - make panels resizeable
-antiky - finish porting brometal demo to antiky
+studio - fix unable to pause game
+studio - fix terminal bug on codex /exit causes weird execute problems
+studio - add make panels resizeable
+repo health - setup release and versioning and packaging github actions
+repo health - add agent skills repo (brometal, antiky, game dev, studio, mcp, etc...) how to work with and use stuff.
+repo health - add agent skill ASD-STE100
+repo health - add agent skill diataxis.fr
+framework - add nexus and rapier objects
+framework - add nexus -> brometal pipeline
+framework - finish porting brometal demo to antiky
 studio - add studio click on scene and comment
-studio - studio attach/detach
-antiky - antiky framework input capture and controls
+studio - add studio attach/detach
+framework - add input capture and controls
+framework - add sprite animation and character movement timings
+framework - add sprite flipbook first class object
+framework - add field of view control
+framework - add vignettee control
+marketing - documents getting started tutorial, build a game
+studio - add asset browser
+studio - add sprite editor
+studio - add flipbook editor
+studio - add object properties
 antiky - marketing - find open source threejs or brometal games and redo in antiky
 marketing - setup awesome-antiky and awesome-brometal
-marketing - documents getting started tutorial, build a game
