@@ -34,6 +34,8 @@ agents, and Studio. Start with the task you want to complete.
   controls, hierarchy, stores, event history, and MCP call history.
 - [Connect Studio to a project service](studio/development-connection.md) through the same lifecycle
   library and typed client used by CLI and MCP adapters.
+- [Use BroMetal or Three.js in Studio](studio/renderers.md) while keeping the host lifecycle,
+  measurements, captures, and local agent connection.
 
 ## API reference
 

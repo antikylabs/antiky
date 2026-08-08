@@ -64,10 +64,10 @@ Studio stops the complete session when you close or replace the project. You do 
 ### Terminal appearance and shell ownership
 
 Studio applies an Antiky color profile to the embedded terminal surface, including its background,
-text, cursor, selection, and ANSI palette. Your normal shell still starts in the selected project.
-Studio does not replace your prompt, run a startup command, add a banner, write shell history, or
-select a font family. Your shell profiles and Ghostty settings outside Studio's visual color keys
-continue to apply.
+text, cursor, selection, and ANSI palette. Your normal shell still starts in the selected project
+and loads its interactive setup. Studio then keeps the visible prompt non-identifying as `% `. It
+does not add a banner, write shell history, or select a font family. Your shell profiles and Ghostty
+settings outside Studio's visual color keys continue to apply.
 
 If Studio cannot load its packaged terminal color profile, the Terminal panel shows a clear error.
 The rest of the workspace remains available. The terminal stays available for your shell, build
@@ -170,5 +170,7 @@ managed game host and development services keep running. Close or replace the pr
 session.
 
 See [Connect Studio to a project service](development-connection.md) for the typed connection boundary.
+See [Use BroMetal or Three.js in Studio](renderers.md) for renderer-specific mounting and agent
+inspection behavior.
 See [Runtime inspection](../framework/inspection.md) to publish hierarchy, store, and event data
 from your game.

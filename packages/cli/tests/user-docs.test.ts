@@ -182,3 +182,23 @@ test('the game-module guide keeps game code separate from the development host',
   assert.match(source, /host owns.*credential.*snapshot publication.*action polling/is);
   assert.match(source, /does not contain.*inspection transport/i);
 });
+
+test('the Studio renderer guide covers Framework, BroMetal, Three.js, and agent inspection', async () => {
+  const [source, index] = await Promise.all([
+    readFile(new URL('../../../docs/user-facing-docs/studio/renderers.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/user-facing-docs/README.md', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(index, /\[Use BroMetal or Three\.js in Studio\]\(studio\/renderers\.md\)/);
+  assert.match(source, /built for BroMetal, and works with Three\.js and other rendering libraries/i);
+  assert.match(source, /Antiky Framework \+ BroMetal/);
+  assert.match(source, /Pure BroMetal/);
+  assert.match(source, /Three\.js/);
+  assert.match(source, /dist\/antiky\.game\.js/);
+  assert.match(source, /get_runtime_status/);
+  assert.match(source, /get_render_stats/);
+  assert.match(source, /capture_frame/);
+  assert.match(source, /get_world_inspection/);
+  assert.match(source, /without.*Antiky Framework.*host.*fallback snapshot/is);
+  assert.match(source, /does not expose.*renderer.*GPU objects/is);
+});
