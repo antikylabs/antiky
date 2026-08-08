@@ -141,3 +141,11 @@ test('docs production output exposes the complete generated framework API refere
   assert.match(llms, /\/docs\/api\/reference\.md/);
   await assert.rejects(readFile(new URL('docs/framework/api-reference.html', outputRoot)), { code: 'ENOENT' });
 });
+
+test('docs content media and inline code stay inside narrow layouts', async () => {
+  const styles = await readFile(new URL('../src/app/docs/docs.css', import.meta.url), 'utf8');
+
+  assert.match(styles, /\.docs-prose img\s*{[^}]*max-width:\s*100%[^}]*height:\s*auto/s);
+  assert.match(styles, /\.docs-prose :not\(pre\) > code\s*{[^}]*overflow-wrap:\s*anywhere/s);
+  assert.match(styles, /\.docs-prose table\s*{[^}]*display:\s*block[^}]*overflow-x:\s*auto/s);
+});

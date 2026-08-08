@@ -183,6 +183,16 @@
   font-size: .82em;
 }
 
+.docs-prose :not(pre) > code {
+  overflow-wrap: anywhere;
+}
+
+.docs-prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 .docs-prose pre {
   overflow-x: auto;
   padding: 20px 22px;
