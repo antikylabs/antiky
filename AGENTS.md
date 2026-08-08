@@ -4,9 +4,10 @@ Always use the task tool to plan out and do what you need and use it to hold you
 
 ## Tests
 
-- Always add and update tests anytime you change code
+- Always add and update tests anytime you change code. Key word is "code" not "prose".
 - If you get an error when running something or reported by a user, write a test case covering that error first. Run test and make sure it fails... Then fix code to make test pass.
 - Do not create random, temporary, or standalone test files unless explicitly requested.
+- Do not create worthless test files that tests content/prose/frozen words etc... It helps no one and bloats the repo with junk tests.
 
 ## Git
 
