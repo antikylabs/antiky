@@ -1,4 +1,4 @@
-import { dot, max, normalize, pow, shader, vec4 } from 'brometal';
+import { cos, dot, max, normalize, pow, shader, sin, vec3, vec4 } from 'brometal';
 
 export default shader({
   attributes: {
@@ -10,10 +10,13 @@ export default shader({
     iScale: 'float',
     iColor: 'vec3',
     iPower: 'float',
+    iPhase: 'float',
+    iMotion: 'float',
   },
   uniforms: {
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
+    uTime: 'float',
   },
   varyings: {
     vWorld: 'vec3',
@@ -23,15 +26,20 @@ export default shader({
   },
 
   vertex(
-    { aPosition, aNormal, iOffset, iScale, iColor, iPower },
-    { uViewProj },
+    { aPosition, aNormal, iOffset, iScale, iColor, iPower, iPhase, iMotion },
+    { uViewProj, uTime },
     v,
   ) {
-    const world = aPosition.scale(iScale).add(iOffset);
+    const drift = vec3(
+      sin(uTime * (0.42 + iMotion) + iPhase) * 0.42 * iMotion,
+      sin(uTime * (0.68 + iMotion * 0.5) + iPhase * 1.7) * 0.34 * iMotion,
+      cos(uTime * (0.36 + iMotion) + iPhase) * 0.28 * iMotion,
+    );
+    const world = aPosition.scale(iScale).add(iOffset).add(drift);
     v.vWorld = world;
     v.vNormal = aNormal;
     v.vColor = iColor;
-    v.vPower = iPower;
+    v.vPower = iPower * (1 + sin(uTime * 2.2 + iPhase) * 0.18 * iMotion);
     return uViewProj.mul(vec4(world, 1));
   },
 

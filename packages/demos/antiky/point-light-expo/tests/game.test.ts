@@ -15,6 +15,9 @@ test('Point Light Expo uses a custom surface shader and visible foundry geometry
     readFile(new URL('../src/shaders/foundry.shader.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(gameSource, /createTorusKnot/);
+  assert.match(gameSource, /createTorus/);
+  assert.match(gameSource, /createCone/);
+  assert.match(gameSource, /moteCount = 36/);
   assert.match(gameSource, /createCylinder/);
   assert.match(shaderSource, /aNormal: 'vec3'/);
   assert.match(shaderSource, /uEmberPosition: 'vec3'/);
