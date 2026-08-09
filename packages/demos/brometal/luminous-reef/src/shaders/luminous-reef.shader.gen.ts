@@ -42,6 +42,9 @@ fn fbm2(p : vec2f, octaves : f32) -> f32 {
   }
   return total / norm;
 }
+fn hash11(p : f32) -> f32 {
+  return fract(sin(p * 127.1) * 43758.5453);
+}
 fn tonemapACES(color : vec3f) -> vec3f {
   let num = color * (color * 2.51 + vec3f(0.03, 0.03, 0.03));
   let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
@@ -50,6 +53,33 @@ fn tonemapACES(color : vec3f) -> vec3f {
 fn hash22(p : vec2f) -> vec2f {
   let k = vec2f(dot(p, vec2f(127.1, 311.7)), dot(p, vec2f(269.5, 183.3)));
   return vec2f(fract(sin(k.x) * 43758.5453), fract(sin(k.y) * 43758.5453));
+}
+fn gnoise2(p : vec2f) -> f32 {
+  let cell = vec2f(floor(p.x), floor(p.y));
+  let f = p - cell;
+  let u = vec2f(f.x * f.x * f.x * (f.x * (f.x * 6.0 - 15.0) + 10.0), f.y * f.y * f.y * (f.y * (f.y * 6.0 - 15.0) + 10.0));
+  let ga = hash22(cell) * 2.0 - vec2f(1.0, 1.0);
+  let gb = hash22(cell + vec2f(1.0, 0.0)) * 2.0 - vec2f(1.0, 1.0);
+  let gc = hash22(cell + vec2f(0.0, 1.0)) * 2.0 - vec2f(1.0, 1.0);
+  let gd = hash22(cell + vec2f(1.0, 1.0)) * 2.0 - vec2f(1.0, 1.0);
+  let va = dot(ga, f);
+  let vb = dot(gb, f - vec2f(1.0, 0.0));
+  let vc = dot(gc, f - vec2f(0.0, 1.0));
+  let vd = dot(gd, f - vec2f(1.0, 1.0));
+  return mix(mix(va, vb, u.x), mix(vc, vd, u.x), u.y) * 0.7 + 0.5;
+}
+fn turbulence2(p : vec2f, octaves : f32) -> f32 {
+  var total = 0.0;
+  var amplitude = 0.5;
+  var frequency = 1.0;
+  var norm = 0.0;
+  for (var i = 0.0; i < octaves; i = i + 1.0) {
+    total = total + amplitude * abs(gnoise2(p * frequency) * 2.0 - 1.0);
+    norm = norm + amplitude;
+    amplitude = amplitude * 0.5;
+    frequency = frequency * 2.0;
+  }
+  return total / norm;
 }
 fn voronoi2(p : vec2f) -> f32 {
   let cell = vec2f(floor(p.x), floor(p.y));
@@ -65,6 +95,43 @@ fn voronoi2(p : vec2f) -> f32 {
   }
   return minDist;
 }
+fn worleyEdge2(p : vec2f) -> f32 {
+  let cell = vec2f(floor(p.x), floor(p.y));
+  let f = p - cell;
+  var f1 = 8.0;
+  var f2 = 8.0;
+  for (var i = -1.0; i <= 1.0; i = i + 1.0) {
+    for (var j = -1.0; j <= 1.0; j = j + 1.0) {
+      let neighbor = vec2f(i, j);
+      let feature = hash22(cell + neighbor);
+      let d = length(neighbor + feature - f);
+      if (d < f1) {
+        f2 = f1;
+        f1 = d;
+      } else {
+        if (d < f2) {
+          f2 = d;
+        }
+      }
+    }
+  }
+  return f2 - f1;
+}
+fn jellyGlow(p : vec2f, center : vec2f, scale : f32, phase : f32, time : f32) -> f32 {
+  let bob = sin(time * 0.62 + phase) * 0.045;
+  let q = (p - (center + vec2f(0.0, bob))) * (1.0 / scale);
+  let bellDistance = length(vec2f(q.x, q.y * 1.36));
+  let dome = (1.0 - smoothstep(0.42, 0.49, bellDistance)) * smoothstep(-0.12, 0.06, q.y);
+  let rim = 0.009 / max(abs(bellDistance - 0.455), 0.006) * smoothstep(-0.08, 0.12, q.y);
+  let skirt = (1.0 - smoothstep(0.012, 0.07, abs(q.y + 0.04 + sin(q.x * 13.0) * 0.026))) * (1.0 - smoothstep(0.34, 0.5, abs(q.x)));
+  let tentacleGate = (1.0 - smoothstep(-0.08, 0.02, q.y)) * smoothstep(-1.05, -0.82, q.y);
+  let wave = sin(q.y * 8.5 - time * 1.25 + phase) * 0.055;
+  let tentacleA = 0.006 / max(abs(q.x + 0.23 - wave), 0.009);
+  let tentacleB = 0.007 / max(abs(q.x - wave * 0.7), 0.009);
+  let tentacleC = 0.006 / max(abs(q.x - 0.23 - wave * 1.1), 0.009);
+  let tentacles = (tentacleA + tentacleB + tentacleC) * tentacleGate * 0.24;
+  return dome * 0.34 + rim * 0.72 + skirt * 0.5 + tentacles;
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -75,21 +142,41 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
 }
 @fragment
 fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
-  let p = vec2f((bm_in.vUv.x - 0.5) * bm_u.uAspect + (bm_u.uPointer.x - 0.5) * 0.08, bm_in.vUv.y - 0.5 + (bm_u.uPointer.y - 0.5) * 0.04) * 2.35;
-  let depth = smoothstep(0.8, -1.0, p.y);
-  let waterNoise = fbm2(p * 2.2 + vec2f(bm_u.uTime * 0.035, -bm_u.uTime * 0.025), 5.0);
-  let causticCells = voronoi2(p * 7.5 + vec2f(bm_u.uTime * 0.11, bm_u.uTime * 0.04));
-  let caustics = smoothstep(0.18, 0.02, causticCells) * smoothstep(-0.9, 0.75, p.y);
-  let leftJelly = length(vec2f((p.x + 0.58) * 1.1, (p.y - 0.12) * 1.45));
-  let rightJelly = length(vec2f((p.x - 0.52) * 1.15, (p.y + 0.04) * 1.5));
-  let jellyA = smoothstep(0.34, 0.27, leftJelly) + 0.025 / max(abs(leftJelly - 0.31), 0.012);
-  let jellyB = smoothstep(0.29, 0.23, rightJelly) + 0.02 / max(abs(rightJelly - 0.26), 0.012);
-  let seabed = smoothstep(0.05, -0.03, p.y + 0.73 + sin(p.x * 3.2) * 0.08);
-  let coral = smoothstep(0.055, 0.015, abs(sin(p.x * 8.0 + p.y * 4.0))) * smoothstep(-0.3, -0.82, p.y) * (1.0 - seabed);
-  let background = vec3f(0.002, 0.018, 0.045) + vec3f(0.005, 0.11, 0.16) * (depth * 0.8 + waterNoise * 0.34);
-  let glow = vec3f(0.03, 0.9, 0.78) * (jellyA * (0.6 + sin(bm_u.uTime * 1.7) * 0.08)) + vec3f(0.34, 0.18, 1.2) * (jellyB * (0.62 + sin(bm_u.uTime * 1.3 + 2.0) * 0.1)) + vec3f(0.08, 0.52, 0.62) * (caustics * 0.36) + vec3f(0.03, 0.34, 0.23) * (coral * 0.7);
-  let floorColor = vec3f(0.012, 0.035, 0.05) * seabed;
-  return vec4f(tonemapACES(background + glow + floorColor), 1.0);
+  let p = vec2f((bm_in.vUv.x - 0.5) * bm_u.uAspect + (bm_u.uPointer.x - 0.5) * 0.11, bm_in.vUv.y - 0.5 + (bm_u.uPointer.y - 0.5) * 0.055) * 2.25;
+  let depth = 1.0 - smoothstep(-0.85, 0.95, p.y);
+  let waterNoise = fbm2(p * 1.8 + vec2f(bm_u.uTime * 0.025, -bm_u.uTime * 0.018), 5.0);
+  let deepTurbulence = turbulence2(p * 3.4 + vec2f(-bm_u.uTime * 0.045, bm_u.uTime * 0.024), 4.0);
+  let causticDomain = p * 5.8 + vec2f(bm_u.uTime * 0.075, -bm_u.uTime * 0.035);
+  let causticCells = voronoi2(causticDomain);
+  let causticEdges = worleyEdge2(causticDomain + vec2f(2.3, bm_u.uTime * 0.025));
+  let caustics = (1.0 - smoothstep(0.025, 0.16, causticCells)) * 0.48 + (1.0 - smoothstep(0.018, 0.075, causticEdges)) * 0.35;
+  let surfaceMask = smoothstep(-0.55, 0.82, p.y);
+  let rayWarp = fbm2(vec2f(p.x * 0.75 + bm_u.uTime * 0.02, p.y * 0.25), 4.0);
+  let godRays = pow(max(sin(p.x * 5.2 + rayWarp * 5.8), 0.0), 12.0) * surfaceMask * (0.25 + depth * 0.25);
+  let jellyA = jellyGlow(p, vec2f(-0.76, 0.14), 0.64, 0.2, bm_u.uTime);
+  let jellyB = jellyGlow(p, vec2f(0.33, -0.02), 0.48, 2.1, bm_u.uTime);
+  let jellyC = jellyGlow(p, vec2f(0.94, 0.35), 0.3, 4.2, bm_u.uTime) * 0.72;
+  let fishP = (p + vec2f(bm_u.uTime * 0.23, sin(bm_u.uTime * 0.2) * 0.04)) * 4.6;
+  let fishCell = vec2f(floor(fishP.x), floor(fishP.y));
+  let fishLocal = vec2f(fract(fishP.x) - 0.5, fract(fishP.y) - 0.5);
+  let fishSeed = hash21(fishCell);
+  let fishBody = (1.0 - smoothstep(0.035, 0.13, length(vec2f(fishLocal.x, fishLocal.y * 2.8)))) * smoothstep(0.78, 0.92, fishSeed) * smoothstep(-0.35, 0.72, p.y);
+  let seabedHeight = -0.79 + sin(p.x * 2.6) * 0.055 + waterNoise * 0.035;
+  let seabed = 1.0 - smoothstep(-0.025, 0.045, p.y - seabedHeight);
+  let coralDomain = (p.x + 1.8) * 7.4;
+  let coralCell = floor(coralDomain);
+  let coralX = fract(coralDomain) - 0.5;
+  let coralHeight = 0.17 + hash11(coralCell * 3.7) * 0.42;
+  let coralWave = sin((p.y - seabedHeight) * 13.0 + coralCell + bm_u.uTime * 0.28) * 0.07;
+  let coralStem = (1.0 - smoothstep(0.018, 0.075, abs(coralX + coralWave))) * (1.0 - smoothstep(seabedHeight + coralHeight - 0.06, seabedHeight + coralHeight, p.y)) * smoothstep(seabedHeight - 0.03, seabedHeight + 0.04, p.y);
+  let coralTips = 1.0 - smoothstep(0.025, 0.12, length(vec2f(coralX + coralWave, p.y - seabedHeight - coralHeight)));
+  let particleCell = vec2f(floor(p.x * 48.0), floor((p.y + bm_u.uTime * 0.035) * 48.0));
+  let particleSeed = hash21(particleCell);
+  let plankton = smoothstep(0.987, 0.999, particleSeed) * (0.5 + sin(bm_u.uTime * 1.2 + particleSeed * 60.0) * 0.35);
+  let background = vec3f(0.0015, 0.014, 0.045) + vec3f(0.002, 0.16, 0.2) * (depth * 0.62 + waterNoise * 0.26) + vec3f(0.025, 0.08, 0.2) * (deepTurbulence * 0.18) + vec3f(0.06, 0.34, 0.43) * (godRays * 0.42 + caustics * surfaceMask * 0.15);
+  let life = vec3f(0.02, 1.25, 0.94) * (jellyA * (0.72 + sin(bm_u.uTime * 1.4) * 0.08)) + vec3f(0.48, 0.16, 1.55) * (jellyB * (0.78 + sin(bm_u.uTime * 1.1 + 2.0) * 0.09)) + vec3f(1.35, 0.2, 0.64) * jellyC + vec3f(0.22, 0.65, 0.9) * (fishBody * 0.8) + vec3f(0.15, 0.75, 1.1) * (plankton * 0.65);
+  let reef = vec3f(0.03, 0.065, 0.085) * seabed + vec3f(0.05, 0.9, 0.52) * (coralStem * 0.62) + vec3f(1.15, 0.16, 0.48) * (coralTips * 0.8);
+  return vec4f(tonemapACES(background + life + reef), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aUv: 'vec2' },
