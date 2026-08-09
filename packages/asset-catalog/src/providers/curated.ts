@@ -1,12 +1,12 @@
 import type { AssetKind, AssetProvider, CatalogAsset } from '../index.ts';
 
-type CuratedInput = Readonly<{
+export type CuratedInput = Readonly<{
   upstreamId: string;
   slug: string;
   name: string;
   description: string;
   kind: AssetKind;
-  fileCount: number;
+  fileCount: number | null;
   formats: readonly string[];
   tags: readonly string[];
   categories: readonly string[];
@@ -14,6 +14,8 @@ type CuratedInput = Readonly<{
   sourceUrl: string;
   previewUrl: string;
   previewSourceUrl?: string;
+  previewHosting?: 'local' | 'provider';
+  verification?: 'cataloged' | 'source-verified';
   retrievedAt: string;
 }>;
 
@@ -32,7 +34,7 @@ export function createCuratedCc0Asset(provider: AssetProvider, input: CuratedInp
     upstream: Object.freeze({
       id: input.upstreamId,
       url: input.sourceUrl,
-      filesHash: 'pending-curated-download',
+      filesHash: 'not-requested-metadata-only',
       retrievedAt: input.retrievedAt,
     }),
     preview: Object.freeze({
@@ -40,7 +42,7 @@ export function createCuratedCc0Asset(provider: AssetProvider, input: CuratedInp
       sourceUrl: input.previewSourceUrl ?? input.previewUrl,
       width: 256,
       height: 256,
-      hosting: 'local' as const,
+      hosting: input.previewHosting ?? 'local',
     }),
     facts: Object.freeze({}),
     downloads: Object.freeze([]),
@@ -62,6 +64,6 @@ export function createCuratedCc0Asset(provider: AssetProvider, input: CuratedInp
       required: false,
       notice: `CC0 asset by ${input.creator}; credit is appreciated.`,
     }),
-    verification: 'cataloged' as const,
+    verification: input.verification ?? 'cataloged',
   });
 }

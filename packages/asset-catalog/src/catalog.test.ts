@@ -4,7 +4,9 @@ import test from 'node:test';
 import { searchAssets, type CatalogAsset } from './index.ts';
 import { CATALOG_ASSETS } from './catalog-data.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
+import { parseKenneyAssetPage } from './providers/kenney-client.ts';
 import { fetchPolyHavenMetadataCatalog, fetchPolyHavenStarterCatalog } from './providers/poly-haven-client.ts';
+import { parseQuaterniusPackPage } from './providers/quaternius-client.ts';
 
 const assets: CatalogAsset[] = [
   {
@@ -59,8 +61,8 @@ test('can require install-verified catalog entries', () => {
   assert.deepEqual(searchAssets(assets, { installableOnly: true }), []);
 });
 
-test('publishes one thousand unique, useful, honestly classified assets', () => {
-  assert.equal(CATALOG_ASSETS.length, 1_000);
+test('publishes the complete generated Kenney and Quaternius pack catalogs', () => {
+  assert.ok(CATALOG_ASSETS.length > 1_200);
   assert.equal(new Set(CATALOG_ASSETS.map((asset) => asset.id)).size, CATALOG_ASSETS.length);
   for (const asset of CATALOG_ASSETS) {
     assert.ok(asset.tags.length >= 3, `${asset.id} needs at least three tags`);
@@ -70,7 +72,46 @@ test('publishes one thousand unique, useful, honestly classified assets', () => 
   }
   assert.equal(CATALOG_ASSETS.find((asset) => asset.id === 'kenney:nature-kit')?.fileCount, 330);
   assert.equal(CATALOG_ASSETS.find((asset) => asset.id === 'quaternius:ultimate-nature')?.fileCount, 150);
+  assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'kenney').length >= 200);
+  assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'quaternius').length >= 80);
   assert.equal(CATALOG_ASSETS.filter((asset) => asset.verification === 'install-verified').length, 3);
+});
+
+test('parses official Kenney pack metadata without downloading the pack', () => {
+  const asset = parseKenneyAssetPage(`
+    <meta property='og:image' content='https://kenney.nl/media/nature.png'>
+    <meta property='og:description' content='Download this package (330 assets) for free, CC0 licensed!'>
+    <h1 class='mobile-contain'>Nature Kit</h1>
+    <tr><td>Tags</td><td><a class='tag'>nature</a><a class='tag'>tree</a><a class='tag'>rock</a></td></tr>
+    <tr><td>Category</td><td><a href='/assets/category:3D'>3D</a></td></tr>
+    <tr><td>Files</td><td>330×</td></tr>
+    <tr><td>License</td><td>Creative Commons CC0</td></tr>
+  `, 'https://kenney.nl/assets/nature-kit', '2026-08-09T00:00:00.000Z');
+  assert.equal(asset.id, 'kenney:nature-kit');
+  assert.equal(asset.fileCount, 330);
+  assert.equal(asset.kind, 'model');
+  assert.deepEqual(asset.tags.slice(0, 3), ['nature', 'tree', 'rock']);
+  assert.equal(asset.preview.hosting, 'local');
+  assert.equal(asset.verification, 'source-verified');
+  assert.equal(asset.downloads.length, 0);
+});
+
+test('parses official Quaternius pack metadata without downloading the pack', () => {
+  const asset = parseQuaterniusPackPage(`
+    <title>Quaternius • Ultimate Nature Pack</title>
+    <meta name="description" content="The ultimate nature pack, 150 models with everything you need!">
+    <meta property="og:image" content="/assets/images/fullres/ultimatenature.jpg">
+    <div class="infoitem">Models<div class="text-right">150</div></div>
+    <div class="infoitem">Formats<div class="text-right tags">FBX</div><div class="text-right tags">OBJ</div><div class="text-right tags">Blend</div></div>
+    <div class="infoitem">License<div class="text-right">CC0</div></div>
+  `, 'https://quaternius.com/packs/ultimatenature.html', ['nature', 'environment'], '2026-08-09T00:00:00.000Z');
+  assert.equal(asset.id, 'quaternius:ultimate-nature');
+  assert.equal(asset.fileCount, 150);
+  assert.deepEqual(asset.formats, ['fbx', 'obj', 'blend']);
+  assert.ok(asset.tags.includes('nature'));
+  assert.equal(asset.preview.hosting, 'local');
+  assert.equal(asset.verification, 'source-verified');
+  assert.equal(asset.downloads.length, 0);
 });
 
 test('normalizes Poly Haven API metadata and download files', () => {

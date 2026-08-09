@@ -1,8 +1,7 @@
 import type { AssetDownload } from './index.ts';
+import { GENERATED_CURATED_ASSETS } from './generated-curated-catalog.ts';
 import { GENERATED_POLY_HAVEN_ASSETS } from './generated-catalog.ts';
-import { createKenneyPack } from './providers/kenney.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
-import { createQuaterniusPack } from './providers/quaternius.ts';
 
 const retrievedAt = '2026-08-09T00:00:00.000Z';
 
@@ -63,24 +62,5 @@ export const CATALOG_ASSETS = Object.freeze([
     ],
   }),
   ...GENERATED_POLY_HAVEN_ASSETS,
-  createKenneyPack({
-    upstreamId: 'nature-kit', slug: 'nature-kit', name: 'Nature Kit',
-    description: 'A curated starter pack of stylized nature assets for games.', kind: 'model',
-    fileCount: 330, formats: ['fbx', 'glb', 'obj'],
-    tags: ['nature', 'forest', 'rocks', 'trees', 'foliage', 'stylized', 'low poly'], categories: ['nature', 'environment'],
-    creator: 'Kenney', sourceUrl: 'https://kenney.nl/assets/nature-kit',
-    previewUrl: '/previews/curated/kenney-nature-kit.webp',
-    previewSourceUrl: 'https://kenney.nl/media/pages/assets/nature-kit/656a90532f-1677698896/sample.png',
-    retrievedAt,
-  }),
-  createQuaterniusPack({
-    upstreamId: 'ultimate-nature', slug: 'ultimate-nature', name: 'Ultimate Nature Pack',
-    description: 'A curated low-poly nature pack for outdoor game scenes.', kind: 'model',
-    fileCount: 150, formats: ['blend', 'fbx', 'obj'],
-    tags: ['nature', 'forest', 'plants', 'rocks', 'trees', 'grass', 'flowers', 'low poly'], categories: ['nature', 'environment'],
-    creator: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/ultimatenature.html',
-    previewUrl: '/previews/curated/quaternius-ultimate-nature.webp',
-    previewSourceUrl: 'https://quaternius.com/assets/images/fullres/ultimatenature.jpg',
-    retrievedAt,
-  }),
+  ...GENERATED_CURATED_ASSETS,
 ]);
