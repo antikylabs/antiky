@@ -40,3 +40,16 @@ test('serves the Kenney Nature Kit preview as a local raster image', async ({ pa
   expect(response.headers()['content-type']).toContain('image/webp');
   await expect(page.getByText('330 source files')).toBeVisible();
 });
+
+test('serves official Quaternius Ultimate Nature artwork locally', async ({ page, request }) => {
+  await page.goto('/assets/quaternius/ultimate-nature');
+  const preview = page.getByRole('img', { name: 'Preview of Ultimate Nature Pack' });
+  await expect(preview).toBeVisible();
+  await expect.poll(() => preview.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+
+  const source = await preview.getAttribute('src');
+  expect(source).toBe('/previews/curated/quaternius-ultimate-nature.webp');
+  const response = await request.get(source!);
+  expect(response.ok()).toBeTruthy();
+  expect(response.headers()['content-type']).toContain('image/webp');
+});

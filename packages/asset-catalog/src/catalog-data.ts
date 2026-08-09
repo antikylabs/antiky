@@ -77,6 +77,8 @@ export const CATALOG_ASSETS = Object.freeze([
     fileCount: 150, formats: ['blend', 'fbx', 'obj'],
     tags: ['nature', 'forest', 'plants', 'rocks', 'trees', 'grass', 'flowers', 'low poly'], categories: ['nature', 'environment'],
     creator: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/ultimatenature.html',
-    previewUrl: '/previews/curated/quaternius-ultimate-nature.svg', retrievedAt,
+    previewUrl: '/previews/curated/quaternius-ultimate-nature.webp',
+    previewSourceUrl: 'https://quaternius.com/assets/images/fullres/ultimatenature.jpg',
+    retrievedAt,
   }),
 ]);
