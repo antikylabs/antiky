@@ -18,6 +18,7 @@
   height: auto;
   display: block;
 }
+.studio-capture picture { display: block; }
 
 .studio-showcase figcaption {
   margin-top: 14px;

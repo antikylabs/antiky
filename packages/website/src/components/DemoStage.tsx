@@ -6,13 +6,25 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { CSSProperties } from 'react';
 import type {
   GameHostContext,
   GameInstance,
   GameMeasurements,
   GameModuleEntry,
 } from '@antiky/framework/game';
-import { demoModuleUrl, demoPosterUrl, findDemo, type DemoSlug } from '@/lib/demos';
+import {
+  demoMobilePosterUrl,
+  demoModuleUrl,
+  demoPosterUrl,
+  findDemo,
+  type DemoSlug,
+} from '@/lib/demos';
+
+type StageStyle = CSSProperties & {
+  '--stage-poster'?: string;
+  '--stage-poster-mobile'?: string;
+};
 
 type StagePhase = 'poster' | 'ready' | 'loading' | 'running' | 'paused' | 'error';
 
@@ -69,6 +81,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
   const userPausedRef = useRef(false);
   const mountedRef = useRef(true);
   const poster = demoPosterUrl(slug);
+  const mobilePoster = demoMobilePosterUrl(slug);
   const [phase, setPhase] = useState<StagePhase>('poster');
   const [error, setError] = useState('');
   const [measurements, setMeasurements] = useState<GameMeasurements>({});
@@ -253,7 +266,10 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
   const classes = ['stage', variant ? `stage-${variant}` : '', poster ? 'stage-has-poster' : '']
     .filter(Boolean)
     .join(' ');
-  const style = poster ? { backgroundImage: `url(${poster})` } : undefined;
+  const style: StageStyle | undefined = poster ? {
+    '--stage-poster': `url(${poster})`,
+    '--stage-poster-mobile': `url(${mobilePoster ?? poster})`,
+  } : undefined;
 
   return (
     <div className={classes} data-phase={displayPhase} style={style}>

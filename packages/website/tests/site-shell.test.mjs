@@ -66,15 +66,45 @@ test('production pages report the configured SSPS live visitor count once', asyn
 
 test('home and Framework pages feature current Antiky media', async () => {
   const home = await readFile(new URL('index.html', outputRoot), 'utf8');
+  const games = await readFile(new URL('games.html', outputRoot), 'utf8');
   const framework = await readFile(new URL('framework.html', outputRoot), 'utf8');
 
   assert.match(home, /href="\/demos\/antiky-town"/);
-  assert.match(home, /antiky-town\.png/);
+  assert.match(home, /antiky-town-hero-wide-v1\.webp/);
+  assert.match(home, /antiky-town-hero-mobile-v1\.webp/);
+  assert.match(home, /studio-pause-wide-v1\.webp/);
+  assert.match(home, /studio-step-wide-v1\.webp/);
+  assert.match(home, /Current Studio proof/);
+  assert.match(home, /Run Antiky Town/);
   assert.doesNotMatch(home, /href="\/demos\/town-study">Explore Town Study/);
+  assert.match(games, /antiky-town-traversal-wide-v1\.webp/);
+  assert.match(games, /Current proof · Antiky Town/);
 
   assert.match(framework, /href="\/demos\/antiky-town"/);
   assert.match(framework, /antiky-architecture\.png/);
   assert.match(framework, /Antiky target architecture/);
+});
+
+test('the homepage changed-assumption diagram explains inputs without claiming research outcomes', async () => {
+  const home = await readFile(new URL('index.html', outputRoot), 'utf8');
+  const sectionStart = home.indexOf('id="changed-assumption"');
+  const sectionEnd = home.indexOf('id="creative-agency"');
+  const section = home.slice(sectionStart, sectionEnd);
+
+  assert.ok(sectionStart >= 0 && sectionEnd > sectionStart);
+  assert.match(section, /aria-label="Two development contexts"/);
+  for (const label of [
+    'Files',
+    'Terminal',
+    'Screenshots',
+    'Reconstruct context',
+    'Structured state',
+    'Commands',
+    'Diagnostics',
+    'Capture',
+    'Shared explicit interfaces',
+  ]) assert.ok(section.includes(label), `changed-assumption diagram is missing ${label}`);
+  assert.doesNotMatch(section, /fewer tokens|lower cost|faster development|higher success rate/i);
 });
 
 test('homepage follows the why-first evidence-to-participation sequence', async () => {

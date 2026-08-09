@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
+import SessionStepProof from '@/components/SessionStepProof';
 import StudioPrimaryAction from '@/components/StudioPrimaryAction';
 import { canonical, DISCORD_URL, GITHUB_URL, STUDIO_RELEASES_READY } from '@/lib/site';
 
@@ -91,17 +92,20 @@ export default function StudioPage() {
 
       <figure className="studio-showcase wrap" aria-labelledby="studio-workspace-caption">
         <div className="studio-capture">
-          <Image
-            src="/media/antiky-studio-workspace.jpeg"
-            alt="Antiky Studio native workspace with a running game, terminal, inspection views, and development activity"
-            width={1228}
-            height={768}
-            sizes="(max-width: 760px) 100vw, min(1228px, 92vw)"
-            priority
-          />
+          <picture>
+            <source media="(max-width: 620px)" srcSet="/media/machinery/studio-workspace-detail-v1.webp" />
+            <Image
+              src="/media/machinery/studio-workspace-wide-v1.webp"
+              alt="Current Antiky Studio workspace with a running game, isolated terminal prompt, simulation controls, and a populated hierarchy"
+              width={1192}
+              height={744}
+              sizes="(max-width: 760px) 100vw, min(1192px, 92vw)"
+              priority
+            />
+          </picture>
         </div>
         <figcaption id="studio-workspace-caption">
-          Real Antiky Studio workspace · current source build
+          Current Studio proof · running game, isolated terminal, and published hierarchy
         </figcaption>
       </figure>
 
@@ -131,17 +135,17 @@ export default function StudioPage() {
           </div>
           <div className="prose">
             <p className="lead">
-              Studio does not start a second renderer or read terminal output to understand the game.
+              Studio, the command-line interface, and connected agents use the same typed services
+              and observe the same running project session.
             </p>
-            <p>
-              Studio, the command-line interface, and connected agents use the same typed development services.
-              Each client sees the same running project session.
-            </p>
+            <p>Inspection is read-only; simulation controls and approved commands cross explicit boundaries.</p>
             <Link className="text-link section-link" href="/docs/studio/development-connection">
               How Studio connects <ArrowRight />
             </Link>
           </div>
         </div>
+
+        <SessionStepProof captionId="studio-step-proof-caption" />
 
         <div className="wrap studio-session-map" aria-label="CLI, Studio, and MCP share one Antiky development session">
           <div className="studio-session-clients">

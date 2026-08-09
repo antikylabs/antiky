@@ -87,7 +87,10 @@ test('every published demo has a distinct real poster and the catalog groups all
     const { width, height } = pngDimensions(image);
     assert.ok(width >= 512, `${demo.slug} poster is too narrow`);
     assert.ok(height >= 288, `${demo.slug} poster is too short`);
-    assert.match(catalogPage, new RegExp(`${demo.slug}\\.png`));
+    const deliveryPoster = demo.slug === 'antiky-town'
+      ? 'worlds/antiky-town-hero-wide-v1.webp'
+      : `demos/${demo.slug}.png`;
+    assert.ok(catalogPage.includes(deliveryPoster), `${demo.slug} delivery poster is missing`);
     digests.add(createHash('sha256').update(image).digest('hex'));
   }
 

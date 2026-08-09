@@ -201,5 +201,11 @@ export function demoModuleUrl(slug: DemoSlug): string {
 }
 
 export function demoPosterUrl(slug: DemoSlug): string {
+  if (slug === 'antiky-town') return '/media/worlds/antiky-town-hero-wide-v1.webp';
   return `/media/demos/${slug}.png`;
+}
+
+export function demoMobilePosterUrl(slug: DemoSlug): string | undefined {
+  if (slug === 'antiky-town') return '/media/worlds/antiky-town-hero-mobile-v1.webp';
+  return undefined;
 }

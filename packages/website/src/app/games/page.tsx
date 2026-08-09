@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from '@/components/Icons';
 
@@ -26,25 +27,37 @@ export default function GamesPage() {
         </p>
       </section>
 
-      <section className="content-section wrap split-heading" data-evidence-status="current">
-        <div>
-          <p className="section-label">Current proof</p>
-          <h2>Antiky Town runs today.</h2>
+      <section className="content-section games-current-section" data-evidence-status="current">
+        <div className="wrap split-heading">
+          <div>
+            <p className="section-label">Current proof</p>
+            <h2>Antiky Town runs today.</h2>
+          </div>
+          <div className="prose">
+            <p className="lead">
+              Antiky Town is a runnable Framework study with stable light identity, structured runtime
+              state, and a visible point-light authoring slice.
+            </p>
+            <p>
+              Seven focused studies alongside it isolate rendering, shaders, and portable-host
+              questions. They are working evidence, not production games or substitutes for
+              Emberwyrd.
+            </p>
+            <Link className="text-link section-link" href="/demos/antiky-town">
+              Run Antiky Town <ArrowRight />
+            </Link>
+          </div>
         </div>
-        <div className="prose">
-          <p className="lead">
-            Antiky Town is a runnable Framework study with stable light identity, structured runtime
-            state, and a visible point-light authoring slice.
-          </p>
-          <p>
-            Seven focused studies alongside it isolate rendering, shaders, and portable-host
-            questions. They are working evidence, not production games or substitutes for
-            Emberwyrd.
-          </p>
-          <Link className="text-link section-link" href="/demos/antiky-town">
-            Run Antiky Town <ArrowRight />
-          </Link>
-        </div>
+        <figure className="games-current-proof wrap">
+          <Image
+            src="/media/worlds/antiky-town-traversal-wide-v1.webp"
+            alt="A current traversal view across Antiky Town toward its market and bell tower"
+            width={707}
+            height={398}
+            sizes="(max-width: 760px) 100vw, min(1100px, 92vw)"
+          />
+          <figcaption><span>Current proof · Antiky Town</span> A real traversal frame from the Framework study.</figcaption>
+        </figure>
       </section>
 
       <section className="world-title" id="emberwyrd" data-evidence-status="direction">

@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import ChangedAssumptionDiagram from '@/components/ChangedAssumptionDiagram';
 import DemoStage from '@/components/DemoStage';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
+import SessionStepProof from '@/components/SessionStepProof';
 import StudioPrimaryAction from '@/components/StudioPrimaryAction';
 import { BROMETAL_URL, DISCORD_URL } from '@/lib/site';
 
@@ -61,24 +63,25 @@ export default function HomePage() {
         <p className="media-caption"><span>Current proof · Antiky Town</span> Run the real Framework study</p>
       </section>
 
-      <section className="content-section wrap split-heading" id="changed-assumption">
-        <div>
-          <p className="section-label">The assumption that changed</p>
-          <h2>The tools were built around one kind of participant.</h2>
+      <section className="content-section assumption-section" id="changed-assumption">
+        <div className="wrap split-heading">
+          <div>
+            <p className="section-label">The assumption that changed</p>
+            <h2>The tools were built around one kind of participant.</h2>
+          </div>
+          <div className="prose">
+            <p className="lead">
+              Existing game tools are powerful. Most were designed for people who interpret the
+              editor, project, runtime, and debugging environment themselves.
+            </p>
+            <p>
+              Antiky asks what changes when software agents can work through context the system
+              exposes directly—not only fragments they must assemble.
+            </p>
+            <Link className="text-link section-link" href="/thesis">Follow the full argument <ArrowRight /></Link>
+          </div>
         </div>
-        <div className="prose">
-          <p className="lead">
-            Existing game tools are powerful. Most were designed around people interpreting the
-            editor, project files, runtime, and debugging environment.
-          </p>
-          <p>
-            Software agents introduce another capable participant. Giving an agent a terminal,
-            source files, and screenshots can help, but it still leaves the agent reconstructing the
-            game from fragments. Antiky asks what changes when shared understanding is part of the
-            system from the beginning.
-          </p>
-          <Link className="text-link section-link" href="/thesis">Follow the full argument <ArrowRight /></Link>
-        </div>
+        <ChangedAssumptionDiagram />
       </section>
 
       <section className="statement-band" id="creative-agency">
@@ -95,31 +98,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="content-section wrap split-heading" id="shared-state">
-        <div>
-          <p className="section-label">Current architectural proof</p>
-          <h2>One game. One source of truth.</h2>
-        </div>
-        <div className="prose">
-          <p className="lead">
-            Studio, the CLI, MCP tools, and direct typed clients use the same local project services
-            instead of maintaining separate versions of the running game.
-          </p>
-          <p>
-            A capture shows what the game looks like. Structured state explains what the game is
-            doing: lifecycle, stable identities, hierarchy, stores, events, diagnostics,
-            measurements, session controls, and the narrow authoring facts a game publishes.
-          </p>
-          <p>
-            Inspection is read-only. Bounded controls and commands cross explicit change boundaries.
-            The complete creator-agent loop is still being built, but the shared foundation works
-            today.
-          </p>
-          <div className="thesis-links">
-            <Link className="text-link" href="/studio">See it in Studio <ArrowRight /></Link>
-            <Link className="text-link" href="/docs/framework/inspection">Read the inspection docs <ArrowRight /></Link>
+      <section className="content-section shared-state-section" id="shared-state">
+        <div className="wrap split-heading">
+          <div>
+            <p className="section-label">Current architectural proof</p>
+            <h2>One game. One source of truth.</h2>
+          </div>
+          <div className="prose">
+            <p className="lead">
+              Studio, the CLI, MCP tools, and direct typed clients use the same local project
+              services and observe the same running session.
+            </p>
+            <p>
+              Inspection is read-only. Simulation controls and approved commands cross explicit
+              change boundaries; the broader creator-agent loop remains direction.
+            </p>
+            <div className="thesis-links">
+              <Link className="text-link" href="/studio">See it in Studio <ArrowRight /></Link>
+              <Link className="text-link" href="/docs/framework/inspection">Read the inspection docs <ArrowRight /></Link>
+            </div>
           </div>
         </div>
+        <SessionStepProof captionId="home-step-proof-caption" />
       </section>
 
       <section className="work-index wrap" id="system">
