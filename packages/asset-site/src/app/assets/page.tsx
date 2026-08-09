@@ -51,6 +51,9 @@ export default async function AssetsPage({ searchParams }: Readonly<{ searchPara
             <div><dt>Sources</dt><dd>{providers.length}</dd></div>
             <div><dt>License</dt><dd>CC0</dd></div>
           </dl>
+          <Link className="agent-guide-link" href="/assets/llms.txt">
+            <span>Agent guide:</span> llms.txt <span aria-hidden="true">↗</span>
+          </Link>
         </div>
       </header>
 

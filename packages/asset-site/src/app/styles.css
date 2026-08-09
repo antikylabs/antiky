@@ -52,6 +52,10 @@ h1, h2, h3 { font-family: var(--display); font-weight: 560; letter-spacing: -.03
 .hero-stats div { padding-top: 14px; }
 .hero-stats dt { color: var(--text-faint); font-family: var(--mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
 .hero-stats dd { margin: 5px 0 0; font-family: var(--display); font-size: 1.15rem; }
+.agent-guide-link { min-height: 46px; display: inline-flex; align-items: center; gap: 7px; margin-top: 30px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; transition: border-color 180ms ease-out, background 180ms ease-out; }
+.agent-guide-link span:first-child { color: var(--text-faint); }
+.agent-guide-link span:last-child { color: var(--accent); font-size: 14px; }
+.agent-guide-link:hover { border-color: var(--accent); background: var(--surface); }
 
 .asset-search { padding-top: 54px; padding-bottom: 54px; border-bottom: 1px solid var(--line); }
 .asset-search label { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 14px; }

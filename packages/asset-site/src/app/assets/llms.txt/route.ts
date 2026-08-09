@@ -1,4 +1,4 @@
-import { assetLlmsResponse } from '../../lib/llms';
+import { assetLlmsResponse } from '../../../lib/llms';
 
 export const dynamic = 'force-static';
 

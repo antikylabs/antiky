@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+test('links agents to the canonical assets llms.txt guide', async ({ page, request }) => {
+  await page.goto('/assets');
+  const link = page.getByRole('link', { name: 'Agent guide: llms.txt' });
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute('href', '/assets/llms.txt');
+
+  const response = await request.get('/assets/llms.txt');
+  expect(response.ok()).toBeTruthy();
+  expect(response.headers()['content-type']).toContain('text/plain');
+  await expect(response.text()).resolves.toContain('GET https://antikylabs.com/api/assets');
+});
+
 test('prioritizes Kenney and Quaternius without a single-source first page', async ({ page }) => {
   await page.goto('/assets');
   const providerIds = await page.getByRole('article').evaluateAll((cards) => cards.map((card) => {
