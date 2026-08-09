@@ -100,27 +100,28 @@ components:
 
 ## Overview
 
-**Creative North Star: "Media First"**
+**Creative North Star: "Idea, Then Evidence"**
 
-Antiky Labs is an evidence-led, near-black editorial system. The interface recedes so a working
-browser study, verified poster, source pane, or documented artifact can carry the visual claim.
-Large Space Grotesk headlines and quiet Inter copy provide confidence without turning the site into
-a themed developer portfolio.
+Antiky Labs is an evidence-led, near-black editorial system. The homepage starts with the human
+creative idea and immediately grounds it in a real Antiky artifact. The interface recedes so a
+working browser study, verified capture, source pane, or documented behavior can carry technical
+claims. Large Space Grotesk headlines and quiet Inter copy provide confidence without turning the
+site into a themed developer portfolio or a SaaS funnel.
 
 The signature composition is one dominant media field with a compact, opaque copy or control layer.
 It should feel technically credible and immediately legible: restrained chrome, hairline structure,
 explicit states, and a single violet action family around imagery that supplies its own color.
 
-Product maturity is written plainly. Live work, emerging tools, active research, and planned worlds
-must not be made equivalent through visual hype.
+Product maturity is written plainly. Current work, emerging tools, architectural direction, and
+research questions must not be made equivalent through visual hype.
 
-**The Process Is Not the Pitch Rule.** Internal development process, debates, and implementation
-method belong in supporting documentation; public hierarchy begins with working output, evidence, or
-a clearly labeled plan.
+**The Thesis Must Meet Evidence Rule.** Internal process and implementation debates belong in
+supporting documentation. The public hierarchy can begin with the Antiky idea, but a current artifact
+or clearly labeled status boundary must appear before the argument turns into an unsupported promise.
 
 **Key Characteristics:**
 
-- One dominant evidence-bearing media region per viewport.
+- A human creative idea paired with a real evidence-bearing media region in the first viewport.
 - Near-black editorial surfaces with fine structural rules.
 - Large, blunt headlines paired with concise, human copy.
 - One scarce violet action family; imagery carries the broader color range.
@@ -237,11 +238,12 @@ arbitrary rounded cards.
 
 ### Navigation
 
-The desktop header keeps the brand left, the current public destinations right, and one bordered demo
-action. Default links are muted; hover and current-page states become primary text without animated
-underlines. The mobile semantic disclosure uses a raised surface, 48px rows, and a visible active state.
-Navigation reflects the current information architecture; removed or internal destinations do not
-remain as disabled placeholders.
+The desktop header keeps the brand left, six primary destinations, a quiet Discord utility link, and
+one violet Studio download action. Default links are muted; hover and current-page states become
+primary text without animated underlines. The mobile semantic disclosure includes every primary
+destination, Demos, Discord, and Studio download as 48px rows with a visible active state. Navigation
+reflects the current information architecture; removed or internal destinations do not remain as
+disabled placeholders.
 
 ### Buttons and Links
 
@@ -278,9 +280,10 @@ moves above the title and description, preserving a direct reading sequence.
 
 ### Status Language
 
-Use direct state labels such as **Live now**, **Live demo**, **Emerging**, **Active research**, and
-**Planned**. State is written as text and may be reinforced—never replaced—by green, violet, amber, or
-gray. A planned product must not receive the same visual treatment as a running study.
+Use direct state labels that resolve to **Current**, **Emerging**, **Direction**, or **Research
+question**. More specific labels such as **Live study** or **Pre-release** can clarify those states.
+State is written as text and may be reinforced—never replaced—by green, violet, amber, or gray. A
+directional capability must not receive the same visual treatment as a running study.
 
 ### Technical Readouts and Source Panes
 
@@ -292,7 +295,7 @@ runtime status that the live stage already communicates.
 
 ### Do
 
-- **Do** lead with a verified poster, live demo, or documented artifact.
+- **Do** pair the opening idea with a verified poster, live demo, or documented artifact.
 - **Do** distinguish running work, emerging tools, active research, and future intent in text.
 - **Do** preserve poster-first loading, explicit activation, pause/resume, and reduced-motion behavior.
 - **Do** keep mobile live-media actions at least 44px high and directional controls 44px square.
