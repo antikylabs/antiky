@@ -42,6 +42,10 @@ fn fbm2(p : vec2f, octaves : f32) -> f32 {
   }
   return total / norm;
 }
+fn hash22(p : vec2f) -> vec2f {
+  let k = vec2f(dot(p, vec2f(127.1, 311.7)), dot(p, vec2f(269.5, 183.3)));
+  return vec2f(fract(sin(k.x) * 43758.5453), fract(sin(k.y) * 43758.5453));
+}
 fn rotate2(p : vec2f, angle : f32) -> vec2f {
   let c = cos(angle);
   let s = sin(angle);
@@ -51,10 +55,6 @@ fn tonemapACES(color : vec3f) -> vec3f {
   let num = color * (color * 2.51 + vec3f(0.03, 0.03, 0.03));
   let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
   return clamp(num / den, vec3f(0.0), vec3f(1.0));
-}
-fn hash22(p : vec2f) -> vec2f {
-  let k = vec2f(dot(p, vec2f(127.1, 311.7)), dot(p, vec2f(269.5, 183.3)));
-  return vec2f(fract(sin(k.x) * 43758.5453), fract(sin(k.y) * 43758.5453));
 }
 fn gnoise2(p : vec2f) -> f32 {
   let cell = vec2f(floor(p.x), floor(p.y));
@@ -98,9 +98,15 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let center = p - vec2f(0.08, -0.015);
   let radius = length(center);
   let angle = atan2(center.y, center.x);
-  let starCell = vec2f(floor(p.x * 92.0), floor(p.y * 92.0));
+  let starGrid = p * 92.0;
+  let starCell = vec2f(floor(starGrid.x), floor(starGrid.y));
+  let starLocal = vec2f(fract(starGrid.x) - 0.5, fract(starGrid.y) - 0.5);
+  let starPoint = (hash22(starCell) - vec2f(0.5, 0.5)) * 0.68;
   let starSeed = hash21(starCell);
-  let star = smoothstep(0.987, 0.999, starSeed) * (0.45 + sin(bm_u.uTime * (0.8 + starSeed * 2.2) + starSeed * 80.0) * 0.35) * smoothstep(0.52, 0.72, radius);
+  let starDistance = length(starLocal - starPoint);
+  let starCore = 1.0 - smoothstep(0.014, 0.062, starDistance);
+  let starGlint = 0.0025 / max(starDistance, 0.018);
+  let star = (starCore + starGlint * 0.08) * smoothstep(0.965, 0.998, starSeed) * (0.45 + sin(bm_u.uTime * (0.8 + starSeed * 2.2) + starSeed * 80.0) * 0.35) * smoothstep(0.52, 0.72, radius);
   let nebula = fbm2(p * 1.45 + vec2f(bm_u.uTime * 0.014, -bm_u.uTime * 0.009), 5.0);
   let dust = turbulence2(p * 3.1 + vec2f(-bm_u.uTime * 0.025, bm_u.uTime * 0.018), 4.0);
   let background = vec3f(0.0015, 0.002, 0.012) + vec3f(0.024, 0.008, 0.07) * (nebula * nebula * 0.8) + vec3f(0.006, 0.025, 0.07) * (dust * 0.32) + vec3f(0.8, 0.9, 1.3) * star;
@@ -118,9 +124,11 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let disk = smoothstep(0.11, 0.015, abs(diskRadius - 0.72 - diskNoise * 0.09)) * smoothstep(1.08, 0.48, diskRadius);
   let frontDisk = disk * smoothstep(-0.03, 0.07, center.y);
   let backDisk = disk * smoothstep(0.08, -0.03, center.y) * 0.42;
+  let approachingDisk = frontDisk * smoothstep(-0.72, 0.58, center.x);
+  let recedingDisk = frontDisk - approachingDisk;
   let coreMask = smoothstep(0.405, 0.365, radius);
   let lensHalo = smoothstep(0.72, 0.4, radius) * smoothstep(0.36, 0.42, radius);
-  let heat = vec3f(1.65, 0.16, 0.008) * (corona * 0.18 + rays * 1.4) + vec3f(2.4, 0.72, 0.08) * (photonRing * 0.42 + innerRim * 2.5) + vec3f(1.6, 0.36, 0.025) * (backDisk * 1.2) + vec3f(2.7, 1.15, 0.25) * (frontDisk * 2.2) + vec3f(0.3, 0.12, 0.7) * (lensHalo * 0.22);
+  let heat = vec3f(1.65, 0.16, 0.008) * (corona * 0.18 + rays * 1.4) + vec3f(2.4, 0.72, 0.08) * (photonRing * 0.42 + innerRim * 2.5) + vec3f(1.6, 0.36, 0.025) * (backDisk * 1.2) + vec3f(2.75, 1.12, 0.22) * (recedingDisk * 2.25) + vec3f(1.45, 1.72, 2.8) * (approachingDisk * 1.65) + vec3f(0.3, 0.12, 0.7) * (lensHalo * 0.22);
   let blackCore = mix(vec3f(0.001, 0.0015, 0.004), vec3f(0.006, 0.001, 0.002), clamp(radius * 2.0, 0.0, 1.0));
   let color = background * (1.0 - coreMask) + blackCore * coreMask + heat;
   return vec4f(tonemapACES(color), 1.0);
