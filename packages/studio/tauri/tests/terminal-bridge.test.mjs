@@ -48,7 +48,7 @@ test('the bridge validates and loads the Studio profile after user configuration
   assert.ok(finalize > studioProfile);
 });
 
-test('the Studio terminal uses one minimal non-identifying shell prompt', async () => {
+test('the Studio terminal isolates startup output and uses one non-identifying prompt', async () => {
   const [source, profile] = await Promise.all([bridgeSource, shellProfile]);
   const open = source.match(
     /int32_t antiky_terminal_open\([\s\S]*?\n\}\n\nint32_t antiky_terminal_layout/,
@@ -57,9 +57,10 @@ test('the Studio terminal uses one minimal non-identifying shell prompt', async 
   assert.ok(open, 'native terminal open must remain explicit and inspectable');
   assert.match(open, /surface_config\.command = "\/bin\/zsh"/);
   assert.match(open, /\.key = "ZDOTDIR", \.value = shell_config_directory/);
-  assert.match(open, /\.key = "ANTIKY_STUDIO_USER_ZDOTDIR", \.value = user_config_directory/);
+  assert.doesNotMatch(open, /ANTIKY_STUDIO_USER_ZDOTDIR/);
   assert.match(open, /surface_config\.env_vars = shell_environment/);
-  assert.match(open, /surface_config\.env_var_count = 2/);
+  assert.match(open, /surface_config\.env_var_count = 1/);
+  assert.doesNotMatch(profile, /source\s+"?\$ZDOTDIR\/\.zshrc/);
   assert.match(profile, /PROMPT='%% '/);
   assert.match(profile, /RPROMPT=''/);
 
@@ -71,7 +72,7 @@ test('the Studio terminal uses one minimal non-identifying shell prompt', async 
   await writeFile(join(studioConfig, '.zshrc'), profile);
   await writeFile(
     join(userConfig, '.zshrc'),
-    "export GENERIC_SHELL_FIXTURE=ready\nPROMPT='workstation '\n",
+    "print -r -- 'private-user@private-machine'\nexport GENERIC_SHELL_FIXTURE=leaked\nPROMPT='private-user@private-machine '\n",
   );
 
   try {
@@ -89,18 +90,19 @@ test('the Studio terminal uses one minimal non-identifying shell prompt', async 
     child.stderr.setEncoding('utf8');
     child.stdout.on('data', (chunk) => { stdout += chunk; });
     child.stderr.on('data', (chunk) => { stderr += chunk; });
-    child.stdin.end('print -r -- "$GENERIC_SHELL_FIXTURE"\nexit\n');
+    child.stdin.end('print -r -- "${GENERIC_SHELL_FIXTURE:-isolated}"\nexit\n');
     const exit = await new Promise((resolveExit) => {
       child.once('exit', (code, signal) => resolveExit({ code, signal }));
     });
 
     assert.deepEqual(exit, { code: 0, signal: null }, stderr);
-    assert.match(stdout, /^ready$/m);
+    assert.match(stdout, /^isolated$/m);
+    assert.doesNotMatch(stdout, /private-user|private-machine/);
     const visiblePrompt = stderr
       .replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '')
       .replaceAll('\r', '\n');
     assert.match(visiblePrompt, /(?:^|\n)% /);
-    assert.doesNotMatch(visiblePrompt, /workstation/);
+    assert.doesNotMatch(visiblePrompt, /private-user|private-machine/);
   } finally {
     await rm(fixture, { recursive: true, force: true });
   }

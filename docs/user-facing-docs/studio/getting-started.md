@@ -64,10 +64,10 @@ Studio stops the complete session when you close or replace the project. You do 
 ### Terminal appearance and shell ownership
 
 Studio applies an Antiky color profile to the embedded terminal surface, including its background,
-text, cursor, selection, and ANSI palette. Your normal shell still starts in the selected project
-and loads its interactive setup. Studio then keeps the visible prompt non-identifying as `% `. It
-does not add a banner, write shell history, or select a font family. Your shell profiles and Ghostty
-settings outside Studio's visual color keys continue to apply.
+text, cursor, selection, and ANSI palette. The shell starts in the selected project with an isolated
+Studio startup profile and a non-identifying `% ` prompt. It does not load personal shell startup
+files, print a banner, or write shell history. This prevents user and machine names from appearing
+in the workspace by default. Your Ghostty settings outside Studio's visual color keys still apply.
 
 If Studio cannot load its packaged terminal color profile, the Terminal panel shows a clear error.
 The rest of the workspace remains available. The terminal stays available for your shell, build
