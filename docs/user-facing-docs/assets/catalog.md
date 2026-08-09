@@ -8,7 +8,7 @@ Open this search to find forest models:
 
 <https://antikylabs.com/assets?q=forest&type=model>
 
-The library currently contains 1,000 CC0 records. Search results show the provider, asset type,
+The library currently contains 1,292 CC0 records. Search results show the provider, asset type,
 published file count when the provider supplies one, formats, tags, and catalog status. Select an
 asset to see its permanent page and complete JSON record.
 
@@ -17,8 +17,8 @@ asset to see its permanent page and complete JSON record.
 | Source | Current records | Asset types | How records enter the library |
 | --- | ---: | --- | --- |
 | Poly Haven | 998 | Models, textures, HDRIs | A reproducible snapshot reads the provider metadata API. Three starter records also contain selected install-verified files. |
-| Kenney | 1 curated pack | Models | The Nature Kit source page, CC0 license, published file count, formats, tags, and official preview are cataloged. |
-| Quaternius | 1 curated pack | Models | The Ultimate Nature Pack source page, CC0 license, published model count, formats, tags, and official preview are cataloged. |
+| Kenney | 212 packs | 2D art, models, textures, audio, fonts | A reproducible crawler reads every pack currently exposed by the official 14-page asset index, then validates each source page's CC0 license and metadata. |
+| Quaternius | 82 packs | Low-poly models, characters, animations, environments | A reproducible crawler reads every pack currently exposed by the official index and validates each pack page's CC0 license and metadata. |
 
 Antiky does not copy complete provider archives during ordinary cataloging. The metadata snapshot
 does not download a Poly Haven asset file, Kenney ZIP, or Quaternius ZIP. Provider-hosted previews
@@ -31,7 +31,7 @@ The status describes which checks Antiky has performed. It is not a rating of th
 | Status | What Antiky checked | What it does not promise |
 | --- | --- | --- |
 | **Cataloged metadata** | A source page, license, preview, and descriptive metadata are recorded. | Antiky has not inspected or hashed the downloadable archive. |
-| **Source metadata verified** | The record came from an authoritative provider API and passed catalog validation. | Individual download files are not ready for verified installation. |
+| **Source metadata verified** | The record came from an authoritative provider API or official source page and passed catalog validation. | Individual download files are not ready for verified installation. |
 | **Install verified** | Selected download URLs include byte sizes and hashes that the installer checks. | Other resolutions or formats not listed in the record are not verified. |
 
 A provider may not publish a meaningful file count for one asset because it offers several

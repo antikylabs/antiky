@@ -43,7 +43,9 @@ test('the asset guide documents discovery, honest verification states, and agent
 
   assert.match(index, /\[Find and use game assets\]\(assets\/catalog\.md\)/);
   assert.match(source, /https:\/\/antikylabs\.com\/assets\?q=forest&type=model/);
-  assert.match(source, /1,000/);
+  assert.match(source, /1,292/);
+  assert.match(source, /Kenney \| 212 packs/);
+  assert.match(source, /Quaternius \| 82 packs/);
   assert.match(source, /Cataloged metadata/);
   assert.match(source, /Source metadata verified/);
   assert.match(source, /Install verified/);
