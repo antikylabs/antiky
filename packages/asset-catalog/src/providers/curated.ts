@@ -12,6 +12,7 @@ type CuratedInput = Readonly<{
   creator: string;
   sourceUrl: string;
   previewUrl: string;
+  previewSourceUrl?: string;
   retrievedAt: string;
 }>;
 
@@ -34,7 +35,7 @@ export function createCuratedCc0Asset(provider: AssetProvider, input: CuratedInp
     }),
     preview: Object.freeze({
       url: input.previewUrl,
-      sourceUrl: input.previewUrl,
+      sourceUrl: input.previewSourceUrl ?? input.previewUrl,
       width: 256,
       height: 256,
     }),

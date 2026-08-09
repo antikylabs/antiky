@@ -66,7 +66,9 @@ export const CATALOG_ASSETS = Object.freeze([
     description: 'A curated starter pack of stylized nature assets for games.', kind: 'model',
     formats: ['fbx', 'glb', 'obj'], tags: ['nature', 'forest', 'rocks', 'trees'], categories: ['nature'],
     creator: 'Kenney', sourceUrl: 'https://kenney.nl/assets/nature-kit',
-    previewUrl: '/previews/curated/kenney-nature-kit.svg', retrievedAt,
+    previewUrl: '/previews/curated/kenney-nature-kit.webp',
+    previewSourceUrl: 'https://kenney.nl/media/pages/assets/nature-kit/656a90532f-1677698896/sample.png',
+    retrievedAt,
   }),
   createQuaterniusPack({
     upstreamId: 'ultimate-nature', slug: 'ultimate-nature', name: 'Ultimate Nature Pack',
