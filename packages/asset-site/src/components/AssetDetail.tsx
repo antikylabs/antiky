@@ -1,26 +1,11 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 
-import { catalogAsset } from '../../../../lib/catalog';
-import { fileCountLabel, VERIFICATION_COPY } from '../../../../lib/presentation';
+import type { CatalogAsset } from '@antiky/asset-catalog';
+import { fileCountLabel, VERIFICATION_COPY } from '../lib/presentation';
 
-type Params = Promise<{ provider: string; slug: string }>;
-
-export async function generateMetadata({ params }: Readonly<{ params: Params }>): Promise<Metadata> {
-  const { provider, slug } = await params;
-  const asset = catalogAsset(provider, slug);
-  if (!asset) return {};
-  return { title: `${asset.name} · Antiky Assets`, description: asset.description };
-}
-
-export default async function AssetPage({ params }: Readonly<{ params: Params }>) {
-  const { provider, slug } = await params;
-  const asset = catalogAsset(provider, slug);
-  if (!asset) notFound();
+export function AssetDetail({ asset }: Readonly<{ asset: CatalogAsset }>) {
   const fileLabel = fileCountLabel(asset.fileCount, true);
   const verification = VERIFICATION_COPY[asset.verification];
-
   return (
     <main className="asset-detail-page">
       <div className="wrap"><Link className="back-link" href="/assets">← All assets</Link></div>
@@ -40,7 +25,7 @@ export default async function AssetPage({ params }: Readonly<{ params: Params }>
             <div><dt>Creator</dt><dd>{asset.provenance.creator}</dd></div>
             <div><dt>Upstream ID</dt><dd><code>{asset.upstream.id}</code></dd></div>
             <div><dt>Files hash</dt><dd><code>{asset.upstream.filesHash}</code></dd></div>
-            <div><dt>Formats</dt><dd>{asset.formats.join(', ') || 'Pending ingestion'}</dd></div>
+            <div><dt>Formats</dt><dd>{asset.formats.join(', ') || 'Not published'}</dd></div>
             <div><dt>Status</dt><dd><span className="verification-name">{verification.label}</span><small>{verification.description}</small></dd></div>
             {asset.facts.publishedAt && <div><dt>Published</dt><dd>{asset.facts.publishedAt.slice(0, 10)}</dd></div>}
             {asset.facts.downloadCount !== undefined && <div><dt>Source downloads</dt><dd>{asset.facts.downloadCount.toLocaleString('en-US')}</dd></div>}
@@ -49,8 +34,8 @@ export default async function AssetPage({ params }: Readonly<{ params: Params }>
           </dl>
           <p className="notice"><span>Attribution record</span>{asset.attribution.notice}</p>
           <div className="actions">
-            <a className="button" href={asset.upstream.url}>View original source</a>
-            <a href={`/api/assets/${asset.provider.id}/${asset.slug}`}>JSON record</a>
+            <a className="button button-primary" href={asset.upstream.url}>View original source</a>
+            <a href="/assets/catalog.json">Complete catalog JSON</a>
           </div>
           {asset.downloads.length > 0 && (
             <details className="download-files"><summary>{asset.downloads.length} selected download files</summary>

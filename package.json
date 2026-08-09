@@ -18,7 +18,6 @@
     "dev": "node scripts/dev.mjs",
     "dev:website": "node scripts/dev.mjs website",
     "dev:framework": "node scripts/dev.mjs framework",
-    "dev:asset-site": "npm run dev --workspace @antiky/asset-site",
     "dev:demos": "node scripts/dev.mjs demos",
     "dev:studio": "npm run dev --workspace @antiky/studio-tauri",
     "dev:studio:web": "npm run dev --workspace @antiky/studio-app",

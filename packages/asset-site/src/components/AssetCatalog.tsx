@@ -1,19 +1,10 @@
-import type { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-import { AssetCard } from '../../components/AssetCard';
-import { catalogCount, catalogProviders, catalogSearch } from '../../lib/catalog';
-
-export const metadata: Metadata = {
-  title: 'Game assets · Antiky Assets',
-  description: 'Search game-ready assets with explicit licensing and durable provenance.',
-};
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-function one(value: string | string[] | undefined): string {
-  return typeof value === 'string' ? value : '';
-}
+import { AssetCard } from './AssetCard';
+import { catalogCount, catalogProviders, catalogSearch } from '../lib/catalog';
 
 const PAGE_SIZE = 48;
 
@@ -27,12 +18,25 @@ function pageLink(query: Readonly<{ q: string; type: string; provider: string }>
   return search ? `/assets?${search}` : '/assets';
 }
 
-export default async function AssetsPage({ searchParams }: Readonly<{ searchParams: SearchParams }>) {
-  const params = await searchParams;
-  const query = { q: one(params.q), type: one(params.type), provider: one(params.provider) };
+export function AssetCatalog() {
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const syncSearch = () => setSearch(window.location.search);
+    syncSearch();
+    window.addEventListener('popstate', syncSearch);
+    return () => window.removeEventListener('popstate', syncSearch);
+  }, []);
+
+  const searchParams = new URLSearchParams(search);
+  const query = {
+    q: searchParams.get('q') ?? '',
+    type: searchParams.get('type') ?? '',
+    provider: searchParams.get('provider') ?? '',
+  };
   const matches = catalogSearch(query);
   const providers = catalogProviders();
-  const requestedPage = Number.parseInt(one(params.page), 10);
+  const requestedPage = Number.parseInt(searchParams.get('page') ?? '', 10);
   const pageCount = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
   const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, pageCount) : 1;
   const assets = matches.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -51,21 +55,25 @@ export default async function AssetsPage({ searchParams }: Readonly<{ searchPara
             <div><dt>Sources</dt><dd>{providers.length}</dd></div>
             <div><dt>License</dt><dd>CC0</dd></div>
           </dl>
-          <Link className="agent-guide-link" href="/assets/llms.txt">
-            <span>Agent guide:</span> llms.txt <span aria-hidden="true">↗</span>
-          </Link>
+          <div className="agent-guide-links" aria-label="Agent resources">
+            <Link className="agent-guide-link" href="/llms.txt"><span>Agents:</span> llms.txt <span aria-hidden="true">↗</span></Link>
+            <Link className="agent-guide-link" href="/llms-full.txt"><span>Full context:</span> llms-full.txt <span aria-hidden="true">↗</span></Link>
+          </div>
         </div>
       </header>
 
-      <form className="asset-search wrap" action="/assets" role="search">
+      <form className="asset-search wrap" action="/assets" role="search" key={search}>
         <label htmlFor="asset-query"><span>Search the catalog</span><small>Names, tags, creators, and categories</small></label>
         <div className="search-row">
           <input id="asset-query" name="q" defaultValue={query.q} placeholder="Try “forest”" type="search" />
           <select aria-label="Asset type" name="type" defaultValue={query.type}>
             <option value="">All types</option>
-            <option value="model">Models</option>
-            <option value="texture">Textures</option>
+            <option value="audio">Audio</option>
+            <option value="font">Fonts</option>
             <option value="hdri">HDRIs</option>
+            <option value="model">Models</option>
+            <option value="sprite">Sprites</option>
+            <option value="texture">Textures</option>
           </select>
           <select aria-label="Provider" name="provider" defaultValue={query.provider}>
             <option value="">All sources</option>
@@ -87,14 +95,14 @@ export default async function AssetsPage({ searchParams }: Readonly<{ searchPara
         )}
         {matches.length > PAGE_SIZE && (
           <nav className="pagination" aria-label="Catalog pages">
-            {page > 1 ? <Link href={pageLink(query, page - 1)}>← Previous</Link> : <span />}
+            {page > 1 ? <a href={pageLink(query, page - 1)}>← Previous</a> : <span />}
             <span>Page {page} of {pageCount}</span>
-            {page < pageCount ? <Link href={pageLink(query, page + 1)}>Next →</Link> : <span />}
+            {page < pageCount ? <a href={pageLink(query, page + 1)}>Next →</a> : <span />}
           </nav>
         )}
         <aside className="verification-guide" aria-label="Catalog status guide">
           <p><strong>Cataloged metadata</strong> records source and licensing.</p>
-          <p><strong>Source metadata verified</strong> comes from a provider API.</p>
+          <p><strong>Source metadata verified</strong> comes from an official provider API or source page.</p>
           <p><strong>Install verified</strong> adds file sizes and hashes checked during installation.</p>
         </aside>
       </section>

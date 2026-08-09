@@ -21,6 +21,7 @@ export const NAV: NavLink[] = [
   { href: '/studio', label: 'Studio' },
   { href: '/framework', label: 'Framework' },
   { href: '/games', label: 'Games' },
+  { href: '/assets', label: 'Assets' },
   { href: '/research', label: 'Research' },
   { href: '/docs', label: 'Docs' },
 ];
