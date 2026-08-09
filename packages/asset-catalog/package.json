@@ -4,14 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./catalog": "./src/catalog-data.ts",
+    "./node": "./src/node/install.ts"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --experimental-transform-types --test src/catalog.test.ts",
+    "previews": "node --experimental-strip-types --experimental-transform-types scripts/generate-previews.mjs ../asset-site/public",
+    "test": "node --experimental-strip-types --experimental-transform-types --test src/catalog.test.ts src/install.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "sharp": "0.35.3"
   }
 }
