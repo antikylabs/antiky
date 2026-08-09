@@ -405,7 +405,7 @@ int32_t antiky_terminal_open(
   surface_config.scale_factor = parent.window.backingScaleFactor;
   surface_config.font_size = 13;
   surface_config.working_directory = working_directory;
-  surface_config.command = "/bin/zsh";
+  surface_config.command = "/bin/zsh -d -i";
   surface_config.env_vars = shell_environment;
   surface_config.env_var_count = 1;
   surface_config.wait_after_command = true;

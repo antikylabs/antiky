@@ -55,12 +55,18 @@ test('the Studio terminal isolates startup output and uses one non-identifying p
   )?.[0];
 
   assert.ok(open, 'native terminal open must remain explicit and inspectable');
-  assert.match(open, /surface_config\.command = "\/bin\/zsh"/);
+  assert.match(open, /surface_config\.command = "\/bin\/zsh -d -i"/);
+  assert.doesNotMatch(open, /surface_config\.command = "\/bin\/zsh";/);
   assert.match(open, /\.key = "ZDOTDIR", \.value = shell_config_directory/);
   assert.doesNotMatch(open, /ANTIKY_STUDIO_USER_ZDOTDIR/);
   assert.match(open, /surface_config\.env_vars = shell_environment/);
   assert.match(open, /surface_config\.env_var_count = 1/);
   assert.doesNotMatch(profile, /source\s+"?\$ZDOTDIR\/\.zshrc/);
+  assert.match(
+    profile,
+    /^printf '\\033\[3J\\033\[2J\\033\[H'/,
+    'Studio startup must erase the macOS login banner and its scrollback before drawing a prompt',
+  );
   assert.match(profile, /PROMPT='%% '/);
   assert.match(profile, /RPROMPT=''/);
 
@@ -96,8 +102,10 @@ test('the Studio terminal isolates startup output and uses one non-identifying p
     });
 
     assert.deepEqual(exit, { code: 0, signal: null }, stderr);
-    assert.match(stdout, /^isolated$/m);
-    assert.doesNotMatch(stdout, /private-user|private-machine/);
+    assert.match(stdout, /^\x1B\[3J\x1B\[2J\x1B\[H/);
+    const visibleOutput = stdout.replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '');
+    assert.match(visibleOutput, /^isolated$/m);
+    assert.doesNotMatch(visibleOutput, /private-user|private-machine/);
     const visiblePrompt = stderr
       .replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '')
       .replaceAll('\r', '\n');
