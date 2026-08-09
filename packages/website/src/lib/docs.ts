@@ -3,6 +3,7 @@ import 'server-only';
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, join, normalize, resolve } from 'node:path';
 import { Marked } from 'marked';
+import { CATALOG_ASSETS } from '@antiky/asset-catalog/catalog';
 import { canonical } from '@/lib/site';
 
 const DOCS_ROOT = resolve(process.cwd(), '../../docs/user-facing-docs');
@@ -12,6 +13,7 @@ const PRODUCT_DOCS_SECTIONS = [
   { directory: 'cli', label: 'CLI' },
   { directory: 'mcp', label: 'MCP' },
   { directory: 'studio', label: 'Studio' },
+  { directory: 'assets', label: 'Game Assets' },
 ] as const;
 
 const API_DOCS_SECTION = { directory: 'api', label: 'API Reference' } as const;
@@ -66,7 +68,7 @@ function sourcePathToSlug(relativePath: string): string[] | null {
   if (normalizedPath === 'README.md') return [];
   if (normalizedPath === CONTRIBUTOR_PAGE.relativePath) return CONTRIBUTOR_PAGE.slug;
 
-  const match = normalizedPath.match(/^(framework|cli|mcp|studio|api)\/(.+)\.md$/);
+  const match = normalizedPath.match(/^(framework|cli|mcp|studio|assets|api)\/(.+)\.md$/);
   return match ? [match[1]!, match[2]!] : null;
 }
 
@@ -237,16 +239,23 @@ export function renderLlmsTxt(entries: DocsEntry[], navigation: DocsNavigationSe
   if (!home) throw new Error('The documentation home is required to generate llms.txt.');
 
   const lines = [
-    '# Antiky Documentation',
+    '# Antiky Labs',
     '',
     `> ${home.description}`,
     '',
-    'These are the public docs for developers building games with Antiky Framework, CLI, MCP, and Studio.',
+    'Public documentation and CC0 game assets for developers and agents building with Antiky Framework, CLI, MCP, and Studio.',
     '',
     '## Overview',
     '',
     `- [${home.title}](${canonical(home.markdownHref)}): ${home.description}`,
   ];
+
+  lines.push(
+    '',
+    '## Complete context',
+    '',
+    `- [Antiky complete documentation and asset context](${canonical('/llms-full.txt')}): Full public docs, generated API reference, and every asset catalog record.`,
+  );
 
   for (const section of navigation) {
     lines.push('', `## ${section.label}`, '');
@@ -255,6 +264,59 @@ export function renderLlmsTxt(entries: DocsEntry[], navigation: DocsNavigationSe
     }
   }
 
+  lines.push(
+    '',
+    '## Asset Catalog',
+    '',
+    `- [Complete asset catalog JSON](${canonical('/assets/catalog.json')}): Static schema-versioned JSON containing all ${CATALOG_ASSETS.length.toLocaleString('en-US')} asset records.`,
+  );
+  for (const asset of CATALOG_ASSETS) {
+    lines.push(`- [${asset.name}](${canonical(`/assets/${asset.provider.id}/${asset.slug}`)}): ${asset.provider.name} ${asset.kind}; ${asset.license.name}; ${asset.verification}.`);
+  }
+
+  return `${lines.join('\n')}\n`;
+}
+
+export function renderLlmsFullTxt(entries: DocsEntry[]): string {
+  const lines = [
+    '# Antiky Labs full context',
+    '',
+    '> Complete public documentation, generated API reference, and CC0-first asset catalog context.',
+    '',
+    `Canonical index: ${canonical('/llms.txt')}`,
+  ];
+
+  for (const entry of entries) {
+    lines.push(
+      '',
+      `## Documentation: ${entry.title}`,
+      '',
+      `Source: ${canonical(entry.markdownHref)}`,
+      '',
+      entry.source.trim(),
+    );
+  }
+
+  lines.push('', '## Asset catalog records', '');
+  for (const asset of CATALOG_ASSETS) {
+    lines.push(
+      `### ${asset.name}`,
+      '',
+      `- Catalog URL: ${canonical(`/assets/${asset.provider.id}/${asset.slug}`)}`,
+      `- Stable ID: ${asset.id}`,
+      `- Provider: ${asset.provider.name}`,
+      `- Creator: ${asset.provenance.creator}`,
+      `- Type: ${asset.kind}`,
+      `- Description: ${asset.description}`,
+      `- Tags: ${asset.tags.join(', ')}`,
+      `- Formats: ${asset.formats.join(', ') || 'not published'}`,
+      `- Published file count: ${asset.fileCount ?? 'not published'}`,
+      `- License: ${asset.license.name} (${asset.license.referenceUrl})`,
+      `- Verification: ${asset.verification}`,
+      `- Official source: ${asset.upstream.url}`,
+      '',
+    );
+  }
   return `${lines.join('\n')}\n`;
 }
 

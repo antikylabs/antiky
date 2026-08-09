@@ -58,31 +58,44 @@ registry workflow.
 
 ## Search from Studio or an agent
 
-The JSON API returns the same records as the website. Results are paginated so an agent does not
-need to load the complete catalog for one query:
+The asset site is generated statically with the rest of `antikylabs.com`. Search and filtering run
+in your browser; they do not call an Antiky server. Agents can start with the concise site index:
 
 ```text
-/api/assets?q=forest&type=model&limit=100&offset=0
+/llms.txt
 ```
 
-The list response uses schema version 2 and includes:
+Use the complete context file when the agent needs all public product docs, API reference pages,
+and asset summaries together:
 
-- `totalCatalogAssets`, `totalMatches`, `count`, `limit`, and `offset` for pagination;
+```text
+/llms-full.txt
+```
+
+The complete static catalog is also published as JSON:
+
+```text
+/assets/catalog.json
+```
+
+The JSON file uses schema version 2 and includes:
+
+- `totalCatalogAssets` and the complete `assets` collection;
 - names, descriptions, tags, categories, formats, and published facts;
 - provider, upstream ID, permanent source URL, and retrieval time;
 - CC0 license terms and attribution guidance;
 - preview source and whether the provider or Antiky hosts it;
 - catalog status and selected downloads when they are install-verified.
 
-Fetch one durable record with its provider and slug:
+Open one durable human-readable record with its provider and slug:
 
 ```text
-/api/assets/poly-haven/forest-floor
+/assets/poly-haven/forest-floor
 ```
 
-An agent should search first, inspect the permanent record, and install only when the status is
-`install-verified`. For other records, it should send you to the original source rather than claim
-that Antiky verified downloadable bytes.
+An agent should use `llms.txt` for discovery, inspect `catalog.json` or a permanent asset page, and
+install only when the status is `install-verified`. For other records, it should send you to the
+original source rather than claim that Antiky verified downloadable bytes.
 
 ## Check licensing and provenance
 

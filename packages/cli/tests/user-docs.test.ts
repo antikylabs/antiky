@@ -50,7 +50,9 @@ test('the asset guide documents discovery, honest verification states, and agent
   assert.match(source, /Source metadata verified/);
   assert.match(source, /Install verified/);
   assert.match(source, /antiky asset install poly-haven:forest-floor --project/);
-  assert.match(source, /\/api\/assets\?q=forest&type=model&limit=100&offset=0/);
+  assert.match(source, /\/llms\.txt/);
+  assert.match(source, /\/llms-full\.txt/);
+  assert.match(source, /\/assets\/catalog\.json/);
   assert.match(source, /does not download.*archive/is);
 });
 

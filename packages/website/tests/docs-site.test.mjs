@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const docsRoot = new URL('../../../docs/user-facing-docs/', import.meta.url);
 const outputRoot = new URL('../.next/server/app/', import.meta.url);
-const sections = ['framework', 'cli', 'mcp', 'studio', 'api'];
+const sections = ['framework', 'cli', 'mcp', 'studio', 'assets', 'api'];
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
 
 async function documentationSources() {
@@ -114,7 +114,7 @@ test('docs production output provides search, Markdown copy, and an llms.txt ind
   assert.match(docsHome, /placeholder="Search docs"/);
   assert.match(docsHome, />Copy Markdown<\/button>/);
   assert.match(docsHome, /href="\/docs\/index\.html\.md"/);
-  assert.match(llms, /^# Antiky Documentation\n\n> /);
+  assert.match(llms, /^# Antiky Labs\n\n> /);
   assert.equal(llmsMeta.headers['content-type'], 'text/markdown; charset=utf-8');
   assert.match(routesManifest, /docs-markdown/);
 });

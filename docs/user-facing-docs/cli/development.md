@@ -48,7 +48,7 @@ known. `ANTIKY_ASSET_INSTALL_FAILED` means project validation, download, integri
 the final filesystem update failed.
 
 See [Find and use game assets](../assets/catalog.md) for supported sources, status meanings, search,
-and the agent-facing JSON API.
+and the agent-facing static catalog JSON.
 
 The name stays visible in the manifest. Antiky converts it to a safe lowercase file slug. It keeps
 Unicode letters in the display name when they can produce a non-empty ASCII slug.

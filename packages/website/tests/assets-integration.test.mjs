@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const websiteRoot = new URL('../', import.meta.url);
+
+test('the main website owns the static asset catalog routes', async () => {
+  const manifest = JSON.parse(await readFile(new URL('package.json', websiteRoot), 'utf8'));
+  const indexPage = await readFile(new URL('src/app/assets/page.tsx', websiteRoot), 'utf8');
+  const detailPage = await readFile(new URL('src/app/assets/[provider]/[slug]/page.tsx', websiteRoot), 'utf8');
+  const assetPackage = JSON.parse(await readFile(new URL('../asset-site/package.json', websiteRoot), 'utf8'));
+
+  assert.equal(manifest.dependencies['@antiky/asset-site'], '0.0.0');
+  assert.match(indexPage, /AssetCatalog/);
+  assert.match(detailPage, /generateStaticParams/);
+  assert.match(detailPage, /AssetDetail/);
+  assert.equal(assetPackage.exports['./ui'], './src/public.ts');
+});
+
+test('the static website publishes one canonical llms index and complete context', async () => {
+  const llmsRoute = await readFile(new URL('src/app/llms.txt/route.ts', websiteRoot), 'utf8');
+  const fullRoute = await readFile(new URL('src/app/llms-full.txt/route.ts', websiteRoot), 'utf8');
+
+  assert.match(llmsRoute, /renderLlmsTxt/);
+  assert.match(fullRoute, /renderLlmsFullTxt/);
+  await assert.rejects(readFile(new URL('src/app/assets/llms.txt/route.ts', websiteRoot)), { code: 'ENOENT' });
+  await assert.rejects(readFile(new URL('src/app/api/assets/route.ts', websiteRoot)), { code: 'ENOENT' });
+});
+
+test('the production build statically generates assets and complete agent context', async () => {
+  const outputRoot = new URL('.next/server/app/', websiteRoot);
+  const [assetsPage, natureKit, catalog, llms, llmsFull] = await Promise.all([
+    readFile(new URL('assets.html', outputRoot), 'utf8'),
+    readFile(new URL('assets/kenney/nature-kit.html', outputRoot), 'utf8'),
+    readFile(new URL('assets/catalog.json.body', outputRoot), 'utf8'),
+    readFile(new URL('llms.txt.body', outputRoot), 'utf8'),
+    readFile(new URL('llms-full.txt.body', outputRoot), 'utf8'),
+  ]);
+
+  assert.match(assetsPage, /Start with/);
+  assert.match(natureKit, /Nature Kit/);
+  assert.equal(JSON.parse(catalog).totalCatalogAssets, 1292);
+  assert.match(llms, /^# Antiky Labs\n\n> /);
+  assert.match(llms, /https:\/\/antikylabs\.com\/llms-full\.txt/);
+  assert.match(llms, /https:\/\/antikylabs\.com\/assets\/kenney\/nature-kit/);
+  assert.match(llmsFull, /## Documentation: Framework API reference/);
+  assert.match(llmsFull, /## Documentation: Find and use game assets/);
+  assert.match(llmsFull, /### Nature Kit/);
+  assert.match(llmsFull, /### Ultimate Nature Pack/);
+  await assert.rejects(readFile(new URL('assets/llms.txt.body', outputRoot)), { code: 'ENOENT' });
+});

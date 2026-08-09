@@ -1,116 +1,45 @@
 # Asset catalog MCP direction
 
-## Recommendation
+## Current decision
 
-Expose Antiky Assets as a read-only remote MCP server backed by the existing catalog API. The public endpoint should live at `https://antikylabs.com/assets/mcp` or `https://assets.antikylabs.com/mcp` and use MCP's Streamable HTTP transport.
+Antiky Labs will not host an MCP server for the asset catalog while the website remains static-only. The deployed site has no runtime API, session service, server functions, or remote MCP endpoint.
 
-This should not be implemented as a browser-only or “client-side MCP server.” Browser code can act as an MCP client or call the asset JSON API, but it cannot reliably accept inbound connections from agents after the tab closes. Service workers are also browser-scoped, short-lived, and inaccessible to most desktop and hosted agent runtimes. The remotely reachable Next.js backend is the server.
+Agents use the same static resources as every other client:
 
-For agent hosts that only support local `stdio` MCP servers, publish a small optional npm bridge later. The bridge would run locally, speak MCP over stdin/stdout, and call the same public Antiky Assets API. It should contain no second catalog implementation.
+- `/llms.txt` for the canonical concise site and documentation index;
+- `/llms-full.txt` for complete public documentation, generated API reference, and asset summaries;
+- `/assets/catalog.json` for the full schema-versioned asset catalog;
+- `/assets/{provider}/{slug}` for permanent human-readable asset pages.
 
-## Why MCP helps
+Asset filtering at `/assets` runs entirely in the browser. The catalog data and all detail pages are generated during the main website build.
 
-The JSON API is already sufficient for agents that can make HTTP requests. MCP adds standardized capability discovery, typed tool inputs, predictable results, and a connection flow supported by agent hosts. It should be a thin protocol adapter, not a new database or search system.
+## Why browser-side MCP is not the answer
 
-The three surfaces have different jobs:
+A browser tab can consume static files or act as a protocol client, but it cannot be a reliable MCP server for external agents. It cannot accept inbound connections after the tab closes, service workers are browser-scoped and short-lived, and most desktop or hosted agent runtimes cannot connect to a user's browser execution context.
 
-| Surface | Job |
-| --- | --- |
-| `/assets` | Human browsing and permanent asset pages |
-| `/assets/llms.txt` | Lightweight instructions, API discovery, licensing, and correct agent behavior |
-| `/api/assets` | Canonical paginated catalog data |
-| `/assets/mcp` | MCP capability negotiation and typed access to the same catalog data |
+Adding MCP to the web experience would therefore require a remotely reachable server. That conflicts with the current static-only deployment decision and is intentionally deferred.
 
-## Initial MCP capabilities
+## Future local option
 
-Start read-only. Do not expose archive installation or arbitrary URL fetching from the public server.
+If agents need MCP-specific discovery before Antiky wants hosted infrastructure, publish an optional local npm package such as `@antiky/assets-mcp`. It would:
 
-### Tools
+- run on the user's machine over the MCP `stdio` transport;
+- read the public static `catalog.json` file;
+- expose read-only `search_assets`, `get_asset`, and `list_asset_sources` tools;
+- cache the catalog locally with an explicit refresh policy;
+- contain no separate catalog database and no provider crawler;
+- never proxy provider archives or accept arbitrary URLs.
 
-1. `search_assets`
-   - Inputs: `query`, `type`, `provider`, `limit`, and `offset`
-   - Returns: schema version, counts, and compact asset records
-   - Uses the same filtering and pagination as `GET /api/assets`
-2. `get_asset`
-   - Inputs: `provider` and `slug`
-   - Returns: the complete permanent catalog record
-3. `list_asset_sources`
-   - Inputs: none
-   - Returns: supported providers, record counts, asset types, and verification coverage
+This would be installed and launched by the agent host. It is not client-side website code and does not add server behavior to `antikylabs.com`.
 
-### Resources
+## Revisit conditions
 
-- `antiky-asset://guide` — the content of `/assets/llms.txt`
-- `antiky-asset://catalog/{provider}/{slug}` — one permanent asset record
-- Optionally, a resource template for paginated searches once client support is proven
+Consider a hosted remote MCP endpoint only when at least one of these becomes necessary:
 
-Prompts are unnecessary in the first version. The agent guide already describes the recommended search and provenance workflow.
+- user-specific asset collections or favorites;
+- authenticated AI-generation credits or jobs;
+- server-side installation or conversion workflows;
+- catalog queries that are too large or expensive for static delivery;
+- measured agent-client demand that cannot use static JSON or a local stdio bridge.
 
-## Protocol and deployment
-
-Use the stable MCP protocol revision supported by the selected official TypeScript SDK. As of August 2026, Streamable HTTP is the standard remote transport. The 2025-11-25 specification expects one HTTP endpoint supporting POST and GET, with JSON-RPC lifecycle and capability negotiation. A newer stateless transport revision is approaching release and fits serverless Next.js deployments better, but the implementation should not target a release candidate unless the supported agent clients and SDKs have adopted it.
-
-The first implementation should:
-
-- use the official TypeScript MCP SDK rather than hand-rolling JSON-RPC;
-- mount one Next.js route at `/assets/mcp`;
-- keep tools stateless and delegate directly to the catalog library or API handlers;
-- return deterministic tool ordering and bounded result sizes;
-- avoid SSE unless a supported client requires it;
-- deploy in the Node.js runtime if the SDK or transport depends on Node APIs;
-- expose a health check separately rather than treating a browser GET as an MCP session.
-
-Official references:
-
-- [MCP architecture](https://modelcontextprotocol.io/docs/learn/architecture)
-- [Streamable HTTP transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
-- [Server primitives](https://modelcontextprotocol.io/specification/2025-11-25/server/index)
-- [Remote server registry format](https://modelcontextprotocol.io/registry/remote-servers)
-
-## Security and operational requirements
-
-Even a read-only catalog endpoint needs controls:
-
-- Validate the `Origin` header when present. The MCP transport specification requires rejecting invalid origins to prevent DNS-rebinding attacks.
-- Apply request size, tool argument, pagination, concurrency, and rate limits.
-- Never accept an arbitrary upstream URL from tool input.
-- Return catalog records only; do not proxy provider archives or previews through the MCP endpoint.
-- Keep errors structured and avoid leaking stack traces or deployment details.
-- Add authentication before exposing user-specific collections, generation credits, writes, or installation jobs. Public read-only search can remain anonymous if rate-limited.
-- Log tool name, duration, result count, and failure category without logging sensitive client content unnecessarily.
-
-CORS is not the security boundary for MCP. Hosted agents are not necessarily browsers, and server-side clients do not rely on browser CORS enforcement.
-
-## Discovery and installation
-
-When the endpoint is production-ready:
-
-1. Add its connection URL to `/assets/llms.txt`.
-2. Publish a `server.json` manifest with a `streamable-http` remote entry.
-3. Add copyable connection instructions on the asset page.
-4. Register it with the MCP Registry after the registry and endpoint behavior are stable.
-5. Optionally publish `@antiky/assets-mcp` as a local stdio bridge for older clients.
-
-Do not advertise the MCP URL before interoperability tests pass in the agent hosts Antiky intends to support.
-
-## Verification plan
-
-Completion requires more than responding to one POST request:
-
-- MCP Inspector can initialize the server and list capabilities.
-- `tools/list` is deterministic and returns the three documented tools.
-- Search results exactly match the public API for the same inputs.
-- Detail lookup preserves license, provenance, preview hosting, and verification state.
-- Invalid origins, methods, malformed JSON-RPC, oversized input, and excessive limits are rejected correctly.
-- Anonymous rate limiting behaves predictably.
-- At least two remote-MCP-capable agent hosts connect successfully.
-- The stdio bridge, if built, passes the same contract tests against the hosted API.
-
-## Suggested sequence
-
-1. Ship and observe `/assets/llms.txt` and the JSON API.
-2. Add shared service functions so the API and MCP adapter cannot drift.
-3. Prototype the read-only Streamable HTTP route with the official SDK.
-4. Verify host compatibility and serverless transport behavior.
-5. Add registry metadata and public connection instructions.
-6. Consider write tools only after authentication, authorization, quotas, and durable job execution exist.
+Until then, static files are simpler, cacheable, inspectable, and sufficient for asset discovery.
