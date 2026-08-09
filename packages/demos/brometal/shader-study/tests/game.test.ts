@@ -9,10 +9,12 @@ test('Shader Study compiles one game-module entry', () => {
   assert.equal(typeof game, 'function');
 });
 
-test('Shader Study layers star points, aurora curtains, mountains, and reflected water', async () => {
+test('Shader Study layers sharp aurora curtains, a moon, pines, mountains, and reflected water', async () => {
   const source = await readFile(new URL('../src/shaders/aurora.shader.ts', import.meta.url), 'utf8');
   assert.match(source, /function auroraCurtain/);
+  assert.match(source, /function pineSilhouette/);
   assert.match(source, /starPoint/);
+  assert.match(source, /moonDisc/);
   assert.match(source, /nearMountain/);
   assert.match(source, /reflection/);
 });

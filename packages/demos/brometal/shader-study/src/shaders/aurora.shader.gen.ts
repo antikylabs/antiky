@@ -49,6 +49,9 @@ fn fbm2(p : vec2f, octaves : f32) -> f32 {
 fn filmGrain(uv : vec2f, time : f32) -> f32 {
   return hash21(uv * 997.0 + vec2f(fract(time * 13.37) * 100.0, 0.0)) - 0.5;
 }
+fn hash11(p : f32) -> f32 {
+  return fract(sin(p * 127.1) * 43758.5453);
+}
 fn hash22(p : vec2f) -> vec2f {
   let k = vec2f(dot(p, vec2f(127.1, 311.7)), dot(p, vec2f(269.5, 183.3)));
   return vec2f(fract(sin(k.x) * 43758.5453), fract(sin(k.y) * 43758.5453));
@@ -90,10 +93,23 @@ fn auroraCurtain(p : vec2f, offset : f32, phase : f32, time : f32) -> f32 {
   let center = offset + sin(p.x * 1.65 + phase + time * 0.16) * 0.11 + (warp - 0.5) * 0.42;
   let distance = abs(p.y - center);
   let folds = turbulence2(vec2f(p.x * 3.3 + phase, time * 0.075), 4.0);
-  let sheet = 1.0 - smoothstep(0.025, 0.22 + folds * 0.08, distance);
-  let striation = 0.34 + pow(max(sin(p.x * 24.0 + warp * 8.0 + phase), 0.0), 5.0) * 0.78;
+  let sheet = 1.0 - smoothstep(0.012, 0.115 + folds * 0.045, distance);
+  let core = 1.0 - smoothstep(0.006, 0.034, distance);
+  let edge = 1.0 - smoothstep(0.009, 0.038, abs(distance - 0.052 - folds * 0.018));
+  let striation = 0.22 + pow(max(sin(p.x * 31.0 + warp * 11.0 + phase), 0.0), 8.0) * 1.05;
   let vertical = smoothstep(-0.62, 0.04, p.y) * (1.0 - smoothstep(0.7, 1.15, p.y));
-  return sheet * striation * vertical;
+  return (sheet * 0.62 + core * 0.58 + edge * 0.22) * striation * vertical;
+}
+fn pineSilhouette(p : vec2f, ridge : f32) -> f32 {
+  let domain = (p.x + 3.4) * 11.5;
+  let cell = floor(domain);
+  let localX = abs(fract(domain) - 0.5);
+  let seed = hash11(cell * 7.13);
+  let base = ridge - 0.035 + sin(cell * 2.7) * 0.018;
+  let height = 0.11 + seed * 0.24;
+  let top = base + height;
+  let taper = (top - p.y) * (0.24 + seed * 0.08) + 0.005;
+  return (1.0 - smoothstep(taper, taper + 0.012, localX)) * smoothstep(base, base + 0.015, p.y) * (1.0 - smoothstep(top - 0.012, top, p.y));
 }
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
@@ -116,6 +132,13 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let starDistance = length(starLocal - starPoint);
   let stars = (1.0 - smoothstep(0.018, 0.075, starDistance)) * smoothstep(0.955, 0.998, starSeed) * (0.58 + sin(bm_u.uTime * (0.7 + starSeed * 2.6) + starSeed * 90.0) * 0.4) * smoothstep(-0.45, 0.1, p.y);
   let milky = turbulence2(vec2f(p.x * 0.72 + p.y * 0.38 + 2.4, p.y * 1.4 - p.x * 0.12), 5.0) * smoothstep(-0.1, 0.62, p.y);
+  let moonPoint = p - vec2f(0.96, 0.63);
+  let moonDistance = length(moonPoint);
+  let moonDisc = 1.0 - smoothstep(0.135, 0.148, moonDistance);
+  let moonHalo = 0.018 / max(moonDistance, 0.045) * (1.0 - smoothstep(0.14, 0.58, moonDistance));
+  let craterCell = vec2f(floor(moonPoint.x * 32.0), floor(moonPoint.y * 32.0));
+  let craterSeed = hash21(craterCell);
+  let crater = smoothstep(0.72, 0.94, craterSeed) * moonDisc * 0.16;
   let curtainA = auroraCurtain(p, 0.22, 0.3, bm_u.uTime);
   let curtainB = auroraCurtain(p, 0.4, 2.1, bm_u.uTime) * 0.78;
   let curtainC = auroraCurtain(p, 0.58, 4.4, bm_u.uTime) * 0.52;
@@ -126,13 +149,14 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let farMountain = 1.0 - smoothstep(farHeight, farHeight + 0.025, p.y);
   let nearMountain = 1.0 - smoothstep(nearHeight, nearHeight + 0.03, p.y);
   let snowLine = (1.0 - smoothstep(nearHeight - 0.055, nearHeight + 0.018, p.y)) * smoothstep(nearHeight - 0.13, nearHeight - 0.035, p.y);
+  let pines = pineSilhouette(p, nearHeight + 0.015);
   let ripple = sin(p.y * 82.0 + p.x * 5.0 - bm_u.uTime * 1.2) * 0.012;
   let reflectedPoint = vec2f(p.x + ripple, -p.y - 0.5);
   let reflection = auroraCurtain(reflectedPoint, 0.22, 0.3, bm_u.uTime) + auroraCurtain(reflectedPoint, 0.4, 2.1, bm_u.uTime) * 0.55;
   let waterMask = 1.0 - smoothstep(-0.73, -0.67, p.y);
   let water = vec3f(0.004, 0.018, 0.055) + palette * (reflection * 0.22 * (0.55 + sin(p.y * 110.0) * 0.18)) + vec3f(0.06, 0.17, 0.27) * (abs(ripple) * 4.0);
-  let skyColor = sky + vec3f(0.74, 0.86, 1.2) * stars + vec3f(0.08, 0.055, 0.2) * (milky * 0.22) + aurora;
-  let mountains = (skyColor * (1.0 - farMountain) + vec3f(0.025, 0.055, 0.11) * farMountain) * (1.0 - nearMountain) + vec3f(0.008, 0.016, 0.035) * nearMountain + vec3f(0.26, 0.36, 0.52) * (snowLine * 0.38);
+  let skyColor = sky + vec3f(0.74, 0.86, 1.2) * stars + vec3f(0.08, 0.055, 0.2) * (milky * 0.22) + vec3f(0.24, 0.34, 0.72) * (moonHalo * 0.14) + vec3f(1.35, 1.2, 0.78) * (moonDisc * (0.9 - crater)) + aurora;
+  let mountains = ((skyColor * (1.0 - farMountain) + vec3f(0.025, 0.055, 0.11) * farMountain) * (1.0 - nearMountain) + vec3f(0.008, 0.016, 0.035) * nearMountain + vec3f(0.26, 0.36, 0.52) * (snowLine * 0.38)) * (1.0 - pines) + vec3f(0.002, 0.008, 0.018) * pines;
   let composed = mountains * (1.0 - waterMask) + water * waterMask;
   let grain = filmGrain(bm_in.vUv, bm_u.uTime) * 0.012;
   return vec4f(tonemapACES(composed + vec3f(grain, grain, grain)), 1.0);
