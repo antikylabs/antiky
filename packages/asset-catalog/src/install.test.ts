@@ -17,6 +17,7 @@ const asset = {
   name: 'Forest Floor',
   description: 'Forest material.',
   kind: 'texture',
+  fileCount: 1,
   formats: ['jpg'],
   tags: ['forest'],
   categories: ['nature'],

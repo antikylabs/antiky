@@ -6,6 +6,7 @@ type CuratedInput = Readonly<{
   name: string;
   description: string;
   kind: AssetKind;
+  fileCount: number;
   formats: readonly string[];
   tags: readonly string[];
   categories: readonly string[];
@@ -23,6 +24,7 @@ export function createCuratedCc0Asset(provider: AssetProvider, input: CuratedInp
     name: input.name,
     description: input.description,
     kind: input.kind,
+    fileCount: input.fileCount,
     formats: Object.freeze([...input.formats]),
     tags: Object.freeze([...input.tags]),
     categories: Object.freeze([...input.categories]),

@@ -64,7 +64,8 @@ export const CATALOG_ASSETS = Object.freeze([
   createKenneyPack({
     upstreamId: 'nature-kit', slug: 'nature-kit', name: 'Nature Kit',
     description: 'A curated starter pack of stylized nature assets for games.', kind: 'model',
-    formats: ['fbx', 'glb', 'obj'], tags: ['nature', 'forest', 'rocks', 'trees'], categories: ['nature'],
+    fileCount: 330, formats: ['fbx', 'glb', 'obj'],
+    tags: ['nature', 'forest', 'rocks', 'trees', 'foliage', 'stylized', 'low poly'], categories: ['nature', 'environment'],
     creator: 'Kenney', sourceUrl: 'https://kenney.nl/assets/nature-kit',
     previewUrl: '/previews/curated/kenney-nature-kit.webp',
     previewSourceUrl: 'https://kenney.nl/media/pages/assets/nature-kit/656a90532f-1677698896/sample.png',
@@ -73,7 +74,8 @@ export const CATALOG_ASSETS = Object.freeze([
   createQuaterniusPack({
     upstreamId: 'ultimate-nature', slug: 'ultimate-nature', name: 'Ultimate Nature Pack',
     description: 'A curated low-poly nature pack for outdoor game scenes.', kind: 'model',
-    formats: ['blend', 'fbx', 'obj'], tags: ['nature', 'forest', 'plants', 'rocks'], categories: ['nature'],
+    fileCount: 150, formats: ['blend', 'fbx', 'obj'],
+    tags: ['nature', 'forest', 'plants', 'rocks', 'trees', 'grass', 'flowers', 'low poly'], categories: ['nature', 'environment'],
     creator: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/ultimatenature.html',
     previewUrl: '/previews/curated/quaternius-ultimate-nature.svg', retrievedAt,
   }),

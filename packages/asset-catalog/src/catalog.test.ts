@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { searchAssets, type CatalogAsset } from './index.ts';
+import { CATALOG_ASSETS } from './catalog-data.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
 import { fetchPolyHavenStarterCatalog } from './providers/poly-haven-client.ts';
 
@@ -12,6 +13,7 @@ const assets: CatalogAsset[] = [
     name: 'Prototype Kit',
     description: 'Modular 3D forms for early game worlds.',
     kind: 'model',
+    fileCount: 1,
     formats: ['glb'],
     tags: ['3d', 'prototype'],
     categories: ['prototype'],
@@ -51,6 +53,16 @@ test('searches normalized asset metadata', () => {
 
 test('can require verified catalog entries', () => {
   assert.deepEqual(searchAssets(assets, { verifiedOnly: true }), []);
+});
+
+test('every published asset has useful discovery tags and a source file count', () => {
+  for (const asset of CATALOG_ASSETS) {
+    assert.ok(asset.tags.length >= 3, `${asset.id} needs at least three tags`);
+    assert.ok(asset.tags.every((tag) => tag.trim().length > 0), `${asset.id} has an empty tag`);
+    assert.ok(Number.isSafeInteger(asset.fileCount) && asset.fileCount > 0, `${asset.id} needs a file count`);
+  }
+  assert.equal(CATALOG_ASSETS.find((asset) => asset.id === 'kenney:nature-kit')?.fileCount, 330);
+  assert.equal(CATALOG_ASSETS.find((asset) => asset.id === 'quaternius:ultimate-nature')?.fileCount, 150);
 });
 
 test('normalizes Poly Haven API metadata and download files', () => {

@@ -37,6 +37,7 @@ export type CatalogAsset = {
   readonly name: string;
   readonly description: string;
   readonly kind: AssetKind;
+  readonly fileCount: number;
   readonly formats: readonly string[];
   readonly tags: readonly string[];
   readonly categories: readonly string[];

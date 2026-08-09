@@ -48,6 +48,7 @@ export function createPolyHavenAsset(input: Readonly<{
     name: input.metadata.name,
     description: input.metadata.description,
     kind: readKind(input.metadata.type),
+    fileCount: input.files.length,
     formats,
     tags: Object.freeze([...(input.metadata.tags ?? [])]),
     categories: Object.freeze([...(input.metadata.categories ?? [])]),
