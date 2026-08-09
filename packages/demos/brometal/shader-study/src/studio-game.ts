@@ -1,5 +1,6 @@
 export type StudioGameEntry = (context: Readonly<{
   canvas: HTMLCanvasElement;
+  pointer: Readonly<{ x: number; y: number }>;
   report(measurements: Readonly<{
     instances?: number;
     drawCalls?: number;
@@ -13,4 +14,3 @@ export type StudioGameEntry = (context: Readonly<{
   frame(platformTimeSeconds: number): void;
   dispose(): void;
 }>>;
-

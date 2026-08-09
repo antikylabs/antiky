@@ -6,7 +6,7 @@ import auroraShader from './shaders/aurora.shader.gen';
  * the authored source and generated output; this file only has to hand the
  * shader a fullscreen quad and a clock. */
 
-const game: StudioGameEntry = async ({ canvas, report }) => {
+const game: StudioGameEntry = async ({ canvas, pointer, report }) => {
   const renderer = await createRenderer(canvas);
   const program = createProgram(renderer, auroraShader);
   const quad = createPlane({ width: 2, height: 2 });
@@ -16,7 +16,7 @@ const game: StudioGameEntry = async ({ canvas, report }) => {
 
   report({
     drawCalls: 1,
-    uploadBytesPerFrame: 8,
+    uploadBytesPerFrame: 16,
     note: 'typed shader source compiled to WGSL at build time',
   });
 
@@ -25,6 +25,7 @@ const game: StudioGameEntry = async ({ canvas, report }) => {
       renderer.present(() => {
         program.uniforms.uTime.set(t);
         program.uniforms.uAspect.set(renderer.aspect);
+        program.uniforms.uPointer.set([pointer.x, pointer.y]);
         program.draw();
       });
     },
