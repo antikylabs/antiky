@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { searchAssets, type CatalogAsset } from './index.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
+import { fetchPolyHavenStarterCatalog } from './providers/poly-haven-client.ts';
 
 const assets: CatalogAsset[] = [
   {
@@ -91,4 +92,46 @@ test('searches provider records by text and type', () => {
     verification: 'verified' as const,
   };
   assert.deepEqual(searchAssets([forestModel], { text: 'forest', kind: 'model' }), [forestModel]);
+});
+
+test('imports the model, texture, and HDRI starter set through the Poly Haven API', async () => {
+  const calls: string[] = [];
+  const metadata = Object.fromEntries([
+    ['dead_tree_trunk', 2], ['forest_floor', 1], ['forest_slope', 0],
+  ].map(([id, type]) => [id, {
+    name: id, type, description: `${id} description`, tags: ['forest'], categories: ['nature'],
+    authors: { Creator: 'All' }, files_hash: `${id}-files`,
+    thumbnail_url: `https://cdn.polyhaven.com/${id}.png`,
+  }]));
+  const file = (path: string) => ({ size: 4, url: `https://dl.polyhaven.org/${path}`, md5: '098f6bcd4621d373cade4e832627b4f6' });
+  const files = {
+    dead_tree_trunk: { gltf: { '1k': { gltf: { ...file('tree.gltf'), include: {
+      'textures/tree_arm.jpg': file('textures/tree_arm.jpg'),
+      'tree.bin': file('tree.bin'),
+      'textures/tree_diff.jpg': file('textures/tree_diff.jpg'),
+    } } } } },
+    forest_floor: {
+      Diffuse: { '1k': { jpg: file('diff.jpg') } }, AO: { '1k': { jpg: file('ao.jpg') } },
+      Rough: { '1k': { jpg: file('rough.jpg') } }, nor_gl: { '1k': { jpg: file('normal.jpg') } },
+    },
+    forest_slope: { hdri: { '1k': { hdr: file('forest.hdr') } } },
+  };
+  const fetcher = async (input: string | URL | Request) => {
+    const url = String(input);
+    calls.push(url);
+    if (url.endsWith('/assets')) return Response.json(metadata);
+    const id = url.slice(url.lastIndexOf('/') + 1) as keyof typeof files;
+    return Response.json(files[id]);
+  };
+
+  const imported = await fetchPolyHavenStarterCatalog({
+    fetch: fetcher as typeof fetch,
+    retrievedAt: '2026-08-09T00:00:00.000Z',
+  });
+  assert.deepEqual(imported.map((asset) => asset.kind), ['model', 'texture', 'hdri']);
+  assert.deepEqual(imported[0]?.downloads.map((item) => item.path), [
+    'tree.gltf', 'tree.bin', 'textures/tree_diff.jpg', 'textures/tree_arm.jpg',
+  ]);
+  assert.equal(imported[1]?.downloads.length, 4);
+  assert.equal(calls.length, 4);
 });

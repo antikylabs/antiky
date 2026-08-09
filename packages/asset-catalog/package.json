@@ -10,6 +10,7 @@
   },
   "scripts": {
     "previews": "node --experimental-strip-types --experimental-transform-types scripts/generate-previews.mjs ../asset-site/public",
+    "catalog:check": "node --experimental-strip-types --experimental-transform-types scripts/check-poly-haven.mjs",
     "test": "node --experimental-strip-types --experimental-transform-types --test src/catalog.test.ts src/install.test.ts",
     "typecheck": "tsc --noEmit"
   },
