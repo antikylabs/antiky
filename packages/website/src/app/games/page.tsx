@@ -26,7 +26,28 @@ export default function GamesPage() {
         </p>
       </section>
 
-      <section className="world-title" id="emberwyrd">
+      <section className="content-section wrap split-heading" data-evidence-status="current">
+        <div>
+          <p className="section-label">Current proof</p>
+          <h2>Antiky Town runs today.</h2>
+        </div>
+        <div className="prose">
+          <p className="lead">
+            Antiky Town is a runnable Framework study with stable light identity, structured runtime
+            state, and a visible point-light authoring slice.
+          </p>
+          <p>
+            Seven focused studies alongside it isolate rendering, shaders, and portable-host
+            questions. They are working evidence, not production games or substitutes for
+            Emberwyrd.
+          </p>
+          <Link className="text-link section-link" href="/demos/antiky-town">
+            Run Antiky Town <ArrowRight />
+          </Link>
+        </div>
+      </section>
+
+      <section className="world-title" id="emberwyrd" data-evidence-status="direction">
         <div className="wrap">
           <p>The larger test</p>
           <h2>Emberwyrd</h2>

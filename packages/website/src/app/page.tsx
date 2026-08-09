@@ -65,7 +65,7 @@ export default function HomePage() {
       <section className="content-section wrap split-heading" id="changed-assumption">
         <div>
           <p className="section-label">The assumption that changed</p>
-          <h2>The tools were built for a different cast.</h2>
+          <h2>The tools were built around one kind of participant.</h2>
         </div>
         <div className="prose">
           <p className="lead">

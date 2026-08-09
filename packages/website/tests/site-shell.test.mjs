@@ -135,6 +135,7 @@ test('product and research pages expose status boundaries without stale primary 
   const framework = await readFile(new URL('framework.html', outputRoot), 'utf8');
   const studio = await readFile(new URL('studio.html', outputRoot), 'utf8');
   const research = await readFile(new URL('research.html', outputRoot), 'utf8');
+  const games = await readFile(new URL('games.html', outputRoot), 'utf8');
   const demo = await readFile(new URL('demos/antiky-town.html', outputRoot), 'utf8');
 
   assert.match(framework, /data-evidence-status="current"/);
@@ -149,6 +150,8 @@ test('product and research pages expose status boundaries without stale primary 
   assert.match(research, /data-evidence-status="direction"/);
   assert.match(research, /data-evidence-status="research-question"/);
   assert.doesNotMatch(research, /Training and adapting models|Generated voxel assets/);
+  assert.match(games, /data-evidence-status="current"/);
+  assert.match(games, /data-evidence-status="direction"/);
   assert.match(demo, /What it does not show/);
 });
 
