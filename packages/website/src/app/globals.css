@@ -241,6 +241,8 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
 .demo-notes { display: grid; grid-template-columns: 1.2fr .8fr; gap: clamp(50px, 8vw, 120px); border-top: 1px solid var(--line); }
 .demo-notes ul { margin: 0; padding-left: 19px; color: var(--text-muted); }
 .demo-notes li + li { margin-top: 12px; }
+.demo-limit { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--text-muted); }
+.demo-limit span { display: block; margin-bottom: 8px; color: var(--text-faint); font-family: var(--mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; }
 .source-section { padding-bottom: 140px; }
 .source-section h2 { margin-bottom: 32px; font-size: clamp(2rem, 4vw, 3.6rem); }
 

@@ -14,6 +14,12 @@ type Props = {
   index: number;
 };
 
+const DEMO_LIMITS: Record<DemoMeta['pillar'], string> = {
+  Framework: 'This working slice does not represent a complete engine or the full creator-agent workflow.',
+  BroMetal: 'This rendering study does not demonstrate Framework-owned game state or a complete game-development workflow.',
+  'Three.js': 'This host-compatibility study does not add Three.js to Antiky Framework or prove semantic Framework inspection.',
+};
+
 export default function DemoDeck({ demo, prev, next, index }: Props) {
   const router = useRouter();
 
@@ -74,6 +80,7 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
           <ul>
             {demo.proves.map((claim) => <li key={claim}>{claim}</li>)}
           </ul>
+          <p className="demo-limit"><span>What it does not show</span>{DEMO_LIMITS[demo.pillar]}</p>
         </div>
       </section>
     </>

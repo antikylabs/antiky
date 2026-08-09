@@ -120,3 +120,37 @@ test('Games replaces Worlds in the sitemap and Worlds permanently redirects', as
       && entry.statusCode === 308
   )));
 });
+
+test('product and research pages expose status boundaries without stale primary positioning', async () => {
+  const framework = await readFile(new URL('framework.html', outputRoot), 'utf8');
+  const studio = await readFile(new URL('studio.html', outputRoot), 'utf8');
+  const research = await readFile(new URL('research.html', outputRoot), 'utf8');
+  const demo = await readFile(new URL('demos/antiky-town.html', outputRoot), 'utf8');
+
+  assert.match(framework, /data-evidence-status="current"/);
+  assert.match(framework, /data-evidence-status="emerging"/);
+  assert.match(framework, /data-evidence-status="direction"/);
+  assert.doesNotMatch(framework, /Built for 2D characters in 3D worlds|emerging 2\.3D game framework/);
+
+  for (const status of ['current', 'emerging', 'direction']) {
+    assert.ok(studio.includes(`data-evidence-status="${status}"`));
+  }
+  assert.match(research, /data-evidence-status="current"/);
+  assert.match(research, /data-evidence-status="direction"/);
+  assert.match(research, /data-evidence-status="research-question"/);
+  assert.doesNotMatch(research, /Training and adapting models|Generated voxel assets/);
+  assert.match(demo, /What it does not show/);
+});
+
+test('core page metadata uses the lab positioning and canonical routes', async () => {
+  const home = await readFile(new URL('index.html', outputRoot), 'utf8');
+  const framework = await readFile(new URL('framework.html', outputRoot), 'utf8');
+  const games = await readFile(new URL('games.html', outputRoot), 'utf8');
+  const thesis = await readFile(new URL('thesis.html', outputRoot), 'utf8');
+
+  assert.match(home, /<meta name="description" content="Antiky Labs is a game technology lab/);
+  assert.doesNotMatch(home, /<meta name="description" content="[^"]*2\.3D/);
+  assert.doesNotMatch(framework, /<meta name="description" content="[^"]*2\.3D/);
+  assert.match(games, /<link rel="canonical" href="https:\/\/antikylabs\.com\/games"/);
+  assert.match(thesis, /<link rel="canonical" href="https:\/\/antikylabs\.com\/thesis"/);
+});

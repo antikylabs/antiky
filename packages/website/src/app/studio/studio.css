@@ -92,6 +92,8 @@
 .studio-feature-row > span { padding-top: 5px; color: var(--text-faint); font-family: var(--mono); font-size: 10px; }
 .studio-feature-row h3 { font-size: clamp(1.25rem, 2vw, 1.75rem); line-height: 1.15; }
 .studio-feature-row p { max-width: 59ch; color: var(--text-muted); font-size: 15px; }
+.studio-status-boundary { border-top: 1px solid var(--line); }
+.studio-status-row { grid-template-columns: 140px minmax(0, 1fr) !important; }
 .studio-availability { border-top: 1px solid var(--line); background: var(--surface); }
 
 .studio-availability-grid {
@@ -118,6 +120,8 @@
   .studio-session-clients > span { min-height: 92px; padding: 12px; }
   .studio-feature-row { grid-template-columns: 45px minmax(0, 1fr); gap: 16px; }
   .studio-feature-row p { grid-column: 2; }
+  .studio-status-row { grid-template-columns: 1fr !important; }
+  .studio-status-row .row-copy { grid-column: 1; grid-row: 2; }
   .studio-availability-grid { grid-template-columns: 1fr; }
 }
 

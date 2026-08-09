@@ -7,26 +7,34 @@ import { ArrowRight, ArrowUpRight } from '@/components/Icons';
 
 export const metadata: Metadata = {
   title: 'Antiky Framework',
-  description: 'An emerging 2.3D game framework for 2D characters and objects inside spatial 3D worlds.',
+  description:
+    'The pre-release headless game-session and structured-state foundation behind Antiky development tools and current Framework studies.',
   alternates: { canonical: '/framework' },
 };
 
-const DIRECTIONS = [
-  ['World composition', 'Bring sprites, simple geometry, camera, light, and depth into one coherent scene.'],
-  ['Game structure', 'Keep real-time simulation predictable and project code understandable as a game grows.'],
-  ['Useful tooling', 'Add visual tools where they make game work clearer, while keeping the framework usable on its own.'],
-];
+const CAPABILITIES = [
+  ['Fixed-step sessions', 'Run game systems on a predictable clock with pause, resume, single-step controls, explicit inputs, and fail-closed faults.'],
+  ['Stable identity', 'Keep public world, session, entity, command, and event identities stable across the development boundary.'],
+  ['Structured inspection', 'Publish immutable lifecycle, session, hierarchy, store, event, diagnostic, and measurement snapshots for tools and tests.'],
+  ['Bounded authoring', 'Use validated commands for the current point-light authoring slice instead of letting inspection mutate state.'],
+  ['Portable game modules', 'Keep game code separate from browser, Studio, CLI, and website hosts so the same module can run in different delivery contexts.'],
+] as const;
 
 export default function FrameworkPage() {
   return (
     <>
       <section className="page-hero wrap">
-        <h1>Built for 2D characters in 3D worlds.</h1>
-        <p className="status-line"><span className="status-dot status-emerging" /> Emerging framework</p>
-        <p className="page-lead">Antiky Framework is an open-source game framework taking shape on top of BroMetal. Its focus is 2.3D: crisp 2D characters and objects inside spatial, depth-aware environments.</p>
+        <p className="status-line"><span className="status-dot status-emerging" /> Pre-release · working foundation</p>
+        <h1>A headless foundation for a game tools can understand.</h1>
+        <p className="page-lead">
+          Antiky Framework owns game sessions, identity, structured inspection, and bounded state
+          changes beneath Studio, CLI, MCP, direct clients, and the current Framework studies.
+        </p>
         <div className="actions">
-          <Link className="button button-primary" href="/demos/antiky-town">Run Antiky Town <ArrowUpRight /></Link>
-          <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">Explore BroMetal {BROMETAL_VERSION} <ArrowUpRight /></a>
+          <Link className="button button-primary" href="/docs/framework/engine-sessions">
+            Read Framework docs <ArrowRight />
+          </Link>
+          <Link className="text-link" href="/demos/antiky-town">Run Antiky Town <ArrowUpRight /></Link>
         </div>
       </section>
 
@@ -38,27 +46,59 @@ export default function FrameworkPage() {
         />
       </section>
 
-      <section className="content-section wrap split-heading">
+      <section className="content-section wrap split-heading" data-evidence-status="current">
         <div>
-          <h2>The direction is clear. The framework is early.</h2>
+          <p className="section-label">Current boundary</p>
+          <h2>Narrow, working, and still pre-release.</h2>
         </div>
         <div className="prose">
-          <p className="lead">The public workspace exists, but Antiky Framework is not a finished product and no stable release is available yet.</p>
-          <p>The live studies show the rendering ideas being explored today. BroMetal—the rendering and shader layer beneath them—is available now. Framework capabilities will be documented here only as they become genuinely useful.</p>
+          <p className="lead">
+            Framework is not a complete engine and it has no stable package release today.
+          </p>
+          <p>
+            The current source implements a focused foundation: fixed-step EngineSession behavior,
+            UUIDv7 identities, immutable inspection snapshots, portable game-module contracts, and
+            a point-light command and correction flow. The public API documentation records the exact
+            surface that exists.
+          </p>
+          <p>
+            Broader world systems, abilities, persistence, online authority, physics, sandboxes, and
+            agent workflows remain architectural direction until working public slices earn those
+            claims.
+          </p>
         </div>
       </section>
 
-      <section className="content-section wrap">
+      <section className="content-section wrap" data-evidence-status="current">
         <header className="section-intro compact">
-          <h2>What it is aiming to make easier</h2>
-          <p>Three practical concerns, kept deliberately narrower than an all-purpose engine.</p>
+          <h2>What works now</h2>
+          <p>Concrete development behavior, kept deliberately smaller than a general-purpose engine.</p>
         </header>
         <div className="editorial-list">
-          {DIRECTIONS.map(([title, body]) => (
+          {CAPABILITIES.map(([title, body]) => (
             <div className="editorial-row static" key={title}>
               <span className="row-copy"><strong>{title}</strong><span>{body}</span></span>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="content-section wrap split-heading" data-evidence-status="emerging">
+        <div>
+          <p className="section-label">One development model</p>
+          <h2>Shared services, different clients.</h2>
+        </div>
+        <div className="prose">
+          <p className="lead">
+            CLI project services start and supervise one local development session. Studio uses the
+            same library path; MCP and typed clients adapt the same inspection and tool boundaries.
+          </p>
+          <p>
+            That makes the running project legible from several workflows without giving each client
+            its own engine rules. The shared foundation exists. The broader human-agent creation
+            experience is still being built.
+          </p>
+          <Link className="text-link section-link" href="/docs/cli/development">See the development session <ArrowRight /></Link>
         </div>
       </section>
 
@@ -71,13 +111,34 @@ export default function FrameworkPage() {
           sizes="(max-width: 760px) 100vw, 92vw"
         />
         <figcaption id="framework-architecture-caption">
-          Antiky target architecture · the planned system boundary, not a list of completed features
+          Antiky target architecture · accepted direction, not a list of completed features
         </figcaption>
       </figure>
 
+      <section className="statement-band" data-evidence-status="direction">
+        <div className="wrap statement-grid">
+          <h2>Rendering is one layer, not the identity.</h2>
+          <div>
+            <p className="lead">2D, 3D, and 2.3D are creative possibilities.</p>
+            <p>
+              BroMetal {BROMETAL_VERSION} is the current Framework render driver and remains an
+              important part of the work. Pure BroMetal and Three.js studies also use the portable
+              host boundary. Renderer choice does not own game rules, session state, or development
+              authority.
+            </p>
+            <div className="thesis-links">
+              <Link className="text-link" href="/demos">Compare the studies <ArrowRight /></Link>
+              <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">
+                Explore BroMetal <ArrowUpRight />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="closing-cta wrap">
-        <p>Want the part that runs today?</p>
-        <Link href="/demos">Explore the browser studies <ArrowRight /></Link>
+        <p>The visual expression of this foundation lives in Studio.</p>
+        <Link href="/studio">Explore Antiky Studio <ArrowRight /></Link>
       </section>
     </>
   );

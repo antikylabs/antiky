@@ -16,7 +16,7 @@ const SYSTEM = [
     href: '/studio',
     status: 'Current workspace · early',
     evidenceStatus: 'current',
-    title: 'Studio',
+    title: 'Antiky Studio',
     body: 'The running game, native terminal, simulation controls, and live structured state in one visual workspace.',
   },
   {

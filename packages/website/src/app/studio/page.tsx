@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight } from '@/components/Icons';
-import { canonical } from '@/lib/site';
+import { ArrowRight, ArrowUpRight } from '@/components/Icons';
+import { canonical, DISCORD_URL, STUDIO_RELEASES_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Studio',
@@ -39,13 +39,34 @@ const CAPABILITIES = [
   },
 ] as const;
 
+const STATUS_GROUPS = [
+  {
+    status: 'Current',
+    evidenceStatus: 'current',
+    title: 'A working native workspace',
+    body: 'Project launch, the running game, a native terminal, simulation controls, structured inspection, and activity views work in the current source build.',
+  },
+  {
+    status: 'Emerging',
+    evidenceStatus: 'emerging',
+    title: 'Early packaged releases',
+    body: 'Packaged Studio builds are the site-launch distribution path. Each GitHub release is the authority for its version, supported platforms, installation notes, and limitations.',
+  },
+  {
+    status: 'Direction',
+    evidenceStatus: 'direction',
+    title: 'Richer creator-agent collaboration',
+    body: 'Exact-target feedback, broader bounded authoring, experiments, review, and explicit promotion remain architectural direction—not current Studio capability.',
+  },
+] as const;
+
 export default function StudioPage() {
   return (
     <>
       <section className="page-hero studio-hero wrap">
         <div className="status-line">
           <span className="status-dot status-emerging" />
-          macOS source-development build
+          Early Studio · release details on GitHub
         </div>
         <h1>Your game and its living state. One workspace.</h1>
         <p className="page-lead">
@@ -53,12 +74,13 @@ export default function StudioPage() {
           simulation controls, and structured runtime inspection into one workspace.
         </p>
         <div className="actions">
-          <Link className="button button-primary" href="/docs/studio/getting-started">
-            Open Studio docs <ArrowRight />
-          </Link>
-          <Link className="text-link" href="/docs/studio/development-connection">
-            How Studio connects <ArrowRight />
-          </Link>
+          <a className="button button-primary" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
+            Download Studio <ArrowUpRight />
+          </a>
+          <Link className="text-link" href="/docs/studio/getting-started">Open Studio docs <ArrowRight /></Link>
+          <a className="text-link" href={DISCORD_URL} target="_blank" rel="noreferrer">
+            Get help on Discord <ArrowUpRight />
+          </a>
         </div>
       </section>
 
@@ -74,7 +96,7 @@ export default function StudioPage() {
           />
         </div>
         <figcaption id="studio-workspace-caption">
-          Real Antiky Studio source build · native macOS workspace
+          Real Antiky Studio workspace · current source build
         </figcaption>
       </figure>
 
@@ -110,6 +132,9 @@ export default function StudioPage() {
               Studio, the command-line interface, and connected agents use the same typed development services.
               Each client sees the same running project session.
             </p>
+            <Link className="text-link section-link" href="/docs/studio/development-connection">
+              How Studio connects <ArrowRight />
+            </Link>
           </div>
         </div>
 
@@ -143,25 +168,50 @@ export default function StudioPage() {
         </div>
       </section>
 
+      <section className="content-section wrap studio-status-boundary">
+        <header className="section-intro compact">
+          <h2>Current, emerging, and ahead</h2>
+          <p>The product boundary stays visible as Studio grows.</p>
+        </header>
+        <div className="editorial-list">
+          {STATUS_GROUPS.map((group) => (
+            <div
+              className="editorial-row static studio-status-row"
+              data-evidence-status={group.evidenceStatus}
+              key={group.status}
+            >
+              <span className="row-status">{group.status}</span>
+              <span className="row-copy"><strong>{group.title}</strong><span>{group.body}</span></span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="studio-availability">
         <div className="wrap studio-availability-grid">
           <div>
             <p className="section-label">Current availability</p>
-            <h2>Built for development. Available from source.</h2>
+            <h2>Start with the release that fits your system.</h2>
           </div>
           <div className="prose">
-            <p className="lead">Studio currently runs as a macOS source-development build.</p>
+            <p className="lead">
+              Downloadable builds are distributed through GitHub Releases. Check the selected
+              release for platform support, installation guidance, version, and known limitations.
+            </p>
             <p>
-              Inspector views are read-only. Simulation controls and approved MCP commands can change the running game,
-              and release packaging is not available yet.
+              Inspector views are read-only. Simulation controls and approved MCP commands can
+              change the running game through their defined boundaries.
             </p>
             <p>
               Antiky Framework projects can publish the richest semantic inspection data. Renderer-only projects keep
               generic lifecycle data, measurements that they report, reload, and canvas capture.
             </p>
-            <Link className="text-link" href="/docs/studio/getting-started">
-              Get started from source <ArrowRight />
-            </Link>
+            <div className="thesis-links">
+              <a className="button button-primary" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
+                Download Studio <ArrowUpRight />
+              </a>
+              <Link className="text-link" href="/docs/studio/getting-started">Follow the first-run guide <ArrowRight /></Link>
+            </div>
           </div>
         </div>
       </section>

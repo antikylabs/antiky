@@ -7,7 +7,7 @@ import { ArrowUpRight } from '@/components/Icons';
 
 export const metadata: Metadata = {
   title: 'Demos',
-  description: 'Eight live Antiky Framework, BroMetal, and Three.js studies in one portable host.',
+  description: 'Eight runnable Antiky Framework, BroMetal, and Three.js studies, each showing a narrow piece of current work.',
   alternates: { canonical: '/demos' },
 };
 
@@ -17,7 +17,11 @@ export default function DemosPage() {
       <section className="page-hero wrap demos-intro">
         <h1>Run the work.</h1>
         <p className="status-line"><span className="status-dot status-live" /> Eight live studies</p>
-        <p className="page-lead">These are live modules, not trailers: two Antiky Framework worlds, four BroMetal {BROMETAL_VERSION} showcases, and two Three.js scenes in the same portable host.</p>
+        <p className="page-lead">
+          These are live modules, not trailers: two Antiky Framework studies, four BroMetal {BROMETAL_VERSION}
+          studies, and two Three.js scenes in the same portable host. Each shows a bounded result;
+          none is a production game or proof of the complete Antiky architecture.
+        </p>
       </section>
 
       <section className="demo-index wrap">
