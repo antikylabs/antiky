@@ -17,17 +17,23 @@ export default async function AssetPage({ params }: Readonly<{ params: Params }>
   const { provider, slug } = await params;
   const asset = catalogAsset(provider, slug);
   if (!asset) notFound();
+  const fileLabel = `${asset.fileCount} source ${asset.fileCount === 1 ? 'file' : 'files'}`;
 
   return (
-    <main>
-      <Link className="back-link" href="/assets">← All assets</Link>
-      <article className="asset-detail">
-        <img className="detail-preview" src={asset.preview.url} width={512} height={512} alt={`Preview of ${asset.name}`} />
-        <div>
+    <main className="asset-detail-page">
+      <div className="wrap"><Link className="back-link" href="/assets">← All assets</Link></div>
+      <article className="asset-detail wrap">
+        <figure className="detail-media">
+          <img className="detail-preview" src={asset.preview.url} width={512} height={512} alt={`Preview of ${asset.name}`} />
+          <figcaption><span>{asset.provider.name}</span><span>{asset.license.name}</span></figcaption>
+        </figure>
+        <div className="detail-copy">
           <div className="asset-meta"><span>{asset.provider.name}</span><span>{asset.kind}</span></div>
           <h1>{asset.name}</h1>
-          <p>{asset.description}</p>
-          <dl>
+          <p className="detail-lead">{asset.description}</p>
+          <div className="tag-list detail-tags" aria-label="Tags">{asset.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+          <dl className="detail-facts">
+            <div><dt>Files</dt><dd>{fileLabel}</dd></div>
             <div><dt>License</dt><dd><a href={asset.license.referenceUrl}>{asset.license.name}</a></dd></div>
             <div><dt>Creator</dt><dd>{asset.provenance.creator}</dd></div>
             <div><dt>Upstream ID</dt><dd><code>{asset.upstream.id}</code></dd></div>
@@ -35,13 +41,13 @@ export default async function AssetPage({ params }: Readonly<{ params: Params }>
             <div><dt>Formats</dt><dd>{asset.formats.join(', ') || 'Pending ingestion'}</dd></div>
             <div><dt>Status</dt><dd>{asset.verification}</dd></div>
           </dl>
-          <p className="notice">{asset.attribution.notice}</p>
+          <p className="notice"><span>Attribution record</span>{asset.attribution.notice}</p>
           <div className="actions">
             <a className="button" href={asset.upstream.url}>View original source</a>
             <a href={`/api/assets/${asset.provider.id}/${asset.slug}`}>JSON record</a>
           </div>
           {asset.downloads.length > 0 && (
-            <details><summary>{asset.downloads.length} verified download files</summary>
+            <details className="download-files"><summary>{asset.downloads.length} selected download files</summary>
               <ul>{asset.downloads.map((file) => (
                 <li key={file.path}><code>{file.path}</code> · {file.hash.algorithm}:{file.hash.value}</li>
               ))}</ul>

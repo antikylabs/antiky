@@ -5,10 +5,15 @@ test('searches forest models and opens permanent provenance', async ({ page }) =
 
   await expect(page.getByRole('heading', { name: 'Start with something good.' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Dead Tree Trunk/ })).toBeVisible();
+  const card = page.getByRole('article').filter({ hasText: 'Dead Tree Trunk' });
+  await expect(card.getByText('5 files')).toBeVisible();
+  await expect(card.getByText('forest', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: /Dead Tree Trunk/ }).click();
 
   await expect(page).toHaveURL('/assets/poly-haven/dead-tree-trunk');
   await expect(page.getByRole('heading', { name: 'Dead Tree Trunk' })).toBeVisible();
+  await expect(page.getByText('5 source files')).toBeVisible();
+  await expect(page.getByText('forest floor', { exact: true })).toBeVisible();
   await expect(page.getByText('1e56e4393417d157e43e26bd8b7b019189d313ed')).toBeVisible();
   await expect(page.getByRole('link', { name: 'JSON record' })).toBeVisible();
 });
@@ -33,4 +38,5 @@ test('serves the Kenney Nature Kit preview as a local raster image', async ({ pa
   const response = await request.get(source!);
   expect(response.ok()).toBeTruthy();
   expect(response.headers()['content-type']).toContain('image/webp');
+  await expect(page.getByText('330 source files')).toBeVisible();
 });
