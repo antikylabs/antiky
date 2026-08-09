@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Kenney Nature Kit preview placeholder</title>
+  <rect width="256" height="256" fill="#15111d"/>
+  <path d="M48 192 104 74l26 54 20-35 58 99Z" fill="#7350aa"/>
+  <circle cx="188" cy="60" r="24" fill="#c7a5ff"/>
+  <text x="24" y="228" fill="#f4efff" font-family="system-ui" font-size="16">Kenney · Nature Kit</text>
+</svg>
