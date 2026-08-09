@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 const outputRoot = new URL('../.next/server/app/', import.meta.url);
@@ -7,6 +7,16 @@ const rootLayout = new URL('../src/app/layout.tsx', import.meta.url);
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
 const studioReleasesUrl = 'https://github.com/antikylabs/antiky/releases';
 const discordUrl = 'https://discord.gg/3Qs2uejUf9';
+
+async function filesBelow(directory) {
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const url = new URL(entry.name, directory);
+    if (entry.isDirectory()) files.push(...await filesBelow(new URL(`${entry.name}/`, directory)));
+    else if (entry.isFile()) files.push(url);
+  }
+  return files;
+}
 
 test('the root layout gates Fathom behind the production environment', async () => {
   const source = await readFile(rootLayout, 'utf8');
@@ -153,4 +163,25 @@ test('core page metadata uses the lab positioning and canonical routes', async (
   assert.doesNotMatch(framework, /<meta name="description" content="[^"]*2\.3D/);
   assert.match(games, /<link rel="canonical" href="https:\/\/antikylabs\.com\/games"/);
   assert.match(thesis, /<link rel="canonical" href="https:\/\/antikylabs\.com\/thesis"/);
+});
+
+test('every production HTML page points internal anchors at a built route', async () => {
+  const pages = (await filesBelow(outputRoot)).filter((file) => file.pathname.endsWith('.html'));
+  assert.ok(pages.length > 0, 'production HTML output is missing');
+
+  for (const page of pages) {
+    const source = await readFile(page, 'utf8');
+    const hrefs = Array.from(source.matchAll(/<a\b[^>]*\shref="(\/[^"]+)"/g), (match) => match[1]);
+    for (const href of hrefs) {
+      const route = href.split(/[?#]/, 1)[0];
+      if (!route || route.startsWith('/_next/') || route.endsWith('.md')) continue;
+      const output = route === '/'
+        ? new URL('index.html', outputRoot)
+        : new URL(`${route.slice(1)}.html`, outputRoot);
+      await assert.doesNotReject(
+        readFile(output),
+        `${page.pathname} links to missing production route ${route}`,
+      );
+    }
+  }
 });
