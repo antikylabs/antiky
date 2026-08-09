@@ -24,6 +24,7 @@ import {
 import arenaGlowShader from './shaders/arena-glow.shader.gen';
 import arenaSurfaceShader from './shaders/arena-surface.shader.gen';
 import { COMBAT_WORLD_ID, createCombatInspectionModel } from './inspection.ts';
+import { combatCameraFrame } from './presentation.ts';
 import {
   createCombatSimulation,
   type CombatInput,
@@ -216,7 +217,7 @@ const game: GameModuleEntry = async (context) => {
     floor.set(0, [0, -0.5, 0], [8.8, 0.34, 8.8], [0.045, 0.065, 0.13], [0.05, 0, 0]);
     floor.upload();
 
-    const architecture = createSurfaceBatch(renderer, createCube(), 24);
+    const architecture = createSurfaceBatch(renderer, createCube(), 40);
     architecture.clear();
     for (let index = 0; index < 12; index += 1) {
       const angle = index / 12 * Math.PI * 2;
@@ -238,7 +239,44 @@ const game: GameModuleEntry = async (context) => {
     ].forEach(([x, y, z, sx, sy, sz], index) => {
       architecture.set(12 + index, [x!, y!, z!], [sx!, sy!, sz!], [0.08, 0.24, 0.42], [0.7, 0, 0]);
     });
+    for (let index = 0; index < 24; index += 1) {
+      const angle = index / 24 * Math.PI * 2;
+      const radius = 10.7 + (index % 3) * 0.35;
+      const height = 1.4 + ((index * 7) % 9) * 0.36;
+      architecture.set(
+        index + 16,
+        [Math.cos(angle) * radius, height * 0.5 - 0.45, Math.sin(angle) * radius],
+        [0.48 + (index % 2) * 0.24, height, 0.46 + ((index + 1) % 2) * 0.2],
+        index % 3 === 0 ? [0.08, 0.24, 0.42] : index % 3 === 1 ? [0.2, 0.055, 0.3] : [0.04, 0.11, 0.28],
+        [index % 4 === 0 ? 0.42 : 0.08, 0, index % 2 === 0 ? 0.035 : -0.028],
+      );
+    }
     architecture.upload();
+
+    const floorPanels = createSurfaceBatch(renderer, createCube(), 32);
+    floorPanels.clear();
+    for (let index = 0; index < 24; index += 1) {
+      const angle = index / 24 * Math.PI * 2;
+      const radius = index % 2 === 0 ? 6.65 : 4.5;
+      floorPanels.set(
+        index,
+        [Math.cos(angle) * radius, -0.145, Math.sin(angle) * radius],
+        [index % 2 === 0 ? 1.15 : 0.72, 0.035, 0.34],
+        index % 3 === 0 ? [0.07, 0.48, 0.72] : index % 3 === 1 ? [0.64, 0.055, 0.45] : [0.2, 0.09, 0.58],
+        [0.42, 0, -angle],
+      );
+    }
+    for (let index = 0; index < 8; index += 1) {
+      const angle = index / 8 * Math.PI * 2 + Math.PI / 8;
+      floorPanels.set(
+        index + 24,
+        [Math.cos(angle) * 2.15, -0.125, Math.sin(angle) * 2.15],
+        [0.72, 0.04, 0.13],
+        index % 2 === 0 ? CYAN : VIOLET,
+        [0.68, 0, -angle],
+      );
+    }
+    floorPanels.upload();
 
     const pylons = createSurfaceBatch(
       renderer,
@@ -280,9 +318,10 @@ const game: GameModuleEntry = async (context) => {
     );
 
     const cameraPosition = new Float32Array(3);
-    const camera = createCamera({ position: [0, 12, 14], fovY: Math.PI / 3.8, near: 0.1, far: 60 });
+    const camera = createCamera({ position: [0, 13.4, 14.8], fovY: Math.PI / 3.85, near: 0.1, far: 60 });
     const allPrograms = [
       floor.program,
+      floorPanels.program,
       architecture.program,
       pylons.program,
       fighters.program,
@@ -292,7 +331,7 @@ const game: GameModuleEntry = async (context) => {
     ];
 
     context.report({
-      instances: 234,
+      instances: 282,
       drawCalls: allPrograms.length,
       uploadBytesPerFrame: 14_724,
       note: 'Framework-owned fixed-step combat rendered as instanced BroMetal geometry',
@@ -365,6 +404,20 @@ const game: GameModuleEntry = async (context) => {
         );
         glowIndex += 1;
       });
+      for (let index = 0; index < 10; index += 1) {
+        const angle = index / 10 * Math.PI * 2 + state.time * (index % 2 === 0 ? 0.035 : -0.028);
+        const height = 2.6 + (index % 3) * 0.7 + Math.sin(state.time * 1.4 + index) * 0.25;
+        glowSpheres.set(
+          glowIndex,
+          [Math.cos(angle) * 10.1, height, Math.sin(angle) * 10.1],
+          [0.09, 0.09, 0.09],
+          index % 2 === 0 ? CYAN : PINK,
+          0.62,
+          0,
+          index * 0.77,
+        );
+        glowIndex += 1;
+      }
       for (; glowIndex < 158; glowIndex += 1) {
         glowSpheres.set(glowIndex, [0, -20, 0], [0, 0, 0], CYAN, 0, 0, glowIndex);
       }
@@ -398,17 +451,10 @@ const game: GameModuleEntry = async (context) => {
       energyRings.set(13, [0, 0.02, 0], [2.6, 2.6, 2.6], VIOLET, 0.12, 0, 4.4);
       energyRings.upload();
 
-      const hitEnergy = state.enemies.reduce((total, enemy) => total + enemy.hit, 0);
-      const mobile = renderer.aspect < 0.9;
-      const cameraY = mobile ? 16 : 12.2;
-      const cameraZ = mobile ? 17.5 : 14.2;
-      const driftX = (context.pointer.x - 0.5) * (mobile ? 1 : 2.1);
-      const shake = Math.sin(state.time * 42) * Math.min(0.16, hitEnergy * 0.025);
-      cameraPosition[0] = state.player.x * 0.12 + driftX + shake;
-      cameraPosition[1] = cameraY;
-      cameraPosition[2] = cameraZ + state.player.z * 0.08;
+      const cameraFrame = combatCameraFrame(renderer.aspect, state, context.pointer);
+      cameraPosition.set(cameraFrame.position);
       camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
-      camera.lookAt(state.player.x * 0.18, 0, state.player.z * 0.18 - 0.7);
+      camera.lookAt(...cameraFrame.target);
       const viewProjection = camera.viewProjection(renderer.aspect);
       allPrograms.forEach((program) => {
         program.uniforms.uViewProj.set(viewProjection);
@@ -418,6 +464,7 @@ const game: GameModuleEntry = async (context) => {
 
       renderer.present(() => {
         floor.program.draw();
+        floorPanels.program.draw();
         architecture.program.draw();
         pylons.program.draw();
         fighters.program.draw();
@@ -474,6 +521,7 @@ const game: GameModuleEntry = async (context) => {
         try {
           session.dispose();
           floor.dispose();
+          floorPanels.dispose();
           architecture.dispose();
           pylons.dispose();
           fighters.dispose();
