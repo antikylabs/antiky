@@ -1,4 +1,4 @@
-Antiky Labs Resources Site Source-Available License
+Antiky Labs Asset Site Source-Available License
 
 Copyright (c) 2026 Antiky Labs. All rights reserved.
 
