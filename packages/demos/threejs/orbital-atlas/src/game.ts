@@ -1,14 +1,20 @@
 import {
   ACESFilmicToneMapping,
+  AdditiveBlending,
   AmbientLight,
   BufferGeometry,
   Color,
+  DoubleSide,
+  DynamicDrawUsage,
   Float32BufferAttribute,
   FogExp2,
   Group,
+  InstancedMesh,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  Object3D,
+  OctahedronGeometry,
   PerspectiveCamera,
   PointLight,
   Points,
@@ -22,6 +28,18 @@ import {
 } from 'three';
 import type { Material, BufferGeometry as ThreeGeometry } from 'three';
 import type { StudioGameEntry } from './studio-game.ts';
+
+const STAR_COUNT = 1_400;
+const SHARD_COUNT = 720;
+
+interface ShardOrbit {
+  readonly phase: number;
+  readonly radius: number;
+  readonly speed: number;
+  readonly height: number;
+  readonly scale: number;
+  readonly tilt: number;
+}
 
 function starPositions(count: number): Float32Array {
   const values = new Float32Array(count * 3);
@@ -58,11 +76,22 @@ const game: StudioGameEntry = ({ canvas, pointer, report }) => {
   const geometries: ThreeGeometry[] = [];
   const materials: Material[] = [];
   const sunGeometry = new SphereGeometry(1.35, 48, 32);
-  const sunMaterial = new MeshBasicMaterial({ color: 0xffb347 });
-  geometries.push(sunGeometry);
-  materials.push(sunMaterial);
+  const sunMaterial = new MeshBasicMaterial({ color: 0xffc15d });
+  const haloGeometry = new SphereGeometry(1.72, 40, 24);
+  const haloMaterial = new MeshBasicMaterial({
+    blending: AdditiveBlending,
+    color: 0xff6828,
+    depthWrite: false,
+    opacity: 0.16,
+    side: DoubleSide,
+    transparent: true,
+  });
+  geometries.push(sunGeometry, haloGeometry);
+  materials.push(sunMaterial, haloMaterial);
   const sun = new Mesh(sunGeometry, sunMaterial);
+  const halo = new Mesh(haloGeometry, haloMaterial);
   scene.add(sun);
+  scene.add(halo);
   const sunLight = new PointLight(0xff9a42, 520, 45, 2);
   scene.add(sunLight);
 
@@ -114,27 +143,85 @@ const game: StudioGameEntry = ({ canvas, pointer, report }) => {
   planetTwo.add(ring);
   scene.add(orbitTwo);
 
-  const orbitGeometry = new TorusGeometry(4.6, 0.012, 6, 160);
-  const orbitMaterial = new MeshBasicMaterial({ color: 0x315075, transparent: true, opacity: 0.42 });
-  geometries.push(orbitGeometry);
+  const orbitMaterial = new MeshBasicMaterial({ color: 0x4b84ad, transparent: true, opacity: 0.3 });
   materials.push(orbitMaterial);
-  const orbitGuide = new Mesh(orbitGeometry, orbitMaterial);
-  orbitGuide.rotation.x = Math.PI / 2;
-  scene.add(orbitGuide);
+  [4.6, 7].forEach((radius, index) => {
+    const geometry = new TorusGeometry(radius, 0.012, 6, 192);
+    geometries.push(geometry);
+    const orbitGuide = new Mesh(geometry, orbitMaterial);
+    orbitGuide.rotation.x = Math.PI / 2 + index * 0.045;
+    scene.add(orbitGuide);
+  });
+
+  const shardGeometry = new OctahedronGeometry(0.075, 0);
+  const shardMaterial = new MeshBasicMaterial({
+    blending: AdditiveBlending,
+    color: 0xffffff,
+    depthWrite: false,
+    opacity: 0.74,
+    transparent: true,
+    vertexColors: true,
+  });
+  geometries.push(shardGeometry);
+  materials.push(shardMaterial);
+  const shards = new InstancedMesh(shardGeometry, shardMaterial, SHARD_COUNT);
+  shards.instanceMatrix.setUsage(DynamicDrawUsage);
+  shards.frustumCulled = false;
+  scene.add(shards);
+
+  const shardOrbits: ShardOrbit[] = Array.from({ length: SHARD_COUNT }, (_, index) => ({
+    phase: index * 2.399963229728653 + (index % 13) * 0.17,
+    radius: 2.05 + ((index * 47) % 100) * 0.062,
+    speed: 0.075 + (index % 17) * 0.0032,
+    height: (((index * 31) % 100) / 100 - 0.5) * 1.35,
+    scale: 0.45 + (index % 11) * 0.085,
+    tilt: (((index * 19) % 100) / 100 - 0.5) * 0.35,
+  }));
+  const shardTransform = new Object3D();
+  const shardColor = new Color();
+  const updateShards = (time: number): void => {
+    shardOrbits.forEach((orbit, index) => {
+      const angle = orbit.phase + time * orbit.speed;
+      const wave = Math.sin(angle * 3.2 + index * 0.037);
+      const radius = orbit.radius + wave * 0.16;
+      shardTransform.position.set(
+        Math.cos(angle) * radius,
+        orbit.height + Math.sin(angle * 2.1 + time * 0.22) * 0.22,
+        Math.sin(angle) * radius,
+      );
+      shardTransform.rotation.set(angle * 0.7 + orbit.tilt, angle * 1.8, wave * 0.8);
+      shardTransform.scale.set(orbit.scale * 0.5, orbit.scale * (1.5 + Math.abs(wave)), orbit.scale * 0.5);
+      shardTransform.updateMatrix();
+      shards.setMatrixAt(index, shardTransform.matrix);
+      shardColor.setHSL(0.06 + ((index % 23) / 23) * 0.48, 0.92, 0.58 + wave * 0.08);
+      shards.setColorAt(index, shardColor);
+    });
+    shards.instanceMatrix.needsUpdate = true;
+    const instanceColor = shards.instanceColor;
+    if (instanceColor) instanceColor.needsUpdate = true;
+  };
+  updateShards(0);
 
   const starsGeometry = new BufferGeometry();
-  starsGeometry.setAttribute('position', new Float32BufferAttribute(starPositions(900), 3));
-  const starsMaterial = new PointsMaterial({ color: 0xb9d8ff, size: 0.055, sizeAttenuation: true });
+  starsGeometry.setAttribute('position', new Float32BufferAttribute(starPositions(STAR_COUNT), 3));
+  const starsMaterial = new PointsMaterial({
+    blending: AdditiveBlending,
+    color: 0xc8e5ff,
+    depthWrite: false,
+    size: 0.065,
+    sizeAttenuation: true,
+    transparent: true,
+  });
   geometries.push(starsGeometry);
   materials.push(starsMaterial);
   const stars = new Points(starsGeometry, starsMaterial);
   scene.add(stars);
 
   report({
-    instances: 905,
-    drawCalls: 7,
-    uploadBytesPerFrame: 0,
-    note: 'pure Three.js scene graph hosted by Studio',
+    instances: STAR_COUNT + SHARD_COUNT + 7,
+    drawCalls: 11,
+    uploadBytesPerFrame: SHARD_COUNT * (16 + 3) * Float32Array.BYTES_PER_ELEMENT,
+    note: 'dynamic Three.js instancing, hierarchy, and per-instance color hosted by Studio',
   });
 
   let disposed = false;
@@ -157,7 +244,10 @@ const game: StudioGameEntry = ({ canvas, pointer, report }) => {
       planetOne.rotation.y = time * 0.42;
       planetTwo.rotation.y = time * -0.2;
       sun.scale.setScalar(1 + Math.sin(time * 2.2) * 0.025);
+      halo.scale.setScalar(1 + Math.sin(time * 1.7) * 0.08);
+      halo.rotation.y = time * -0.08;
       stars.rotation.y = time * 0.008;
+      updateShards(time);
       const cameraAngle = (pointer.x - 0.5) * 0.7;
       camera.position.x = Math.sin(cameraAngle) * 14;
       camera.position.z = Math.cos(cameraAngle) * 14;
