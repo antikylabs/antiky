@@ -1,7 +1,7 @@
 # Orbital Atlas
 
 A pure Three.js kinetic solar sculpture. Nested groups model orbital hierarchy while physical
-materials, a point-light sun, a 720-shard animated instance field, and a deterministic star field
+materials, a restrained 180-shard animated instance field, and a deterministic star field
 create a dense scene with visible motion from the first frame.
 
 ```sh

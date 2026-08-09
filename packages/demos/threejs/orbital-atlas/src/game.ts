@@ -28,18 +28,10 @@ import {
 } from 'three';
 import type { Material, BufferGeometry as ThreeGeometry } from 'three';
 import type { StudioGameEntry } from './studio-game.ts';
+import { createShardOrbits } from './scene-layout.ts';
 
 const STAR_COUNT = 1_400;
-const SHARD_COUNT = 720;
-
-interface ShardOrbit {
-  readonly phase: number;
-  readonly radius: number;
-  readonly speed: number;
-  readonly height: number;
-  readonly scale: number;
-  readonly tilt: number;
-}
+const SHARD_COUNT = 180;
 
 function starPositions(count: number): Float32Array {
   const values = new Float32Array(count * 3);
@@ -153,14 +145,11 @@ const game: StudioGameEntry = ({ canvas, pointer, report }) => {
     scene.add(orbitGuide);
   });
 
-  const shardGeometry = new OctahedronGeometry(0.075, 0);
+  const shardGeometry = new OctahedronGeometry(0.085, 0);
   const shardMaterial = new MeshBasicMaterial({
-    blending: AdditiveBlending,
     color: 0xffffff,
-    depthWrite: false,
-    opacity: 0.74,
+    opacity: 0.68,
     transparent: true,
-    vertexColors: true,
   });
   geometries.push(shardGeometry);
   materials.push(shardMaterial);
@@ -169,14 +158,7 @@ const game: StudioGameEntry = ({ canvas, pointer, report }) => {
   shards.frustumCulled = false;
   scene.add(shards);
 
-  const shardOrbits: ShardOrbit[] = Array.from({ length: SHARD_COUNT }, (_, index) => ({
-    phase: index * 2.399963229728653 + (index % 13) * 0.17,
-    radius: 2.05 + ((index * 47) % 100) * 0.062,
-    speed: 0.075 + (index % 17) * 0.0032,
-    height: (((index * 31) % 100) / 100 - 0.5) * 1.35,
-    scale: 0.45 + (index % 11) * 0.085,
-    tilt: (((index * 19) % 100) / 100 - 0.5) * 0.35,
-  }));
+  const shardOrbits = createShardOrbits(SHARD_COUNT);
   const shardTransform = new Object3D();
   const shardColor = new Color();
   const updateShards = (time: number): void => {
@@ -190,10 +172,10 @@ const game: StudioGameEntry = ({ canvas, pointer, report }) => {
         Math.sin(angle) * radius,
       );
       shardTransform.rotation.set(angle * 0.7 + orbit.tilt, angle * 1.8, wave * 0.8);
-      shardTransform.scale.set(orbit.scale * 0.5, orbit.scale * (1.5 + Math.abs(wave)), orbit.scale * 0.5);
+      shardTransform.scale.set(orbit.scale * 0.42, orbit.scale * (1.3 + Math.abs(wave) * 0.72), orbit.scale * 0.42);
       shardTransform.updateMatrix();
       shards.setMatrixAt(index, shardTransform.matrix);
-      shardColor.setHSL(0.06 + ((index % 23) / 23) * 0.48, 0.92, 0.58 + wave * 0.08);
+      shardColor.setHSL(0.52 + ((index % 23) / 23) * 0.4, 0.82, 0.36 + wave * 0.045);
       shards.setColorAt(index, shardColor);
     });
     shards.instanceMatrix.needsUpdate = true;
