@@ -66,6 +66,34 @@ test('home and Framework pages feature current Antiky media', async () => {
   assert.match(framework, /Antiky target architecture/);
 });
 
+test('homepage follows the why-first evidence-to-participation sequence', async () => {
+  const home = await readFile(new URL('index.html', outputRoot), 'utf8');
+  const sectionIds = [
+    'idea',
+    'changed-assumption',
+    'creative-agency',
+    'shared-state',
+    'system',
+    'games',
+    'research',
+    'creative-range',
+    'community',
+    'closing',
+  ];
+  const positions = sectionIds.map((id) => {
+    const position = home.indexOf(`id="${id}"`);
+    assert.ok(position >= 0, `homepage is missing #${id}`);
+    return position;
+  });
+
+  assert.deepEqual([...positions].sort((left, right) => left - right), positions);
+  assert.match(home, /data-evidence-status="current"/);
+  assert.match(home, /data-evidence-status="emerging"/);
+  assert.match(home, /href="\/thesis"/);
+  assert.match(home, /href="\/demos\/antiky-town"/);
+  assert.doesNotMatch(home, /Tools for making worlds|<h1>2D character|emerging 2\.3D framework/);
+});
+
 test('production navigation exposes the new public architecture and canonical participation links', async () => {
   for (const page of ['index.html', 'framework.html', 'studio.html', 'games.html']) {
     const output = await readFile(new URL(page, outputRoot), 'utf8');
