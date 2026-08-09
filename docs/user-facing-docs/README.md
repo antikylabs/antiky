@@ -3,6 +3,11 @@
 Antiky gives you a game framework, a local development command, and shared tools for people,
 agents, and Studio. Start with the task you want to complete.
 
+## Assets
+
+- [Find and use game assets](assets/catalog.md) with explicit CC0 licensing, source links, useful
+  metadata, permanent pages, and structured records for agents.
+
 ## Framework
 
 - [Build a game module](framework/game-modules.md) that mounts on a host-owned canvas without

@@ -27,7 +27,7 @@ path and the next `antiky dev` and Studio actions.
 
 ## Install a catalog asset
 
-Install a verified asset from the Antiky catalog into a project with its catalog ID:
+Install an **Install verified** asset from the Antiky catalog into a project with its catalog ID:
 
 ```sh
 antiky asset install poly-haven:forest-floor --project path/to/harbor-lights.antiky
@@ -40,10 +40,15 @@ SHA-256 hashes, license, API attribution, and installation time in `assets/antik
 Track that registry with the project. It lets Studio, agents, builds, and reviewers identify the
 exact source of installed files without relying on filenames.
 
-The installer accepts only catalog records marked `verified`. A failed download or integrity check
+The installer accepts only catalog records marked `install-verified`. Cataloged and
+source-metadata-verified records remain available for discovery and link to their original source.
+A failed download or integrity check
 leaves the prior installed asset unchanged. `ANTIKY_ASSET_NOT_FOUND` means the catalog ID is not
 known. `ANTIKY_ASSET_INSTALL_FAILED` means project validation, download, integrity verification, or
 the final filesystem update failed.
+
+See [Find and use game assets](../assets/catalog.md) for supported sources, status meanings, search,
+and the agent-facing JSON API.
 
 The name stays visible in the manifest. Antiky converts it to a safe lowercase file slug. It keeps
 Unicode letters in the display name when they can produce a non-empty ASCII slug.

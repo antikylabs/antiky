@@ -35,6 +35,23 @@ test('user-facing documentation has valid local links', async () => {
   }));
 });
 
+test('the asset guide documents discovery, honest verification states, and agent access', async () => {
+  const [source, index] = await Promise.all([
+    readFile(new URL('../../../docs/user-facing-docs/assets/catalog.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/user-facing-docs/README.md', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(index, /\[Find and use game assets\]\(assets\/catalog\.md\)/);
+  assert.match(source, /https:\/\/antikylabs\.com\/assets\?q=forest&type=model/);
+  assert.match(source, /1,000/);
+  assert.match(source, /Cataloged metadata/);
+  assert.match(source, /Source metadata verified/);
+  assert.match(source, /Install verified/);
+  assert.match(source, /antiky asset install poly-haven:forest-floor --project/);
+  assert.match(source, /\/api\/assets\?q=forest&type=model&limit=100&offset=0/);
+  assert.match(source, /does not download.*archive/is);
+});
+
 test('the generated framework API reference covers every public area and is current', async () => {
   await runFile(process.execPath, [
     resolve(repositoryRoot, 'packages/framework/scripts/generate-api-reference.mjs'),

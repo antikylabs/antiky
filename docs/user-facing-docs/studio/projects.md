@@ -118,7 +118,7 @@ directories. Zero or multiple `.antiky` files produce an error instead of select
 
 ## Install a catalog asset
 
-Install a verified catalog entry into an explicit project:
+Install an **Install verified** catalog entry into an explicit project:
 
 ```sh
 antiky asset install poly-haven:forest-floor --project path/to/harbor-lights.antiky
@@ -131,6 +131,8 @@ where every installed asset came from.
 
 An unknown catalog identity returns `ANTIKY_ASSET_NOT_FOUND`. A failed download, unsafe path, or
 provenance mismatch returns `ANTIKY_ASSET_INSTALL_FAILED` without recording a successful install.
+See [Find and use game assets](../assets/catalog.md) to search the full catalog and understand why
+some records link to a provider but are not available to this command.
 
 ## Understand the manifest fields
 
