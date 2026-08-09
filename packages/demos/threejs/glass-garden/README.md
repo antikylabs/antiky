@@ -15,7 +15,9 @@ BroMetal dependency.
 
 The terrain generation adapts the height-field technique from the official Three.js r185
 [`webgl_geometry_terrain_raycast`](https://github.com/mrdoob/three.js/blob/r185/examples/webgl_geometry_terrain_raycast.html)
-example. The post-processing chain follows the official
+example. Its PMREM-lit glass follows the physical material setup in
+[`webgl_materials_physical_transmission`](https://github.com/mrdoob/three.js/blob/r185/examples/webgl_materials_physical_transmission.html),
+while the post-processing chain follows the official
 [`webgl_postprocessing_unreal_bloom`](https://github.com/mrdoob/three.js/blob/r185/examples/webgl_postprocessing_unreal_bloom.html)
 example with `EffectComposer`, `RenderPass`, `UnrealBloomPass`, and `OutputPass`. Three.js and its
 examples are distributed under the [MIT license](https://github.com/mrdoob/three.js/blob/r185/LICENSE).
