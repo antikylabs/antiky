@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "Combat Arena",
+  "development": {
+    "command": ["npm", "run", "dev"],
+    "shaderCommand": ["npm", "run", "shaders:watch"],
+    "workingDirectory": ".",
+    "url": "http://127.0.0.1:3010/",
+    "viewport": { "width": 1280, "height": 720 }
+  },
+  "network": { "host": "127.0.0.1", "gamePort": 3010, "inspectionPort": 3011 },
+  "build": { "command": ["npm", "run", "build"], "workingDirectory": "." }
+}
