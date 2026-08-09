@@ -4,6 +4,9 @@ import test from 'node:test';
 
 const outputRoot = new URL('../.next/server/app/', import.meta.url);
 const rootLayout = new URL('../src/app/layout.tsx', import.meta.url);
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
+const studioReleasesUrl = 'https://github.com/antikylabs/antiky/releases';
+const discordUrl = 'https://discord.gg/3Qs2uejUf9';
 
 test('the root layout gates Fathom behind the production environment', async () => {
   const source = await readFile(rootLayout, 'utf8');
@@ -61,4 +64,31 @@ test('home and Framework pages feature current Antiky media', async () => {
   assert.match(framework, /href="\/demos\/antiky-town"/);
   assert.match(framework, /antiky-architecture\.png/);
   assert.match(framework, /Antiky target architecture/);
+});
+
+test('production navigation exposes the new public architecture and canonical participation links', async () => {
+  for (const page of ['index.html', 'framework.html', 'studio.html', 'games.html']) {
+    const output = await readFile(new URL(page, outputRoot), 'utf8');
+    for (const route of ['/thesis', '/studio', '/framework', '/games', '/research', '/docs']) {
+      assert.ok(output.includes(`href="${route}"`), `${page} is missing ${route}`);
+    }
+    assert.ok(output.includes(`href="${studioReleasesUrl}"`), `${page} is missing Studio releases`);
+    assert.ok(output.includes(`href="${discordUrl}"`), `${page} is missing Discord`);
+    assert.doesNotMatch(output, /href="\/worlds(?:[\/#"])/);
+    assert.match(output, /aria-label="Mobile navigation"[\s\S]*Download Studio/);
+  }
+});
+
+test('Games replaces Worlds in the sitemap and Worlds permanently redirects', async () => {
+  const sitemap = await readFile(new URL('sitemap.xml.body', outputRoot), 'utf8');
+  const routesManifest = JSON.parse(await readFile(new URL('../../routes-manifest.json', outputRoot), 'utf8'));
+
+  assert.ok(sitemap.includes(`<loc>${new URL('/games', siteUrl)}</loc>`));
+  assert.ok(sitemap.includes(`<loc>${new URL('/thesis', siteUrl)}</loc>`));
+  assert.ok(!sitemap.includes(`<loc>${new URL('/worlds', siteUrl)}</loc>`));
+  assert.ok(routesManifest.redirects.some((entry) => (
+    entry.source === '/worlds'
+      && entry.destination === '/games'
+      && entry.statusCode === 308
+  )));
 });

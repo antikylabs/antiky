@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { NAV, SITE_NAME } from '@/lib/site';
+import { ArrowUpRight } from '@/components/Icons';
+import { DISCORD_URL, NAV, SITE_NAME, STUDIO_RELEASES_URL } from '@/lib/site';
 
 export default function SiteHeader() {
   const pathname = usePathname();
-  const links = NAV.map((link) => {
+  const renderLinks = () => NAV.map((link) => {
     const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
     return (
       <Link key={link.href} href={link.href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
@@ -21,11 +22,23 @@ export default function SiteHeader() {
         <Mark />
         <span>{SITE_NAME}</span>
       </Link>
-      <nav className="desktop-nav" aria-label="Primary navigation">{links}</nav>
-      <Link className="header-action" href="/demos/antiky-town">Run a study</Link>
+      <nav className="desktop-nav" aria-label="Primary navigation">{renderLinks()}</nav>
+      <div className="header-actions">
+        <a className="header-community" href={DISCORD_URL} target="_blank" rel="noreferrer">Discord</a>
+        <a className="header-action" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
+          Download Studio <ArrowUpRight />
+        </a>
+      </div>
       <details className="mobile-menu">
         <summary>Menu</summary>
-        <nav aria-label="Mobile navigation">{links}</nav>
+        <nav aria-label="Mobile navigation">
+          {renderLinks()}
+          <Link href="/demos">Demos</Link>
+          <a href={DISCORD_URL} target="_blank" rel="noreferrer">Discord <ArrowUpRight /></a>
+          <a className="mobile-primary-action" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
+            Download Studio <ArrowUpRight />
+          </a>
+        </nav>
       </details>
     </header>
   );

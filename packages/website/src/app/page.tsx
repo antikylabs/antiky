@@ -29,7 +29,7 @@ const WORK = [
     body: 'Research into generated game assets, 2.3D rendering, physics, and models trained to write shader DSL and game-framework code.',
   },
   {
-    href: '/worlds',
+    href: '/games',
     status: 'Planned',
     title: 'Antiky Worlds',
     body: 'The future game studio behind Emberwyrd, a character-first online fantasy action RPG now in development.',
