@@ -187,6 +187,13 @@ The site-launch gate requires packaged Studio release assets with version, platf
 release-note, and limitation information. Do not deploy a download-led build before those assets
 exist.
 
+The default build therefore links people to the Studio page and source-build guide without claiming
+a download exists. After the release assets pass inspection, build the launch site with
+`NEXT_PUBLIC_STUDIO_RELEASES_READY=true`. That explicit publication assertion changes the primary
+Studio actions to **Download Studio** and exposes the canonical GitHub Releases destination. Verify
+both states with the normal website test and `npm run test:release-ready --workspace
+@antiky/website`.
+
 Discord language should promise member value, not member count. Invite builders to ask for Studio
 help, share work, challenge the Thesis, compare approaches, and help turn questions into evidence.
 Do not claim an established ecosystem until community evidence supports it.

@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
-import { canonical, DISCORD_URL, STUDIO_RELEASES_URL } from '@/lib/site';
+import StudioPrimaryAction from '@/components/StudioPrimaryAction';
+import { canonical, DISCORD_URL, GITHUB_URL, STUDIO_RELEASES_READY } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Studio',
@@ -66,7 +67,9 @@ export default function StudioPage() {
       <section className="page-hero studio-hero wrap">
         <div className="status-line">
           <span className="status-dot status-emerging" />
-          Early Studio · release details on GitHub
+          {STUDIO_RELEASES_READY
+            ? 'Early Studio · release details on GitHub'
+            : 'Current source build · packaged downloads are not public yet'}
         </div>
         <h1>Your game and its living state. One workspace.</h1>
         <p className="page-lead">
@@ -74,9 +77,11 @@ export default function StudioPage() {
           simulation controls, and structured runtime inspection into one workspace.
         </p>
         <div className="actions">
-          <a className="button button-primary" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
-            Download Studio <ArrowUpRight />
-          </a>
+          <StudioPrimaryAction
+            className="button button-primary"
+            fallbackHref="/docs/studio/getting-started"
+            fallbackLabel="Run Studio from source"
+          />
           <Link className="text-link" href="/docs/studio/getting-started">Open Studio docs <ArrowRight /></Link>
           <a className="text-link" href={DISCORD_URL} target="_blank" rel="noreferrer">
             Get help on Discord <ArrowUpRight />
@@ -191,13 +196,24 @@ export default function StudioPage() {
         <div className="wrap studio-availability-grid">
           <div>
             <p className="section-label">Current availability</p>
-            <h2>Start with the release that fits your system.</h2>
+            <h2>
+              {STUDIO_RELEASES_READY
+                ? 'Start with the release that fits your system.'
+                : 'Run Studio from the current source build.'}
+            </h2>
           </div>
           <div className="prose">
-            <p className="lead">
-              Downloadable builds are distributed through GitHub Releases. Check the selected
-              release for platform support, installation guidance, version, and known limitations.
-            </p>
+            {STUDIO_RELEASES_READY ? (
+              <p className="lead">
+                Downloadable builds are distributed through GitHub Releases. Check the selected
+                release for platform support, installation guidance, version, and known limitations.
+              </p>
+            ) : (
+              <p className="lead">
+                Packaged downloads are not public yet. The current guide explains how to run the
+                working native workspace from the repository while release packaging is completed.
+              </p>
+            )}
             <p>
               Inspector views are read-only. Simulation controls and approved MCP commands can
               change the running game through their defined boundaries.
@@ -207,10 +223,21 @@ export default function StudioPage() {
               generic lifecycle data, measurements that they report, reload, and canvas capture.
             </p>
             <div className="thesis-links">
-              <a className="button button-primary" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
-                Download Studio <ArrowUpRight />
-              </a>
-              <Link className="text-link" href="/docs/studio/getting-started">Follow the first-run guide <ArrowRight /></Link>
+              <StudioPrimaryAction
+                className="button button-primary"
+                fallbackHref="/docs/studio/getting-started"
+                fallbackLabel="Run Studio from source"
+              />
+              {!STUDIO_RELEASES_READY && (
+                <a className="text-link" href={GITHUB_URL} target="_blank" rel="noreferrer">
+                  Browse the source <ArrowUpRight />
+                </a>
+              )}
+              {STUDIO_RELEASES_READY && (
+                <Link className="text-link" href="/docs/studio/getting-started">
+                  Follow the first-run guide <ArrowRight />
+                </Link>
+              )}
             </div>
           </div>
         </div>

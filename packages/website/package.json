@@ -10,6 +10,7 @@
     "demos:stage": "node scripts/build-public-demos.mjs",
     "start": "next start -p 3010",
     "test": "npm run build && node --test tests/*.test.mjs",
+    "test:release-ready": "NEXT_PUBLIC_STUDIO_RELEASES_READY=true npm run test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

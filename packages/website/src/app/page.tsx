@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import DemoStage from '@/components/DemoStage';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
-import { BROMETAL_URL, DISCORD_URL, STUDIO_RELEASES_URL } from '@/lib/site';
+import StudioPrimaryAction from '@/components/StudioPrimaryAction';
+import { BROMETAL_URL, DISCORD_URL } from '@/lib/site';
 
 const SYSTEM = [
   {
@@ -50,9 +51,7 @@ export default function HomePage() {
             first-class participants—and the human remains the creative authority.
           </p>
           <div className="actions">
-            <a className="button button-primary" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
-              Download Studio <ArrowUpRight />
-            </a>
+            <StudioPrimaryAction className="button button-primary" />
             <Link className="text-link" href="/thesis">Read the Thesis <ArrowRight /></Link>
             <a className="text-link" href={DISCORD_URL} target="_blank" rel="noreferrer">
               Join Discord <ArrowUpRight />
@@ -235,9 +234,7 @@ export default function HomePage() {
           Build the world in your mind. Stay in the director&apos;s chair.
         </p>
         <div className="actions">
-          <a className="button button-primary" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
-            Download Studio <ArrowUpRight />
-          </a>
+          <StudioPrimaryAction className="button button-primary" />
           <Link className="text-link" href="/thesis">Read the Antiky Thesis <ArrowRight /></Link>
         </div>
       </section>

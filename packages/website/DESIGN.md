@@ -239,11 +239,13 @@ arbitrary rounded cards.
 ### Navigation
 
 The desktop header keeps the brand left, six primary destinations, a quiet Discord utility link, and
-one violet Studio download action. Default links are muted; hover and current-page states become
-primary text without animated underlines. The mobile semantic disclosure includes every primary
-destination, Demos, Discord, and Studio download as 48px rows with a visible active state. Navigation
-reflects the current information architecture; removed or internal destinations do not remain as
-disabled placeholders.
+one violet Studio action. Before packaged releases exist, that action says **Explore Studio** and
+stays inside the site. A release-ready build changes it to **Download Studio** and uses the canonical
+GitHub destination. Default links are muted; hover and current-page states become primary text
+without animated underlines. The mobile semantic disclosure includes every primary destination,
+Demos, Discord, and the same state-aware Studio action as 48px rows with a visible active state.
+Navigation reflects the current information architecture; removed or internal destinations do not
+remain as disabled placeholders.
 
 ### Buttons and Links
 

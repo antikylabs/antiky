@@ -5,6 +5,7 @@ import test from 'node:test';
 const outputRoot = new URL('../.next/server/app/', import.meta.url);
 const rootLayout = new URL('../src/app/layout.tsx', import.meta.url);
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
+const studioReleasesReady = process.env.NEXT_PUBLIC_STUDIO_RELEASES_READY === 'true';
 const studioReleasesUrl = 'https://github.com/antikylabs/antiky/releases';
 const discordUrl = 'https://discord.gg/3Qs2uejUf9';
 
@@ -104,16 +105,21 @@ test('homepage follows the why-first evidence-to-participation sequence', async 
   assert.doesNotMatch(home, /Tools for making worlds|<h1>2D character|emerging 2\.3D framework/);
 });
 
-test('production navigation exposes the new public architecture and canonical participation links', async () => {
+test('production navigation exposes the public architecture and release-aware Studio action', async () => {
   for (const page of ['index.html', 'framework.html', 'studio.html', 'games.html']) {
     const output = await readFile(new URL(page, outputRoot), 'utf8');
     for (const route of ['/thesis', '/studio', '/framework', '/games', '/research', '/docs']) {
       assert.ok(output.includes(`href="${route}"`), `${page} is missing ${route}`);
     }
-    assert.ok(output.includes(`href="${studioReleasesUrl}"`), `${page} is missing Studio releases`);
     assert.ok(output.includes(`href="${discordUrl}"`), `${page} is missing Discord`);
     assert.doesNotMatch(output, /href="\/worlds(?:[\/#"])/);
-    assert.match(output, /aria-label="Mobile navigation"[\s\S]*Download Studio/);
+    if (studioReleasesReady) {
+      assert.ok(output.includes(`href="${studioReleasesUrl}"`), `${page} is missing Studio releases`);
+      assert.match(output, /aria-label="Mobile navigation"[\s\S]*Download Studio/);
+    } else {
+      assert.doesNotMatch(output, /Download Studio/);
+      assert.match(output, /aria-label="Mobile navigation"[\s\S]*Explore Studio/);
+    }
   }
 });
 

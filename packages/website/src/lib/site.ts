@@ -6,6 +6,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.
 
 export const GITHUB_URL = 'https://github.com/antikylabs/antiky';
 export const STUDIO_RELEASES_URL = `${GITHUB_URL}/releases`;
+export const STUDIO_RELEASES_READY = process.env.NEXT_PUBLIC_STUDIO_RELEASES_READY === 'true';
 export const DISCORD_URL = 'https://discord.gg/3Qs2uejUf9';
 export const BROMETAL_URL = 'https://brometal.dev';
 export const BROMETAL_VERSION = '0.14.0';

@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowUpRight } from '@/components/Icons';
-import { DISCORD_URL, NAV, SITE_NAME, STUDIO_RELEASES_URL } from '@/lib/site';
+import StudioPrimaryAction from '@/components/StudioPrimaryAction';
+import { DISCORD_URL, NAV, SITE_NAME } from '@/lib/site';
 
 export default function SiteHeader() {
   const pathname = usePathname();
@@ -25,9 +26,7 @@ export default function SiteHeader() {
       <nav className="desktop-nav" aria-label="Primary navigation">{renderLinks()}</nav>
       <div className="header-actions">
         <a className="header-community" href={DISCORD_URL} target="_blank" rel="noreferrer">Discord</a>
-        <a className="header-action" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
-          Download Studio <ArrowUpRight />
-        </a>
+        <StudioPrimaryAction className="header-action" />
       </div>
       <details className="mobile-menu">
         <summary>Menu</summary>
@@ -35,9 +34,7 @@ export default function SiteHeader() {
           {renderLinks()}
           <Link href="/demos">Demos</Link>
           <a href={DISCORD_URL} target="_blank" rel="noreferrer">Discord <ArrowUpRight /></a>
-          <a className="mobile-primary-action" href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">
-            Download Studio <ArrowUpRight />
-          </a>
+          <StudioPrimaryAction className="mobile-primary-action" />
         </nav>
       </details>
     </header>
