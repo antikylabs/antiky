@@ -25,7 +25,7 @@ export default function FrameworkPage() {
     <>
       <section className="page-hero wrap">
         <p className="status-line"><span className="status-dot status-emerging" /> Pre-release · working foundation</p>
-        <h1>A headless foundation for a game tools can understand.</h1>
+        <h1>A headless foundation for a game that tools can understand.</h1>
         <p className="page-lead">
           Antiky Framework owns game sessions, identity, structured inspection, and bounded state
           changes beneath Studio, CLI, MCP, direct clients, and the current Framework studies.

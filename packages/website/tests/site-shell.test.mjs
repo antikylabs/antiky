@@ -142,11 +142,13 @@ test('product and research pages expose status boundaries without stale primary 
   const studio = await readFile(new URL('studio.html', outputRoot), 'utf8');
   const research = await readFile(new URL('research.html', outputRoot), 'utf8');
   const games = await readFile(new URL('games.html', outputRoot), 'utf8');
+  const demos = await readFile(new URL('demos.html', outputRoot), 'utf8');
   const demo = await readFile(new URL('demos/antiky-town.html', outputRoot), 'utf8');
 
   assert.match(framework, /data-evidence-status="current"/);
   assert.match(framework, /data-evidence-status="emerging"/);
   assert.match(framework, /data-evidence-status="direction"/);
+  assert.match(framework, /A headless foundation for a game that tools can understand\./);
   assert.doesNotMatch(framework, /Built for 2D characters in 3D worlds|emerging 2\.3D game framework/);
 
   for (const status of ['current', 'emerging', 'direction']) {
@@ -158,6 +160,7 @@ test('product and research pages expose status boundaries without stale primary 
   assert.doesNotMatch(research, /Training and adapting models|Generated voxel assets/);
   assert.match(games, /data-evidence-status="current"/);
   assert.match(games, /data-evidence-status="direction"/);
+  assert.match(demos.replaceAll('<!-- -->', ''), /four BroMetal 0\.14\.0 studies/);
   assert.match(demo, /What it does not show/);
 });
 

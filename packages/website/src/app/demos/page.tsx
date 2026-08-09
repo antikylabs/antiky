@@ -18,7 +18,7 @@ export default function DemosPage() {
         <h1>Run the work.</h1>
         <p className="status-line"><span className="status-dot status-live" /> Eight live studies</p>
         <p className="page-lead">
-          These are live modules, not trailers: two Antiky Framework studies, four BroMetal {BROMETAL_VERSION}
+          These are live modules, not trailers: two Antiky Framework studies, four BroMetal {BROMETAL_VERSION}{' '}
           studies, and two Three.js scenes in the same portable host. Each shows a bounded result;
           none is a production game or proof of the complete Antiky architecture.
         </p>
