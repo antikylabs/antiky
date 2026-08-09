@@ -41,6 +41,34 @@ test('antiky init help describes one non-interactive manifest command', async ()
   assert.match(help.stdout.join(''), /creates one \.antiky project manifest/i);
 });
 
+test('antiky asset install resolves a catalog asset and validated project', async () => {
+  const directory = await emptyProjectDirectory('asset-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const installed: Array<{ id: string; root: string }> = [];
+  const result = output();
+
+  assert.equal(await runCli([
+    'asset', 'install', 'poly-haven:forest-floor', '--project', directory,
+  ], result.io, {
+    assetInstaller: async ({ asset, projectRoot }) => {
+      installed.push({ id: asset.id, root: projectRoot });
+      return { catalogId: asset.id, installedAt: '2026-08-09T00:00:00.000Z', files: [] };
+    },
+  }), 0);
+
+  assert.deepEqual(installed, [{ id: 'poly-haven:forest-floor', root: await realpath(directory) }]);
+  assert.match(result.stdout.join(''), /Installed poly-haven:forest-floor/);
+});
+
+test('antiky asset install rejects unknown catalog IDs', async () => {
+  const directory = await emptyProjectDirectory('missing-asset-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  await assert.rejects(
+    runCli(['asset', 'install', 'poly-haven:missing', '--project', directory], output().io),
+    expectCliError('ANTIKY_ASSET_NOT_FOUND'),
+  );
+});
+
 test('antiky init uses the folder name and creates only the frozen manifest', async () => {
   const directory = await emptyProjectDirectory('harbor-lights');
   const expected = await readFile(new URL('fixtures/initialized-project.antiky', import.meta.url), 'utf8');

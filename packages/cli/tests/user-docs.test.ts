@@ -137,6 +137,10 @@ test('the dedicated Projects guide documents the public project workflow', async
   assert.match(source, /"build": \{/);
   assert.match(source, /antiky dev --project path\/to\/harbor-lights\.antiky/);
   assert.match(source, /antiky studio path\/to\/harbor-lights/);
+  assert.match(source, /antiky asset install poly-haven:forest-floor --project path\/to\/harbor-lights\.antiky/);
+  assert.match(source, /assets\/antiky-assets\.json/);
+  assert.match(source, /ANTIKY_ASSET_NOT_FOUND/);
+  assert.match(source, /ANTIKY_ASSET_INSTALL_FAILED/);
   assert.match(source, /validates.*before.*open.*Antiky Studio/is);
   assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
   assert.match(source, /Finder/i);

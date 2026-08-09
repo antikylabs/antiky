@@ -1,6 +1,9 @@
 import { resolve } from 'node:path';
 
 import { ID_KINDS, generateId, type IdKind } from '@antiky/framework';
+import { findAsset, type CatalogAsset } from '@antiky/asset-catalog';
+import { CATALOG_ASSETS } from '@antiky/asset-catalog/catalog';
+import { installCatalogAsset, type InstalledAssetReceipt } from '@antiky/asset-catalog/node';
 
 import { connectDevelopmentClient, inspectDevelopmentSession } from './development/client.ts';
 import { AntikyCliError } from './errors.ts';
@@ -18,6 +21,7 @@ import { launchStudioProject } from './studio-launch.ts';
 
 export const CLI_USAGE = `Usage:
   antiky init [name] [--directory path]
+  antiky asset install <provider:slug> [--project path]
   antiky studio [path | --project path]
   antiky dev [--project path]
   antiky inspect [--project path]
@@ -41,6 +45,10 @@ export type CliIo = Readonly<{
 export type RunCliOptions = Readonly<{
   diagnosticSink?: CliDiagnosticSink;
   studioLauncher?: (manifestPath: string) => Promise<void>;
+  assetInstaller?: (input: Readonly<{
+    asset: CatalogAsset;
+    projectRoot: string;
+  }>) => Promise<InstalledAssetReceipt>;
 }>;
 
 function parseProjectPath(args: readonly string[]): string | undefined {
@@ -70,6 +78,17 @@ type GenerateIdInvocation = Readonly<{
 type InitInvocation =
   | Readonly<{ help: true }>
   | Readonly<{ help: false; name?: string; directory: string }>;
+
+type AssetInstallInvocation = Readonly<{ catalogId: string; projectPath?: string }>;
+
+function parseAssetInstallInvocation(args: readonly string[]): AssetInstallInvocation {
+  const [verb, catalogId, ...options] = args;
+  if (verb !== 'install' || !catalogId || !/^[a-z0-9-]+:[a-z0-9-]+$/u.test(catalogId)) {
+    throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+  const projectPath = parseProjectPath(options);
+  return Object.freeze({ catalogId, ...(projectPath ? { projectPath } : {}) });
+}
 
 function parseInitInvocation(args: readonly string[]): InitInvocation {
   if (args.length === 1 && args[0] === '--help') return Object.freeze({ help: true });
@@ -236,10 +255,12 @@ async function executeCli(
   io: CliIo,
   diagnosticSink: CliDiagnosticSink,
   studioLauncher: (manifestPath: string) => Promise<void>,
+  assetInstaller: NonNullable<RunCliOptions['assetInstaller']>,
 ): Promise<number> {
   const [command, ...commandArgs] = args;
   if (
     command !== 'init'
+    && command !== 'asset'
     && command !== 'studio'
     && command !== 'dev'
     && command !== 'inspect'
@@ -249,6 +270,26 @@ async function executeCli(
     && command !== 'generate'
   ) {
     throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+  if (command === 'asset') {
+    const invocation = parseAssetInstallInvocation(commandArgs);
+    const separator = invocation.catalogId.indexOf(':');
+    const provider = invocation.catalogId.slice(0, separator);
+    const slug = invocation.catalogId.slice(separator + 1);
+    const asset = findAsset(CATALOG_ASSETS, provider, slug);
+    if (!asset) {
+      throw new AntikyCliError('ANTIKY_ASSET_NOT_FOUND', `Unknown catalog asset: ${invocation.catalogId}`);
+    }
+    const project = await loadAntikyProject(invocation.projectPath);
+    let receipt: InstalledAssetReceipt;
+    try {
+      receipt = await assetInstaller({ asset, projectRoot: project.projectRoot });
+    } catch (cause) {
+      const detail = cause instanceof Error ? cause.message : 'Unknown installation failure';
+      throw new AntikyCliError('ANTIKY_ASSET_INSTALL_FAILED', `Could not install ${asset.id}: ${detail}`);
+    }
+    io.stdout(`Installed ${receipt.catalogId} (${receipt.files.length} files) in ${project.projectRoot}\n`);
+    return 0;
   }
   if (command === 'init') {
     const invocation = parseInitInvocation(commandArgs);
@@ -358,8 +399,9 @@ export async function runCli(
 ): Promise<number> {
   const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
   const studioLauncher = options.studioLauncher ?? launchStudioProject;
+  const assetInstaller = options.assetInstaller ?? installCatalogAsset;
   try {
-    return await executeCli(args, io, diagnosticSink, studioLauncher);
+    return await executeCli(args, io, diagnosticSink, studioLauncher, assetInstaller);
   } catch (cause: unknown) {
     if (cause instanceof AntikyCliError) throw cause;
     emitCliDiagnostic(diagnosticSink, {

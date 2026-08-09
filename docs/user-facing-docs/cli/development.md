@@ -25,6 +25,26 @@ The command creates only the manifest. It does not install dependencies, run pac
 create source files, initialize Git, or contact a remote service. It prints the created manifest
 path and the next `antiky dev` and Studio actions.
 
+## Install a catalog asset
+
+Install a verified asset from the Antiky catalog into a project with its catalog ID:
+
+```sh
+antiky asset install poly-haven:forest-floor --project path/to/harbor-lights.antiky
+```
+
+The command validates the selected Antiky project, downloads the catalog's selected files, and
+checks every byte count and upstream hash before it replaces an existing installation. It writes
+the files beneath `assets/<provider>/<asset>/` and records their source URLs, upstream hashes,
+SHA-256 hashes, license, API attribution, and installation time in `assets/antiky-assets.json`.
+Track that registry with the project. It lets Studio, agents, builds, and reviewers identify the
+exact source of installed files without relying on filenames.
+
+The installer accepts only catalog records marked `verified`. A failed download or integrity check
+leaves the prior installed asset unchanged. `ANTIKY_ASSET_NOT_FOUND` means the catalog ID is not
+known. `ANTIKY_ASSET_INSTALL_FAILED` means project validation, download, integrity verification, or
+the final filesystem update failed.
+
 The name stays visible in the manifest. Antiky converts it to a safe lowercase file slug. It keeps
 Unicode letters in the display name when they can produce a non-empty ASCII slug.
 

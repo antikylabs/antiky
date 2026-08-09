@@ -116,6 +116,22 @@ antiky dev --project path/to/harbor-lights.antiky
 The CLI checks only the current directory when `--project` is absent. It does not search parent
 directories. Zero or multiple `.antiky` files produce an error instead of selecting one implicitly.
 
+## Install a catalog asset
+
+Install a verified catalog entry into an explicit project:
+
+```sh
+antiky asset install poly-haven:forest-floor --project path/to/harbor-lights.antiky
+```
+
+Antiky downloads each file into the project's `assets/` directory, verifies its upstream size and
+hash, and records the source, license, attribution, installed paths, and calculated SHA-256 hashes in
+`assets/antiky-assets.json`. The registry travels with the project so Studio and agents can inspect
+where every installed asset came from.
+
+An unknown catalog identity returns `ANTIKY_ASSET_NOT_FOUND`. A failed download, unsafe path, or
+provenance mismatch returns `ANTIKY_ASSET_INSTALL_FAILED` without recording a successful install.
+
 ## Understand the manifest fields
 
 | Field | Purpose |
