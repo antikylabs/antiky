@@ -23,6 +23,7 @@ import {
 import traversalGlowShader from './shaders/traversal-glow.shader.gen';
 import traversalSurfaceShader from './shaders/traversal-surface.shader.gen';
 import { TRAVERSAL_WORLD_ID, createTraversalInspectionModel } from './inspection.ts';
+import { traversalCameraFrame } from './presentation.ts';
 import {
   COURSE_HAZARDS,
   COURSE_LENGTH,
@@ -39,9 +40,9 @@ const CORAL: Vec3 = [1.4, 0.18, 0.38];
 const GOLD: Vec3 = [1.5, 0.76, 0.12];
 const VIOLET: Vec3 = [0.72, 0.22, 1.4];
 const PLATFORM_COLORS = [
-  [0.035, 0.48, 0.6],
-  [0.9, 0.11, 0.32],
-  [0.95, 0.52, 0.08],
+  [0.025, 0.32, 0.46],
+  [0.62, 0.055, 0.22],
+  [0.75, 0.38, 0.06],
 ] as const satisfies readonly Vec3[];
 
 function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
@@ -164,10 +165,11 @@ const game: GameModuleEntry = async (context) => {
     });
 
     const platformBodies = createSurfaceBatch(renderer, createCube(), 24);
+    const platformRims = createSurfaceBatch(renderer, createCube(), 24);
     const islandUndersides = createSurfaceBatch(
       renderer,
       createCone({ radius: 1, height: 2, radialSegments: 18 }),
-      24,
+      72,
     );
     const runner = createSurfaceBatch(
       renderer,
@@ -195,8 +197,10 @@ const game: GameModuleEntry = async (context) => {
       createSphere({ radius: 1, widthSegments: 10, heightSegments: 7 }),
       72,
     );
+    const windLines = createGlowBatch(renderer, createCube(), 36);
     const programs = [
       platformBodies.program,
+      platformRims.program,
       islandUndersides.program,
       runner.program,
       hazards.program,
@@ -204,12 +208,13 @@ const game: GameModuleEntry = async (context) => {
       atmosphere.program,
       gates.program,
       trail.program,
+      windLines.program,
     ];
     const cameraPosition = new Float32Array(3);
     const camera = createCamera({ position: [0, 4.8, 12.5], fovY: Math.PI / 3.6, near: 0.1, far: 80 });
 
     context.report({
-      instances: 229,
+      instances: 337,
       drawCalls: programs.length,
       uploadBytesPerFrame: 14_908,
       note: 'Framework fixed-step traversal with moving platforms and layered BroMetal scenery',
@@ -218,6 +223,7 @@ const game: GameModuleEntry = async (context) => {
     const render = (state: TraversalSnapshot): void => {
       const platforms = platformInstancesNear(state.player.x, state.time);
       platformBodies.clear();
+      platformRims.clear();
       islandUndersides.clear();
       platforms.forEach((platform, index) => {
         const color = PLATFORM_COLORS[platform.definition.accent]!;
@@ -229,15 +235,29 @@ const game: GameModuleEntry = async (context) => {
           color,
           [0.16 + moving * 0.46, moving * 0.18, 0],
         );
-        islandUndersides.set(
+        platformRims.set(
           index,
-          [platform.x, platform.top - 1.28, 0],
-          [platform.definition.width * 0.43, 1.2 + platform.definition.width * 0.12, 1.1],
-          [color[0] * 0.36, color[1] * 0.36, color[2] * 0.42],
-          [0.05, 0, Math.PI],
+          [platform.x, platform.top + 0.015, 0],
+          [platform.definition.width * 1.02, 0.07, 2.82],
+          platform.definition.accent === 0 ? AQUA : platform.definition.accent === 1 ? CORAL : GOLD,
+          [0.58 + moving * 0.28, 0, 0],
         );
+        for (let shard = 0; shard < 3; shard += 1) {
+          const shardIndex = index * 3 + shard;
+          const spread = (shard - 1) * platform.definition.width * 0.25;
+          const shardHeight = 0.78 + stableNoise(index * 3 + shard, 12) * 0.75;
+          const shardWidth = platform.definition.width * (shard === 1 ? 0.25 : 0.18);
+          islandUndersides.set(
+            shardIndex,
+            [platform.x + spread, platform.top - 0.52 - shardHeight * 0.55, (shard - 1) * 0.12],
+            [shardWidth, shardHeight, 0.78 + stableNoise(shardIndex, 4) * 0.3],
+            [color[0] * (0.26 + shard * 0.04), color[1] * 0.28, color[2] * 0.34],
+            [0.07, 0, Math.PI + (shard - 1) * 0.08],
+          );
+        }
       });
       platformBodies.upload();
+      platformRims.upload();
       islandUndersides.upload();
 
       const gait = Math.sin(state.time * (8 + Math.abs(state.player.vx) * 1.1));
@@ -409,16 +429,30 @@ const game: GameModuleEntry = async (context) => {
       });
       trail.upload();
 
-      const mobile = renderer.aspect < 0.9;
-      cameraPosition[0] = state.player.x + (mobile ? 2.2 : 3.7);
-      cameraPosition[1] = (mobile ? 6.2 : 4.9) + (context.pointer.y - 0.5) * 0.5;
-      cameraPosition[2] = mobile ? 16.5 : 12.6;
+      windLines.clear();
+      const windAnchor = Math.floor(state.player.x / 18) * 18;
+      for (let index = 0; index < 36; index += 1) {
+        const depthBand = index % 3;
+        const phase = stableNoise(index, 14) * 18;
+        const wrap = ((state.time * (2.2 + depthBand * 0.65) + phase) % 22) - 11;
+        const x = windAnchor + wrap + (index - 18) * 0.72;
+        const y = -1.4 + stableNoise(index, 15) * 8.2;
+        windLines.set(
+          index,
+          [x, y, -1.2 - depthBand * 2.2],
+          [0.36 + depthBand * 0.22, 0.012, 0.035],
+          depthBand === 0 ? AQUA : depthBand === 1 ? VIOLET : GOLD,
+          0.08 + depthBand * 0.035,
+          -0.04,
+          index * 0.53,
+        );
+      }
+      windLines.upload();
+
+      const cameraFrame = traversalCameraFrame(renderer.aspect, state, context.pointer);
+      cameraPosition.set(cameraFrame.position);
       camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
-      camera.lookAt(
-        state.player.x + (mobile ? 0.4 : 1.8),
-        Math.max(1.1, state.player.y * 0.34 + 0.9),
-        -0.8,
-      );
+      camera.lookAt(...cameraFrame.target);
       const viewProjection = camera.viewProjection(renderer.aspect);
       programs.forEach((program) => {
         program.uniforms.uViewProj.set(viewProjection);
@@ -429,8 +463,10 @@ const game: GameModuleEntry = async (context) => {
       renderer.present(() => {
         skyline.program.draw();
         atmosphere.program.draw();
+        windLines.program.draw();
         islandUndersides.program.draw();
         platformBodies.program.draw();
+        platformRims.program.draw();
         hazards.program.draw();
         gates.program.draw();
         runner.program.draw();
@@ -485,6 +521,7 @@ const game: GameModuleEntry = async (context) => {
         try {
           session.dispose();
           platformBodies.dispose();
+          platformRims.dispose();
           islandUndersides.dispose();
           runner.dispose();
           hazards.dispose();
@@ -492,6 +529,7 @@ const game: GameModuleEntry = async (context) => {
           atmosphere.dispose();
           gates.dispose();
           trail.dispose();
+          windLines.dispose();
         } finally {
           renderer.destroy();
         }
