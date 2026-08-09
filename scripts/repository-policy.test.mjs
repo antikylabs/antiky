@@ -41,6 +41,7 @@ test('root package commands stay within the cross-workspace allowlist', async ()
     'dev',
     'dev:demos',
     'dev:framework',
+    'dev:resources-site',
     'dev:studio',
     'dev:studio:web',
     'dev:website',
