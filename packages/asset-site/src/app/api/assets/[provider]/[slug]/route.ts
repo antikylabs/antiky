@@ -8,5 +8,5 @@ export async function GET(_request: Request, { params }: Readonly<{ params: Para
   const { provider, slug } = await params;
   const asset = catalogAsset(provider, slug);
   if (!asset) return NextResponse.json({ error: 'ASSET_NOT_FOUND' }, { status: 404 });
-  return NextResponse.json({ schemaVersion: 1, asset });
+  return NextResponse.json({ schemaVersion: 2, asset });
 }

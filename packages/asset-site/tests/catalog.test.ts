@@ -13,3 +13,8 @@ test('resolves permanent provider and slug identities', () => {
   assert.equal(catalogAsset('poly-haven', 'forest-floor')?.upstream.id, 'forest_floor');
   assert.equal(catalogAsset('missing', 'forest-floor'), undefined);
 });
+
+test('exposes the complete thousand-record catalog to search and agents', () => {
+  assert.equal(catalogSearch({}).length, 1_000);
+  assert.equal(catalogAsset('poly-haven', 'grass-medium-01')?.verification, 'source-verified');
+});

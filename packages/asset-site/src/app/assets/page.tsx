@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import { AssetCard } from '../../components/AssetCard';
-import { catalogProviders, catalogSearch } from '../../lib/catalog';
+import { catalogCount, catalogProviders, catalogSearch } from '../../lib/catalog';
 
 export const metadata: Metadata = {
   title: 'Game assets · Antiky Assets',
@@ -14,11 +15,27 @@ function one(value: string | string[] | undefined): string {
   return typeof value === 'string' ? value : '';
 }
 
+const PAGE_SIZE = 48;
+
+function pageLink(query: Readonly<{ q: string; type: string; provider: string }>, page: number): string {
+  const params = new URLSearchParams();
+  if (query.q) params.set('q', query.q);
+  if (query.type) params.set('type', query.type);
+  if (query.provider) params.set('provider', query.provider);
+  if (page > 1) params.set('page', String(page));
+  const search = params.toString();
+  return search ? `/assets?${search}` : '/assets';
+}
+
 export default async function AssetsPage({ searchParams }: Readonly<{ searchParams: SearchParams }>) {
   const params = await searchParams;
   const query = { q: one(params.q), type: one(params.type), provider: one(params.provider) };
-  const assets = catalogSearch(query);
+  const matches = catalogSearch(query);
   const providers = catalogProviders();
+  const requestedPage = Number.parseInt(one(params.page), 10);
+  const pageCount = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, pageCount) : 1;
+  const assets = matches.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <main className="assets-page">
@@ -30,7 +47,7 @@ export default async function AssetsPage({ searchParams }: Readonly<{ searchPara
         <div className="assets-hero-copy">
           <p>Game-ready building blocks with clear licensing, source evidence, and formats agents can understand.</p>
           <dl className="hero-stats">
-            <div><dt>Assets</dt><dd>{assets.length}</dd></div>
+            <div><dt>Assets</dt><dd>{catalogCount()}</dd></div>
             <div><dt>Sources</dt><dd>{providers.length}</dd></div>
             <div><dt>License</dt><dd>CC0</dd></div>
           </dl>
@@ -58,13 +75,25 @@ export default async function AssetsPage({ searchParams }: Readonly<{ searchPara
       <section className="catalog-section wrap" aria-labelledby="catalog-heading">
         <div className="section-heading">
           <div><p className="section-label">Browse / filtered results</p><h2 id="catalog-heading">Catalog</h2></div>
-          <span>{assets.length} {assets.length === 1 ? 'asset' : 'assets'}</span>
+          <span>{matches.length} {matches.length === 1 ? 'asset' : 'assets'} / page {page} of {pageCount}</span>
         </div>
         {assets.length > 0 ? (
           <div className="asset-grid">{assets.map((asset) => <AssetCard asset={asset} key={asset.id} />)}</div>
         ) : (
           <div className="empty-state"><p>No assets match this search.</p></div>
         )}
+        {matches.length > PAGE_SIZE && (
+          <nav className="pagination" aria-label="Catalog pages">
+            {page > 1 ? <Link href={pageLink(query, page - 1)}>← Previous</Link> : <span />}
+            <span>Page {page} of {pageCount}</span>
+            {page < pageCount ? <Link href={pageLink(query, page + 1)}>Next →</Link> : <span />}
+          </nav>
+        )}
+        <aside className="verification-guide" aria-label="Catalog status guide">
+          <p><strong>Cataloged metadata</strong> records source and licensing.</p>
+          <p><strong>Source metadata verified</strong> comes from a provider API.</p>
+          <p><strong>Install verified</strong> adds file sizes and hashes checked during installation.</p>
+        </aside>
       </section>
     </main>
   );

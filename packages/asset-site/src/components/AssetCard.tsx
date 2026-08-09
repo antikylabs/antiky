@@ -1,15 +1,17 @@
 import Link from 'next/link';
 
 import type { CatalogAsset } from '@antiky/asset-catalog';
+import { fileCountLabel, VERIFICATION_COPY } from '../lib/presentation';
 
 export function AssetCard({ asset }: Readonly<{ asset: CatalogAsset }>) {
-  const fileLabel = `${asset.fileCount} ${asset.fileCount === 1 ? 'file' : 'files'}`;
+  const fileLabel = fileCountLabel(asset.fileCount);
+  const verification = VERIFICATION_COPY[asset.verification];
   return (
     <article className="asset-card">
       <Link href={`/assets/${asset.provider.id}/${asset.slug}`}>
         <div className="asset-card-media">
-          <img src={asset.preview.url} width={asset.preview.width} height={asset.preview.height} alt={`Preview of ${asset.name}`} />
-          <span className={`status status-${asset.verification}`}>{asset.verification}</span>
+          <img src={asset.preview.url} width={asset.preview.width} height={asset.preview.height} alt={`Preview of ${asset.name}`} loading="lazy" referrerPolicy="no-referrer" />
+          <span className={`status status-${asset.verification}`} title={verification.description}>{verification.label}</span>
         </div>
         <div className="asset-card-copy">
           <div className="asset-meta">

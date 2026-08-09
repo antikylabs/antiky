@@ -25,3 +25,7 @@ export function catalogAsset(provider: string, slug: string): CatalogAsset | und
 export function catalogProviders() {
   return [...new Map(CATALOG_ASSETS.map((asset) => [asset.provider.id, asset.provider])).values()];
 }
+
+export function catalogCount(): number {
+  return CATALOG_ASSETS.length;
+}
