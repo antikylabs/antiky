@@ -17,6 +17,7 @@ import {
   fbm2,
   hash11,
   hash21,
+  hash22,
   tonemapACES,
   turbulence2,
   voronoi2,
@@ -39,6 +40,20 @@ function jellyGlow(p: Vec2, center: Vec2, scale: number, phase: number, time: nu
   const tentacleC = 0.006 / max(abs(q.x - 0.23 - wave * 1.1), 0.009);
   const tentacles = (tentacleA + tentacleB + tentacleC) * tentacleGate * 0.24;
   return dome * 0.34 + rim * 0.72 + skirt * 0.5 + tentacles;
+}
+
+function kelpBlade(p: Vec2, seabed: number, time: number): number {
+  const domain = (p.x + 2.1) * 5.7;
+  const cell = floor(domain);
+  const localX = fract(domain) - 0.5;
+  const seed = hash11(cell * 5.31);
+  const height = 0.24 + seed * 0.46;
+  const rise = p.y - seabed;
+  const sway = sin(rise * 8.5 + time * 0.42 + cell) * (0.035 + rise * 0.075);
+  const stem = 1 - smoothstep(0.018, 0.055, abs(localX + sway));
+  return stem
+    * smoothstep(-0.015, 0.035, rise)
+    * (1 - smoothstep(height - 0.055, height, rise));
 }
 
 export default shader({
@@ -73,6 +88,7 @@ export default shader({
     const jellyA = jellyGlow(p, vec2(-0.76, 0.14), 0.64, 0.2, uTime);
     const jellyB = jellyGlow(p, vec2(0.33, -0.02), 0.48, 2.1, uTime);
     const jellyC = jellyGlow(p, vec2(0.94, 0.35), 0.3, 4.2, uTime) * 0.72;
+    const jellyD = jellyGlow(p, vec2(-1.12, 0.48), 0.25, 5.7, uTime) * 0.54;
 
     const fishP = p.add(vec2(uTime * 0.23, sin(uTime * 0.2) * 0.04)).scale(4.6);
     const fishCell = vec2(floor(fishP.x), floor(fishP.y));
@@ -83,6 +99,15 @@ export default shader({
       0.13,
       length(vec2(fishLocal.x, fishLocal.y * 2.8)),
     )) * smoothstep(0.78, 0.92, fishSeed) * smoothstep(-0.35, 0.72, p.y);
+    const nearFishP = p.sub(vec2(uTime * 0.17, sin(uTime * 0.31) * 0.07)).scale(3.3);
+    const nearFishCell = vec2(floor(nearFishP.x), floor(nearFishP.y));
+    const nearFishLocal = vec2(fract(nearFishP.x) - 0.5, fract(nearFishP.y) - 0.5);
+    const nearFishSeed = hash21(nearFishCell.add(vec2(8.7, 3.2)));
+    const fishBodyNear = (1 - smoothstep(
+      0.045,
+      0.16,
+      length(vec2(nearFishLocal.x, nearFishLocal.y * 2.4)),
+    )) * smoothstep(0.84, 0.96, nearFishSeed) * smoothstep(-0.62, 0.5, p.y);
 
     const seabedHeight = -0.79 + sin(p.x * 2.6) * 0.055 + waterNoise * 0.035;
     const seabed = 1 - smoothstep(-0.025, 0.045, p.y - seabedHeight);
@@ -99,6 +124,17 @@ export default shader({
       0.12,
       length(vec2(coralX + coralWave, p.y - seabedHeight - coralHeight)),
     );
+    const kelp = kelpBlade(p, seabedHeight, uTime);
+
+    const bubbleGrid = vec2(p.x * 12.5, (p.y + uTime * 0.11) * 12.5);
+    const bubbleCell = vec2(floor(bubbleGrid.x), floor(bubbleGrid.y));
+    const bubbleLocal = vec2(fract(bubbleGrid.x) - 0.5, fract(bubbleGrid.y) - 0.5);
+    const bubblePoint = hash22(bubbleCell).sub(vec2(0.5, 0.5)).scale(0.72);
+    const bubbleSeed = hash21(bubbleCell.add(vec2(14.2, 7.6)));
+    const bubbleDistance = length(bubbleLocal.sub(bubblePoint));
+    const bubbleGlow = (1 - smoothstep(0.012, 0.038, abs(bubbleDistance - 0.07 - bubbleSeed * 0.035)))
+      * smoothstep(0.78, 0.96, bubbleSeed)
+      * smoothstep(-0.72, 0.78, p.y);
 
     const particleCell = vec2(floor(p.x * 48), floor((p.y + uTime * 0.035) * 48));
     const particleSeed = hash21(particleCell);
@@ -112,11 +148,15 @@ export default shader({
     const life = vec3(0.02, 1.25, 0.94).scale(jellyA * (0.72 + sin(uTime * 1.4) * 0.08))
       .add(vec3(0.48, 0.16, 1.55).scale(jellyB * (0.78 + sin(uTime * 1.1 + 2) * 0.09)))
       .add(vec3(1.35, 0.2, 0.64).scale(jellyC))
+      .add(vec3(0.18, 0.72, 1.5).scale(jellyD))
       .add(vec3(0.22, 0.65, 0.9).scale(fishBody * 0.8))
+      .add(vec3(1.1, 0.38, 0.72).scale(fishBodyNear * 0.72))
+      .add(vec3(0.34, 0.85, 1.25).scale(bubbleGlow * 0.2))
       .add(vec3(0.15, 0.75, 1.1).scale(plankton * 0.65));
     const reef = vec3(0.03, 0.065, 0.085).scale(seabed)
       .add(vec3(0.05, 0.9, 0.52).scale(coralStem * 0.62))
-      .add(vec3(1.15, 0.16, 0.48).scale(coralTips * 0.8));
+      .add(vec3(1.15, 0.16, 0.48).scale(coralTips * 0.8))
+      .add(vec3(0.03, 0.54, 0.42).scale(kelp * 0.72));
     return vec4(tonemapACES(background.add(life).add(reef)), 1);
   },
 });

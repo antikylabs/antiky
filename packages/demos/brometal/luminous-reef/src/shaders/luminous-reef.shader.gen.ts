@@ -45,14 +45,14 @@ fn fbm2(p : vec2f, octaves : f32) -> f32 {
 fn hash11(p : f32) -> f32 {
   return fract(sin(p * 127.1) * 43758.5453);
 }
+fn hash22(p : vec2f) -> vec2f {
+  let k = vec2f(dot(p, vec2f(127.1, 311.7)), dot(p, vec2f(269.5, 183.3)));
+  return vec2f(fract(sin(k.x) * 43758.5453), fract(sin(k.y) * 43758.5453));
+}
 fn tonemapACES(color : vec3f) -> vec3f {
   let num = color * (color * 2.51 + vec3f(0.03, 0.03, 0.03));
   let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
   return clamp(num / den, vec3f(0.0), vec3f(1.0));
-}
-fn hash22(p : vec2f) -> vec2f {
-  let k = vec2f(dot(p, vec2f(127.1, 311.7)), dot(p, vec2f(269.5, 183.3)));
-  return vec2f(fract(sin(k.x) * 43758.5453), fract(sin(k.y) * 43758.5453));
 }
 fn gnoise2(p : vec2f) -> f32 {
   let cell = vec2f(floor(p.x), floor(p.y));
@@ -132,6 +132,17 @@ fn jellyGlow(p : vec2f, center : vec2f, scale : f32, phase : f32, time : f32) ->
   let tentacles = (tentacleA + tentacleB + tentacleC) * tentacleGate * 0.24;
   return dome * 0.34 + rim * 0.72 + skirt * 0.5 + tentacles;
 }
+fn kelpBlade(p : vec2f, seabed : f32, time : f32) -> f32 {
+  let domain = (p.x + 2.1) * 5.7;
+  let cell = floor(domain);
+  let localX = fract(domain) - 0.5;
+  let seed = hash11(cell * 5.31);
+  let height = 0.24 + seed * 0.46;
+  let rise = p.y - seabed;
+  let sway = sin(rise * 8.5 + time * 0.42 + cell) * (0.035 + rise * 0.075);
+  let stem = 1.0 - smoothstep(0.018, 0.055, abs(localX + sway));
+  return stem * smoothstep(-0.015, 0.035, rise) * (1.0 - smoothstep(height - 0.055, height, rise));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -156,11 +167,17 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let jellyA = jellyGlow(p, vec2f(-0.76, 0.14), 0.64, 0.2, bm_u.uTime);
   let jellyB = jellyGlow(p, vec2f(0.33, -0.02), 0.48, 2.1, bm_u.uTime);
   let jellyC = jellyGlow(p, vec2f(0.94, 0.35), 0.3, 4.2, bm_u.uTime) * 0.72;
+  let jellyD = jellyGlow(p, vec2f(-1.12, 0.48), 0.25, 5.7, bm_u.uTime) * 0.54;
   let fishP = (p + vec2f(bm_u.uTime * 0.23, sin(bm_u.uTime * 0.2) * 0.04)) * 4.6;
   let fishCell = vec2f(floor(fishP.x), floor(fishP.y));
   let fishLocal = vec2f(fract(fishP.x) - 0.5, fract(fishP.y) - 0.5);
   let fishSeed = hash21(fishCell);
   let fishBody = (1.0 - smoothstep(0.035, 0.13, length(vec2f(fishLocal.x, fishLocal.y * 2.8)))) * smoothstep(0.78, 0.92, fishSeed) * smoothstep(-0.35, 0.72, p.y);
+  let nearFishP = (p - vec2f(bm_u.uTime * 0.17, sin(bm_u.uTime * 0.31) * 0.07)) * 3.3;
+  let nearFishCell = vec2f(floor(nearFishP.x), floor(nearFishP.y));
+  let nearFishLocal = vec2f(fract(nearFishP.x) - 0.5, fract(nearFishP.y) - 0.5);
+  let nearFishSeed = hash21(nearFishCell + vec2f(8.7, 3.2));
+  let fishBodyNear = (1.0 - smoothstep(0.045, 0.16, length(vec2f(nearFishLocal.x, nearFishLocal.y * 2.4)))) * smoothstep(0.84, 0.96, nearFishSeed) * smoothstep(-0.62, 0.5, p.y);
   let seabedHeight = -0.79 + sin(p.x * 2.6) * 0.055 + waterNoise * 0.035;
   let seabed = 1.0 - smoothstep(-0.025, 0.045, p.y - seabedHeight);
   let coralDomain = (p.x + 1.8) * 7.4;
@@ -170,12 +187,20 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let coralWave = sin((p.y - seabedHeight) * 13.0 + coralCell + bm_u.uTime * 0.28) * 0.07;
   let coralStem = (1.0 - smoothstep(0.018, 0.075, abs(coralX + coralWave))) * (1.0 - smoothstep(seabedHeight + coralHeight - 0.06, seabedHeight + coralHeight, p.y)) * smoothstep(seabedHeight - 0.03, seabedHeight + 0.04, p.y);
   let coralTips = 1.0 - smoothstep(0.025, 0.12, length(vec2f(coralX + coralWave, p.y - seabedHeight - coralHeight)));
+  let kelp = kelpBlade(p, seabedHeight, bm_u.uTime);
+  let bubbleGrid = vec2f(p.x * 12.5, (p.y + bm_u.uTime * 0.11) * 12.5);
+  let bubbleCell = vec2f(floor(bubbleGrid.x), floor(bubbleGrid.y));
+  let bubbleLocal = vec2f(fract(bubbleGrid.x) - 0.5, fract(bubbleGrid.y) - 0.5);
+  let bubblePoint = (hash22(bubbleCell) - vec2f(0.5, 0.5)) * 0.72;
+  let bubbleSeed = hash21(bubbleCell + vec2f(14.2, 7.6));
+  let bubbleDistance = length(bubbleLocal - bubblePoint);
+  let bubbleGlow = (1.0 - smoothstep(0.012, 0.038, abs(bubbleDistance - 0.07 - bubbleSeed * 0.035))) * smoothstep(0.78, 0.96, bubbleSeed) * smoothstep(-0.72, 0.78, p.y);
   let particleCell = vec2f(floor(p.x * 48.0), floor((p.y + bm_u.uTime * 0.035) * 48.0));
   let particleSeed = hash21(particleCell);
   let plankton = smoothstep(0.987, 0.999, particleSeed) * (0.5 + sin(bm_u.uTime * 1.2 + particleSeed * 60.0) * 0.35);
   let background = vec3f(0.0015, 0.014, 0.045) + vec3f(0.002, 0.16, 0.2) * (depth * 0.62 + waterNoise * 0.26) + vec3f(0.025, 0.08, 0.2) * (deepTurbulence * 0.18) + vec3f(0.06, 0.34, 0.43) * (godRays * 0.42 + caustics * surfaceMask * 0.15);
-  let life = vec3f(0.02, 1.25, 0.94) * (jellyA * (0.72 + sin(bm_u.uTime * 1.4) * 0.08)) + vec3f(0.48, 0.16, 1.55) * (jellyB * (0.78 + sin(bm_u.uTime * 1.1 + 2.0) * 0.09)) + vec3f(1.35, 0.2, 0.64) * jellyC + vec3f(0.22, 0.65, 0.9) * (fishBody * 0.8) + vec3f(0.15, 0.75, 1.1) * (plankton * 0.65);
-  let reef = vec3f(0.03, 0.065, 0.085) * seabed + vec3f(0.05, 0.9, 0.52) * (coralStem * 0.62) + vec3f(1.15, 0.16, 0.48) * (coralTips * 0.8);
+  let life = vec3f(0.02, 1.25, 0.94) * (jellyA * (0.72 + sin(bm_u.uTime * 1.4) * 0.08)) + vec3f(0.48, 0.16, 1.55) * (jellyB * (0.78 + sin(bm_u.uTime * 1.1 + 2.0) * 0.09)) + vec3f(1.35, 0.2, 0.64) * jellyC + vec3f(0.18, 0.72, 1.5) * jellyD + vec3f(0.22, 0.65, 0.9) * (fishBody * 0.8) + vec3f(1.1, 0.38, 0.72) * (fishBodyNear * 0.72) + vec3f(0.34, 0.85, 1.25) * (bubbleGlow * 0.2) + vec3f(0.15, 0.75, 1.1) * (plankton * 0.65);
+  let reef = vec3f(0.03, 0.065, 0.085) * seabed + vec3f(0.05, 0.9, 0.52) * (coralStem * 0.62) + vec3f(1.15, 0.16, 0.48) * (coralTips * 0.8) + vec3f(0.03, 0.54, 0.42) * (kelp * 0.72);
   return vec4f(tonemapACES(background + life + reef), 1.0);
 }
 `,
