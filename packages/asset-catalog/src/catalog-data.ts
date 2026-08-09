@@ -1,4 +1,5 @@
 import type { AssetDownload } from './index.ts';
+import { GENERATED_POLY_HAVEN_ASSETS } from './generated-catalog.ts';
 import { createKenneyPack } from './providers/kenney.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
 import { createQuaterniusPack } from './providers/quaternius.ts';
@@ -61,6 +62,7 @@ export const CATALOG_ASSETS = Object.freeze([
       download('forest_slope_1k.hdr', 'hdr', 1911073, 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/forest_slope_1k.hdr', 'd7676fa11b7a6c4cc3333ac6505e08d2'),
     ],
   }),
+  ...GENERATED_POLY_HAVEN_ASSETS,
   createKenneyPack({
     upstreamId: 'nature-kit', slug: 'nature-kit', name: 'Nature Kit',
     description: 'A curated starter pack of stylized nature assets for games.', kind: 'model',

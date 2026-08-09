@@ -1,5 +1,9 @@
 import type { AssetDownload, CatalogAsset } from '../index.ts';
-import { createPolyHavenAsset } from './poly-haven.ts';
+import {
+  createPolyHavenAsset,
+  createPolyHavenMetadataAsset,
+  type PolyHavenMetadata,
+} from './poly-haven.ts';
 
 const API_ORIGIN = 'https://api.polyhaven.com';
 const STARTER_IDS = ['dead_tree_trunk', 'forest_floor', 'forest_slope'] as const;
@@ -85,6 +89,68 @@ async function getJson(fetcher: typeof fetch, url: string): Promise<unknown> {
   const response = await fetcher(url, { headers: REQUEST_HEADERS });
   if (!response.ok) throw new Error(`Poly Haven API request failed (${response.status}): ${url}`);
   return response.json();
+}
+
+function metadata(value: unknown, upstreamId: string): PolyHavenMetadata {
+  const item = record(value, `metadata for ${upstreamId}`);
+  if (
+    typeof item.name !== 'string' || item.name.trim().length === 0
+    || ![0, 1, 2].includes(item.type as number)
+    || typeof item.description !== 'string' || item.description.trim().length === 0
+    || typeof item.files_hash !== 'string' || !/^[a-f0-9]{40}$/u.test(item.files_hash)
+    || typeof item.thumbnail_url !== 'string' || !item.thumbnail_url.startsWith('https://cdn.polyhaven.com/')
+    || item.tags !== undefined && !Array.isArray(item.tags)
+    || item.categories !== undefined && !Array.isArray(item.categories)
+  ) throw new Error(`Invalid Poly Haven API metadata for ${upstreamId}`);
+  return item as PolyHavenMetadata;
+}
+
+function selectRoundRobin(
+  candidates: readonly Readonly<{ upstreamId: string; metadata: PolyHavenMetadata }>[],
+  limit: number,
+): Array<Readonly<{ upstreamId: string; metadata: PolyHavenMetadata }>> {
+  const groups = [0, 1, 2].map((type) => candidates
+    .filter((candidate) => candidate.metadata.type === type)
+    .sort((left, right) => (
+      (right.metadata.download_count ?? 0) - (left.metadata.download_count ?? 0)
+      || left.upstreamId.localeCompare(right.upstreamId)
+    )));
+  const selected: Array<Readonly<{ upstreamId: string; metadata: PolyHavenMetadata }>> = [];
+  for (let index = 0; selected.length < limit; index += 1) {
+    let added = false;
+    for (const group of groups) {
+      const candidate = group[index];
+      if (candidate && selected.length < limit) {
+        selected.push(candidate);
+        added = true;
+      }
+    }
+    if (!added) break;
+  }
+  return selected;
+}
+
+export async function fetchPolyHavenMetadataCatalog(input: Readonly<{
+  fetch?: typeof fetch;
+  limit?: number;
+  retrievedAt?: string;
+  excludeIds?: readonly string[];
+}> = {}): Promise<CatalogAsset[]> {
+  const fetcher = input.fetch ?? fetch;
+  const retrievedAt = input.retrievedAt ?? new Date().toISOString();
+  const limit = input.limit ?? 995;
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error('Poly Haven metadata limit must be positive');
+  const excluded = new Set(input.excludeIds ?? STARTER_IDS);
+  const allMetadata = record(await getJson(fetcher, `${API_ORIGIN}/assets`), 'asset list');
+  const candidates = Object.entries(allMetadata)
+    .filter(([upstreamId]) => !excluded.has(upstreamId))
+    .map(([upstreamId, value]) => ({ upstreamId, metadata: metadata(value, upstreamId) }));
+  return selectRoundRobin(candidates, Math.min(limit, candidates.length))
+    .map(({ upstreamId, metadata: item }) => createPolyHavenMetadataAsset({
+      upstreamId,
+      metadata: item,
+      retrievedAt,
+    }));
 }
 
 export async function fetchPolyHavenStarterCatalog(input: Readonly<{

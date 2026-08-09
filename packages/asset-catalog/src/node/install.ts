@@ -68,7 +68,9 @@ export async function installCatalogAsset(input: Readonly<{
   fetch?: typeof fetch;
   installedAt?: string;
 }>): Promise<InstalledAssetReceipt> {
-  if (input.asset.verification !== 'verified') throw new Error('Only verified assets can be installed');
+  if (input.asset.verification !== 'install-verified') {
+    throw new Error('Only install-verified assets can be installed');
+  }
   await assertAntikyProject(input.projectRoot);
 
   const fetcher = input.fetch ?? fetch;

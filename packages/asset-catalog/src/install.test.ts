@@ -30,8 +30,9 @@ const asset = {
   },
   preview: {
     url: '/previews/poly-haven/forest-floor.webp', sourceUrl: 'https://example.com/preview.png',
-    width: 256, height: 256,
+    width: 256, height: 256, hosting: 'local',
   },
+  facts: {},
   downloads: [{
     path: 'forest_floor_diff_1k.jpg',
     format: 'jpg',
@@ -46,10 +47,10 @@ const asset = {
   },
   provenance: {
     creator: 'eye-candy.xyz', sourceUrl: 'https://polyhaven.com/a/forest_floor',
-    retrievedAt: '2026-08-09T00:00:00.000Z', sourceSha256: 'files-hash',
+    retrievedAt: '2026-08-09T00:00:00.000Z', sourceHash: { algorithm: 'sha1', value: 'files-hash' },
   },
   attribution: { required: true, notice: 'Asset delivered through the Poly Haven API.' },
-  verification: 'verified',
+  verification: 'install-verified',
 } satisfies CatalogAsset;
 
 async function project(): Promise<string> {

@@ -40,7 +40,9 @@ export function createCuratedCc0Asset(provider: AssetProvider, input: CuratedInp
       sourceUrl: input.previewSourceUrl ?? input.previewUrl,
       width: 256,
       height: 256,
+      hosting: 'local' as const,
     }),
+    facts: Object.freeze({}),
     downloads: Object.freeze([]),
     license: Object.freeze({
       id: 'cc0-1.0',
@@ -54,12 +56,12 @@ export function createCuratedCc0Asset(provider: AssetProvider, input: CuratedInp
       creator: input.creator,
       sourceUrl: input.sourceUrl,
       retrievedAt: input.retrievedAt,
-      sourceSha256: 'pending-curated-download',
+      sourceHash: null,
     }),
     attribution: Object.freeze({
       required: false,
       notice: `CC0 asset by ${input.creator}; credit is appreciated.`,
     }),
-    verification: 'pending' as const,
+    verification: 'cataloged' as const,
   });
 }

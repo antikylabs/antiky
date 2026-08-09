@@ -9,7 +9,7 @@ export const POLY_HAVEN_PROVIDER = Object.freeze({
 export const POLY_HAVEN_API_ATTRIBUTION =
   'Asset and metadata delivered through the Poly Haven API. Assets are CC0; API attribution is required.';
 
-type PolyHavenMetadata = Readonly<{
+export type PolyHavenMetadata = Readonly<{
   name: string;
   type: number;
   description: string;
@@ -18,6 +18,10 @@ type PolyHavenMetadata = Readonly<{
   authors?: Readonly<Record<string, string>>;
   files_hash: string;
   thumbnail_url: string;
+  date_published?: number;
+  download_count?: number;
+  polycount?: number;
+  max_resolution?: readonly number[];
 }>;
 
 function slugify(value: string): string {
@@ -64,6 +68,13 @@ export function createPolyHavenAsset(input: Readonly<{
       sourceUrl: input.metadata.thumbnail_url,
       width: 256,
       height: 256,
+      hosting: 'local' as const,
+    }),
+    facts: Object.freeze({
+      ...(input.metadata.date_published ? { publishedAt: new Date(input.metadata.date_published * 1000).toISOString() } : {}),
+      ...(input.metadata.download_count !== undefined ? { downloadCount: input.metadata.download_count } : {}),
+      ...(input.metadata.polycount !== undefined ? { polygonCount: input.metadata.polycount } : {}),
+      ...(input.metadata.max_resolution ? { maxResolution: Object.freeze([...input.metadata.max_resolution]) } : {}),
     }),
     downloads: Object.freeze([...input.files]),
     license: Object.freeze({
@@ -78,9 +89,77 @@ export function createPolyHavenAsset(input: Readonly<{
       creator: creators.join(', ') || 'Poly Haven',
       sourceUrl,
       retrievedAt: input.retrievedAt,
-      sourceSha256: input.metadata.files_hash,
+      sourceHash: Object.freeze({ algorithm: 'sha1' as const, value: input.metadata.files_hash }),
     }),
     attribution: Object.freeze({ required: true, notice: POLY_HAVEN_API_ATTRIBUTION }),
-    verification: 'verified' as const,
+    verification: 'install-verified' as const,
+  });
+}
+
+export function createPolyHavenMetadataAsset(input: Readonly<{
+  upstreamId: string;
+  metadata: PolyHavenMetadata;
+  retrievedAt: string;
+}>): CatalogAsset {
+  const slug = slugify(input.upstreamId);
+  const sourceUrl = `https://polyhaven.com/a/${input.upstreamId}`;
+  const creators = Object.keys(input.metadata.authors ?? {});
+  const kind = readKind(input.metadata.type);
+  const tags = [...new Set([
+    ...(input.metadata.tags ?? []),
+    ...(input.metadata.categories ?? []).filter((category) => !category.startsWith('collection:')),
+    kind,
+    'cc0',
+  ].map((value) => value.trim()).filter(Boolean))];
+  const formats = kind === 'model' ? ['blend', 'fbx', 'gltf']
+    : kind === 'texture' ? ['exr', 'jpg', 'png'] : ['exr', 'hdr'];
+
+  return Object.freeze({
+    id: `poly-haven:${slug}`,
+    slug,
+    name: input.metadata.name,
+    description: input.metadata.description,
+    kind,
+    fileCount: null,
+    formats: Object.freeze(formats),
+    tags: Object.freeze(tags),
+    categories: Object.freeze([...(input.metadata.categories ?? [])]),
+    provider: POLY_HAVEN_PROVIDER,
+    upstream: Object.freeze({
+      id: input.upstreamId,
+      url: sourceUrl,
+      filesHash: input.metadata.files_hash,
+      retrievedAt: input.retrievedAt,
+    }),
+    preview: Object.freeze({
+      url: input.metadata.thumbnail_url,
+      sourceUrl: input.metadata.thumbnail_url,
+      width: 256,
+      height: 256,
+      hosting: 'provider' as const,
+    }),
+    facts: Object.freeze({
+      ...(input.metadata.date_published ? { publishedAt: new Date(input.metadata.date_published * 1000).toISOString() } : {}),
+      ...(input.metadata.download_count !== undefined ? { downloadCount: input.metadata.download_count } : {}),
+      ...(input.metadata.polycount !== undefined ? { polygonCount: input.metadata.polycount } : {}),
+      ...(input.metadata.max_resolution ? { maxResolution: Object.freeze([...input.metadata.max_resolution]) } : {}),
+    }),
+    downloads: Object.freeze([]),
+    license: Object.freeze({
+      id: 'cc0-1.0',
+      name: 'CC0 1.0 Universal',
+      referenceUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+      permitsModification: true,
+      permitsRedistribution: true,
+      requiresAttribution: false,
+    }),
+    provenance: Object.freeze({
+      creator: creators.join(', ') || 'Poly Haven',
+      sourceUrl,
+      retrievedAt: input.retrievedAt,
+      sourceHash: Object.freeze({ algorithm: 'sha1' as const, value: input.metadata.files_hash }),
+    }),
+    attribution: Object.freeze({ required: true, notice: POLY_HAVEN_API_ATTRIBUTION }),
+    verification: 'source-verified' as const,
   });
 }

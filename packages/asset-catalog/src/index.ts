@@ -28,8 +28,10 @@ export type AssetProvenance = {
   readonly creator: string;
   readonly sourceUrl: string;
   readonly retrievedAt: string;
-  readonly sourceSha256: string;
+  readonly sourceHash: Readonly<{ algorithm: HashAlgorithm; value: string }> | null;
 };
+
+export type AssetVerification = 'cataloged' | 'source-verified' | 'install-verified';
 
 export type CatalogAsset = {
   readonly id: string;
@@ -37,7 +39,7 @@ export type CatalogAsset = {
   readonly name: string;
   readonly description: string;
   readonly kind: AssetKind;
-  readonly fileCount: number;
+  readonly fileCount: number | null;
   readonly formats: readonly string[];
   readonly tags: readonly string[];
   readonly categories: readonly string[];
@@ -48,19 +50,31 @@ export type CatalogAsset = {
     filesHash: string;
     retrievedAt: string;
   }>;
-  readonly preview: Readonly<{ url: string; sourceUrl: string; width: number; height: number }>;
+  readonly preview: Readonly<{
+    url: string;
+    sourceUrl: string;
+    width: number;
+    height: number;
+    hosting: 'local' | 'provider';
+  }>;
+  readonly facts: Readonly<{
+    publishedAt?: string;
+    downloadCount?: number;
+    polygonCount?: number;
+    maxResolution?: readonly number[];
+  }>;
   readonly downloads: readonly AssetDownload[];
   readonly license: AssetLicense;
   readonly provenance: AssetProvenance;
   readonly attribution: Readonly<{ required: boolean; notice: string }>;
-  readonly verification: 'pending' | 'verified';
+  readonly verification: AssetVerification;
 };
 
 export type CatalogQuery = {
   readonly text?: string;
   readonly kind?: AssetKind;
   readonly provider?: string;
-  readonly verifiedOnly?: boolean;
+  readonly installableOnly?: boolean;
 };
 
 export function searchAssets(assets: readonly CatalogAsset[], query: CatalogQuery): CatalogAsset[] {
@@ -69,7 +83,7 @@ export function searchAssets(assets: readonly CatalogAsset[], query: CatalogQuer
   return assets.filter((asset) => {
     if (query.kind && asset.kind !== query.kind) return false;
     if (query.provider && asset.provider.id !== query.provider) return false;
-    if (query.verifiedOnly && asset.verification !== 'verified') return false;
+    if (query.installableOnly && asset.verification !== 'install-verified') return false;
     if (!text) return true;
 
     const searchable = [

@@ -4,7 +4,7 @@ import test from 'node:test';
 import { searchAssets, type CatalogAsset } from './index.ts';
 import { CATALOG_ASSETS } from './catalog-data.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
-import { fetchPolyHavenStarterCatalog } from './providers/poly-haven-client.ts';
+import { fetchPolyHavenMetadataCatalog, fetchPolyHavenStarterCatalog } from './providers/poly-haven-client.ts';
 
 const assets: CatalogAsset[] = [
   {
@@ -24,7 +24,11 @@ const assets: CatalogAsset[] = [
       filesHash: 'pending-ingestion',
       retrievedAt: '2026-08-09',
     },
-    preview: { url: '/preview.webp', sourceUrl: 'https://example.com/preview.png', width: 256, height: 256 },
+    preview: {
+      url: '/preview.webp', sourceUrl: 'https://example.com/preview.png', width: 256, height: 256,
+      hosting: 'local',
+    },
+    facts: {},
     downloads: [],
     license: {
       id: 'cc0-1.0',
@@ -38,10 +42,10 @@ const assets: CatalogAsset[] = [
       creator: 'Kenney',
       sourceUrl: 'https://kenney.nl/assets',
       retrievedAt: '2026-08-09',
-      sourceSha256: 'pending-ingestion',
+      sourceHash: null,
     },
     attribution: { required: false, notice: 'Credit Kenney when practical.' },
-    verification: 'pending',
+    verification: 'cataloged',
   },
 ];
 
@@ -51,18 +55,22 @@ test('searches normalized asset metadata', () => {
   assert.deepEqual(searchAssets(assets, { kind: 'audio' }), []);
 });
 
-test('can require verified catalog entries', () => {
-  assert.deepEqual(searchAssets(assets, { verifiedOnly: true }), []);
+test('can require install-verified catalog entries', () => {
+  assert.deepEqual(searchAssets(assets, { installableOnly: true }), []);
 });
 
-test('every published asset has useful discovery tags and a source file count', () => {
+test('publishes one thousand unique, useful, honestly classified assets', () => {
+  assert.equal(CATALOG_ASSETS.length, 1_000);
+  assert.equal(new Set(CATALOG_ASSETS.map((asset) => asset.id)).size, CATALOG_ASSETS.length);
   for (const asset of CATALOG_ASSETS) {
     assert.ok(asset.tags.length >= 3, `${asset.id} needs at least three tags`);
     assert.ok(asset.tags.every((tag) => tag.trim().length > 0), `${asset.id} has an empty tag`);
-    assert.ok(Number.isSafeInteger(asset.fileCount) && asset.fileCount > 0, `${asset.id} needs a file count`);
+    assert.ok(asset.fileCount === null || Number.isSafeInteger(asset.fileCount) && asset.fileCount > 0, `${asset.id} has an invalid file count`);
+    assert.ok(['cataloged', 'source-verified', 'install-verified'].includes(asset.verification));
   }
   assert.equal(CATALOG_ASSETS.find((asset) => asset.id === 'kenney:nature-kit')?.fileCount, 330);
   assert.equal(CATALOG_ASSETS.find((asset) => asset.id === 'quaternius:ultimate-nature')?.fileCount, 150);
+  assert.equal(CATALOG_ASSETS.filter((asset) => asset.verification === 'install-verified').length, 3);
 });
 
 test('normalizes Poly Haven API metadata and download files', () => {
@@ -101,7 +109,7 @@ test('searches provider records by text and type', () => {
     ...assets[0]!,
     kind: 'model' as const,
     tags: ['forest'],
-    verification: 'verified' as const,
+    verification: 'install-verified' as const,
   };
   assert.deepEqual(searchAssets([forestModel], { text: 'forest', kind: 'model' }), [forestModel]);
 });
@@ -146,4 +154,28 @@ test('imports the model, texture, and HDRI starter set through the Poly Haven AP
   ]);
   assert.equal(imported[1]?.downloads.length, 4);
   assert.equal(calls.length, 4);
+});
+
+test('crawls Poly Haven metadata with one request and no archive or file-manifest downloads', async () => {
+  const calls: string[] = [];
+  const metadata = Object.fromEntries(Array.from({ length: 8 }, (_, index) => [`asset_${index}`, {
+    name: `Asset ${index}`, type: index % 3, description: `Useful asset ${index}`,
+    tags: ['game', 'environment', `tag-${index}`], categories: ['nature'], authors: { Creator: 'All' },
+    files_hash: index.toString(16).padStart(40, '0'), thumbnail_url: `https://cdn.polyhaven.com/${index}.png`,
+    download_count: 100 - index, date_published: 1_700_000_000 + index,
+  }]));
+  const fetcher = async (input: string | URL | Request) => {
+    calls.push(String(input));
+    return Response.json(metadata);
+  };
+
+  const imported = await fetchPolyHavenMetadataCatalog({
+    fetch: fetcher as typeof fetch,
+    limit: 6,
+    retrievedAt: '2026-08-09T00:00:00.000Z',
+  });
+  assert.equal(imported.length, 6);
+  assert.deepEqual(calls, ['https://api.polyhaven.com/assets']);
+  assert.ok(imported.every((asset) => asset.verification === 'source-verified'));
+  assert.ok(imported.every((asset) => asset.downloads.length === 0 && asset.fileCount === null));
 });
