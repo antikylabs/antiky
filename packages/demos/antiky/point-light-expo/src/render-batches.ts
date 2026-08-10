@@ -4,10 +4,16 @@ import {
   type Renderer,
 } from 'brometal';
 
-import foundryGlowShader from './shaders/foundry-glow.shader.gen';
-import foundryShader from './shaders/foundry.shader.gen';
+import foundryGlowShader from './shaders/foundry-glow.shader.gen.ts';
+import foundryShader from './shaders/foundry.shader.gen.ts';
 
 export type Vec3 = readonly [number, number, number];
+
+function assertIndex(index: number, capacity: number): void {
+  if (!Number.isInteger(index) || index < 0 || index >= capacity) {
+    throw new RangeError(`Instance ${index} is outside a batch capacity of ${capacity}.`);
+  }
+}
 
 export function horizontalGeometry(geometry: Geometry): Geometry {
   const positions = new Float32Array(geometry.positions);
@@ -23,74 +29,142 @@ export function horizontalGeometry(geometry: Geometry): Geometry {
   return Object.freeze({ ...geometry, positions, normals });
 }
 
-export function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
-  const program = createProgram(renderer, foundryShader);
-  program.attributes.aPosition.set(geometry.positions);
-  program.attributes.aNormal.set(geometry.normals);
-  program.setIndices(geometry.indices);
+export function createSurfaceInstanceData(capacity: number) {
   const offsets = new Float32Array(capacity * 3);
   const scales = new Float32Array(capacity * 3);
   const colors = new Float32Array(capacity * 3);
   const materials = new Float32Array(capacity * 3);
   const yaws = new Float32Array(capacity);
-
+  const setValues = (
+    index: number,
+    offsetX: number, offsetY: number, offsetZ: number,
+    scaleX: number, scaleY: number, scaleZ: number,
+    red: number, green: number, blue: number,
+    roughness: number, metallic: number, emissive: number,
+    yaw = 0,
+  ): void => {
+    assertIndex(index, capacity);
+    const at = index * 3;
+    offsets[at] = offsetX;
+    offsets[at + 1] = offsetY;
+    offsets[at + 2] = offsetZ;
+    scales[at] = scaleX;
+    scales[at + 1] = scaleY;
+    scales[at + 2] = scaleZ;
+    colors[at] = red;
+    colors[at + 1] = green;
+    colors[at + 2] = blue;
+    materials[at] = roughness;
+    materials[at + 1] = metallic;
+    materials[at + 2] = emissive;
+    yaws[index] = yaw;
+  };
   return Object.freeze({
-    program,
+    offsets, scales, colors, materials, yaws,
     clear(): void {
       scales.fill(0);
       colors.fill(0);
       materials.fill(0);
       yaws.fill(0);
     },
-    set(
-      index: number,
-      offset: Vec3,
-      scale: Vec3,
-      color: Vec3,
-      material: Vec3,
-      yaw = 0,
-    ): void {
-      offsets.set(offset, index * 3);
-      scales.set(scale, index * 3);
-      colors.set(color, index * 3);
-      materials.set(material, index * 3);
-      yaws[index] = yaw;
-    },
-    upload(): void {
-      program.instanceAttributes.iOffset.set(offsets);
-      program.instanceAttributes.iScale.set(scales);
-      program.instanceAttributes.iBaseColor.set(colors);
-      program.instanceAttributes.iMaterial.set(materials);
-      program.instanceAttributes.iYaw.set(yaws);
-    },
-    draw(): void {
-      program.draw();
-    },
-    dispose(): void {
-      program.dispose();
-    },
+    setValues,
   });
 }
 
-export function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
-  const program = createProgram(renderer, foundryGlowShader, { blend: 'additive' });
-  program.attributes.aPosition.set(geometry.positions);
-  program.attributes.aNormal.set(geometry.normals);
-  program.setIndices(geometry.indices);
+export function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
+  const program = createProgram(renderer, foundryShader);
+  try {
+    program.attributes.aPosition.set(geometry.positions);
+    program.attributes.aNormal.set(geometry.normals);
+    program.setIndices(geometry.indices);
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
+  const data = createSurfaceInstanceData(capacity);
+
+  return Object.freeze({
+    program,
+    clear: data.clear,
+    setValues: data.setValues,
+    set(index: number, offset: Vec3, scale: Vec3, color: Vec3, material: Vec3, yaw = 0): void {
+      data.setValues(
+        index,
+        offset[0], offset[1], offset[2],
+        scale[0], scale[1], scale[2],
+        color[0], color[1], color[2],
+        material[0], material[1], material[2],
+        yaw,
+      );
+    },
+    upload(): void {
+      program.instanceAttributes.iOffset.set(data.offsets);
+      program.instanceAttributes.iScale.set(data.scales);
+      program.instanceAttributes.iBaseColor.set(data.colors);
+      program.instanceAttributes.iMaterial.set(data.materials);
+      program.instanceAttributes.iYaw.set(data.yaws);
+    },
+    draw(): void { program.draw(); },
+    dispose(): void { program.dispose(); },
+  });
+}
+
+export function createGlowInstanceData(capacity: number) {
   const offsets = new Float32Array(capacity * 3);
   const scales = new Float32Array(capacity);
   const colors = new Float32Array(capacity * 3);
   const powers = new Float32Array(capacity);
   const phases = new Float32Array(capacity);
   const motions = new Float32Array(capacity);
-
+  const setValues = (
+    index: number,
+    offsetX: number, offsetY: number, offsetZ: number,
+    scale: number,
+    red: number, green: number, blue: number,
+    power: number,
+    phase = 0,
+    motion = 0,
+  ): void => {
+    assertIndex(index, capacity);
+    const at = index * 3;
+    offsets[at] = offsetX;
+    offsets[at + 1] = offsetY;
+    offsets[at + 2] = offsetZ;
+    scales[index] = scale;
+    colors[at] = red;
+    colors[at + 1] = green;
+    colors[at + 2] = blue;
+    powers[index] = power;
+    phases[index] = phase;
+    motions[index] = motion;
+  };
   return Object.freeze({
-    program,
+    offsets, scales, colors, powers, phases, motions,
     clear(): void {
       scales.fill(0);
       powers.fill(0);
       motions.fill(0);
     },
+    setValues,
+  });
+}
+
+export function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
+  const program = createProgram(renderer, foundryGlowShader, { blend: 'additive' });
+  try {
+    program.attributes.aPosition.set(geometry.positions);
+    program.attributes.aNormal.set(geometry.normals);
+    program.setIndices(geometry.indices);
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
+  const data = createGlowInstanceData(capacity);
+
+  return Object.freeze({
+    program,
+    clear: data.clear,
+    setValues: data.setValues,
     set(
       index: number,
       offset: Vec3,
@@ -100,26 +174,23 @@ export function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity
       phase = 0,
       motion = 0,
     ): void {
-      offsets.set(offset, index * 3);
-      scales[index] = scale;
-      colors.set(color, index * 3);
-      powers[index] = power;
-      phases[index] = phase;
-      motions[index] = motion;
+      data.setValues(
+        index,
+        offset[0], offset[1], offset[2],
+        scale,
+        color[0], color[1], color[2],
+        power, phase, motion,
+      );
     },
     upload(): void {
-      program.instanceAttributes.iOffset.set(offsets);
-      program.instanceAttributes.iScale.set(scales);
-      program.instanceAttributes.iColor.set(colors);
-      program.instanceAttributes.iPower.set(powers);
-      program.instanceAttributes.iPhase.set(phases);
-      program.instanceAttributes.iMotion.set(motions);
+      program.instanceAttributes.iOffset.set(data.offsets);
+      program.instanceAttributes.iScale.set(data.scales);
+      program.instanceAttributes.iColor.set(data.colors);
+      program.instanceAttributes.iPower.set(data.powers);
+      program.instanceAttributes.iPhase.set(data.phases);
+      program.instanceAttributes.iMotion.set(data.motions);
     },
-    draw(): void {
-      program.draw();
-    },
-    dispose(): void {
-      program.dispose();
-    },
+    draw(): void { program.draw(); },
+    dispose(): void { program.dispose(); },
   });
 }

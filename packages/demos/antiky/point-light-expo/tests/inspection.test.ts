@@ -9,6 +9,7 @@ import {
 import {
   RELAY_CHARGE_REGION_IDS,
   RELAY_FORGE_ID,
+  RELAY_PLAYER_ID,
   createRelayInspectionModel,
 } from '../src/inspection.ts';
 import {
@@ -17,7 +18,11 @@ import {
   EXPO_WORLD_ID,
   createExpoLightService,
 } from '../src/lights.ts';
-import { createBlackoutRelaySimulation } from '../src/simulation.ts';
+import {
+  DEFAULT_PLAYER_POSITION,
+  FORGE_POSITION,
+  createBlackoutRelaySimulation,
+} from '../src/simulation.ts';
 
 test('relay inspection exposes gameplay hierarchy, live stores, and bounded events', () => {
   const inspection = createRelayInspectionModel('relay-inspection-test');
@@ -34,6 +39,9 @@ test('relay inspection exposes gameplay hierarchy, live stores, and bounded even
   for (let frame = 0; frame < 180; frame += 1) simulation.update(1 / 60, idle);
 
   const world = inspection.world(simulation.read());
+  const customPlayer = world.entities.find((entity) => entity.entityId === RELAY_PLAYER_ID);
+  const customPlayerData = customPlayer?.components[0]?.data as Readonly<Record<string, unknown>>;
+  assert.deepEqual(customPlayerData.spawnPosition, [-5.2, -2.7]);
   const events = inspection.events();
   assert.ok(world.entities.some((entity) => entity.label === 'Prism Drone'));
   assert.ok(world.entities.some((entity) => entity.label === 'Reliquary Forge'));
@@ -74,6 +82,16 @@ test('gameplay regions link to authored lights without publishing a conflicting 
   assert.equal(changed.code, 'ACCEPTED');
 
   const world = inspection.world(simulation.read());
+  const forge = world.entities.find((entity) => entity.entityId === RELAY_FORGE_ID);
+  const player = world.entities.find((entity) => entity.entityId === RELAY_PLAYER_ID);
+  const forgeData = forge?.components[0]?.data as Readonly<Record<string, unknown>> | undefined;
+  const playerData = player?.components[0]?.data as Readonly<Record<string, unknown>> | undefined;
+  assert.deepEqual(forgeData?.position, FORGE_POSITION);
+  assert.deepEqual(playerData?.spawnPosition, DEFAULT_PLAYER_POSITION);
+  assert.ok(Math.hypot(
+    DEFAULT_PLAYER_POSITION[0] - FORGE_POSITION[0],
+    DEFAULT_PLAYER_POSITION[1] - FORGE_POSITION[1],
+  ) >= 1.5);
   const gameplayRegions = world.entities.filter((entity) => (
     RELAY_CHARGE_REGION_IDS.includes(entity.entityId as typeof RELAY_CHARGE_REGION_IDS[number])
   ));

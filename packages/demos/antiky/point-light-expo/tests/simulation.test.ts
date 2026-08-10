@@ -49,6 +49,18 @@ function moveTo(simulation: RelaySimulation, target: readonly [number, number]):
   assert.fail(`player did not reach ${target.join(', ')}`);
 }
 
+function timedMoveTo(simulation: RelaySimulation, target: readonly [number, number]): number {
+  for (let count = 0; count < 360; count += 1) {
+    const player = simulation.view().player;
+    const dx = target[0] - player.x;
+    const dz = target[1] - player.z;
+    const distance = Math.hypot(dx, dz);
+    if (distance < 0.12) return count;
+    step(simulation, input(dx / distance, dz / distance));
+  }
+  assert.fail(`player did not reach ${target.join(', ')}`);
+}
+
 test('fixed-step movement, lamp charging, and darkness decay are deterministic', () => {
   const start = EXPO_LIGHT_DEFINITIONS[0]!.transform.position;
   const eventsA: RelayEvent[] = [];
@@ -74,6 +86,21 @@ test('fixed-step movement, lamp charging, and darkness decay are deterministic',
   step(simulationA, input(), 90);
   assert.ok(simulationA.read().player.charge.value < carried);
   assert.ok(simulationA.read().player.charge.value > 0);
+});
+
+test('the default drone spawn is visibly separated from the central forge', () => {
+  const events: RelayEvent[] = [];
+  const simulation = createBlackoutRelaySimulation((event) => events.push(event), {
+    initialShades: [],
+  });
+  const player = simulation.read().player;
+
+  assert.ok(Math.hypot(
+    player.x - FORGE_POSITION[0],
+    player.z - FORGE_POSITION[1],
+  ) >= 1.5);
+  step(simulation, input(0, 0, true));
+  assert.equal(events.some((event) => event.type === 'relay.deposit-rejected'), false);
 });
 
 test('diegetic rings are the authoritative safe, retreat, and charge field', () => {
@@ -153,9 +180,24 @@ test('the default four-shade chamber has a survivable three-relay completion pat
   assert.ok(simulation.read().integrity >= 0.25);
 });
 
+test('the first deposit route has no movement leg longer than two seconds', () => {
+  const simulation = createBlackoutRelaySimulation(() => {});
+  const relay = EXPO_LIGHT_DEFINITIONS[0]!.transform.position;
+  const outboundSteps = timedMoveTo(simulation, [relay[0], relay[2]]);
+  step(simulation, input(), 150);
+  const returnSteps = timedMoveTo(simulation, FORGE_POSITION);
+  step(simulation, input(0, 0, true));
+
+  assert.ok(outboundSteps < 120);
+  assert.ok(returnSteps < 120);
+  assert.equal(simulation.read().deposits[0], true);
+  assert.ok(simulation.read().time < 17);
+});
+
 test('clicking an empty forge produces bounded rejected-deposit feedback', () => {
   const events: RelayEvent[] = [];
   const simulation = createBlackoutRelaySimulation((event) => events.push(event), {
+    initialPlayer: FORGE_POSITION,
     initialShades: [],
   });
   step(simulation, input(0, 0, true));

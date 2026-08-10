@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "derivedAssets": [
+    {
+      "id": "blackout-relay:dead-tree-trunk-runtime",
+      "catalogId": "poly-haven:dead-tree-trunk",
+      "providerAssetUrl": "https://polyhaven.com/a/dead_tree_trunk",
+      "license": {
+        "id": "cc0-1.0",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "inputs": [
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/dead_tree_trunk_1k.gltf",
+          "sha256": "8baaf1ff66ba1f79acdceed0dc3797a882990a3abb10b18abe56762f34c26e39"
+        },
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/dead_tree_trunk.bin",
+          "sha256": "c1ac6b3195246e8647a28eee2fbfdd4712a045c7cf2dcb4f5abcc2d40a446ca6"
+        },
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/textures/dead_tree_trunk_diff_1k.jpg",
+          "sha256": "bc31d7d23db90d90cfb568c583914eeec11b29716b79096818b706a9e3e0216c"
+        },
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/textures/dead_tree_trunk_arm_1k.jpg",
+          "sha256": "0e0f7d64ac4ee3a7e7861a48f4bbd1ec2c026facd8f48b756f6b5d4557af3fd3"
+        }
+      ],
+      "output": {
+        "path": "assets/derived/dead-tree-trunk-runtime.glb",
+        "sha256": "0f3b4db64db1209590ce75ccecd5f72fed3938a669c729b750c27fcb23e1619a",
+        "size": 3733260
+      },
+      "transform": {
+        "script": "scripts/pack-catalog-models.mjs",
+        "library": "scripts/gltf-pack-lib.mjs",
+        "version": 2,
+        "selectedMeshIndex": 0,
+        "materialLayout": "arm",
+        "operations": [
+          "Validate the exact external buffer/image URI allowlist and reject every other URI.",
+          "Select one named source mesh without modifying its vertex, normal, UV, or index data.",
+          "Embed the verified source binary plus diffuse and material JPEGs as GLB buffer views.",
+          "Bind embedded diffuse and material maps to base-color and metallic-roughness slots.",
+          "Omit the tangent-space normal binding because the runtime shader has no tangent basis."
+        ]
+      }
+    },
+    {
+      "id": "blackout-relay:rock-moss-set-01-runtime",
+      "catalogId": "poly-haven:rock-moss-set-01",
+      "providerAssetUrl": "https://polyhaven.com/a/rock_moss_set_01",
+      "license": {
+        "id": "cc0-1.0",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "inputs": [
+        {
+          "path": "assets/poly-haven/rock-moss-set-01/rock_moss_set_01_1k.gltf",
+          "sha256": "c36675aca9c6b2be7785c2534cf413b03ec82a5a2a5407a2b1c0cdb0346c9727"
+        },
+        {
+          "path": "assets/poly-haven/rock-moss-set-01/rock_moss_set_01.bin",
+          "sha256": "de8360e6175879aaf02c171911069cf5f1852547f9ca7f10e440085dbcc3315e"
+        },
+        {
+          "path": "assets/poly-haven/rock-moss-set-01/textures/rock_moss_set_01_diff_1k.jpg",
+          "sha256": "40cea65d8aa4ee73a93b04af19963834d061eee9779c3fc2c1cba76eef812ccc"
+        },
+        {
+          "path": "assets/poly-haven/rock-moss-set-01/textures/rock_moss_set_01_rough_1k.jpg",
+          "sha256": "4d6ec46623abd8e2cdb855f59c7ce31873ad61b36b60e4de579e9e776a497c6b"
+        }
+      ],
+      "output": {
+        "path": "assets/derived/rock-moss-set-01-runtime.glb",
+        "sha256": "0bf52ded7d769acee77fd65ea08e2eae9e8f95a5fea5155778f9fed5fae033de",
+        "size": 1721680
+      },
+      "transform": {
+        "script": "scripts/pack-catalog-models.mjs",
+        "library": "scripts/gltf-pack-lib.mjs",
+        "version": 2,
+        "selectedMeshIndex": 4,
+        "materialLayout": "roughness-red",
+        "operations": [
+          "Validate the exact external buffer/image URI allowlist and reject every other URI.",
+          "Select one named source mesh without modifying its vertex, normal, UV, or index data.",
+          "Embed the verified source binary plus diffuse and material JPEGs as GLB buffer views.",
+          "Bind embedded diffuse and material maps to base-color and metallic-roughness slots.",
+          "Omit the tangent-space normal binding because the runtime shader has no tangent basis."
+        ]
+      }
+    },
+    {
+      "id": "blackout-relay:tree-stump-01-runtime",
+      "catalogId": "poly-haven:tree-stump-01",
+      "providerAssetUrl": "https://polyhaven.com/a/tree_stump_01",
+      "license": {
+        "id": "cc0-1.0",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "inputs": [
+        {
+          "path": "assets/poly-haven/tree-stump-01/tree_stump_01_1k.gltf",
+          "sha256": "9c66ba87d693f35eb404acaa96e0eeff831c295b61a0a903795584cbcc3527c9"
+        },
+        {
+          "path": "assets/poly-haven/tree-stump-01/tree_stump_01.bin",
+          "sha256": "b4d9ca70b3c908c4a638fbd6a23ed96c84055bbbf14cf44b89e31ad59fa21e0a"
+        },
+        {
+          "path": "assets/poly-haven/tree-stump-01/textures/tree_stump_01_diff_1k.jpg",
+          "sha256": "781ebe420ac4d84f2e44b9e9937a596e3d5d90711d978a1392f8bf3771b5bf31"
+        },
+        {
+          "path": "assets/poly-haven/tree-stump-01/textures/tree_stump_01_arm_1k.jpg",
+          "sha256": "d845cd6ab45288c546267d059ebe1f8a737e174330fe9375e5f99e753f2f95d8"
+        }
+      ],
+      "output": {
+        "path": "assets/derived/tree-stump-01-runtime.glb",
+        "sha256": "8a246ccbef52ecbe6d90f6991d9db6a14bd2580a4558fd34044727805ab893c7",
+        "size": 2700076
+      },
+      "transform": {
+        "script": "scripts/pack-catalog-models.mjs",
+        "library": "scripts/gltf-pack-lib.mjs",
+        "version": 2,
+        "selectedMeshIndex": 0,
+        "materialLayout": "arm",
+        "operations": [
+          "Validate the exact external buffer/image URI allowlist and reject every other URI.",
+          "Select one named source mesh without modifying its vertex, normal, UV, or index data.",
+          "Embed the verified source binary plus diffuse and material JPEGs as GLB buffer views.",
+          "Bind embedded diffuse and material maps to base-color and metallic-roughness slots.",
+          "Omit the tangent-space normal binding because the runtime shader has no tangent basis."
+        ]
+      }
+    }
+  ]
+}

@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "npm run shaders:prod && vite build",
+    "assets:build": "node scripts/pack-catalog-models.mjs",
+    "assets:intake": "node scripts/intake-poly-haven-primary.mjs",
+    "build": "npm run assets:build && npm run shaders:prod && vite build",
     "dev": "vite build --watch",
     "shaders": "brometal dev --once",
     "shaders:watch": "brometal dev",

@@ -22,3 +22,20 @@ test('the production build bundles all three forest-floor material channels', as
     assert.ok((await stat(new URL(file, assetDirectory))).size > 10_000);
   }
 });
+
+test('the production build ships all three BroMetal-parseable catalog model derivatives', async () => {
+  const assetDirectory = new URL('../dist/assets/', import.meta.url);
+  const files = await readdir(assetDirectory);
+  const modelFiles = files.filter((file) => file.endsWith('.glb'));
+
+  assert.equal(modelFiles.length, 3);
+  for (const prefix of [
+    'dead-tree-trunk-runtime-',
+    'rock-moss-set-01-runtime-',
+    'tree-stump-01-runtime-',
+  ]) {
+    const file = modelFiles.find((candidate) => candidate.startsWith(prefix));
+    assert.ok(file);
+    assert.ok((await stat(new URL(file, assetDirectory))).size > 1_500_000);
+  }
+});

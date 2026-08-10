@@ -1,8 +1,9 @@
 # Blackout Relay
 
 Blackout Relay is a playable Antiky vertical slice set in a derelict forest reliquary. You pilot a
-small prism drone through a chamber patrolled by shades. Restore the amber, rain-glass, and plum
-charges to the central forge before the shades drain the drone's integrity.
+small prism drone from a marked foreground launch point through a chamber patrolled by shades.
+The drone begins clear of the central forge so both silhouettes read immediately. Restore the amber,
+rain-glass, and plum charges to the central forge before the shades drain the drone's integrity.
 
 ## Play
 
@@ -26,9 +27,9 @@ presentation from fragment position, surface normal, and view direction. That pr
 an exact attenuation preview of the abstract ground-plane gameplay field. Lowering a light's power
 through Antiky shrinks the authoritative rings and changes both gameplay and material presentation.
 
-A short in-canvas legend shows movement, the one/two/three-stone relay identifiers, inner-ring
-charging, and then forge deposit in playable order. It fades after fourteen seconds or the first
-successful deposit.
+A compact two-row in-canvas strip shows movement, the one/two/three-stone relay identifiers,
+inner-ring charging, and then forge deposit in playable order. It occupies only the lower-left edge
+and fades out by five seconds or immediately after the first successful deposit.
 
 ## Ownership
 
@@ -39,16 +40,72 @@ stable IDs and link to—not impersonate—the authored point-light entities. Po
 therefore change game rules as well as presentation without creating conflicting inspection views.
 
 BroMetal owns the WebGPU renderer, typed shaders, geometry, texture sampling, camera, and bounded
-visual feedback. The renderer submits 228 instances in eight draw calls and uploads 7,120 bytes of
-dynamic instance data per frame. Those are derived from the actual batch capacities in
-`src/renderer.ts`, not estimated scene counts.
+visual feedback. The default look keeps a neutral environment fill even when relay powers are zero,
+then layers the authored relay lights as controlled material illumination. A fixed three-quarter
+camera frames the complete elevated architecture AABB—not only its ground footprint—at the default
+1280×720 review size; camera shake starts only above the contact-hit threshold. Instanced weathered
+rocks and broad rooted stumps form the main side ruins, three differently massed relay shrines, and
+the forge's heavy central body. Nine brighter trunk instances remain only as three rear arches; the
+repeated square footing and cylinder passes were removed. Shades use a grounded, volumetric
+horned-predator mesh with torso, shoulder, head, four legs, foreclaws, and a segmented tail rather
+than a cone or flat wing plane. The renderer submits 212 instances in 11 draw calls and
+uploads 7,380 bytes of dynamic instance data per frame. Those values are derived from the exact
+batch capacities and pass list in `src/render-profile.ts`; static catalog-model buffers are not
+counted as per-frame uploads.
 
-The floor uses the installed `poly-haven:forest-floor` catalog asset. Its diffuse, ambient-occlusion,
-and roughness JPEGs are emitted as separate production assets and sampled by the dedicated floor
-shader. The installed OpenGL normal map is intentionally not sampled because this floor path does
-not yet publish a correct tangent-space basis. Exact upstream URLs, retrieval metadata, hashes,
-sizes, CC0 terms, and the required Poly Haven API notice are recorded in
-[`assets/antiky-assets.json`](assets/antiky-assets.json).
+## Catalog assets and provenance
+
+All four source assets are official Poly Haven CC0 1.0 releases. Because their files and metadata
+were delivered through the Poly Haven API, the shipped receipts preserve its required API notice.
+
+- [`poly-haven:forest-floor`](https://polyhaven.com/a/forest_floor), by eye-candy.xyz, supplies the
+  floor's diffuse, ambient-occlusion, and roughness JPEGs. Vite emits all three as production assets
+  and the dedicated floor shader samples them. Reduced UV repetition and a 0.56 texture-contrast
+  blend keep the real surface response below the gameplay silhouettes. The installed OpenGL normal
+  map is intentionally not sampled because this floor path does not publish a tangent-space basis.
+- [`poly-haven:dead-tree-trunk`](https://polyhaven.com/a/dead_tree_trunk), by Rob Tuytel, supplies
+  the three secondary rear arches. Its derived GLB is 3,733,260 bytes with SHA-256
+  `0f3b4db64db1209590ce75ccecd5f72fed3938a669c729b750c27fcb23e1619a`.
+- [`poly-haven:rock-moss-set-01`](https://polyhaven.com/a/rock_moss_set_01), by Kless Gyzen,
+  supplies the 27 primary shrine, forge, and ruin rocks. The deterministic derivative selects source
+  mesh index 4 (`rock05`) from the six-rock set, leaves its vertex/normal/UV/index data unchanged,
+  and embeds its diffuse and red-channel roughness JPEGs. The GLB is 1,721,680 bytes with SHA-256
+  `0bf52ded7d769acee77fd65ea08e2eae9e8f95a5fea5155778f9fed5fae033de`.
+- [`poly-haven:tree-stump-01`](https://polyhaven.com/a/tree_stump_01), by Rob Tuytel, supplies eight
+  broad rooted bodies: one at each relay, the forge heart, and four ruin anchors. The derivative
+  embeds its diffuse and ARM JPEGs. The GLB is 2,700,076 bytes with SHA-256
+  `8a246ccbef52ecbe6d90f6991d9db6a14bd2580a4558fd34044727805ab893c7`.
+
+The rock and stump records currently have `source-verified` catalog status with empty installer
+download arrays. `scripts/intake-poly-haven-primary.mjs` therefore queries only their canonical
+`https://api.polyhaven.com/files/{asset}` and `https://api.polyhaven.com/info/{asset}` records,
+derives each creator and catalog file hash from the saved info response, allowlists the official
+`https://dl.polyhaven.org/file/ph-assets/` URLs, and verifies every API size and MD5 before writing
+the source. [`assets/source-assets.json`](assets/source-assets.json) records that installer gap,
+canonical pages, both API endpoints/snapshots, catalog SHA-1 values, creators, retrieval time,
+source MD5/SHA-256 values, sizes, license, and API notice.
+
+BroMetal 0.15 accepts embedded GLB resources rather than external glTF buffer/image references.
+`scripts/pack-catalog-models.mjs` uses an explicit source URI/shape allowlist, rejects unexpected
+buffers, images, or URI-bearing extensions, selects the recorded mesh, and embeds the verified
+binary/diffuse/material bytes. All three model normal bindings are intentionally omitted because the
+runtime shader has no tangent basis. A lifted, lower-contrast catalog material response reveals the
+bark, rock, moss, and root albedo without pretending to support tangent-space normals.
+
+Exact installer-managed download URLs, upstream MD5 values, installed SHA-256 values, sizes,
+retrieval metadata, CC0 terms, and the API notice for Forest Floor and Dead Tree Trunk are in
+[`assets/antiky-assets.json`](assets/antiky-assets.json). Exact input-to-output hashes and every
+original→derived transformation are in
+[`assets/derived-assets.json`](assets/derived-assets.json). `npm run assets:build` reproduces the
+three derived GLBs offline and is already part of `npm run build`.
+
+`poly-haven:fern-02` remains unshipped: its catalog record has the same automated-installer gap, and
+the rock/stump pair already provides the two distinct primary forms needed by this composition.
+`poly-haven:forest-slope` is an install-verified HDRI, but BroMetal currently exposes no supported
+HDR environment/cubemap intake for this demo; no cubemap support is claimed or improvised.
+
+The current Framework `GameHostContext` does not expose an owned audio service, so this slice keeps
+feedback visual rather than creating an ad hoc browser-audio path outside the Antiky contract.
 
 ## Develop and verify
 
@@ -70,6 +127,19 @@ npm run build --workspace @antiky/demo-point-light-expo
 npm test --workspace @antiky/demo-point-light-expo
 npm run typecheck --workspace @antiky/demo-point-light-expo
 ```
+
+Rebuild only the deterministic catalog derivative, or regenerate typed shaders and verify that the
+checked-in generated modules remain in parity, with:
+
+```sh
+npm run assets:build --workspace @antiky/demo-point-light-expo
+npm run shaders:prod --workspace @antiky/demo-point-light-expo
+git diff --exit-code -- packages/demos/antiky/point-light-expo/src/shaders/*.shader.gen.ts
+```
+
+`npm run assets:intake --workspace @antiky/demo-point-light-expo` intentionally performs the
+networked official-API intake again and refreshes `assets/source-assets.json`; normal build and test
+commands never require the network.
 
 ## Inspect, edit, correct, and capture
 

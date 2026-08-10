@@ -55,6 +55,14 @@ export default shader({
     uModel: 'mat4',
     uCameraPosition: 'vec3',
     uTime: 'float',
+    uAmbientColor: 'vec3',
+    uAmbientStrength: 'float',
+    uExposure: 'float',
+    uRelayLightStrength: 'float',
+    uFogColor: 'vec3',
+    uFogStart: 'float',
+    uFogEnd: 'float',
+    uFogMaximumMix: 'float',
     uEmberPosition: 'vec3',
     uEmberColor: 'vec3',
     uEmberPower: 'float',
@@ -109,6 +117,14 @@ export default shader({
   fragment({
     uCameraPosition,
     uTime,
+    uAmbientColor,
+    uAmbientStrength,
+    uExposure,
+    uRelayLightStrength,
+    uFogColor,
+    uFogStart,
+    uFogEnd,
+    uFogMaximumMix,
     uEmberPosition,
     uEmberColor,
     uEmberPower,
@@ -159,14 +175,19 @@ export default shader({
       roughness,
       metalness,
     );
-    const radiance = ember.add(ion).add(violet);
-    const sky = vec3(0.075, 0.09, 0.095).scale(0.32 + normal.y * 0.16);
-    const lit = vBaseColor.mul(sky.add(radiance.scale(0.82)))
-      .add(radiance.scale(metalness * 0.28));
+    const radiance = ember.add(ion).add(violet).scale(uRelayLightStrength);
+    const hemisphere = 0.78 + normal.y * 0.2;
+    const ambient = uAmbientColor.scale(uAmbientStrength * hemisphere);
+    const lit = vBaseColor.mul(ambient.add(radiance))
+      .add(radiance.scale(metalness * 0.2));
     const pulse = 0.92 + sin(uTime * 2.4 + vWorld.x * 0.5) * 0.08;
     const emissive = vBaseColor.scale(vMaterial.z * pulse);
-    const fog = smoothstep(9, 18, length(uCameraPosition.sub(vWorld)));
-    const color = mix(lit.add(emissive), vec3(0.012, 0.016, 0.017), fog * 0.68);
+    const fog = smoothstep(uFogStart, uFogEnd, length(uCameraPosition.sub(vWorld)));
+    const color = mix(
+      lit.add(emissive).scale(uExposure),
+      uFogColor,
+      fog * uFogMaximumMix,
+    );
     return vec4(tonemapACES(color), 1);
   },
 });

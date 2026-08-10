@@ -14,6 +14,7 @@ import {
 import { createRelayInspectionModel } from './inspection.ts';
 import { createRelayInteractionBuffer } from './input-buffer.ts';
 import { EXPO_LIGHT_IDS, EXPO_WORLD_ID, createExpoLightService } from './lights.ts';
+import { RELAY_PRESENTATION } from './presentation.ts';
 import { createRelayRenderer } from './renderer.ts';
 import {
   createBlackoutRelaySimulation,
@@ -32,7 +33,7 @@ function capturedMovement(context: Parameters<GameModuleEntry>[0]): RelayInput['
 
 const game: GameModuleEntry = async (context) => {
   const renderer = await createRenderer(context.canvas, {
-    clearColor: [0.008, 0.011, 0.01, 1],
+    clearColor: RELAY_PRESENTATION.clearColor,
     cull: 'back',
   });
   const lightService = createExpoLightService(context.runtimeInstanceId);

@@ -1,0 +1,54 @@
+{
+  "donated": true,
+  "date_published": 1625069057,
+  "name": "Rock Moss Set 01",
+  "type": 2,
+  "staging": null,
+  "authors": {
+    "Kless Gyzen": "All"
+  },
+  "categories": [
+    "rocks",
+    "nature",
+    "collection: pine_forest"
+  ],
+  "tags": [
+    "rocks",
+    "outdoor",
+    "stones",
+    "pebbles",
+    "rock",
+    "dirt"
+  ],
+  "max_resolution": [
+    8192,
+    8192
+  ],
+  "polycount": 63127,
+  "texel_density": 606.028316455845,
+  "dimensions": [
+    8004.603862762451,
+    6948.764801025391,
+    1768.319845199585
+  ],
+  "sponsors": [
+    "82322099"
+  ],
+  "files_hash": "3d61828e10ef81512a639c8064c9a51a75165b5a",
+  "description": "Free 8K set of mossy forest rocks: six weathered stones with varied silhouettes, earthy textures, subtle green moss, dirt and realistic erosion.",
+  "category_id": "75be0f95-5fbf-5ce3-94a8-4b929bf42fb6",
+  "category": "Nature/Rocks & Stone/Stone Sets",
+  "collections": [
+    "pine_forest"
+  ],
+  "attributes": {
+    "condition": [
+      "weathered"
+    ],
+    "material": [
+      "stone"
+    ]
+  },
+  "download_count": 82412,
+  "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/rock_moss_set_01.png?width=256&height=256"
+}

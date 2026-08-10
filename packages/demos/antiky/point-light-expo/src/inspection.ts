@@ -10,7 +10,9 @@ import {
 import { EXPO_LIGHT_DEFINITIONS, EXPO_WORLD_ID } from './lights.ts';
 import {
   CHARGE_FIELD_THRESHOLD,
+  FORGE_POSITION,
   SAFE_FIELD_THRESHOLD,
+  SHADE_COUNT,
   type RelayEvent,
   type RelaySnapshot,
 } from './simulation.ts';
@@ -25,7 +27,7 @@ export const RELAY_CHARGE_REGION_IDS = Object.freeze([
   '0197f27e-1000-7000-8000-000000000032',
 ]);
 export const RELAY_SHADE_IDS = Object.freeze(Array.from(
-  { length: 4 },
+  { length: SHADE_COUNT },
   (_, index) => `0197f27e-1000-7000-8000-${(0x101 + index).toString(16).padStart(12, '0')}`,
 ));
 const EVENT_CAPACITY = 40;
@@ -98,7 +100,11 @@ export function createRelayInspectionModel(runtimeInstanceId: string): RelayInsp
           typeId: 'antiky.relay-forge',
           schemaVersion: 1,
           summary: `${snapshot.deposits.filter(Boolean).length} of 3 prisms restored`,
-          data: { deposits: snapshot.deposits, pulse: snapshot.forgePulse },
+          data: {
+            deposits: snapshot.deposits,
+            pulse: snapshot.forgePulse,
+            position: FORGE_POSITION,
+          },
         }],
       },
       {
@@ -116,6 +122,7 @@ export function createRelayInspectionModel(runtimeInstanceId: string): RelayInsp
               safe: snapshot.player.safe,
               chargeRelayIndex: snapshot.player.charge.relayIndex,
               charge: snapshot.player.charge.value,
+              spawnPosition: [snapshot.player.spawnX, snapshot.player.spawnZ],
             },
           },
           {

@@ -8,14 +8,21 @@ export default shader({
   uniforms: {
     uAtlas: 'sampler2D',
     uOpacity: 'float',
+    uScale: 'vec2',
+    uOffset: 'vec2',
   },
   varyings: {
     vUv: 'vec2',
   },
 
-  vertex({ aPosition, aUv }, _uniforms, v) {
+  vertex({ aPosition, aUv }, { uScale, uOffset }, v) {
     v.vUv = aUv;
-    return vec4(aPosition.x * 0.64, aPosition.y * 0.22 - 0.74, 0, 1);
+    return vec4(
+      aPosition.x * uScale.x + uOffset.x,
+      aPosition.y * uScale.y + uOffset.y,
+      0,
+      1,
+    );
   },
 
   fragment({ uAtlas, uOpacity }, { vUv }) {

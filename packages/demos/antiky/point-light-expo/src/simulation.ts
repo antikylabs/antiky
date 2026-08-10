@@ -14,10 +14,10 @@ export {
 } from './relay-field.ts';
 
 export const FORGE_POSITION = [0, 0] as const;
+export const DEFAULT_PLAYER_POSITION = [0, 2.15] as const;
 export const SHADE_COUNT = 4;
 export const RELAY_PARTICLE_CAPACITY = 64;
-const ARENA_X = 8.25;
-const ARENA_Z = 5.65;
+export const ARENA_HALF_EXTENTS = [8.25, 5.65] as const;
 const PLAYER_SPEED = 4.8;
 const CHARGE_RATE = 0.62;
 const CHARGE_DECAY = 0.16;
@@ -29,13 +29,11 @@ const CONTACT_INVULNERABILITY_SECONDS = 0.62;
 
 export type RelayStatus = 'playing' | 'won' | 'lost';
 export type ShadeMode = 'threaten' | 'retreat';
-
 export type RelayInput = Readonly<{
   movement: Readonly<{ x: number; z: number; active: boolean }>;
   interact: boolean;
   lightPowers: readonly [number, number, number];
 }>;
-
 export type RelayEvent = Readonly<{
   type:
     | 'relay.charge-started'
@@ -51,10 +49,11 @@ export type RelayEvent = Readonly<{
   relayIndex?: number;
   shadeIndex?: number;
 }>;
-
 export type RelayPlayer = {
   x: number;
   z: number;
+  spawnX: number;
+  spawnZ: number;
   facingX: number;
   facingZ: number;
   irradiance: number;
@@ -65,7 +64,6 @@ export type RelayPlayer = {
     value: number;
   };
 };
-
 export type RelayShade = {
   x: number;
   z: number;
@@ -73,7 +71,6 @@ export type RelayShade = {
   irradiance: number;
   phase: number;
 };
-
 export type RelayParticle = {
   x: number;
   y: number;
@@ -124,6 +121,12 @@ const DEFAULT_SHADE_POSITIONS = Object.freeze([
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value));
 }
+function clampArenaX(value: number): number {
+  return clamp(value, -ARENA_HALF_EXTENTS[0], ARENA_HALF_EXTENTS[0]);
+}
+function clampArenaZ(value: number): number {
+  return clamp(value, -ARENA_HALF_EXTENTS[1], ARENA_HALF_EXTENTS[1]);
+}
 
 function seeded(index: number, salt: number): number {
   const value = Math.sin(index * 73.17 + salt * 41.73) * 43_758.5453;
@@ -134,12 +137,14 @@ export function createBlackoutRelaySimulation(
   emit: (event: RelayEvent) => void,
   options: RelaySimulationOptions = {},
 ): RelaySimulation {
-  const initialPlayer = options.initialPlayer ?? FORGE_POSITION;
+  const initialPlayer = options.initialPlayer ?? DEFAULT_PLAYER_POSITION;
   const initialShadePositions = options.initialShades ?? DEFAULT_SHADE_POSITIONS;
   const initialIntegrity = clamp(options.initialIntegrity ?? 1, 0.01, 1);
   const player: RelayPlayer = {
     x: initialPlayer[0],
     z: initialPlayer[1],
+    spawnX: initialPlayer[0],
+    spawnZ: initialPlayer[1],
     facingX: 0,
     facingZ: -1,
     irradiance: 0,
@@ -293,8 +298,8 @@ export function createBlackoutRelaySimulation(
       player.facingX = moveX;
       player.facingZ = moveZ;
     }
-    player.x = clamp(player.x + moveX * PLAYER_SPEED * dt, -ARENA_X, ARENA_X);
-    player.z = clamp(player.z + moveZ * PLAYER_SPEED * dt, -ARENA_Z, ARENA_Z);
+    player.x = clampArenaX(player.x + moveX * PLAYER_SPEED * dt);
+    player.z = clampArenaZ(player.z + moveZ * PLAYER_SPEED * dt);
 
     const authoritativeField = strongestAuthoritativeRelayField(sampleAuthoritativeRelayField(
       player.x,
@@ -387,8 +392,8 @@ export function createBlackoutRelaySimulation(
       const speed = shade.mode === 'retreat'
         ? 2.3 + Math.min(1.2, shadeField.total)
         : 1.34 + deposits.filter(Boolean).length * 0.16;
-      shade.x = clamp(shade.x + directionX / directionLength * speed * dt, -ARENA_X, ARENA_X);
-      shade.z = clamp(shade.z + directionZ / directionLength * speed * dt, -ARENA_Z, ARENA_Z);
+      shade.x = clampArenaX(shade.x + directionX / directionLength * speed * dt);
+      shade.z = clampArenaZ(shade.z + directionZ / directionLength * speed * dt);
 
     });
 
@@ -410,10 +415,10 @@ export function createBlackoutRelaySimulation(
           const directionLength = Math.max(0.0001, Math.hypot(dx, dz));
           const pushX = dx / directionLength * push;
           const pushZ = dz / directionLength * push;
-          left.x = clamp(left.x - pushX, -ARENA_X, ARENA_X);
-          left.z = clamp(left.z - pushZ, -ARENA_Z, ARENA_Z);
-          right.x = clamp(right.x + pushX, -ARENA_X, ARENA_X);
-          right.z = clamp(right.z + pushZ, -ARENA_Z, ARENA_Z);
+          left.x = clampArenaX(left.x - pushX);
+          left.z = clampArenaZ(left.z - pushZ);
+          right.x = clampArenaX(right.x + pushX);
+          right.z = clampArenaZ(right.z + pushZ);
         }
       }
     }
@@ -443,8 +448,8 @@ export function createBlackoutRelaySimulation(
           awayZ = Math.sin(angle);
           awayLength = 1;
         }
-        shade.x = clamp(shade.x + awayX / awayLength * 0.28, -ARENA_X, ARENA_X);
-        shade.z = clamp(shade.z + awayZ / awayLength * 0.28, -ARENA_Z, ARENA_Z);
+        shade.x = clampArenaX(shade.x + awayX / awayLength * 0.28);
+        shade.z = clampArenaZ(shade.z + awayZ / awayLength * 0.28);
         burst(player.x, player.z, 2, 7, 1.6, 2);
         emit({ type: 'relay.integrity-hit', shadeIndex: contactIndex, value: integrity });
       }

@@ -2,6 +2,7 @@ import {
   abs,
   clamp,
   dot,
+  length,
   max,
   mix,
   normalize,
@@ -45,6 +46,16 @@ export default shader({
     uDiffuse: 'sampler2D',
     uAo: 'sampler2D',
     uRoughness: 'sampler2D',
+    uDiffuseTint: 'vec3',
+    uTextureContrast: 'float',
+    uAmbientColor: 'vec3',
+    uAmbientStrength: 'float',
+    uExposure: 'float',
+    uRelayLightStrength: 'float',
+    uFogColor: 'vec3',
+    uFogStart: 'float',
+    uFogEnd: 'float',
+    uFogMaximumMix: 'float',
     uEmberPosition: 'vec3',
     uEmberColor: 'vec3',
     uEmberPower: 'float',
@@ -66,7 +77,7 @@ export default shader({
   vertex({ aPosition, aUv }, { uViewProj }, v) {
     const world = vec3(aPosition.x, -0.42, -aPosition.y);
     v.vWorld = world;
-    v.vUv = aUv.mul(vec2(4.5, 3.35));
+    v.vUv = aUv.mul(vec2(2.65, 1.9));
     return uViewProj.mul(vec4(world, 1));
   },
 
@@ -75,6 +86,16 @@ export default shader({
     uDiffuse,
     uAo,
     uRoughness,
+    uDiffuseTint,
+    uTextureContrast,
+    uAmbientColor,
+    uAmbientStrength,
+    uExposure,
+    uRelayLightStrength,
+    uFogColor,
+    uFogStart,
+    uFogEnd,
+    uFogMaximumMix,
     uEmberPosition,
     uEmberColor,
     uEmberPower,
@@ -88,20 +109,27 @@ export default shader({
     uVioletPower,
     uVioletRadius,
   }, { vWorld, vUv }) {
-    const diffuseSample = texture(uDiffuse, vUv).xyz;
-    const ao = mix(0.48, 1, texture(uAo, vUv).x);
+    const sourceDiffuse = texture(uDiffuse, vUv).xyz;
+    const diffuseSample = mix(vec3(0.38, 0.36, 0.31), sourceDiffuse, uTextureContrast);
+    const ao = mix(0.64, 1, texture(uAo, vUv).x);
     const roughness = clamp(texture(uRoughness, vUv).x, 0.2, 0.98);
     const normal = vec3(0, 1, 0);
     const view = normalize(uCameraPosition.sub(vWorld));
     const amber = materialPresentationFloorLight(vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness);
     const blue = materialPresentationFloorLight(vWorld, normal, view, uIonPosition, uIonColor, uIonPower, uIonRadius, roughness);
     const plum = materialPresentationFloorLight(vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness);
-    const irradiance = amber.add(blue).add(plum);
-    const dampEarth = diffuseSample.mul(vec3(0.58, 0.62, 0.55));
-    const ambient = vec3(0.055, 0.065, 0.06).scale(ao);
-    const lit = dampEarth.mul(ambient.add(irradiance.scale(0.78)));
+    const irradiance = amber.add(blue).add(plum).scale(uRelayLightStrength);
+    const dampEarth = diffuseSample.mul(uDiffuseTint);
+    const ambient = uAmbientColor.scale(uAmbientStrength * ao);
+    const lit = dampEarth.mul(ambient.add(irradiance));
     const stonePath = smoothstep(0.44, 0.5, max(0.6 - abs(vWorld.x) * 0.12, 0.6 - abs(vWorld.z) * 0.12));
     const pathTint = mix(vec3(1, 1, 1), vec3(0.74, 0.78, 0.72), stonePath * 0.18);
-    return vec4(tonemapACES(lit.mul(pathTint).add(irradiance.scale(0.025))), 1);
+    const materialColor = lit.mul(pathTint).add(irradiance.scale(0.035)).scale(uExposure);
+    const fog = smoothstep(uFogStart, uFogEnd, length(uCameraPosition.sub(vWorld)));
+    return vec4(tonemapACES(mix(
+      materialColor,
+      uFogColor,
+      fog * uFogMaximumMix,
+    )), 1);
   },
 });
