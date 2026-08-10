@@ -53,9 +53,15 @@ export function parseQuaterniusPackPage(
 }
 
 async function fetchText(fetcher: typeof fetch, url: string): Promise<string> {
-  const response = await fetcher(url, { headers: { accept: 'text/html', 'user-agent': 'AntikyAssetCatalog/1.0 (+https://antikylabs.com/assets)' } });
-  if (!response.ok) throw new Error(`Quaternius request failed (${response.status}): ${url}`);
-  return response.text();
+  const retryable = new Set([408, 425, 429, 500, 502, 503, 504]);
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const response = await fetcher(url, { headers: { accept: 'text/html', 'user-agent': 'AntikyAssetCatalog/1.0 (+https://antikylabs.com/assets)' } });
+    if (response.ok) return response.text();
+    if (!retryable.has(response.status) || attempt === 3) {
+      throw new Error(`Quaternius request failed (${response.status}): ${url}`);
+    }
+  }
+  throw new Error(`Quaternius request failed after retries: ${url}`);
 }
 
 export async function fetchQuaterniusCatalog(options: Readonly<{

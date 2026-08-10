@@ -6,7 +6,7 @@ import { CATALOG_ASSETS } from './catalog-data.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
 import { parseKenneyAssetPage } from './providers/kenney-client.ts';
 import { fetchPolyHavenMetadataCatalog, fetchPolyHavenStarterCatalog } from './providers/poly-haven-client.ts';
-import { parseQuaterniusPackPage } from './providers/quaternius-client.ts';
+import { fetchQuaterniusCatalog, parseQuaterniusPackPage } from './providers/quaternius-client.ts';
 
 const assets: CatalogAsset[] = [
   {
@@ -112,6 +112,33 @@ test('parses official Quaternius pack metadata without downloading the pack', ()
   assert.equal(asset.preview.hosting, 'local');
   assert.equal(asset.verification, 'source-verified');
   assert.equal(asset.downloads.length, 0);
+});
+
+test('retries a transient Quaternius pack response during catalog discovery', async () => {
+  const index = `
+    <div class="pack">
+      <a href="/packs/testpack.html"><img class="gallery-img" src="/preview.jpg"></a>
+      <div class="viewtag tags">3D</div>
+    </div><footer></footer>
+  `;
+  const pack = `
+    <title>Quaternius • Test Pack</title>
+    <meta name="description" content="A test pack.">
+    <meta property="og:image" content="/preview.jpg">
+    <div>Models<div class="text-right">12</div></div>
+    <div>Formats<div class="text-right tags">FBX</div>License<div>CC0</div></div>
+  `;
+  let packAttempts = 0;
+  const fetcher = async (input: string | URL | globalThis.Request) => {
+    const url = String(input);
+    if (url.endsWith('/index.html')) return new Response(index);
+    packAttempts += 1;
+    return packAttempts === 1 ? new Response('temporarily unavailable', { status: 503 }) : new Response(pack);
+  };
+
+  const result = await fetchQuaterniusCatalog({ fetch: fetcher as typeof fetch, concurrency: 1 });
+  assert.equal(packAttempts, 2);
+  assert.equal(result[0]?.id, 'quaternius:testpack');
 });
 
 test('normalizes Poly Haven API metadata and download files', () => {
