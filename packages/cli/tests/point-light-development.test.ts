@@ -7,9 +7,11 @@ import { AntikyCliError } from '../src/errors.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import {
   projectDevelopmentPointLight,
+  projectDevelopmentPointLightListV2,
+  projectDevelopmentPointLightV2,
   projectDevelopmentPointLightList,
 } from '../src/development/point-lights.ts';
-import type { DevelopmentSnapshot } from '../src/development/types.ts';
+import type { DevelopmentSnapshot, DevelopmentSnapshotV2 } from '../src/development/types.ts';
 
 const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const VISIBLE_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';
@@ -115,6 +117,26 @@ function developmentSnapshot(withPointLights = true): DevelopmentSnapshot {
   };
 }
 
+function developmentSnapshotV2(): DevelopmentSnapshotV2 {
+  const source = developmentSnapshot();
+  return {
+    ...source,
+    schemaVersion: 2,
+    observation: {
+      schemaVersion: 1,
+      developmentSessionId: source.developmentSessionId,
+      acceptedBuildRevision: 2,
+      runtimeInstanceId: 'runtime-projection-001',
+      publicationSequence: 4,
+      publishedAt: '2026-08-10T17:15:00.000Z',
+      connectionState: 'connected',
+      freshness: 'current',
+      session: null,
+      world: { worldId: WORLD_ID, revision: null, eventSequence: 1 },
+    },
+  };
+}
+
 test('development point-light reads project the shared inspection without copying authority', () => {
   const snapshot = developmentSnapshot();
   const list = projectDevelopmentPointLightList(snapshot);
@@ -145,4 +167,16 @@ test('development point-light reads reject an unavailable runtime-owned inspecti
       && error.code === 'ANTIKY_RUNTIME_UNAVAILABLE'
     ),
   );
+});
+
+test('version-two point-light reads carry the exact accepted observation', () => {
+  const source = developmentSnapshotV2();
+  const list = projectDevelopmentPointLightListV2(source);
+  const detail = projectDevelopmentPointLightV2(source, VISIBLE_ID);
+
+  assert.equal(list.schemaVersion, 2);
+  assert.equal(detail.schemaVersion, 2);
+  assert.equal(list.observation, source.observation);
+  assert.equal(detail.observation, source.observation);
+  assert.equal(detail.pointLight?.authoring.entityId, VISIBLE_ID);
 });

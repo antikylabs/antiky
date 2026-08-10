@@ -74,8 +74,12 @@ antiky tool get_latest_build
 ### `get_runtime_status`
 
 Call this before `dev_reload` or `capture_frame`, or when runtime-backed state is missing. It
-takes no input and returns the game connection plus the latest framework inspection snapshot. A
-`null` inspection means no game snapshot is available.
+takes no input and returns the game connection plus the latest framework inspection snapshot.
+The version-two result also carries an `observation` that identifies the accepted build, runtime
+instance, publication sequence and time, connection state, freshness, and any published
+session/world counters. A `null` inspection and observation mean no game snapshot has been accepted.
+An observation with `freshness: "retained-unavailable"` is retained diagnostic context, not current
+runtime authority.
 
 ```sh
 antiky tool get_runtime_status
@@ -85,7 +89,8 @@ antiky tool get_runtime_status
 
 Call this to read available frame, canvas, draw-call, instance, and upload measurements. It takes no
 input. Missing measurements are `null`. This tool does not capture pixels or prove what the game
-looks like; use `capture_frame` for an image.
+looks like; use `capture_frame` for an image. Its version-two result carries the same observation
+identity as the runtime publication from which the measurements were projected.
 
 ```sh
 antiky tool get_render_stats
@@ -116,7 +121,9 @@ antiky tool get_session_status
 
 The result contains session, world, and runtime IDs; running or paused mode; all pause reasons;
 immutable system order; fixed-clock limits and counters; command, control, and world revisions;
-and the latest completed-step digest.
+and the latest completed-step digest. The surrounding version-two observation binds those values to
+one accepted runtime publication. World, event, point-light, render, and diagnostic runtime reads
+use the same observation contract.
 
 ### `pause_simulation`
 
@@ -252,15 +259,44 @@ runtime-instance IDs. The tool does not start a development session or rebuild s
 
 ### `capture_frame`
 
-Call `get_runtime_status` first to confirm that a game is connected:
+Read `get_runtime_status` and `get_render_stats` first. Copy the development session, accepted
+build, and runtime instance from a `current` observation, and request the exact drawing-buffer size
+reported by the game:
 
 ```sh
-antiky tool capture_frame
+antiky tool capture_frame '{
+  "schemaVersion":2,
+  "expected":{
+    "developmentSessionId":"development-session-id",
+    "acceptedBuildRevision":1,
+    "runtimeInstanceId":"runtime-instance-id"
+  },
+  "runtimePolicy":"current-or-managed",
+  "target":{"width":1280,"height":720,"deviceScaleFactor":1},
+  "warmUpFrames":2,
+  "idempotencyKey":"capture-review-001"
+}'
 ```
 
-The tool writes the exact game-canvas pixels as a PNG under `.antiky/captures/`. Its result
-contains the path, digest, byte count, capture ID, action ID, development-session ID,
-runtime-instance ID, and build revision. Use `get_render_stats` for renderer measurements.
+To fence an exact simulation state, also supply the observation's `sessionId`,
+`completedStepCount`, and `stateDigest`. Exact-step capture requires a paused session. A changed
+build, runtime, session, or step fails with a stable capture code instead of returning unrelated
+pixels.
+
+The structured result contains the observation actually captured, source, DPR, dimensions, byte
+length, SHA-256, and an opaque `antiky-evidence://` artifact identity. It never contains a local
+path. MCP clients also receive the bounded PNG as an image content block; the typed development
+client can retrieve the same artifact through its authorized opaque lookup.
+
+Evidence is private to the development session, is removed when that session stops, and starts with
+`reviewState: "private-unreviewed"`. Canvas-only capture prevents desktop, terminal, and browser
+chrome pixels from entering through the capture mechanism, but Antiky does not scan arbitrary text
+or secrets rendered by the game itself. Do not upload or publish the artifact without a separate
+review.
+
+The current implementation uses a connected game runtime. `runtimePolicy: "managed-only"` is
+reserved for the managed capture runtime and currently returns a stable unavailable result rather
+than launching a personal browser.
 
 ### `set_point_light_power`
 

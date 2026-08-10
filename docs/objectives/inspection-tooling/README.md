@@ -2,6 +2,12 @@
 
 Research snapshot: 2026-08-09
 
+Implementation update: the working development service now has strict observation identities and
+fenced, path-safe private still evidence as the foundation described in
+[execute goal 01](goals/execute-goal.md). The audit findings below remain the research baseline;
+[execute goal 03](goals/execute-goal-03.md) tracks the still-missing managed browser and canvas
+motion-evidence slice.
+
 This package audits the inspection, control, and evidence surfaces that agents and skills need to
 build serious games with Antiky Framework, BroMetal, and Antiky Studio. It compares the current
 implementation in `packages/framework` and `packages/cli` with the production needs identified in
@@ -29,10 +35,10 @@ Antiky already has the beginning of the right control plane:
 - build/runtime identity correlation, stale-runtime rejection, game-canvas-only capture, and a
   bounded MCP call log with field-name-based secret redaction.
 
-Those last two protections are incomplete. The current capture result exposes an absolute local
-filesystem path, and arbitrary strings or pixels are not content-scanned for PII. Evidence export
-therefore needs opaque artifact references, permission-filtered metadata, and explicit privacy
-validation before agents may treat captures or logs as safe to share.
+The still-capture path now returns an opaque private artifact rather than an absolute local path.
+Arbitrary strings or game-rendered pixels are still not content-scanned for PII, and export remains
+outside the implemented boundary. Evidence therefore remains `private-unreviewed` until a separate
+publication review approves it.
 
 That foundation proves the architecture, but not yet a general game-production surface. The
 current MCP has 17 tools: ten reads, five lifecycle/evidence actions, and two point-light mutation

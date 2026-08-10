@@ -14,7 +14,7 @@ const MAX_ITEMS = 64;
 const MAX_PATHS = 32;
 const MAX_STRING_CHARACTERS = 2_048;
 const REDACTED = '[REDACTED]';
-const SECRET_FIELD = /authorization|credential|password|secret|token|api[-_]?key/i;
+const SECRET_FIELD = /authorization|credential|password|secret|token|api[-_]?key|path|directory|hostname|username|pid/i;
 const CORRELATION_FIELDS = [
   'actionId',
   'captureId',

@@ -64,6 +64,36 @@ test('browser envelopes return typed snapshots, disconnects, and action results'
       canvasHeight: 1,
       dataBase64: 'capture-bytes-stay-in-the-envelope',
     },
+    snapshot: null,
+    publicationSequence: null,
+  });
+  assert.deepEqual(readBrowserActionResultEnvelope({
+    schemaVersion: 1,
+    developmentSessionId: DEVELOPMENT_SESSION_ID,
+    runtimeInstanceId: 'runtime-browser-envelope-001',
+    actionId: 'action-browser-envelope-002',
+    result: {
+      kind: 'capture',
+      mimeType: 'image/png',
+      canvasWidth: 1,
+      canvasHeight: 1,
+      dataBase64: 'capture-bytes-stay-in-the-envelope',
+      publicationSequence: 2,
+      snapshot: inspection,
+    },
+  }, DEVELOPMENT_SESSION_ID), {
+    kind: 'capture',
+    input: {
+      actionId: 'action-browser-envelope-002',
+      runtimeInstanceId: 'runtime-browser-envelope-001',
+      publicationSequence: 2,
+      mimeType: 'image/png',
+      canvasWidth: 1,
+      canvasHeight: 1,
+      dataBase64: 'capture-bytes-stay-in-the-envelope',
+    },
+    snapshot: inspection,
+    publicationSequence: 2,
   });
 });
 

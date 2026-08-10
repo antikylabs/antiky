@@ -58,6 +58,11 @@ Antiky exposes development operations as MCP tools. Read tools report session, b
 render, diagnostic, world, store, event, and point-light state. Action tools reload the game,
 capture a frame, control simulation, or submit a point-light change.
 
+Runtime-backed reads carry a versioned observation identity with accepted build, runtime instance,
+publication sequence/time, freshness, and applicable session/world counters. Use that observation
+to fence capture requests; retained data after a disconnect is labeled unavailable and must not be
+treated as current.
+
 The server does not publish the same state again as MCP Resources. Tools fit both kinds of Antiky
 work:
 
@@ -73,6 +78,12 @@ The local development host also keeps a bounded in-memory record of handled `too
 for Studio. That record is a protected development-client query, not an MCP Tool or Resource.
 Reading it cannot make the history record itself. It expires with the `antiky dev` session and does
 not become game event history.
+
+Canvas captures are stored as private, content-addressed evidence owned by the development session.
+Normal structured results and audit projections contain opaque artifact identities rather than host
+filesystem paths. MCP can return a PNG image content block for direct inspection, but evidence is
+`private-unreviewed`: Antiky excludes desktop and terminal pixels at the source and does not claim
+that arbitrary pixels rendered inside a game canvas are free of personal or secret content.
 
 ## Call a tool yourself
 

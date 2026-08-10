@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type {
   DevelopmentMcpCall,
   DevelopmentMcpCallLog,
-  DevelopmentSnapshot,
+  DevelopmentSnapshotV2,
 } from '@antiky/cli/development';
 
 import type { StudioIssue } from '../development/coordinator.ts';
@@ -11,7 +11,7 @@ import { EmptyState, JsonRecord, Panel, RetentionFact, Tabs } from './primitives
 
 const labels = ['Events', 'MCP calls', 'Diagnostics'] as const;
 
-function EventsView({ snapshot }: Readonly<{ snapshot: DevelopmentSnapshot | null }>) {
+function EventsView({ snapshot }: Readonly<{ snapshot: DevelopmentSnapshotV2 | null }>) {
   const history = snapshot?.inspection?.events;
   if (!history) {
     return (
@@ -122,7 +122,7 @@ function McpCallsView({ log }: Readonly<{ log: DevelopmentMcpCallLog | null }>) 
 function DiagnosticsView({
   snapshot,
   issue,
-}: Readonly<{ snapshot: DevelopmentSnapshot | null; issue: StudioIssue | null }>) {
+}: Readonly<{ snapshot: DevelopmentSnapshotV2 | null; issue: StudioIssue | null }>) {
   const diagnostics = [
     ...(snapshot?.diagnostics ?? []),
     ...(snapshot?.inspection?.diagnostics ?? []),
@@ -156,7 +156,7 @@ export function ActivityPanel({
   issue,
   stale,
 }: Readonly<{
-  snapshot: DevelopmentSnapshot | null;
+  snapshot: DevelopmentSnapshotV2 | null;
   mcpCallLog: DevelopmentMcpCallLog | null;
   issue: StudioIssue | null;
   stale: boolean;

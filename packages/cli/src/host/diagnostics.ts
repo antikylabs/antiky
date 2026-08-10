@@ -25,6 +25,7 @@ export type CliDiagnosticComponent =
   | 'cli'
   | 'session'
   | 'action-broker'
+  | 'evidence-store'
   | 'game-port-reservation'
   | 'inspection-port-reservation'
   | 'session-descriptor'

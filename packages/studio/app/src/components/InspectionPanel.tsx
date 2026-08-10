@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import type { DevelopmentSnapshot } from '@antiky/cli/development';
+import type { DevelopmentSnapshotV2 } from '@antiky/cli/development';
 
 import { CountBadge, EmptyState, JsonRecord, Panel, Tabs } from './primitives.tsx';
 
-type Inspection = NonNullable<DevelopmentSnapshot['inspection']>;
+type Inspection = NonNullable<DevelopmentSnapshotV2['inspection']>;
 type World = NonNullable<Inspection['world']>;
 type Entity = World['entities'][number];
 
@@ -137,7 +137,7 @@ function StoresView({ world }: Readonly<{ world: World }>) {
 export function InspectionPanel({
   snapshot,
   stale,
-}: Readonly<{ snapshot: DevelopmentSnapshot | null; stale: boolean }>) {
+}: Readonly<{ snapshot: DevelopmentSnapshotV2 | null; stale: boolean }>) {
   const [active, setActive] = useState<(typeof labels)[number]>('Hierarchy');
   const world = snapshot?.inspection?.world;
   const count = world?.counts.entities.retained ?? 0;

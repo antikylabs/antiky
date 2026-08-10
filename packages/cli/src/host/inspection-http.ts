@@ -59,6 +59,27 @@ export function writeEmpty(
   response.end();
 }
 
+export function writeBytes(
+  response: ServerResponse,
+  status: number,
+  bytes: Uint8Array,
+  contentType: string,
+  allowedOrigin?: string,
+): void {
+  if (response.destroyed || response.writableEnded) return;
+  response.writeHead(status, {
+    'cache-control': 'no-store',
+    'content-type': contentType,
+    'content-length': bytes.byteLength,
+    'x-content-type-options': 'nosniff',
+    ...(allowedOrigin === undefined ? {} : {
+      'access-control-allow-origin': allowedOrigin,
+      vary: 'Origin',
+    }),
+  });
+  response.end(bytes);
+}
+
 export function requireExactOrigin(request: IncomingMessage, expectedOrigin: string): void {
   if (request.headers.origin !== expectedOrigin) {
     serviceError(403, 'ANTIKY_ORIGIN_INVALID', 'Invalid Origin header.');

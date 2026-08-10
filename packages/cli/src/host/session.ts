@@ -7,11 +7,14 @@ import type { AntikyProject } from '../project.ts';
 import type { DevelopmentConnection } from '../development/browser-client.ts';
 import { createBuildTracker } from './build-tracker.ts';
 import { createDevelopmentActionBroker } from './actions.ts';
+import type { CaptureFrameRequestV2 } from '../development/capture.ts';
+import { createEvidenceStore } from './evidence-store.ts';
 import {
   DEVELOPMENT_SCHEMA_VERSION,
   type DevelopmentCleanupState,
   type DevelopmentProcessState,
   type DevelopmentSnapshot,
+  type DevelopmentSnapshotV2,
   type DevelopmentStopReason,
   type DevelopmentStopResult,
 } from '../development/types.ts';
@@ -25,6 +28,7 @@ import {
 import { createInspectionServer } from './inspection-server.ts';
 import { createDevelopmentGameHost } from './game-server.ts';
 import { createRuntimeConnection } from './runtime-connection.ts';
+import type { RuntimeConnectionSnapshot } from './runtime-connection.ts';
 import {
   getSessionDescriptorPath,
   removeSessionDescriptor,
@@ -49,6 +53,7 @@ type ManagedChild = {
 
 export type DevelopmentCleanupOperation =
   | 'action-broker'
+  | 'evidence-store'
   | 'game-port-reservation'
   | 'inspection-port-reservation'
   | 'session-descriptor'
@@ -80,6 +85,7 @@ export interface DevelopmentSession {
   readonly descriptorPath: string;
   readonly stopped: Promise<DevelopmentStopResult>;
   snapshot(): DevelopmentSnapshot;
+  snapshotV2(): DevelopmentSnapshotV2;
   stop(reason?: DevelopmentStopReason, exitCode?: number): Promise<DevelopmentStopResult>;
 }
 
@@ -314,9 +320,15 @@ export async function startDevelopmentSession(
       : { timeoutMilliseconds: options.runtimeConnectionTimeoutMilliseconds }),
   });
 
+  const evidenceStore = createEvidenceStore({
+    rootDirectory: project.development.workingDirectory,
+    developmentSessionId: id,
+  });
+
   const actionBroker = createDevelopmentActionBroker({
     developmentSessionId: id,
     rootDirectory: project.development.workingDirectory,
+    evidenceStore,
     diagnosticSink,
     readRuntimeContext: () => {
       const runtime = runtimeConnection.read();
@@ -324,6 +336,7 @@ export async function startDevelopmentSession(
         runtimeInstanceId: runtime.runtimeInstanceId,
         buildRevision: buildTracker.snapshot().revision,
         connected: runtime.state === 'connected',
+        observation: runtime.observation,
       };
     },
     ...(options.actionTimeoutMilliseconds === undefined
@@ -331,8 +344,9 @@ export async function startDevelopmentSession(
       : { timeoutMilliseconds: options.actionTimeoutMilliseconds }),
   });
 
-  const snapshot = (): DevelopmentSnapshot => {
-    const runtime = runtimeConnection.read();
+  const snapshotFromRuntime = (
+    runtime: RuntimeConnectionSnapshot,
+  ): DevelopmentSnapshot => {
     const build = buildTracker.snapshot();
     return Object.freeze({
       schemaVersion: DEVELOPMENT_SCHEMA_VERSION,
@@ -366,6 +380,15 @@ export async function startDevelopmentSession(
       inspection: runtime.inspection,
     });
   };
+  const snapshot = (): DevelopmentSnapshot => snapshotFromRuntime(runtimeConnection.read());
+  const snapshotV2 = (): DevelopmentSnapshotV2 => {
+    const runtime = runtimeConnection.read();
+    return Object.freeze({
+      ...snapshotFromRuntime(runtime),
+      schemaVersion: 2,
+      observation: runtime.observation,
+    });
+  };
 
   const inspectionServer = createInspectionServer({
     host: project.network.host,
@@ -375,6 +398,7 @@ export async function startDevelopmentSession(
     credential,
     diagnosticSink,
     readDevelopmentSnapshot: snapshot,
+    readDevelopmentSnapshotV2: snapshotV2,
     acceptInspection(inspection, publicationSequence) {
       const acceptedBuildRevision = runtimeConnection.accept(inspection, publicationSequence);
       if (
@@ -393,7 +417,8 @@ export async function startDevelopmentSession(
     completePointLightCommand: (input) => actionBroker.completePointLightCommand(input),
     completeSessionControl: (input) => actionBroker.completeSessionControl(input),
     requestReload: () => actionBroker.requestReload(),
-    captureFrame: () => actionBroker.captureFrame(),
+    captureFrameV2: (request: CaptureFrameRequestV2) => actionBroker.captureFrameV2(request),
+    readEvidence: (lookup) => evidenceStore.read(lookup),
     setPointLightPower: (command) => actionBroker.setPointLightPower(command),
     correctPointLightPower: (request) => actionBroker.correctPointLightPower(request),
     pauseSimulation: () => actionBroker.pauseSimulation(),
@@ -428,6 +453,10 @@ export async function startDevelopmentSession(
         {
           name: 'action-broker',
           operation: async () => { actionBroker.stop(); },
+        },
+        {
+          name: 'evidence-store',
+          operation: () => evidenceStore.stop(),
         },
         {
           name: 'game-port-reservation',
@@ -606,6 +635,7 @@ export async function startDevelopmentSession(
     descriptorPath,
     stopped,
     snapshot,
+    snapshotV2,
     stop,
   });
 }

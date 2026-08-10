@@ -30,11 +30,17 @@ import {
   readBrowserSnapshotEnvelope,
 } from './browser-envelope.ts';
 import type {
-  DevelopmentCaptureResult,
   DevelopmentReloadResult,
   DevelopmentSessionControlResult,
   DevelopmentSnapshot,
+  DevelopmentSnapshotV2,
 } from '../development/types.ts';
+import type {
+  CaptureFrameRequestV2,
+  DevelopmentCaptureResultV2,
+} from '../development/capture.ts';
+import type { EvidenceArtifactRefV1 } from '../development/evidence.ts';
+import type { EvidenceArtifact, EvidenceLookup } from './evidence-store.ts';
 import { AntikyCliError } from '../errors.ts';
 import {
   NOOP_CLI_DIAGNOSTIC_SINK,
@@ -64,6 +70,7 @@ import {
   serviceError,
   validateCorsPreflight,
   writeEmpty,
+  writeBytes,
   writeJson,
 } from './inspection-http.ts';
 
@@ -71,17 +78,18 @@ const MAX_BROWSER_MESSAGE_BYTES = 256 * 1024;
 
 const DEVELOPMENT_GET_PATHS = new Set([
   '/v1/development',
+  '/v2/development',
   '/v1/mcp-calls',
 ]);
 
 const DEVELOPMENT_POST_PATHS = new Set([
   '/v1/actions/reload',
-  '/v1/actions/capture',
   '/v1/actions/pause-simulation',
   '/v1/actions/resume-simulation',
   '/v1/actions/step-simulation',
   '/v1/actions/set-point-light-power',
   '/v1/actions/correct-point-light-power',
+  '/v2/actions/capture',
 ]);
 
 type InspectionServerOptions = Readonly<{
@@ -92,6 +100,7 @@ type InspectionServerOptions = Readonly<{
   credential: string;
   diagnosticSink?: CliDiagnosticSink;
   readDevelopmentSnapshot(): DevelopmentSnapshot;
+  readDevelopmentSnapshotV2(): DevelopmentSnapshotV2;
   acceptInspection(snapshot: InspectionSnapshot, publicationSequence: number): number;
   disconnectRuntime(runtimeInstanceId: string, publicationSequence: number): void;
   touchRuntime(runtimeInstanceId: string): void;
@@ -100,7 +109,8 @@ type InspectionServerOptions = Readonly<{
   completePointLightCommand(input: PointLightActionResultInput): Promise<void>;
   completeSessionControl(input: SessionControlActionResultInput): Promise<void>;
   requestReload(): Promise<DevelopmentReloadResult>;
-  captureFrame(): Promise<DevelopmentCaptureResult>;
+  captureFrameV2(request: CaptureFrameRequestV2): Promise<DevelopmentCaptureResultV2>;
+  readEvidence(lookup: EvidenceLookup): Promise<EvidenceArtifact>;
   setPointLightPower(command: SetPointLightPowerCommand): Promise<PointLightCommandResult>;
   correctPointLightPower(
     request: CorrectPointLightPowerRequest,
@@ -176,6 +186,7 @@ function readPointLightActionRequest(
 }
 
 function actionStatus(cause: AntikyCliError): number {
+  if (cause.code === 'ANTIKY_EVIDENCE_NOT_FOUND') return 404;
   if (cause.code === 'ANTIKY_ACTION_TIMEOUT') return 504;
   if (cause.code === 'ANTIKY_RUNTIME_UNAVAILABLE') return 503;
   if (cause.code === 'ANTIKY_CAPTURE_INVALID') return 400;
@@ -185,6 +196,9 @@ function actionStatus(cause: AntikyCliError): number {
 
 function developmentRequestMethod(pathname: string): 'GET' | 'POST' | null {
   if (DEVELOPMENT_GET_PATHS.has(pathname)) return 'GET';
+  if (/^\/v1\/evidence\/evidence-[a-z0-9][a-z0-9-]{7,126}\/artifact-[0-9a-f]{64}$/u.test(pathname)) {
+    return 'GET';
+  }
   if (DEVELOPMENT_POST_PATHS.has(pathname)) return 'POST';
   return null;
 }
@@ -196,8 +210,15 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
   const mcpCallLog = createMcpCallLog(options.developmentSessionId);
   const mcpClient = Object.freeze({
     async readDevelopmentSnapshot() { return options.readDevelopmentSnapshot(); },
+    async readDevelopmentSnapshotV2() { return options.readDevelopmentSnapshotV2(); },
     requestReload: options.requestReload,
-    captureFrame: options.captureFrame,
+    captureFrameV2: options.captureFrameV2,
+    async readEvidenceArtifact(artifact: EvidenceArtifactRefV1) {
+      return (await options.readEvidence({
+        evidenceId: artifact.evidenceId,
+        artifactId: artifact.artifactId,
+      })).bytes;
+    },
     async listPointLights() {
       return projectDevelopmentPointLightList(options.readDevelopmentSnapshot());
     },
@@ -300,8 +321,29 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           writeJson(response, 200, options.readDevelopmentSnapshot(), allowedResponseOrigin);
           return;
         }
+        if (request.method === 'GET' && requestUrl.pathname === '/v2/development') {
+          writeJson(response, 200, options.readDevelopmentSnapshotV2(), allowedResponseOrigin);
+          return;
+        }
         if (request.method === 'GET' && requestUrl.pathname === '/v1/mcp-calls') {
           writeJson(response, 200, mcpCallLog.read(), allowedResponseOrigin);
+          return;
+        }
+        const evidenceMatch = requestUrl.pathname.match(
+          /^\/v1\/evidence\/(evidence-[a-z0-9][a-z0-9-]{7,126})\/(artifact-[0-9a-f]{64})$/u,
+        );
+        if (request.method === 'GET' && evidenceMatch) {
+          const evidence = await options.readEvidence({
+            evidenceId: evidenceMatch[1]!,
+            artifactId: evidenceMatch[2]!,
+          });
+          writeBytes(
+            response,
+            200,
+            evidence.bytes,
+            evidence.artifact.mimeType,
+            allowedResponseOrigin,
+          );
           return;
         }
         if (request.method === 'POST' && requestUrl.pathname === '/v1/runtime/snapshot') {
@@ -359,7 +401,12 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
             input,
             options.developmentSessionId,
           );
-          if (envelope.kind === 'capture') await options.completeCapture(envelope.input);
+          if (envelope.kind === 'capture') {
+            if (envelope.snapshot && envelope.publicationSequence !== null) {
+              options.acceptInspection(envelope.snapshot, envelope.publicationSequence);
+            }
+            await options.completeCapture(envelope.input);
+          }
           else if (envelope.kind === 'point-light-command') {
             await options.completePointLightCommand(envelope.input);
           } else await options.completeSessionControl(envelope.input);
@@ -368,17 +415,27 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         }
         if (
           request.method === 'POST'
+          && requestUrl.pathname === '/v2/actions/capture'
+        ) {
+          const input = await readJson(request, MAX_BROWSER_MESSAGE_BYTES);
+          writeJson(
+            response,
+            200,
+            await options.captureFrameV2(input as CaptureFrameRequestV2),
+            allowedResponseOrigin,
+          );
+          return;
+        }
+        if (
+          request.method === 'POST'
           && (requestUrl.pathname === '/v1/actions/reload'
-            || requestUrl.pathname === '/v1/actions/capture'
             || requestUrl.pathname === '/v1/actions/pause-simulation'
             || requestUrl.pathname === '/v1/actions/resume-simulation')
         ) {
           readActionRequest(await readJson(request, MAX_BROWSER_MESSAGE_BYTES));
           const result = requestUrl.pathname.endsWith('/reload')
             ? await options.requestReload()
-            : requestUrl.pathname.endsWith('/capture')
-              ? await options.captureFrame()
-              : requestUrl.pathname.endsWith('/pause-simulation')
+            : requestUrl.pathname.endsWith('/pause-simulation')
                 ? await options.pauseSimulation()
                 : await options.resumeSimulation();
           writeJson(response, 200, result, allowedResponseOrigin);

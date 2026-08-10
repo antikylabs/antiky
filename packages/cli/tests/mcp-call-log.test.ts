@@ -97,12 +97,14 @@ test('MCP call history marks redaction and truncation without logging its own re
   assert.equal(call.durationMilliseconds, 7);
   assert.equal(call.redaction.applied, true);
   assert.ok(call.redaction.paths.includes('$.arguments.nested.authorization'));
+  assert.ok(call.redaction.paths.includes('$.result.path'));
   assert.equal(call.truncation.applied, true);
   assert.ok(call.truncation.paths.includes('$.arguments.nested.note'));
   assert.deepEqual(call.correlationIds, {
     captureId: 'capture-001',
   });
   assert.doesNotMatch(JSON.stringify(call), /Bearer secret/);
+  assert.doesNotMatch(JSON.stringify(call), /\/local\/capture\.png/);
 });
 
 test('every host-produced redaction path remains valid at the shared client boundary', () => {

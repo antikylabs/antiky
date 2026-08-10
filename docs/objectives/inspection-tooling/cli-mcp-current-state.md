@@ -4,6 +4,17 @@
 **Audited:** 2026-08-09  
 **Scope:** Antiky Framework, the CLI-owned development host, Antiky Studio's shared development client, Antiky games, and BroMetal behind Antiky's `RenderDriver` boundary
 
+> **Implementation update — 2026-08-10:** Work toward
+> [execute goal 01](goals/execute-goal.md) has implemented strict version-two runtime observations
+> and fenced, path-safe private still evidence in the working development service. Runtime-backed
+> MCP reads now identify the accepted build, runtime publication sequence/time, freshness, and
+> applicable session/world counters. `capture_frame` requires expected observation identities and
+> returns an opaque content-addressed artifact plus MCP image content; its normal result and audit
+> projection no longer expose an absolute capture path. Managed browser launch, motion sequences,
+> artifact listing, deterministic semantic replay, and content-aware pixel approval remain
+> unimplemented. Historical “current” findings below describe the 2026-08-09 audit baseline unless
+> this update or source/tests say otherwise.
+
 This report separates two things throughout:
 
 - **Verified current capability** means the behavior exists in the repository source and is covered by the cited implementation or tests.

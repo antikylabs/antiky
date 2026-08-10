@@ -1,5 +1,9 @@
 import type { InspectionSnapshot } from '@antiky/framework';
 
+import {
+  createObservationRefV1,
+  type ObservationRefV1,
+} from '../development/observation.ts';
 import type { DevelopmentConnectionState } from '../development/types.ts';
 import { AntikyCliError } from '../errors.ts';
 import {
@@ -15,7 +19,8 @@ const MAX_RETIRED_RUNTIME_IDS = 32;
 
 type RuntimeConnectionOptions = Readonly<{
   timeoutMilliseconds?: number;
-  developmentSessionId?: string;
+  developmentSessionId: string;
+  now?: () => string;
   diagnosticSink?: CliDiagnosticSink;
   acceptBuild(snapshot: InspectionSnapshot): number;
 }>;
@@ -24,6 +29,7 @@ export type RuntimeConnectionSnapshot = Readonly<{
   state: DevelopmentConnectionState;
   runtimeInstanceId: string | null;
   inspection: InspectionSnapshot | null;
+  observation: ObservationRefV1 | null;
 }>;
 
 export interface RuntimeConnection {
@@ -49,7 +55,9 @@ export function createRuntimeConnection(options: RuntimeConnectionOptions): Runt
   let lastContactMilliseconds = 0;
   let explicitlyDisconnected = false;
   let reportedState: DevelopmentConnectionState = 'waiting';
+  let observation: ObservationRefV1 | null = null;
   const retiredRuntimeIds = new Set<string>();
+  const now = options.now ?? (() => new Date().toISOString());
 
   const currentState = (): DevelopmentConnectionState => {
     if (inspection === null) return 'waiting';
@@ -67,9 +75,7 @@ export function createRuntimeConnection(options: RuntimeConnectionOptions): Runt
   ): void => emitCliDiagnostic(diagnosticSink, {
     level,
     code,
-    ...(options.developmentSessionId === undefined
-      ? {}
-      : { developmentSessionId: options.developmentSessionId }),
+    developmentSessionId: options.developmentSessionId,
     runtimeInstanceId,
     component: 'runtime-connection',
   });
@@ -89,11 +95,27 @@ export function createRuntimeConnection(options: RuntimeConnectionOptions): Runt
   };
 
   return Object.freeze({
-    read: () => Object.freeze({
-      state: state(),
+    read: () => {
+      const connectionState = state();
+      const observationConnectionState = connectionState === 'connected'
+        ? 'connected'
+        : 'unavailable';
+      const currentObservation = observation === null
+        ? null
+        : observationConnectionState === observation.connectionState
+          ? observation
+          : Object.freeze({
+            ...observation,
+            connectionState: observationConnectionState,
+            freshness: 'retained-unavailable' as const,
+          });
+      return Object.freeze({
+      state: connectionState,
       runtimeInstanceId: activeRuntimeInstanceId,
       inspection,
-    }),
+      observation: currentObservation,
+      });
+    },
     accept(snapshot: InspectionSnapshot, publicationSequence: number): number {
       state();
       const runtimeInstanceId = snapshot.runtime.instanceId;
@@ -132,11 +154,20 @@ export function createRuntimeConnection(options: RuntimeConnectionOptions): Runt
       lastContactMilliseconds = Date.now();
       explicitlyDisconnected = false;
       inspection = snapshot;
+      const acceptedBuildRevision = options.acceptBuild(snapshot);
+      observation = createObservationRefV1({
+        developmentSessionId: options.developmentSessionId,
+        acceptedBuildRevision,
+        publicationSequence,
+        publishedAt: now(),
+        connectionState: 'connected',
+        inspection: snapshot,
+      });
       if (reportConnected) {
         reportRuntime('info', 'ANTIKY_RUNTIME_CONNECTED', runtimeInstanceId);
       }
       reportedState = 'connected';
-      return options.acceptBuild(snapshot);
+      return acceptedBuildRevision;
     },
     disconnect(runtimeInstanceId: string, publicationSequence: number): void {
       if (

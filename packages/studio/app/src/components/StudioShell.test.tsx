@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { test } from 'vitest';
 
-import type { DevelopmentSnapshot } from '@antiky/cli/development';
+import type { DevelopmentSnapshotV2 } from '@antiky/cli/development';
 
 import type { StudioDevelopmentState } from '../development/coordinator.ts';
 import { StudioShell } from './StudioShell.tsx';
@@ -26,7 +26,7 @@ const development: StudioDevelopmentState = {
   updateSequence: 1,
   pendingLifecycle: null,
   snapshot: {
-    schemaVersion: 1,
+    schemaVersion: 2,
     developmentSessionId: 'development-studio-001',
     acceptedBuildRevision: 4,
     startedAt: '2026-08-05T12:00:00.000Z',
@@ -125,7 +125,19 @@ const development: StudioDevelopmentState = {
         }],
       },
     },
-  } as unknown as DevelopmentSnapshot,
+    observation: {
+      schemaVersion: 1,
+      developmentSessionId: 'development-studio-001',
+      acceptedBuildRevision: 4,
+      runtimeInstanceId: 'runtime-studio-001',
+      publicationSequence: 4,
+      publishedAt: '2026-08-05T12:00:02.000Z',
+      connectionState: 'connected',
+      freshness: 'current',
+      session: null,
+      world: { worldId: ROOT_ID, revision: 2, eventSequence: 1 },
+    },
+  } as unknown as DevelopmentSnapshotV2,
   mcpCallLog: {
     schemaVersion: 1,
     developmentSessionId: 'development-studio-001',

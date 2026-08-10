@@ -222,22 +222,60 @@ async function postActionResult(action, result) {
   void queueInspectionPublication();
 }
 
+function postCaptureActionResult(action, result, snapshot) {
+  const publication = publicationTail.then(async () => {
+    if (inspection === null) return;
+    const publicationSequence = inspection.publicationSequence + 1;
+    const response = await fetch(inspectionOrigin + '/v1/runtime/action-result', {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        authorization: inspection.authorization,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        schemaVersion: 1,
+        developmentSessionId: inspection.developmentSessionId,
+        runtimeInstanceId,
+        actionId: action.actionId,
+        result: { ...result, publicationSequence, snapshot },
+      }),
+      signal: inspection.controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error('Antiky capture publication failed (' + response.status + ').');
+    }
+    inspection.publicationSequence = publicationSequence;
+  });
+  publicationTail = publication.catch(() => {});
+  return publication;
+}
+
 async function handleAction(action) {
   if (action.kind === 'reload') {
     window.location.reload();
     return false;
   }
   if (action.kind === 'capture') {
+    const warmUpFrames = Number.isSafeInteger(action.warmUpFrames)
+      && action.warmUpFrames >= 0
+      && action.warmUpFrames <= 300
+      ? action.warmUpFrames
+      : 0;
+    for (let index = 0; index < warmUpFrames; index += 1) {
+      await new Promise((resolveFrame) => requestAnimationFrame(resolveFrame));
+    }
     const prefix = 'data:image/png;base64,';
     const dataUrl = canvas.toDataURL('image/png');
     if (!dataUrl.startsWith(prefix)) throw new Error('The game canvas did not produce a PNG.');
-    await postActionResult(action, {
+    const snapshot = readSnapshot();
+    await postCaptureActionResult(action, {
       kind: 'capture',
       mimeType: 'image/png',
       canvasWidth: canvas.width,
       canvasHeight: canvas.height,
       dataBase64: dataUrl.slice(prefix.length),
-    });
+    }, snapshot);
     return true;
   }
   const gameInspection = instance?.inspection;

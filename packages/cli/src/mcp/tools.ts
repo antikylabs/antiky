@@ -1,4 +1,7 @@
-import type { DevelopmentSnapshot } from '../development/types.ts';
+import type {
+  DevelopmentSnapshot,
+  DevelopmentSnapshotV2,
+} from '../development/types.ts';
 
 export const MCP_SNAPSHOT_READ_TOOL_NAMES = Object.freeze([
   'get_dev_status',
@@ -33,6 +36,10 @@ export const MCP_TOOL_NAMES = Object.freeze([
 ] as const);
 
 export type McpSnapshotReadToolName = typeof MCP_SNAPSHOT_READ_TOOL_NAMES[number];
+export type McpRuntimeSnapshotReadToolName = Extract<
+  McpSnapshotReadToolName,
+  'get_runtime_status' | 'get_render_stats' | 'get_diagnostics'
+>;
 
 const emptyInputSchema = Object.freeze({
   type: 'object',
@@ -82,6 +89,43 @@ const stepSimulationInputSchema = Object.freeze({
     expectedCompletedStepCount: { type: 'integer', minimum: 0 },
   },
   required: ['expectedCompletedStepCount'],
+  additionalProperties: false,
+} as const);
+
+const captureFrameInputSchema = Object.freeze({
+  type: 'object',
+  properties: {
+    schemaVersion: { const: 2 },
+    expected: {
+      type: 'object',
+      properties: {
+        developmentSessionId: { type: 'string', minLength: 1, maxLength: 128 },
+        acceptedBuildRevision: { type: 'integer', minimum: 0 },
+        runtimeInstanceId: { type: 'string', minLength: 1, maxLength: 128 },
+        sessionId: { type: 'string', minLength: 1, maxLength: 128 },
+        completedStepCount: { type: 'integer', minimum: 0 },
+        stateDigest: { type: ['string', 'null'], maxLength: 512 },
+      },
+      required: ['developmentSessionId', 'acceptedBuildRevision', 'runtimeInstanceId'],
+      additionalProperties: false,
+    },
+    runtimePolicy: { enum: ['current-or-managed', 'managed-only'] },
+    target: {
+      type: 'object',
+      properties: {
+        width: { type: 'integer', minimum: 1, maximum: 2560 },
+        height: { type: 'integer', minimum: 1, maximum: 1440 },
+        deviceScaleFactor: { type: 'number', minimum: 0.5, maximum: 2 },
+      },
+      required: ['width', 'height', 'deviceScaleFactor'],
+      additionalProperties: false,
+    },
+    warmUpFrames: { type: 'integer', minimum: 0, maximum: 300 },
+    idempotencyKey: { type: 'string', minLength: 1, maxLength: 128 },
+  },
+  required: [
+    'schemaVersion', 'expected', 'runtimePolicy', 'target', 'warmUpFrames', 'idempotencyKey',
+  ],
   additionalProperties: false,
 } as const);
 
@@ -173,8 +217,8 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
   },
   {
     name: 'capture_frame',
-    description: 'Call when you need the exact pixels from the connected game canvas after get_runtime_status confirms a runtime. It writes a PNG capture and returns its path, hash, byte length, session identity, runtime identity, and build revision. Use get_render_stats for canvas and renderer measurements. It takes no arguments.',
-    inputSchema: emptyInputSchema,
+    description: 'Call when you need exact pixels from the game canvas after reading the version-two runtime observation and render dimensions. Fence the development session, accepted build, runtime, and any exact paused step; choose the current or managed runtime policy; and provide bounded target dimensions plus an idempotency key. It returns private path-safe evidence metadata and an MCP image block. Use get_render_stats for renderer measurements.',
+    inputSchema: captureFrameInputSchema,
     annotations: actionToolAnnotations,
   },
   {
@@ -256,6 +300,45 @@ export function projectMcpReadTool(
     case 'get_diagnostics':
       return {
         schemaVersion: 1,
+        developmentSessionId: snapshot.developmentSessionId,
+        development: snapshot.diagnostics,
+        framework: snapshot.inspection?.diagnostics ?? [],
+      };
+  }
+}
+
+export function isMcpRuntimeSnapshotReadToolName(
+  name: string,
+): name is McpRuntimeSnapshotReadToolName {
+  return name === 'get_runtime_status'
+    || name === 'get_render_stats'
+    || name === 'get_diagnostics';
+}
+
+export function projectMcpRuntimeReadToolV2(
+  name: McpRuntimeSnapshotReadToolName,
+  snapshot: DevelopmentSnapshotV2,
+): unknown {
+  switch (name) {
+    case 'get_runtime_status':
+      return {
+        schemaVersion: 2,
+        observation: snapshot.observation,
+        acceptedBuildRevision: snapshot.acceptedBuildRevision,
+        connection: snapshot.connection,
+        inspection: snapshot.inspection,
+      };
+    case 'get_render_stats':
+      return {
+        schemaVersion: 2,
+        observation: snapshot.observation,
+        runtime: snapshot.inspection?.measurements.runtime ?? null,
+        render: snapshot.inspection?.measurements.render ?? null,
+      };
+    case 'get_diagnostics':
+      return {
+        schemaVersion: 2,
+        observation: snapshot.observation,
         developmentSessionId: snapshot.developmentSessionId,
         development: snapshot.diagnostics,
         framework: snapshot.inspection?.diagnostics ?? [],

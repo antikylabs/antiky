@@ -36,7 +36,12 @@ export type BrowserDisconnectEnvelope = Readonly<{
 }>;
 
 export type BrowserActionResultEnvelope =
-  | Readonly<{ kind: 'capture'; input: CaptureActionInput }>
+  | Readonly<{
+    kind: 'capture';
+    input: CaptureActionInput;
+    snapshot: InspectionSnapshot | null;
+    publicationSequence: number | null;
+  }>
   | Readonly<{ kind: 'point-light-command'; input: PointLightActionResultInput }>
   | Readonly<{ kind: 'session-control'; input: SessionControlActionResultInput }>;
 
@@ -152,21 +157,49 @@ export function readBrowserActionResultEnvelope(
     developmentSessionId,
   );
   if (result.kind === 'capture') {
-    if (!hasExactKeys(result, [
+    const legacyKeys = [
       'kind', 'mimeType', 'canvasWidth', 'canvasHeight', 'dataBase64',
-    ]) || result.mimeType !== 'image/png' || typeof result.dataBase64 !== 'string') {
+    ];
+    const observedKeys = [...legacyKeys, 'publicationSequence', 'snapshot'];
+    const hasObservation = hasExactKeys(result, observedKeys);
+    if (
+      (!hasExactKeys(result, legacyKeys) && !hasObservation)
+      || result.mimeType !== 'image/png'
+      || typeof result.dataBase64 !== 'string'
+    ) {
       fail(400, 'ANTIKY_MESSAGE_INVALID', 'Invalid capture result fields.');
+    }
+    let snapshot: InspectionSnapshot | null = null;
+    let publicationSequence: number | null = null;
+    if (hasObservation) {
+      publicationSequence = readSequence(result.publicationSequence);
+      try {
+        snapshot = createInspectionSnapshot(result.snapshot);
+      } catch (cause: unknown) {
+        if (
+          cause instanceof InspectionValidationError
+          || cause instanceof PointLightInspectionValidationError
+          || cause instanceof EngineSessionValidationError
+        ) fail(400, cause.code, cause.message);
+        throw cause;
+      }
+      if (snapshot.runtime.instanceId !== runtimeInstanceId) {
+        fail(409, 'ANTIKY_RUNTIME_STALE', 'Capture observation runtime is stale.');
+      }
     }
     return Object.freeze({
       kind: 'capture',
       input: Object.freeze({
         actionId,
         runtimeInstanceId,
+        ...(publicationSequence === null ? {} : { publicationSequence }),
         mimeType: 'image/png',
         canvasWidth: result.canvasWidth as number,
         canvasHeight: result.canvasHeight as number,
         dataBase64: result.dataBase64,
       }),
+      snapshot,
+      publicationSequence,
     });
   }
   if (result.kind === 'point-light-command') {

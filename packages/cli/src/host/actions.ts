@@ -1,6 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { chmod, mkdir, rename, rm, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { rm } from 'node:fs/promises';
 
 import {
   POINT_LIGHT_EDIT_PERMISSION,
@@ -17,11 +16,26 @@ import {
 } from '@antiky/framework';
 
 import type {
-  DevelopmentCaptureResult,
   DevelopmentReloadResult,
   DevelopmentSessionControlResult,
 } from '../development/types.ts';
+import {
+  parseCaptureFrameRequestV2,
+  type CaptureFrameRequestV2,
+  type DevelopmentCaptureResultV2,
+} from '../development/capture.ts';
+import type { ObservationRefV1 } from '../development/observation.ts';
 import { AntikyCliError } from '../errors.ts';
+import {
+  captureFailure,
+  decodePng,
+  persistLegacyCapture,
+  readPngDimensions,
+  staleCaptureError,
+  validateCaptureObservation,
+  type CaptureRuntimeContext,
+} from './capture-action.ts';
+import type { EvidenceStore } from './evidence-store.ts';
 import {
   NOOP_CLI_DIAGNOSTIC_SINK,
   emitCliDiagnostic,
@@ -32,11 +46,7 @@ import {
 } from './diagnostics.ts';
 
 const DEFAULT_ACTION_TIMEOUT_MILLISECONDS = 10_000;
-// High-DPI canvases can exceed 5 MiB below 4K. Keep the local transport bounded while allowing
-// exact PNG captures from common development displays.
-export const MAX_CAPTURE_BYTES = 32 * 1024 * 1024;
-export const MAX_CAPTURE_ENVELOPE_BYTES = Math.ceil(MAX_CAPTURE_BYTES / 3) * 4 + 64 * 1024;
-const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+export { MAX_CAPTURE_ENVELOPE_BYTES } from './capture-action.ts';
 
 type BrowserDevelopmentActionBase = Readonly<{
   schemaVersion: 1;
@@ -48,7 +58,13 @@ type BrowserDevelopmentActionBase = Readonly<{
 
 export type BrowserDevelopmentAction =
   | (BrowserDevelopmentActionBase & Readonly<{ kind: 'reload' }>)
-  | (BrowserDevelopmentActionBase & Readonly<{ kind: 'capture'; captureId: string }>)
+  | (BrowserDevelopmentActionBase & Readonly<{
+    kind: 'capture';
+    captureId: string;
+    evidenceId?: string;
+    target?: CaptureFrameRequestV2['target'];
+    warmUpFrames?: number;
+  }>)
   | (BrowserDevelopmentActionBase & Readonly<{
     kind: 'set-point-light-power';
     command: SetPointLightPowerCommand;
@@ -69,6 +85,7 @@ export type BrowserDevelopmentAction =
 export type CaptureActionInput = Readonly<{
   actionId: string;
   runtimeInstanceId: string;
+  publicationSequence?: number;
   mimeType: 'image/png';
   canvasWidth: number;
   canvasHeight: number;
@@ -88,19 +105,27 @@ export type SessionControlActionResultInput = Readonly<{
   session: unknown;
 }>;
 
-type RuntimeContext = Readonly<{
-  runtimeInstanceId: string | null;
-  buildRevision: number;
-  connected: boolean;
-}>;
-
 type DevelopmentActionBrokerOptions = Readonly<{
   developmentSessionId: string;
   rootDirectory: string;
-  readRuntimeContext(): RuntimeContext;
+  readRuntimeContext(): CaptureRuntimeContext;
+  evidenceStore?: EvidenceStore;
   timeoutMilliseconds?: number;
   now?: () => string;
   diagnosticSink?: CliDiagnosticSink;
+}>;
+
+type LegacyDevelopmentCaptureResult = Readonly<{
+  schemaVersion: 1;
+  actionId: string;
+  captureId: string;
+  developmentSessionId: string;
+  runtimeInstanceId: string;
+  buildRevision: number;
+  mimeType: 'image/png';
+  byteLength: number;
+  sha256: string;
+  path: string;
 }>;
 
 type PendingAction = {
@@ -109,17 +134,23 @@ type PendingAction = {
   resolve(
     value:
       | DevelopmentReloadResult
-      | DevelopmentCaptureResult
+      | LegacyDevelopmentCaptureResult
+      | DevelopmentCaptureResultV2
       | PointLightCommandResult
       | DevelopmentSessionControlResult,
   ): void;
   reject(cause: Error): void;
   timer: NodeJS.Timeout;
+  captureV2?: Readonly<{
+    request: CaptureFrameRequestV2;
+    evidenceId: string;
+  }>;
 };
 
 export interface DevelopmentActionBroker {
   requestReload(): Promise<DevelopmentReloadResult>;
-  captureFrame(): Promise<DevelopmentCaptureResult>;
+  captureFrame(): Promise<LegacyDevelopmentCaptureResult>;
+  captureFrameV2(request: unknown): Promise<DevelopmentCaptureResultV2>;
   setPointLightPower(command: SetPointLightPowerCommand): Promise<PointLightCommandResult>;
   correctPointLightPower(
     request: CorrectPointLightPowerRequest,
@@ -140,51 +171,6 @@ function actionError(
   message: string,
 ): AntikyCliError {
   return new AntikyCliError(code, message);
-}
-
-function staleCaptureError(): AntikyCliError {
-  return new AntikyCliError('ANTIKY_ACTION_STALE', 'The capture action is stale.');
-}
-
-function decodePng(value: string): Buffer {
-  if (value.length === 0 || value.length > Math.ceil(MAX_CAPTURE_BYTES / 3) * 4 + 4) {
-    throw new AntikyCliError('ANTIKY_CAPTURE_INVALID', 'The frame capture is empty or too large.');
-  }
-  const bytes = Buffer.from(value, 'base64');
-  if (
-    bytes.length === 0
-    || bytes.length > MAX_CAPTURE_BYTES
-    || bytes.toString('base64').replace(/=+$/, '') !== value.replace(/=+$/, '')
-    || bytes.subarray(0, PNG_SIGNATURE.length).compare(PNG_SIGNATURE) !== 0
-  ) {
-    throw new AntikyCliError('ANTIKY_CAPTURE_INVALID', 'The frame capture is not a valid PNG payload.');
-  }
-  return bytes;
-}
-
-async function persistCapture(
-  rootDirectory: string,
-  captureId: string,
-  bytes: Buffer,
-): Promise<string> {
-  const directory = join(rootDirectory, '.antiky', 'captures');
-  const path = join(directory, `${captureId}.png`);
-  const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
-  let committed = false;
-  try {
-    await mkdir(directory, { recursive: true, mode: 0o700 });
-    await chmod(directory, 0o700);
-    await writeFile(temporaryPath, bytes, { flag: 'wx', mode: 0o600 });
-    await rename(temporaryPath, path);
-    await chmod(path, 0o600);
-    committed = true;
-    return path;
-  } finally {
-    await Promise.allSettled([
-      rm(temporaryPath, { force: true }),
-      ...(committed ? [] : [rm(path, { force: true })]),
-    ]);
-  }
 }
 
 export function createDevelopmentActionBroker(
@@ -214,7 +200,8 @@ export function createDevelopmentActionBroker(
     active: PendingAction,
     value:
       | DevelopmentReloadResult
-      | DevelopmentCaptureResult
+      | LegacyDevelopmentCaptureResult
+      | DevelopmentCaptureResultV2
       | PointLightCommandResult
       | DevelopmentSessionControlResult,
   ): boolean => {
@@ -236,17 +223,20 @@ export function createDevelopmentActionBroker(
 
   const createPending = <T extends
     | DevelopmentReloadResult
-    | DevelopmentCaptureResult
+      | LegacyDevelopmentCaptureResult
+      | DevelopmentCaptureResultV2
     | PointLightCommandResult
     | DevelopmentSessionControlResult>(
     kind: BrowserDevelopmentAction['kind'],
     payload: Readonly<Record<string, unknown>> = {},
+    runtimeContextInput?: CaptureRuntimeContext,
+    captureV2?: PendingAction['captureV2'],
   ): Promise<T> => {
     if (stopped) {
       throw actionError('ANTIKY_RUNTIME_UNAVAILABLE', 'The development session stopped.');
     }
     if (pending) throw actionError('ANTIKY_ACTION_BUSY', 'Another development action is active.');
-    const runtimeContext = options.readRuntimeContext();
+    const runtimeContext = runtimeContextInput ?? options.readRuntimeContext();
     if (!runtimeContext.connected || !runtimeContext.runtimeInstanceId) {
       throw actionError('ANTIKY_RUNTIME_UNAVAILABLE', 'A connected runtime is required.');
     }
@@ -284,6 +274,7 @@ export function createDevelopmentActionBroker(
         resolve: resolve as PendingAction['resolve'],
         reject,
         timer,
+        ...(captureV2 === undefined ? {} : { captureV2 }),
       };
       reportAction(pending, 'info', 'ANTIKY_ACTION_STARTED');
     });
@@ -291,7 +282,19 @@ export function createDevelopmentActionBroker(
 
   return Object.freeze({
     requestReload: () => createPending<DevelopmentReloadResult>('reload'),
-    captureFrame: () => createPending<DevelopmentCaptureResult>('capture'),
+    captureFrame: () => createPending<LegacyDevelopmentCaptureResult>('capture'),
+    async captureFrameV2(requestInput: unknown): Promise<DevelopmentCaptureResultV2> {
+      const request = parseCaptureFrameRequestV2(requestInput);
+      const runtimeContext = options.readRuntimeContext();
+      validateCaptureObservation(request, runtimeContext);
+      const evidenceId = `evidence-${randomUUID()}`;
+      return createPending<DevelopmentCaptureResultV2>(
+        'capture',
+        { evidenceId, target: request.target, warmUpFrames: request.warmUpFrames },
+        runtimeContext,
+        Object.freeze({ request, evidenceId }),
+      );
+    },
     setPointLightPower: (command: SetPointLightPowerCommand) => (
       createPending<PointLightCommandResult>('set-point-light-power', { command })
     ),
@@ -364,10 +367,94 @@ export function createDevelopmentActionBroker(
       ) {
         throw new AntikyCliError('ANTIKY_CAPTURE_INVALID', 'The frame capture metadata is invalid.');
       }
-      const bytes = decodePng(input.dataBase64);
+      let bytes: Buffer;
+      try {
+        bytes = decodePng(input.dataBase64);
+        if (active.captureV2) {
+          const dimensions = readPngDimensions(bytes);
+          if (
+            dimensions.width !== input.canvasWidth
+            || dimensions.height !== input.canvasHeight
+          ) {
+            throw new AntikyCliError(
+              'ANTIKY_CAPTURE_INVALID',
+              'The PNG dimensions do not match the game canvas.',
+            );
+          }
+        }
+      } catch (cause: unknown) {
+        if (active.captureV2 && cause instanceof AntikyCliError) rejectPending(active, cause);
+        throw cause;
+      }
+      if (active.captureV2) {
+        const { request, evidenceId } = active.captureV2;
+        let observation: ObservationRefV1;
+        try {
+          observation = validateCaptureObservation(request, options.readRuntimeContext());
+          if (input.publicationSequence !== observation.publicationSequence) {
+            throw captureFailure(
+              'CAPTURE_OBSERVATION_STALE',
+              'The captured runtime publication is no longer current.',
+            );
+          }
+        } catch (cause: unknown) {
+          if (cause instanceof AntikyCliError) rejectPending(active, cause);
+          throw cause;
+        }
+        if (
+          input.canvasWidth !== request.target.width
+          || input.canvasHeight !== request.target.height
+        ) {
+          const error = captureFailure(
+            'CAPTURE_DIMENSIONS_MISMATCH',
+            'The game canvas dimensions changed; read capabilities and retry.',
+          );
+          rejectPending(active, error);
+          throw error;
+        }
+        if (!options.evidenceStore) {
+          const error = captureFailure(
+            'CAPTURE_ARTIFACT_FAILED',
+            'The private evidence store is unavailable.',
+          );
+          rejectPending(active, error);
+          throw error;
+        }
+        let artifact;
+        try {
+          artifact = await options.evidenceStore.put({
+            evidenceId,
+            kind: 'still',
+            role: 'canvas-master',
+            mimeType: 'image/png',
+            bytes,
+            width: input.canvasWidth,
+            height: input.canvasHeight,
+            observation,
+          });
+        } catch {
+          const error = captureFailure(
+            'CAPTURE_ARTIFACT_FAILED',
+            'The private capture artifact could not be stored.',
+          );
+          rejectPending(active, error);
+          throw error;
+        }
+        const result = Object.freeze({
+          schemaVersion: 2 as const,
+          actionId: active.action.actionId,
+          captureId: active.action.captureId,
+          source: 'interactive-runtime' as const,
+          observation,
+          deviceScaleFactor: request.target.deviceScaleFactor,
+          artifact,
+        });
+        if (!resolvePending(active, result)) throw staleCaptureError();
+        return;
+      }
       let path: string;
       try {
-        path = await persistCapture(options.rootDirectory, active.action.captureId, bytes);
+        path = await persistLegacyCapture(options.rootDirectory, active.action.captureId, bytes);
       } catch {
         reportAction(active, 'error', 'ANTIKY_CAPTURE_SAVE_FAILED', 'capture-store');
         if (pending !== active) throw staleCaptureError();

@@ -136,6 +136,60 @@ const developmentSnapshot = {
   inspection: frameworkInspection,
 } as const;
 
+const observation = Object.freeze({
+  schemaVersion: 1 as const,
+  developmentSessionId: 'development-mcp-001',
+  acceptedBuildRevision: 3,
+  runtimeInstanceId: 'runtime-mcp-001',
+  publicationSequence: 5,
+  publishedAt: '2026-08-10T17:40:00.000Z',
+  connectionState: 'connected' as const,
+  freshness: 'current' as const,
+  session: Object.freeze({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    mode: 'running' as const,
+    completedStepCount: 4,
+    controlRevision: 0,
+    worldRevision: 0,
+    stateDigest: 'fixture:4',
+  }),
+  world: Object.freeze({ worldId: WORLD_ID, revision: 0, eventSequence: 0 }),
+});
+
+const developmentSnapshotV2 = Object.freeze({
+  ...developmentSnapshot,
+  schemaVersion: 2 as const,
+  observation,
+});
+const capturePng = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64',
+);
+const captureArtifact = Object.freeze({
+  schemaVersion: 1 as const,
+  evidenceId: 'evidence-018f0f3a-7b2c-7a1d-8e2f-123456789ab0',
+  artifactId: 'artifact-431ced6916a2a21a156e38701afe55bbd7f88969fbbfc56d7fe099d47f265460',
+  uri: 'antiky-evidence://evidence-018f0f3a-7b2c-7a1d-8e2f-123456789ab0/artifact-431ced6916a2a21a156e38701afe55bbd7f88969fbbfc56d7fe099d47f265460',
+  kind: 'still' as const,
+  role: 'canvas-master',
+  mimeType: 'image/png' as const,
+  width: 1,
+  height: 1,
+  byteLength: capturePng.byteLength,
+  sha256: '431ced6916a2a21a156e38701afe55bbd7f88969fbbfc56d7fe099d47f265460',
+  createdAt: '2026-08-10T17:40:01.000Z',
+  observation,
+  reviewState: 'private-unreviewed' as const,
+  retention: Object.freeze({ scope: 'development-session' as const, state: 'retained' as const }),
+  privacy: Object.freeze({
+    gameCanvasOnly: true as const,
+    desktopPixelsPossible: false as const,
+    audio: 'none' as const,
+    contentScan: 'not-performed' as const,
+  }),
+});
+
 const unusedPointLightMethods = {
   async getWorldInspection(): Promise<never> { throw new Error('not reached'); },
   async getEventHistory(): Promise<never> { throw new Error('not reached'); },
@@ -155,6 +209,10 @@ test('MCP exposes one well-described tools-only development surface', async () =
     async readDevelopmentSnapshot() {
       calls.push('read');
       return developmentSnapshot;
+    },
+    async readDevelopmentSnapshotV2() {
+      calls.push('read-v2');
+      return developmentSnapshotV2;
     },
     async requestReload() {
       calls.push('reload');
@@ -182,6 +240,22 @@ test('MCP exposes one well-described tools-only development surface', async () =
         sha256: 'a'.repeat(64),
         path: '/project/.antiky/captures/capture-001.png',
       } as const;
+    },
+    async captureFrameV2() {
+      calls.push('capture-v2');
+      return {
+        schemaVersion: 2,
+        actionId: 'action-capture-002',
+        captureId: 'capture-002',
+        source: 'interactive-runtime',
+        observation,
+        deviceScaleFactor: 1,
+        artifact: captureArtifact,
+      } as const;
+    },
+    async readEvidenceArtifact() {
+      calls.push('read-evidence');
+      return capturePng;
     },
     async listPointLights() {
       calls.push('list-point-lights');
@@ -402,7 +476,8 @@ test('MCP exposes one well-described tools-only development surface', async () =
       method: 'tools/call',
       params: index === 0 ? { name } : { name, arguments: {} },
     });
-    assert.equal(read.result.structuredContent.schemaVersion, 1);
+    assert.equal(read.result.structuredContent.schemaVersion, index < 2 ? 1 : 2);
+    if (index >= 2) assert.equal(read.result.structuredContent.observation, observation);
     assert.doesNotMatch(JSON.stringify(read), /credential/i);
   }
 
@@ -410,6 +485,8 @@ test('MCP exposes one well-described tools-only development surface', async () =
     jsonrpc: '2.0', id: 50, method: 'tools/call', params: { name: 'list_point_lights' },
   });
   assert.equal(listed.result.structuredContent.pointLights[0].entityId, LIGHT_ID);
+  assert.equal(listed.result.structuredContent.schemaVersion, 2);
+  assert.equal(listed.result.structuredContent.observation, observation);
   const oneLight = await processMcpRequest(client, {
     jsonrpc: '2.0',
     id: 51,
@@ -417,23 +494,47 @@ test('MCP exposes one well-described tools-only development surface', async () =
     params: { name: 'get_point_light', arguments: { entityId: LIGHT_ID } },
   });
   assert.equal(oneLight.result.structuredContent.pointLight.authoring.label, 'Harbor Lamp');
+  assert.equal(oneLight.result.structuredContent.observation, observation);
   const world = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 52, method: 'tools/call', params: { name: 'get_world_inspection' },
   });
   assert.equal(world.result.structuredContent.world.entities[0].entityId, LIGHT_ID);
+  assert.equal(world.result.structuredContent.observation, observation);
   const events = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 53, method: 'tools/call', params: { name: 'get_event_log' },
   });
   assert.equal(events.result.structuredContent.events.retention.lifetime, 'runtime-instance');
+  assert.equal(events.result.structuredContent.observation, observation);
 
   const reload = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 31, method: 'tools/call', params: { name: 'dev_reload', arguments: {} },
   });
   assert.equal(reload.result.structuredContent.newRuntimeInstanceId, 'runtime-mcp-002');
   const capture = await processMcpRequest(client, {
-    jsonrpc: '2.0', id: 32, method: 'tools/call', params: { name: 'capture_frame', arguments: {} },
+    jsonrpc: '2.0',
+    id: 32,
+    method: 'tools/call',
+    params: {
+      name: 'capture_frame',
+      arguments: {
+        schemaVersion: 2,
+        expected: {
+          developmentSessionId: observation.developmentSessionId,
+          acceptedBuildRevision: observation.acceptedBuildRevision,
+          runtimeInstanceId: observation.runtimeInstanceId,
+        },
+        runtimePolicy: 'current-or-managed',
+        target: { width: 1, height: 1, deviceScaleFactor: 1 },
+        warmUpFrames: 0,
+        idempotencyKey: 'mcp-capture-fixture',
+      },
+    },
   });
-  assert.equal(capture.result.structuredContent.captureId, 'capture-001');
+  assert.equal(capture.result.structuredContent.captureId, 'capture-002');
+  assert.equal(capture.result.content[1].type, 'image');
+  assert.equal(capture.result.content[1].mimeType, 'image/png');
+  assert.equal(capture.result.content[1].data, capturePng.toString('base64'));
+  assert.doesNotMatch(JSON.stringify(capture.result.structuredContent), /path|base64|\/Users\//i);
   const setPower = await processMcpRequest(client, {
     jsonrpc: '2.0',
     id: 33,
@@ -468,6 +569,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
     jsonrpc: '2.0', id: 35, method: 'tools/call', params: { name: 'get_session_status' },
   });
   assert.equal(sessionStatus.result.structuredContent.session.sessionId, SESSION_ID);
+  assert.equal(sessionStatus.result.structuredContent.observation, observation);
   const paused = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 36, method: 'tools/call', params: { name: 'pause_simulation' },
   });
@@ -484,10 +586,9 @@ test('MCP exposes one well-described tools-only development surface', async () =
   });
   assert.equal(stepped.result.structuredContent.result.code, 'STEPPED');
   assert.deepEqual(calls, [
-    'read', 'read', 'read', 'read', 'read',
-    'list-point-lights', `get-point-light:${LIGHT_ID}`,
-    'get-world-inspection', 'get-event-history',
-    'reload', 'capture',
+    'read', 'read',
+    'read-v2', 'read-v2', 'read-v2', 'read-v2', 'read-v2', 'read-v2', 'read-v2',
+    'reload', 'capture-v2', 'read-evidence',
     `set-point-light:${JSON.stringify({
       protocolVersion: 1,
       commandVersion: 1,
@@ -505,7 +606,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
       correctedCommandId: SET_COMMAND_ID,
       expectedRevision: 2,
     })}`,
-    'get-session-status',
+    'read-v2',
     'pause-simulation',
     'resume-simulation',
     'step-simulation:4',

@@ -777,6 +777,7 @@ test('cleanup attempts every resource and settles when one cleanup operation fai
     assert.equal(session.snapshot().cleanup.state, 'failed');
     assert.deepEqual(new Set(attempted), new Set([
       'action-broker',
+      'evidence-store',
       'game-port-reservation',
       'inspection-port-reservation',
       'session-descriptor',
@@ -994,9 +995,11 @@ test('browser publication, direct reads, CLI inspection, and a typed client shar
     });
 
     const direct = session.snapshot();
+    const directV2 = session.snapshotV2();
     const cliInspection = await inspectDevelopmentSession(project.projectPath);
     const client = await connectDevelopmentClient(project.projectPath);
     const studioCompatible = await client.readDevelopmentSnapshot();
+    const observed = await client.readDevelopmentSnapshotV2();
 
     assert.equal(direct.connection.state, 'connected');
     assert.equal(direct.acceptedBuildRevision, 1);
@@ -1004,6 +1007,13 @@ test('browser publication, direct reads, CLI inspection, and a typed client shar
     assert.deepEqual(cliInspection.inspection, frameworkSnapshot);
     assert.deepEqual(studioCompatible.inspection, frameworkSnapshot);
     assert.deepEqual(cliInspection, studioCompatible);
+    assert.equal(directV2.schemaVersion, 2);
+    assert.equal(observed.schemaVersion, 2);
+    assert.equal(observed.observation?.publicationSequence, 1);
+    assert.equal(observed.observation?.acceptedBuildRevision, 1);
+    assert.equal(observed.observation?.runtimeInstanceId, 'runtime-parity-001');
+    assert.equal(observed.observation?.freshness, 'current');
+    assert.deepEqual(directV2, observed);
   } finally {
     await session.stop('normal');
   }
@@ -1156,8 +1166,8 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
     const client = await connectDevelopmentClient(project.projectPath);
     const directBefore = inspectPointLightService(service);
     const cliBefore = await inspectDevelopmentSession(project.projectPath);
-    const typedList = await client.listPointLights();
-    const typedLight = await client.getPointLight(visibleId);
+    const typedList = await client.listPointLightsV2();
+    const typedLight = await client.getPointLightV2(visibleId);
     const mcpList = await callMcp(1, 'list_point_lights');
     const mcpLight = await callMcp(2, 'get_point_light', { entityId: visibleId });
     const humanListOutput: string[] = [];
@@ -1192,7 +1202,7 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
     assert.deepEqual(JSON.parse(humanListOutput[0]!), typedList);
     assert.deepEqual(JSON.parse(humanLightOutput[0]!), typedLight);
     assert.equal(typedLight.pointLight?.render?.renderSlot, 0);
-    assert.equal((await client.getPointLight(headlessId)).pointLight?.render, null);
+    assert.equal((await client.getPointLightV2(headlessId)).pointLight?.render, null);
 
     const setCommand = {
       protocolVersion: 1 as const,
@@ -1223,7 +1233,7 @@ test('direct, CLI, typed-client, HTTP MCP, and browser command paths share one p
     await publish();
 
     const finalDirect = inspectPointLightService(service);
-    const finalTyped = await client.getPointLight(visibleId);
+    const finalTyped = await client.getPointLightV2(visibleId);
     const finalMcp = await callMcp(4, 'get_point_light', { entityId: visibleId });
     assert.equal(finalDirect.authoring[0]?.pointLight.power, 1.05);
     assert.equal(finalDirect.facts.length, 2);
@@ -1439,7 +1449,7 @@ test('direct, typed-client, HTTP, MCP, and human CLI session controls share one 
     assert.equal(directResume.result.code, 'RESUMED');
 
     const mcpStatus = await callMcp(2, 'get_session_status');
-    assert.deepEqual(mcpStatus.result.structuredContent, await client.getSessionStatus());
+    assert.deepEqual(mcpStatus.result.structuredContent, await client.getSessionStatusV2());
   } finally {
     engine.dispose();
     await development.stop('normal');
@@ -1459,6 +1469,9 @@ test('unexpected inspection failures emit a safe request-correlated diagnostic',
     readDevelopmentSnapshot() {
       throw new Error('authorization and payload must-not-appear');
     },
+    readDevelopmentSnapshotV2() {
+      throw new Error('authorization and payload must-not-appear');
+    },
     acceptInspection: () => 0,
     disconnectRuntime: () => {},
     touchRuntime: () => {},
@@ -1467,7 +1480,8 @@ test('unexpected inspection failures emit a safe request-correlated diagnostic',
     completePointLightCommand: async () => {},
     completeSessionControl: async () => {},
     requestReload: async () => { throw new Error('not reached'); },
-    captureFrame: async () => { throw new Error('not reached'); },
+    captureFrameV2: async () => { throw new Error('not reached'); },
+    readEvidence: async () => { throw new Error('not reached'); },
     setPointLightPower: async () => { throw new Error('not reached'); },
     correctPointLightPower: async () => { throw new Error('not reached'); },
     pauseSimulation: async () => { throw new Error('not reached'); },
@@ -1706,12 +1720,26 @@ test('disconnect, reconnect, controlled reload, and capture preserve related ide
       result: 'reloaded',
     });
 
-    const capturePromise = client.captureFrame();
+    const observed = await client.readDevelopmentSnapshotV2();
+    const capturePromise = client.captureFrameV2({
+      schemaVersion: 2,
+      expected: {
+        developmentSessionId,
+        acceptedBuildRevision: observed.observation!.acceptedBuildRevision,
+        runtimeInstanceId: observed.observation!.runtimeInstanceId,
+      },
+      runtimePolicy: 'current-or-managed',
+      target: { width: 1, height: 1, deviceScaleFactor: 1 },
+      warmUpFrames: 0,
+      idempotencyKey: 'integration-capture-001',
+    });
     void capturePromise.catch(() => {});
     const captureAction = await pollAction('runtime-reconnect-003');
     assert.equal(captureAction.kind, 'capture');
-    const png = Buffer.alloc(5 * 1024 * 1024 + 64 * 1024);
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png);
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64',
+    );
     const captureResponse = await fetch(`${session.inspectionUrl}/v1/runtime/action-result`, {
       method: 'POST',
       headers: browserHeaders,
@@ -1726,18 +1754,43 @@ test('disconnect, reconnect, controlled reload, and capture preserve related ide
           canvasWidth: 1,
           canvasHeight: 1,
           dataBase64: png.toString('base64'),
+          publicationSequence: 2,
+          snapshot: createInspectionSnapshot({
+            schemaVersion: 1,
+            runtime: { instanceId: 'runtime-reconnect-003', lifecycle: 'ready' },
+            diagnostics: [],
+            measurements: {
+              runtime: { owner: 'framework', frameCount: 3 },
+              render: { owner: 'framework', canvasWidth: 1, canvasHeight: 1 },
+            },
+          }),
         },
       }),
     });
     assert.equal(captureResponse.status, 202);
     const capture = await capturePromise;
-    assert.equal(capture.developmentSessionId, developmentSessionId);
-    assert.equal(capture.runtimeInstanceId, 'runtime-reconnect-003');
-    assert.equal(capture.buildRevision, 1);
+    assert.equal(capture.schemaVersion, 2);
+    assert.equal(capture.observation.developmentSessionId, developmentSessionId);
+    assert.equal(capture.observation.runtimeInstanceId, 'runtime-reconnect-003');
+    assert.equal(capture.observation.acceptedBuildRevision, 1);
     assert.equal(capture.actionId, captureAction.actionId);
-    assert.equal(capture.byteLength, png.length);
-    assert.deepEqual(await readFile(capture.path), png);
-    assert.doesNotMatch(JSON.stringify(capture), /credential/i);
+    assert.equal(capture.artifact.byteLength, png.length);
+    assert.deepEqual(Buffer.from(await client.readEvidenceArtifact(capture.artifact)), png);
+    const missingEvidenceResponse = await fetch(
+      `${session.inspectionUrl}/v1/evidence/${capture.artifact.evidenceId}/${`artifact-${'0'.repeat(64)}`}`,
+      { headers: { authorization: `Bearer ${bootstrap.credential}` } },
+    );
+    assert.equal(missingEvidenceResponse.status, 404);
+    assert.deepEqual(await missingEvidenceResponse.json(), {
+      error: {
+        code: 'ANTIKY_EVIDENCE_NOT_FOUND',
+        message: 'The evidence artifact is unavailable.',
+      },
+    });
+    assert.doesNotMatch(
+      JSON.stringify(capture),
+      /credential|\/Users\/|\.antiky|terminal|pid|path/i,
+    );
   } finally {
     await session.stop('normal');
   }

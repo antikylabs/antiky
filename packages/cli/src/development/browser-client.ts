@@ -4,27 +4,50 @@ import { AntikyCliError } from '../errors.ts';
 import { parseDevelopmentMcpCallLog } from './mcp-calls.ts';
 import {
   projectDevelopmentEventHistory,
+  projectDevelopmentEventHistoryV2,
   projectDevelopmentWorldInspection,
+  projectDevelopmentWorldInspectionV2,
 } from './inspection.ts';
+import { parseObservationRefV1 } from './observation.ts';
+import {
+  parseCaptureFrameRequestV2,
+  parseDevelopmentCaptureResultV2,
+  type CaptureFrameRequestV2,
+  type DevelopmentCaptureResultV2,
+} from './capture.ts';
+import {
+  parseEvidenceArtifactRefV1,
+  type EvidenceArtifactRefV1,
+} from './evidence.ts';
 import {
   projectDevelopmentPointLight,
+  projectDevelopmentPointLightListV2,
+  projectDevelopmentPointLightV2,
   projectDevelopmentPointLightList,
 } from './point-lights.ts';
-import { projectDevelopmentSessionStatus } from './sessions.ts';
+import {
+  projectDevelopmentSessionStatus,
+  projectDevelopmentSessionStatusV2,
+} from './sessions.ts';
 import type {
-  DevelopmentCaptureResult,
   DevelopmentCorrectPointLightPowerInput,
   DevelopmentEventHistory,
+  DevelopmentEventHistoryV2,
   DevelopmentMcpCallLog,
   DevelopmentPointLightCommandResult,
   DevelopmentPointLightDetails,
+  DevelopmentPointLightDetailsV2,
   DevelopmentPointLightList,
+  DevelopmentPointLightListV2,
   DevelopmentReloadResult,
   DevelopmentSessionControlResult,
   DevelopmentSessionStatus,
+  DevelopmentSessionStatusV2,
   DevelopmentSetPointLightPowerInput,
   DevelopmentSnapshot,
+  DevelopmentSnapshotV2,
   DevelopmentWorldInspection,
+  DevelopmentWorldInspectionV2,
 } from './types.ts';
 
 const SNAPSHOT_TIMEOUT_MILLISECONDS = 2_000;
@@ -46,12 +69,18 @@ export type DevelopmentClientOptions = Readonly<{
 
 export interface DevelopmentClient {
   readDevelopmentSnapshot(): Promise<DevelopmentSnapshot>;
+  readDevelopmentSnapshotV2(): Promise<DevelopmentSnapshotV2>;
   requestReload(): Promise<DevelopmentReloadResult>;
-  captureFrame(): Promise<DevelopmentCaptureResult>;
+  captureFrameV2(request: CaptureFrameRequestV2): Promise<DevelopmentCaptureResultV2>;
+  readEvidenceArtifact(artifact: EvidenceArtifactRefV1): Promise<Uint8Array>;
   listPointLights(): Promise<DevelopmentPointLightList>;
+  listPointLightsV2(): Promise<DevelopmentPointLightListV2>;
   getPointLight(entityId: unknown): Promise<DevelopmentPointLightDetails>;
+  getPointLightV2(entityId: unknown): Promise<DevelopmentPointLightDetailsV2>;
   getWorldInspection(): Promise<DevelopmentWorldInspection>;
+  getWorldInspectionV2(): Promise<DevelopmentWorldInspectionV2>;
   getEventHistory(): Promise<DevelopmentEventHistory>;
+  getEventHistoryV2(): Promise<DevelopmentEventHistoryV2>;
   getMcpCallLog(): Promise<DevelopmentMcpCallLog>;
   setPointLightPower(
     command: DevelopmentSetPointLightPowerInput,
@@ -60,19 +89,59 @@ export interface DevelopmentClient {
     request: DevelopmentCorrectPointLightPowerInput,
   ): Promise<DevelopmentPointLightCommandResult>;
   getSessionStatus(): Promise<DevelopmentSessionStatus>;
+  getSessionStatusV2(): Promise<DevelopmentSessionStatusV2>;
   pauseSimulation(): Promise<DevelopmentSessionControlResult>;
   resumeSimulation(): Promise<DevelopmentSessionControlResult>;
   stepSimulation(expectedCompletedStepCount: number): Promise<DevelopmentSessionControlResult>;
 }
 
+function parseSnapshotV2(input: unknown, developmentSessionId: string): DevelopmentSnapshotV2 {
+  if (input === null || typeof input !== 'object' || Array.isArray(input)) {
+    throw new AntikyCliError(
+      'ANTIKY_SESSION_UNAVAILABLE',
+      'The Antiky inspection service returned an incompatible snapshot.',
+    );
+  }
+  const record = input as Record<string, unknown>;
+  if (record.schemaVersion !== 2 || !Object.hasOwn(record, 'observation')) {
+    throw new AntikyCliError(
+      'ANTIKY_SESSION_UNAVAILABLE',
+      'The Antiky inspection service returned an incompatible snapshot.',
+    );
+  }
+  const { observation: observationInput, ...legacyInput } = record;
+  const legacy = parseSnapshot(
+    { ...legacyInput, schemaVersion: 1 },
+    developmentSessionId,
+  );
+  try {
+    const observation = observationInput === null
+      ? null
+      : parseObservationRefV1(observationInput);
+    if (observation && observation.developmentSessionId !== developmentSessionId) {
+      throw new Error('Observation belongs to another development session.');
+    }
+    return Object.freeze({
+      ...legacy,
+      schemaVersion: 2,
+      observation,
+    });
+  } catch {
+    throw new AntikyCliError(
+      'ANTIKY_SESSION_UNAVAILABLE',
+      'The Antiky inspection service returned an incompatible observation.',
+    );
+  }
+}
+
 type ActionPath =
   | '/v1/actions/reload'
-  | '/v1/actions/capture'
   | '/v1/actions/set-point-light-power'
   | '/v1/actions/correct-point-light-power'
   | '/v1/actions/pause-simulation'
   | '/v1/actions/resume-simulation'
-  | '/v1/actions/step-simulation';
+  | '/v1/actions/step-simulation'
+  | '/v2/actions/capture';
 
 function argumentError(message: string): never {
   throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', message);
@@ -273,6 +342,36 @@ export function createDevelopmentClient(
     }
   };
 
+  const readDevelopmentSnapshotV2 = async (): Promise<DevelopmentSnapshotV2> => {
+    let response: Response;
+    try {
+      response = await fetchRequest(`${connection.inspectionUrl}/v2/development`, {
+        headers: new Headers({ authorization: `Bearer ${connection.credential}` }),
+        signal: AbortSignal.timeout(snapshotTimeout),
+      });
+    } catch {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky inspection service is unavailable.',
+      );
+    }
+    if (!response.ok) {
+      throw new AntikyCliError(
+        response.status === 401 ? 'ANTIKY_UNAUTHORIZED' : 'ANTIKY_SESSION_UNAVAILABLE',
+        `The Antiky inspection service rejected the request with status ${response.status}.`,
+      );
+    }
+    try {
+      return parseSnapshotV2(await response.json(), connection.developmentSessionId);
+    } catch (cause: unknown) {
+      if (cause instanceof AntikyCliError) throw cause;
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky inspection service returned an incompatible snapshot.',
+      );
+    }
+  };
+
   const getMcpCallLog = async (): Promise<DevelopmentMcpCallLog> => {
     let response: Response;
     try {
@@ -305,22 +404,89 @@ export function createDevelopmentClient(
     }
   };
 
+  const readEvidenceArtifact = async (
+    artifactInput: EvidenceArtifactRefV1,
+  ): Promise<Uint8Array> => {
+    const artifact = parseEvidenceArtifactRefV1(artifactInput);
+    if (artifact.observation.developmentSessionId !== connection.developmentSessionId) {
+      argumentError('The evidence artifact belongs to another development session.');
+    }
+    let response: Response;
+    try {
+      response = await fetchRequest(
+        `${connection.inspectionUrl}/v1/evidence/${artifact.evidenceId}/${artifact.artifactId}`,
+        {
+          headers: new Headers({ authorization: `Bearer ${connection.credential}` }),
+          signal: AbortSignal.timeout(actionTimeout),
+        },
+      );
+    } catch {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky evidence service is unavailable.',
+      );
+    }
+    if (!response.ok) throw actionError(response, await readErrorBody(response));
+    if (response.headers.get('content-type')?.split(';', 1)[0] !== artifact.mimeType) {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky evidence service returned an incompatible media type.',
+      );
+    }
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.byteLength !== artifact.byteLength) {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky evidence service returned an incompatible artifact.',
+      );
+    }
+    const digest = new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes));
+    const sha256 = [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    if (sha256 !== artifact.sha256) {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky evidence service returned an incompatible artifact.',
+      );
+    }
+    return bytes;
+  };
+
   return Object.freeze({
     readDevelopmentSnapshot,
+    readDevelopmentSnapshotV2,
     getMcpCallLog,
     requestReload: () => requestAction<DevelopmentReloadResult>('/v1/actions/reload'),
-    captureFrame: () => requestAction<DevelopmentCaptureResult>('/v1/actions/capture'),
+    async captureFrameV2(requestInput: CaptureFrameRequestV2) {
+      const request = parseCaptureFrameRequestV2(requestInput);
+      return parseDevelopmentCaptureResultV2(await requestAction<unknown>(
+        '/v2/actions/capture',
+        request,
+      ));
+    },
+    readEvidenceArtifact,
     async listPointLights() {
       return projectDevelopmentPointLightList(await readDevelopmentSnapshot());
+    },
+    async listPointLightsV2() {
+      return projectDevelopmentPointLightListV2(await readDevelopmentSnapshotV2());
     },
     async getPointLight(entityId: unknown) {
       return projectDevelopmentPointLight(await readDevelopmentSnapshot(), entityId);
     },
+    async getPointLightV2(entityId: unknown) {
+      return projectDevelopmentPointLightV2(await readDevelopmentSnapshotV2(), entityId);
+    },
     async getWorldInspection() {
       return projectDevelopmentWorldInspection(await readDevelopmentSnapshot());
     },
+    async getWorldInspectionV2() {
+      return projectDevelopmentWorldInspectionV2(await readDevelopmentSnapshotV2());
+    },
     async getEventHistory() {
       return projectDevelopmentEventHistory(await readDevelopmentSnapshot());
+    },
+    async getEventHistoryV2() {
+      return projectDevelopmentEventHistoryV2(await readDevelopmentSnapshotV2());
     },
     setPointLightPower: (command: DevelopmentSetPointLightPowerInput) => (
       requestAction<DevelopmentPointLightCommandResult>(
@@ -336,6 +502,9 @@ export function createDevelopmentClient(
     ),
     async getSessionStatus() {
       return projectDevelopmentSessionStatus(await readDevelopmentSnapshot());
+    },
+    async getSessionStatusV2() {
+      return projectDevelopmentSessionStatusV2(await readDevelopmentSnapshotV2());
     },
     pauseSimulation: () => requestAction<DevelopmentSessionControlResult>(
       '/v1/actions/pause-simulation',

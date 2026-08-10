@@ -13,11 +13,23 @@ import {
 } from '@antiky/framework';
 
 import type { DevelopmentClient } from '../development/client.ts';
+import { parseCaptureFrameRequestV2 } from '../development/capture.ts';
+import {
+  projectDevelopmentEventHistoryV2,
+  projectDevelopmentWorldInspectionV2,
+} from '../development/inspection.ts';
+import {
+  projectDevelopmentPointLightListV2,
+  projectDevelopmentPointLightV2,
+} from '../development/point-lights.ts';
+import { projectDevelopmentSessionStatusV2 } from '../development/sessions.ts';
 import { AntikyCliError } from '../errors.ts';
 import {
   MCP_TOOL_DEFINITIONS,
   isMcpSnapshotReadToolName,
+  isMcpRuntimeSnapshotReadToolName,
   projectMcpReadTool,
+  projectMcpRuntimeReadToolV2,
 } from './tools.ts';
 
 export const MCP_PROTOCOL_VERSION = '2025-11-25';
@@ -32,7 +44,6 @@ const MAX_MCP_LINE_BYTES = 256 * 1024;
 type McpDevelopmentClient = Pick<DevelopmentClient,
   | 'readDevelopmentSnapshot'
   | 'requestReload'
-  | 'captureFrame'
   | 'listPointLights'
   | 'getPointLight'
   | 'setPointLightPower'
@@ -43,7 +54,9 @@ type McpDevelopmentClient = Pick<DevelopmentClient,
   | 'pauseSimulation'
   | 'resumeSimulation'
   | 'stepSimulation'
->;
+> & Partial<Pick<DevelopmentClient,
+  'readDevelopmentSnapshotV2' | 'captureFrameV2' | 'readEvidenceArtifact'
+>>;
 
 type JsonRpcRequest = Readonly<{
   jsonrpc: '2.0';
@@ -184,6 +197,17 @@ function toolResult(value: unknown): unknown {
   };
 }
 
+function imageToolResult(value: unknown, bytes: Uint8Array): unknown {
+  const text = JSON.stringify(value);
+  return {
+    content: [
+      { type: 'text', text },
+      { type: 'image', data: Buffer.from(bytes).toString('base64'), mimeType: 'image/png' },
+    ],
+    structuredContent: value,
+  };
+}
+
 function toolFailure(cause: unknown): unknown {
   const error = cause instanceof AntikyCliError
     ? { code: cause.code, message: cause.message }
@@ -235,6 +259,16 @@ export async function processMcpRequest(
     if (isMcpSnapshotReadToolName(params.name)) {
       if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
+        if (isMcpRuntimeSnapshotReadToolName(params.name)) {
+          if (!client.readDevelopmentSnapshotV2) {
+            throw new AntikyCliError(
+              'ANTIKY_SESSION_UNAVAILABLE',
+              'Version-two runtime observation is unavailable.',
+            );
+          }
+          const snapshot = await client.readDevelopmentSnapshotV2();
+          return response(id, toolResult(projectMcpRuntimeReadToolV2(params.name, snapshot)));
+        }
         const snapshot = await client.readDevelopmentSnapshot();
         return response(id, toolResult(projectMcpReadTool(params.name, snapshot)));
       } catch (cause: unknown) {
@@ -244,7 +278,13 @@ export async function processMcpRequest(
     if (params.name === 'list_point_lights') {
       if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
-        return response(id, toolResult(await client.listPointLights()));
+        if (!client.readDevelopmentSnapshotV2) throw new AntikyCliError(
+          'ANTIKY_SESSION_UNAVAILABLE',
+          'Version-two runtime observation is unavailable.',
+        );
+        return response(id, toolResult(projectDevelopmentPointLightListV2(
+          await client.readDevelopmentSnapshotV2(),
+        )));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }
@@ -252,7 +292,13 @@ export async function processMcpRequest(
     if (params.name === 'get_session_status') {
       if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
-        return response(id, toolResult(await client.getSessionStatus()));
+        if (!client.readDevelopmentSnapshotV2) throw new AntikyCliError(
+          'ANTIKY_SESSION_UNAVAILABLE',
+          'Version-two runtime observation is unavailable.',
+        );
+        return response(id, toolResult(projectDevelopmentSessionStatusV2(
+          await client.readDevelopmentSnapshotV2(),
+        )));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }
@@ -260,11 +306,14 @@ export async function processMcpRequest(
     if (params.name === 'get_world_inspection' || params.name === 'get_event_log') {
       if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
-        return response(id, toolResult(
-          params.name === 'get_world_inspection'
-            ? await client.getWorldInspection()
-            : await client.getEventHistory(),
-        ));
+        if (!client.readDevelopmentSnapshotV2) throw new AntikyCliError(
+          'ANTIKY_SESSION_UNAVAILABLE',
+          'Version-two runtime observation is unavailable.',
+        );
+        const snapshot = await client.readDevelopmentSnapshotV2();
+        return response(id, toolResult(params.name === 'get_world_inspection'
+          ? projectDevelopmentWorldInspectionV2(snapshot)
+          : projectDevelopmentEventHistoryV2(snapshot)));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }
@@ -273,7 +322,14 @@ export async function processMcpRequest(
       const argumentsValue = readGetPointLightArguments(params.arguments);
       if (!argumentsValue) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
-        return response(id, toolResult(await client.getPointLight(argumentsValue.entityId)));
+        if (!client.readDevelopmentSnapshotV2) throw new AntikyCliError(
+          'ANTIKY_SESSION_UNAVAILABLE',
+          'Version-two runtime observation is unavailable.',
+        );
+        return response(id, toolResult(projectDevelopmentPointLightV2(
+          await client.readDevelopmentSnapshotV2(),
+          argumentsValue.entityId,
+        )));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }
@@ -287,9 +343,22 @@ export async function processMcpRequest(
       }
     }
     if (params.name === 'capture_frame') {
-      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
+      let request;
       try {
-        return response(id, toolResult(await client.captureFrame()));
+        request = parseCaptureFrameRequestV2(params.arguments);
+      } catch {
+        return errorResponse(id, -32602, 'Invalid tool call.');
+      }
+      try {
+        if (!client.captureFrameV2 || !client.readEvidenceArtifact) {
+          throw new AntikyCliError(
+            'CAPTURE_RUNTIME_UNAVAILABLE',
+            'Version-two capture evidence is unavailable.',
+          );
+        }
+        const capture = await client.captureFrameV2(request);
+        const bytes = await client.readEvidenceArtifact(capture.artifact);
+        return response(id, imageToolResult(capture, bytes));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }

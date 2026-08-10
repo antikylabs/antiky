@@ -10,8 +10,11 @@ import {
 
 import { AntikyCliError } from '../src/errors.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { projectDevelopmentSessionStatus } from '../src/development/sessions.ts';
-import type { DevelopmentSnapshot } from '../src/development/types.ts';
+import {
+  projectDevelopmentSessionStatus,
+  projectDevelopmentSessionStatusV2,
+} from '../src/development/sessions.ts';
+import type { DevelopmentSnapshot, DevelopmentSnapshotV2 } from '../src/development/types.ts';
 
 const SESSION_ID = parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
 const WORLD_ID = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
@@ -60,6 +63,35 @@ function snapshot(publishSession = true): DevelopmentSnapshot {
   };
 }
 
+function snapshotV2(): DevelopmentSnapshotV2 {
+  const source = snapshot();
+  const session = source.inspection!.session!;
+  return {
+    ...source,
+    schemaVersion: 2,
+    observation: {
+      schemaVersion: 1,
+      developmentSessionId: source.developmentSessionId,
+      acceptedBuildRevision: 1,
+      runtimeInstanceId: session.runtimeInstanceId,
+      publicationSequence: 3,
+      publishedAt: '2026-08-10T17:20:00.000Z',
+      connectionState: 'connected',
+      freshness: 'current',
+      session: {
+        sessionId: session.sessionId,
+        worldId: session.worldId,
+        mode: session.mode,
+        completedStepCount: session.clock.completedStepCount,
+        controlRevision: session.revisions.controlRevision,
+        worldRevision: session.revisions.worldRevision,
+        stateDigest: session.lastCompletedStep?.stateDigest ?? null,
+      },
+      world: { worldId: session.worldId, revision: null, eventSequence: null },
+    },
+  };
+}
+
 test('session status projects the one framework inspection source', () => {
   const source = snapshot();
   const projected = projectDevelopmentSessionStatus(source);
@@ -81,4 +113,12 @@ test('session status reports an unavailable runtime when no session is published
       && error.code === 'ANTIKY_RUNTIME_UNAVAILABLE'
     ),
   );
+});
+
+test('version-two session status carries the exact accepted observation', () => {
+  const source = snapshotV2();
+  const projected = projectDevelopmentSessionStatusV2(source);
+  assert.equal(projected.schemaVersion, 2);
+  assert.equal(projected.observation, source.observation);
+  assert.deepEqual(projected.session, source.inspection?.session);
 });

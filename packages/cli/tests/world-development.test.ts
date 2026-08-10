@@ -10,9 +10,14 @@ import { AntikyCliError } from '../src/errors.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import {
   projectDevelopmentEventHistory,
+  projectDevelopmentEventHistoryV2,
   projectDevelopmentWorldInspection,
+  projectDevelopmentWorldInspectionV2,
 } from '../src/development/inspection.ts';
-import type { DevelopmentSnapshot } from '../src/development/types.ts';
+import type {
+  DevelopmentSnapshot,
+  DevelopmentSnapshotV2,
+} from '../src/development/types.ts';
 
 const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const LIGHT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';
@@ -79,6 +84,30 @@ function snapshot(publishViews = true): DevelopmentSnapshot {
   };
 }
 
+function snapshotV2(): DevelopmentSnapshotV2 {
+  const source = snapshot();
+  return {
+    ...source,
+    schemaVersion: 2,
+    observation: {
+      schemaVersion: 1,
+      developmentSessionId: source.developmentSessionId,
+      acceptedBuildRevision: 1,
+      runtimeInstanceId: 'runtime-world-projection-001',
+      publicationSequence: 9,
+      publishedAt: '2026-08-10T17:10:00.000Z',
+      connectionState: 'connected',
+      freshness: 'current',
+      session: null,
+      world: {
+        worldId: WORLD_ID,
+        revision: source.inspection!.world!.revision,
+        eventSequence: 0,
+      },
+    },
+  };
+}
+
 test('world and event reads project the shared Framework inspection source', () => {
   const source = snapshot();
   const world = projectDevelopmentWorldInspection(source);
@@ -98,6 +127,19 @@ test('world and event reads project the shared Framework inspection source', () 
   assert.ok(Object.isFrozen(world.world));
   assert.ok(Object.isFrozen(events));
   assert.ok(Object.isFrozen(events.events));
+});
+
+test('version-two world and event reads share the exact accepted observation object', () => {
+  const source = snapshotV2();
+  const world = projectDevelopmentWorldInspectionV2(source);
+  const events = projectDevelopmentEventHistoryV2(source);
+
+  assert.equal(world.schemaVersion, 2);
+  assert.equal(events.schemaVersion, 2);
+  assert.equal(world.observation, source.observation);
+  assert.equal(events.observation, source.observation);
+  assert.deepEqual(world.world, source.inspection?.world);
+  assert.deepEqual(events.events, source.inspection?.events);
 });
 
 test('world and event reads report an unavailable runtime when views are absent', () => {

@@ -17,12 +17,21 @@ import {
 import { AntikyCliError } from '../src/errors.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import { createDevelopmentActionBroker } from '../src/host/actions.ts';
+// @ts-ignore direct TypeScript source import for the Node strip-types runner
+import { createEvidenceStore } from '../src/host/evidence-store.ts';
+// @ts-ignore direct TypeScript source import for the Node strip-types runner
+import { parseCaptureFrameRequestV2 } from '../src/development/capture.ts';
+import type { ObservationRefV1 } from '../src/development/observation.ts';
 
 const WORLD_ID = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
 const LIGHT_ID = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abd');
 const SET_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac0');
 const CORRECTION_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac1');
 const SESSION_ID = parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
+const PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64',
+);
 
 const setCommand = Object.freeze({
   protocolVersion: 1 as const,
@@ -108,6 +117,275 @@ const pausedControlResult: EngineControlResult = Object.freeze({
   controlRevision: 1,
   pauseReasons: Object.freeze(['tool'] as const),
   renderRequested: false,
+});
+
+const observation = Object.freeze({
+  schemaVersion: 1 as const,
+  developmentSessionId: 'development-actions-capture-v2-001',
+  acceptedBuildRevision: 4,
+  runtimeInstanceId: 'runtime-actions-001',
+  publicationSequence: 8,
+  publishedAt: '2026-08-10T18:10:00.000Z',
+  connectionState: 'connected' as const,
+  freshness: 'current' as const,
+  session: Object.freeze({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    mode: 'paused' as const,
+    completedStepCount: 4,
+    controlRevision: 1,
+    worldRevision: 0,
+    stateDigest: 'town:paused',
+  }),
+  world: Object.freeze({ worldId: WORLD_ID, revision: 0, eventSequence: 0 }),
+});
+
+test('capture requests are strict, bounded, and immutable', () => {
+  const request = parseCaptureFrameRequestV2({
+    schemaVersion: 2,
+    expected: {
+      developmentSessionId: observation.developmentSessionId,
+      acceptedBuildRevision: 4,
+      runtimeInstanceId: observation.runtimeInstanceId,
+      sessionId: observation.session!.sessionId,
+      completedStepCount: 4,
+      stateDigest: observation.session!.stateDigest,
+    },
+    runtimePolicy: 'current-or-managed',
+    target: { width: 1280, height: 720, deviceScaleFactor: 2 },
+    warmUpFrames: 2,
+    idempotencyKey: 'strict-capture-001',
+  });
+  assert.ok(Object.isFrozen(request));
+  assert.ok(Object.isFrozen(request.expected));
+  assert.ok(Object.isFrozen(request.target));
+  assert.throws(() => parseCaptureFrameRequestV2({ ...request, script: 'document.cookie' }));
+  assert.throws(() => parseCaptureFrameRequestV2({
+    ...request,
+    target: { ...request.target, width: 2561 },
+  }));
+  assert.throws(() => parseCaptureFrameRequestV2({
+    ...request,
+    expected: { ...request.expected, completedStepCount: 4, sessionId: undefined },
+  }));
+});
+
+test('capture fences reject unavailable, wrong-session, stale-step, and unpaused observations safely', async () => {
+  let currentObservation: ObservationRefV1 = observation;
+  const broker = createDevelopmentActionBroker({
+    developmentSessionId: observation.developmentSessionId,
+    rootDirectory: '/private/path/that-must-not-appear',
+    readRuntimeContext: () => ({
+      runtimeInstanceId: currentObservation.runtimeInstanceId,
+      buildRevision: currentObservation.acceptedBuildRevision,
+      connected: currentObservation.freshness === 'current',
+      observation: currentObservation,
+    }),
+  });
+  const request = (expected: Record<string, unknown>) => ({
+    schemaVersion: 2,
+    expected: {
+      developmentSessionId: observation.developmentSessionId,
+      acceptedBuildRevision: 4,
+      runtimeInstanceId: observation.runtimeInstanceId,
+      ...expected,
+    },
+    runtimePolicy: 'current-or-managed',
+    target: { width: 1, height: 1, deviceScaleFactor: 1 },
+    warmUpFrames: 0,
+    idempotencyKey: `fence-${Object.keys(expected).join('-') || 'base'}`,
+  });
+  try {
+    await assert.rejects(
+      () => broker.captureFrameV2(request({ developmentSessionId: 'another-session' })),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'CAPTURE_OBSERVATION_STALE'
+        && !cause.message.includes('/private/'),
+    );
+    await assert.rejects(
+      () => broker.captureFrameV2(request({
+        sessionId: observation.session!.sessionId,
+        completedStepCount: 3,
+      })),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'CAPTURE_OBSERVATION_STALE',
+    );
+    currentObservation = Object.freeze({
+      ...observation,
+      session: Object.freeze({ ...observation.session!, mode: 'running' as const }),
+    });
+    await assert.rejects(
+      () => broker.captureFrameV2(request({
+        sessionId: observation.session!.sessionId,
+        completedStepCount: 4,
+      })),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'CAPTURE_STEP_UNAVAILABLE',
+    );
+    currentObservation = Object.freeze({
+      ...observation,
+      connectionState: 'unavailable' as const,
+      freshness: 'retained-unavailable' as const,
+    });
+    await assert.rejects(
+      () => broker.captureFrameV2(request({})),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'CAPTURE_RUNTIME_UNAVAILABLE',
+    );
+    currentObservation = observation;
+    const pending = broker.captureFrameV2(request({
+      sessionId: observation.session!.sessionId,
+      completedStepCount: observation.session!.completedStepCount,
+      stateDigest: observation.session!.stateDigest,
+    }));
+    void pending.catch(() => {});
+    const action = broker.nextAction(observation.runtimeInstanceId);
+    assert.ok(action && action.kind === 'capture');
+    currentObservation = Object.freeze({
+      ...observation,
+      publicationSequence: observation.publicationSequence + 1,
+      session: Object.freeze({
+        ...observation.session!,
+        completedStepCount: observation.session!.completedStepCount + 1,
+        stateDigest: 'town:later',
+      }),
+    });
+    await assert.rejects(
+      () => broker.completeCapture({
+        actionId: action.actionId,
+        runtimeInstanceId: observation.runtimeInstanceId,
+        mimeType: 'image/png',
+        canvasWidth: 1,
+        canvasHeight: 1,
+        dataBase64: PNG.toString('base64'),
+        publicationSequence: observation.publicationSequence,
+      } as never),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'CAPTURE_OBSERVATION_STALE',
+    );
+    await assert.rejects(
+      pending,
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'CAPTURE_OBSERVATION_STALE',
+    );
+  } finally {
+    broker.stop();
+  }
+});
+
+test('a fenced capture returns path-safe private evidence for the exact observation', async () => {
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-action-capture-v2-'));
+  const evidenceStore = createEvidenceStore({
+    rootDirectory,
+    developmentSessionId: observation.developmentSessionId,
+    now: () => '2026-08-10T18:10:01.000Z',
+  });
+  const broker = createDevelopmentActionBroker({
+    developmentSessionId: observation.developmentSessionId,
+    rootDirectory,
+    evidenceStore,
+    readRuntimeContext: () => ({
+      runtimeInstanceId: observation.runtimeInstanceId,
+      buildRevision: observation.acceptedBuildRevision,
+      connected: true,
+      observation,
+    }),
+    timeoutMilliseconds: 1_000,
+  });
+  try {
+    const pending = broker.captureFrameV2({
+      schemaVersion: 2,
+      expected: {
+        developmentSessionId: observation.developmentSessionId,
+        acceptedBuildRevision: observation.acceptedBuildRevision,
+        runtimeInstanceId: observation.runtimeInstanceId,
+        sessionId: observation.session!.sessionId,
+        completedStepCount: 4,
+        stateDigest: 'town:paused',
+      },
+      runtimePolicy: 'current-or-managed',
+      target: { width: 1, height: 1, deviceScaleFactor: 1 },
+      warmUpFrames: 0,
+      idempotencyKey: 'capture-fixture-001',
+    });
+    const action = broker.nextAction(observation.runtimeInstanceId);
+    assert.ok(action && action.kind === 'capture');
+    assert.deepEqual(action.target, { width: 1, height: 1, deviceScaleFactor: 1 });
+    assert.equal(action.warmUpFrames, 0);
+    await broker.completeCapture({
+      actionId: action.actionId,
+      runtimeInstanceId: observation.runtimeInstanceId,
+      publicationSequence: observation.publicationSequence,
+      mimeType: 'image/png',
+      canvasWidth: 1,
+      canvasHeight: 1,
+      dataBase64: PNG.toString('base64'),
+    });
+    const result = await pending;
+    assert.equal(result.schemaVersion, 2);
+    assert.deepEqual(result.observation, observation);
+    assert.equal(result.artifact.width, 1);
+    assert.equal(result.artifact.height, 1);
+    assert.equal(result.artifact.reviewState, 'private-unreviewed');
+    assert.doesNotMatch(JSON.stringify(result), /path|\/Users\/|\.antiky|credential|pid/i);
+    const retrieved = await evidenceStore.read({
+      evidenceId: result.artifact.evidenceId,
+      artifactId: result.artifact.artifactId,
+    });
+    assert.deepEqual(retrieved.bytes, PNG);
+
+    const malformedPending = broker.captureFrameV2({
+      schemaVersion: 2,
+      expected: {
+        developmentSessionId: observation.developmentSessionId,
+        acceptedBuildRevision: observation.acceptedBuildRevision,
+        runtimeInstanceId: observation.runtimeInstanceId,
+      },
+      runtimePolicy: 'current-or-managed',
+      target: { width: 2, height: 1, deviceScaleFactor: 1 },
+      warmUpFrames: 0,
+      idempotencyKey: 'capture-fixture-false-dimensions',
+    });
+    void malformedPending.catch(() => {});
+    const malformedAction = broker.nextAction(observation.runtimeInstanceId);
+    assert.ok(malformedAction && malformedAction.kind === 'capture');
+    await assert.rejects(
+      () => broker.completeCapture({
+        actionId: malformedAction.actionId,
+        runtimeInstanceId: observation.runtimeInstanceId,
+        publicationSequence: observation.publicationSequence,
+        mimeType: 'image/png',
+        canvasWidth: 2,
+        canvasHeight: 1,
+        dataBase64: PNG.toString('base64'),
+      }),
+      (cause: unknown) => cause instanceof AntikyCliError && cause.code === 'ANTIKY_CAPTURE_INVALID',
+    );
+    await assert.rejects(
+      malformedPending,
+      (cause: unknown) => cause instanceof AntikyCliError && cause.code === 'ANTIKY_CAPTURE_INVALID',
+    );
+
+    await assert.rejects(
+      () => broker.captureFrameV2({
+        schemaVersion: 2,
+        expected: {
+          developmentSessionId: observation.developmentSessionId,
+          acceptedBuildRevision: 3,
+          runtimeInstanceId: observation.runtimeInstanceId,
+        },
+        runtimePolicy: 'current-or-managed',
+        target: { width: 1, height: 1, deviceScaleFactor: 1 },
+        warmUpFrames: 0,
+        idempotencyKey: 'capture-fixture-stale',
+      }),
+      (cause: unknown) => cause instanceof AntikyCliError && cause.code === 'CAPTURE_BUILD_STALE',
+    );
+  } finally {
+    broker.stop();
+    await evidenceStore.stop();
+    await rm(rootDirectory, { recursive: true, force: true });
+  }
 });
 
 test('the host relays a set-power command with separate trusted context and validates its result', async () => {

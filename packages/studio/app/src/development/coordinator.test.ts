@@ -5,7 +5,7 @@ import type {
   DevelopmentConnection,
   DevelopmentMcpCallLog,
   DevelopmentSessionControlResult,
-  DevelopmentSnapshot,
+  DevelopmentSnapshotV2,
 } from '@antiky/cli/development';
 
 import {
@@ -22,7 +22,7 @@ const connection = (developmentSessionId: string): DevelopmentConnection => ({
 
 function snapshot(developmentSessionId: string, runtimeInstanceId = 'runtime-001') {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     developmentSessionId,
     acceptedBuildRevision: 1,
     startedAt: '2026-08-05T12:00:00.000Z',
@@ -52,7 +52,19 @@ function snapshot(developmentSessionId: string, runtimeInstanceId = 'runtime-001
         render: { owner: 'framework', drawCalls: 1 },
       },
     },
-  } as DevelopmentSnapshot;
+    observation: {
+      schemaVersion: 1,
+      developmentSessionId,
+      acceptedBuildRevision: 1,
+      runtimeInstanceId,
+      publicationSequence: 1,
+      publishedAt: '2026-08-05T12:00:00.000Z',
+      connectionState: 'connected',
+      freshness: 'current',
+      session: null,
+      world: null,
+    },
+  } as DevelopmentSnapshotV2;
 }
 
 function callLog(developmentSessionId: string): DevelopmentMcpCallLog {
@@ -72,9 +84,9 @@ function callLog(developmentSessionId: string): DevelopmentMcpCallLog {
   };
 }
 
-function clientFor(source: DevelopmentSnapshot, calls: string[]): StudioDevelopmentClient {
+function clientFor(source: DevelopmentSnapshotV2, calls: string[]): StudioDevelopmentClient {
   return {
-    async readDevelopmentSnapshot() {
+    async readDevelopmentSnapshotV2() {
       calls.push(`snapshot:${source.developmentSessionId}`);
       return source;
     },
@@ -299,7 +311,7 @@ test('controls serialize calls and refresh immediately after an accepted result'
     },
   } as unknown as DevelopmentSessionControlResult;
   const client: StudioDevelopmentClient = {
-    async readDevelopmentSnapshot() { reads += 1; return source; },
+    async readDevelopmentSnapshotV2() { reads += 1; return source; },
     async getMcpCallLog() { return callLog(source.developmentSessionId); },
     async requestReload() { throw new Error('not used'); },
     async pauseSimulation() {
