@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "catalogId": "kenney:platformer-kit",
+      "officialSourcePageUrl": "https://kenney.nl/assets/platformer-kit",
+      "officialDownloadUrl": "https://kenney.nl/media/pages/assets/platformer-kit/1585cf62b4-1775122253/kenney_platformer-kit.zip",
+      "archive": {
+        "archiveFileName": "kenney_platformer-kit.zip",
+        "sha256": "899605d237367688c6b42e41fff2206c0fb8d626163158294556353f7baa7c1b"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "sourcePath": "License.txt",
+        "copiedTo": "assets/kenney/platformer-kit/LICENSE.txt"
+      },
+      "normalization": "Embedded the archive-delivered Models/GLB format/Textures/colormap.png as an image bufferView in each GLB binary chunk; geometry buffers/accessors, meshes/primitives, nodes, materials, textures, and material-to-texture mappings are unchanged.",
+      "embeddedTexture": {
+        "originalPath": "Models/GLB format/Textures/colormap.png",
+        "sha256": "439dfcac935cfd75dc16f28333a4c8284fffcc4b24f857c61cfb4c8a964a15bd"
+      },
+      "files": [
+        {
+          "originalPath": "Models/GLB format/block-grass-large.glb",
+          "originalSha256": "606f077c30f6943ef4caa45e440578992cb99f0b7fb8762850303a422ed9cafa",
+          "derivedPath": "assets/kenney/platformer-kit/block-grass-large.glb",
+          "derivedSha256": "3da2d6f9f4a2a1b004ddd883f4010db6e3cf9ecec91e3a56738a0ff3dfb6f2dd",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 168,
+            "indices": 276,
+            "bounds": {
+              "min": [-1.0410624742507935, 0, -1.0410624742507935],
+              "max": [1.0410624742507935, 1, 1.0410624742507935]
+            }
+          }
+        },
+        {
+          "originalPath": "Models/GLB format/block-grass-overhang-long.glb",
+          "originalSha256": "c0ff9f5c52bb94c6e4606a80eba3f75d2f171b21c9f6df1d05dc8d92321e245e",
+          "derivedPath": "assets/kenney/platformer-kit/block-grass-overhang-long.glb",
+          "derivedSha256": "359fc1c1ff5ddc661a2673664646b2295688fd831cd159ea3f167fe2692e4c6f",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 236,
+            "indices": 396,
+            "bounds": {
+              "min": [-1.0410624742507935, 0, -0.5410624742507935],
+              "max": [1.0410624742507935, 1, 0.5410624742507935]
+            }
+          }
+        },
+        {
+          "originalPath": "Models/GLB format/block-moving.glb",
+          "originalSha256": "ea5265849096b61631a06e21917775a8f0c865d5974e5d1d7ab7b4240d985e60",
+          "derivedPath": "assets/kenney/platformer-kit/block-moving.glb",
+          "derivedSha256": "a8ed7a6cce42e58a5a70b4eabc4e5aba191c9bdb23f9805ec35ff7408391ad84",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 216,
+            "indices": 408,
+            "bounds": {
+              "min": [-0.5, 0, -0.5],
+              "max": [0.5, 0.30000001192092896, 0.5]
+            }
+          }
+        },
+        {
+          "originalPath": "Models/GLB format/flag.glb",
+          "originalSha256": "41dc8355080ed9f73adeefa7befaec44b6956ba1353c23bc9ff73d97a53fc143",
+          "derivedPath": "assets/kenney/platformer-kit/flag.glb",
+          "derivedSha256": "ae40c5a02acfd78a075fe4f0e36e4ed4287266bcde9321a817487108e8eee999",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 194,
+            "indices": 330,
+            "bounds": {
+              "min": [-0.0560000017285347, 0, -0.0559999942779541],
+              "max": [0.36749526858329773, 0.9000000357627869, 0.0559999942779541]
+            }
+          }
+        },
+        {
+          "originalPath": "Models/GLB format/coin-gold.glb",
+          "originalSha256": "cf2179e57721b943d88283d38678c4b1b8422e9a4dd44f631acfb35007c223a8",
+          "derivedPath": "assets/kenney/platformer-kit/coin-gold.glb",
+          "derivedSha256": "0770dba9b512f438634589ec6c8a10bde5569cce4502566f9201c412cb5fd651",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 176,
+            "indices": 372,
+            "bounds": {
+              "min": [-0.20000000298023224, 0, -0.08749999850988388],
+              "max": [0.20000000298023224, 0.4000000059604645, 0.08749999850988388]
+            }
+          }
+        },
+        {
+          "originalPath": "Models/GLB format/trap-spikes.glb",
+          "originalSha256": "ca34a7b762154f0c43992f01a4e3f6f800d42f6451e954c07fea4d7a72f17b1b",
+          "derivedPath": "assets/kenney/platformer-kit/trap-spikes.glb",
+          "derivedSha256": "00e7c7a734651f211eb768fd37ab5714e081e82e34929487bbeee8bbb8c564f5",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 2,
+            "images": 1,
+            "vertices": 272,
+            "indices": 504,
+            "bounds": {
+              "min": [-0.3204503655433655, -9.002736002006634e-18, -0.3187499940395355],
+              "max": [0.3187499940395355, 0.2549999952316284, 0.3187499940395355]
+            }
+          }
+        },
+        {
+          "originalPath": "Models/GLB format/tree.glb",
+          "originalSha256": "632eb83a4359afd110594ea6f69db4db0c9512c79ae2c88741cf68e527253e41",
+          "derivedPath": "assets/kenney/platformer-kit/tree.glb",
+          "derivedSha256": "f04a16034071715cb8ac7889b3bb72add0afaa24eeb2f25869e2077935d9959a",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 800,
+            "indices": 1224,
+            "bounds": {
+              "min": [-0.5386731028556824, 0, -0.5509651899337769],
+              "max": [0.5502291321754456, 1.930880069732666, 0.5576530694961548]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
