@@ -181,16 +181,6 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
 .assumption-context-explicit .assumption-path { background: var(--accent); }
 .assumption-versus { align-self: center; color: var(--text-faint); font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; writing-mode: vertical-rl; }
 
-.session-step-proof { margin-top: clamp(58px, 8vw, 104px); }
-.session-step-frames { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.session-step-frames > div { overflow: hidden; border: 1px solid var(--line-strong); background: #08090b; }
-.session-step-frames img { display: block; width: 100%; height: auto; }
-.session-step-frames > div > span { display: block; padding: 12px 14px; border-top: 1px solid var(--line); color: var(--text-muted); font-family: var(--mono); font-size: 10px; }
-.session-step-proof figcaption, .games-current-proof figcaption { margin-top: 14px; color: var(--text-faint); font-family: var(--mono); font-size: 10px; letter-spacing: .02em; }
-.session-step-proof figcaption span, .games-current-proof figcaption span { margin-right: 10px; color: var(--success); text-transform: uppercase; letter-spacing: .04em; }
-
-.games-current-proof { max-width: 900px; margin-top: clamp(58px, 8vw, 104px); }
-.games-current-proof img { display: block; width: 100%; height: auto; border: 1px solid var(--line-strong); background: #08090b; }
 
 /* Internal pages */
 .page-hero { min-height: 610px; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 110px; padding-bottom: 96px; border-bottom: 1px solid var(--line); }
@@ -220,6 +210,12 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
 .closing-cta a { display: inline-flex; align-items: center; gap: 12px; }
 
 .games-hero { min-height: 720px; }
+.game-proof-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 42px); margin-top: clamp(58px, 8vw, 104px); }
+.game-proof-media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--line-strong); background: #08090b; }
+.game-proof-media .stage { position: absolute; inset: 0; }
+.game-proof > p:first-of-type { margin-top: 18px; color: var(--text-faint); font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+.game-proof h3 { margin-top: 8px; font-size: clamp(1.7rem, 2.7vw, 2.8rem); line-height: 1; }
+.game-proof > p:last-child { margin-top: 13px; color: var(--text-muted); font-size: 14px; }
 .world-title { padding: clamp(90px, 13vw, 190px) 0; border-bottom: 1px solid var(--line); background: #09090b; text-align: center; }
 .world-title p, .world-title span { color: var(--text-faint); font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
 .world-title h2 { margin: 18px 0 24px; font-size: clamp(4rem, 13vw, 12rem); line-height: .8; letter-spacing: -.055em; }
@@ -322,6 +318,7 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
   .research-row { grid-template-columns: 112px minmax(0, 1fr) !important; }
   .wide-media, .deck-stage { min-height: 430px; }
   .demo-entry { grid-template-columns: 1fr; }
+  .game-proof-grid { grid-template-columns: 1fr; }
   .demo-family-head { grid-template-columns: 110px minmax(220px, .8fr) minmax(260px, 1fr); gap: 28px; }
   .footer-main { grid-template-columns: 1fr; }
   .assumption-diagram { grid-template-columns: 1fr; }
@@ -377,7 +374,6 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
   .footer-note { flex-direction: column; }
   .stage-has-poster { background-image: var(--stage-poster-mobile); }
   .assumption-context { min-height: 280px; }
-  .session-step-frames { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

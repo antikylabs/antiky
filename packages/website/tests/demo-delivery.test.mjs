@@ -4,12 +4,14 @@ import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import sharp from 'sharp';
 
 import { buildDemoArtifact } from '../scripts/build-demo-artifact.mjs';
 import { stageDemoArtifacts } from '../scripts/stage-demo-artifacts.mjs';
 
 const sourceRoot = new URL('../src/', import.meta.url);
 const publicRoot = new URL('../public/', import.meta.url);
+const masterRoot = new URL('../media-masters/demos/', import.meta.url);
 
 function pngDimensions(source) {
   assert.deepEqual(source.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
@@ -25,6 +27,16 @@ async function sourceFiles(directory) {
     const url = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, directory);
     if (entry.isDirectory()) files.push(...await sourceFiles(url));
     else if (entry.isFile() && /\.(?:ts|tsx|js|jsx)$/.test(entry.name)) files.push(url);
+  }
+  return files;
+}
+
+async function relativeFiles(directory, root = directory) {
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const url = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, directory);
+    if (entry.isDirectory()) files.push(...await relativeFiles(url, root));
+    else if (entry.isFile()) files.push(decodeURIComponent(url.pathname.slice(root.pathname.length)));
   }
   return files;
 }
@@ -62,6 +74,8 @@ test('the website catalog exposes all renderer families and gates only WebGPU de
   const catalog = await readFile(new URL('../src/lib/demos.ts', import.meta.url), 'utf8');
   const host = await readFile(new URL('../src/components/DemoStage.tsx', import.meta.url), 'utf8');
   for (const slug of [
+    'combat-arena',
+    'traversal-study',
     'antiky-town',
     'point-light-expo',
     'town-study',
@@ -75,6 +89,9 @@ test('the website catalog exposes all renderer families and gates only WebGPU de
   assert.match(catalog, /pillar: 'BroMetal'/);
   assert.match(catalog, /pillar: 'Three\.js'/);
   assert.match(host, /requiresWebGpu && !\('gpu' in navigator\)/);
+  assert.match(host, /onPointerEnter/);
+  assert.match(host, /onFocusCapture/);
+  assert.match(host, /prefers-reduced-motion/);
 });
 
 test('every published demo has a distinct real poster and the catalog groups all renderer families', async () => {
@@ -83,20 +100,24 @@ test('every published demo has a distinct real poster and the catalog groups all
   const digests = new Set();
 
   for (const demo of publication.demos) {
-    const image = await readFile(new URL(`media/demos/${demo.slug}.png`, publicRoot));
-    const { width, height } = pngDimensions(image);
-    assert.ok(width >= 512, `${demo.slug} poster is too narrow`);
-    assert.ok(height >= 288, `${demo.slug} poster is too short`);
-    const deliveryPoster = demo.slug === 'antiky-town'
-      ? 'worlds/antiky-town-hero-wide-v1.webp'
-      : `demos/${demo.slug}.png`;
+    const master = await readFile(new URL(`${demo.slug}.png`, masterRoot));
+    const masterSize = pngDimensions(master);
+    assert.ok(masterSize.width >= 2560, `${demo.slug} master is too narrow`);
+    assert.ok(masterSize.height >= 1440, `${demo.slug} master is too short`);
+    const deliveryPoster = `demos/${demo.slug}.webp`;
+    const image = await readFile(new URL(`media/${deliveryPoster}`, publicRoot));
+    const { width, height, format } = await sharp(image).metadata();
+    assert.equal(format, 'webp');
+    assert.ok((width ?? 0) >= 2560, `${demo.slug} delivery poster is too narrow`);
+    assert.ok((height ?? 0) >= 1440, `${demo.slug} delivery poster is too short`);
+    assert.ok(image.length <= 1_200_000, `${demo.slug} delivery poster exceeds its budget`);
     assert.ok(catalogPage.includes(deliveryPoster), `${demo.slug} delivery poster is missing`);
     digests.add(createHash('sha256').update(image).digest('hex'));
   }
 
   assert.equal(digests.size, publication.demos.length, 'Demo posters must not reuse the same image');
   const groups = [
-    ['framework-demos', 'Antiky Framework', ['antiky-town', 'point-light-expo']],
+    ['framework-demos', 'Antiky Framework', ['combat-arena', 'traversal-study', 'antiky-town', 'point-light-expo']],
     ['brometal-demos', 'BroMetal', ['town-study', 'shader-study', 'solar-forge', 'luminous-reef']],
     ['threejs-demos', 'Three.js', ['orbital-atlas', 'glass-garden']],
   ];
@@ -131,7 +152,7 @@ test('website publication contains only the approved verified artifact files', a
     const manifest = JSON.parse(await readFile(new URL('antiky-artifact.json', staged), 'utf8'));
     assert.equal(manifest.slug, demo.slug);
     assert.deepEqual(
-      (await readdir(staged)).sort(),
+      (await relativeFiles(staged)).sort(),
       [...manifest.files.map((file) => file.path), 'antiky-artifact.json'].sort(),
     );
   }

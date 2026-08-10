@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
+import DemoStage from '@/components/DemoStage';
 import { ArrowRight } from '@/components/Icons';
+import type { DemoSlug } from '@/lib/demos';
 
 export const metadata: Metadata = {
   title: 'Games',
-  description: 'The games that give Antiky its questions: Antiky Town today, and Emberwyrd as the larger test ahead.',
+  description: 'The games that give Antiky its questions: three playable Framework studies today, and Emberwyrd as the larger test ahead.',
   alternates: { canonical: '/games' },
 };
 
@@ -15,6 +16,28 @@ const DIRECTIONS = [
   ['Consequential travel', 'A world where goods come from somewhere, distance has weight, and risk is chosen rather than ambient.'],
 ];
 
+const CURRENT_GAMES: readonly Readonly<{
+  slug: DemoSlug;
+  title: string;
+  body: string;
+}>[] = [
+  {
+    slug: 'combat-arena',
+    title: 'Combat Arena',
+    body: 'Automatic fire, dash strikes, enemy pressure, damage, defeats, and impact particles make the Framework simulation legible immediately.',
+  },
+  {
+    slug: 'traversal-study',
+    title: 'Traversal Study',
+    body: 'A self-running platform course turns movement, hazards, checkpoints, and moving platforms into visible Framework state.',
+  },
+  {
+    slug: 'antiky-town',
+    title: 'Antiky Town',
+    body: 'The golden-hour town connects a larger authored world to stable light identity, structured runtime state, and live authoring.',
+  },
+];
+
 export default function GamesPage() {
   return (
     <>
@@ -22,8 +45,8 @@ export default function GamesPage() {
         <h1>Games create the questions.</h1>
         <p className="status-line"><span className="status-dot status-planned" /> Emberwyrd in development</p>
         <p className="page-lead">
-          Antiky Labs is building technology in service of games. Antiky Town is the current working
-          proof. Emberwyrd is the larger creative and technical test ahead.
+          Antiky Labs is building technology in service of games. Three runnable Framework studies
+          show combat, traversal, and a living town today. Emberwyrd is the larger creative and technical test ahead.
         </p>
       </section>
 
@@ -31,33 +54,35 @@ export default function GamesPage() {
         <div className="wrap split-heading">
           <div>
             <p className="section-label">Current proof</p>
-            <h2>Antiky Town runs today.</h2>
+            <h2>Three different game problems run today.</h2>
           </div>
           <div className="prose">
             <p className="lead">
-              Antiky Town is a runnable Framework study with stable light identity, structured runtime
-              state, and a visible point-light authoring slice.
+              Combat Arena tests moment-to-moment action. Traversal Study tests movement and recovery.
+              Antiky Town tests a larger authored place and live light authoring.
             </p>
             <p>
-              Seven focused studies alongside it isolate rendering, shaders, and portable-host
+              Seven focused studies alongside them isolate rendering, shaders, and portable-host
               questions. They are working evidence, not production games or substitutes for
               Emberwyrd.
             </p>
-            <Link className="text-link section-link" href="/demos/antiky-town">
-              Run Antiky Town <ArrowRight />
+            <Link className="text-link section-link" href="/demos">
+              Run all current studies <ArrowRight />
             </Link>
           </div>
         </div>
-        <figure className="games-current-proof wrap">
-          <Image
-            src="/media/worlds/antiky-town-traversal-wide-v1.webp"
-            alt="A current traversal view across Antiky Town toward its market and bell tower"
-            width={707}
-            height={398}
-            sizes="(max-width: 760px) 100vw, min(1100px, 92vw)"
-          />
-          <figcaption><span>Current proof · Antiky Town</span> A real traversal frame from the Framework study.</figcaption>
-        </figure>
+        <div className="game-proof-grid wrap">
+          {CURRENT_GAMES.map((game) => (
+            <article className="game-proof" key={game.slug}>
+              <div className="game-proof-media">
+                <DemoStage slug={game.slug} variant="thumb" label={`${game.title} live preview`} />
+              </div>
+              <p>Current Framework study</p>
+              <h3><Link href={`/demos/${game.slug}`}>{game.title}</Link></h3>
+              <p>{game.body}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="world-title" id="emberwyrd" data-evidence-status="direction">
@@ -96,7 +121,7 @@ export default function GamesPage() {
 
       <section className="closing-cta wrap">
         <p>Want to see what runs now?</p>
-        <Link href="/demos/antiky-town">Explore Antiky Town <ArrowRight /></Link>
+        <Link href="/demos/combat-arena">Run Combat Arena <ArrowRight /></Link>
       </section>
     </>
   );

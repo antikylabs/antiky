@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
-import SessionStepProof from '@/components/SessionStepProof';
 import StudioPrimaryAction from '@/components/StudioPrimaryAction';
 import { canonical, DISCORD_URL, GITHUB_URL, STUDIO_RELEASES_READY } from '@/lib/site';
 
@@ -90,25 +88,6 @@ export default function StudioPage() {
         </div>
       </section>
 
-      <figure className="studio-showcase wrap" aria-labelledby="studio-workspace-caption">
-        <div className="studio-capture">
-          <picture>
-            <source media="(max-width: 620px)" srcSet="/media/machinery/studio-workspace-detail-v1.webp" />
-            <Image
-              src="/media/machinery/studio-workspace-wide-v1.webp"
-              alt="Current Antiky Studio workspace with a running game, isolated terminal prompt, simulation controls, and a populated hierarchy"
-              width={1192}
-              height={744}
-              sizes="(max-width: 760px) 100vw, min(1192px, 92vw)"
-              priority
-            />
-          </picture>
-        </div>
-        <figcaption id="studio-workspace-caption">
-          Current Studio proof · running game, isolated terminal, and published hierarchy
-        </figcaption>
-      </figure>
-
       <section className="content-section studio-session-section">
         <div className="wrap split-heading">
           <div>
@@ -144,8 +123,6 @@ export default function StudioPage() {
             </Link>
           </div>
         </div>
-
-        <SessionStepProof captionId="studio-step-proof-caption" />
 
         <div className="wrap studio-session-map" aria-label="CLI, Studio, and MCP share one Antiky development session">
           <div className="studio-session-clients">

@@ -1,35 +1,5 @@
 .studio-hero h1 { max-width: 12ch; }
 
-.studio-showcase {
-  padding-top: clamp(56px, 7vw, 96px);
-  padding-bottom: clamp(96px, 10vw, 150px);
-}
-
-.studio-capture {
-  overflow: hidden;
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background: #08090b;
-  box-shadow: 0 32px 90px rgba(0, 0, 0, .36);
-}
-
-.studio-capture img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.studio-capture picture { display: block; }
-
-.studio-showcase figcaption {
-  margin-top: 14px;
-  color: var(--text-faint);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: .03em;
-  text-align: right;
-  text-transform: uppercase;
-}
-
 .studio-session-section {
   border-block: 1px solid var(--line);
   background: var(--surface);
@@ -113,9 +83,6 @@
 }
 
 @media (max-width: 760px) {
-  .studio-showcase { padding-inline: 0; }
-  .studio-capture { border-inline: 0; border-radius: 0; }
-  .studio-showcase figcaption { padding-inline: var(--gutter); text-align: left; }
   .studio-session-map { grid-template-columns: 1fr; gap: 0; }
   .studio-session-line { width: 1px; height: 44px; justify-self: center; }
   .studio-session-clients > span { min-height: 92px; padding: 12px; }

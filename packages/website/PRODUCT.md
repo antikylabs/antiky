@@ -108,9 +108,10 @@ The website must label status in text. Color may reinforce status but cannot rep
 - MCP and typed inspection/tool adapters for the same local development session.
 - A native Studio workspace with project launch, running game, terminal, simulation controls,
   hierarchy, stores, snapshots, events, MCP calls, and diagnostics.
-- Two current Antiky Framework studies, four pure BroMetal studies, and two pure Three.js studies in
+- Four current Antiky Framework studies, four pure BroMetal studies, and two pure Three.js studies in
   one portable website-owned game host.
-- Antiky Town as the strongest current Framework proof.
+- Combat Arena as the strongest immediate motion proof, Traversal Study as a distinct movement proof,
+  and Antiky Town as the broadest current authored-world proof.
 
 All current packages remain early and pre-release. Current behavior does not imply stable APIs or a
 complete general-purpose game engine.
@@ -146,7 +147,8 @@ failure record, and limitations.
 Antiky Labs will build games, not just technology. The game creates real problems. Reusable
 solutions can become Antiky after working evidence justifies the boundary.
 
-- **Antiky Town** is the current game-like Framework proof.
+- **Combat Arena** is the immediate action proof, **Traversal Study** is the movement proof, and
+  **Antiky Town** is the larger authored-world proof.
 - **Focused studies** isolate rendering, hosting, shader, identity, and authoring questions.
 - **Emberwyrd** is the larger creative and technical test in development. It has no playable release
   today.
@@ -168,7 +170,7 @@ as the Antiky Labs identity.
 - **Games (`/games`)** — connect Antiky Town, focused studies, and Emberwyrd to the game-led method.
 - **Research (`/research`)** — maintain the boundary between runnable evidence, direction, and open
   questions.
-- **Demos (`/demos`)** — let visitors run eight approved artifacts and understand what each does and
+- **Demos (`/demos`)** — let visitors run ten approved artifacts and understand what each does and
   does not show.
 - **Docs (`/docs`)** — publish exact current Framework, CLI, MCP, Studio, and API behavior.
 
@@ -197,6 +199,11 @@ both states with the normal website test and `npm run test:release-ready --works
 Discord language should promise member value, not member count. Invite builders to ask for Studio
 help, share work, challenge the Thesis, compare approaches, and help turn questions into evidence.
 Do not claim an established ecosystem until community evidence supports it.
+
+The participation loop is: see a real game moving → download Studio from the release authority →
+open or run a study → join Discord for help, critique, project sharing, and direct influence on what
+the lab tests next. Download and community actions should recur after convincing proof, not interrupt
+the opening idea before the visitor understands why the product exists.
 
 ## Voice and language
 

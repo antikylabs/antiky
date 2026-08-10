@@ -75,21 +75,19 @@ test('production pages report the configured SSPS live visitor count once', asyn
   }
 });
 
-test('home and Framework pages feature current Antiky media', async () => {
+test('home, Games, and Framework feature distinct current Antiky media', async () => {
   const home = await readFile(new URL('index.html', outputRoot), 'utf8');
   const games = await readFile(new URL('games.html', outputRoot), 'utf8');
   const framework = await readFile(new URL('framework.html', outputRoot), 'utf8');
 
-  assert.match(home, /href="\/demos\/antiky-town"/);
-  assert.match(home, /antiky-town-hero-wide-v1\.webp/);
-  assert.match(home, /antiky-town-hero-mobile-v1\.webp/);
-  assert.match(home, /studio-pause-wide-v1\.webp/);
-  assert.match(home, /studio-step-wide-v1\.webp/);
-  assert.match(home, /Current Studio proof/);
-  assert.match(home, /Run Antiky Town/);
+  assert.match(home, /combat-arena\.webp/);
+  assert.match(home, /Run Combat Arena/);
+  assert.doesNotMatch(home, /studio-(?:pause|step|point-light-workflow)-wide-v1\.webp|studio-point-light-workflow-v2/);
   assert.doesNotMatch(home, /href="\/demos\/town-study">Explore Town Study/);
-  assert.match(games, /antiky-town-traversal-wide-v1\.webp/);
-  assert.match(games, /Current proof · Antiky Town/);
+  assert.match(games, /href="\/demos\/combat-arena"/);
+  assert.match(games, /href="\/demos\/traversal-study"/);
+  assert.match(games, /href="\/demos\/antiky-town"/);
+  assert.doesNotMatch(games, /antiky-town-traversal-wide-v1\.webp/);
 
   assert.match(framework, /href="\/demos\/antiky-town"/);
   assert.match(framework, /antiky-architecture\.png/);
@@ -142,7 +140,7 @@ test('homepage follows the why-first evidence-to-participation sequence', async 
   assert.match(home, /data-evidence-status="current"/);
   assert.match(home, /data-evidence-status="emerging"/);
   assert.match(home, /href="\/thesis"/);
-  assert.match(home, /href="\/demos\/antiky-town"/);
+  assert.match(home, /href="\/demos\/combat-arena"/);
   assert.doesNotMatch(home, /Tools for making worlds|<h1>2D character|emerging 2\.3D framework/);
 });
 
@@ -201,7 +199,7 @@ test('product and research pages expose status boundaries without stale primary 
   assert.doesNotMatch(research, /Training and adapting models|Generated voxel assets/);
   assert.match(games, /data-evidence-status="current"/);
   assert.match(games, /data-evidence-status="direction"/);
-  assert.match(demos.replaceAll('<!-- -->', ''), /four BroMetal 0\.14\.0 studies/);
+  assert.match(demos.replaceAll('<!-- -->', ''), /four Antiky Framework studies, four BroMetal 0\.14\.0 studies/);
   assert.match(demo, /What it does not show/);
 });
 
@@ -230,7 +228,7 @@ test('every production HTML page points internal anchors at a built route', asyn
       if (!route || route.startsWith('/_next/') || route.endsWith('.md')) continue;
       const output = route === '/'
         ? new URL('index.html', outputRoot)
-        : new URL(`${route.slice(1)}.html`, outputRoot);
+        : new URL(`${route.slice(1)}${route.includes('.') ? '.body' : '.html'}`, outputRoot);
       await assert.doesNotReject(
         readFile(output),
         `${page.pathname} links to missing production route ${route}`,

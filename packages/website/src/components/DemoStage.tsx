@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   useCallback,
   useEffect,
@@ -13,6 +14,7 @@ import type {
   GameMeasurements,
   GameModuleEntry,
 } from '@antiky/framework/game';
+import { ArrowUpRight } from '@/components/Icons';
 import {
   demoMobilePosterUrl,
   demoModuleUrl,
@@ -77,6 +79,8 @@ function movementFromPressed(pressed: ReadonlySet<string>, movement: MutableMove
 export default function DemoStage({ slug, label, variant, controlMode }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<Runtime | null>(null);
+  const activationPendingRef = useRef(false);
+  const previewRequestedRef = useRef(false);
   const visibleRef = useRef(true);
   const userPausedRef = useRef(false);
   const mountedRef = useRef(true);
@@ -98,7 +102,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
   }, []);
 
   const activate = useCallback(async () => {
-    if (runtimeRef.current || phase === 'loading' || variant === 'thumb') return;
+    if (runtimeRef.current || activationPendingRef.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     if (requiresWebGpu && !('gpu' in navigator)) {
@@ -108,6 +112,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
     }
 
     setError('');
+    activationPendingRef.current = true;
     setPhase('loading');
     const pointer: MutablePointer = {
       x: 0.5,
@@ -226,16 +231,23 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
         cancelFrame: () => cancelAnimationFrame(frameRequest),
         removeListeners: () => removals.splice(0).forEach((remove) => remove()),
       };
-      setPhase('running');
-      canvas.focus();
+      const previewPaused = variant === 'thumb' && !previewRequestedRef.current;
+      userPausedRef.current = previewPaused;
+      setPhase(previewPaused ? 'ready' : 'running');
+      if (variant !== 'thumb') canvas.focus();
       frameRequest = requestAnimationFrame(frame);
     } catch (cause: unknown) {
       removals.splice(0).forEach((remove) => remove());
       instance?.dispose();
       setError(cause instanceof Error ? cause.message : 'The game artifact could not start.');
       setPhase('error');
+    } finally {
+      activationPendingRef.current = false;
     }
-  }, [phase, requiresWebGpu, slug, stopRuntime, variant]);
+  }, [requiresWebGpu, slug, stopRuntime, variant]);
+
+  const activateRef = useRef(activate);
+  activateRef.current = activate;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -243,6 +255,11 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
     if (!canvas) return;
     const observer = new IntersectionObserver(([entry]) => {
       visibleRef.current = entry?.isIntersecting ?? false;
+      if (
+        entry?.isIntersecting
+        && variant === 'hero'
+        && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ) void activateRef.current();
     }, { threshold: 0.05 });
     observer.observe(canvas);
     return () => {
@@ -250,7 +267,26 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
       observer.disconnect();
       stopRuntime();
     };
-  }, [stopRuntime]);
+  }, [stopRuntime, variant]);
+
+  const beginPreview = () => {
+    if (variant !== 'thumb') return;
+    previewRequestedRef.current = true;
+    userPausedRef.current = false;
+    if (runtimeRef.current) {
+      setPhase('running');
+      return;
+    }
+    void activate();
+  };
+
+  const endPreview = () => {
+    if (variant !== 'thumb') return;
+    previewRequestedRef.current = false;
+    if (!runtimeRef.current) return;
+    userPausedRef.current = true;
+    setPhase('ready');
+  };
 
   const togglePause = () => {
     userPausedRef.current = !userPausedRef.current;
@@ -272,10 +308,23 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
   } : undefined;
 
   return (
-    <div className={classes} data-phase={displayPhase} style={style}>
-      <canvas ref={canvasRef} className="stage-canvas" aria-label={label} tabIndex={0} />
+    <div
+      className={classes}
+      data-phase={displayPhase}
+      style={style}
+      onPointerEnter={beginPreview}
+      onPointerLeave={endPreview}
+      onFocusCapture={beginPreview}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) endPreview();
+      }}
+    >
+      <canvas ref={canvasRef} className="stage-canvas" aria-label={label} tabIndex={variant === 'thumb' ? -1 : 0} />
       {variant === 'thumb' ? (
-        <div className="stage-status">Open to run</div>
+        <>
+          {phase === 'loading' && <div className="stage-status">Loading live preview…</div>}
+          <Link className="demo-open" href={`/demos/${slug}`}>Open study <ArrowUpRight /></Link>
+        </>
       ) : phase === 'loading' ? (
         <div className="stage-status">Loading verified game artifact…</div>
       ) : phase === 'error' ? (

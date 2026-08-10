@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import ChangedAssumptionDiagram from '@/components/ChangedAssumptionDiagram';
 import DemoStage from '@/components/DemoStage';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
-import SessionStepProof from '@/components/SessionStepProof';
 import StudioPrimaryAction from '@/components/StudioPrimaryAction';
 import { BROMETAL_URL, DISCORD_URL } from '@/lib/site';
 
@@ -45,7 +44,7 @@ export default function HomePage() {
   return (
     <>
       <section className="home-hero" id="idea">
-        <DemoStage slug="antiky-town" variant="hero" label="Antiky Town — current Framework proof in a golden-hour voxel town" />
+        <DemoStage slug="combat-arena" variant="hero" label="Combat Arena — a live Framework combat loop with enemies, projectiles, dashes, and impact particles" />
         <div className="home-hero-copy">
           <h1>Build the world in your mind.<br />Stay in the director&apos;s chair.</h1>
           <p>
@@ -60,7 +59,7 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-        <p className="media-caption"><span>Current proof · Antiky Town</span> Run the real Framework study</p>
+        <p className="media-caption"><span>Current proof · Combat Arena</span> Live Framework simulation and BroMetal rendering</p>
       </section>
 
       <section className="content-section assumption-section" id="changed-assumption">
@@ -119,7 +118,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-        <SessionStepProof captionId="home-step-proof-caption" />
       </section>
 
       <section className="work-index wrap" id="system">
@@ -155,12 +153,13 @@ export default function HomePage() {
           <div className="prose">
             <p className="lead">The game creates real problems. Reusable solutions become Antiky.</p>
             <p>
-              Antiky Town and seven focused browser studies are the working proof today. Emberwyrd
+              Combat Arena, Traversal Study, Antiky Town, and seven focused browser studies are the
+              working proof today. Emberwyrd
               is the larger creative and technical test Antiky Labs is building toward. It is not a
               playable release yet.
             </p>
             <div className="thesis-links">
-              <Link className="button button-primary" href="/demos/antiky-town">Run Antiky Town <ArrowUpRight /></Link>
+              <Link className="button button-primary" href="/demos/combat-arena">Run Combat Arena <ArrowUpRight /></Link>
               <Link className="text-link" href="/games">See the games <ArrowRight /></Link>
             </div>
           </div>
@@ -197,7 +196,7 @@ export default function HomePage() {
             library into the identity of the lab.
           </p>
           <div className="thesis-links">
-            <Link className="text-link" href="/demos">Explore all eight studies <ArrowRight /></Link>
+            <Link className="text-link" href="/demos">Explore all ten studies <ArrowRight /></Link>
             <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">
               Visit BroMetal <ArrowUpRight />
             </a>

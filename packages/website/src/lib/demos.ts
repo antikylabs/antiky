@@ -1,4 +1,6 @@
 export type DemoSlug =
+  | 'combat-arena'
+  | 'traversal-study'
   | 'antiky-town'
   | 'point-light-expo'
   | 'town-study'
@@ -51,6 +53,40 @@ export const DEMO_GROUPS: readonly Readonly<{
 
 /** Editorial approval is deliberate. A staged artifact cannot add itself to this catalog. */
 export const DEMOS: readonly DemoMeta[] = [
+  {
+    slug: 'combat-arena',
+    title: 'Combat Arena',
+    pillar: 'Framework',
+    tagline: 'A readable combat loop with dash strikes, enemy waves, and impact bursts.',
+    notes:
+      'A compact action game where Antiky Framework owns fixed-step movement, targeting, projectiles, damage, entity identity, runtime stores, and a bounded combat-event history.',
+    proves: [
+      'Framework-owned combat state with stable player, enemy, and projectile identities',
+      'Automatic firing, click-to-dash attacks, defeats, and wave pressure from the first seconds',
+      'One runtime projection drives custom BroMetal arena, trail, and impact rendering',
+    ],
+    tags: ['Antiky Framework', 'combat', 'particles'],
+    requiresWebGpu: true,
+    controls: 'Move with WASD or arrows; click or tap the arena to dash',
+    controlMode: 'move',
+  },
+  {
+    slug: 'traversal-study',
+    title: 'Traversal Study',
+    pillar: 'Framework',
+    tagline: 'A kinetic floating-platform course with checkpoints, hazards, and an attract loop.',
+    notes:
+      'The side-on course runs by itself and accepts manual steering and jumps. Framework owns fixed-step traversal, moving platforms, hazards, checkpoints, particles, and the event trail Studio can inspect.',
+    proves: [
+      'Deterministic platform movement, collision, checkpoints, and hazard recovery',
+      'An immediate attract loop that communicates motion without requiring input',
+      'Published traversal entities, runtime stores, and events beside the rendered result',
+    ],
+    tags: ['Antiky Framework', 'platforming', 'attract loop'],
+    requiresWebGpu: true,
+    controls: 'Steer with horizontal controls; click, tap, or press up to jump',
+    controlMode: 'move',
+  },
   {
     slug: 'antiky-town',
     title: 'Antiky Town',
@@ -152,15 +188,15 @@ export const DEMOS: readonly DemoMeta[] = [
     slug: 'orbital-atlas',
     title: 'Orbital Atlas',
     pillar: 'Three.js',
-    tagline: 'A kinetic solar sculpture built from a nested scene graph.',
+    tagline: 'A kinetic solar sculpture wrapped in hundreds of animated orbital shards.',
     notes:
-      'Planets, moons, rings, and a deterministic star field use native Three.js groups and physical materials while the same Studio host supplies timing and lifecycle.',
+      'Planets, moons, rings, a deterministic star field, and a dynamically updated instance field use native Three.js APIs while the same Studio host supplies timing and lifecycle.',
     proves: [
       'Hierarchical animation through native Three.js scene groups',
+      'Per-frame instance transforms and colors in one dynamic instanced draw',
       'A WebGL game module with no BroMetal or Framework dependency',
-      'Studio measurements and agent connection remain available',
     ],
-    tags: ['Three.js', 'scene graph', 'WebGL'],
+    tags: ['Three.js', 'dynamic instancing', 'WebGL'],
     requiresWebGpu: false,
     controls: 'Move the pointer to orbit the camera',
   },
@@ -168,12 +204,12 @@ export const DEMOS: readonly DemoMeta[] = [
     slug: 'glass-garden',
     title: 'Glass Garden',
     pillar: 'Three.js',
-    tagline: 'A luminous conservatory of crystal blooms and moving light.',
+    tagline: 'A bioluminescent crystal conservatory rooted in noise-sculpted terrain.',
     notes:
-      'Transmission materials, metallic stems, animated practical lights, and a reflective floor show a polished Three.js scene running through Studio’s renderer-neutral contract.',
+      'Transmission materials, animated crystal cores, procedural terrain, moving practical lights, and bloom composition show a polished Three.js scene running through Studio’s renderer-neutral contract.',
     proves: [
-      'Three.js physical transmission and standard materials',
-      'Moving point lights and shadowed geometry',
+      'Three.js physical transmission over procedural ImprovedNoise terrain',
+      'EffectComposer bloom, moving point lights, and shadowed geometry',
       'The same Studio lifecycle works without WebGPU',
     ],
     tags: ['Three.js', 'physical materials', 'WebGL'],
@@ -201,11 +237,10 @@ export function demoModuleUrl(slug: DemoSlug): string {
 }
 
 export function demoPosterUrl(slug: DemoSlug): string {
-  if (slug === 'antiky-town') return '/media/worlds/antiky-town-hero-wide-v1.webp';
-  return `/media/demos/${slug}.png`;
+  return `/media/demos/${slug}.webp`;
 }
 
 export function demoMobilePosterUrl(slug: DemoSlug): string | undefined {
-  if (slug === 'antiky-town') return '/media/worlds/antiky-town-hero-mobile-v1.webp';
+  if (slug === 'combat-arena') return '/media/demos/combat-arena-mobile.webp';
   return undefined;
 }

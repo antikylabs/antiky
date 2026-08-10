@@ -14,6 +14,8 @@ const demos = publication.demos;
 
 test('publication includes the complete renderer showcase', () => {
   assert.deepEqual(demos.map(({ slug, renderer }) => ({ slug, renderer })), [
+    { slug: 'combat-arena', renderer: 'antiky' },
+    { slug: 'traversal-study', renderer: 'antiky' },
     { slug: 'antiky-town', renderer: 'antiky' },
     { slug: 'point-light-expo', renderer: 'antiky' },
     { slug: 'town-study', renderer: 'brometal' },
