@@ -7,13 +7,14 @@ x repo health - create ADR for multi renderer support in studio/cli
 x marketing - add screenshots of real studio to website and readme
 x marketing - update website
 x tooling - create asset catalog
-\ tooling - create skill library
+x research - AOT WSGL compilers and renderer benchmarks (see https://github.com/antikylabs/research)
+x website - move port to soemthing other than 3010
+x studio - add project open/recent settings on already open project
 x website - fix what codex messed up with demos and stuff (arena is not an arena???)
+\ tooling - create skill library
+\ demos - fix up demos to be better quality
 \ website - review all marketing and website changes.
 \ repo health - add agent skills repo (brometal, antiky, game dev, studio, mcp, etc...) how to work with and use stuff.
-\ research - AOT WSGL compilers and renderer benchmarks
-x website - move port to soemthing other than 3010
-\ studio - add project open/recent settings on already open project
 studio - add full screen game
 studio - fix status bar and duplicate information
 studio - fix unable to pause game
