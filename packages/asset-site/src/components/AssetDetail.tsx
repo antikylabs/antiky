@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import type { CatalogAsset } from '@antiky/asset-catalog';
+import { catalogApiAssetUrl } from '@antiky/asset-catalog/static-api';
 import { fileCountLabel, VERIFICATION_COPY } from '../lib/presentation';
 
 export function AssetDetail({ asset }: Readonly<{ asset: CatalogAsset }>) {
@@ -35,7 +36,7 @@ export function AssetDetail({ asset }: Readonly<{ asset: CatalogAsset }>) {
           <p className="notice"><span>Attribution record</span>{asset.attribution.notice}</p>
           <div className="actions">
             <a className="button button-primary" href={asset.upstream.url}>View original source</a>
-            <a href={`https://catalog-api.antikylabs.com/v1/assets/${asset.provider.id}/${asset.slug}.json`}>Asset JSON</a>
+            <a href={catalogApiAssetUrl(asset)}>Asset JSON</a>
           </div>
           {asset.downloads.length > 0 && (
             <details className="download-files"><summary>{asset.downloads.length} selected download files</summary>

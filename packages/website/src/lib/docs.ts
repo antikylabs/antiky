@@ -4,6 +4,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { dirname, join, normalize, resolve } from 'node:path';
 import { Marked } from 'marked';
 import { CATALOG_ASSETS } from '@antiky/asset-catalog/catalog';
+import { CATALOG_API_BASE_URL, CATALOG_API_CATALOG_URL, catalogApiAssetUrl } from '@antiky/asset-catalog/static-api';
 import { canonical } from '@/lib/site';
 
 const DOCS_ROOT = resolve(process.cwd(), '../../docs/user-facing-docs');
@@ -268,8 +269,8 @@ export function renderLlmsTxt(entries: DocsEntry[], navigation: DocsNavigationSe
     '',
     '## Asset Catalog',
     '',
-    `- [Static catalog API](https://catalog-api.antikylabs.com/v1/): Versioned index for frontend and agent clients.`,
-    `- [Complete asset catalog JSON](https://catalog-api.antikylabs.com/v1/catalog.json): Static schema-versioned JSON containing all ${CATALOG_ASSETS.length.toLocaleString('en-US')} asset records.`,
+    `- [Static catalog API](${CATALOG_API_BASE_URL}/): Versioned index for frontend and agent clients.`,
+    `- [Complete asset catalog JSON](${CATALOG_API_CATALOG_URL}): Static schema-versioned JSON containing all ${CATALOG_ASSETS.length.toLocaleString('en-US')} asset records.`,
   );
   for (const asset of CATALOG_ASSETS) {
     lines.push(`- [${asset.name}](${canonical(`/assets/${asset.provider.id}/${asset.slug}`)}): ${asset.provider.name} ${asset.kind}; ${asset.license.name}; ${asset.verification}.`);
@@ -304,7 +305,7 @@ export function renderLlmsFullTxt(entries: DocsEntry[]): string {
       `### ${asset.name}`,
       '',
       `- Catalog URL: ${canonical(`/assets/${asset.provider.id}/${asset.slug}`)}`,
-      `- JSON URL: https://catalog-api.antikylabs.com/v1/assets/${asset.provider.id}/${asset.slug}.json`,
+      `- JSON URL: ${catalogApiAssetUrl(asset)}`,
       `- Stable ID: ${asset.id}`,
       `- Provider: ${asset.provider.name}`,
       `- Creator: ${asset.provenance.creator}`,

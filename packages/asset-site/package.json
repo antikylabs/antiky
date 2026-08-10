@@ -8,6 +8,7 @@
     "./assets.css": "./src/assets.css"
   },
   "scripts": {
+    "pretest": "npm run build --workspace @antiky/asset-catalog",
     "test": "node --experimental-strip-types --experimental-transform-types --test tests/*.test.mjs tests/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

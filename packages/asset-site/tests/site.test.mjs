@@ -14,12 +14,12 @@ test('asset-site is a shared UI package with no independently deployed Next appl
 
   assert.equal(packageManifest.name, '@antiky/asset-site');
   assert.equal(packageManifest.dependencies['@antiky/asset-catalog'], '0.0.0');
-  assert.deepEqual(Object.keys(packageManifest.scripts).sort(), ['test', 'typecheck']);
+  assert.equal(packageManifest.scripts.pretest, 'npm run build --workspace @antiky/asset-catalog');
   assert.match(publicModule, /AssetCatalog/);
   assert.match(publicModule, /AssetDetail/);
   assert.match(catalog, /window\.location\.search/);
   assert.doesNotMatch(catalog, /useSearchParams/);
-  assert.match(detail, /Complete catalog JSON/);
+  assert.match(detail, /catalogApiAssetUrl/);
   assert.match(styles, /\.asset-grid/);
   await assert.rejects(readFile(path.join(packageRoot, 'src/app/api/assets/route.ts')), { code: 'ENOENT' });
   await assert.rejects(readFile(path.join(packageRoot, 'src/app/llms.txt/route.ts')), { code: 'ENOENT' });

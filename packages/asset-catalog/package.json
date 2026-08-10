@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./catalog": "./src/catalog-data.ts",
+    "./static-api": "./src/static-api.ts",
     "./node": "./src/node/install.ts"
   },
   "scripts": {
