@@ -4,15 +4,13 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { AssetCard } from './AssetCard';
-import { catalogCount, catalogProviders, catalogSearch } from '../lib/catalog';
+import { catalogCount, catalogFormats, catalogProviders, catalogSearch, type PublicCatalogQuery } from '../lib/catalog';
 
 const PAGE_SIZE = 48;
 
-function pageLink(query: Readonly<{ q: string; type: string; provider: string }>, page: number): string {
+function pageLink(query: PublicCatalogQuery, page: number): string {
   const params = new URLSearchParams();
-  if (query.q) params.set('q', query.q);
-  if (query.type) params.set('type', query.type);
-  if (query.provider) params.set('provider', query.provider);
+  for (const [key, value] of Object.entries(query)) if (value) params.set(key, value);
   if (page > 1) params.set('page', String(page));
   const search = params.toString();
   return search ? `/assets?${search}` : '/assets';
@@ -33,9 +31,14 @@ export function AssetCatalog() {
     q: searchParams.get('q') ?? '',
     type: searchParams.get('type') ?? '',
     provider: searchParams.get('provider') ?? '',
+    dimension: searchParams.get('dimension') ?? '',
+    format: searchParams.get('format') ?? '',
+    verification: searchParams.get('verification') ?? '',
+    sort: searchParams.get('sort') ?? 'random',
   };
   const matches = catalogSearch(query);
   const providers = catalogProviders();
+  const formats = catalogFormats();
   const requestedPage = Number.parseInt(searchParams.get('page') ?? '', 10);
   const pageCount = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
   const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, pageCount) : 1;
@@ -66,6 +69,9 @@ export function AssetCatalog() {
         <label htmlFor="asset-query"><span>Search the catalog</span><small>Names, tags, creators, and categories</small></label>
         <div className="search-row">
           <input id="asset-query" name="q" defaultValue={query.q} placeholder="Try “forest”" type="search" />
+          <button type="submit">Search</button>
+        </div>
+        <div className="filter-row">
           <select aria-label="Asset type" name="type" defaultValue={query.type}>
             <option value="">All types</option>
             <option value="audio">Audio</option>
@@ -75,12 +81,34 @@ export function AssetCatalog() {
             <option value="sprite">Sprites</option>
             <option value="texture">Textures</option>
           </select>
+          <select aria-label="Dimension" name="dimension" defaultValue={query.dimension}>
+            <option value="">2D + 3D</option>
+            <option value="2d">2D assets</option>
+            <option value="3d">3D assets</option>
+          </select>
           <select aria-label="Provider" name="provider" defaultValue={query.provider}>
             <option value="">All sources</option>
             {providers.map((provider) => <option key={provider.id} value={provider.id}>{provider.name}</option>)}
           </select>
-          <button type="submit">Search</button>
+          <select aria-label="Format" name="format" defaultValue={query.format}>
+            <option value="">All formats</option>
+            {formats.map((format) => <option key={format} value={format}>{format.toUpperCase()}</option>)}
+          </select>
+          <select aria-label="Verification status" name="verification" defaultValue={query.verification}>
+            <option value="">All statuses</option>
+            <option value="cataloged">Cataloged metadata</option>
+            <option value="source-verified">Source verified</option>
+            <option value="install-verified">Install verified</option>
+          </select>
+          <select aria-label="Sort assets" name="sort" defaultValue={query.sort}>
+            <option value="random">Featured shuffle</option>
+            <option value="name-asc">Name A–Z</option>
+            <option value="name-desc">Name Z–A</option>
+            <option value="files-desc">Most files</option>
+            <option value="newest">Recently cataloged</option>
+          </select>
         </div>
+        {search && <a className="clear-filters" href="/assets">Clear all filters</a>}
       </form>
 
       <section className="catalog-section wrap" aria-labelledby="catalog-heading">

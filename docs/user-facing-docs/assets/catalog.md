@@ -12,6 +12,12 @@ The library currently contains 1,292 CC0 records. Search results show the provid
 published file count when the provider supplies one, formats, tags, and catalog status. Select an
 asset to see its permanent page and complete JSON record.
 
+The default view uses a stable featured shuffle rather than alphabetical ordering. Kenney and
+Quaternius are weighted toward the first pages, with 2D and 3D work mixed together. Filter by search
+text, type, 2D or 3D, source, format, or verification status. Sort the result using the featured
+shuffle, name, published file count, or catalog recency. Every selection is encoded in the URL so it
+can be shared with another person or agent.
+
 ## Understand the supported sources
 
 | Source | Current records | Asset types | How records enter the library |

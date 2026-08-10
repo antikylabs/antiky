@@ -1,4 +1,4 @@
-import { findAsset, searchAssets, type AssetKind, type CatalogAsset } from '@antiky/asset-catalog';
+import { findAsset, searchAssets, type AssetKind, type AssetVerification, type CatalogAsset } from '@antiky/asset-catalog';
 import { CATALOG_ASSETS } from '@antiky/asset-catalog/catalog';
 
 const kinds = new Set<AssetKind>(['audio', 'font', 'hdri', 'model', 'sprite', 'texture']);
@@ -7,6 +7,10 @@ export type PublicCatalogQuery = Readonly<{
   q?: string;
   type?: string;
   provider?: string;
+  dimension?: string;
+  format?: string;
+  verification?: string;
+  sort?: string;
 }>;
 
 const defaultProviderPattern = ['kenney', 'quaternius', 'kenney', 'quaternius', 'poly-haven'] as const;
@@ -18,6 +22,7 @@ function prioritizedProviderMix(assets: readonly CatalogAsset[]): CatalogAsset[]
     queue.push(asset);
     queues.set(asset.provider.id, queue);
   }
+  for (const queue of queues.values()) queue.sort((left, right) => featuredRank(left) - featuredRank(right));
   const offsets = new Map<string, number>();
   const mixed: CatalogAsset[] = [];
   while (mixed.length < assets.length) {
@@ -40,14 +45,51 @@ function prioritizedProviderMix(assets: readonly CatalogAsset[]): CatalogAsset[]
   return mixed;
 }
 
+function featuredRank(asset: CatalogAsset): number {
+  let hash = 2166136261;
+  for (const character of `antiky-featured-v1:${asset.id}`) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function assetDimension(asset: CatalogAsset): '2d' | '3d' | 'other' {
+  if (asset.kind === 'model' || asset.kind === 'hdri') return '3d';
+  if (asset.kind === 'sprite' || asset.kind === 'texture') return '2d';
+  return 'other';
+}
+
+const verificationStates = new Set<AssetVerification>(['cataloged', 'source-verified', 'install-verified']);
+
+function sortAssets(assets: readonly CatalogAsset[], sort: string | undefined): CatalogAsset[] {
+  if (!sort || sort === 'random') return prioritizedProviderMix(assets);
+  const sorted = [...assets];
+  if (sort === 'name-asc') return sorted.sort((left, right) => left.name.localeCompare(right.name) || left.id.localeCompare(right.id));
+  if (sort === 'name-desc') return sorted.sort((left, right) => right.name.localeCompare(left.name) || right.id.localeCompare(left.id));
+  if (sort === 'files-desc') return sorted.sort((left, right) => (right.fileCount ?? -1) - (left.fileCount ?? -1) || left.name.localeCompare(right.name));
+  if (sort === 'newest') return sorted.sort((left, right) => right.provenance.retrievedAt.localeCompare(left.provenance.retrievedAt) || left.name.localeCompare(right.name));
+  return prioritizedProviderMix(assets);
+}
+
 export function catalogSearch(query: PublicCatalogQuery): CatalogAsset[] {
   const kind = query.type && kinds.has(query.type as AssetKind) ? query.type as AssetKind : undefined;
-  const matches = searchAssets(CATALOG_ASSETS, {
+  let matches = searchAssets(CATALOG_ASSETS, {
     text: query.q,
     kind,
     provider: query.provider,
   });
-  return !query.q && !query.type && !query.provider ? prioritizedProviderMix(matches) : matches;
+  if (query.dimension === '2d' || query.dimension === '3d') {
+    matches = matches.filter((asset) => assetDimension(asset) === query.dimension);
+  }
+  if (query.format) {
+    const format = query.format.toLocaleLowerCase();
+    matches = matches.filter((asset) => asset.formats.includes(format));
+  }
+  if (query.verification && verificationStates.has(query.verification as AssetVerification)) {
+    matches = matches.filter((asset) => asset.verification === query.verification);
+  }
+  return sortAssets(matches, query.sort);
 }
 
 export function catalogAsset(provider: string, slug: string): CatalogAsset | undefined {
@@ -56,6 +98,10 @@ export function catalogAsset(provider: string, slug: string): CatalogAsset | und
 
 export function catalogProviders() {
   return [...new Map(CATALOG_ASSETS.map((asset) => [asset.provider.id, asset.provider])).values()];
+}
+
+export function catalogFormats(): string[] {
+  return [...new Set(CATALOG_ASSETS.flatMap((asset) => asset.formats))].sort();
 }
 
 export function catalogCount(): number {

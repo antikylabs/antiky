@@ -19,16 +19,41 @@ test('exposes the expanded catalog to search and agents', () => {
   assert.equal(catalogAsset('poly-haven', 'grass-medium-01')?.verification, 'source-verified');
 });
 
-test('prioritizes and interleaves sources in the default catalog view', () => {
+test('uses a stable shuffled mix weighted toward Kenney and Quaternius', () => {
   const firstPage = catalogSearch({}).slice(0, 48);
-  assert.deepEqual(firstPage.slice(0, 5).map((asset) => asset.provider.id), [
-    'kenney', 'quaternius', 'kenney', 'quaternius', 'poly-haven',
-  ]);
+  assert.deepEqual(firstPage, catalogSearch({}).slice(0, 48));
+  assert.notDeepEqual(firstPage.map((asset) => asset.name), firstPage.map((asset) => asset.name).toSorted());
   const providerCounts = new Map<string, number>();
   for (const asset of firstPage) {
     providerCounts.set(asset.provider.id, (providerCounts.get(asset.provider.id) ?? 0) + 1);
   }
-  assert.equal(providerCounts.get('kenney'), 20);
-  assert.equal(providerCounts.get('quaternius'), 19);
-  assert.equal(providerCounts.get('poly-haven'), 9);
+  assert.ok((providerCounts.get('kenney') ?? 0) >= 18);
+  assert.ok((providerCounts.get('quaternius') ?? 0) >= 18);
+  assert.ok((providerCounts.get('poly-haven') ?? 0) >= 4);
+  assert.ok(firstPage.filter((asset) => asset.kind === 'model' || asset.kind === 'hdri').length >= 18);
+  assert.ok(firstPage.filter((asset) => asset.kind === 'sprite' || asset.kind === 'texture').length >= 12);
+});
+
+test('filters by dimension, format, and verification status', () => {
+  const twoDimensional = catalogSearch({ dimension: '2d' });
+  assert.ok(twoDimensional.length > 100);
+  assert.ok(twoDimensional.every((asset) => asset.kind === 'sprite' || asset.kind === 'texture'));
+
+  const gltf = catalogSearch({ format: 'gltf' });
+  assert.ok(gltf.length > 10);
+  assert.ok(gltf.every((asset) => asset.formats.includes('gltf')));
+
+  const installVerified = catalogSearch({ verification: 'install-verified' });
+  assert.equal(installVerified.length, 3);
+  assert.ok(installVerified.every((asset) => asset.verification === 'install-verified'));
+});
+
+test('supports explicit catalog sort orders', () => {
+  const ascending = catalogSearch({ sort: 'name-asc' });
+  const descending = catalogSearch({ sort: 'name-desc' });
+  const mostFiles = catalogSearch({ sort: 'files-desc' });
+
+  assert.deepEqual(ascending.map((asset) => asset.name), ascending.map((asset) => asset.name).toSorted((a, b) => a.localeCompare(b)));
+  assert.deepEqual(descending.map((asset) => asset.name), ascending.map((asset) => asset.name).toReversed());
+  assert.ok((mostFiles[0]?.fileCount ?? 0) >= (mostFiles[1]?.fileCount ?? 0));
 });

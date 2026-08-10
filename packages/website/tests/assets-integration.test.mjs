@@ -42,6 +42,9 @@ test('the production build statically generates assets and complete agent contex
   ]);
 
   assert.match(assetsPage, /Start with/);
+  assert.match(assetsPage, /Featured shuffle/);
+  assert.match(assetsPage, /aria-label="Dimension"/);
+  assert.match(assetsPage, /aria-label="Verification status"/);
   assert.match(natureKit, /Nature Kit/);
   assert.match(natureKit, /https:\/\/catalog-api\.antikylabs\.com\/v1\/assets\/kenney\/nature-kit\.json/);
   assert.match(llms, /^# Antiky Labs\n\n> /);
