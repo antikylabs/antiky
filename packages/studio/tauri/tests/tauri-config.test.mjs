@@ -177,9 +177,10 @@ test('the Studio terminal theme is a complete visual-only Ghostty profile', asyn
 });
 
 test('Studio packages a project-service worker instead of an antiky dev command adapter', async () => {
-  const [config, source] = await Promise.all([
+  const [config, source, worker] = await Promise.all([
     readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8').then(JSON.parse),
     readFile(resolve(packageDirectory, 'src/development.rs'), 'utf8'),
+    readFile(resolve(packageDirectory, 'resources/project-service.mjs'), 'utf8'),
   ]);
 
   assert.equal(
@@ -192,6 +193,9 @@ test('Studio packages a project-service worker instead of an antiky dev command 
   assert.doesNotMatch(source, /antiky\s+dev|Command::new\([^)]*antiky/);
   assert.doesNotMatch(source, /Command::new\("node"\)/);
   assert.match(source, /project-service\.mjs/);
+  assert.match(worker, /STUDIO_PORT_RANGE_START = 7e3/);
+  assert.match(worker, /STUDIO_PORT_RANGE_END = 7999/);
+  assert.match(worker, /portAllocation: "studio-dynamic"/);
 });
 
 test('the packaged runtime can execute the bundled project-service worker', async () => {

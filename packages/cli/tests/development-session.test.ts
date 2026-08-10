@@ -193,6 +193,34 @@ test('development session starts both children, publishes health, and cleans up'
   )));
 });
 
+test('Studio sessions allocate an available consecutive port pair in the 7000 range', async (context) => {
+  const occupied = createServer();
+  await new Promise<void>((resolve, reject) => {
+    occupied.once('error', reject);
+    occupied.listen(7000, '127.0.0.1', resolve);
+  });
+  context.after(() => occupied.close());
+  const project = await makeProject({ shaderCommand: [] });
+  const config = await loadAntikyProject(project.projectPath);
+  const session = await startDevelopmentSession(config, {
+    portAllocation: 'studio-dynamic',
+    writeOutput: () => {},
+  });
+
+  try {
+    const launched = session.snapshot().project;
+    assert.ok(launched.gamePort > 7000 && launched.gamePort < 7999);
+    assert.equal(launched.gamePort % 2, 0);
+    assert.equal(launched.inspectionPort, launched.gamePort + 1);
+    assert.equal(Number(new URL(launched.gameUrl).port), launched.gamePort);
+    assert.equal(config.network.gamePort, GAME_PORT, 'the persisted project remains unchanged');
+  } finally {
+    await session.stop('normal');
+  }
+  assert.equal(await portIsFree(session.snapshot().project.gamePort), true);
+  assert.equal(await portIsFree(session.snapshot().project.inspectionPort), true);
+});
+
 test('development session skips the shader child when no shader watcher is configured', async () => {
   const project = await makeProject({ shaderCommand: [] });
   const config = await loadAntikyProject(project.projectPath);
@@ -302,6 +330,8 @@ test('Studio worker imports the project service and stops it through a structure
   child.stderr.setEncoding('utf8');
   let stdout = '';
   let stderr = '';
+  let allocatedGamePort: number | undefined;
+  let allocatedInspectionPort: number | undefined;
   child.stdout.on('data', (chunk: string) => { stdout += chunk; });
   child.stderr.on('data', (chunk: string) => { stderr += chunk; });
 
@@ -313,9 +343,13 @@ test('Studio worker imports the project service and stops it through a structure
     };
     assert.equal(ready.type, 'ready');
     assert.ok(ready.connection.developmentSessionId.length > 0);
-    assert.equal(ready.connection.inspectionUrl, `http://127.0.0.1:${INSPECTION_PORT}`);
+    allocatedInspectionPort = Number(new URL(ready.connection.inspectionUrl).port);
+    allocatedGamePort = allocatedInspectionPort - 1;
+    assert.ok(allocatedGamePort >= 7000 && allocatedInspectionPort <= 7999);
+    assert.equal(allocatedGamePort % 2, 0);
+    assert.equal(allocatedInspectionPort, allocatedGamePort + 1);
     assert.ok(ready.connection.credential.length >= 32);
-    const gameResponse = await fetch(`http://127.0.0.1:${GAME_PORT}/demos/town-study`);
+    const gameResponse = await fetch(`http://127.0.0.1:${allocatedGamePort}/demos/town-study`);
     assert.equal(gameResponse.status, 200);
     await gameResponse.text();
 
@@ -324,6 +358,8 @@ test('Studio worker imports the project service and stops it through a structure
       child.once('exit', (code, signal) => resolve({ code, signal }));
     });
     assert.deepEqual(exit, { code: 0, signal: null }, stderr);
+    assert.equal(await portIsFree(allocatedGamePort), true);
+    assert.equal(await portIsFree(allocatedInspectionPort), true);
     assert.equal(await portIsFree(GAME_PORT), true);
     assert.equal(await portIsFree(INSPECTION_PORT), true);
   } finally {

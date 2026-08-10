@@ -1,7 +1,8 @@
 # Antiky projects
 
 An Antiky project is a game directory with one visible `<name>.antiky` manifest. The manifest gives
-Studio and the CLI the same project name, development commands, network ports, and build command.
+Studio and the CLI the same project name, development commands, preferred network ports, and build
+command.
 
 ## Create the project manifest
 
@@ -79,6 +80,13 @@ Studio validates a selected or created file before it opens the workspace and sh
 name, manifest path, schema version, and project root. Studio then starts the CLI package's project
 service and development game host directly. It does not run an `antiky dev` shell command.
 
+For a Studio launch, the project service atomically claims the first available consecutive port
+pair in `7000–7999`: the even port hosts the game and the following odd port hosts inspection and
+MCP. If another Studio game or local process already owns a pair, Studio advances to the next pair.
+The allocated ports are session-local and do not rewrite the `.antiky` manifest. Direct
+`antiky dev` launches continue to use the explicit manifest ports, which keeps command-line
+automation deterministic.
+
 Select **Open project** in the workspace to choose a different project. You can also double-click a
 `.antiky` file in Finder after Antiky Studio is installed. Finder opens the same Studio window when
 Studio is already running.
@@ -145,7 +153,7 @@ some records link to a provider but are not available to this command.
 | `development.workingDirectory` | Selects the working directory for both development commands. |
 | `development.url` | Supplies the loopback page that Studio displays as the live game. |
 | `development.viewport` | Supplies the requested game width and height. |
-| `network` | Selects the loopback host and the game and inspection ports. |
+| `network` | Selects the loopback host and explicit CLI ports; Studio allocates a session-local pair in `7000–7999`. |
 | `build.command` | Builds the game. |
 | `build.workingDirectory` | Selects the working directory for the build command. |
 

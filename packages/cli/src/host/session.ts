@@ -32,6 +32,8 @@ import {
 } from './session-descriptor.ts';
 
 const CHILD_STOP_TIMEOUT_MILLISECONDS = 1500;
+const STUDIO_PORT_RANGE_START = 7000;
+const STUDIO_PORT_RANGE_END = 7999;
 
 type ProcessRecord = {
   state: DevelopmentProcessState;
@@ -57,6 +59,7 @@ export type DevelopmentCleanupOperation =
   | 'inspection-server';
 
 export type DevelopmentSessionOptions = Readonly<{
+  portAllocation?: 'manifest' | 'studio-dynamic';
   writeOutput?: (line: string) => void;
   watchPaths?: readonly string[];
   buildFailureTimeoutMilliseconds?: number;
@@ -110,6 +113,49 @@ async function reservePort(
     server.listen({ host, port, exclusive: true }, resolve);
   });
   return server;
+}
+
+async function reserveStudioPortPair(host: string): Promise<Readonly<{
+  gamePort: number;
+  inspectionPort: number;
+  gameReservation: NetServer;
+  inspectionReservation: NetServer;
+}>> {
+  for (let gamePort = STUDIO_PORT_RANGE_START; gamePort < STUDIO_PORT_RANGE_END; gamePort += 2) {
+    let gameReservation: NetServer | undefined;
+    let inspectionReservation: NetServer | undefined;
+    try {
+      gameReservation = await reservePort(host, gamePort, '$.network.gamePort');
+      inspectionReservation = await reservePort(host, gamePort + 1, '$.network.inspectionPort');
+      return Object.freeze({
+        gamePort,
+        inspectionPort: gamePort + 1,
+        gameReservation,
+        inspectionReservation,
+      });
+    } catch (cause) {
+      await Promise.allSettled([
+        closeNetServer(gameReservation),
+        closeNetServer(inspectionReservation),
+      ]);
+      if (!(cause instanceof AntikyCliError) || cause.code !== 'ANTIKY_PORT_BUSY') throw cause;
+    }
+  }
+  throw new AntikyCliError(
+    'ANTIKY_PORT_BUSY',
+    `No consecutive Studio port pair is available from ${STUDIO_PORT_RANGE_START} through ${STUDIO_PORT_RANGE_END}.`,
+    '$.network.gamePort',
+  );
+}
+
+function projectWithPorts(project: AntikyProject, gamePort: number, inspectionPort: number): AntikyProject {
+  const gameUrl = new URL(project.development.url);
+  gameUrl.port = String(gamePort);
+  return Object.freeze({
+    ...project,
+    development: Object.freeze({ ...project.development, url: gameUrl.toString() }),
+    network: Object.freeze({ ...project.network, gamePort, inspectionPort }),
+  });
 }
 
 function sendSignal(child: ManagedChild, signal: NodeJS.Signals): void {
@@ -176,7 +222,7 @@ function waitForSpawn(child: ChildProcess): Promise<void> {
 }
 
 export async function startDevelopmentSession(
-  project: AntikyProject,
+  inputProject: AntikyProject,
   options: DevelopmentSessionOptions = {},
 ): Promise<DevelopmentSession> {
   const writeOutput = options.writeOutput ?? ((line: string) => process.stdout.write(`${line}\n`));
@@ -185,17 +231,25 @@ export async function startDevelopmentSession(
     ?? ((_name: DevelopmentCleanupOperation, operation: () => Promise<void>) => operation());
   let gameReservation: NetServer | undefined;
   let inspectionReservation: NetServer | undefined;
+  let project = inputProject;
   try {
-    gameReservation = await reservePort(
-      project.network.host,
-      project.network.gamePort,
-      '$.network.gamePort',
-    );
-    inspectionReservation = await reservePort(
-      project.network.host,
-      project.network.inspectionPort,
-      '$.network.inspectionPort',
-    );
+    if (options.portAllocation === 'studio-dynamic') {
+      const pair = await reserveStudioPortPair(project.network.host);
+      gameReservation = pair.gameReservation;
+      inspectionReservation = pair.inspectionReservation;
+      project = projectWithPorts(project, pair.gamePort, pair.inspectionPort);
+    } else {
+      gameReservation = await reservePort(
+        project.network.host,
+        project.network.gamePort,
+        '$.network.gamePort',
+      );
+      inspectionReservation = await reservePort(
+        project.network.host,
+        project.network.inspectionPort,
+        '$.network.inspectionPort',
+      );
+    }
   } catch (cause) {
     await Promise.allSettled([
       closeNetServer(gameReservation),

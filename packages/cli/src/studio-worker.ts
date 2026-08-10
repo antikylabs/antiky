@@ -78,6 +78,7 @@ async function runStudioWorker(): Promise<number> {
   try {
     project = await loadAntikyProject(argumentsValue[0]);
     session = await startDevelopmentSession(project, {
+      portAllocation: 'studio-dynamic',
       writeOutput(line) {
         process.stderr.write(`[project-service] ${line}\n`);
       },

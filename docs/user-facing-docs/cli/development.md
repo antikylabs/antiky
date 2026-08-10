@@ -79,6 +79,11 @@ current directory. It does not search parent directories. Antiky validates the c
 and reserves both ports before it starts a child process. If validation fails or a port is busy,
 nothing starts.
 
+That exact-port behavior belongs to direct `antiky dev` launches. Studio uses the same session host
+in a Studio-specific allocation mode: it claims the first free consecutive game/inspection pair in
+`7000–7999` without modifying the manifest. This lets multiple Studio game sessions coexist while
+keeping explicit CLI automation reproducible.
+
 On macOS, open the same selected project in the installed desktop application with:
 
 ```sh
@@ -423,7 +428,8 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_PROJECT_INVALID`: JSON, fields, commands, URLs, ports, or portable paths are invalid.
 - `ANTIKY_PROJECT_PATH_ESCAPE`: a manifest link or resolved working directory escapes the project.
 - `ANTIKY_PROJECT_EXISTS`: initialization or migration would add a second project manifest.
-- `ANTIKY_PORT_BUSY`: a configured port cannot be reserved. No child starts.
+- `ANTIKY_PORT_BUSY`: a configured CLI port cannot be reserved, or Studio cannot find a free pair
+  in `7000–7999`. No child starts.
 - `ANTIKY_CHILD_START_FAILED`: an owned process could not start. Any partial start is cleaned up.
 - `ANTIKY_CHILD_STOP_FAILED`: an owned child process group remained active after shutdown attempts.
 - `ANTIKY_INTERNAL_ERROR`: the CLI failed unexpectedly; use the correlated diagnostic event.

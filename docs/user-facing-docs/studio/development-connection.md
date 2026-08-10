@@ -11,6 +11,11 @@ starts a packaged worker that imports `@antiky/cli`, loads the active `.antiky` 
 the project-service library directly. The worker returns one bounded `DevelopmentConnection` to
 the native host after the service starts.
 
+Each Studio launch reserves an available consecutive pair in the private `7000–7999` range. The
+game uses the even port and inspection/MCP uses the following odd port. Reservations are held before
+children start, so another Studio session or unrelated local listener cannot be assigned the same
+pair. The connection returned to the webview contains the actual allocated inspection URL.
+
 The service also starts a loopback game host for the generated game page and compiled
 `dist/antiky.game.js` module. Studio displays that page in an isolated iframe, so browser and WebGPU
 behavior stays separate from the native application boundary. The same game host is used when you
@@ -27,7 +32,7 @@ from the native host and creates the browser-safe client:
 import { createDevelopmentClient } from '@antiky/cli/development';
 
 const client = createDevelopmentClient({
-  inspectionUrl: 'http://127.0.0.1:3011',
+  inspectionUrl: 'http://127.0.0.1:7001', // Example; use the allocated connection value.
   developmentSessionId: 'development-01HXYZ',
   credential: sessionCredential,
 });
