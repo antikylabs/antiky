@@ -65,16 +65,19 @@ and only schema version 1 is supported. The maximum file size is 64 KiB.
 
 ## Open the project in Studio
 
-Start Antiky Studio and use either launcher path:
+Start Antiky Studio and use one of these paths:
 
 - Enter a name and select **Create project**. Choose an existing game folder. Studio creates the
   same manifest as `antiky init`, opens it, and does not install dependencies or create game source.
 - Select **Open project**, then select an existing `.antiky` manifest.
+- Choose **File > Open Project…** (`Command-O`), then select an existing `.antiky` manifest.
 
 After the first successful open, the launcher lists the project under **Recent projects**. Select a
-recent project to open it without using the file picker. Studio keeps at most 20 recent project
-paths and last-opened times on this device, outside every project directory. A moved or deleted
-manifest stays visible as missing so the list does not hide what happened.
+recent project to open it without using the file picker. You can also choose it from
+**File > Recent Projects**, including while another project is open. Studio keeps at most 20 recent
+project paths and last-opened times on this device, outside every project directory. A moved or
+deleted manifest stays visible as **Missing** but is disabled, so the list does not hide what
+happened or try to open a path that no longer exists.
 
 Studio validates a selected or created file before it opens the workspace and shows the project
 name, manifest path, schema version, and project root. Studio then starts the CLI package's project
@@ -87,9 +90,10 @@ The allocated ports are session-local and do not rewrite the `.antiky` manifest.
 `antiky dev` launches continue to use the explicit manifest ports, which keeps command-line
 automation deterministic.
 
-Select **Open project** in the workspace to choose a different project. You can also double-click a
-`.antiky` file in Finder after Antiky Studio is installed. Finder opens the same Studio window when
-Studio is already running.
+Choose **File > Open Project…** or **File > Recent Projects** to replace the active project without
+closing Studio. The replacement opens in the same window. You can also double-click a `.antiky` file
+in Finder after Antiky Studio is installed. Finder uses the same window when Studio is already
+running.
 
 On macOS, you can open the project from a terminal instead:
 

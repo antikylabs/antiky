@@ -126,8 +126,12 @@ test('the Studio guide explains opening and switching one validated Antiky proje
   assert.match(source, /Open project/i);
   assert.match(source, /Create project/i);
   assert.match(source, /Recent projects/i);
+  assert.match(source, /File > Open Project….*Command-O/is);
+  assert.match(source, /File > Recent Projects/i);
+  assert.match(source, /same Studio window/i);
+  assert.match(source, /Missing.*disables that entry/is);
   assert.doesNotMatch(source, /project name, manifest path,\s*schema version, and project root/i);
-  assert.match(source, /invalid.*current workspace.*unchanged/is);
+  assert.match(source, /invalid.*current\s+workspace.*unchanged/is);
   assert.match(source, /antiky migrate --name "Harbor Lights" --output harbor-lights\.antiky/);
 });
 
@@ -167,6 +171,9 @@ test('the dedicated Projects guide documents the public project workflow', async
   assert.match(source, /Finder/i);
   assert.match(source, /Open project/i);
   assert.match(source, /Create project/i);
+  assert.match(source, /File > Open Project….*Command-O/is);
+  assert.match(source, /File > Recent Projects/i);
+  assert.match(source, /same window/i);
   assert.match(source, /recent projects.*this device/is);
   assert.match(source, /invalid.*current project.*unchanged/is);
   assert.match(source, /\.antiky\/.*local runtime state/is);

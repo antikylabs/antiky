@@ -52,6 +52,11 @@ An active workspace shows the project name, manifest path, schema version, and p
 invalid replacement keeps the current workspace. A different valid project clears the old terminal and
 development view before activation. The hidden `.antiky/` directory remains ignored local runtime state.
 
+The native **File** menu now provides **Open Project…** and **Recent Projects** in both the launcher and
+the active workspace. A selection replaces the active project in the same window. Recent entries use the
+bounded device-local history, and an entry for a missing manifest remains visible but disabled. Tauri's
+menu model owns these items so the macOS menu keeps them when it opens or refreshes.
+
 Automated CLI, Studio, Rust, Tauri configuration, bundle, documentation, and Git LFS checks cover the
 boundary. The generated macOS `Info.plist` contains the owned `dev.antiky.project` document type.
 Owner-approved native interaction verified the launcher, picker, Settings toggle, focus order,
