@@ -7,6 +7,7 @@ import { installCatalogAsset, type InstalledAssetReceipt } from '@antiky/asset-c
 
 import { connectDevelopmentClient, inspectDevelopmentSession } from './development/client.ts';
 import { AntikyCliError } from './errors.ts';
+import { launchGamePage } from './game-launch.ts';
 import {
   NOOP_CLI_DIAGNOSTIC_SINK,
   emitCliDiagnostic,
@@ -23,7 +24,7 @@ export const CLI_USAGE = `Usage:
   antiky init [name] [--directory path]
   antiky asset install <provider:slug> [--project path]
   antiky studio [path | --project path]
-  antiky dev [--project path]
+  antiky dev [--open] [--project path]
   antiky inspect [--project path]
   antiky mcp [--project path]
   antiky tool <name> [json] [--project path]
@@ -49,6 +50,8 @@ export type RunCliOptions = Readonly<{
     asset: CatalogAsset;
     projectRoot: string;
   }>) => Promise<InstalledAssetReceipt>;
+  developmentStarter?: typeof startDevelopmentSession;
+  gameLauncher?: (url: string) => Promise<void>;
 }>;
 
 function parseProjectPath(args: readonly string[]): string | undefined {
@@ -62,6 +65,33 @@ function parseStudioProjectPath(args: readonly string[]): string | undefined {
     return resolve(args[0]);
   }
   return parseProjectPath(args);
+}
+
+type DevelopmentInvocation = Readonly<{ open: boolean; projectPath?: string }>;
+
+function parseDevelopmentInvocation(args: readonly string[]): DevelopmentInvocation {
+  let open = false;
+  let projectPath: string | undefined;
+  for (let index = 0; index < args.length;) {
+    const argument = args[index]!;
+    if (argument === '--open') {
+      if (open) throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+      open = true;
+      index += 1;
+      continue;
+    }
+    if (argument === '--project') {
+      const value = args[index + 1];
+      if (!value || value.startsWith('--') || projectPath !== undefined) {
+        throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+      }
+      projectPath = resolve(value);
+      index += 2;
+      continue;
+    }
+    throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+  return Object.freeze({ open, ...(projectPath === undefined ? {} : { projectPath }) });
 }
 
 type ToolInvocation = Readonly<{
@@ -256,6 +286,8 @@ async function executeCli(
   diagnosticSink: CliDiagnosticSink,
   studioLauncher: (manifestPath: string) => Promise<void>,
   assetInstaller: NonNullable<RunCliOptions['assetInstaller']>,
+  developmentStarter: typeof startDevelopmentSession,
+  gameLauncher: (url: string) => Promise<void>,
 ): Promise<number> {
   const [command, ...commandArgs] = args;
   if (
@@ -329,9 +361,12 @@ async function executeCli(
     io.stdout(`${JSON.stringify(result.structuredContent, null, 2)}\n`);
     return result.isError ? 1 : 0;
   }
+  const developmentInvocation = command === 'dev'
+    ? parseDevelopmentInvocation(commandArgs)
+    : undefined;
   const projectPath = command === 'studio'
     ? parseStudioProjectPath(commandArgs)
-    : parseProjectPath(commandArgs);
+    : developmentInvocation?.projectPath ?? parseProjectPath(commandArgs);
 
   if (command === 'studio') {
     const project = await loadAntikyProject(projectPath);
@@ -375,10 +410,18 @@ async function executeCli(
   process.on('SIGTERM', onTerminate);
   process.on('SIGHUP', onHangup);
   try {
-    session = await startDevelopmentSession(project, {
+    session = await developmentStarter(project, {
       writeOutput: (line) => io.stdout(`${line}\n`),
       diagnosticSink,
     });
+    if (developmentInvocation?.open) {
+      try {
+        await gameLauncher(project.development.url);
+      } catch (cause) {
+        await session.stop('start-failure', 1);
+        throw cause;
+      }
+    }
     if (interruptReceived) void session.stop('interrupt', interruptCode);
     const result = await session.stopped;
     return result.reason === 'interrupt' ? interruptCode : result.exitCode;
@@ -400,8 +443,18 @@ export async function runCli(
   const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
   const studioLauncher = options.studioLauncher ?? launchStudioProject;
   const assetInstaller = options.assetInstaller ?? installCatalogAsset;
+  const developmentStarter = options.developmentStarter ?? startDevelopmentSession;
+  const gameLauncher = options.gameLauncher ?? launchGamePage;
   try {
-    return await executeCli(args, io, diagnosticSink, studioLauncher, assetInstaller);
+    return await executeCli(
+      args,
+      io,
+      diagnosticSink,
+      studioLauncher,
+      assetInstaller,
+      developmentStarter,
+      gameLauncher,
+    );
   } catch (cause: unknown) {
     if (cause instanceof AntikyCliError) throw cause;
     emitCliDiagnostic(diagnosticSink, {

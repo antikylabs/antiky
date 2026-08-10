@@ -11,8 +11,12 @@ finish a target by itself.
 From the repository root:
 
 ```sh
-npm run antiky -- dev --project packages/demos/antiky/combat-arena/combat-arena.antiky
+npm run antiky -- dev --open --project packages/demos/antiky/combat-arena/combat-arena.antiky
 ```
+
+Antiky opens `http://127.0.0.1:3010/`. Omit `--open` for agent/headless work and open that URL
+manually if needed. Run only one manifest-port demo at a time; press `Ctrl-C` before starting
+another.
 
 Focus the game canvas, then use:
 

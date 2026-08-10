@@ -74,6 +74,16 @@ Select a project explicitly when you are outside its directory:
 antiky dev --project path/to/harbor-lights.antiky
 ```
 
+Add `--open` to start the session and open its exact loopback game page in your system browser:
+
+```sh
+antiky dev --open --project path/to/harbor-lights.antiky
+```
+
+The browser-opening step is explicit: plain `antiky dev` remains suitable for headless agents and
+terminal automation. If the operating system cannot open a browser, Antiky stops the partially
+started session and reports the exact loopback URL to open manually.
+
 An explicit path takes priority. Without one, Antiky accepts exactly one `.antiky` file in the
 current directory. It does not search parent directories. Antiky validates the complete manifest
 and reserves both ports before it starts a child process. If validation fails or a port is busy,

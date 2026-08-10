@@ -56,11 +56,12 @@ From the repository root, start the complete game host, shader watcher, inspecti
 loopback MCP endpoint:
 
 ```sh
-npm run antiky -- dev --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
+npm run antiky -- dev --open --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
 ```
 
 The configured game canvas is `http://127.0.0.1:3010/`; Streamable HTTP MCP is
-`http://127.0.0.1:3011/mcp`. The public CLI equivalent is `antiky dev --project ...`.
+`http://127.0.0.1:3011/mcp`. Omit `--open` for agent/headless work. Run only one manifest-port demo
+at a time and press `Ctrl-C` before starting another.
 
 Build, run all demo tests, or type-check only with:
 

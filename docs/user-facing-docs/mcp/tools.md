@@ -277,16 +277,17 @@ runtime-instance IDs. The tool does not start a development session or rebuild s
 
 ### `capture_frame`
 
-Read `get_runtime_status` and `get_render_stats` first. Copy the development session, accepted
-build, and runtime instance from a `current` observation, and request the exact drawing-buffer size
-reported by the game:
+Read `get_dev_status` first. If its connection is still `waiting`, copy its development-session ID
+and accepted build revision `0`, keep the runtime instance `null`, and let managed capture establish
+the first accepted runtime. If a current runtime observation already exists, copy its accepted
+build and runtime instance exactly. Request the configured drawing-buffer size reported by status:
 
 ```sh
 antiky tool capture_frame '{
   "schemaVersion":3,
   "expected":{
     "developmentSessionId":"development-session-id",
-    "acceptedBuildRevision":1,
+    "acceptedBuildRevision":0,
     "currentRuntimeInstanceId":null
   },
   "runtimePolicy":"current-or-managed",
@@ -328,7 +329,7 @@ antiky tool capture_gameplay_sequence '{
   "schemaVersion":1,
   "expected":{
     "developmentSessionId":"development-session-id",
-    "acceptedBuildRevision":1,
+    "acceptedBuildRevision":0,
     "currentRuntimeInstanceId":null
   },
   "runtimePolicy":"managed-only",

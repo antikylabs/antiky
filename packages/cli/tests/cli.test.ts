@@ -164,6 +164,75 @@ test('antiky studio accepts only one bounded project target', async () => {
   }
 });
 
+test('antiky dev --open starts one project and opens its exact loopback game URL', async () => {
+  const directory = await emptyProjectDirectory('open-game-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const manifestPath = join(directory, 'open-game-project.antiky');
+  const opened: string[] = [];
+  const started: string[] = [];
+  const options = {
+    developmentStarter: async (project: { manifestPath: string; network: {
+      host: string;
+      gamePort: number;
+    } }) => {
+      started.push(project.manifestPath);
+      return {
+        connection: {
+          gameUrl: `http://${project.network.host}:${project.network.gamePort}/`,
+        },
+        stopped: Promise.resolve({ reason: 'normal', exitCode: 0 }),
+      };
+    },
+    gameLauncher: async (url: string) => { opened.push(url); },
+  } as unknown as Parameters<typeof runCli>[2];
+
+  assert.equal(await runCli([
+    'dev', '--open', '--project', manifestPath,
+  ], output().io, options), 0);
+  assert.deepEqual(started, [await realpath(manifestPath)]);
+  assert.deepEqual(opened, ['http://127.0.0.1:3010/']);
+});
+
+test('antiky dev --open stops a started session when the browser cannot open', async () => {
+  const directory = await emptyProjectDirectory('failed-open-game-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const stopped: Array<{ reason: string; exitCode: number }> = [];
+  const options = {
+    developmentStarter: async () => ({
+      stopped: new Promise(() => {}),
+      stop: async (reason: string, exitCode: number) => {
+        stopped.push({ reason, exitCode });
+        return { reason, exitCode };
+      },
+    }),
+    gameLauncher: async () => {
+      throw new AntikyCliError('ANTIKY_GAME_LAUNCH_FAILED', 'Could not open game.');
+    },
+  } as unknown as Parameters<typeof runCli>[2];
+
+  await assert.rejects(
+    () => runCli(['dev', '--open', '--project', directory], output().io, options),
+    expectCliError('ANTIKY_GAME_LAUNCH_FAILED'),
+  );
+  assert.deepEqual(stopped, [{ reason: 'start-failure', exitCode: 1 }]);
+});
+
+test('antiky dev rejects duplicate and unknown launch options before starting', async () => {
+  for (const args of [
+    ['dev', '--open', '--open'],
+    ['dev', '--project'],
+    ['dev', '--project', 'one.antiky', '--project', 'two.antiky'],
+    ['dev', '--unknown'],
+  ]) {
+    await assert.rejects(
+      () => runCli(args),
+      (error: unknown) => error instanceof AntikyCliError
+        && error.code === 'ANTIKY_ARGUMENT_INVALID'
+        && /antiky dev \[--open\] \[--project path\]/.test(error.message),
+    );
+  }
+});
+
 test('antiky init keeps a Unicode display name and normalizes its file slug', async () => {
   const directory = await emptyProjectDirectory('existing-game');
 
