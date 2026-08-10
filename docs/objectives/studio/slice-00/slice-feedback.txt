@@ -1,9 +1,0 @@
-I want to have it "open a project" which means we need a project boundry etc, and when that opens a `<name>.antiky` file it opens the studio, or the studio you open project and find a `.antiky` file to open.
-cli should have an init project command to create the `.antiky` file for studio to open
-I want this to work like unity or unreal engine where you open a game and it loads.
-I don't want to have to launch a separate `npm antiky dev` after opening studio. That should be done automatically on opening a project. The terminal should be for me starting codex or something.
-Terminal should init in folder that the `.antiky` project is open in.
-demos should be structured as project folders, self contained, launchable, compilable.
-website should bring in compiled demos for display on the site.
-I like the layout of the studio shown on our website better than our actual studio layout... Can we adapt that?
-terminal startup should be themed and more aligned with our studio than basic terminal

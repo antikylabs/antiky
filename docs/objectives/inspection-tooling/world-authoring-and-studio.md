@@ -265,8 +265,9 @@ support, batch support, job barriers, projection readback, or host capabilities.
 
 **Current:** Studio Slice 00 explicitly shipped a read-only workspace. It includes the live game,
 native terminal, session controls, hierarchy, stores, raw snapshot, event history, MCP call history,
-and diagnostics. The [completed plan](../studio/slice-00/plan.md) explicitly excludes component or
-world editing, canvas selection, feedback, assets, undo, and authoring controls.
+and diagnostics. The [archived objective summary](../_archives/studio-summary.md) records the
+delivered scope and explicitly excludes component or world editing, canvas selection, feedback,
+assets, undo, and authoring controls.
 
 **Current:** The hierarchy uses HTML disclosure records. It has no selection model. Component data is
 rendered as JSON. Studio actions are limited to pause, resume, step, refresh, restart, and stop. The
@@ -728,7 +729,7 @@ prefab, or general ECS design.
 - [Stable-ID ADR](../../adr/framework/0011-stable-ids-and-runtime-aliases_H.md)
 - [Sandbox-promotion ADR](../../adr/framework/0014-promote-sandbox-commands_H.md)
 - [Studio shared-services ADR](../../adr/studio/0006-use-cli-project-services-directly_H.md)
-- [Completed Studio inspection slice](../studio/slice-00/plan.md)
+- [Archived Studio objective summary](../_archives/studio-summary.md)
 
 ### Skill and comparative research
 
