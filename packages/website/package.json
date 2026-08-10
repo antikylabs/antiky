@@ -9,7 +9,7 @@
     "build": "next build",
     "demos:stage": "node scripts/build-public-demos.mjs",
     "assets:stage": "npm run build --workspace @antiky/asset-catalog && node scripts/stage-asset-site.mjs",
-    "start": "next start -p 3010",
+    "start": "next start -p 3020",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:release-ready": "NEXT_PUBLIC_STUDIO_RELEASES_READY=true npm run test",
     "typecheck": "tsc --noEmit"

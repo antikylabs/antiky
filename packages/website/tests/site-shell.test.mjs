@@ -9,6 +9,17 @@ const studioReleasesReady = process.env.NEXT_PUBLIC_STUDIO_RELEASES_READY === 't
 const studioReleasesUrl = 'https://github.com/antikylabs/antiky/releases';
 const discordUrl = 'https://discord.gg/3Qs2uejUf9';
 
+test('website development and preview use a port outside the game runtime pair', async () => {
+  const [devRunner, manifest] = await Promise.all([
+    readFile(new URL('../../../scripts/dev.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../package.json', import.meta.url), 'utf8').then(JSON.parse),
+  ]);
+
+  assert.match(devRunner, /target === 'website'[\s\S]*?--port', '3020'/);
+  assert.equal(manifest.scripts.start, 'next start -p 3020');
+  assert.doesNotMatch(devRunner, /target === 'website'[\s\S]*?--port', '3010'/);
+});
+
 async function filesBelow(directory) {
   const files = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {

@@ -47,7 +47,7 @@ const childArgs = target === 'demos'
       workspaces[target],
       '--',
       ...(target === 'website' && targetArgs.length === 0
-        ? ['--hostname', '127.0.0.1', '--port', '3010']
+        ? ['--hostname', '127.0.0.1', '--port', '3020']
         : targetArgs),
     ];
 const child = spawn(
