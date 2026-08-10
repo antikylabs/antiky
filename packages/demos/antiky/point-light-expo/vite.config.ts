@@ -1,7 +1,37 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { readFileSync } from 'node:fs';
+import { defineConfig, type Plugin } from 'vite';
+
+const FLOOR_ASSETS = Object.freeze({
+  'virtual:blackout-relay/forest-floor-diffuse': './assets/poly-haven/forest-floor/forest_floor_diff_1k.jpg',
+  'virtual:blackout-relay/forest-floor-ao': './assets/poly-haven/forest-floor/forest_floor_ao_1k.jpg',
+  'virtual:blackout-relay/forest-floor-roughness': './assets/poly-haven/forest-floor/forest_floor_rough_1k.jpg',
+});
+
+function bundledFloorAssets(): Plugin {
+  return {
+    name: 'blackout-relay-floor-assets',
+    enforce: 'pre' as const,
+    resolveId(source: string) {
+      return source in FLOOR_ASSETS ? `\0${source}` : null;
+    },
+    load(id: string) {
+      const sourceId = id.startsWith('\0') ? id.slice(1) : id;
+      const assetPath = FLOOR_ASSETS[sourceId as keyof typeof FLOOR_ASSETS];
+      if (assetPath === undefined) return null;
+      const absolutePath = fileURLToPath(new URL(assetPath, import.meta.url));
+      const referenceId = this.emitFile({
+        type: 'asset',
+        name: absolutePath.split('/').at(-1),
+        source: readFileSync(absolutePath),
+      });
+      return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
+    },
+  };
+}
 
 export default defineConfig({
+  plugins: [bundledFloorAssets()],
   publicDir: false,
   build: {
     assetsInlineLimit: 0,

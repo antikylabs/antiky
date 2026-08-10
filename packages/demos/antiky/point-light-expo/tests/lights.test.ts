@@ -15,7 +15,7 @@ import {
   createExpoLightService,
 } from '../src/lights.ts';
 
-test('Point Light Expo publishes three stable colored render bindings', () => {
+test('Blackout Relay publishes three stable authored render bindings', () => {
   const service = createExpoLightService('runtime-point-light-expo-test');
   assert.equal(service.worldId, EXPO_WORLD_ID);
   assert.deepEqual(service.listPointLights().map((light) => light.entityId), EXPO_LIGHT_IDS);

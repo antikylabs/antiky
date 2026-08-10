@@ -1,13 +1,14 @@
 import {
   clamp,
+  cos,
   dot,
   length,
   max,
   min,
   mix,
   normalize,
-  shader,
   sin,
+  shader,
   smoothstep,
   vec3,
   vec4,
@@ -15,7 +16,7 @@ import {
 } from 'brometal';
 import { specGGX, tonemapACES } from 'brometal/shader-functions';
 
-function pointRadiance(
+function materialPresentationPointRadiance(
   world: Vec3,
   normal: Vec3,
   view: Vec3,
@@ -47,6 +48,7 @@ export default shader({
     iScale: 'vec3',
     iBaseColor: 'vec3',
     iMaterial: 'vec3',
+    iYaw: 'float',
   },
   uniforms: {
     uViewProj: 'mat4',
@@ -74,14 +76,31 @@ export default shader({
   },
 
   vertex(
-    { aPosition, aNormal, iOffset, iScale, iBaseColor, iMaterial },
+    { aPosition, aNormal, iOffset, iScale, iBaseColor, iMaterial, iYaw },
     { uViewProj, uModel },
     v,
   ) {
     const local = aPosition.mul(iScale);
-    const world = uModel.mul(vec4(local, 1)).xyz.add(iOffset);
+    const yawCos = cos(iYaw);
+    const yawSin = sin(iYaw);
+    const rotated = vec3(
+      local.x * yawCos - local.z * yawSin,
+      local.y,
+      local.x * yawSin + local.z * yawCos,
+    );
+    const world = uModel.mul(vec4(rotated, 1)).xyz.add(iOffset);
+    const inverseScaledNormal = normalize(vec3(
+      aNormal.x / max(iScale.x, 0.001),
+      aNormal.y / max(iScale.y, 0.001),
+      aNormal.z / max(iScale.z, 0.001),
+    ));
+    const rotatedNormal = vec3(
+      inverseScaledNormal.x * yawCos - inverseScaledNormal.z * yawSin,
+      inverseScaledNormal.y,
+      inverseScaledNormal.x * yawSin + inverseScaledNormal.z * yawCos,
+    );
     v.vWorld = world;
-    v.vNormal = normalize(uModel.mul(vec4(aNormal, 0)).xyz);
+    v.vNormal = normalize(uModel.mul(vec4(rotatedNormal, 0)).xyz);
     v.vBaseColor = iBaseColor;
     v.vMaterial = iMaterial;
     return uViewProj.mul(vec4(world, 1));
@@ -107,7 +126,7 @@ export default shader({
     const view = normalize(uCameraPosition.sub(vWorld));
     const roughness = clamp(vMaterial.x, 0.08, 1);
     const metalness = clamp(vMaterial.y, 0, 1);
-    const ember = pointRadiance(
+    const ember = materialPresentationPointRadiance(
       vWorld,
       normal,
       view,
@@ -118,7 +137,7 @@ export default shader({
       roughness,
       metalness,
     );
-    const ion = pointRadiance(
+    const ion = materialPresentationPointRadiance(
       vWorld,
       normal,
       view,
@@ -129,7 +148,7 @@ export default shader({
       roughness,
       metalness,
     );
-    const violet = pointRadiance(
+    const violet = materialPresentationPointRadiance(
       vWorld,
       normal,
       view,
@@ -141,13 +160,13 @@ export default shader({
       metalness,
     );
     const radiance = ember.add(ion).add(violet);
-    const sky = vec3(0.07, 0.095, 0.15).scale(0.38 + normal.y * 0.12);
+    const sky = vec3(0.075, 0.09, 0.095).scale(0.32 + normal.y * 0.16);
     const lit = vBaseColor.mul(sky.add(radiance.scale(0.82)))
       .add(radiance.scale(metalness * 0.28));
     const pulse = 0.92 + sin(uTime * 2.4 + vWorld.x * 0.5) * 0.08;
     const emissive = vBaseColor.scale(vMaterial.z * pulse);
     const fog = smoothstep(9, 18, length(uCameraPosition.sub(vWorld)));
-    const color = mix(lit.add(emissive), vec3(0.008, 0.012, 0.025), fog * 0.72);
+    const color = mix(lit.add(emissive), vec3(0.012, 0.016, 0.017), fog * 0.68);
     return vec4(tonemapACES(color), 1);
   },
 });

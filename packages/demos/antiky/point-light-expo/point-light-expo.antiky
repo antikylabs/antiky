@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "name": "Point Light Expo",
+  "name": "Blackout Relay",
   "development": {
     "command": ["npm", "run", "dev"],
     "shaderCommand": ["npm", "run", "shaders:watch"],

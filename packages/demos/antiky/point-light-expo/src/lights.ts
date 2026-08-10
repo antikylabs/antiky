@@ -16,33 +16,50 @@ export const EXPO_LIGHT_IDS = Object.freeze([
   VIOLET_LIGHT_ID,
 ]);
 
+export const EXPO_LIGHT_DEFINITIONS = Object.freeze([
+  Object.freeze({
+    entityId: EMBER_LIGHT_ID,
+    label: 'Amber Root Relay',
+    transform: Object.freeze({ schemaVersion: 1 as const, position: [-5.2, 2.15, -2.7] as const }),
+    pointLight: Object.freeze({
+      schemaVersion: 1 as const,
+      color: [1, 0.38, 0.1] as const,
+      radius: 3.55,
+      power: 2.5,
+    }),
+  }),
+  Object.freeze({
+    entityId: ION_LIGHT_ID,
+    label: 'Rain-Glass Relay',
+    transform: Object.freeze({ schemaVersion: 1 as const, position: [0.7, 2.35, -4] as const }),
+    pointLight: Object.freeze({
+      schemaVersion: 1 as const,
+      color: [0.16, 0.58, 0.92] as const,
+      radius: 3.45,
+      power: 2.7,
+    }),
+  }),
+  Object.freeze({
+    entityId: VIOLET_LIGHT_ID,
+    label: 'Plum Reliquary Relay',
+    transform: Object.freeze({ schemaVersion: 1 as const, position: [5.15, 2.05, 2.4] as const }),
+    pointLight: Object.freeze({
+      schemaVersion: 1 as const,
+      color: [0.63, 0.2, 0.5] as const,
+      radius: 3.5,
+      power: 2.35,
+    }),
+  }),
+]);
+
 export function createExpoLightService(runtimeInstanceId: string): PointLightAuthoringService {
   return createPointLightAuthoringService({
     worldId: EXPO_WORLD_ID,
     runtimeInstanceId,
-    pointLights: [
-      {
-        entityId: EMBER_LIGHT_ID,
-        label: 'Ember Crucible',
-        revision: 1,
-        transform: { schemaVersion: 1, position: [-3.4, 2.2, 0] },
-        pointLight: { schemaVersion: 1, color: [1, 0.16, 0.04], radius: 6, power: 2.4 },
-      },
-      {
-        entityId: ION_LIGHT_ID,
-        label: 'Ion Prism',
-        revision: 1,
-        transform: { schemaVersion: 1, position: [0, 3.1, -0.5] },
-        pointLight: { schemaVersion: 1, color: [0.06, 0.58, 1], radius: 7, power: 2.8 },
-      },
-      {
-        entityId: VIOLET_LIGHT_ID,
-        label: 'Violet Relay',
-        revision: 1,
-        transform: { schemaVersion: 1, position: [3.4, 2.2, 0] },
-        pointLight: { schemaVersion: 1, color: [0.72, 0.12, 1], radius: 6, power: 2.2 },
-      },
-    ],
+    pointLights: EXPO_LIGHT_DEFINITIONS.map((definition) => ({
+      ...definition,
+      revision: 1,
+    })),
     renderBindings: EXPO_LIGHT_IDS.map((entityId, renderSlot) => ({ entityId, renderSlot })),
   });
 }
