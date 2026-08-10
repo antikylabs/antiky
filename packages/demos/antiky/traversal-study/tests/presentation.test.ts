@@ -1,19 +1,35 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { traversalCameraFrame } from '../src/presentation.ts';
+import { createTraversalCameraRig, traversalCameraFrame } from '../src/presentation.ts';
 import { createTraversalSimulation } from '../src/simulation.ts';
 
-test('traversal camera leads the runner and expands for portrait canvases', () => {
+test('traversal camera uses velocity look-ahead, vertical anticipation, and portrait expansion', () => {
   const state = createTraversalSimulation(() => {}).read();
-  const wide = traversalCameraFrame(16 / 9, state, { x: 0.5, y: 0.5 });
+  const standing = traversalCameraFrame(16 / 9, state, { x: 0.5, y: 0.5 });
+  const moving = traversalCameraFrame(16 / 9, {
+    player: { ...state.player, vx: 4, vy: 5 },
+  }, { x: 0.5, y: 0.5 });
   const portrait = traversalCameraFrame(9 / 16, state, { x: 0.5, y: 0.5 });
 
-  assert.deepEqual(wide.position, [3.15, 4.65, 10.9]);
-  assert.deepEqual(wide.target, [1.55, 1.25, -0.25]);
-  assert.ok(portrait.position[1] > wide.position[1]);
-  assert.ok(portrait.position[2] > wide.position[2]);
-  assert.ok(portrait.position[0] < wide.position[0]);
+  assert.ok(moving.target[0] > standing.target[0]);
+  assert.ok(moving.target[1] > standing.target[1]);
+  assert.ok(portrait.position[1] > standing.position[1]);
+  assert.ok(portrait.position[2] > standing.position[2]);
+});
+
+test('camera rig eases ordinary motion but snaps on a checkpoint reset', () => {
+  const initial = createTraversalSimulation(() => {}).read();
+  const rig = createTraversalCameraRig();
+  const first = rig.update(16 / 9, initial, { x: 0.5, y: 0.5 }, 1 / 60);
+  const moved = { ...initial, player: { ...initial.player, x: initial.player.x + 20 } };
+  const eased = rig.update(16 / 9, moved, { x: 0.5, y: 0.5 }, 1 / 60);
+  const ideal = traversalCameraFrame(16 / 9, moved, { x: 0.5, y: 0.5 });
+  assert.ok(eased.position[0] > first.position[0]);
+  assert.ok(eased.position[0] < ideal.position[0]);
+
+  const reset = rig.update(16 / 9, { ...moved, resetSerial: 1 }, { x: 0.5, y: 0.5 }, 1 / 60);
+  assert.deepEqual(reset, ideal);
 });
 
 test('traversal camera clamps pointer lift', () => {

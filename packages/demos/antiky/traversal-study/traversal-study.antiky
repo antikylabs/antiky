@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "name": "Traversal Study",
+  "name": "Gale Post / Skyline Relay",
   "development": {
     "command": ["npm", "run", "dev"],
     "shaderCommand": ["npm", "run", "shaders:watch"],

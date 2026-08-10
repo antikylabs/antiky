@@ -56,19 +56,19 @@ export default shader({
 
   fragment({ uCameraPosition }, { vWorld, vNormal, vColor, vMaterial, vPulse }) {
     const normal = normalize(vNormal);
-    const light = normalize(vec3(-0.42, 0.82, 0.58));
+    const light = normalize(vec3(-0.42, 0.86, 0.48));
     const view = normalize(uCameraPosition.sub(vWorld));
     const rawLight = max(dot(normal, light), 0);
     const litBand = smoothstep(0.18, 0.24, rawLight) * 0.28
       + smoothstep(0.58, 0.64, rawLight) * 0.48;
     const rim = pow(1 - max(dot(normal, view), 0), 2.2);
-    const base = vColor.scale(0.2 + litBand)
-      .add(vec3(0.08, 0.14, 0.26).scale(0.2 + normal.y * 0.12));
-    const emissive = vColor.scale(vMaterial.x * (0.4 + vPulse * 0.6));
-    const highlight = vec3(1.5, 1.15, 0.72).scale(clamp(vMaterial.y, 0, 1) * (0.35 + rim));
-    const depth = smoothstep(8, 24, length(uCameraPosition.sub(vWorld)));
-    const heightHaze = (1 - smoothstep(-5, 6, vWorld.y)) * 0.18;
-    const sky = vec3(0.025, 0.055, 0.15).add(vec3(0.08, 0.035, 0.15).scale(heightHaze));
-    return vec4(tonemapACES(mix(base.add(emissive).add(highlight), sky, depth * 0.72)), 1);
+    const base = vColor.scale(0.48 + litBand)
+      .add(vec3(0.16, 0.2, 0.18).scale(0.12 + normal.y * 0.08));
+    const emissive = vColor.scale(vMaterial.x * (0.16 + vPulse * 0.24));
+    const highlight = vec3(1.05, 0.83, 0.48).scale(clamp(vMaterial.y, 0, 1) * (0.16 + rim * 0.3));
+    const depth = smoothstep(20, 58, length(uCameraPosition.sub(vWorld)));
+    const heightHaze = (1 - smoothstep(-5, 6, vWorld.y)) * 0.08;
+    const sky = vec3(0.52, 0.63, 0.65).add(vec3(0.08, 0.06, 0.02).scale(heightHaze));
+    return vec4(tonemapACES(mix(base.add(emissive).add(highlight), sky, depth * 0.5)), 1);
   },
 });

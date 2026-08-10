@@ -52,18 +52,18 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
 @fragment
 fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let normal = normalize(bm_in.vNormal);
-  let light = normalize(vec3f(-0.42, 0.82, 0.58));
+  let light = normalize(vec3f(-0.42, 0.86, 0.48));
   let view = normalize(bm_u.uCameraPosition - bm_in.vWorld);
   let rawLight = max(dot(normal, light), 0.0);
   let litBand = smoothstep(0.18, 0.24, rawLight) * 0.28 + smoothstep(0.58, 0.64, rawLight) * 0.48;
   let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.2);
-  let base = bm_in.vColor * (0.2 + litBand) + vec3f(0.08, 0.14, 0.26) * (0.2 + normal.y * 0.12);
-  let emissive = bm_in.vColor * (bm_in.vMaterial.x * (0.4 + bm_in.vPulse * 0.6));
-  let highlight = vec3f(1.5, 1.15, 0.72) * (clamp(bm_in.vMaterial.y, 0.0, 1.0) * (0.35 + rim));
-  let depth = smoothstep(8.0, 24.0, length(bm_u.uCameraPosition - bm_in.vWorld));
-  let heightHaze = (1.0 - smoothstep(-5.0, 6.0, bm_in.vWorld.y)) * 0.18;
-  let sky = vec3f(0.025, 0.055, 0.15) + vec3f(0.08, 0.035, 0.15) * heightHaze;
-  return vec4f(tonemapACES(mix(base + emissive + highlight, sky, depth * 0.72)), 1.0);
+  let base = bm_in.vColor * (0.48 + litBand) + vec3f(0.16, 0.2, 0.18) * (0.12 + normal.y * 0.08);
+  let emissive = bm_in.vColor * (bm_in.vMaterial.x * (0.16 + bm_in.vPulse * 0.24));
+  let highlight = vec3f(1.05, 0.83, 0.48) * (clamp(bm_in.vMaterial.y, 0.0, 1.0) * (0.16 + rim * 0.3));
+  let depth = smoothstep(20.0, 58.0, length(bm_u.uCameraPosition - bm_in.vWorld));
+  let heightHaze = (1.0 - smoothstep(-5.0, 6.0, bm_in.vWorld.y)) * 0.08;
+  let sky = vec3f(0.52, 0.63, 0.65) + vec3f(0.08, 0.06, 0.02) * heightHaze;
+  return vec4f(tonemapACES(mix(base + emissive + highlight, sky, depth * 0.5)), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3' },
