@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::NativeError;
 
-const MAX_RECENT_PROJECTS: usize = 20;
+pub(crate) const MAX_RECENT_PROJECTS: usize = 20;
 const MAX_RECENT_STORE_BYTES: usize = 64 * 1024;
 static TEMPORARY_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 

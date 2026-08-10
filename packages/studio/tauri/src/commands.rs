@@ -182,6 +182,7 @@ pub(crate) fn project_validate(
 
 #[tauri::command]
 pub(crate) fn project_activate(
+    app: AppHandle,
     state: State<'_, StudioState>,
     request: ProjectActivationRequest,
 ) -> Result<(), NativeError> {
@@ -196,6 +197,10 @@ pub(crate) fn project_activate(
     if let Err(error) =
         recent_projects.record(&boundary.manifest_path, &boundary.revision, last_opened_at)
     {
+        eprintln!("{error}");
+    }
+    drop(recent_projects);
+    if let Err(error) = crate::studio_menu::refresh_recent_projects(&app) {
         eprintln!("{error}");
     }
     Ok(())

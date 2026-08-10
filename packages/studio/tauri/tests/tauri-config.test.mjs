@@ -102,6 +102,26 @@ test('the native project picker accepts one file and restricts selection to .ant
   assert.match(picker, /setPrompt:@"Create project"/);
 });
 
+test('the Tauri File menu owns project-open and recent-project entries', async () => {
+  const [build, app, menu] = await Promise.all([
+    readFile(resolve(packageDirectory, 'build.rs'), 'utf8'),
+    readFile(resolve(packageDirectory, 'src/lib.rs'), 'utf8'),
+    readFile(resolve(packageDirectory, 'src/studio_menu.rs'), 'utf8'),
+  ]);
+
+  assert.doesNotMatch(build, /studio_menu\.m/);
+  assert.match(app, /\.menu\(studio_menu::build\)/);
+  assert.match(app, /\.on_menu_event\(studio_menu::handle_event\)/);
+  assert.match(menu, /Menu::default/);
+  assert.match(menu, /OPEN_PROJECT_MENU_ID/);
+  assert.match(menu, /RECENT_PROJECTS_MENU_ID/);
+  assert.match(menu, /MenuItem::with_id/);
+  assert.match(menu, /Submenu::with_id_and_items/);
+  assert.match(menu, /PredefinedMenuItem::separator/);
+  assert.match(menu, /refresh_recent_projects/);
+  assert.doesNotMatch(menu, /extern "C"/);
+});
+
 test('the main window can reach the website narrow-layout breakpoint', async () => {
   const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
   const [mainWindow] = config.app.windows;
