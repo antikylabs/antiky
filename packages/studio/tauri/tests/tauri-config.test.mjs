@@ -170,6 +170,8 @@ test('the Studio terminal theme is a complete visual-only Ghostty profile', asyn
   assert.doesNotMatch(profile, /(?:command|input|keybind|font-family|working-directory|config-file)\s*=/);
   assert.deepEqual(config.bundle.resources, {
     'resources/node': 'project-service/node',
+    'resources/node_modules/playwright': 'project-service/node_modules/playwright',
+    'resources/node_modules/playwright-core': 'project-service/node_modules/playwright-core',
     'resources/project-service.mjs': 'project-service/project-service.mjs',
     'resources/terminal/antiky-studio.ghostty': 'terminal/antiky-studio.ghostty',
     'resources/terminal/antiky-studio.zshrc': 'terminal/.zshrc',
@@ -189,6 +191,8 @@ test('Studio packages a project-service worker instead of an antiky dev command 
   );
   assert.equal(config.bundle.resources['resources/node'], 'project-service/node');
   await access(resolve(packageDirectory, 'resources/node'));
+  await access(resolve(packageDirectory, 'resources/node_modules/playwright/package.json'));
+  await access(resolve(packageDirectory, 'resources/node_modules/playwright-core/package.json'));
   await access(resolve(packageDirectory, 'resources/project-service.mjs'));
   assert.doesNotMatch(source, /antiky\s+dev|Command::new\([^)]*antiky/);
   assert.doesNotMatch(source, /Command::new\("node"\)/);

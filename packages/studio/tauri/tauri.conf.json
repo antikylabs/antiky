@@ -48,6 +48,8 @@
     ],
     "resources": {
       "resources/node": "project-service/node",
+      "resources/node_modules/playwright": "project-service/node_modules/playwright",
+      "resources/node_modules/playwright-core": "project-service/node_modules/playwright-core",
       "resources/project-service.mjs": "project-service/project-service.mjs",
       "resources/terminal/antiky-studio.ghostty": "terminal/antiky-studio.ghostty",
       "resources/terminal/antiky-studio.zshrc": "terminal/.zshrc"

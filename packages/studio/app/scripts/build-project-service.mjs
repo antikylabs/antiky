@@ -1,4 +1,4 @@
-import { chmod, copyFile, mkdir } from 'node:fs/promises';
+import { chmod, copyFile, cp, mkdir, rm } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,6 +19,7 @@ await build({
     minify: false,
     outDir: outputDirectory,
     rollupOptions: {
+      external: ['playwright', 'playwright-core'],
       output: {
         entryFileNames: 'project-service.mjs',
         format: 'es',
@@ -31,6 +32,22 @@ await build({
     noExternal: true,
   },
 });
+
+const modulesDirectory = resolve(outputDirectory, 'node_modules');
+await rm(modulesDirectory, { recursive: true, force: true });
+await mkdir(modulesDirectory, { recursive: true });
+await Promise.all([
+  cp(
+    resolve(repositoryRoot, 'node_modules/playwright'),
+    resolve(modulesDirectory, 'playwright'),
+    { recursive: true },
+  ),
+  cp(
+    resolve(repositoryRoot, 'node_modules/playwright-core'),
+    resolve(modulesDirectory, 'playwright-core'),
+    { recursive: true },
+  ),
+]);
 
 const runtime = resolve(outputDirectory, 'node');
 await copyFile(process.execPath, runtime);
