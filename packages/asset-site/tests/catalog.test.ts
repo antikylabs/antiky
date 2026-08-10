@@ -34,7 +34,7 @@ test('uses a stable shuffled mix weighted toward Kenney and Quaternius', () => {
   assert.ok(firstPage.filter((asset) => asset.kind === 'sprite' || asset.kind === 'texture').length >= 12);
 });
 
-test('filters by dimension, format, and verification status', () => {
+test('filters by dimension, format, quality, and verification status', () => {
   const twoDimensional = catalogSearch({ dimension: '2d' });
   assert.ok(twoDimensional.length > 100);
   assert.ok(twoDimensional.every((asset) => asset.kind === 'sprite' || asset.kind === 'texture'));
@@ -42,6 +42,10 @@ test('filters by dimension, format, and verification status', () => {
   const gltf = catalogSearch({ format: 'gltf' });
   assert.ok(gltf.length > 10);
   assert.ok(gltf.every((asset) => asset.formats.includes('gltf')));
+
+  const topTier = catalogSearch({ quality: '0' });
+  assert.ok(topTier.length > 200);
+  assert.ok(topTier.every((asset) => asset.quality === 0));
 
   const installVerified = catalogSearch({ verification: 'install-verified' });
   assert.equal(installVerified.length, 3);
@@ -52,8 +56,10 @@ test('supports explicit catalog sort orders', () => {
   const ascending = catalogSearch({ sort: 'name-asc' });
   const descending = catalogSearch({ sort: 'name-desc' });
   const mostFiles = catalogSearch({ sort: 'files-desc' });
+  const bestQuality = catalogSearch({ sort: 'quality-asc' });
 
   assert.deepEqual(ascending.map((asset) => asset.name), ascending.map((asset) => asset.name).toSorted((a, b) => a.localeCompare(b)));
   assert.deepEqual(descending.map((asset) => asset.name), ascending.map((asset) => asset.name).toReversed());
   assert.ok((mostFiles[0]?.fileCount ?? 0) >= (mostFiles[1]?.fileCount ?? 0));
+  assert.ok((bestQuality[0]?.quality ?? 5) <= (bestQuality.at(-1)?.quality ?? 0));
 });

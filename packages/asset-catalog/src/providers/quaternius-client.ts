@@ -43,6 +43,7 @@ export function parseQuaterniusPackPage(
   if (!title || !previewPath) throw new Error(`Incomplete Quaternius page: ${sourceUrl}`);
   return createQuaterniusPack({
     upstreamId, slug, name: title, description, kind: 'model',
+    quality: 0,
     fileCount: modelCount ? Number(modelCount) : null,
     formats: formats.length > 0 ? formats : ['fbx', 'obj', 'blend'],
     tags, categories: unique([...indexTags, '3d']), creator: 'Quaternius', sourceUrl,

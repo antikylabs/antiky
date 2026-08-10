@@ -1,4 +1,4 @@
-import type { AssetKind, AssetProvider, CatalogAsset } from '../index.ts';
+import type { AssetKind, AssetProvider, AssetQuality, CatalogAsset } from '../index.ts';
 
 export type CuratedInput = Readonly<{
   upstreamId: string;
@@ -6,6 +6,7 @@ export type CuratedInput = Readonly<{
   name: string;
   description: string;
   kind: AssetKind;
+  quality: AssetQuality;
   fileCount: number | null;
   formats: readonly string[];
   tags: readonly string[];
@@ -26,6 +27,7 @@ export function createCuratedCc0Asset(provider: AssetProvider, input: CuratedInp
     name: input.name,
     description: input.description,
     kind: input.kind,
+    quality: input.quality,
     fileCount: input.fileCount,
     formats: Object.freeze([...input.formats]),
     tags: Object.freeze([...input.tags]),

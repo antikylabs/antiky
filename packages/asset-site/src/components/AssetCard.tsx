@@ -16,7 +16,7 @@ export function AssetCard({ asset }: Readonly<{ asset: CatalogAsset }>) {
         <div className="asset-card-copy">
           <div className="asset-meta">
             <span>{asset.provider.name}</span>
-            <span>{asset.kind}</span><span>{fileLabel}</span>
+            <span>Quality {asset.quality}</span><span>{asset.kind}</span><span>{fileLabel}</span>
           </div>
           <h2>{asset.name}</h2>
           <p>{asset.description}</p>

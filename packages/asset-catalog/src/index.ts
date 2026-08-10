@@ -32,6 +32,7 @@ export type AssetProvenance = {
 };
 
 export type AssetVerification = 'cataloged' | 'source-verified' | 'install-verified';
+export type AssetQuality = 0 | 1 | 2 | 3 | 4 | 5;
 
 export type CatalogAsset = {
   readonly id: string;
@@ -39,6 +40,7 @@ export type CatalogAsset = {
   readonly name: string;
   readonly description: string;
   readonly kind: AssetKind;
+  readonly quality: AssetQuality;
   readonly fileCount: number | null;
   readonly formats: readonly string[];
   readonly tags: readonly string[];

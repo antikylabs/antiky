@@ -22,6 +22,7 @@ export function AssetDetail({ asset }: Readonly<{ asset: CatalogAsset }>) {
           <div className="tag-list detail-tags" aria-label="Tags">{asset.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
           <dl className="detail-facts">
             <div><dt>Files</dt><dd>{fileLabel}</dd></div>
+            <div><dt>Quality</dt><dd>{asset.quality} <small>{asset.quality === 0 ? 'Highest catalog tier' : 'Catalog tier; lower is better'}</small></dd></div>
             <div><dt>License</dt><dd><a href={asset.license.referenceUrl}>{asset.license.name}</a></dd></div>
             <div><dt>Creator</dt><dd>{asset.provenance.creator}</dd></div>
             <div><dt>Upstream ID</dt><dd><code>{asset.upstream.id}</code></dd></div>

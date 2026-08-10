@@ -49,6 +49,7 @@ export function parseKenneyAssetPage(html: string, sourceUrl: string, retrievedA
   if (!name || !preview) throw new Error(`Incomplete Kenney page: ${sourceUrl}`);
   return createKenneyPack({
     upstreamId: slug, slug, name, description, kind,
+    quality: 0,
     fileCount: fileCountText ? Number(fileCountText) : null,
     formats: formatsFor(kind), tags: allTags, categories,
     creator: 'Kenney', sourceUrl, previewUrl: localPreview, previewSourceUrl: preview,

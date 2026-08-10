@@ -75,7 +75,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:1-bit-platformer-pack",
@@ -139,7 +140,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:3d-road-tiles",
@@ -201,7 +203,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:abstract-platformer",
@@ -263,7 +266,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:alien-ufo-pack",
@@ -326,7 +330,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:animal-pack",
@@ -386,7 +391,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:animal-pack-remastered",
@@ -446,7 +452,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:animated-characters-protagonists",
@@ -513,7 +520,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:animated-characters-retro",
@@ -579,7 +587,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:animated-characters-survivors",
@@ -645,7 +654,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:background-elements",
@@ -704,7 +714,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:background-elements-remastered",
@@ -763,7 +774,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:blaster-kit",
@@ -826,7 +838,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:block-pack",
@@ -888,7 +901,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:blocky-characters",
@@ -949,7 +963,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:board-game-icons",
@@ -1013,7 +1028,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:board-game-info",
@@ -1077,7 +1093,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:boardgame-pack",
@@ -1140,7 +1157,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:brick-kit",
@@ -1204,7 +1222,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:brick-pack",
@@ -1266,7 +1285,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:building-kit",
@@ -1329,7 +1349,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:car-kit",
@@ -1395,7 +1416,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:cartography-pack",
@@ -1458,7 +1480,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:casino-audio",
@@ -1522,7 +1545,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:castle-kit",
@@ -1584,7 +1608,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:city-kit-commercial",
@@ -1648,7 +1673,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:city-kit-industrial",
@@ -1713,7 +1739,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:city-kit-roads",
@@ -1777,7 +1804,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:city-kit-suburban",
@@ -1841,7 +1869,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:coaster-kit",
@@ -1907,7 +1936,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:construct-game-sources",
@@ -1970,7 +2000,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:crosshair-pack",
@@ -2032,7 +2063,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:cube-pets",
@@ -2096,7 +2128,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:cursor-pack",
@@ -2157,7 +2190,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:cursor-pixel-pack",
@@ -2219,7 +2253,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:desert-shooter-pack",
@@ -2281,7 +2316,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:development-essentials",
@@ -2341,7 +2377,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:digital-audio",
@@ -2402,7 +2439,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:domino-pack",
@@ -2465,7 +2503,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:emotes-pack",
@@ -2527,7 +2566,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:factory-kit",
@@ -2592,7 +2632,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:fantasy-town-kit",
@@ -2656,7 +2697,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:fantasy-ui-borders",
@@ -2720,7 +2762,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:fish-pack",
@@ -2781,7 +2824,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:flag-pack",
@@ -2842,7 +2886,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:foliage-pack",
@@ -2902,7 +2947,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:foliage-sprites",
@@ -2964,7 +3010,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:food-kit",
@@ -3027,7 +3074,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:furniture-kit",
@@ -3092,7 +3140,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:game-icons",
@@ -3155,7 +3204,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:game-icons-expansion",
@@ -3218,7 +3268,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:generic-items",
@@ -3279,7 +3330,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:googly-eyes",
@@ -3338,7 +3390,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:graveyard-kit",
@@ -3403,7 +3456,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:hexagon-buildings",
@@ -3464,7 +3518,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:hexagon-kit",
@@ -3527,7 +3582,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:hexagon-pack",
@@ -3589,7 +3645,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:hexagon-tiles",
@@ -3652,7 +3709,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:holiday-extras",
@@ -3717,7 +3775,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:holiday-kit",
@@ -3781,7 +3840,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:impact-sounds",
@@ -3842,7 +3902,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:input-prompts",
@@ -3908,7 +3969,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:input-prompts-pixel",
@@ -3975,7 +4037,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:input-prompts-pixel-1-bit",
@@ -4043,7 +4106,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:interface-sounds",
@@ -4105,7 +4169,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-blocks",
@@ -4165,7 +4230,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-miniature-bases",
@@ -4228,7 +4294,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-miniature-dungeon",
@@ -4290,7 +4357,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-miniature-farm",
@@ -4352,7 +4420,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-miniature-library",
@@ -4414,7 +4483,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-miniature-prototype",
@@ -4476,7 +4546,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-roads",
@@ -4537,7 +4608,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-roads-water",
@@ -4598,7 +4670,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-tiles-buildings",
@@ -4662,7 +4735,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-tiles-city",
@@ -4726,7 +4800,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-tiles-landscape",
@@ -4789,7 +4864,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:isometric-tiles-vehicles",
@@ -4851,7 +4927,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:jumper-pack",
@@ -4911,7 +4988,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:kenney-fonts",
@@ -4972,7 +5050,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:letter-tiles",
@@ -5033,7 +5112,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:light-masks",
@@ -5096,7 +5176,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:map-pack",
@@ -5159,7 +5240,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:marble-kit",
@@ -5221,7 +5303,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:medals",
@@ -5283,7 +5366,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:medieval-rts",
@@ -5347,7 +5431,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:micro-roguelike",
@@ -5410,7 +5495,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:mini-arcade",
@@ -5476,7 +5562,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:mini-arena",
@@ -5541,7 +5628,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:mini-characters",
@@ -5606,7 +5694,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:mini-dungeon",
@@ -5672,7 +5761,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:mini-forest",
@@ -5738,7 +5828,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:mini-market",
@@ -5804,7 +5895,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:mini-skate",
@@ -5868,7 +5960,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:minigolf-kit",
@@ -5931,7 +6024,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:minimap-pack",
@@ -5995,7 +6089,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:mobile-controls",
@@ -6058,7 +6153,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:modular-buildings",
@@ -6123,7 +6219,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:modular-cave-kit",
@@ -6187,7 +6284,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:modular-characters",
@@ -6247,7 +6345,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:modular-dungeon-kit",
@@ -6311,7 +6410,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:modular-space-kit",
@@ -6377,7 +6477,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:monochrome-pirates",
@@ -6439,7 +6540,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:monochrome-rpg",
@@ -6502,7 +6604,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:monster-builder-pack",
@@ -6562,7 +6665,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:music-jingles",
@@ -6623,7 +6727,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:nature-kit",
@@ -6687,7 +6792,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:new-platformer-pack",
@@ -6749,7 +6855,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:particle-pack",
@@ -6811,7 +6918,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pattern-pack",
@@ -6875,7 +6983,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pattern-pack-lines",
@@ -6939,7 +7048,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pattern-pack-pixel",
@@ -7004,7 +7114,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:physics-assets",
@@ -7066,7 +7177,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pico-8-city",
@@ -7130,7 +7242,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pico-8-platformer",
@@ -7195,7 +7308,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pirate-kit",
@@ -7261,7 +7375,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pirate-pack",
@@ -7323,7 +7438,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-line-platformer",
@@ -7384,7 +7500,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-platformer",
@@ -7447,7 +7564,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-platformer-blocks",
@@ -7509,7 +7627,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-platformer-farm-expansion",
@@ -7572,7 +7691,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-platformer-food-expansion",
@@ -7635,7 +7755,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-platformer-industrial-expansion",
@@ -7701,7 +7822,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-shmup",
@@ -7763,7 +7885,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-ui-pack",
@@ -7824,7 +7947,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:pixel-vehicle-pack",
@@ -7885,7 +8009,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:planets",
@@ -7946,7 +8071,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-buildings",
@@ -8009,7 +8135,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-candy",
@@ -8072,7 +8199,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-deluxe",
@@ -8135,7 +8263,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-extended-enemies",
@@ -8200,7 +8329,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-extended-tileset",
@@ -8262,7 +8392,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-mushrooms",
@@ -8325,7 +8456,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-pixel",
@@ -8389,7 +8521,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-requests",
@@ -8452,7 +8585,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-art-winter",
@@ -8515,7 +8649,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-bricks",
@@ -8576,7 +8711,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-characters",
@@ -8637,7 +8773,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-kit",
@@ -8700,7 +8837,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-pack-industrial",
@@ -8765,7 +8903,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-pack-medieval",
@@ -8829,7 +8968,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:platformer-pack-remastered",
@@ -8893,7 +9033,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:playing-cards-pack",
@@ -8957,7 +9098,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:prototype-kit",
@@ -9024,7 +9166,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:prototype-textures",
@@ -9085,7 +9228,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:puzzle-pack-1",
@@ -9146,7 +9290,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:puzzle-pack-2",
@@ -9210,7 +9355,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:racing-kit",
@@ -9275,7 +9421,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:racing-pack",
@@ -9338,7 +9485,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:ranks-pack",
@@ -9399,7 +9547,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:retro-fantasy-kit",
@@ -9465,7 +9614,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:retro-textures-fantasy",
@@ -9526,7 +9676,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:retro-urban-kit",
@@ -9591,7 +9742,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:road-textures",
@@ -9651,7 +9803,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:robot-pack",
@@ -9711,7 +9864,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:roguelike-caves-dungeons",
@@ -9776,7 +9930,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:roguelike-characters",
@@ -9838,7 +9993,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:roguelike-indoors",
@@ -9900,7 +10056,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:roguelike-modern-city",
@@ -9963,7 +10120,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:roguelike-rpg-pack",
@@ -10029,7 +10187,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:rolling-ball-assets",
@@ -10089,7 +10248,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:rpg-audio",
@@ -10152,7 +10312,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:rpg-base",
@@ -10212,7 +10373,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:rpg-urban-pack",
@@ -10275,7 +10437,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:rune-pack",
@@ -10337,7 +10500,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:sci-fi-rts",
@@ -10402,7 +10566,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:sci-fi-sounds",
@@ -10464,7 +10629,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:scribble-dungeons",
@@ -10527,7 +10693,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:scribble-platformer",
@@ -10588,7 +10755,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:shape-characters",
@@ -10649,7 +10817,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:shooting-gallery",
@@ -10710,7 +10879,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:simple-space",
@@ -10771,7 +10941,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:simplified-platformer-pack",
@@ -10831,7 +11002,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:sketch-desert",
@@ -10894,7 +11066,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:sketch-town",
@@ -10957,7 +11130,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:sketch-town-expansion",
@@ -11020,7 +11194,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:skyboxes",
@@ -11083,7 +11258,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:smoke-particles",
@@ -11146,7 +11322,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:sokoban",
@@ -11208,7 +11385,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:space-kit",
@@ -11271,7 +11449,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:space-shooter-extension",
@@ -11331,7 +11510,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:space-shooter-remastered",
@@ -11393,7 +11573,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:space-station-kit",
@@ -11457,7 +11638,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:splat-pack",
@@ -11519,7 +11701,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:sports-pack",
@@ -11581,7 +11764,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:survival-kit",
@@ -11643,7 +11827,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tanks",
@@ -11703,7 +11888,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tappy-plane",
@@ -11765,7 +11951,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tiny-battle",
@@ -11831,7 +12018,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tiny-dungeon",
@@ -11896,7 +12084,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tiny-farm",
@@ -11961,7 +12150,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tiny-ski",
@@ -12024,7 +12214,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tiny-town",
@@ -12090,7 +12281,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:toon-characters",
@@ -12151,7 +12343,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:top-down-shooter",
@@ -12213,7 +12406,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:top-down-tanks",
@@ -12275,7 +12469,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:top-down-tanks-remastered",
@@ -12337,7 +12532,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tower-defense",
@@ -12398,7 +12594,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tower-defense-kit",
@@ -12461,7 +12658,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:tower-defense-top-down",
@@ -12523,7 +12721,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:toy-car-kit",
@@ -12587,7 +12786,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:train-kit",
@@ -12655,7 +12855,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:ui-audio",
@@ -12717,7 +12918,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:ui-pack",
@@ -12781,7 +12983,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:ui-pack-adventure",
@@ -12845,7 +13048,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:ui-pack-pixel-adventure",
@@ -12910,7 +13114,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:ui-pack-rpg-expansion",
@@ -12973,7 +13178,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:ui-pack-sci-fi",
@@ -13039,7 +13245,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:voiceover-pack",
@@ -13103,7 +13310,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:voiceover-pack-fighter",
@@ -13167,7 +13375,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:voxel-pack",
@@ -13229,7 +13438,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:watercraft-kit",
@@ -13295,7 +13505,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "kenney:yellow-paint-pack",
@@ -13355,7 +13566,8 @@
         "required": false,
         "notice": "CC0 asset by Kenney; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:3dcardkitfantasy",
@@ -13423,7 +13635,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedalien",
@@ -13492,7 +13705,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animateddinosaurs",
@@ -13561,7 +13775,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedfish",
@@ -13630,7 +13845,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedguns",
@@ -13697,7 +13913,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedman",
@@ -13766,7 +13983,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedmech",
@@ -13836,7 +14054,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedmen",
@@ -13905,7 +14124,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedmonster",
@@ -13974,7 +14194,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedrobot",
@@ -14043,7 +14264,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedtanks",
@@ -14112,7 +14334,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedwoman",
@@ -14181,7 +14404,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedwomen",
@@ -14250,7 +14474,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:animatedzombie",
@@ -14319,7 +14544,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:backgroundposedhumans",
@@ -14388,7 +14614,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:buildings",
@@ -14455,7 +14682,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:cars",
@@ -14524,7 +14752,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:cubeworldkit",
@@ -14592,7 +14821,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:cutefish",
@@ -14661,7 +14891,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:cutemonsters",
@@ -14731,7 +14962,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:cyberpunkgamekit",
@@ -14799,7 +15031,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:downtowncitymegakit",
@@ -14866,7 +15099,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:easyenemy",
@@ -14935,7 +15169,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:fantasypropsmegakit",
@@ -15003,7 +15238,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:farmanimal",
@@ -15072,7 +15308,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:farmbuildings",
@@ -15139,7 +15376,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:furniture",
@@ -15206,7 +15444,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:junkfood",
@@ -15273,7 +15512,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:knightcharacter",
@@ -15340,7 +15580,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:medievaldungeon",
@@ -15409,7 +15650,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:medievalvillage",
@@ -15476,7 +15718,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:medievalvillagemegakit",
@@ -15544,7 +15787,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:medievalweapons",
@@ -15613,7 +15857,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:modularcharacteroutfitsfantasy",
@@ -15681,7 +15926,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:modulardungeon",
@@ -15748,7 +15994,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:modularmedievalbuildings",
@@ -15817,7 +16064,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:modularplatformer",
@@ -15884,7 +16132,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:modularscifimegakit",
@@ -15952,7 +16201,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:modularstreets",
@@ -16021,7 +16271,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:modulartrain",
@@ -16090,7 +16341,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:piratekit",
@@ -16158,7 +16410,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:publictransport",
@@ -16227,7 +16480,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:rpg",
@@ -16296,7 +16550,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:rpgcharacters",
@@ -16366,7 +16621,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:scifiessentialskit",
@@ -16434,7 +16690,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:scifigun",
@@ -16503,7 +16760,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:scifimodularguns",
@@ -16573,7 +16831,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ships",
@@ -16642,7 +16901,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:simplebuildings",
@@ -16709,7 +16969,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:simplenature",
@@ -16776,7 +17037,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:spaceships",
@@ -16845,7 +17107,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:stylizednaturemegakit",
@@ -16913,7 +17176,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:stylizedtree",
@@ -16982,7 +17246,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:survival",
@@ -17049,7 +17314,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:sushirestaurantkit",
@@ -17117,7 +17383,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:texturedfantasynature",
@@ -17186,7 +17453,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:toonshootergamekit",
@@ -17254,7 +17522,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:turretpack",
@@ -17321,7 +17590,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimateanimatedanimals",
@@ -17389,7 +17659,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatecrops",
@@ -17458,7 +17729,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatedanimatedcharacter",
@@ -17525,7 +17797,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatefantasyrts",
@@ -17593,7 +17866,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatefood",
@@ -17662,7 +17936,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatefurniture",
@@ -17729,7 +18004,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimategun",
@@ -17798,7 +18074,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatehomeinterior",
@@ -17867,7 +18144,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatemodularcharacters",
@@ -17934,7 +18212,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatemodularruins",
@@ -18001,7 +18280,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatemodularscifi",
@@ -18068,7 +18348,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatemodularwomen",
@@ -18135,7 +18416,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatemonsters",
@@ -18203,7 +18485,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimate-nature",
@@ -18272,7 +18555,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimateplatformer",
@@ -18340,7 +18624,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimaterpg",
@@ -18409,7 +18694,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatespacekit",
@@ -18477,7 +18763,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatespaceships",
@@ -18547,7 +18834,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatestylizednature",
@@ -18615,7 +18903,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:ultimatetexturedbuildings",
@@ -18682,7 +18971,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:universalanimationlibrary",
@@ -18749,7 +19039,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:universalanimationlibrary2",
@@ -18816,7 +19107,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:universalbasecharacters",
@@ -18884,7 +19176,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     },
     {
       "id": "quaternius:zombieapocalypsekit",
@@ -18952,7 +19245,8 @@
         "required": false,
         "notice": "CC0 asset by Quaternius; credit is appreciated."
       },
-      "verification": "source-verified"
+      "verification": "source-verified",
+      "quality": 0
     }
   ]
 }

@@ -34,6 +34,7 @@ export function AssetCatalog() {
     dimension: searchParams.get('dimension') ?? '',
     format: searchParams.get('format') ?? '',
     verification: searchParams.get('verification') ?? '',
+    quality: searchParams.get('quality') ?? '',
     sort: searchParams.get('sort') ?? 'random',
   };
   const matches = catalogSearch(query);
@@ -100,11 +101,21 @@ export function AssetCatalog() {
             <option value="source-verified">Source verified</option>
             <option value="install-verified">Install verified</option>
           </select>
+          <select aria-label="Quality tier" name="quality" defaultValue={query.quality}>
+            <option value="">All quality tiers</option>
+            <option value="0">Quality 0 · best</option>
+            <option value="1">Quality 1</option>
+            <option value="2">Quality 2</option>
+            <option value="3">Quality 3</option>
+            <option value="4">Quality 4</option>
+            <option value="5">Quality 5</option>
+          </select>
           <select aria-label="Sort assets" name="sort" defaultValue={query.sort}>
             <option value="random">Featured shuffle</option>
             <option value="name-asc">Name A–Z</option>
             <option value="name-desc">Name Z–A</option>
             <option value="files-desc">Most files</option>
+            <option value="quality-asc">Best quality</option>
             <option value="newest">Recently cataloged</option>
           </select>
         </div>

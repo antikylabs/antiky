@@ -12,6 +12,7 @@ function validateAsset(value: unknown, index: number): CatalogAsset {
     || typeof asset.slug !== 'string'
     || typeof asset.name !== 'string'
     || typeof asset.description !== 'string'
+    || asset.quality !== 1
     || !Array.isArray(asset.tags) || asset.tags.length < 3
     || !Array.isArray(asset.categories)
     || asset.provider?.id !== 'poly-haven'

@@ -10,6 +10,7 @@ export type PublicCatalogQuery = Readonly<{
   dimension?: string;
   format?: string;
   verification?: string;
+  quality?: string;
   sort?: string;
 }>;
 
@@ -68,6 +69,7 @@ function sortAssets(assets: readonly CatalogAsset[], sort: string | undefined): 
   if (sort === 'name-asc') return sorted.sort((left, right) => left.name.localeCompare(right.name) || left.id.localeCompare(right.id));
   if (sort === 'name-desc') return sorted.sort((left, right) => right.name.localeCompare(left.name) || right.id.localeCompare(left.id));
   if (sort === 'files-desc') return sorted.sort((left, right) => (right.fileCount ?? -1) - (left.fileCount ?? -1) || left.name.localeCompare(right.name));
+  if (sort === 'quality-asc') return sorted.sort((left, right) => left.quality - right.quality || featuredRank(left) - featuredRank(right));
   if (sort === 'newest') return sorted.sort((left, right) => right.provenance.retrievedAt.localeCompare(left.provenance.retrievedAt) || left.name.localeCompare(right.name));
   return prioritizedProviderMix(assets);
 }
@@ -88,6 +90,9 @@ export function catalogSearch(query: PublicCatalogQuery): CatalogAsset[] {
   }
   if (query.verification && verificationStates.has(query.verification as AssetVerification)) {
     matches = matches.filter((asset) => asset.verification === query.verification);
+  }
+  if (/^[0-5]$/.test(query.quality ?? '')) {
+    matches = matches.filter((asset) => asset.quality === Number(query.quality));
   }
   return sortAssets(matches, query.sort);
 }

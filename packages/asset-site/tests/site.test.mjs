@@ -19,7 +19,7 @@ test('asset-site is a shared UI package with no independently deployed Next appl
   assert.match(publicModule, /AssetDetail/);
   assert.match(catalog, /window\.location\.search/);
   assert.doesNotMatch(catalog, /useSearchParams/);
-  for (const control of ['dimension', 'format', 'provider', 'sort', 'type', 'verification']) {
+  for (const control of ['dimension', 'format', 'provider', 'quality', 'sort', 'type', 'verification']) {
     assert.match(catalog, new RegExp(`name="${control}"`));
   }
   assert.match(catalog, /Featured shuffle/);

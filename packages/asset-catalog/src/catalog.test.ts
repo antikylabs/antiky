@@ -15,6 +15,7 @@ const assets: CatalogAsset[] = [
     name: 'Prototype Kit',
     description: 'Modular 3D forms for early game worlds.',
     kind: 'model',
+    quality: 0,
     fileCount: 1,
     formats: ['glb'],
     tags: ['3d', 'prototype'],
@@ -65,6 +66,7 @@ test('publishes the complete generated Kenney and Quaternius pack catalogs', () 
   assert.ok(CATALOG_ASSETS.length > 1_200);
   assert.equal(new Set(CATALOG_ASSETS.map((asset) => asset.id)).size, CATALOG_ASSETS.length);
   for (const asset of CATALOG_ASSETS) {
+    assert.ok(Number.isSafeInteger(asset.quality) && asset.quality >= 0 && asset.quality <= 5, `${asset.id} has an invalid quality tier`);
     assert.ok(asset.tags.length >= 3, `${asset.id} needs at least three tags`);
     assert.ok(asset.tags.every((tag) => tag.trim().length > 0), `${asset.id} has an empty tag`);
     assert.ok(asset.fileCount === null || Number.isSafeInteger(asset.fileCount) && asset.fileCount > 0, `${asset.id} has an invalid file count`);
@@ -75,6 +77,8 @@ test('publishes the complete generated Kenney and Quaternius pack catalogs', () 
   assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'kenney').length >= 200);
   assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'quaternius').length >= 80);
   assert.equal(CATALOG_ASSETS.filter((asset) => asset.verification === 'install-verified').length, 3);
+  assert.ok(CATALOG_ASSETS.filter((asset) => ['kenney', 'quaternius'].includes(asset.provider.id)).every((asset) => asset.quality === 0));
+  assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'poly-haven').every((asset) => asset.quality === 1));
 });
 
 test('parses official Kenney pack metadata without downloading the pack', () => {
