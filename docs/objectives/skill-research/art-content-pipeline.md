@@ -197,7 +197,7 @@ and [Python terminal guidance](https://docs.blender.org/api/current/info_tips_an
 Preserve the `.blend`, pin Blender/add-on versions, record the command and hashes, and make the
 script idempotent.
 
-Blender's bundled [Rigify](https://docs.blender.org/manual/en/latest/addons/rigging/rigify/)
+Blender's bundled [Rigify](https://docs.blender.org/manual/en/4.0/addons/rigging/rigify/index.html)
 is a credible rig-generation substrate for supported body plans. Preserve the metarig for
 regeneration and validate the exported skeleton in the target engine; a generated rig does not
 prove deformation, retargeting, root motion, contacts, or gameplay silhouette.
@@ -595,7 +595,7 @@ rerun the affected export, import, visual, performance, and rights gates.
 
 ```yaml
 asset_id: environment/market_stall/a
-source_url: https://canonical.example/asset
+source_url: <canonical-source-url>
 creator: Creator Name
 downloaded_at: 2026-08-09T00:00:00Z
 source_version: v1
@@ -716,4 +716,3 @@ portable artifacts over implicit editor state.
 6. Do not evaluate RFingAdam/mcp-blender until its MIT/AGPL contradiction is resolved.
 7. Add generation providers last. No generated asset enters the library without provenance, rights,
    editability, engine import, runtime performance, and independent visual approval.
-

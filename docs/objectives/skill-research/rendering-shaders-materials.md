@@ -260,7 +260,7 @@ Blender itself is [GPL-licensed](https://developer.blender.org/docs/license/). A
 | [Blender](https://www.blender.org/) | UVs, shader nodes, high-to-low workflows, Cycles bake, Python/headless automation | GPL; add-ons/assets have separate terms | Default open DCC and deterministic bake orchestrator |
 | [Material Maker](https://github.com/RodZill4/material-maker) | Godot-based procedural material nodes and 3D model painting | MIT except where noted; 5,815 stars, actively maintained | Best open-source Substance Designer-like candidate |
 | [Adobe Substance 3D Designer](https://experienceleague.adobe.com/en/docs/substance-3d-designer/using/scripting/scripting) | Node-based procedural materials and Python 3.9 plugin API | Proprietary subscription; automation availability varies by plan | Established commercial authoring when licensed |
-| [Adobe Substance 3D Painter](https://helpx.adobe.com/substance-3d-painter-python/api/) | Layered 3D painting and Python API | Proprietary subscription and asset-specific terms | Hero-asset painting and exports |
+| [Adobe Substance 3D Painter](https://experienceleague.adobe.com/en/docs/substance-3d-painter/using/home) | Layered 3D painting and Python API | Proprietary subscription and asset-specific terms | Hero-asset painting and exports |
 | Substance Automation Toolkit | `sbscooker` and other command-line processing | Adobe enterprise/commercial terms | CI cooking only after licensing review |
 
 Material Maker can be installed on macOS with the project's documented cask:

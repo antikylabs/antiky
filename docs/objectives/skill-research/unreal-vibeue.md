@@ -292,7 +292,7 @@ Interpretation:
 - VibeUE's `deep_research` source sends:
   - search terms and target URLs through `r.jina.ai` and DuckDuckGo,
   - place names/addresses and GPS coordinates to OpenStreetMap Nominatim.
-- VibeUE's hosted terrain tools send the VibeUE API key in `X-API-Key`, plus latitude/longitude and terrain parameters, to `https://www.vibeue.com/api/terrain/...`.
+- VibeUE's hosted terrain tools send the VibeUE API key in `X-API-Key`, plus latitude/longitude and terrain parameters, to VibeUE's hosted terrain API.
 - The VibeUE API key is a password-masked `FString` in Unreal's per-machine `globaluserconfig`. It is intentionally kept out of project source control and shared across projects on that machine.
 - VibeUE's privacy policy says it stores account identity and API endpoint/timestamp/usage information, retains usage analytics up to 12 months and errors up to 30 days, and does not use project/API data to train models. These are publisher policy statements, not independently audited guarantees.
 - Epic's native MCP telemetry gate defaults to enabled (`ModelContextProtocol.EnableAnalytics=true`).

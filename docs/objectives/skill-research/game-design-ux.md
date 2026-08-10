@@ -434,7 +434,7 @@ and ship-blocking findings.
 and [Fortnite order](https://www.ftc.gov/news-events/news/press-releases/2023/03/ftc-finalizes-order-requiring-fortnite-maker-epic-games-pay-245-million-tricking-users-making)
 show that confusing purchase controls and absent affirmative consent create real
 consumer harm and enforcement risk. The ICO's
-[Age Appropriate Design Code](https://ico.org.uk/media/for-organisations/guide-to-data-protection/ico-codes-of-practice/age-appropriate-design-a-code-of-practice-for-online-services-2-1.pdf)
+[Age Appropriate Design Code](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/age-appropriate-design-a-code-of-practice-for-online-services/)
 rejects privacy-reducing nudges for children and recommends pro-privacy,
 wellbeing-supporting choices.
 
@@ -553,7 +553,7 @@ notifications, or private conversations. The skill library should enforce:
 - Analytics consent/privacy: [Unity privacy and consent](https://docs.unity.com/en-us/cloud/developer-data/privacy-and-consent)
 - Experiment caution: [Roblox Creator Hub experiments](https://create.roblox.com/docs/production/experiments)
 - Dark patterns: [FTC, Bringing Dark Patterns to Light](https://www.ftc.gov/system/files/ftc_gov/pdf/P214800%20Dark%20Patterns%20Report%209.14.2022%20-%20FINAL.pdf)
-- Child-centered privacy and nudges: [ICO Age Appropriate Design Code](https://ico.org.uk/media/for-organisations/guide-to-data-protection/ico-codes-of-practice/age-appropriate-design-a-code-of-practice-for-online-services-2-1.pdf)
+- Child-centered privacy and nudges: [ICO Age Appropriate Design Code](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/age-appropriate-design-a-code-of-practice-for-online-services/)
 
 ## Final recommendation
 

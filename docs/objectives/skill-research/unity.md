@@ -380,7 +380,7 @@ Never assume an earlier instance ID remains valid across reloads or scene change
 
 ### Verified Unity constraints
 
-- [Shader Graph](https://docs.unity3d.com/current/Manual/com.unity.shadergraph.html) is a visual shader tool supported by URP and HDRP. Available graph targets and features depend on the installed render pipeline.
+- [Shader Graph](https://docs.unity3d.com/6000.0/Documentation/Manual/com.unity.shadergraph.html) is a visual shader tool supported by URP and HDRP. Available graph targets and features depend on the installed render pipeline.
 - Materials reference a shader plus the data that shader consumes. Built-in, URP, and HDRP shaders are not freely interchangeable; pipeline compatibility must be part of every material task.
 - Texture import settings include platform-specific maximum size, format, compression quality, alpha handling, and fallback behavior. A desktop-good texture profile is not automatically suitable for Android, iOS, WebGL, or consoles.
 - Shader Graph, `.mat`, prefab, and scene assets participate in Unity serialization and must retain `.meta` GUIDs.
@@ -411,7 +411,7 @@ Every shader/material/texture task should require:
 
 ### Tests
 
-Official [Unity Test Framework](https://docs.unity3d.com/current/Manual/com.unity.test-framework.html) supports Edit mode and Play mode tests and integrates NUnit. Unity command-line arguments include `-runTests`, `-testPlatform`, `-testResults`, filters, and categories. Tests can also run on target platforms.
+Official [Unity Test Framework](https://docs.unity3d.com/Packages/com.unity.test-framework@1.3/manual/index.html) supports Edit mode and Play mode tests and integrates NUnit. Unity command-line arguments include `-runTests`, `-testPlatform`, `-testResults`, filters, and categories. Tests can also run on target platforms.
 
 Recommended layers:
 
@@ -424,7 +424,7 @@ Recommended layers:
 
 ### Builds and CI
 
-- Official command-line builds use `-batchmode`, `-quit`, `-projectPath`, a build target/profile, `-executeMethod` for custom scripts, and an explicit log file. See [Unity's build documentation](https://docs.unity3d.com/current/Manual/build-command-line.html).
+- Official command-line builds use `-batchmode`, `-quit`, `-projectPath`, a build target/profile, `-executeMethod` for custom scripts, and an explicit log file. See [Unity's build documentation](https://docs.unity3d.com/6000.0/Documentation/Manual/build-command-line.html).
 - [GameCI](https://github.com/game-ci/unity-actions) is a mature community option: about 1.1k stars, MIT, and maintained test/build actions. Its current documentation uses `game-ci/unity-test-runner@v4` and `unity-builder@v4`. Unity license material and private registry tokens must be managed as CI secrets.
 - [Unity Build Automation](https://docs.unity.com/en-us/build-automation) is Unity's managed Cloud CI option for desktop, mobile, XR, consoles, and WebGL, with supported platform/version constraints and service cost considerations.
 

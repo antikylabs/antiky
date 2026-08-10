@@ -622,7 +622,7 @@ version: 0.4.1
 status: beta
 owner: gameplay-systems
 source:
-  url: https://github.com/antikylabs/game-skill-library
+  url: <canonical-source-url>
   revision: <full-commit-sha>
 license: Apache-2.0
 content_sha256: <directory-content-hash>

@@ -62,7 +62,7 @@ Query: `unity game development`
 | `cowork-os/cowork-os@unity-development` | 64 | [record](https://skills.sh/cowork-os/cowork-os/unity-development) |
 | `creator-hian/claude-code-plugins@unity-networking` | 25 | [record](https://skills.sh/creator-hian/claude-code-plugins/unity-networking) |
 | `solanabr/solana-game-skill@solana-game` | 22 | [record](https://skills.sh/solanabr/solana-game-skill/solana-game) |
-| `smithery.ai@unity-developer` | 12 | [record](https://skills.sh/smithery.ai/unity-developer) |
+| `smithery.ai@unity-developer` | 12 | [record](https://skills.sh/smithery/ai/unity-developer) |
 
 The search does not surface the strongest editor bridges. Those must be found by source-repository
 research, including [CoplayDev MCP for Unity](https://github.com/CoplayDev/unity-mcp) and
