@@ -1,5 +1,6 @@
 import type { AssetDownload } from './index.ts';
 import { GENERATED_CURATED_ASSETS } from './generated-curated-catalog.ts';
+import { GENERATED_COMMUNITY_ASSETS } from './generated-community-catalog.ts';
 import { GENERATED_POLY_HAVEN_ASSETS } from './generated-catalog.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
 
@@ -63,4 +64,5 @@ export const CATALOG_ASSETS = Object.freeze([
   }),
   ...GENERATED_POLY_HAVEN_ASSETS,
   ...GENERATED_CURATED_ASSETS,
+  ...GENERATED_COMMUNITY_ASSETS,
 ]);

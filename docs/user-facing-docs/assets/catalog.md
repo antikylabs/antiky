@@ -8,15 +8,15 @@ Open this search to find forest models:
 
 <https://antikylabs.com/assets?q=forest&type=model>
 
-The library currently contains 1,292 CC0 records. Search results show the provider, asset type,
-published file count when the provider supplies one, formats, tags, and catalog status. Select an
-asset to see its permanent page and complete JSON record.
+The library currently contains 1,453 CC0 records. Search results show the provider, asset type,
+quality tier, published file count when the provider supplies one, formats, tags, and catalog
+status. Select an asset to see its permanent page and complete JSON record.
 
 The default view uses a stable featured shuffle rather than alphabetical ordering. Kenney and
 Quaternius are weighted toward the first pages, with 2D and 3D work mixed together. Filter by search
-text, type, 2D or 3D, source, format, or verification status. Sort the result using the featured
-shuffle, name, published file count, or catalog recency. Every selection is encoded in the URL so it
-can be shared with another person or agent.
+text, type, 2D or 3D, source, format, quality, or verification status. Sort the result using the
+featured shuffle, quality, name, published file count, or catalog recency. Every selection is
+encoded in the URL so it can be shared with another person or agent.
 
 ## Understand the supported sources
 
@@ -25,10 +25,17 @@ can be shared with another person or agent.
 | Poly Haven | 998 | Models, textures, HDRIs | A reproducible snapshot reads the provider metadata API. Three starter records also contain selected install-verified files. |
 | Kenney | 212 packs | 2D art, models, textures, audio, fonts | A reproducible crawler reads every pack currently exposed by the official 14-page asset index, then validates each source page's CC0 license and metadata. |
 | Quaternius | 82 packs | Low-poly models, characters, animations, environments | A reproducible crawler reads every pack currently exposed by the official index and validates each pack page's CC0 license and metadata. |
+| KayKit | 17 packs | Low-poly models, modular environments, characters, animations | The catalog reads every individual pack in Kay Lousberg's official index, validates CC0 on each pack page, and excludes the duplicate complete-collection bundle. |
+| OpenDuelyst | 82 resource families / 9,438 files | Pixel units, animation, UI, cards, effects, maps, audio | A complete Git tree snapshot groups both runtime and original resource trees into useful families; every covered repository file belongs to exactly one family. |
+| Screaming Brain Studios | 62 packs | Sprites, tiles, textures, UI, board-game art | The official creator index supplies collection-wide CC0 evidence and all public asset packs; five software utilities are deliberately excluded. |
 
 Antiky does not copy complete provider archives during ordinary cataloging. The metadata snapshot
 does not download a Poly Haven asset file, Kenney ZIP, or Quaternius ZIP. Provider-hosted previews
 may load from their original CDN; selected editorial previews are stored with the site.
+
+Quality is a discovery ranking, separate from verification and licensing. Lower is better: Kenney
+and Quaternius are tier 0, KayKit and Poly Haven tier 1, OpenDuelyst tier 2, and Screaming Brain
+Studios tier 3. It helps order results; it does not claim every item in a source fits every project.
 
 ## Read catalog status accurately
 
@@ -91,6 +98,7 @@ Version 1 includes:
 
 - `totalCatalogAssets` and the complete `assets` collection;
 - names, descriptions, tags, categories, formats, and published facts;
+- a numeric `quality` tier from 0 (best) through 5;
 - provider, upstream ID, permanent source URL, and retrieval time;
 - CC0 license terms and attribution guidance;
 - preview source and whether the provider or Antiky hosts it;

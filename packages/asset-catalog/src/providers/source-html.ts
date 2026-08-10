@@ -15,10 +15,10 @@ export function decodeHtml(value: string): string {
 export function metaContent(html: string, key: string): string {
   const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const patterns = [
-    new RegExp(`<meta[^>]+(?:name|property)=["']${escaped}["'][^>]+content=["']([^"']*)["'][^>]*>`, 'i'),
-    new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:name|property)=["']${escaped}["'][^>]*>`, 'i'),
+    new RegExp(`<meta[^>]+(?:name|property)=["']${escaped}["'][^>]+content=(["'])(.*?)\\1[^>]*>`, 'i'),
+    new RegExp(`<meta[^>]+content=(["'])(.*?)\\1[^>]+(?:name|property)=["']${escaped}["'][^>]*>`, 'i'),
   ];
-  return decodeHtml(patterns.map((pattern) => pattern.exec(html)?.[1]).find(Boolean) ?? '');
+  return decodeHtml(patterns.map((pattern) => pattern.exec(html)?.[2]).find(Boolean) ?? '');
 }
 
 export function unique(values: readonly string[]): string[] {

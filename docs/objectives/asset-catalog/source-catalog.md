@@ -8,15 +8,16 @@ recommendation, not a warranty or permission to crawl.
 
 ## Current coverage and gaps
 
-The shipped catalog contains 1,292 CC0 records: 998 Poly Haven, 212 Kenney, and 82 Quaternius.
+The shipped catalog contains 1,453 CC0 records: 998 Poly Haven, 212 Kenney, 82 Quaternius, 17
+KayKit, 82 grouped OpenDuelyst resource families, and 62 Screaming Brain Studios packs.
 
 | Kind | Current records | Assessment |
 | --- | ---: | --- |
-| Models | 464 | Strong realistic and low-poly baseline; needs rigs, animation, vegetation, characters, and genre variety. |
-| Textures | 341 | Good Poly Haven baseline; ambientCG is the clearest expansion. |
+| Models | 481 | Strong realistic and low-poly baseline; needs deeper rig, animation, vegetation, character, and genre metadata. |
+| Textures | 369 | Good Poly Haven and 2D baseline; ambientCG is the clearest expansion. |
 | HDRIs | 333 | Already broad; prioritize quality and scenario gaps over raw volume. |
-| Sprites | 143 | Too small; needs coherent pixel, vector, UI, VFX, tiles, and backgrounds. |
-| Audio | 10 | Critical gap. Build coherent SFX/music/ambience packs before long-tail ingestion. |
+| Sprites | 257 | OpenDuelyst and Screaming Brain add coherent families; vectors, UI, VFX, and backgrounds still need depth. |
+| Audio | 12 | Critical gap. Build coherent SFX/music/ambience packs before long-tail ingestion. |
 | Fonts | 1 | Critical gap. Add a small verified CC0 shelf, then a separately labeled OFL lane. |
 
 ## Decision labels
@@ -37,7 +38,7 @@ The shipped catalog contains 1,292 CC0 records: 998 Poly Haven, 212 Kenney, and 
 | PBR/3D | [ambientCG](https://ambientcg.com/) | Publisher states assets and previews are CC0 | Official API; 2,877 assets observed | **Automate.** Import materials, decals, atlases, terrain, HDRIs, and selected models using metadata only. |
 | 2D/game packs | [Kenney](https://kenney.nl/assets) | Publisher-wide CC0 game assets | Existing conservative indexer | **Expand.** Classify sheets, tile sizes, animations, vector/source files, UI, audio, and fonts. |
 | 3D/game packs | [Quaternius](https://quaternius.com/) | Publisher FAQ states models are CC0 | Existing conservative pack indexer | **Expand.** Improve animation, rig, vegetation, character, and modular-kit metadata. |
-| 2D/isometric | [Screaming Brain Studios](https://screamingbrainstudios.com/) | Publisher states every pack is CC0/public domain | Publisher, itch.io, and OGA pack pages | **Curate then index.** Pilot space, UI, isometric, texture, and animated packs; record archive format. |
+| 2D/isometric | [Screaming Brain Studios](https://screamingbrainstudios.com/) | Publisher states every pack is CC0/public domain | Complete 62-pack metadata adapter | **Enrich shipped records.** Add archive format, dimensions, and sheet geometry without routine archive downloads. |
 | Pixel art | Ansimuz, 0x72, GrafxKid | Explicit CC0 on reviewed creator/item pages | itch.io item pages/downloads | **Curated allowlist.** Capture item evidence; never trust itch tags alone. |
 | Audio | Kenney audio packs | Same publisher-wide CC0 statement | Existing Kenney adapter | **Expand immediately.** Extract coherent UI, interface, impact, casino, digital, and music packs. |
 | Audio/music | Tallbeard Studios / Abstraction | Publisher/item CC0 statements | Reviewed pack pages and repositories | **Curate.** Establish a coherent music and SFX starter shelf with pack-level provenance. |
@@ -50,13 +51,13 @@ The shipped catalog contains 1,292 CC0 records: 998 Poly Haven, 212 Kenney, and 
 | Lane | Source | Rights/access boundary | Decision |
 | --- | --- | --- | --- |
 | 3D | [Smithsonian 3D](https://3d.si.edu/) | Only Open Access-designated records are CC0; object/cultural review remains | **Quarantine then curate** distinctive artifacts, animals, fossils, and spacecraft. |
-| 3D | [KayKit](https://kaylousberg.itch.io/) | Pack pages state CC0; no permission to broadly scrape itch | **Curate** polished modular environments, characters, props, and animation. |
+| 3D | [KayKit](https://kaylousberg.com/game-assets) | Each official pack page states CC0 | **Shipped:** 17 individual packs; enrich animations, rigs, and exact formats/counts. |
 | 3D | [Open Source 3D Assets](https://www.opensource3dassets.com/) | Registry metadata and some collections claim CC0; upstream must agree | **Pilot adapter** against reviewed collection allowlist. |
 | PBR | [TextureCan](https://www.texturecan.com/) | Publisher CC0 terms; automation permission unclear | **Contact first**, then curated metadata. |
 | PBR | [3DTextures.me](https://3dtextures.me/) | Publisher states textures are CC0; no public API | **Curate** high-value sets or request a feed. |
 | 2D/UI | [FreeGameUI](https://freegameui.net/) | Publisher claims 2,000+ SVG/PNG assets are CC0 | **Ownership/manifest review**, then category packs. |
 | 2D | [Game Assets for the People](https://gameassets.joshmoody.org/) | Publisher states all 56 cross-media packs are CC0 | **Import all useful packs** after sample/archive review. |
-| 2D | OpenDuelyst | Repository-level CC0 asset corpus | **Family importer** for production-quality characters, animations, UI, cards, and VFX. |
+| 2D | OpenDuelyst | Repository-level CC0 asset corpus | **Shipped:** 82 families account for all 9,438 files under both resource trees; enrich sheet/animation metadata. |
 | 2D | RavenTale CC0 platformer collection | Bounded item/pack CC0 evidence | **Curate** layered backgrounds, sprites, UI, and PSD sources. |
 | 2D | Glitch public-domain art | Preserved public-domain corpus; marks and families need review | **Family importer** with logo/trademark quarantine. |
 | Audio | Signature Sounds | Publisher claims CC0 catalog; sample rights consistency needs review | **Sample audit**, then coherent pack ingestion. |

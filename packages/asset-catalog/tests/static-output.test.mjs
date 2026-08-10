@@ -24,9 +24,9 @@ test('builds a versioned, frontend-readable static catalog API', async () => {
   assert.equal(index.version, 'v1');
   assert.equal(index.catalogUrl, CATALOG_API_CATALOG_PATH);
   assert.equal(index.assetUrlTemplate, '/v1/assets/{provider}/{slug}.json');
-  assert.equal(index.totalCatalogAssets, 1292);
+  assert.equal(index.totalCatalogAssets, 1453);
   assert.equal(catalog.version, 'v1');
-  assert.equal(catalog.assets.length, 1292);
+  assert.equal(catalog.assets.length, 1453);
   assert.equal(natureKit.asset.id, 'kenney:nature-kit');
   assert.deepEqual(catalog.assets, CATALOG_ASSETS);
   assert.equal(CATALOG_API_BASE_URL, 'https://catalog-api.antikylabs.com/v1');

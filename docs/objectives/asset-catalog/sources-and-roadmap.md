@@ -13,12 +13,15 @@ corpus and verification standard are indexed in [`research/README.md`](research/
 
 ## Baseline
 
-The current generated catalog has 1,292 records:
+The current generated catalog has 1,453 records:
 
 - 998 Poly Haven records;
 - 212 Kenney packs;
 - 82 Quaternius packs;
-- 464 models, 341 textures, 333 HDRIs, 143 sprites, 10 audio records, and 1 font.
+- 17 KayKit packs;
+- 82 OpenDuelyst resource families covering 9,438 repository files;
+- 62 Screaming Brain Studios packs;
+- 481 models, 369 textures, 333 HDRIs, 257 sprites, 12 audio records, and 1 font.
 
 The immediate problem is balance, not total count. Audio, fonts, UI, coherent sprite families,
 characters, animation, VFX, and ready-to-use game kits are underrepresented.
@@ -63,7 +66,8 @@ Use the full framework in [`research/license-verification.md`](research/license-
    animation, vectors, source formats, audio categories, font families, and pack relationships.
 2. **Expand Quaternius metadata** for animation, rigs, characters, vegetation, modularity, LODs, and
    engine formats.
-3. **Ingest Screaming Brain Studios** at pack level after sampling archive/license consistency.
+3. **Expand the shipped Screaming Brain Studios records** with archive formats and dimensions after
+   sampling archive/license consistency; all 62 public asset packs are already indexed.
 4. **Curate CC0 creator allowlists** for Ansimuz, 0x72, GrafxKid, Tallbeard/Abstraction, RavenTale,
    and other high-quality itch publishers; item evidence is mandatory.
 5. **Import Game Assets for the People** after a complete 56-pack sample review.
@@ -79,7 +83,8 @@ multiple game genres without relying on placeholder-quality one-offs.
    models;
 2. pilot the Open Source 3D Assets registry using a collection allowlist and upstream provenance;
 3. audit FreeGameUI authorship and manifest/download behavior, then ingest category packs;
-4. build family-level importers for OpenDuelyst and Glitch rather than one record per file;
+4. expand the shipped OpenDuelyst family importer with animation/sheet metadata, then build the
+   equivalent family-level importer for Glitch rather than one record per file;
 5. sample Signature Sounds and a constrained Freesound CC0 API adapter;
 6. contact TextureCan, 3DTextures.me, cgbookcase, and LazyTextures about feed, automation, and preview
    expectations before writing crawlers.
@@ -93,8 +98,8 @@ evidence bundle, quarantine report, and zero unexplained license/identity change
    review;
 2. pilot Art Institute of Chicago and Cleveland Museum APIs for clearly public-domain records;
 3. create specialist pipelines for NASA/NOAA/NPS science media and USGS/Natural Earth terrain;
-4. curate KayKit, long-tail OpenGameArt CC0 records, Openclipart subsets, and public-domain nature
-   audio based on actual game-building requests;
+4. enrich the shipped 17-pack KayKit catalog, then curate long-tail OpenGameArt CC0 records,
+   Openclipart subsets, and public-domain nature audio based on actual game-building requests;
 5. generate game-ready derived previews or terrain only from cleared inputs, recording every input,
    transformation, tool version, and output license basis.
 
@@ -168,8 +173,8 @@ record and stop new Antiky distribution while preserving the audit trail.
 1. Implement the evidence/quarantine schema and adapter contract-test harness.
 2. Improve metadata for the 294 existing Kenney and Quaternius records.
 3. Add ambientCG as the next structured provider.
-4. Add one bounded 2D publisher (Screaming Brain) and one bounded audio/music publisher
-   (Tallbeard/Abstraction).
+4. Enrich the complete Screaming Brain, KayKit, and OpenDuelyst metadata; add one bounded audio/music
+   publisher (Tallbeard/Abstraction).
 5. Publish the first 10–25 CC0 font records.
 6. Run the 100-record component pilot only after media and component schemas are visibly separate.
 

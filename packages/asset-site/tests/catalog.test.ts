@@ -19,7 +19,7 @@ test('exposes the expanded catalog to search and agents', () => {
   assert.equal(catalogAsset('poly-haven', 'grass-medium-01')?.verification, 'source-verified');
 });
 
-test('uses a stable shuffled mix weighted toward Kenney and Quaternius', () => {
+test('uses a stable source mix weighted toward top-tier creators', () => {
   const firstPage = catalogSearch({}).slice(0, 48);
   assert.deepEqual(firstPage, catalogSearch({}).slice(0, 48));
   assert.notDeepEqual(firstPage.map((asset) => asset.name), firstPage.map((asset) => asset.name).toSorted());
@@ -27,8 +27,11 @@ test('uses a stable shuffled mix weighted toward Kenney and Quaternius', () => {
   for (const asset of firstPage) {
     providerCounts.set(asset.provider.id, (providerCounts.get(asset.provider.id) ?? 0) + 1);
   }
-  assert.ok((providerCounts.get('kenney') ?? 0) >= 18);
-  assert.ok((providerCounts.get('quaternius') ?? 0) >= 18);
+  assert.ok((providerCounts.get('kenney') ?? 0) >= 14);
+  assert.ok((providerCounts.get('quaternius') ?? 0) >= 14);
+  assert.ok((providerCounts.get('kaykit') ?? 0) >= 1);
+  assert.ok((providerCounts.get('open-duelyst') ?? 0) >= 1);
+  assert.ok((providerCounts.get('screaming-brain-studios') ?? 0) >= 1);
   assert.ok((providerCounts.get('poly-haven') ?? 0) >= 4);
   assert.ok(firstPage.filter((asset) => asset.kind === 'model' || asset.kind === 'hdri').length >= 18);
   assert.ok(firstPage.filter((asset) => asset.kind === 'sprite' || asset.kind === 'texture').length >= 12);

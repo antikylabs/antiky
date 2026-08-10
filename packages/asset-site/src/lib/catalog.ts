@@ -14,7 +14,11 @@ export type PublicCatalogQuery = Readonly<{
   sort?: string;
 }>;
 
-const defaultProviderPattern = ['kenney', 'quaternius', 'kenney', 'quaternius', 'poly-haven'] as const;
+const defaultProviderPattern = [
+  'kenney', 'quaternius', 'kenney', 'quaternius',
+  'kenney', 'quaternius', 'kenney', 'quaternius',
+  'kaykit', 'open-duelyst', 'screaming-brain-studios', 'poly-haven',
+] as const;
 
 function prioritizedProviderMix(assets: readonly CatalogAsset[]): CatalogAsset[] {
   const queues = new Map<string, CatalogAsset[]>();
