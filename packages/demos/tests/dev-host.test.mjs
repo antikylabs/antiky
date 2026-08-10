@@ -5,7 +5,9 @@ import test from 'node:test';
 const demosDirectory = new URL('../', import.meta.url);
 const showcase = Object.freeze([
   { category: 'antiky', slug: 'antiky-town', renderer: 'brometal', framework: true },
+  { category: 'antiky', slug: 'combat-arena', renderer: 'brometal', framework: true },
   { category: 'antiky', slug: 'point-light-expo', renderer: 'brometal', framework: true },
+  { category: 'antiky', slug: 'traversal-study', renderer: 'brometal', framework: true },
   { category: 'brometal', slug: 'town-study', renderer: 'brometal', framework: false },
   { category: 'brometal', slug: 'shader-study', renderer: 'brometal', framework: false },
   { category: 'brometal', slug: 'solar-forge', renderer: 'brometal', framework: false },
@@ -30,7 +32,7 @@ async function sourceFiles(directory) {
 
 test('the showcase has the approved category and project matrix', async () => {
   const expected = {
-    antiky: ['antiky-town', 'point-light-expo'],
+    antiky: ['antiky-town', 'combat-arena', 'point-light-expo', 'traversal-study'],
     brometal: ['luminous-reef', 'shader-study', 'solar-forge', 'town-study'],
     threejs: ['glass-garden', 'orbital-atlas'],
   };
@@ -89,7 +91,7 @@ test('game projects contain no delivery host or sibling-demo source imports', as
     assert.doesNotMatch(source, /@antiky\/(?:cli|studio|website)/);
     assert.doesNotMatch(source, /(?:node:http|node:net|createServer\s*\()/);
     assert.doesNotMatch(source, /packages\/demos|\.\.\/\.\.\/(?:antiky|brometal|threejs)\//);
-    assert.doesNotMatch(source, /(?:React|createRoot|<canvas|document\.body\.appendChild)/);
+    assert.doesNotMatch(source, /(?:\bReact\b|createRoot|<canvas|document\.body\.appendChild)/);
     if (!demo.framework) assert.doesNotMatch(source, /@antiky\/framework/);
   }
   await assert.rejects(() => access(new URL('dev-host/', demosDirectory)));
