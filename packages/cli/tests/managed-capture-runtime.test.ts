@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { access, mkdtemp, rm } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -16,6 +17,59 @@ const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
   'base64',
 );
+
+test('pinned Chromium encodes captured canvas PNG masters without hanging', async () => {
+  let runtime: Readonly<{
+    state: 'waiting' | 'connected';
+    runtimeInstanceId: string | null;
+    lifecycle: 'running' | null;
+  }> = { state: 'waiting', runtimeInstanceId: null, lifecycle: null };
+  const server = createServer((_request, response) => {
+    runtime = {
+      state: 'connected',
+      runtimeInstanceId: 'runtime-real-encoder-001',
+      lifecycle: 'running',
+    };
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<canvas id="antiky-game" width="1280" height="720"></canvas><script>const c=document.querySelector("#antiky-game");const x=c.getContext("2d");x.fillStyle="#102030";x.fillRect(0,0,c.width,c.height);x.fillStyle="#40e0ff";x.fillRect(240,180,800,360);</script>');
+  });
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => resolve());
+  });
+  const address = server.address();
+  assert(address && typeof address === 'object');
+  const origin = `http://127.0.0.1:${address.port}`;
+  const managed = createManagedCaptureRuntime({
+    gameUrl: origin,
+    inspectionUrl: origin,
+    configuredWidth: 1280,
+    configuredHeight: 720,
+    readRuntime: () => runtime,
+    timeoutMilliseconds: 5_000,
+    pollMilliseconds: 5,
+  });
+
+  try {
+    const owned = await managed.ensureRuntime({ deviceScaleFactor: 1 });
+    const frame = await managed.captureCanvasPng(owned.runtimeInstanceId);
+    let encoderDeadline: ReturnType<typeof setTimeout> | undefined;
+    const encoded = await Promise.race([
+      managed.encodePngSequence(owned.runtimeInstanceId, [frame, frame, frame], 10),
+      new Promise<never>((_resolve, reject) => {
+        encoderDeadline = setTimeout(
+          () => reject(new Error('real encoder did not settle')),
+          5_000,
+        );
+      }),
+    ]).finally(() => clearTimeout(encoderDeadline));
+    assert.equal(encoded.bytes.subarray(0, 4).toString('hex'), '1a45dfa3');
+    assert.equal(encoded.encoder.source, 'png-masters');
+  } finally {
+    await managed.stop();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
 
 test('managed capture runtime launches one isolated exact-origin browser and cleans it up', async () => {
   const temporaryRoot = await mkdtemp(join(tmpdir(), 'antiky-managed-runtime-test-'));

@@ -277,13 +277,9 @@ async function defaultLauncher(input: ManagedBrowserLaunchInput): Promise<Manage
         recorder.ondataavailable = (event) => {
           if (event.data.size > 0) chunks.push(event.data);
         };
-        const started = new Promise<void>((resolve, reject) => {
-          recorder.onstart = () => resolve();
-          recorder.onerror = () => reject(new Error('encoder unavailable'));
-        });
         ownedWindow[key] = { encodingCanvas, context2d, stream, track, recorder, chunks };
         recorder.start();
-        await started;
+        if (recorder.state !== 'recording') throw new Error('encoder unavailable');
       }, { key: encoderStateKey, width, height });
       try {
         for (const frame of frames) {

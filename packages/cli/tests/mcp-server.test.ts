@@ -12,10 +12,17 @@ import {
 } from '@antiky/framework';
 
 import { AntikyCliError } from '../src/errors.ts';
+import type { AntikyProject } from '../src/project.ts';
 
 // Node 22's strip-types test runner requires the source extension.
 // @ts-ignore explicit TypeScript extension is for the direct test runner
-import { processMcpRequest, runMcpServer } from '../src/mcp/server.ts';
+import { callMcpTool } from '../src/mcp/client.ts';
+// @ts-ignore explicit TypeScript extension is for the direct test runner
+import {
+  MCP_PROTOCOL_VERSION,
+  processMcpRequest,
+  runMcpServer,
+} from '../src/mcp/server.ts';
 // @ts-ignore explicit TypeScript extension is for the direct test runner
 import { MCP_TOOL_NAMES } from '../src/mcp/tools.ts';
 // @ts-ignore explicit TypeScript extension is for the direct test runner
@@ -36,6 +43,50 @@ const captureCapabilities = readCaptureCapabilities({
     browserVersion: '151.0.7922.34',
     browserInstalled: true,
   }),
+});
+
+test('the human CLI gives bounded MCP action tools the full action deadline', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalTimeout = AbortSignal.timeout;
+  const deadlines: number[] = [];
+  let request = 0;
+  Object.defineProperty(AbortSignal, 'timeout', {
+    configurable: true,
+    value(milliseconds: number) {
+      deadlines.push(milliseconds);
+      return new AbortController().signal;
+    },
+  });
+  globalThis.fetch = (async () => {
+    request += 1;
+    if (request === 1) {
+      return Response.json({
+        jsonrpc: '2.0',
+        id: 1,
+        result: { protocolVersion: MCP_PROTOCOL_VERSION },
+      });
+    }
+    if (request === 2) return new Response(null, { status: 202 });
+    return Response.json({
+      jsonrpc: '2.0',
+      id: 2,
+      result: { structuredContent: { ok: true }, isError: false },
+    });
+  }) as typeof fetch;
+
+  try {
+    const result = await callMcpTool({
+      network: { host: '127.0.0.1', inspectionPort: 3011 },
+    } as unknown as AntikyProject, 'capture_gameplay_sequence', {});
+    assert.deepEqual(result, { structuredContent: { ok: true }, isError: false });
+    assert.deepEqual(deadlines, [15_000, 15_000, 30_000]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    Object.defineProperty(AbortSignal, 'timeout', {
+      configurable: true,
+      value: originalTimeout,
+    });
+  }
 });
 
 const runningSession = {
