@@ -122,3 +122,87 @@ test('artifact lookup cannot forge identities, escape the store, or cross sessio
     await rm(rootDirectory, { recursive: true, force: true });
   }
 });
+
+test('evidence metadata listing is bounded and a failed sequence can discard its whole group', async () => {
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-evidence-list-'));
+  const store = createEvidenceStore({
+    rootDirectory,
+    developmentSessionId: OBSERVATION.developmentSessionId,
+  });
+  const evidenceId = 'evidence-018f0f3a-7b2c-7a1d-8e2f-123456789ab0';
+  try {
+    const frame = await store.put({
+      evidenceId,
+      kind: 'sequence-frame',
+      role: 'sequence-frame-0001',
+      mimeType: 'image/png',
+      bytes: PNG,
+      width: 1,
+      height: 1,
+      observation: OBSERVATION,
+    });
+    const manifest = await store.put({
+      evidenceId,
+      kind: 'manifest',
+      role: 'sequence-manifest',
+      mimeType: 'application/json',
+      bytes: Buffer.from('{"schemaVersion":1}'),
+      width: null,
+      height: null,
+      observation: OBSERVATION,
+    });
+    const listed = store.list({ evidenceId, limit: 256 });
+    assert.equal(listed.availableCount, 2);
+    assert.equal(listed.complete, true);
+    assert.deepEqual(listed.artifacts.map((entry) => entry.creationSequence), [1, 2]);
+    assert.deepEqual(listed.artifacts.map((entry) => entry.artifact.kind), [
+      'sequence-frame', 'manifest',
+    ]);
+    assert.doesNotMatch(JSON.stringify(listed), /path|\.antiky|pid|credential/i);
+    await store.discard(evidenceId);
+    assert.equal(store.list({ evidenceId, limit: 256 }).availableCount, 0);
+    await assert.rejects(
+      () => store.read({ evidenceId, artifactId: frame.artifactId }),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'ANTIKY_EVIDENCE_NOT_FOUND',
+    );
+    await assert.rejects(
+      () => store.read({ evidenceId, artifactId: manifest.artifactId }),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'ANTIKY_EVIDENCE_NOT_FOUND',
+    );
+  } finally {
+    await store.stop();
+    await rm(rootDirectory, { recursive: true, force: true });
+  }
+});
+
+test('the evidence store enforces its retained evidence-group ceiling', async () => {
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-evidence-capacity-'));
+  const store = createEvidenceStore({
+    rootDirectory,
+    developmentSessionId: OBSERVATION.developmentSessionId,
+    maximumRetainedEvidence: 1,
+  });
+  try {
+    const put = (evidenceId: string) => store.put({
+      evidenceId,
+      kind: 'still' as const,
+      role: 'canvas-master',
+      mimeType: 'image/png' as const,
+      bytes: PNG,
+      width: 1,
+      height: 1,
+      observation: OBSERVATION,
+    });
+    await put('evidence-018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
+    await assert.rejects(
+      () => put('evidence-018f0f3a-7b2c-7a1d-8e2f-123456789ab1'),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'CAPTURE_LIMIT_EXCEEDED',
+    );
+  } finally {
+    await store.stop();
+    await rm(rootDirectory, { recursive: true, force: true });
+  }
+});

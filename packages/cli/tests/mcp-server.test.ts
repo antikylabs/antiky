@@ -206,6 +206,56 @@ const captureArtifact = Object.freeze({
   }),
 });
 
+function sequenceArtifact(
+  kind: 'poster' | 'manifest' | 'video',
+  role: string,
+  hashCharacter: string,
+  mimeType: 'image/png' | 'application/json' | 'video/webm',
+) {
+  const sha256 = hashCharacter.repeat(64);
+  return Object.freeze({
+    ...captureArtifact,
+    artifactId: `artifact-${sha256}`,
+    uri: `${captureArtifact.uri.slice(0, captureArtifact.uri.indexOf('/artifact-'))}/artifact-${sha256}`,
+    kind,
+    role,
+    mimeType,
+    width: mimeType === 'application/json' ? null : 1,
+    height: mimeType === 'application/json' ? null : 1,
+    sha256,
+  });
+}
+
+const captureSequenceResult = Object.freeze({
+  schemaVersion: 1 as const,
+  sequenceId: 'sequence-mcp-001',
+  source: 'managed-runtime' as const,
+  evidenceId: captureArtifact.evidenceId,
+  observations: Object.freeze({ start: observation, end: observation }),
+  target: Object.freeze({ width: 1, height: 1, deviceScaleFactor: 1 }),
+  cadence: Object.freeze({
+    framesPerSecond: 10,
+    requestedFrameCount: 1,
+    actualFrameCount: 1,
+    lateFrameCount: 0 as const,
+    droppedFrameCount: 0 as const,
+    captureOffsetsMilliseconds: Object.freeze([100]),
+  }),
+  completedSteps: Object.freeze({
+    start: observation.session!.completedStepCount,
+    end: observation.session!.completedStepCount,
+    startStateDigest: observation.session!.stateDigest,
+    endStateDigest: observation.session!.stateDigest,
+  }),
+  artifacts: Object.freeze({
+    masterFrameCount: 1,
+    poster: sequenceArtifact('poster', 'sequence-poster', 'b', 'image/png'),
+    manifest: sequenceArtifact('manifest', 'sequence-manifest', 'c', 'application/json'),
+    video: sequenceArtifact('video', 'review-derivative', 'd', 'video/webm'),
+    presentationTrace: null,
+  }),
+});
+
 const unusedPointLightMethods = {
   async getWorldInspection(): Promise<never> { throw new Error('not reached'); },
   async getEventHistory(): Promise<never> { throw new Error('not reached'); },
@@ -233,6 +283,20 @@ test('MCP exposes one well-described tools-only development surface', async () =
     async getCaptureCapabilities() {
       calls.push('capture-capabilities');
       return captureCapabilities;
+    },
+    async getRenderEvidence() {
+      calls.push('render-evidence');
+      return {
+        schemaVersion: 1 as const,
+        developmentSessionId: observation.developmentSessionId,
+        availableCount: 1,
+        retainedCount: 1,
+        complete: true,
+        artifacts: Object.freeze([Object.freeze({
+          creationSequence: 2,
+          artifact: captureSequenceResult.artifacts.poster,
+        })]),
+      };
     },
     async requestReload() {
       calls.push('reload');
@@ -284,6 +348,10 @@ test('MCP exposes one well-described tools-only development surface', async () =
         deviceScaleFactor: 1,
         artifact: captureArtifact,
       } as const;
+    },
+    async captureGameplaySequence() {
+      calls.push('capture-sequence');
+      return captureSequenceResult;
     },
     async readEvidenceArtifact() {
       calls.push('read-evidence');
@@ -447,6 +515,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
     'get_render_stats',
     'get_diagnostics',
     'get_capture_capabilities',
+    'get_render_evidence',
     'get_session_status',
     'get_world_inspection',
     'get_event_log',
@@ -466,6 +535,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
     get_render_stats: [/renderer health or performance/i, /does not capture/i],
     get_diagnostics: [/build is not ready/i, /stable code/i],
     get_capture_capabilities: [/never launches a browser/i, /final-canvas/i],
+    get_render_evidence: [/opaque evidence/i, /never accepts a path/i],
     get_session_status: [/fixed clock/i, /takes no arguments/i],
     get_world_inspection: [/entity hierarchy/i, /named store/i],
     get_event_log: [/accepted event-sourcing/i, /runtime-instance/i],
@@ -473,6 +543,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
     get_point_light: [/stable entity id/i, /accepted facts/i],
     dev_reload: [/after .*accepted revision/i, /does not start a development session/i],
     capture_frame: [/exact pixels/i, /get_render_stats/i],
+    capture_gameplay_sequence: [/canvas-only motion sequence/i, /deterministic replay/i],
     set_point_light_power: [/expected revision/i, /world\.light\.edit/i],
     correct_point_light_power: [/new accepted fact/i, /corrected command/i],
     pause_simulation: [/tool pause reason/i, /does not rebuild/i],
@@ -524,6 +595,23 @@ test('MCP exposes one well-described tools-only development surface', async () =
     jsonrpc: '2.0', id: 49, method: 'tools/call', params: { name: 'get_capture_capabilities' },
   });
   assert.deepEqual(capabilities.result.structuredContent, captureCapabilities);
+
+  const renderEvidence = await processMcpRequest(client, {
+    jsonrpc: '2.0',
+    id: 491,
+    method: 'tools/call',
+    params: {
+      name: 'get_render_evidence',
+      arguments: {
+        schemaVersion: 1,
+        evidenceId: captureSequenceResult.evidenceId,
+        artifactId: captureSequenceResult.artifacts.poster.artifactId,
+        limit: 1,
+      },
+    },
+  });
+  assert.equal(renderEvidence.result.content[1].type, 'image');
+  assert.equal(renderEvidence.result.structuredContent.artifacts[0].creationSequence, 2);
 
   const listed = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 50, method: 'tools/call', params: { name: 'list_point_lights' },
@@ -601,6 +689,32 @@ test('MCP exposes one well-described tools-only development surface', async () =
   });
   assert.equal(managedCapture.result.structuredContent.source, 'managed-runtime');
   assert.equal(managedCapture.result.content[1].type, 'image');
+  const sequence = await processMcpRequest(client, {
+    jsonrpc: '2.0',
+    id: 322,
+    method: 'tools/call',
+    params: {
+      name: 'capture_gameplay_sequence',
+      arguments: {
+        schemaVersion: 1,
+        expected: {
+          developmentSessionId: observation.developmentSessionId,
+          acceptedBuildRevision: observation.acceptedBuildRevision,
+          currentRuntimeInstanceId: null,
+        },
+        runtimePolicy: 'managed-only',
+        target: { width: 1, height: 1, deviceScaleFactor: 1 },
+        source: { kind: 'window', durationMilliseconds: 100, framesPerSecond: 10 },
+        idempotencyKey: 'mcp-sequence-fixture',
+      },
+    },
+  });
+  assert.equal(sequence.result.structuredContent.sequenceId, 'sequence-mcp-001');
+  assert.deepEqual(
+    sequence.result.content.slice(1).map((item: { type: string }) => item.type),
+    ['resource_link', 'resource_link', 'resource_link'],
+  );
+  assert.doesNotMatch(JSON.stringify(sequence.result.structuredContent), /base64|path|pid/i);
   const setPower = await processMcpRequest(client, {
     jsonrpc: '2.0',
     id: 33,
@@ -655,8 +769,9 @@ test('MCP exposes one well-described tools-only development surface', async () =
     'read', 'read',
     'read-v2', 'read-v2', 'read-v2',
     'capture-capabilities',
+    'render-evidence', 'read-evidence',
     'read-v2', 'read-v2', 'read-v2', 'read-v2',
-    'reload', 'capture-v2', 'read-evidence', 'capture-v3', 'read-evidence',
+    'reload', 'capture-v2', 'read-evidence', 'capture-v3', 'read-evidence', 'capture-sequence',
     `set-point-light:${JSON.stringify({
       protocolVersion: 1,
       commandVersion: 1,

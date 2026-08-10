@@ -140,12 +140,18 @@ An agent can use these tools with pure BroMetal, Three.js, or another renderer:
 ```sh
 antiky tool get_runtime_status
 antiky tool get_render_stats
+antiky tool get_capture_capabilities
 antiky tool capture_frame
+antiky tool capture_gameplay_sequence
+antiky tool get_render_evidence
 antiky tool get_diagnostics
 ```
 
 Use `dev_reload` after a ready build to reload the module. Use `capture_frame` for exact game-canvas
-pixels and `get_render_stats` for measurements; a capture is not a source of semantic game state.
+pixels, `capture_gameplay_sequence` for bounded canvas-only motion, and `get_render_stats` for
+measurements; a capture is not a source of semantic game state. Studio shares these browser-safe
+development-client contracts but never receives raw Playwright, browser-profile, or arbitrary-page
+authority.
 
 `get_world_inspection`, event tools, point-light tools, and simulation controls return useful game
 state only when the module publishes the matching Framework inspection data. To add that data,

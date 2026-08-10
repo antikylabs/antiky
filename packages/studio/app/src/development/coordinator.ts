@@ -37,6 +37,14 @@ export type StudioDevelopmentClient = Pick<DevelopmentClient,
   | 'stepSimulation'
 >;
 
+/** Browser-safe evidence operations Studio may adopt without gaining Playwright authority. */
+export type StudioCaptureClient = Pick<DevelopmentClient,
+  | 'getCaptureCapabilities'
+  | 'captureFrameV3'
+  | 'captureGameplaySequence'
+  | 'getRenderEvidence'
+>;
+
 type Scheduler = (callback: () => void, delayMilliseconds: number) => () => void;
 
 type CoordinatorOptions = Readonly<{

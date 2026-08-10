@@ -19,10 +19,13 @@ the action you need.
 | `get_session_status` | You need fixed-clock state or a completed-step count | No |
 | `get_world_inspection` | You need the published entity hierarchy or named stores | No |
 | `get_event_log` | You need accepted event-sourcing facts and their retention | No |
+| `get_capture_capabilities` | You need canvas-capture availability and exact limits | No |
+| `get_render_evidence` | You need retained private capture metadata or an exact artifact | No |
 | `list_point_lights` | You need to discover point lights and their stable IDs | No |
 | `get_point_light` | You need the complete state and history for one light | No |
 | `dev_reload` | A ready build should reload the connected game runtime | Yes |
 | `capture_frame` | You need the exact current game-canvas pixels | Yes |
+| `capture_gameplay_sequence` | You need bounded canvas-only motion evidence | Yes |
 | `pause_simulation` | You need the game rules to stop advancing | Yes |
 | `resume_simulation` | You want to remove the tool pause reason | Yes |
 | `step_simulation` | You need exactly one paused fixed tick | Yes |
@@ -246,6 +249,20 @@ accepted change facts. A well-formed ID that is not present returns `null`.
 
 ## Development action tools
 
+### `get_capture_capabilities`
+
+Call this before capture work. It does not launch Chromium or change game state:
+
+```sh
+antiky tool get_capture_capabilities
+```
+
+The strict result reports whether the pinned Playwright Chromium runtime is installed, its exact
+versions, WebGPU status known so far, the configured final-canvas size, supported PNG/WebM formats,
+presentation-input kinds, retention policy, and capture limits. `webGpu.status` remains
+`unknown-until-launch` until Antiky has actually probed the managed runtime. The descriptor exposes
+no browser profile, user agent, GPU identifier, PID, or local path.
+
 ### `dev_reload`
 
 First call `get_latest_build` and confirm that the newest build is ready. Then call
@@ -266,11 +283,11 @@ reported by the game:
 
 ```sh
 antiky tool capture_frame '{
-  "schemaVersion":2,
+  "schemaVersion":3,
   "expected":{
     "developmentSessionId":"development-session-id",
     "acceptedBuildRevision":1,
-    "runtimeInstanceId":"runtime-instance-id"
+    "currentRuntimeInstanceId":null
   },
   "runtimePolicy":"current-or-managed",
   "target":{"width":1280,"height":720,"deviceScaleFactor":1},
@@ -295,9 +312,83 @@ chrome pixels from entering through the capture mechanism, but Antiky does not s
 or secrets rendered by the game itself. Do not upload or publish the artifact without a separate
 review.
 
-The current implementation uses a connected game runtime. `runtimePolicy: "managed-only"` is
-reserved for the managed capture runtime and currently returns a stable unavailable result rather
-than launching a personal browser.
+When `currentRuntimeInstanceId` is `null`, Antiky can launch its pinned, isolated headless Chromium,
+connect it only to this project's two loopback origins, wait for normal runtime publication, and
+capture the registered final canvas. It never launches or reuses a personal browser profile. Use
+`runtimePolicy: "managed-only"` when presentation input must be confined to Antiky's owned runtime;
+if a person-controlled runtime is already connected, the request fails busy instead of replacing or
+driving it.
+
+### `capture_gameplay_sequence`
+
+Capture a three-second, 10 FPS lossless PNG master sequence and a WebM review derivative:
+
+```sh
+antiky tool capture_gameplay_sequence '{
+  "schemaVersion":1,
+  "expected":{
+    "developmentSessionId":"development-session-id",
+    "acceptedBuildRevision":1,
+    "currentRuntimeInstanceId":null
+  },
+  "runtimePolicy":"managed-only",
+  "target":{"width":1280,"height":720,"deviceScaleFactor":1},
+  "source":{"kind":"window","durationMilliseconds":3000,"framesPerSecond":10},
+  "idempotencyKey":"motion-review-001"
+}'
+```
+
+For bounded page-local input, replace `source` with a presentation trace. This example holds right
+while recording 30 frames, then explicitly releases it:
+
+```json
+{
+  "kind": "presentation-trace",
+  "framesPerSecond": 10,
+  "entries": [
+    { "kind": "key-press", "code": "KeyD" },
+    { "kind": "presentation-frame-wait", "frameCount": 30 },
+    { "kind": "key-release", "code": "KeyD" }
+  ]
+}
+```
+
+Pointer coordinates are normalized from 0 through 1 inside the registered game canvas. Every key
+or primary-pointer press needs a matching release. Presentation traces are browser-timed review
+inputs—not deterministic semantic replay. The successful result returns only observations,
+cadence, completed-step/digest ranges when available, and opaque poster, manifest, video, trace,
+and master-frame identities. PNG masters are authoritative capture bytes; WebM is a review
+derivative generated from those masters with audio fixed to `none`.
+
+Version 1 is limited to 6 seconds, 30 FPS, 180 frames, 512 trace entries, 2560×1440, DPR 2, and
+256 MiB per sequence. A late or dropped master rejects the whole sequence. Stable failure codes
+distinguish busy/stale state, runtime/WebGPU/browser/encoder unavailability, invalid input, limits,
+canvas mismatch, dropped frames, and artifact failure.
+
+### `get_render_evidence`
+
+List bounded private evidence metadata by session-owned identity or artifact kind:
+
+```sh
+antiky tool get_render_evidence '{"schemaVersion":1,"kind":"poster","limit":20}'
+```
+
+Retrieve one exact artifact by copying both opaque identities from a capture result:
+
+```sh
+antiky tool get_render_evidence '{
+  "schemaVersion":1,
+  "evidenceId":"evidence-example-001",
+  "artifactId":"artifact-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "limit":1
+}'
+```
+
+Authorized PNG lookup returns MCP image content. Manifests, frame collections, traces, and WebM
+artifacts remain opaque resource links; JSON never embeds unbounded base64 or filesystem paths.
+Evidence cannot cross development sessions and is removed with the session. All artifacts remain
+`private-unreviewed`: canvas-only provenance does not approve game-rendered text or pixels for
+publication.
 
 ### `set_point_light_power`
 

@@ -24,8 +24,18 @@ import {
   type DevelopmentCaptureResultV3,
 } from './capture.ts';
 import {
+  parseCaptureGameplaySequenceRequestV1,
+  parseCaptureGameplaySequenceResultV1,
+  type CaptureGameplaySequenceRequestV1,
+  type CaptureGameplaySequenceResultV1,
+} from './capture-sequence.ts';
+import {
   parseEvidenceArtifactRefV1,
+  parseRenderEvidenceQueryV1,
+  parseRenderEvidenceResultV1,
   type EvidenceArtifactRefV1,
+  type RenderEvidenceQueryV1,
+  type RenderEvidenceResultV1,
 } from './evidence.ts';
 import {
   projectDevelopmentPointLight,
@@ -59,7 +69,7 @@ import type {
 } from './types.ts';
 
 const SNAPSHOT_TIMEOUT_MILLISECONDS = 2_000;
-const ACTION_TIMEOUT_MILLISECONDS = 15_000;
+const ACTION_TIMEOUT_MILLISECONDS = 30_000;
 
 type DevelopmentFetch = typeof globalThis.fetch;
 
@@ -82,7 +92,11 @@ export interface DevelopmentClient {
   requestReload(): Promise<DevelopmentReloadResult>;
   captureFrameV2(request: CaptureFrameRequestV2): Promise<DevelopmentCaptureResultV2>;
   captureFrameV3(request: CaptureFrameRequestV3): Promise<DevelopmentCaptureResultV3>;
+  captureGameplaySequence(
+    request: CaptureGameplaySequenceRequestV1,
+  ): Promise<CaptureGameplaySequenceResultV1>;
   readEvidenceArtifact(artifact: EvidenceArtifactRefV1): Promise<Uint8Array>;
+  getRenderEvidence(query: RenderEvidenceQueryV1): Promise<RenderEvidenceResultV1>;
   listPointLights(): Promise<DevelopmentPointLightList>;
   listPointLightsV2(): Promise<DevelopmentPointLightListV2>;
   getPointLight(entityId: unknown): Promise<DevelopmentPointLightDetails>;
@@ -152,7 +166,9 @@ type ActionPath =
   | '/v1/actions/resume-simulation'
   | '/v1/actions/step-simulation'
   | '/v2/actions/capture'
-  | '/v3/actions/capture';
+  | '/v3/actions/capture'
+  | '/v1/actions/capture-gameplay-sequence'
+  | '/v1/render-evidence';
 
 function argumentError(message: string): never {
   throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', message);
@@ -510,6 +526,20 @@ export function createDevelopmentClient(
         '/v3/actions/capture',
         request,
       ));
+    },
+    async captureGameplaySequence(requestInput: CaptureGameplaySequenceRequestV1) {
+      const request = parseCaptureGameplaySequenceRequestV1(requestInput);
+      return parseCaptureGameplaySequenceResultV1(await requestAction<unknown>(
+        '/v1/actions/capture-gameplay-sequence',
+        request,
+      ));
+    },
+    async getRenderEvidence(queryInput: RenderEvidenceQueryV1) {
+      const query = parseRenderEvidenceQueryV1(queryInput);
+      return parseRenderEvidenceResultV1(
+        await requestAction<unknown>('/v1/render-evidence', query),
+        connection.developmentSessionId,
+      );
     },
     readEvidenceArtifact,
     async listPointLights() {

@@ -12,6 +12,11 @@ import {
   type ManagedBrowserLauncher,
 } from '../src/host/managed-capture-runtime.ts';
 
+const PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64',
+);
+
 test('managed capture runtime launches one isolated exact-origin browser and cleans it up', async () => {
   const temporaryRoot = await mkdtemp(join(tmpdir(), 'antiky-managed-runtime-test-'));
   let runtime: Readonly<{
@@ -20,6 +25,7 @@ test('managed capture runtime launches one isolated exact-origin browser and cle
     lifecycle: 'ready' | null;
   }> = { state: 'waiting', runtimeInstanceId: null, lifecycle: null };
   const launches: unknown[] = [];
+  const presentation: unknown[] = [];
   let closed = 0;
   const launcher: ManagedBrowserLauncher = async (input) => {
     launches.push(input);
@@ -34,6 +40,25 @@ test('managed capture runtime launches one isolated exact-origin browser and cle
         };
       },
       async probeWebGpu() { return true; },
+      async captureCanvasPng() { return PNG; },
+      async performPresentationAction(action) { presentation.push(action); },
+      async waitForPresentationFrame() {},
+      async encodePngSequence(frames, framesPerSecond) {
+        assert.deepEqual(frames, [PNG]);
+        assert.equal(framesPerSecond, 30);
+        return {
+          bytes: Buffer.from('webm'),
+          encoder: {
+            name: 'chromium-media-recorder',
+            version: '151.0.7922.34',
+            codec: 'vp9',
+            mimeType: 'video/webm',
+            videoBitsPerSecond: 8_000_000,
+            source: 'png-masters',
+            audio: 'none',
+          },
+        };
+      },
       async close() { closed += 1; },
     };
   };
@@ -56,6 +81,19 @@ test('managed capture runtime launches one isolated exact-origin browser and cle
       webGpu: { status: 'available', unavailableReason: null },
     });
     assert.equal(managed.owns('runtime-managed-001'), true);
+    assert.deepEqual(await managed.captureCanvasPng('runtime-managed-001'), PNG);
+    await managed.performPresentationAction('runtime-managed-001', {
+      kind: 'key-press', code: 'KeyD',
+    });
+    await managed.waitForPresentationFrame('runtime-managed-001');
+    assert.deepEqual(presentation, [{ kind: 'key-press', code: 'KeyD' }]);
+    const video = await managed.encodePngSequence('runtime-managed-001', [PNG], 30);
+    assert.deepEqual(video.bytes, Buffer.from('webm'));
+    await assert.rejects(
+      () => managed.captureCanvasPng('runtime-other-001'),
+      (cause: unknown) => cause instanceof AntikyCliError
+        && cause.code === 'CAPTURE_RUNTIME_DISCONNECTED',
+    );
     assert.equal(launches.length, 1);
     const launch = launches[0] as {
       profileDirectory: string;

@@ -104,6 +104,56 @@ const artifact = Object.freeze({
   }),
 });
 
+function sequenceArtifact(
+  kind: 'poster' | 'manifest' | 'video' | 'presentation-trace',
+  role: string,
+  hashCharacter: string,
+  mimeType: 'image/png' | 'application/json' | 'video/webm',
+) {
+  const sha256 = hashCharacter.repeat(64);
+  return Object.freeze({
+    ...artifact,
+    artifactId: `artifact-${sha256}`,
+    uri: `${artifact.uri.slice(0, artifact.uri.indexOf('/artifact-'))}/artifact-${sha256}`,
+    kind,
+    role,
+    mimeType,
+    width: mimeType === 'application/json' ? null : 1280,
+    height: mimeType === 'application/json' ? null : 720,
+    sha256,
+  });
+}
+
+const sequenceResult = Object.freeze({
+  schemaVersion: 1 as const,
+  sequenceId: 'sequence-browser-client-001',
+  source: 'managed-runtime' as const,
+  evidenceId: artifact.evidenceId,
+  observations: Object.freeze({ start: snapshotV2.observation!, end: snapshotV2.observation! }),
+  target: Object.freeze({ width: 1280, height: 720, deviceScaleFactor: 1 }),
+  cadence: Object.freeze({
+    framesPerSecond: 10,
+    requestedFrameCount: 1,
+    actualFrameCount: 1,
+    lateFrameCount: 0 as const,
+    droppedFrameCount: 0 as const,
+    captureOffsetsMilliseconds: Object.freeze([100]),
+  }),
+  completedSteps: Object.freeze({
+    start: null,
+    end: null,
+    startStateDigest: null,
+    endStateDigest: null,
+  }),
+  artifacts: Object.freeze({
+    masterFrameCount: 1,
+    poster: sequenceArtifact('poster', 'sequence-poster', 'b', 'image/png'),
+    manifest: sequenceArtifact('manifest', 'sequence-manifest', 'c', 'application/json'),
+    video: sequenceArtifact('video', 'review-derivative', 'd', 'video/webm'),
+    presentationTrace: null,
+  }),
+});
+
 test('browser client uses an explicit loopback connection without exposing its credential', async () => {
   const requests: Array<{ url: string; init?: RequestInit }> = [];
   const client = createDevelopmentClient({
@@ -137,6 +187,17 @@ test('browser client uses an explicit loopback connection without exposing its c
         observation: snapshotV2.observation,
         deviceScaleFactor: 1,
         artifact,
+      });
+      if (String(input).endsWith('/v1/actions/capture-gameplay-sequence')) {
+        return Response.json(sequenceResult);
+      }
+      if (String(input).endsWith('/v1/render-evidence')) return Response.json({
+        schemaVersion: 1,
+        developmentSessionId: snapshot.developmentSessionId,
+        availableCount: 1,
+        retainedCount: 1,
+        complete: true,
+        artifacts: [{ creationSequence: 1, artifact: sequenceResult.artifacts.poster }],
       });
       if (String(input).includes('/v1/evidence/')) {
         return new Response(new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), {
@@ -187,6 +248,26 @@ test('browser client uses an explicit loopback connection without exposing its c
     idempotencyKey: 'browser-client-managed-fixture',
   });
   assert.equal(managedCapture.source, 'managed-runtime');
+  const sequence = await client.captureGameplaySequence({
+    schemaVersion: 1,
+    expected: {
+      developmentSessionId: snapshot.developmentSessionId,
+      acceptedBuildRevision: 2,
+      currentRuntimeInstanceId: null,
+    },
+    runtimePolicy: 'managed-only',
+    target: { width: 1280, height: 720, deviceScaleFactor: 1 },
+    source: { kind: 'window', durationMilliseconds: 100, framesPerSecond: 10 },
+    idempotencyKey: 'browser-client-sequence-fixture',
+  });
+  assert.deepEqual(sequence, sequenceResult);
+  const renderEvidence = await client.getRenderEvidence({
+    schemaVersion: 1,
+    evidenceId: sequence.evidenceId,
+    kind: 'poster',
+    limit: 1,
+  });
+  assert.equal(renderEvidence.artifacts[0]?.artifact.kind, 'poster');
   assert.deepEqual(requests.map(({ url }) => url), [
     'http://127.0.0.1:3011/v1/development',
     'http://127.0.0.1:3011/v2/development',
@@ -196,6 +277,8 @@ test('browser client uses an explicit loopback connection without exposing its c
     'http://127.0.0.1:3011/v2/actions/capture',
     `http://127.0.0.1:3011/v1/evidence/${artifact.evidenceId}/${artifact.artifactId}`,
     'http://127.0.0.1:3011/v3/actions/capture',
+    'http://127.0.0.1:3011/v1/actions/capture-gameplay-sequence',
+    'http://127.0.0.1:3011/v1/render-evidence',
   ]);
   assert.equal(requests[0]?.init?.headers instanceof Headers, true);
   assert.equal((requests[0]?.init?.headers as Headers).get('authorization'), `Bearer ${'a'.repeat(48)}`);

@@ -11,6 +11,10 @@ import {
 import type { ObservationRefV1 } from '../development/observation.ts';
 import { AntikyCliError } from '../errors.ts';
 import type { ManagedCaptureRuntime } from './managed-capture-runtime.ts';
+import {
+  createCaptureOperationLock,
+  type CaptureOperationLock,
+} from './capture-operation-lock.ts';
 
 const MAX_IDEMPOTENCY_RECORDS = 128;
 
@@ -26,6 +30,7 @@ type CaptureServiceOptions = Readonly<{
   configuredHeight: number;
   readState(): CaptureServiceState;
   managedRuntime: ManagedCaptureRuntime;
+  operationLock?: CaptureOperationLock;
   submitCapture(
     request: CaptureFrameRequestV2,
     source: DevelopmentCaptureResultV2['source'],
@@ -127,6 +132,7 @@ function toRuntimeRequest(
 }
 
 export function createCaptureService(options: CaptureServiceOptions): CaptureService {
+  const operationLock = options.operationLock ?? createCaptureOperationLock();
   const idempotency = new Map<string, Readonly<{
     digest: string;
     promise: Promise<DevelopmentCaptureResultV2 | DevelopmentCaptureResultV3>;
@@ -181,7 +187,7 @@ export function createCaptureService(options: CaptureServiceOptions): CaptureSer
     return Object.freeze({ ...result, schemaVersion: 3 });
   };
 
-  const execute = async (
+  const perform = async (
     request: CaptureFrameRequestV2 | CaptureFrameRequestV3,
   ): Promise<DevelopmentCaptureResultV2 | DevelopmentCaptureResultV3> => {
     if (stopped) throw new AntikyCliError('CAPTURE_RUNTIME_UNAVAILABLE', 'Capture service stopped.');
@@ -191,6 +197,12 @@ export function createCaptureService(options: CaptureServiceOptions): CaptureSer
     validateTarget(request, options);
     return captureV3(parseCaptureFrameRequestV3(request));
   };
+
+  const execute = (
+    request: CaptureFrameRequestV2 | CaptureFrameRequestV3,
+  ): Promise<DevelopmentCaptureResultV2 | DevelopmentCaptureResultV3> => (
+    operationLock.run(() => perform(request))
+  );
 
   return Object.freeze({
     captureFrame(requestInput: CaptureFrameRequestV2 | CaptureFrameRequestV3) {

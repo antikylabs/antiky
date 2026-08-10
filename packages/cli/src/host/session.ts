@@ -13,6 +13,8 @@ import type {
   CaptureFrameRequestV3,
 } from '../development/capture.ts';
 import { createCaptureService } from './capture-service.ts';
+import { createCaptureSequenceService } from './capture-sequence-service.ts';
+import { createCaptureOperationLock } from './capture-operation-lock.ts';
 import { createEvidenceStore } from './evidence-store.ts';
 import {
   DEVELOPMENT_SCHEMA_VERSION,
@@ -60,6 +62,7 @@ type ManagedChild = {
 export type DevelopmentCleanupOperation =
   | 'action-broker'
   | 'capture-service'
+  | 'capture-sequence-service'
   | 'evidence-store'
   | 'game-port-reservation'
   | 'inspection-port-reservation'
@@ -365,6 +368,7 @@ export async function startDevelopmentSession(
       });
     },
   });
+  const captureOperationLock = createCaptureOperationLock();
   const captureService = createCaptureService({
     configuredWidth: project.development.viewport.width,
     configuredHeight: project.development.viewport.height,
@@ -378,7 +382,26 @@ export async function startDevelopmentSession(
       });
     },
     managedRuntime: managedCaptureRuntime,
+    operationLock: captureOperationLock,
     submitCapture: (request, source) => actionBroker.captureFrameV2(request, source),
+  });
+  const captureSequenceService = createCaptureSequenceService({
+    configuredWidth: project.development.viewport.width,
+    configuredHeight: project.development.viewport.height,
+    projectRevision: project.revision,
+    readState: () => {
+      const runtime = runtimeConnection.read();
+      return Object.freeze({
+        developmentSessionId: id,
+        acceptedBuildRevision: buildTracker.snapshot().revision,
+        connectionState: runtime.state,
+        observation: runtime.observation,
+        inspection: runtime.inspection,
+      });
+    },
+    managedRuntime: managedCaptureRuntime,
+    evidenceStore,
+    operationLock: captureOperationLock,
   });
 
   const snapshotFromRuntime = (
@@ -470,7 +493,11 @@ export async function startDevelopmentSession(
       if (result.schemaVersion !== 3) throw new Error('Capture service version mismatch.');
       return result;
     },
+    captureGameplaySequence: (request) => (
+      captureSequenceService.captureGameplaySequence(request)
+    ),
     readEvidence: (lookup) => evidenceStore.read(lookup),
+    listEvidence: (input) => evidenceStore.list(input),
     setPointLightPower: (command) => actionBroker.setPointLightPower(command),
     correctPointLightPower: (request) => actionBroker.correctPointLightPower(request),
     pauseSimulation: () => actionBroker.pauseSimulation(),
@@ -505,6 +532,10 @@ export async function startDevelopmentSession(
         {
           name: 'action-broker',
           operation: async () => { actionBroker.stop(); },
+        },
+        {
+          name: 'capture-sequence-service',
+          operation: () => captureSequenceService.stop(),
         },
         {
           name: 'capture-service',

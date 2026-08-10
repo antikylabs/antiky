@@ -18,6 +18,14 @@ import {
   parseCaptureFrameRequestV3,
 } from '../development/capture.ts';
 import {
+  parseCaptureGameplaySequenceRequestV1,
+  type CaptureGameplaySequenceResultV1,
+} from '../development/capture-sequence.ts';
+import {
+  parseRenderEvidenceQueryV1,
+  type RenderEvidenceResultV1,
+} from '../development/evidence.ts';
+import {
   projectDevelopmentEventHistoryV2,
   projectDevelopmentWorldInspectionV2,
 } from '../development/inspection.ts';
@@ -62,6 +70,8 @@ type McpDevelopmentClient = Pick<DevelopmentClient,
   | 'getCaptureCapabilities'
   | 'captureFrameV2'
   | 'captureFrameV3'
+  | 'captureGameplaySequence'
+  | 'getRenderEvidence'
   | 'readEvidenceArtifact'
 >>;
 
@@ -215,6 +225,61 @@ function imageToolResult(value: unknown, bytes: Uint8Array): unknown {
   };
 }
 
+function sequenceToolResult(sequence: CaptureGameplaySequenceResultV1): unknown {
+  const text = JSON.stringify(sequence);
+  const resources = [
+    sequence.artifacts.poster,
+    sequence.artifacts.manifest,
+    sequence.artifacts.video,
+    ...(sequence.artifacts.presentationTrace ? [sequence.artifacts.presentationTrace] : []),
+  ].map((artifact) => ({
+    type: 'resource_link',
+    name: artifact.role,
+    uri: artifact.uri,
+    mimeType: artifact.mimeType,
+    size: artifact.byteLength,
+    description: 'Private unreviewed Antiky canvas evidence; retrieve by authorized opaque identity.',
+  }));
+  return {
+    content: [{ type: 'text', text }, ...resources],
+    structuredContent: sequence,
+  };
+}
+
+function renderEvidenceToolResult(
+  result: RenderEvidenceResultV1,
+  exactPngBytes?: Uint8Array,
+): unknown {
+  const text = JSON.stringify(result);
+  if (exactPngBytes) {
+    return {
+      content: [
+        { type: 'text', text },
+        {
+          type: 'image',
+          data: Buffer.from(exactPngBytes).toString('base64'),
+          mimeType: 'image/png',
+        },
+      ],
+      structuredContent: result,
+    };
+  }
+  return {
+    content: [
+      { type: 'text', text },
+      ...result.artifacts.map(({ artifact }) => ({
+        type: 'resource_link',
+        name: artifact.role,
+        uri: artifact.uri,
+        mimeType: artifact.mimeType,
+        size: artifact.byteLength,
+        description: 'Private unreviewed Antiky canvas evidence.',
+      })),
+    ],
+    structuredContent: result,
+  };
+}
+
 function toolFailure(cause: unknown): unknown {
   const error = cause instanceof AntikyCliError
     ? { code: cause.code, message: cause.message }
@@ -290,6 +355,34 @@ export async function processMcpRequest(
           'Capture capability discovery is unavailable.',
         );
         return response(id, toolResult(await client.getCaptureCapabilities()));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
+    if (params.name === 'get_render_evidence') {
+      let query;
+      try {
+        query = parseRenderEvidenceQueryV1(params.arguments);
+      } catch {
+        return errorResponse(id, -32602, 'Invalid tool call.');
+      }
+      try {
+        if (!client.getRenderEvidence) throw new AntikyCliError(
+          'CAPTURE_RUNTIME_UNAVAILABLE',
+          'Render evidence discovery is unavailable.',
+        );
+        const result = await client.getRenderEvidence(query);
+        const exact = query.artifactId === undefined ? null : result.artifacts[0]?.artifact ?? null;
+        const bytes = exact?.mimeType === 'image/png'
+          ? await (() => {
+            if (!client.readEvidenceArtifact) throw new AntikyCliError(
+              'CAPTURE_RUNTIME_UNAVAILABLE',
+              'Evidence image retrieval is unavailable.',
+            );
+            return client.readEvidenceArtifact(exact);
+          })()
+          : undefined;
+        return response(id, renderEvidenceToolResult(result, bytes));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }
@@ -389,6 +482,27 @@ export async function processMcpRequest(
           : await client.captureFrameV2(request);
         const bytes = await client.readEvidenceArtifact(capture.artifact);
         return response(id, imageToolResult(capture, bytes));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
+    if (params.name === 'capture_gameplay_sequence') {
+      let request;
+      try {
+        request = parseCaptureGameplaySequenceRequestV1(params.arguments);
+      } catch {
+        return errorResponse(id, -32602, 'Invalid tool call.');
+      }
+      try {
+        if (!client.captureGameplaySequence) {
+          throw new AntikyCliError(
+            'CAPTURE_RUNTIME_UNAVAILABLE',
+            'Managed sequence capture is unavailable.',
+          );
+        }
+        return response(id, sequenceToolResult(
+          await client.captureGameplaySequence(request),
+        ));
       } catch (cause: unknown) {
         return response(id, toolFailure(cause));
       }

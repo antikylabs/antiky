@@ -41,9 +41,24 @@ import type {
   DevelopmentCaptureResultV2,
   DevelopmentCaptureResultV3,
 } from '../development/capture.ts';
-import type { EvidenceArtifactRefV1 } from '../development/evidence.ts';
+import {
+  parseRenderEvidenceQueryV1,
+  type EvidenceArtifactRefV1,
+  type RenderEvidenceQueryV1,
+  type RenderEvidenceResultV1,
+} from '../development/evidence.ts';
 import type { CaptureCapabilitiesV1 } from '../development/capture-capabilities.ts';
-import type { EvidenceArtifact, EvidenceLookup } from './evidence-store.ts';
+import {
+  parseCaptureGameplaySequenceRequestV1,
+  type CaptureGameplaySequenceRequestV1,
+  type CaptureGameplaySequenceResultV1,
+} from '../development/capture-sequence.ts';
+import type {
+  EvidenceArtifact,
+  EvidenceListInput,
+  EvidenceListResult,
+  EvidenceLookup,
+} from './evidence-store.ts';
 import { AntikyCliError } from '../errors.ts';
 import {
   NOOP_CLI_DIAGNOSTIC_SINK,
@@ -95,6 +110,8 @@ const DEVELOPMENT_POST_PATHS = new Set([
   '/v1/actions/correct-point-light-power',
   '/v2/actions/capture',
   '/v3/actions/capture',
+  '/v1/actions/capture-gameplay-sequence',
+  '/v1/render-evidence',
 ]);
 
 type InspectionServerOptions = Readonly<{
@@ -117,7 +134,11 @@ type InspectionServerOptions = Readonly<{
   requestReload(): Promise<DevelopmentReloadResult>;
   captureFrameV2(request: CaptureFrameRequestV2): Promise<DevelopmentCaptureResultV2>;
   captureFrameV3(request: CaptureFrameRequestV3): Promise<DevelopmentCaptureResultV3>;
+  captureGameplaySequence(
+    request: CaptureGameplaySequenceRequestV1,
+  ): Promise<CaptureGameplaySequenceResultV1>;
   readEvidence(lookup: EvidenceLookup): Promise<EvidenceArtifact>;
+  listEvidence(input: EvidenceListInput): EvidenceListResult;
   setPointLightPower(command: SetPointLightPowerCommand): Promise<PointLightCommandResult>;
   correctPointLightPower(
     request: CorrectPointLightPowerRequest,
@@ -233,6 +254,46 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
     requestReload: options.requestReload,
     captureFrameV2: options.captureFrameV2,
     captureFrameV3: options.captureFrameV3,
+    captureGameplaySequence: options.captureGameplaySequence,
+    getRenderEvidence: async (query: RenderEvidenceQueryV1) => {
+      if (query.artifactId) {
+        const exact = await options.readEvidence({
+          evidenceId: query.evidenceId!,
+          artifactId: query.artifactId,
+        });
+        if (query.kind !== undefined && exact.artifact.kind !== query.kind) {
+          return Object.freeze({
+            schemaVersion: 1 as const,
+            developmentSessionId: options.developmentSessionId,
+            availableCount: 0,
+            retainedCount: 0,
+            complete: true,
+            artifacts: Object.freeze([]),
+          });
+        }
+        const listed = options.listEvidence({ evidenceId: query.evidenceId, limit: 256 });
+        const entry = listed.artifacts.find(
+          ({ artifact }) => artifact.artifactId === query.artifactId,
+        );
+        if (!entry) throw new AntikyCliError(
+          'ANTIKY_EVIDENCE_NOT_FOUND',
+          'The evidence artifact is unavailable.',
+        );
+        return Object.freeze({
+          schemaVersion: 1 as const,
+          developmentSessionId: options.developmentSessionId,
+          availableCount: 1,
+          retainedCount: 1,
+          complete: true,
+          artifacts: Object.freeze([entry]),
+        });
+      }
+      return options.listEvidence({
+        ...(query.evidenceId === undefined ? {} : { evidenceId: query.evidenceId }),
+        ...(query.kind === undefined ? {} : { kind: query.kind }),
+        limit: query.limit,
+      });
+    },
     async readEvidenceArtifact(artifact: EvidenceArtifactRefV1) {
       return (await options.readEvidence({
         evidenceId: artifact.evidenceId,
@@ -449,6 +510,54 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
             requestUrl.pathname.includes('/v3/')
               ? await options.captureFrameV3(input as CaptureFrameRequestV3)
               : await options.captureFrameV2(input as CaptureFrameRequestV2),
+            allowedResponseOrigin,
+          );
+          return;
+        }
+        if (request.method === 'POST' && requestUrl.pathname === '/v1/render-evidence') {
+          const query = parseRenderEvidenceQueryV1(
+            await readJson(request, MAX_BROWSER_MESSAGE_BYTES),
+          );
+          let result: RenderEvidenceResultV1;
+          if (query.artifactId) {
+            const exact = await options.readEvidence({
+              evidenceId: query.evidenceId!,
+              artifactId: query.artifactId,
+            });
+            const listed = options.listEvidence({ evidenceId: query.evidenceId, limit: 256 });
+            const entry = listed.artifacts.find(
+              ({ artifact }) => artifact.artifactId === exact.artifact.artifactId,
+            );
+            const matchesKind = query.kind === undefined || exact.artifact.kind === query.kind;
+            result = Object.freeze({
+              schemaVersion: 1,
+              developmentSessionId: options.developmentSessionId,
+              availableCount: matchesKind ? 1 : 0,
+              retainedCount: matchesKind ? 1 : 0,
+              complete: true,
+              artifacts: Object.freeze(matchesKind && entry ? [entry] : []),
+            });
+          } else {
+            result = options.listEvidence({
+              ...(query.evidenceId === undefined ? {} : { evidenceId: query.evidenceId }),
+              ...(query.kind === undefined ? {} : { kind: query.kind }),
+              limit: query.limit,
+            });
+          }
+          writeJson(response, 200, result, allowedResponseOrigin);
+          return;
+        }
+        if (
+          request.method === 'POST'
+          && requestUrl.pathname === '/v1/actions/capture-gameplay-sequence'
+        ) {
+          const input = parseCaptureGameplaySequenceRequestV1(
+            await readJson(request, MAX_BROWSER_MESSAGE_BYTES),
+          );
+          writeJson(
+            response,
+            200,
+            await options.captureGameplaySequence(input),
             allowedResponseOrigin,
           );
           return;

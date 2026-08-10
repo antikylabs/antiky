@@ -21,6 +21,30 @@ export type EvidenceArtifactKind =
   | 'video'
   | 'presentation-trace';
 
+export const EVIDENCE_ARTIFACT_KINDS = Object.freeze([
+  'still', 'sequence-frame', 'poster', 'manifest', 'video', 'presentation-trace',
+] as const satisfies readonly EvidenceArtifactKind[]);
+
+export type RenderEvidenceQueryV1 = Readonly<{
+  schemaVersion: 1;
+  evidenceId?: string;
+  artifactId?: string;
+  kind?: EvidenceArtifactKind;
+  limit: number;
+}>;
+
+export type RenderEvidenceResultV1 = Readonly<{
+  schemaVersion: 1;
+  developmentSessionId: string;
+  availableCount: number;
+  retainedCount: number;
+  complete: boolean;
+  artifacts: readonly Readonly<{
+    creationSequence: number;
+    artifact: EvidenceArtifactRefV1;
+  }>[];
+}>;
+
 export type EvidenceArtifactRefV1 = Readonly<{
   schemaVersion: 1;
   evidenceId: string;
@@ -112,10 +136,9 @@ export function parseEvidenceArtifactRefV1(value: unknown): EvidenceArtifactRefV
   if (artifactId !== `artifact-${sha256}`) invalid('Artifact identity does not match its hash.', '$.artifactId');
   const expectedUri = `antiky-evidence://${evidenceId}/${artifactId}`;
   if (record.uri !== expectedUri) invalid('Evidence URI does not match its identities.', '$.uri');
-  const kinds: readonly EvidenceArtifactKind[] = [
-    'still', 'sequence-frame', 'poster', 'manifest', 'video', 'presentation-trace',
-  ];
-  if (!kinds.includes(record.kind as EvidenceArtifactKind)) invalid('Unknown artifact kind.', '$.kind');
+  if (!EVIDENCE_ARTIFACT_KINDS.includes(record.kind as EvidenceArtifactKind)) {
+    invalid('Unknown artifact kind.', '$.kind');
+  }
   if (!EVIDENCE_MIME_TYPES.includes(record.mimeType as EvidenceMimeType)) {
     invalid('Unsupported evidence media type.', '$.mimeType');
   }
@@ -177,4 +200,93 @@ export function isEvidenceId(value: unknown): value is string {
 
 export function isArtifactId(value: unknown): value is string {
   return typeof value === 'string' && ARTIFACT_ID_PATTERN.test(value);
+}
+
+export function parseRenderEvidenceQueryV1(value: unknown): RenderEvidenceQueryV1 {
+  const record = object(value, '$');
+  const allowed = new Set(['schemaVersion', 'evidenceId', 'artifactId', 'kind', 'limit']);
+  for (const key of Object.keys(record)) {
+    if (!allowed.has(key)) invalid('Unknown render-evidence field.', `$.${key}`);
+  }
+  if (record.schemaVersion !== 1) invalid('Unsupported render-evidence query.', '$.schemaVersion');
+  if (!Number.isSafeInteger(record.limit) || (record.limit as number) < 1 || (record.limit as number) > 256) {
+    invalid('Render-evidence limit is invalid.', '$.limit');
+  }
+  if (record.evidenceId !== undefined && !isEvidenceId(record.evidenceId)) {
+    invalid('Evidence identity is invalid.', '$.evidenceId');
+  }
+  if (record.artifactId !== undefined) {
+    if (!isArtifactId(record.artifactId)) invalid('Artifact identity is invalid.', '$.artifactId');
+    if (record.evidenceId === undefined) invalid('Exact artifact lookup needs evidence identity.', '$.evidenceId');
+  }
+  if (
+    record.kind !== undefined
+    && !EVIDENCE_ARTIFACT_KINDS.includes(record.kind as EvidenceArtifactKind)
+  ) invalid('Evidence kind is invalid.', '$.kind');
+  return Object.freeze({
+    schemaVersion: 1,
+    ...(record.evidenceId === undefined ? {} : { evidenceId: record.evidenceId as string }),
+    ...(record.artifactId === undefined ? {} : { artifactId: record.artifactId as string }),
+    ...(record.kind === undefined ? {} : { kind: record.kind as EvidenceArtifactKind }),
+    limit: record.limit as number,
+  });
+}
+
+export function parseRenderEvidenceResultV1(
+  value: unknown,
+  expectedDevelopmentSessionId?: string,
+): RenderEvidenceResultV1 {
+  const record = object(value, '$');
+  keys(record, [
+    'schemaVersion', 'developmentSessionId', 'availableCount', 'retainedCount',
+    'complete', 'artifacts',
+  ], '$');
+  if (record.schemaVersion !== 1) invalid('Unsupported render-evidence result.', '$.schemaVersion');
+  const developmentSessionId = exactString(
+    record.developmentSessionId,
+    /^[a-z0-9][a-z0-9-]{0,127}$/u,
+    '$.developmentSessionId',
+  );
+  if (
+    expectedDevelopmentSessionId !== undefined
+    && developmentSessionId !== expectedDevelopmentSessionId
+  ) invalid('Render evidence belongs to another session.', '$.developmentSessionId');
+  const availableCount = count(record.availableCount, '$.availableCount');
+  const retainedCount = count(record.retainedCount, '$.retainedCount');
+  if (retainedCount > availableCount || typeof record.complete !== 'boolean') {
+    invalid('Render-evidence counts are invalid.', '$.retainedCount');
+  }
+  if (!Array.isArray(record.artifacts) || record.artifacts.length !== retainedCount) {
+    invalid('Render-evidence artifacts are invalid.', '$.artifacts');
+  }
+  let previousSequence = 0;
+  const artifacts = Object.freeze(record.artifacts.map((value, index) => {
+    const entry = object(value, `$.artifacts[${index}]`);
+    keys(entry, ['creationSequence', 'artifact'], `$.artifacts[${index}]`);
+    const creationSequence = count(
+      entry.creationSequence,
+      `$.artifacts[${index}].creationSequence`,
+      true,
+    );
+    if (creationSequence <= previousSequence) {
+      invalid('Render-evidence ordering is invalid.', `$.artifacts[${index}].creationSequence`);
+    }
+    previousSequence = creationSequence;
+    const artifact = parseEvidenceArtifactRefV1(entry.artifact);
+    if (artifact.observation.developmentSessionId !== developmentSessionId) {
+      invalid('Evidence artifact belongs to another session.', `$.artifacts[${index}].artifact`);
+    }
+    return Object.freeze({ creationSequence, artifact });
+  }));
+  if (record.complete !== (availableCount === retainedCount)) {
+    invalid('Render-evidence completeness is invalid.', '$.complete');
+  }
+  return Object.freeze({
+    schemaVersion: 1,
+    developmentSessionId,
+    availableCount,
+    retainedCount,
+    complete: record.complete,
+    artifacts,
+  });
 }

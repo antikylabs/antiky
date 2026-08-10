@@ -36,7 +36,8 @@ export type CliDiagnosticComponent =
   | 'inspection-server'
   | 'runtime-connection'
   | 'capture-store'
-  | 'capture-service';
+  | 'capture-service'
+  | 'capture-sequence-service';
 
 export type CliDiagnosticEvent = Readonly<{
   schemaVersion: 1;

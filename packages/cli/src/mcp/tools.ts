@@ -19,6 +19,7 @@ export const MCP_POINT_LIGHT_READ_TOOL_NAMES = Object.freeze([
 export const MCP_READ_TOOL_NAMES = Object.freeze([
   ...MCP_SNAPSHOT_READ_TOOL_NAMES,
   'get_capture_capabilities',
+  'get_render_evidence',
   'get_session_status',
   'get_world_inspection',
   'get_event_log',
@@ -29,6 +30,7 @@ export const MCP_TOOL_NAMES = Object.freeze([
   ...MCP_READ_TOOL_NAMES,
   'dev_reload',
   'capture_frame',
+  'capture_gameplay_sequence',
   'pause_simulation',
   'resume_simulation',
   'step_simulation',
@@ -155,6 +157,123 @@ const captureFrameInputSchema = Object.freeze({
   additionalProperties: false,
 } as const);
 
+const presentationTraceEntrySchema = Object.freeze({
+  oneOf: [
+    {
+      type: 'object',
+      properties: {
+        kind: { enum: ['key-press', 'key-release'] },
+        code: {
+          enum: [
+            'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp',
+            'Enter', 'Escape', 'KeyA', 'KeyD', 'KeyS', 'KeyW', 'Space',
+          ],
+        },
+      },
+      required: ['kind', 'code'],
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        kind: { const: 'pointer-move' },
+        x: { type: 'number', minimum: 0, maximum: 1 },
+        y: { type: 'number', minimum: 0, maximum: 1 },
+      },
+      required: ['kind', 'x', 'y'],
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        kind: { enum: ['pointer-press', 'pointer-release'] },
+        button: { const: 'primary' },
+      },
+      required: ['kind', 'button'],
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        kind: { const: 'presentation-frame-wait' },
+        frameCount: { type: 'integer', minimum: 1, maximum: 180 },
+      },
+      required: ['kind', 'frameCount'],
+      additionalProperties: false,
+    },
+    {
+      type: 'object',
+      properties: {
+        kind: { const: 'completed-step-wait' },
+        completedStepCount: { type: 'integer', minimum: 0 },
+        timeoutMilliseconds: { type: 'integer', minimum: 1, maximum: 6000 },
+      },
+      required: ['kind', 'completedStepCount', 'timeoutMilliseconds'],
+      additionalProperties: false,
+    },
+  ],
+} as const);
+
+const captureGameplaySequenceInputSchema = Object.freeze({
+  type: 'object',
+  properties: {
+    schemaVersion: { const: 1 },
+    expected: captureExpectedV3Schema,
+    runtimePolicy: { const: 'managed-only' },
+    target: captureFrameInputSchema.properties.target,
+    source: {
+      oneOf: [
+        {
+          type: 'object',
+          properties: {
+            kind: { const: 'window' },
+            durationMilliseconds: { type: 'integer', minimum: 100, maximum: 6000 },
+            framesPerSecond: { type: 'integer', minimum: 1, maximum: 30 },
+          },
+          required: ['kind', 'durationMilliseconds', 'framesPerSecond'],
+          additionalProperties: false,
+        },
+        {
+          type: 'object',
+          properties: {
+            kind: { const: 'presentation-trace' },
+            framesPerSecond: { type: 'integer', minimum: 1, maximum: 30 },
+            entries: {
+              type: 'array',
+              minItems: 1,
+              maxItems: 512,
+              items: presentationTraceEntrySchema,
+            },
+          },
+          required: ['kind', 'framesPerSecond', 'entries'],
+          additionalProperties: false,
+        },
+      ],
+    },
+    idempotencyKey: { type: 'string', minLength: 1, maxLength: 128 },
+  },
+  required: ['schemaVersion', 'expected', 'runtimePolicy', 'target', 'source', 'idempotencyKey'],
+  additionalProperties: false,
+} as const);
+
+const getRenderEvidenceInputSchema = Object.freeze({
+  type: 'object',
+  properties: {
+    schemaVersion: { const: 1 },
+    evidenceId: {
+      type: 'string',
+      pattern: '^evidence-[a-z0-9][a-z0-9-]{7,126}$',
+    },
+    artifactId: { type: 'string', pattern: '^artifact-[0-9a-f]{64}$' },
+    kind: {
+      enum: ['still', 'sequence-frame', 'poster', 'manifest', 'video', 'presentation-trace'],
+    },
+    limit: { type: 'integer', minimum: 1, maximum: 256 },
+  },
+  required: ['schemaVersion', 'limit'],
+  additionalProperties: false,
+} as const);
+
 const readToolAnnotations = Object.freeze({
   readOnlyHint: true,
   destructiveHint: false,
@@ -212,6 +331,12 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
     annotations: readToolAnnotations,
   },
   {
+    name: 'get_render_evidence',
+    description: 'Call to list bounded private canvas evidence metadata or retrieve one exact authorized artifact by opaque evidence and artifact identity. Filter by evidence group or kind and set an explicit limit. Exact PNG lookup returns one MCP image block; manifests, traces, and WebM remain opaque resource links. It never accepts a path or directory and never returns base64 inside JSON.',
+    inputSchema: getRenderEvidenceInputSchema,
+    annotations: readToolAnnotations,
+  },
+  {
     name: 'get_session_status',
     description: 'Call to inspect the connected engine session and its fixed clock before changing simulation state. It returns session, world, and runtime identities; mode and pause reasons; immutable system order; completed-step and elapsed-time counters; revisions; and the latest state digest. It takes no arguments and does not change the session.',
     inputSchema: emptyInputSchema,
@@ -252,6 +377,12 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
     description: 'Call when you need exact pixels from the game canvas after reading the version-two runtime observation and render dimensions. Fence the development session, accepted build, runtime, and any exact paused step; choose the current or managed runtime policy; and provide bounded target dimensions plus an idempotency key. It returns private path-safe evidence metadata and an MCP image block. Use get_render_stats for renderer measurements.',
     inputSchema: captureFrameInputSchema,
     annotations: actionToolAnnotations,
+  },
+  {
+    name: 'capture_gameplay_sequence',
+    description: 'Call after get_capture_capabilities to capture a bounded canvas-only motion sequence in Antiky-owned managed Chromium. Supply either a cadence window or a strict keyboard/pointer presentation trace. It preserves lossless PNG masters, derives one WebM with no audio, and returns opaque private poster, manifest, and video references. It cannot drive a person-controlled browser, use OS input, capture a window or desktop, or claim deterministic replay.',
+    inputSchema: captureGameplaySequenceInputSchema,
+    annotations: retrySafeActionToolAnnotations,
   },
   {
     name: 'pause_simulation',

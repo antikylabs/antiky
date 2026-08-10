@@ -7,6 +7,8 @@ import { AntikyCliError } from '../src/errors.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import { createCaptureService } from '../src/host/capture-service.ts';
 import type { ManagedCaptureRuntime } from '../src/host/managed-capture-runtime.ts';
+// @ts-ignore direct TypeScript source import for the Node strip-types runner
+import { createCaptureOperationLock } from '../src/host/capture-operation-lock.ts';
 
 function observation(runtimeInstanceId: string, acceptedBuildRevision = 3): ObservationRefV1 {
   return Object.freeze({
@@ -72,6 +74,21 @@ function managedRuntime(onEnsure: () => void): ManagedCaptureRuntime {
     owns: (runtimeInstanceId) => runtimeInstanceId === 'runtime-managed-service-001',
     webGpuStatus: () => ({ status: 'available', unavailableReason: null }),
     assertSafe: () => {},
+    captureCanvasPng: async () => Buffer.alloc(1),
+    performPresentationAction: async () => {},
+    waitForPresentationFrame: async () => {},
+    encodePngSequence: async () => ({
+      bytes: Buffer.from('webm'),
+      encoder: {
+        name: 'chromium-media-recorder',
+        version: '151.0.7922.34',
+        codec: 'vp9',
+        mimeType: 'video/webm',
+        videoBitsPerSecond: 8_000_000,
+        source: 'png-masters',
+        audio: 'none',
+      },
+    }),
     releaseRuntime: async () => {},
     stop: async () => {},
   };
@@ -295,4 +312,17 @@ test('a connected runtime owned by the capture service remains attested as manag
   assert.equal(captured.source, 'managed-runtime');
   assert.equal(launches, 0);
   await service.stop();
+});
+
+test('one capture operation lock rejects a concurrent writer and releases after settlement', async () => {
+  const lock = createCaptureOperationLock();
+  let release!: () => void;
+  const first = lock.run(() => new Promise<string>((resolve) => { release = () => resolve('done'); }));
+  await assert.rejects(
+    () => lock.run(async () => 'overlap'),
+    (cause: unknown) => cause instanceof AntikyCliError && cause.code === 'CAPTURE_RUNTIME_BUSY',
+  );
+  release();
+  assert.equal(await first, 'done');
+  assert.equal(await lock.run(async () => 'next'), 'next');
 });

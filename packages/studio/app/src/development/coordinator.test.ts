@@ -1,18 +1,29 @@
 import assert from 'node:assert/strict';
-import { test } from 'vitest';
+import { expectTypeOf, test } from 'vitest';
 
 import type {
   DevelopmentConnection,
   DevelopmentMcpCallLog,
   DevelopmentSessionControlResult,
   DevelopmentSnapshotV2,
+  DevelopmentClient,
 } from '@antiky/cli/development';
 
 import {
   StudioControlError,
   createStudioCoordinator,
+  type StudioCaptureClient,
   type StudioDevelopmentClient,
 } from './coordinator.ts';
+
+test('Studio capture types are the shared browser-safe development contracts', () => {
+  expectTypeOf<StudioCaptureClient>().toEqualTypeOf<Pick<DevelopmentClient,
+    | 'getCaptureCapabilities'
+    | 'captureFrameV3'
+    | 'captureGameplaySequence'
+    | 'getRenderEvidence'
+  >>();
+});
 
 const connection = (developmentSessionId: string): DevelopmentConnection => ({
   inspectionUrl: 'http://127.0.0.1:3011',
