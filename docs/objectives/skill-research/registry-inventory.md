@@ -7,6 +7,10 @@ objective. It is an inventory, not an endorsement. Install counts are volatile p
 they do not prove correctness, safety, editor compatibility, authorship quality, or an ability to
 produce a good game.
 
+**Antiky scope:** this inventory is mined for workflow patterns, missing disciplines, packaging
+ideas, and evaluation methods for Antiky Framework and BroMetal. It is not a plan to build or
+install Unity, Unreal, or Godot skills.
+
 No skill was installed during this research.
 
 ## Method

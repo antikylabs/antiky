@@ -15,6 +15,11 @@ This report evaluates reusable agent skills, MCP/editor bridges, command-line to
 
 No package, skill, MCP, or editor extension was installed while preparing this report.
 
+**Antiky scope:** Antiky/BroMetal is the sole implementation target. Unreal, Unity, Godot, their
+material systems, and their editor bridges are comparative case studies. Recommendations must be
+translated into Antiky's `RenderDriver` boundary and BroMetal's typed shader/WebGPU model; there is
+no external-engine rendering-skill or adapter roadmap.
+
 Evidence labels used below:
 
 - **Verified** means the statement was checked against the skills registry, an official project repository, or first-party documentation on the research date.
@@ -26,11 +31,11 @@ Registry installation counts are volatile snapshots rather than quality scores. 
 
 There is no credible single skill that covers the complete path from a visual brief to a shippable, fast, polished frame. The strongest approach is a layered rendering toolchain:
 
-1. Use small, reviewed knowledge skills for shader idioms and engine-specific APIs.
+1. Use small, reviewed knowledge skills for BroMetal shader idioms and Antiky integration rules.
 2. Use official compilers and validators as the correctness gate.
-3. Use engine-native material, lighting, particle, and profiling systems for integration.
+3. Use Antiky/BroMetal-native material, lighting, VFX, and profiling surfaces for integration.
 4. Use headless DCC and texture tools for deterministic conversion and baking.
-5. Use the GPU debugger native to each graphics API and operating system.
+5. Use the GPU debugger appropriate to WebGPU's backend and the target operating system.
 6. Use reproducible image capture plus both numeric and human visual review.
 7. Keep mutation-capable editor MCPs in an isolated, checkpointed environment with explicit approval boundaries.
 
@@ -38,9 +43,9 @@ There is no credible single skill that covers the complete path from a visual br
 
 ### Maturity interpretation
 
-- **Production foundation:** official engine material/VFX systems; DXC, glslang, SPIRV-Tools, Tint/Naga when version-matched to their runtime; Blender; OpenImageIO/OpenColorIO; RenderDoc/PIX/Nsight/Xcode on their supported platforms; established texture codecs used through pinned releases.
+- **Production foundation:** Antiky/BroMetal material and render contracts; DXC, glslang, SPIRV-Tools, Tint/Naga when version-matched to the actual toolchain; Blender; OpenImageIO/OpenColorIO; RenderDoc/PIX/Nsight/Xcode where compatible with the target WebGPU backend; established texture codecs used through pinned releases.
 - **Established but integration-sensitive:** MaterialX, Slang, Material Maker, Adobe Substance automation, Unity MCP, and Blender MCP. These are capable tools, but correctness, licensing, or security depends heavily on the exact integration.
-- **Evaluation-only:** public rendering knowledge skills, the RenderDoc/Nsight CLI-Anything harnesses, VibeUE while Unreal's native MCP remains experimental, and low-adoption Godot editor bridges. Use in samples before considering production access.
+- **Comparative or evaluation-only:** public rendering knowledge skills, the RenderDoc/Nsight CLI-Anything harnesses, VibeUE, and Godot editor bridges. Mine external-engine integrations for patterns; do not advance them toward Antiky production access.
 
 These labels describe fitness for this workflow, not the intrinsic quality of each project. For example, Blender MCP is popular and feature-rich, but its arbitrary-code surface makes the unmodified bridge unsuitable for a secrets-bearing production workspace.
 
@@ -171,7 +176,9 @@ The official [Godot shader documentation](https://docs.godotengine.org/en/stable
 
 The registry's `godot-shaders` skill is a useful focused reference for Godot 4.x syntax, uniforms, screen reads, and ports from 3.x. It does not replace runtime validation under the Compatibility, Mobile, and Forward+ renderer paths.
 
-**Inference / recommendation:** Antiky's Godot comparison work should test the same material intent in a representative 2D and 3D scene, not compare source text. Godot-specific built-ins, depth conventions, lighting paths, and particle behavior make text-level translation misleading.
+**Comparative lesson:** material systems should be compared through intent and rendered behavior,
+not source text. Godot-specific built-ins, depth conventions, lighting paths, and particle behavior
+are an example of why Antiky should define and validate its own material semantics.
 
 ## Editor automation and MCP bridges
 
@@ -450,13 +457,13 @@ The safest useful agent topology gives each specialist a bounded artifact and pr
 6. Visual QA reproduces captures from the manifest and runs correctness, performance, and diff gates.
 7. Render lead performs the human art-direction gate on target displays/devices.
 
-**Inference / recommendation:** large binary assets should use Git LFS or an equivalent versioned asset store. Agents should exchange sidecar manifests and rendered previews, not overwrite each other's `.blend`, Unreal package, or Unity scene files. Editor transactions and undo are helpful but do not replace source control.
+**Inference / recommendation:** large binary assets should use Git LFS or an equivalent versioned asset store. Agents should exchange sidecar manifests and rendered previews, not overwrite each other's `.blend` files or shared Antiky assets. Transactions and undo are helpful but do not replace source control.
 
 ## Skills Antiky should build
 
 These gaps are more valuable than another broad “make it look AAA” prompt.
 
-### 1. `shader-authoring-validation`
+### 1. `author-brometal-shaders`
 
 - Declares source language, stages, entry points, defines, feature level, target APIs, binding schema, and precision expectations.
 - Runs DXC, glslang, Tint/Naga, Slang, and SPIRV-Tools only where applicable.
@@ -464,17 +471,17 @@ These gaps are more valuable than another broad “make it look AAA” prompt.
 - Produces a machine-readable permutation and reflection manifest.
 - Refuses to equate compilation with visual correctness.
 
-### 2. `engine-material-authoring`
+### 2. `build-antiky-materials`
 
-- Separate adapters for Antiky/BroMetal, Unreal, Unity pipeline/version, and Godot renderer/version.
-- Converts a material intent and supported-node specification into native materials and parameter interfaces.
+- Converts a material intent and supported-node specification into Antiky/BroMetal materials and parameter interfaces.
+- Preserves the rule that only Antiky's owned `RenderDriver` reaches BroMetal directly.
 - Validates texture color space, tangent basis, UV conventions, blend mode, depth/shadow behavior, motion vectors, and instancing.
 - Generates controlled material test scenes rather than screenshots of arbitrary worlds.
 
 ### 3. `materialx-interchange`
 
 - Validates graphs against an explicit supported subset.
-- Records unsupported nodes, unit/color-space conversions, and engine adapters.
+- Records unsupported nodes and unit/color-space conversions into the Antiky/BroMetal material model.
 - Generates deterministic baked fallbacks when allowed.
 - Runs semantic tests and renderer-specific golden images before accepting parity.
 
@@ -499,10 +506,10 @@ These gaps are more valuable than another broad “make it look AAA” prompt.
 - Evaluates bright, dark, neutral, and motion conditions at gameplay distance.
 - Includes platform scalability and accessibility/readability checks.
 
-### 7. `realtime-vfx`
+### 7. `build-antiky-vfx`
 
 - Converts effect intent into shape language and anticipation/action/recovery timing.
-- Provides Niagara, Unity VFX Graph, Godot, and Antiky adapters without pretending graphs are portable.
+- Builds Antiky/BroMetal-native effects while using other engines only as conceptual references.
 - Budgets particles, translucency, overdraw, texture samples, simulation, collision, bounds, lifetime, and LOD.
 - Captures video or frame sequences because stills cannot validate motion.
 
@@ -540,7 +547,7 @@ These gaps are more valuable than another broad “make it look AAA” prompt.
 - Enforces loopback binding and authenticated remote transport where remote operation is unavoidable.
 - Scrubs project paths, user names, terminal history, host information, API keys, and unrelated desktop content from captures.
 
-### 13. Antiky/BroMetal rendering adapter
+### 13. Antiky/BroMetal rendering contract
 
 This project-specific layer should define:
 
@@ -559,14 +566,14 @@ This project-specific layer should define:
 1. Build deterministic capture, privacy scrubbing, color management, and golden-image infrastructure first.
 2. Add compiler/IR validation and a shader permutation manifest.
 3. Add texture semantics, baking, and platform-compression QA.
-4. Add engine-specific material/VFX adapters.
+4. Add Antiky/BroMetal-native material, lighting, and VFX workflows.
 5. Add read-only GPU capture summarization.
-6. Pilot one editor MCP in an isolated sample project only after threat review.
+6. Expand Antiky CLI/MCP/Studio render controls only after threat review and bounded-tool evals.
 7. Add art-direction and motion-review gates before producing public demos.
 
 The first three steps establish trustworthy feedback. Editor automation introduced before those gates can generate more assets quickly while making quality, regressions, provenance, and security harder to control.
 
-## Minimum pilot evaluation
+## Minimum Antiky rendering evaluation
 
 Use one deliberately small but visually demanding test asset and one animated scene. Evaluate every candidate against the same rubric:
 

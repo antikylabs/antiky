@@ -2,20 +2,32 @@
 
 Research snapshot: 2026-08-09 (America/Chicago). No skill, plugin, package, or MCP server was installed during this research.
 
-## Executive recommendation
+> **Antiky scope:** Godot is a comparative source only. Antiky Labs is not building a Godot skill
+> or adapter roadmap. Mine this report for text-friendly authoring, headless operation,
+> deterministic replay, import validation, runtime capture, and test isolation; implement useful
+> patterns against Antiky Framework, BroMetal, CLI/MCP, or Studio.
 
-Godot is a strong target for an internal game-development skill library because most of a project is plain text (`project.godot`, `.gd`, `.tscn`, `.tres`, `.gdshader`), the editor exposes a plugin API, and the official binary supports imports, scripts, builds, exports, LSP, DAP, fixed-frame runs, and deterministic movie output from the command line. The important limitation is that text generation alone is not game creation: final scene composition, animation, game feel, shaders, input, performance, and visual quality need an edit-run-observe loop in a real editor/runtime.
+## Comparative findings
 
-Recommended research stack, in order:
+Godot is a useful reference for an internal game-development skill library because most of a project is plain text (`project.godot`, `.gd`, `.tscn`, `.tres`, `.gdshader`), the editor exposes a plugin API, and the official binary supports imports, scripts, builds, exports, LSP, DAP, fixed-frame runs, and deterministic movie output from the command line. The important transferable lesson is that text generation alone is not game creation: final scene composition, animation, game feel, shaders, input, performance, and visual quality need an edit-run-observe loop in a real editor/runtime.
 
-1. Use official Godot documentation as the source of truth and pin one engine minor per project.
-2. Use a small set of focused, version-pinned prompt skills as reference material; do not install a giant pack wholesale.
-3. Pilot one local editor bridge in a disposable Godot project. The best architecture found is [Godot MCP Toolkit](https://github.com/NPGameDev/godot-mcp-toolkit), while [Godot AI](https://github.com/hi-godot/godot-ai) currently has much greater adoption. Neither is an official Godot Foundation integration.
-4. Add a mature test runner: [GdUnit4](https://github.com/godot-gdunit-labs/gdUnit4) when both GDScript and C# or scene-driving are important, or [GUT](https://github.com/bitwes/Gut) for a simpler GDScript-first stack.
-5. Give a QA/playtest agent exclusive ownership of runtime verification. Use MCP screenshots and structured state, plus independent command-line tests and exports; do not accept a tool's own demo as proof of quality.
-6. Build our own skills around production gates—reference direction, gameplay loop, feel, accessibility, visual review, performance budgets, asset provenance, and shippable exports—not just engine API recall.
+Reference surfaces examined:
 
-The main risk is confusing tool breadth with production maturity. Most Godot MCP projects in this survey were created in 2026, and several change tool counts or supported versions quickly. Treat every external integration as untrusted, pin a release, inspect its addon and launcher, and validate it in a restricted test project before it can touch real work.
+1. Official Godot documentation shows the value of a pinned source of truth.
+2. Focused, version-pinned prompt skills are easier to audit than giant packs.
+3. [Godot MCP Toolkit](https://github.com/NPGameDev/godot-mcp-toolkit) demonstrates explicit
+   capability boundaries, while [Godot AI](https://github.com/hi-godot/godot-ai) supplies a useful
+   adoption comparison. Neither belongs in the Antiky implementation roadmap.
+4. [GdUnit4](https://github.com/godot-gdunit-labs/gdUnit4) and
+   [GUT](https://github.com/bitwes/Gut) demonstrate layered test-runner concerns.
+5. Runtime verification should have an independent owner and combine structured state, replay,
+   command-line checks, and scoped visual evidence.
+6. Antiky-native skills should center production gates—direction, gameplay loop, feel,
+   accessibility, visual review, performance, provenance, and release—not API recall.
+
+The main risk is confusing tool breadth with production maturity. Most Godot MCP projects in this
+survey were created in 2026, and several change tool counts or supported versions quickly. Treat
+their claims as comparative evidence, not a reason to install them in Antiky work.
 
 ## Evidence labels
 
@@ -301,9 +313,11 @@ Adopt these before any pilot:
 - Treat `.gd`, `.cs`, `@tool`, EditorScript, GDExtension, imported Blender scripts, and MCP extension tools as executable code.
 - Record tool calls and changed paths. A safe integration should be able to answer who changed what, through which authority, and how the result was verified.
 
-## Proposed internal Godot skill library
+## Godot taxonomy to mine, not implement
 
-Build small composable skills with version metadata and evidence contracts:
+This list records the discipline coverage that a broad Godot library would require. Do not build
+these as Godot skills. Translate only validated needs into Antiky-native jobs and evidence
+contracts:
 
 1. `godot-project-intake` — engine/renderer/language/platform pins, project map, addon/license/security inventory.
 2. `godot-production` — vision, gameplay pillars, vertical-slice scope, backlog, dependency/risk tracking, milestone and kill criteria.
@@ -324,7 +338,7 @@ Build small composable skills with version metadata and evidence contracts:
 17. `godot-export-release` — imports, templates, credentials, platform matrix, clean builds, smoke tests, symbols, signing/notarization boundaries, artifact hashes.
 18. `godot-visual-approval` — reference comparison, fixed cameras, motion review, aspect ratios, capture quality, rejection criteria, human sign-off.
 
-Every skill should declare:
+A comparable skill system would need to declare:
 
 - supported Godot versions, renderers, languages, and platforms;
 - authoritative sources and last verification date;
@@ -353,7 +367,9 @@ The surveyed ecosystem does not yet provide convincing, independently validated 
 - secure, permission-scoped runtime code execution; most useful bridges eventually expose very broad authority;
 - production evidence beyond small games built in a single agent session.
 
-These gaps should become first-class internal skills and evaluation suites. The strategic opportunity is not another encyclopedia of Godot nodes. It is a disciplined production system that forces agents to demonstrate a coherent game, not merely a syntactically valid project.
+These gaps should inform first-class Antiky skills and evaluation suites. The strategic opportunity
+is not an encyclopedia of Godot nodes; it is an Antiky production system that forces agents to
+demonstrate a coherent game, not merely syntactically valid work.
 
 ## Primary sources
 

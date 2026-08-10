@@ -2,14 +2,20 @@
 
 Research snapshot: 2026-08-09
 
-## Executive recommendation
+> **Antiky scope:** Unity is a comparative source only. Antiky Labs is not building a Unity skill
+> or adapter roadmap. Mine this report for structured CLI results, build/test evidence, serialized
+> asset safeguards, reload barriers, runtime observation, and scoped editor authority; translate
+> useful patterns into Antiky Framework, BroMetal, CLI/MCP, or Studio.
 
-Build the Unity part of the skill library as two separate layers:
+## Comparative findings
+
+A well-bounded Unity automation system separates two layers; Antiky should preserve the same
+separation in its own architecture:
 
 1. **Knowledge and workflow skills**: game design, Unity architecture, art direction, Shader Graph, asset import, testing, performance, build/release, and production discipline.
 2. **A narrow execution adapter**: the smallest reviewed tool surface that observes the running Editor, performs approved mutations through Unity APIs, runs tests, enters Play mode, captures the Game view, and returns structured results.
 
-For a new internal library, the best baseline is:
+The strongest Unity reference surfaces found are:
 
 - Start with the first-party [`Unity-Technologies/skills`](https://github.com/Unity-Technologies/skills) collection and the official, experimental [Unity CLI + Pipeline package](https://docs.unity.com/en-us/unity-cli). They provide an authoritative vocabulary, structured output, explicit exit codes, local Editor control, custom commands, and live C# evaluation.
 - Evaluate Unity's [official MCP server](https://unity.com/blog/unity-ai-mcp-how-to-get-started) when a managed MCP integration is preferable. It has client approval and a Unity-provided relay, but is still beta, requires Unity 6+, the Assistant package, terms acceptance, and a Cloud-linked project according to current setup documentation.
@@ -343,7 +349,8 @@ No single reviewed collection found in this search adequately combines:
 - producer scope control, milestone gates, and vertical-slice acceptance;
 - multi-agent Unity ownership and conflict prevention.
 
-Those should be first-class internal skills rather than a long generic “Unity expert” prompt.
+Those disciplines should inform Antiky-native skills rather than a long generic “Unity expert”
+prompt or a Unity support library.
 
 ## Scene, prefab, code, and Editor automation rules
 
@@ -501,9 +508,10 @@ Producer defines one vertical slice and acceptance gates
 
 The QA and approval roles should not be the same agent that implemented the feature. Separate observation reduces self-confirming results.
 
-## Evaluation plan before adoption
+## Comparative evaluation design
 
-Run the same small vertical-slice benchmark against the official CLI/Pipeline, official MCP, Coplay, and Besty0728. Add Unity CLI Loop or Funplay for the playtest portion if needed.
+This benchmark design is recorded to expose useful evaluation dimensions. It is not an Antiky
+roadmap task and should not trigger a Unity bridge pilot.
 
 The benchmark should require the tool to:
 
@@ -520,7 +528,10 @@ The benchmark should require the tool to:
 
 Score each candidate on task completion, retries, elapsed time, token/schema overhead, corrupt/stale state, quality of error messages, visual evidence, approval enforcement, rollback accuracy, and reproducibility. A tool that cannot reliably undo or enumerate its changes should not be a default mutator.
 
-## Proposed internal skill-library backlog
+## Unity taxonomy to mine, not implement
+
+The following categories show the breadth a serious Unity library would need. Do not implement
+them as Unity skills. Translate only recurring, validated jobs into Antiky-native skill boundaries.
 
 Priority 0 — execution safety:
 
@@ -560,10 +571,13 @@ Priority 3 — product disciplines:
 - `unity-mobile-webgl-console-readiness`
 - `unity-release-producer`
 
-Each skill should declare its Unity/package version range, required tools, mutation scope, prohibited actions, verification evidence, and escalation/approval points. Skills should teach a deep workflow; they should not simply mirror hundreds of low-level tool descriptions.
+The transferable lesson is that every Antiky skill should declare its compatible project/tool
+revision, mutation scope, prohibited actions, verification evidence, and escalation points. Skills
+should teach a deep workflow; they should not mirror hundreds of low-level tool descriptions.
 
 ## Bottom line
 
-Unity automation is no longer missing an execution bridge; it has too many overlapping bridges. The differentiated internal library should focus on disciplined game creation: strong briefs, art direction, game feel, safe serialized-asset work, technical-art correctness, independent playtesting, measurable performance, and producer-controlled scope.
-
-Use first-party Unity CLI/Pipeline and official skills as the stable conceptual center. Keep Editor mutation behind a single-writer adapter. Borrow closed-loop validation ideas from Unity CLI Loop/Funplay and safety ideas from Besty0728, but independently test every claim before trusting a third-party bridge with a real project.
+Unity automation has too many overlapping bridges rather than too few. Antiky should take the
+closed-loop validation, structured result, serialized-state safety, and single-writer lessons while
+building against its own CLI/MCP/Framework/Studio surface. No Unity bridge or Unity skill is part of
+the adoption plan.

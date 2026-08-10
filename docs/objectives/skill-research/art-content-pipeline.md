@@ -2,6 +2,11 @@
 
 Research snapshot: 2026-08-09
 
+**Antiky scope:** Antiky Framework, BroMetal, Studio, and Antiky games are the implementation
+targets. External engines and editor bridges in this report are comparative case studies. DCC and
+format tools may be real production dependencies when reviewed, but there is no Unity, Unreal, or
+Godot content-skill or adapter roadmap.
+
 ## Executive recommendation
 
 Build this part of the skill library as two connected but independent systems:
@@ -199,7 +204,7 @@ script idempotent.
 
 Blender's bundled [Rigify](https://docs.blender.org/manual/en/4.0/addons/rigging/rigify/index.html)
 is a credible rig-generation substrate for supported body plans. Preserve the metarig for
-regeneration and validate the exported skeleton in the target engine; a generated rig does not
+regeneration and validate the exported skeleton in the Antiky runtime; a generated rig does not
 prove deformation, retargeting, root motion, contacts, or gameplay silhouette.
 
 ### Unity editor bridge
@@ -230,9 +235,9 @@ openupm add com.coplaydev.unity-mcp
 
 Configuration is available at **Window → MCP for Unity → Configure All Detected Clients**.
 
-**Assessment:** strongest public security posture of the researched editor bridges, but still a
-powerful project mutator. Pilot in a clean branch/worktree and sample project; pin package and Python
-dependencies; inspect every batch; use engine tests/import reports as authority.
+**Comparative assessment:** this has the strongest public security posture of the researched editor
+bridges, but remains a powerful project mutator. Antiky should mine its scoped-tool and transport
+patterns without piloting the Unity bridge.
 
 ### Godot editor bridge
 
@@ -260,10 +265,9 @@ godot-cli open ./MyGodotProject
 godot-cli wait-for-ready ./MyGodotProject
 ```
 
-**Assessment:** pilot only. Prefer local/custom loopback with authentication; never ship the runtime
-bridge; disable unsanitized error forwarding; do not place credentials in prompts or repositories;
-pin and verify any downloaded binary. The cloud default and plaintext editor token require explicit
-risk acceptance.
+**Comparative assessment:** the cloud default, plaintext editor token, and runtime bridge show why
+Antiky should prefer local authenticated control, sanitized diagnostics, verified binaries, and no
+shipping agent bridge. Do not pilot this Godot integration for the Antiky roadmap.
 
 ### Unreal editor bridge
 
@@ -293,9 +297,9 @@ ModelContextProtocol.GenerateClientConfig Codex
 VibeUE.GenerateAgentConfig Codex
 ```
 
-**Assessment:** promising technical-art pilot, but it is new and depends on UE 5.8 experimental
-features. Keep the endpoint loopback-only, use transactions/checkpoints, isolate generated content,
-and verify every material, world, animation, and VFX change in a packaged representative build.
+**Comparative assessment:** VibeUE demonstrates useful transaction/checkpoint, isolation, and
+readback patterns, but it is new and depends on UE 5.8 experimental features. Mine those patterns;
+do not pilot the Unreal integration for the Antiky roadmap.
 
 ## Content-production substrates by discipline
 
@@ -401,7 +405,7 @@ Every animated asset needs a skeleton/retarget contract and clip manifest contai
 - deformation shots for shoulders, hips, hands, face, extremes, and equipment;
 - foot-slide, ground contact, prop alignment, silhouette, retarget, and engine reimport verdicts.
 
-The target engine—not a DCC viewport—must be the approval surface. Include normal speed, slow motion,
+The Antiky runtime—not a DCC viewport—must be the approval surface. Include normal speed, slow motion,
 rapid transitions, and multiple body proportions where retargeting is promised.
 
 ### Environments, lighting, and world building
@@ -543,7 +547,7 @@ Each role owns an artifact; authors cannot approve their own output.
 | UI visual/UX artist | Input matrix, HUD priorities, platform/accessibility rules | Screen flow, visual tokens/assets, focus/touch/controller states, safe-zone/resolution/localization/color-vision/reduced-motion matrix, native gameplay captures, UI performance evidence. |
 | Sound designer/technical audio | Audio direction, gameplay events, platform budget | Licensed sources, raw masters, edits/variants, event/bank manifest, loudness/peak/loop results, attenuation/concurrency/ducking/streaming profile, in-game capture. |
 | Asset librarian/build integrator | All source and generated artifacts | Naming/folder policy, hashes, license receipts, provenance manifest, deterministic transforms, import profiles, credit export, reimport report. Owns consistency, not taste. |
-| Engine integration specialist | Approved asset package and target engine profile | Engine-native prefab/scene/material/skeleton/event bindings, import/reimport evidence, target-build validation. One adapter per engine. |
+| Antiky integration specialist | Approved asset package and Antiky import/runtime profile | Antiky world/render/material/skeleton/event bindings, import/reimport evidence, target-build validation |
 | Independent visual/performance QA | Art targets, asset contract, integrated build | Native-resolution multi-angle and gameplay-motion review; collision/nav/import warnings/performance/provenance verdict; blockers with reproducible evidence. Must not author the reviewed asset. |
 
 Recommended artifact flow:
@@ -630,7 +634,7 @@ Blender Python execution, Unity editor mutation/reflection, Godot reflection, Un
 tools, and FMOD scripting are intentional local-code-execution surfaces. Treat them as developer
 RCE, not harmless assistants.
 
-Required controls for any pilot:
+Required controls for any DCC or editor automation adopted for Antiky:
 
 - pin a reviewed release or commit and verify the source/license/dependency lock before installation;
 - use a disposable sample project, isolated branch/worktree, project-scoped filesystem, and backups;
@@ -649,23 +653,21 @@ Required controls for any pilot:
   names, and secrets;
 - never ship a runtime editor/MCP bridge in a game build.
 
-## Proposed internal skill library
+## Proposed Antiky content skill library
 
 | Skill | Scope and artifact | Gate |
 | --- | --- | --- |
 | `game-art-direction` | Art bible, coverage matrix, original target frames, failure examples | Human target approval before asset production |
 | `reference-rights-board` | Curated reference/provenance dossier | Every reference has purpose, source, rights, and do-not-copy notes |
-| `asset-contract-and-manifest` | Cross-engine technical/rights contract and hashes | No DCC work/import without approved contract |
-| `blender-game-asset-pipeline` | Headless-first source/export/turntable workflow; MCP optional | Reproducible export plus format and visual diff |
+| `asset-contract-and-manifest` | Antiky technical/rights contract and hashes | No DCC work/import without approved contract |
+| `blender-antiky-asset-pipeline` | Headless-first source/export/turntable workflow for Antiky; MCP optional | Reproducible export plus format and visual diff |
 | `character-rig-animation-contract` | Skeleton, retarget, clip/event, deformation/contact contract | Target-engine motion/deformation approval |
 | `environment-worldbuilding` | Kit, assembly, lighting, nav/collision, streaming/HLOD, route proof | Gameplay-route and worst-density evidence |
 | `game-material-shader-lookdev` | Master material, instances, variants/fallbacks, color-space and platform profile | Multi-light visual plus compile/GPU/overdraw proof |
 | `game-ui-visual-system` | UI tokens/assets, interaction/input/accessibility/resolution matrix | Native gameplay readability and performance proof |
 | `technical-audio` | Rights, masters, events/banks, loudness/loop/voice/memory/runtime evidence | In-game mix and timing approval |
 | `asset-optimization-validation` | Source-preserving LOD/mesh/texture/compression transforms | Visual comparison and target performance improvement |
-| `engine-import-godot` | Godot import profile/postimport/reimport report | Deterministic import and in-engine asset proof |
-| `engine-import-unity` | AssetPostprocessor profile/reimport report | Deterministic import and player-build proof |
-| `engine-import-unreal` | Interchange pipeline/reimport report | Deterministic import and packaged-build proof |
+| `import-antiky-assets` | Antiky import profile, normalized metadata, reimport report, render/gameplay proof | Deterministic import and Antiky runtime proof |
 | `visual-qa-gameplay-camera` | Independent multi-state screenshots/video and issue verdict | No desktop/PII; motion/native-resolution/target-state coverage |
 | `asset-provenance-compliance` | Manifest, receipts, hashes, credits, restrictions, audit trail | No missing/ambiguous rights at publish |
 
@@ -707,11 +709,11 @@ portable artifacts over implicit editor state.
 
 1. Author the artifact contracts first: art direction, reference rights, asset manifest, import
    report, and independent visual QA.
-2. Implement deterministic, MCP-free adapters around Blender headless, Aseprite export, glTF
-   Transform/Validator, and each engine's official import hooks.
-3. Pilot official PixiJS skills for browser 2D work and Coplay Unity MCP for bounded editor work.
-4. Pilot VibeUE and Godot MCP only in disposable projects after version, network, token, and runtime-
-   bridge controls are proven.
+2. Implement deterministic, MCP-free workflows around Blender headless, Aseprite export, glTF
+   Transform/Validator, and Antiky's asset/import contracts.
+3. Implement Antiky runtime and gameplay-camera asset validation before adding broader automation.
+4. Treat Unity, Unreal, Godot, and PixiJS skills/bridges as pattern sources only; do not pilot them
+   as part of the Antiky roadmap.
 5. Do not evaluate Blender MCP on unpublished assets until telemetry terms and behavior are resolved.
 6. Do not evaluate RFingAdam/mcp-blender until its MIT/AGPL contradiction is resolved.
 7. Add generation providers last. No generated asset enters the library without provenance, rights,

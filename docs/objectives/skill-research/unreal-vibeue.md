@@ -4,9 +4,16 @@ Research date: 2026-08-09
 Scope: Unreal Engine skills, MCP/editor automation, VibeUE, and a practical multi-agent setup for building an internal game-development skill library.  
 Install policy: nothing was installed or cloned during this research.
 
-## Executive recommendation
+> **Antiky scope:** Unreal and VibeUE are comparative sources only. Antiky Labs is not building an
+> Unreal skill or adapter roadmap. Mine this report for patterns such as lazy tool discovery,
+> transactions, structured readback, bounded toolsets, and serialized editor ownership; implement
+> any useful pattern against Antiky Framework, BroMetal, CLI/MCP, or Studio.
 
-Use Unreal Engine 5.8's native MCP stack as the control-plane baseline, add VibeUE only as a version-pinned expansion, and keep engine knowledge separate from editor-operation instructions.
+## Comparative reference stack
+
+If evaluating the Unreal ecosystem as a reference implementation, its native MCP stack is the
+clearest control-plane baseline and VibeUE is a useful example of a version-pinned expansion. This
+is evidence for Antiky's own control-surface design, not a recommendation to adopt Unreal.
 
 The strongest stack found is:
 
@@ -413,21 +420,23 @@ Source: [AutoUE paper](https://arxiv.org/abs/2603.07106).
 - Shader compilation, C++ compilation, asset import, level load, and PIE transitions: treat as editor-wide barriers.
 - A tool with per-asset locks, such as Claireon, reduces collisions but does not make Unreal's game-thread calls parallel-safe.
 
-## Architecture for our own skill library
+## Architecture patterns to transfer into Antiky
 
-Build five distinct layers rather than one “Unreal expert” prompt:
+The Unreal study suggests five separable concerns. Implement their useful equivalents against
+Antiky/BroMetal rather than building an “Unreal expert” library:
 
-### 1. Durable engine-domain skills
+### 1. Durable Antiky/BroMetal domain skills
 
-Versioned knowledge grounded in UE source and official docs: gameplay framework, memory/GC, replication, GAS, materials/shaders, Niagara, animation, UMG/CommonUI, world partition, PCG, physics, AI, audio, testing, profiling, packaging.
+Versioned knowledge grounded in Antiky/BroMetal source and project documentation: worlds,
+fixed-step simulation, commands/events, inspection, authoring/runtime/render state, typed shaders,
+GPU resources, gameplay, UI, assets, testing, profiling, and packaging. Keep durable knowledge
+separate from CLI/MCP/Studio tool names.
 
-These should avoid bridge tool names. Metadata should include target UE version/range and source paths.
+### 2. Antiky tool-operation skills
 
-### 2. Bridge-operation skills
-
-Exact procedures for Epic native MCP, VibeUE, or another chosen bridge: discovery, schemas, return formats, transaction behavior, compilation, screenshots, PIE, known failure modes.
-
-These are necessarily version-pinned. Generate or validate them against the live tool schema. Do not pretend they are durable.
+Exact procedures for Antiky CLI/MCP/Studio capability discovery, schemas, return formats,
+revisions, build/runtime barriers, canvas capture, deterministic stepping, and known failures. Pin
+them to the live Antiky tool schema and keep them narrow.
 
 ### 3. Project/product skills
 
@@ -466,7 +475,10 @@ Every skill should declare:
 - success evidence and eval task IDs
 - known gaps and stale-by date
 
-### Priority skills to build
+### Comparative concerns to translate
+
+The lists below describe concerns exposed by Unreal automation. They are not a backlog of Unreal
+skills. Translate only recurring needs into Antiky-native jobs.
 
 P0 control and safety:
 
@@ -516,21 +528,25 @@ The available tooling is strongest at manipulating engine objects and weakest wh
 
 These are not reasons to reject editor MCP. They define the skills and subagents that must surround it.
 
-## Adoption sequence
+## Antiky transfer sequence
 
-1. Build a disposable UE 5.8 evaluation project under source control.
-2. Enable native Unreal MCP plus only the required toolset plugins.
-3. Exercise Epic's official `unreal-mcp` workflow against a small actor/material/Blueprint/PIE task.
-4. Add a security wrapper: loopback/firewall check, single editor lease, mutation log, PII scrubber, and approval categories.
-5. Evaluate VibeUE at a pinned tag/commit. Do not use hosted research/terrain at first.
-6. Run a representative matrix: Blueprint, material+texture, Niagara, UMG, level, PIE input/behavior, compile/restart, Insights, and rollback.
-7. Score reliability, retries, editor crashes/hangs, context cost, visual evidence quality, and recovery—not just whether an asset was created.
-8. Audit the source-grounded skill libraries for content we can legally and technically reuse.
-9. Implement the layered library with golden evals before broadening domains.
-10. Only then pilot the multi-agent vertical-slice workflow on one deliberately art-directed, playable game concept.
+1. Audit Antiky's current CLI/MCP/session surface and scaffold skills against real game tasks.
+2. Add bounded capability discovery, a single live-session lease, mutation logs, and PII-safe capture.
+3. Exercise the workflow on Antiky worlds, commands/events, BroMetal materials/VFX, runtime replay,
+   build barriers, readback, and rollback.
+4. Score reliability, retries, state corruption, context cost, motion-evidence quality, and recovery,
+   not merely whether an object or asset was created.
+5. Mine source-grounded external skills only for legally and technically reusable ideas.
+6. Promote an Antiky-native layered library through hidden evals before broadening domains.
+7. Apply it to a deliberately art-directed, playable Antiky game concept.
 
 ## Bottom line
 
-VibeUE is the most relevant broad expansion found, but the valuable lesson is its architecture rather than its feature count: lazy domain skills, live signature discovery, batched ordered execution, readback, and visual/runtime verification. Epic's native MCP should be the baseline; VibeUE should be pinned and treated as an extension under a strict security and acceptance harness.
+VibeUE's useful contribution is architectural evidence rather than a feature target: lazy domain
+skills, live signature discovery, batched ordered execution, readback, and visual/runtime
+verification. Antiky should test those patterns against its own tools and should not adopt Epic MCP
+or VibeUE as a baseline.
 
-The decisive addition for our own library is outside VibeUE: producer, game-design, art-direction, game-feel, texture/asset, and independent playtest skills with hard rejection gates. More editor operations alone will create more assets, not better games.
+The decisive Antiky work is producer, game-design, art-direction, game-feel, rendering/content, and
+independent playtest capability with hard rejection gates. More operations alone create more
+assets, not better games.

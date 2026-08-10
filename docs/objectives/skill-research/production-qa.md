@@ -2,19 +2,26 @@
 
 Research snapshot: 2026-08-09
 
+**Antiky scope:** Antiky Framework, BroMetal, Studio, and Antiky games are the sole implementation
+targets. Unity, Unreal, Godot, Three.js packages, and editor bridges are comparative sources for
+production and QA patterns; they are not adapters to build or pilot in this roadmap.
+
 ## Executive recommendation
 
 Build this part of the internal skill library as an evidence-driven production system, not as a collection of producer personas or generic checklists.
 
 The recommended foundation is:
 
-1. An engine-neutral **producer skill** that owns scope, milestones, dependencies, risks, decisions, and change control but cannot silently change the creative brief or quality bar.
-2. Engine-specific **QA automation adapters** around first-party command-line, test, build, and profiling tools. Editor MCPs are useful for bounded inspection and setup; headless engine commands should remain the repeatable CI authority.
+1. An Antiky production **producer skill** that owns scope, milestones, dependencies, risks, decisions, and change control but cannot silently change the creative brief or quality bar.
+2. Antiky-native **QA automation** around package tests, Framework/CLI/MCP inspection, fixed-step replay, BroMetal validation, builds, profiling, and game-canvas capture. Headless or isolated execution should remain the repeatable CI authority.
 3. Independent **QA lead, performance, release, compatibility/certification, localization, playtest-research, crash/privacy, and live-operations roles** with explicit artifacts and non-overlapping approval authority.
 4. A small set of **quality gates backed by inspectable evidence**: runnable builds, test reports, traces, screenshots/video from the game surface, device results, crash dashboards, localization reports, signed checklists, checksums, and rollback rehearsals.
 5. A **human approval boundary** around production credentials, store submission, destructive editor actions, remote configuration, telemetry collection, and live deployment.
 
-The skills.sh ecosystem has useful material, but no candidate found is safe to adopt wholesale. The strongest narrow candidate is `threejs-qa-release`; the broad Donchitos and AlterLab suites are better treated as template mines. Some promising skills.sh results no longer had a public GitHub repository reachable through the GitHub API at research time.
+The skills.sh ecosystem has useful material, but no candidate found is safe to adopt wholesale. The
+`threejs-qa-release` workflow and broad Donchitos/AlterLab suites are pattern mines only. Some
+promising skills.sh results no longer had a public GitHub repository reachable through the GitHub
+API at research time.
 
 ## Method and confidence labels
 
@@ -388,7 +395,8 @@ Required skill-library rules:
 
 ## Localization and LQA
 
-The internal localization skill should map to the selected engine's first-party system rather than inventing a parallel string format.
+The internal localization skill should map to Antiky's game/content contracts rather than inventing
+an unrelated parallel string model. External engine systems are comparative references.
 
 Required deliverables:
 
@@ -455,11 +463,11 @@ Production mutations require explicit approval and an audit record. A planning s
 
 1. Define the shared evidence manifest and gate-verdict format.
 2. Build the producer, vertical-slice, QA-lead, and change-control skills around that format.
-3. Implement one headless QA/build adapter per selected engine, starting with official CLI/test surfaces.
+3. Implement Antiky package/build/replay/inspection evidence using the current CLI/MCP surfaces.
 4. Add packaged-build smoke, deterministic replay, visual regression, and performance scenarios.
 5. Add release manifest/provenance/symbol/rollback skills.
 6. Add compatibility, certification, crash/privacy, localization/LQA, and playtest/community roles.
-7. Add editor MCP adapters last, with narrow allowlists and destructive-action tests.
+7. Expand Antiky MCP and Studio mutation capabilities last, with narrow allowlists and destructive-action tests.
 8. Add live-operations deployment only after staging, auth, audit, kill-switch, and rollback contracts are proven.
 
 ## Source index

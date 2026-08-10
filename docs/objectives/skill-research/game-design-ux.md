@@ -9,6 +9,10 @@ phrase “production-grade” as proof that a skill improves game quality.
 
 No skills were installed during this research.
 
+**Antiky scope:** all proposed design, UX, playtest, accessibility, and telemetry skills are for
+Antiky games and Antiky's production workflow. References to other engines and browser frameworks
+are comparative sources, not support targets.
+
 ## Evidence labels and method
 
 - **Verified** means the statement came from the current `skills.sh` CLI output,
@@ -63,7 +67,7 @@ The core library must enforce this distinction:
 | [`game-feel`](https://skills.sh/gamedev-skills/awesome-gamedev-agent-skills/game-feel) | 1.5K installs; source repo 455 stars | Event-linked feedback, proportional effect tiers, hit-stop/shake/tween pitfalls, reduced-motion controls | **Medium.** Useful implementation checklist; numeric recipes are starting hypotheses, not universal truths. |
 | [`level-design`](https://skills.sh/gamedev-skills/awesome-gamedev-agent-skills/level-design) | 1.2K installs; same 455-star repo | Player metrics, blockout-first workflow, critical path, pacing, teach-then-test, soft-lock checks | **Medium.** Strong conceptual seed; needs engine evidence and player-path data. |
 | [`game-ui-ux`](https://skills.sh/gamedev-skills/awesome-gamedev-agent-skills/game-ui-ux) | 1.4K installs; same repo | Safe areas, focus navigation, state stack, event-driven HUD, device/resolution verification | **Medium.** Good architecture; accessibility depth is incomplete. |
-| [`input-systems`](https://skills.sh/gamedev-skills/awesome-gamedev-agent-skills/input-systems) | 1.1K installs; same repo | Action maps, remapping, conflict handling, analog deadzones, buffering/coyote time, device switching | **Medium.** Good seed; needs latency measurement and engine/platform adapters. |
+| [`input-systems`](https://skills.sh/gamedev-skills/awesome-gamedev-agent-skills/input-systems) | 1.1K installs; same repo | Action maps, remapping, conflict handling, analog deadzones, buffering/coyote time, device switching | **Medium.** Good pattern source; needs Antiky input semantics and target-platform latency measurement. |
 | [`game-playtest-planning`](https://skills.sh/lvtd-llc/skills/game-playtest-planning) | 50 installs; source repo 1 star | Research questions, participant plan, moderator script, observation tags, telemetry and decision rules | **Experimental but useful.** Source-linked and well bounded; no game-skill behavioral evals found. |
 | [`player-experience-modeling`](https://skills.sh/lvtd-llc/skills/player-experience-modeling) | 44 installs; same repo | Behavioral player model, experience promise, motivation map, interest curve, build implications | **Experimental.** Valuable brief format; it must not be treated as player evidence. |
 | [`game-balance-economy`](https://skills.sh/lvtd-llc/skills/game-balance-economy) | 69 installs; same repo | Economy map, tuning table, expected-value helper, dominant-strategy and punishment review | **Experimental.** Good artifact contract; simulation and human validation remain mandatory. |
