@@ -392,6 +392,42 @@ test('a fenced capture returns path-safe private evidence for the exact observat
       (cause: unknown) => cause instanceof AntikyCliError && cause.code === 'ANTIKY_CAPTURE_INVALID',
     );
 
+    const changedDimensions = broker.captureFrameV2({
+      schemaVersion: 2,
+      expected: {
+        developmentSessionId: observation.developmentSessionId,
+        acceptedBuildRevision: observation.acceptedBuildRevision,
+        runtimeInstanceId: observation.runtimeInstanceId,
+      },
+      runtimePolicy: 'current-or-managed',
+      target: { width: 2, height: 1, deviceScaleFactor: 1 },
+      warmUpFrames: 0,
+      idempotencyKey: 'capture-fixture-changed-dimensions',
+    });
+    void changedDimensions.catch(() => {});
+    const changedDimensionsAction = broker.nextAction(observation.runtimeInstanceId);
+    assert.ok(changedDimensionsAction && changedDimensionsAction.kind === 'capture');
+    await assert.rejects(
+      () => broker.completeCapture({
+        actionId: changedDimensionsAction.actionId,
+        runtimeInstanceId: observation.runtimeInstanceId,
+        publicationSequence: observation.publicationSequence,
+        mimeType: 'image/png',
+        canvasWidth: 1,
+        canvasHeight: 1,
+        dataBase64: PNG.toString('base64'),
+      }),
+      (cause: unknown) => (
+        cause instanceof AntikyCliError && cause.code === 'CAPTURE_DIMENSIONS_MISMATCH'
+      ),
+    );
+    await assert.rejects(
+      changedDimensions,
+      (cause: unknown) => (
+        cause instanceof AntikyCliError && cause.code === 'CAPTURE_DIMENSIONS_MISMATCH'
+      ),
+    );
+
     await assert.rejects(
       () => broker.captureFrameV2({
         schemaVersion: 2,

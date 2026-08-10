@@ -112,13 +112,24 @@ npm run antiky -- tool step_simulation '{"expectedCompletedStepCount":42}' --pro
 npm run antiky -- tool resume_simulation --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
 ```
 
-Replace `42` with the returned count. Finally, capture the exact current canvas; Antiky writes the
-PNG under `.antiky/captures/` and returns its path and digest:
+Replace `42` with the returned count. Discover the managed canvas-capture formats and limits before
+requesting private evidence:
 
 ```sh
+npm run antiky -- tool get_capture_capabilities --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
 npm run antiky -- tool get_runtime_status --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool capture_frame --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
 ```
+
+`capture_frame` schema 3 can cold-launch Antiky's isolated managed Chromium. A
+`capture_gameplay_sequence` presentation trace can use explicit WASD edges and a primary pointer
+press/release to record relay charging, forge rejection, or deposit feedback while remaining inside
+the managed game page. Results expose only private opaque still, lossless PNG-master, poster,
+manifest, trace, and WebM identities; retrieve an exact authorized artifact with
+`get_render_evidence`. No filesystem path or unbounded base64 appears in JSON. Canvas-only evidence
+does not approve dark or game-rendered content for publication, WebM is a review derivative, and
+presentation input is not deterministic semantic replay. See the [MCP capture
+reference](../../../../docs/user-facing-docs/mcp/tools.md#capture_frame) for exact request JSON and
+limits.
 
 An MCP client uses the identical tool names and JSON inputs. Configure its Streamable HTTP server as
 `{"type":"http","url":"http://127.0.0.1:3011/mcp"}` while this project is running.

@@ -62,9 +62,11 @@ test('a managed presentation trace produces private PNG masters, poster, WebM, a
     inspection: null,
   };
   const actions: ManagedPresentationAction[] = [];
+  let ensureCount = 0;
   let now = 0;
   const managedRuntime: ManagedCaptureRuntime = {
     async ensureRuntime() {
+      ensureCount += 1;
       state = {
         ...state,
         connectionState: 'connected',
@@ -112,7 +114,7 @@ test('a managed presentation trace produces private PNG masters, poster, WebM, a
   });
 
   try {
-    const result = await service.captureGameplaySequence({
+    const request = {
       schemaVersion: 1,
       expected: {
         developmentSessionId: state.developmentSessionId,
@@ -131,7 +133,11 @@ test('a managed presentation trace produces private PNG masters, poster, WebM, a
         ],
       },
       idempotencyKey: 'sequence-service-001',
-    });
+    } as const;
+    const result = await service.captureGameplaySequence(request);
+    const repeated = await service.captureGameplaySequence(request);
+    assert.equal(repeated, result);
+    assert.equal(ensureCount, 1);
     assert.equal(result.source, 'managed-runtime');
     assert.equal(result.cadence.actualFrameCount, 2);
     assert.equal(result.cadence.droppedFrameCount, 0);
@@ -208,18 +214,25 @@ test('an encoder failure discards every partial sequence artifact', async () => 
     sleep: async () => {},
   });
   try {
-    await assert.rejects(() => service.captureGameplaySequence({
-      schemaVersion: 1,
-      expected: {
-        developmentSessionId: observed.developmentSessionId,
-        acceptedBuildRevision: observed.acceptedBuildRevision,
-        currentRuntimeInstanceId: observed.runtimeInstanceId,
-      },
-      runtimePolicy: 'managed-only',
-      target: { width: 1, height: 1, deviceScaleFactor: 1 },
-      source: { kind: 'window', durationMilliseconds: 100, framesPerSecond: 10 },
-      idempotencyKey: 'sequence-rollback-001',
-    }));
+    await assert.rejects(
+      () => service.captureGameplaySequence({
+        schemaVersion: 1,
+        expected: {
+          developmentSessionId: observed.developmentSessionId,
+          acceptedBuildRevision: observed.acceptedBuildRevision,
+          currentRuntimeInstanceId: observed.runtimeInstanceId,
+        },
+        runtimePolicy: 'managed-only',
+        target: { width: 1, height: 1, deviceScaleFactor: 1 },
+        source: { kind: 'window', durationMilliseconds: 100, framesPerSecond: 10 },
+        idempotencyKey: 'sequence-rollback-001',
+      }),
+      (error: unknown) => (
+        error instanceof Error
+        && 'code' in error
+        && error.code === 'CAPTURE_ENCODER_UNAVAILABLE'
+      ),
+    );
     assert.equal(evidenceStore.list({ limit: 256 }).availableCount, 0);
   } finally {
     await service.stop();
@@ -383,6 +396,130 @@ test('a private evidence-store failure returns the stable capture artifact code'
     );
   } finally {
     await service.stop();
+    await rm(rootDirectory, { recursive: true, force: true });
+  }
+});
+
+test('duplicate or late capture slots and unavailable completed-step waits fail without evidence', async () => {
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-sequence-cadence-'));
+  const evidenceStore = createEvidenceStore({
+    rootDirectory,
+    developmentSessionId: 'development-sequence-service-001',
+  });
+  const observed = observation('runtime-sequence-service-001');
+  let currentObservation: ObservationRefV1 = observed;
+  let timing: 'duplicate' | 'late' = 'duplicate';
+  let now = 0;
+  const managedRuntime: ManagedCaptureRuntime = {
+    async ensureRuntime() {
+      return {
+        runtimeInstanceId: observed.runtimeInstanceId,
+        webGpu: { status: 'available', unavailableReason: null },
+      };
+    },
+    owns: () => true,
+    webGpuStatus: () => ({ status: 'available', unavailableReason: null }),
+    assertSafe: () => {},
+    captureCanvasPng: async () => PNG,
+    performPresentationAction: async () => {},
+    waitForPresentationFrame: async () => {},
+    encodePngSequence: async () => { throw new Error('must not encode'); },
+    releaseRuntime: async () => {},
+    stop: async () => {},
+  };
+  const service = createCaptureSequenceService({
+    configuredWidth: 1,
+    configuredHeight: 1,
+    projectRevision: 'a'.repeat(64),
+    readState: () => ({
+      developmentSessionId: observed.developmentSessionId,
+      acceptedBuildRevision: observed.acceptedBuildRevision,
+      connectionState: 'connected',
+      observation: currentObservation,
+      inspection: null,
+    }),
+    managedRuntime,
+    evidenceStore,
+    nowMilliseconds: () => now,
+    sleep: async (milliseconds) => {
+      if (timing === 'late') now += milliseconds * 3;
+    },
+  });
+
+  try {
+    await assert.rejects(
+      () => service.captureGameplaySequence({
+        schemaVersion: 1,
+        expected: {
+          developmentSessionId: observed.developmentSessionId,
+          acceptedBuildRevision: observed.acceptedBuildRevision,
+          currentRuntimeInstanceId: observed.runtimeInstanceId,
+        },
+        runtimePolicy: 'managed-only',
+        target: { width: 1, height: 1, deviceScaleFactor: 1 },
+        source: { kind: 'window', durationMilliseconds: 200, framesPerSecond: 10 },
+        idempotencyKey: 'sequence-duplicate-slot-001',
+      }),
+      (error: unknown) => (
+        error instanceof Error
+        && 'code' in error
+        && error.code === 'CAPTURE_DROPPED_FRAMES'
+      ),
+    );
+
+    timing = 'late';
+    now = 0;
+    await assert.rejects(
+      () => service.captureGameplaySequence({
+        schemaVersion: 1,
+        expected: {
+          developmentSessionId: observed.developmentSessionId,
+          acceptedBuildRevision: observed.acceptedBuildRevision,
+          currentRuntimeInstanceId: observed.runtimeInstanceId,
+        },
+        runtimePolicy: 'managed-only',
+        target: { width: 1, height: 1, deviceScaleFactor: 1 },
+        source: { kind: 'window', durationMilliseconds: 200, framesPerSecond: 10 },
+        idempotencyKey: 'sequence-late-slot-001',
+      }),
+      (error: unknown) => (
+        error instanceof Error
+        && 'code' in error
+        && error.code === 'CAPTURE_DROPPED_FRAMES'
+      ),
+    );
+
+    currentObservation = Object.freeze({ ...observed, session: null });
+    await assert.rejects(
+      () => service.captureGameplaySequence({
+        schemaVersion: 1,
+        expected: {
+          developmentSessionId: observed.developmentSessionId,
+          acceptedBuildRevision: observed.acceptedBuildRevision,
+          currentRuntimeInstanceId: observed.runtimeInstanceId,
+        },
+        runtimePolicy: 'managed-only',
+        target: { width: 1, height: 1, deviceScaleFactor: 1 },
+        source: {
+          kind: 'presentation-trace',
+          framesPerSecond: 10,
+          entries: [
+            { kind: 'completed-step-wait', completedStepCount: 13, timeoutMilliseconds: 100 },
+            { kind: 'presentation-frame-wait', frameCount: 1 },
+          ],
+        },
+        idempotencyKey: 'sequence-step-unavailable-001',
+      }),
+      (error: unknown) => (
+        error instanceof Error
+        && 'code' in error
+        && error.code === 'CAPTURE_STEP_UNAVAILABLE'
+      ),
+    );
+    assert.equal(evidenceStore.list({ limit: 256 }).availableCount, 0);
+  } finally {
+    await service.stop();
+    await evidenceStore.stop();
     await rm(rootDirectory, { recursive: true, force: true });
   }
 });

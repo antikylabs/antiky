@@ -274,7 +274,11 @@ export function createCaptureSequenceService(
         assertActive();
         await options.managedRuntime.waitForPresentationFrame(managed.runtimeInstanceId);
         const actualOffset = nowMilliseconds() - startedAtMilliseconds;
-        if (actualOffset - nextFrameOffsetMilliseconds > frameIntervalMilliseconds) {
+        const previousOffset = captureOffsetsMilliseconds.at(-1);
+        if (
+          (previousOffset !== undefined && actualOffset <= previousOffset)
+          || actualOffset - nextFrameOffsetMilliseconds > frameIntervalMilliseconds
+        ) {
           lateFrameCount += 1;
         }
         const frame = await options.managedRuntime.captureCanvasPng(managed.runtimeInstanceId);

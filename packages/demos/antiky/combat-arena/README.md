@@ -132,14 +132,24 @@ npm run antiky -- tool resume_simulation --project packages/demos/antiky/combat-
 ```
 
 An accepted step advances and renders exactly one fixed tick. Reusing the stale count returns
-`STALE_COMPLETED_STEP` and changes nothing. Confirm the runtime before capturing exact game-canvas
-pixels; the capture is a PNG beneath the project's `.antiky/captures/` directory and reports its
-digest plus runtime/build identities:
+`STALE_COMPLETED_STEP` and changes nothing. Discover capture support before requesting private
+canvas evidence:
 
 ```sh
+npm run antiky -- tool get_capture_capabilities --project packages/demos/antiky/combat-arena/combat-arena.antiky
 npm run antiky -- tool get_runtime_status --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool capture_frame --project packages/demos/antiky/combat-arena/combat-arena.antiky
 ```
+
+`capture_frame` schema 3 can launch Antiky's isolated managed Chromium when
+`currentRuntimeInstanceId` is `null`; otherwise fence the exact connected runtime reported by the
+current observation. `capture_gameplay_sequence` accepts a three-to-six-second managed-only cadence
+window or a bounded pointer/keyboard presentation trace. For this game, move the normalized pointer
+toward a marked target and use an explicit primary press, frame wait, and release to record a dash.
+The result contains no path or base64 JSON: it returns private opaque still, PNG-master, poster,
+manifest, trace, and WebM identities for `get_render_evidence`. The WebM is a review derivative,
+the presentation trace is not deterministic semantic replay, and every artifact remains
+`private-unreviewed`. See the [MCP capture reference](../../../../docs/user-facing-docs/mcp/tools.md#capture_frame)
+for exact request JSON and limits.
 
 An MCP client calls the identical tool names and JSON inputs. While this project runs, connect to
 its Streamable HTTP endpoint at `http://127.0.0.1:3011/mcp`.

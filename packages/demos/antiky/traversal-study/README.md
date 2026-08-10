@@ -126,13 +126,22 @@ npm run antiky -- tool step_simulation '{"expectedCompletedStepCount":42}' --pro
 npm run antiky -- tool resume_simulation --project packages/demos/antiky/traversal-study/traversal-study.antiky
 ```
 
-Confirm the runtime before capturing exact game-canvas pixels. The PNG is written beneath the
-project's `.antiky/captures/` directory and the result includes its digest and runtime/build IDs:
+Discover the managed canvas-capture formats and limits before requesting private evidence:
 
 ```sh
+npm run antiky -- tool get_capture_capabilities --project packages/demos/antiky/traversal-study/traversal-study.antiky
 npm run antiky -- tool get_runtime_status --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool capture_frame --project packages/demos/antiky/traversal-study/traversal-study.antiky
 ```
+
+`capture_frame` schema 3 can cold-launch Antiky's isolated managed Chromium. Use a three-to-six
+second `capture_gameplay_sequence` cadence window to observe attract motion without input. Use a
+managed-only presentation trace with explicit `D` and one-frame `W` press/release edges to prove
+manual-authority takeover and a jump. Results expose private opaque still, lossless PNG-master,
+poster, manifest, trace, and WebM identities for `get_render_evidence`, never a local path or
+unbounded base64 JSON. WebM is a review derivative, presentation input is not deterministic semantic
+replay, and all canvas evidence remains `private-unreviewed`. See the [MCP capture
+reference](../../../../docs/user-facing-docs/mcp/tools.md#capture_frame) for exact request JSON and
+limits.
 
 An MCP client calls the identical tool names and JSON inputs. While this project is running, connect
 its Streamable HTTP server at `http://127.0.0.1:3011/mcp`.

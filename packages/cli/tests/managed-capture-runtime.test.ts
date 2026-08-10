@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, mkdtemp, rm } from 'node:fs/promises';
+import { access, mkdtemp, readdir, rm } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -24,14 +24,18 @@ test('pinned Chromium encodes captured canvas PNG masters without hanging', asyn
     runtimeInstanceId: string | null;
     lifecycle: 'running' | null;
   }> = { state: 'waiting', runtimeInstanceId: null, lifecycle: null };
-  const server = createServer((_request, response) => {
+  const server = createServer((request, response) => {
     runtime = {
       state: 'connected',
       runtimeInstanceId: 'runtime-real-encoder-001',
       lifecycle: 'running',
     };
     response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    response.end('<canvas id="antiky-game" tabindex="0" width="1280" height="720"></canvas><script>const c=document.querySelector("#antiky-game");const x=c.getContext("2d");x.fillStyle="#102030";x.fillRect(0,0,c.width,c.height);x.fillStyle="#40e0ff";x.fillRect(240,180,800,360);window.addEventListener("keydown",event=>{if(document.activeElement===c&&event.target===c&&event.code==="KeyD"){x.fillStyle="#ff00ff";x.fillRect(0,0,120,120);}});</script>');
+    if (request.url === '/blocked') {
+      response.end('<canvas id="antiky-game" width="1280" height="720"></canvas><script>fetch("https://example.invalid/private")</script>');
+      return;
+    }
+    response.end('<canvas id="antiky-game" tabindex="0" width="1280" height="720"></canvas><div>person@example.test /Users/private token-secret</div><script>const c=document.querySelector("#antiky-game");const x=c.getContext("2d");x.fillStyle="#102030";x.fillRect(0,0,c.width,c.height);x.fillStyle="#40e0ff";x.fillRect(240,180,800,360);x.fillStyle="#ffffff";x.font="24px sans-serif";x.fillText("canvas@example.test /Users/canvas token-canvas",260,240);window.addEventListener("keydown",event=>{if(document.activeElement===c&&event.target===c&&event.code==="KeyD"){x.fillStyle="#ff00ff";x.fillRect(0,0,120,120);}});c.addEventListener("pointerdown",event=>{if(document.activeElement===c&&event.target===c){x.fillStyle="#ffff00";x.fillRect(1160,600,120,120);}});</script>');
   });
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject);
@@ -53,6 +57,9 @@ test('pinned Chromium encodes captured canvas PNG masters without hanging', asyn
   try {
     const owned = await managed.ensureRuntime({ deviceScaleFactor: 1 });
     const frame = await managed.captureCanvasPng(owned.runtimeInstanceId);
+    assert.equal(frame.includes(Buffer.from('person@example.test')), false);
+    assert.equal(frame.includes(Buffer.from('/Users/private')), false);
+    assert.equal(frame.includes(Buffer.from('token-secret')), false);
     await managed.performPresentationAction(owned.runtimeInstanceId, {
       kind: 'key-press', code: 'KeyD',
     });
@@ -61,9 +68,20 @@ test('pinned Chromium encodes captured canvas PNG masters without hanging', asyn
     });
     const keyboardFrame = await managed.captureCanvasPng(owned.runtimeInstanceId);
     assert.notDeepEqual(keyboardFrame, frame);
+    await managed.performPresentationAction(owned.runtimeInstanceId, {
+      kind: 'pointer-move', x: 0.25, y: 0.25,
+    });
+    await managed.performPresentationAction(owned.runtimeInstanceId, {
+      kind: 'pointer-press', button: 'primary',
+    });
+    await managed.performPresentationAction(owned.runtimeInstanceId, {
+      kind: 'pointer-release', button: 'primary',
+    });
+    const pointerFrame = await managed.captureCanvasPng(owned.runtimeInstanceId);
+    assert.notDeepEqual(pointerFrame, keyboardFrame);
     let encoderDeadline: ReturnType<typeof setTimeout> | undefined;
     const encoded = await Promise.race([
-      managed.encodePngSequence(owned.runtimeInstanceId, [frame, keyboardFrame, frame], 10),
+      managed.encodePngSequence(owned.runtimeInstanceId, [frame, keyboardFrame, pointerFrame], 10),
       new Promise<never>((_resolve, reject) => {
         encoderDeadline = setTimeout(
           () => reject(new Error('real encoder did not settle')),
@@ -73,9 +91,140 @@ test('pinned Chromium encodes captured canvas PNG masters without hanging', asyn
     ]).finally(() => clearTimeout(encoderDeadline));
     assert.equal(encoded.bytes.subarray(0, 4).toString('hex'), '1a45dfa3');
     assert.equal(encoded.encoder.source, 'png-masters');
+    await managed.stop();
+
+    runtime = { state: 'waiting', runtimeInstanceId: null, lifecycle: null };
+    const blocked = createManagedCaptureRuntime({
+      gameUrl: `${origin}/blocked`,
+      inspectionUrl: origin,
+      configuredWidth: 1280,
+      configuredHeight: 720,
+      readRuntime: () => runtime,
+      timeoutMilliseconds: 5_000,
+      pollMilliseconds: 5,
+    });
+    try {
+      await assert.rejects(
+        () => blocked.ensureRuntime({ deviceScaleFactor: 1 }),
+        (error: unknown) => (
+          error instanceof AntikyCliError
+          && error.code === 'CAPTURE_EXTERNAL_NETWORK_BLOCKED'
+        ),
+      );
+    } finally {
+      await blocked.stop();
+    }
   } finally {
     await managed.stop();
     await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test('managed capture maps launch, WebGPU, and startup timeout failures safely', async (context) => {
+  const scenarios = [
+    {
+      name: 'browser launch',
+      expectedCode: 'CAPTURE_BROWSER_LAUNCH_FAILED',
+      launcher: async () => { throw new Error('/Users/private/browser detail'); },
+      timeoutMilliseconds: 10,
+    },
+    {
+      name: 'WebGPU',
+      expectedCode: 'CAPTURE_WEBGPU_UNAVAILABLE',
+      launcher: async () => ({
+        browserVersion: '151.0.7922.34',
+        async navigate() {},
+        async probeWebGpu() { return false; },
+        async close() {},
+      }),
+      timeoutMilliseconds: 10,
+    },
+    {
+      name: 'startup timeout',
+      expectedCode: 'CAPTURE_RUNTIME_TIMEOUT',
+      launcher: async () => ({
+        browserVersion: '151.0.7922.34',
+        async navigate() {},
+        async probeWebGpu() { return true; },
+        async close() {},
+      }),
+      timeoutMilliseconds: 1,
+    },
+  ] as const;
+
+  for (const scenario of scenarios) {
+    await context.test(scenario.name, async () => {
+      const temporaryRoot = await mkdtemp(join(tmpdir(), 'antiky-managed-error-test-'));
+      const managed = createManagedCaptureRuntime({
+        gameUrl: 'http://127.0.0.1:3010/game',
+        inspectionUrl: 'http://127.0.0.1:3011',
+        configuredWidth: 1,
+        configuredHeight: 1,
+        readRuntime: () => ({ state: 'waiting', runtimeInstanceId: null }),
+        launcher: scenario.launcher,
+        profileRoot: temporaryRoot,
+        timeoutMilliseconds: scenario.timeoutMilliseconds,
+        pollMilliseconds: 1,
+      });
+      try {
+        await assert.rejects(
+          () => managed.ensureRuntime({ deviceScaleFactor: 1 }),
+          (error: unknown) => (
+            error instanceof AntikyCliError
+            && error.code === scenario.expectedCode
+            && !/\/Users\/|profile|path|pid/i.test(error.message)
+          ),
+        );
+        await access(temporaryRoot);
+        assert.deepEqual(await readdir(temporaryRoot), []);
+      } finally {
+        await managed.stop();
+        await rm(temporaryRoot, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test('managed capture reports a missing game canvas without leaking adapter details', async () => {
+  let runtime: Readonly<{
+    state: 'waiting' | 'connected';
+    runtimeInstanceId: string | null;
+    lifecycle: 'ready' | null;
+  }> = { state: 'waiting', runtimeInstanceId: null, lifecycle: null };
+  const managed = createManagedCaptureRuntime({
+    gameUrl: 'http://127.0.0.1:3010/game',
+    inspectionUrl: 'http://127.0.0.1:3011',
+    configuredWidth: 1,
+    configuredHeight: 1,
+    readRuntime: () => runtime,
+    launcher: async () => ({
+      browserVersion: '151.0.7922.34',
+      async navigate() {
+        runtime = {
+          state: 'connected',
+          runtimeInstanceId: 'runtime-no-canvas-001',
+          lifecycle: 'ready',
+        };
+      },
+      async probeWebGpu() { return true; },
+      async close() {},
+    }),
+    timeoutMilliseconds: 10,
+    pollMilliseconds: 1,
+  });
+
+  try {
+    const owned = await managed.ensureRuntime({ deviceScaleFactor: 1 });
+    await assert.rejects(
+      () => managed.captureCanvasPng(owned.runtimeInstanceId),
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'CAPTURE_CANVAS_MISSING'
+        && !/path|pid|profile|adapter/i.test(error.message)
+      ),
+    );
+  } finally {
+    await managed.stop();
   }
 });
 
