@@ -8,18 +8,28 @@ import {
 } from '@antiky/framework';
 
 import {
+  TRAVERSAL_CATALOG_ID,
+  TRAVERSAL_PRESENTATION_CATALOG_ID,
+} from './asset-catalog.ts';
+
+import {
   COURSE_CHECKPOINTS,
   COURSE_COLLECTIBLES,
   COURSE_HAZARDS,
   COURSE_LENGTH,
   COURSE_PLATFORMS,
   DELIVERY_X,
+  hazardTop,
   platformTop,
 } from './course.ts';
 import {
   COYOTE_SECONDS,
+  GROUND_ACCELERATION,
   JUMP_BUFFER_SECONDS,
+  JUMP_RELEASE_VELOCITY_MULTIPLIER,
+  MANUAL_TOP_SPEED,
   MAX_PARCEL_SEALS,
+  RESET_RECOVERY_SECONDS,
   STORM_DURATION_SECONDS,
   type TraversalEvent,
   type TraversalSnapshot,
@@ -81,6 +91,7 @@ export function createTraversalInspectionModel(runtimeInstanceId: string): Trave
             attempt: snapshot.attempt,
             finiteCourseLength: COURSE_LENGTH,
             progress: snapshot.progress,
+            damagedHazardMask: snapshot.damagedHazardMask,
           },
         }],
       },
@@ -99,6 +110,10 @@ export function createTraversalInspectionModel(runtimeInstanceId: string): Trave
               controlMode: snapshot.controlMode,
               coyoteSeconds: COYOTE_SECONDS,
               jumpBufferSeconds: JUMP_BUFFER_SECONDS,
+              jumpReleaseVelocityMultiplier: JUMP_RELEASE_VELOCITY_MULTIPLIER,
+              groundAcceleration: GROUND_ACCELERATION,
+              manualTopSpeed: MANUAL_TOP_SPEED,
+              resetRecoverySeconds: RESET_RECOVERY_SECONDS,
               jumps: snapshot.jumps,
               falls: snapshot.falls,
             },
@@ -145,15 +160,28 @@ export function createTraversalInspectionModel(runtimeInstanceId: string): Trave
         entityId: TRAVERSAL_HAZARDS_ID,
         label: 'Course Hazards',
         revision: snapshot.revision,
-        components: [{ typeId: 'antiky.hazard-set', schemaVersion: 1, summary: `${COURSE_HAZARDS.length} authored spike hazards`, data: { count: COURSE_HAZARDS.length } }],
+        components: [{ typeId: 'antiky.hazard-set', schemaVersion: 1, summary: `${COURSE_HAZARDS.length} authored spike hazards`, data: { count: COURSE_HAZARDS.length, damagedHazardMask: snapshot.damagedHazardMask } }],
       },
       ...COURSE_HAZARDS.map((hazard, index) => ({
         entityId: TRAVERSAL_HAZARD_IDS[index]!,
         label: hazard.label,
         revision: snapshot.revision,
         components: [
-          { typeId: 'antiky.parcel-damage-hazard', schemaVersion: 1, summary: 'Costs one parcel seal on contact', data: { id: hazard.id, act: hazard.act, width: hazard.width, sealCost: 1 } },
-          { typeId: 'antiky.transform', schemaVersion: 1, summary: 'Hazard transform', data: { position: [hazard.x, hazard.top, 0] } },
+          {
+            typeId: 'antiky.parcel-damage-hazard',
+            schemaVersion: 1,
+            summary: (snapshot.damagedHazardMask & (1 << index)) === 0
+              ? 'Armed; costs one parcel seal on contact'
+              : 'Disarmed for this attempt after contact',
+            data: {
+              id: hazard.id,
+              act: hazard.act,
+              width: hazard.width,
+              sealCost: 1,
+              armed: snapshot.outcome === 'running' && (snapshot.damagedHazardMask & (1 << index)) === 0,
+            },
+          },
+          { typeId: 'antiky.transform', schemaVersion: 1, summary: 'Current hazard transform', data: { position: [hazard.x, hazardTop(hazard, snapshot.time), 0] } },
         ],
       })),
       {
@@ -220,13 +248,37 @@ export function createTraversalInspectionModel(runtimeInstanceId: string): Trave
       { key: 'storm', entityId: TRAVERSAL_STORM_ID, data: { remainingSeconds: snapshot.remainingTime, level: snapshot.storm } },
       { key: 'delivery', entityId: TRAVERSAL_DELIVERY_ID, data: { progress: snapshot.progress, outcome: snapshot.outcome, failureReason: snapshot.failureReason, attempt: snapshot.attempt } },
       ...COURSE_PLATFORMS.map((platform, index) => ({ key: `platform-${platform.id}`, entityId: TRAVERSAL_PLATFORM_IDS[index]!, data: { currentTop: platformTop(platform, snapshot.time) } })),
-      ...COURSE_HAZARDS.map((hazard, index) => ({ key: `hazard-${hazard.id}`, entityId: TRAVERSAL_HAZARD_IDS[index]!, data: { armed: snapshot.outcome === 'running', sealCost: 1 } })),
+      ...COURSE_HAZARDS.map((hazard, index) => ({
+        key: `hazard-${hazard.id}`,
+        entityId: TRAVERSAL_HAZARD_IDS[index]!,
+        data: {
+          armed: snapshot.outcome === 'running' && (snapshot.damagedHazardMask & (1 << index)) === 0,
+          consumedThisAttempt: (snapshot.damagedHazardMask & (1 << index)) !== 0,
+          sealCost: 1,
+          currentTop: hazardTop(hazard, snapshot.time),
+        },
+      })),
       ...COURSE_CHECKPOINTS.map((checkpoint, index) => ({ key: `checkpoint-${checkpoint.id}`, entityId: TRAVERSAL_CHECKPOINT_IDS[index]!, data: { active: index === snapshot.checkpointIndex, reached: index <= snapshot.checkpointIndex } })),
       ...COURSE_COLLECTIBLES.map((collectible, index) => ({ key: `collectible-${collectible.id}`, entityId: TRAVERSAL_COLLECTIBLE_IDS[index]!, data: { collected: snapshot.collectedSeal } })),
     ];
     const renderEntries = [
-      { key: 'courier', entityId: TRAVERSAL_PLAYER_ID, data: { layer: 5, visible: true } },
-      { key: 'course', entityId: TRAVERSAL_COURSE_ID, data: { layer: 2, visible: true, catalog: 'kenney:platformer-kit' } },
+      { key: 'courier', entityId: TRAVERSAL_PLAYER_ID, data: { layer: 5, visible: true, catalog: TRAVERSAL_PRESENTATION_CATALOG_ID, asset: 'courier.glb' } },
+      {
+        key: 'environment',
+        entityId: TRAVERSAL_ROOT_ID,
+        data: {
+          layer: 1,
+          visible: true,
+          catalogs: [
+            {
+              catalogId: TRAVERSAL_PRESENTATION_CATALOG_ID,
+              assets: ['cloud-small.glb', 'cloud-large.glb', 'coastal-cliff.glb', 'coastal-tree.glb', 'relay-tower.glb'],
+            },
+            { catalogId: TRAVERSAL_CATALOG_ID, assets: ['tree.glb'] },
+          ],
+        },
+      },
+      { key: 'course', entityId: TRAVERSAL_COURSE_ID, data: { layer: 2, visible: true, catalog: TRAVERSAL_CATALOG_ID } },
       { key: 'hazards', entityId: TRAVERSAL_HAZARDS_ID, data: { layer: 4, visible: true, asset: 'trap-spikes.glb' } },
       { key: 'checkpoints', entityId: TRAVERSAL_CHECKPOINT_ID, data: { layer: 4, visible: true, asset: 'flag.glb' } },
       { key: 'collectible', entityId: TRAVERSAL_COLLECTIBLE_IDS[0]!, data: { layer: 4, visible: !snapshot.collectedSeal, asset: 'coin-gold.glb' } },

@@ -1,4 +1,4 @@
-import { canonicalAttractCommand } from './attract-controller.ts';
+import { writeCanonicalAttractCommand } from './attract-controller.ts';
 import {
   COURSE_CHECKPOINTS,
   COURSE_COLLECTIBLES,
@@ -7,6 +7,7 @@ import {
   COURSE_PLATFORMS,
   DELIVERY_X,
   actAt,
+  hazardTop,
   platformTop,
   type PlatformDefinition,
   type TraversalAct,
@@ -17,16 +18,20 @@ export { COURSE_LENGTH, COURSE_HAZARDS, COURSE_PLATFORMS, platformTop } from './
 export const RUNNER_RADIUS = 0.43;
 export const TRAIL_CAPACITY = 72;
 export const MAX_PARCEL_SEALS = 3;
-export const STORM_DURATION_SECONDS = 64;
-export const ATTRACT_DELAY_SECONDS = 2.5;
-export const COYOTE_SECONDS = 0.11;
-export const JUMP_BUFFER_SECONDS = 0.13;
+export const STORM_DURATION_SECONDS = 48;
+export const ATTRACT_DELAY_SECONDS = 1.5;
+export const COYOTE_SECONDS = 0.12;
+export const JUMP_BUFFER_SECONDS = 0.14;
+export const MANUAL_TOP_SPEED = 6.35;
+export const GROUND_ACCELERATION = 28;
+export const JUMP_RELEASE_VELOCITY_MULTIPLIER = 0.55;
+export const RESET_RECOVERY_SECONDS = 0.32;
 
-const ATTRACT_SPEED = 3.25;
-const MANUAL_CRUISE_SPEED = 3.35;
-const MANUAL_SPRINT_BONUS = 1.35;
-const JUMP_VELOCITY = 7.05;
-const GRAVITY = 16.2;
+const ATTRACT_SPEED = 4.65;
+const MANUAL_CRUISE_SPEED = 5;
+const MANUAL_SPRINT_BONUS = MANUAL_TOP_SPEED - MANUAL_CRUISE_SPEED;
+const JUMP_VELOCITY = 8.6;
+const GRAVITY = 19.2;
 
 export type TraversalInput = Readonly<{
   horizontal: number;
@@ -72,6 +77,10 @@ export type PlatformInstance = Readonly<{
   top: number;
 }>;
 
+type MutablePlatformInstance = {
+  -readonly [Key in keyof PlatformInstance]: PlatformInstance[Key];
+};
+
 export type TrailParticle = {
   x: number;
   y: number;
@@ -98,11 +107,16 @@ export type TraversalSnapshot = Readonly<{
   checkpointIndex: number;
   parcelSeals: number;
   collectedSeal: boolean;
+  damagedHazardMask: number;
   jumps: number;
   falls: number;
   effects: Readonly<{
+    jump: number;
+    land: number;
     checkpoint: number;
+    collectible: number;
     damage: number;
+    retry: number;
     delivery: number;
   }>;
   player: Readonly<{
@@ -124,19 +138,31 @@ export type TraversalSimulation = Readonly<{
   digest(): string;
 }>;
 
-export function platformInstancesNear(_x: number, time: number): readonly PlatformInstance[] {
-  return Object.freeze(COURSE_PLATFORMS.map((definition, definitionIndex) => Object.freeze({
+type MutableTraversalSnapshot = {
+  -readonly [Key in keyof TraversalSnapshot]: TraversalSnapshot[Key];
+};
+
+const platformInstances: MutablePlatformInstance[] = COURSE_PLATFORMS.map((definition, definitionIndex) => ({
     definition,
     definitionIndex,
     lap: 0 as const,
     x: definition.x,
-    top: platformTop(definition, time),
-  })));
+    top: definition.top,
+}));
+
+export function platformInstancesNear(_x: number, time: number): readonly PlatformInstance[] {
+  for (let index = 0; index < platformInstances.length; index += 1) {
+    const platform = platformInstances[index]!;
+    platform.top = platformTop(platform.definition, time);
+  }
+  return platformInstances;
 }
 
 function supportAt(x: number, y: number, time: number): PlatformInstance | null {
   let support: PlatformInstance | null = null;
-  for (const platform of platformInstancesNear(x, time)) {
+  const instances = platformInstancesNear(x, time);
+  for (let index = 0; index < instances.length; index += 1) {
+    const platform = instances[index]!;
     const within = Math.abs(x - platform.x) <= platform.definition.width * 0.5 - 0.05;
     if (!within || platform.top > y + 0.14) continue;
     if (support === null || platform.top > support.top) support = platform;
@@ -163,7 +189,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     { length: TRAIL_CAPACITY },
     () => ({ x: 0, y: -20, vx: 0, vy: 0, life: 0, color: 0 }),
   );
-  const effects = { checkpoint: 0, damage: 0, delivery: 0 };
+  const effects = { jump: 0, land: 0, checkpoint: 0, collectible: 0, damage: 0, retry: 0, delivery: 0 };
   let time = 0;
   let attemptTime = 0;
   let revision = 1;
@@ -184,7 +210,33 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
   let jumpBuffer = 0;
   let coyoteTime = COYOTE_SECONDS;
   let damageCooldown = 0;
+  let damagedHazardMask = 0;
   let stormWarningSent = false;
+  const attractCommand = { horizontal: 0, jump: false };
+  const liveSnapshot: MutableTraversalSnapshot = {
+    time,
+    attemptTime,
+    remainingTime: STORM_DURATION_SECONDS,
+    storm: 0,
+    revision,
+    resetSerial,
+    attempt,
+    distance: player.x,
+    progress: player.x / DELIVERY_X,
+    act: 1,
+    controlMode,
+    outcome,
+    failureReason,
+    checkpointIndex,
+    parcelSeals,
+    collectedSeal,
+    damagedHazardMask,
+    jumps,
+    falls,
+    effects,
+    player,
+    trail,
+  };
 
   const spawnTrail = (count: number, color: number, force: number): void => {
     for (let index = 0; index < count; index += 1) {
@@ -211,7 +263,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     coyoteTime = COYOTE_SECONDS;
     jumpBuffer = 0;
     jumpWasDown = false;
-    damageCooldown = 0.8;
+    damageCooldown = RESET_RECOVERY_SECONDS;
     resetSerial += 1;
   };
 
@@ -232,6 +284,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     effects.damage = 1;
     spawnTrail(24, 2, 4.2);
     emit({ type: 'traversal.seal-lost', value: parcelSeals, hazardIndex: hazardIndex ?? undefined, act: actAt(player.x) });
+    if (hazardIndex !== null) damagedHazardMask |= 1 << hazardIndex;
     if (parcelSeals === 0) {
       fail('parcel-seals');
       return;
@@ -259,8 +312,13 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     outcome = 'running';
     failureReason = null;
     stormWarningSent = false;
+    damagedHazardMask = 0;
     effects.checkpoint = 0;
+    effects.jump = 0;
+    effects.land = 0;
+    effects.collectible = 0;
     effects.damage = 0;
+    effects.retry = 1;
     effects.delivery = 0;
     controlMode = 'manual';
     placeAtCheckpoint();
@@ -272,7 +330,11 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     time += dt;
     revision += 1;
     effects.checkpoint = Math.max(0, effects.checkpoint - dt * 1.8);
+    effects.jump = Math.max(0, effects.jump - dt * 4.8);
+    effects.land = Math.max(0, effects.land - dt * 3.8);
+    effects.collectible = Math.max(0, effects.collectible - dt * 2.6);
     effects.damage = Math.max(0, effects.damage - dt * 2.2);
+    effects.retry = Math.max(0, effects.retry - dt * 2.8);
     effects.delivery = Math.max(0, effects.delivery - dt * 0.7);
     damageCooldown = Math.max(0, damageCooldown - dt);
     player.squash = Math.max(0, player.squash - dt * 5.5);
@@ -300,7 +362,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     }
 
     const attract = controlMode === 'attract'
-      ? canonicalAttractCommand({ time, player, outcome })
+      ? writeCanonicalAttractCommand(time, player, outcome, attractCommand)
       : null;
     const requestedHorizontal = attract?.horizontal ?? horizontal;
     const requestedJump = attract?.jump ?? input.jump === true;
@@ -308,9 +370,9 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
 
     if (controlMode !== 'idle') {
       attemptTime += dt;
-      if (!stormWarningSent && STORM_DURATION_SECONDS - attemptTime <= 15) {
+      if (!stormWarningSent && STORM_DURATION_SECONDS - attemptTime <= 10) {
         stormWarningSent = true;
-        emit({ type: 'traversal.storm-warning', value: 15, act: actAt(player.x) });
+        emit({ type: 'traversal.storm-warning', value: 10, act: actAt(player.x) });
       }
       if (attemptTime >= STORM_DURATION_SECONDS) {
         fail('storm');
@@ -322,9 +384,13 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     const wasGrounded = player.grounded;
     coyoteTime = wasGrounded ? COYOTE_SECONDS : Math.max(0, coyoteTime - dt);
     jumpBuffer = Math.max(0, jumpBuffer - dt);
+    const jumpReleased = !requestedJump && jumpWasDown;
     const jumpPressed = requestedJump && !jumpWasDown;
     jumpWasDown = requestedJump;
     if (jumpPressed) jumpBuffer = JUMP_BUFFER_SECONDS;
+    if (controlMode === 'manual' && jumpReleased && player.vy > 0) {
+      player.vy *= JUMP_RELEASE_VELOCITY_MULTIPLIER;
+    }
 
     let targetSpeed = 0;
     if (controlMode === 'attract') targetSpeed = ATTRACT_SPEED;
@@ -332,7 +398,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
       targetSpeed = Math.sign(requestedHorizontal)
         * (MANUAL_CRUISE_SPEED + MANUAL_SPRINT_BONUS * Math.abs(requestedHorizontal));
     }
-    const acceleration = player.grounded ? 8.2 : 3.25;
+    const acceleration = player.grounded ? GROUND_ACCELERATION : 10.5;
     player.vx += (targetSpeed - player.vx) * Math.min(1, dt * acceleration);
     if (Math.abs(player.vx) > 0.12) player.facing = Math.sign(player.vx);
 
@@ -342,6 +408,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
       coyoteTime = 0;
       jumpBuffer = 0;
       player.squash = 0.65;
+      effects.jump = 1;
       jumps += 1;
       spawnTrail(10, 0, 2.6);
       emit({ type: 'traversal.jump', value: jumps, act: actAt(player.x) });
@@ -356,7 +423,9 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     const previousBottom = previousY - RUNNER_RADIUS;
     const nextBottom = player.y - RUNNER_RADIUS;
     let landed: PlatformInstance | null = null;
-    for (const platform of platformInstancesNear(player.x, time)) {
+    const instances = platformInstancesNear(player.x, time);
+    for (let index = 0; index < instances.length; index += 1) {
+      const platform = instances[index]!;
       const within = Math.abs(player.x - platform.x) <= platform.definition.width * 0.5 - 0.06;
       const crossed = previousBottom >= platform.top - 0.14 && nextBottom <= platform.top + 0.08;
       if (!within || !crossed || player.vy > 0) continue;
@@ -369,16 +438,25 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
       player.grounded = true;
       player.squash = Math.max(player.squash, impact);
       if (!wasGrounded && impact > 0.15) {
+        effects.land = 1;
         spawnTrail(6, landed.definition.accent, 1.6);
         emit({ type: 'traversal.land', platformIndex: landed.definitionIndex, value: jumps, act: landed.definition.act });
       }
     }
 
-    const hazardIndex = COURSE_HAZARDS.findIndex((hazard) => (
-      Math.abs(player.x - hazard.x) < hazard.width * 0.5 + RUNNER_RADIUS * 0.55
-      && player.y - RUNNER_RADIUS < hazard.top + 0.34
-      && player.y + RUNNER_RADIUS > hazard.top - 0.06
-    ));
+    let hazardIndex = -1;
+    for (let index = 0; index < COURSE_HAZARDS.length; index += 1) {
+      if ((damagedHazardMask & (1 << index)) !== 0) continue;
+      const hazard = COURSE_HAZARDS[index]!;
+      const top = hazardTop(hazard, time);
+      const intersects = Math.abs(player.x - hazard.x) < hazard.width * 0.5 + RUNNER_RADIUS * 0.55
+        && player.y - RUNNER_RADIUS < top + (hazard.collisionHeight ?? 0.34)
+        && player.y + RUNNER_RADIUS > top - 0.06;
+      if (intersects) {
+        hazardIndex = index;
+        break;
+      }
+    }
     if (hazardIndex >= 0) loseSeal(hazardIndex);
     else if (player.y < -4.2) loseSeal(null);
 
@@ -397,7 +475,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
       if (Math.hypot(player.x - collectible.x, player.y - collectible.y) < 0.72) {
         collectedSeal = true;
         parcelSeals = Math.min(MAX_PARCEL_SEALS, parcelSeals + 1);
-        effects.checkpoint = 1;
+        effects.collectible = 1;
         spawnTrail(24, 1, 3.8);
         emit({ type: 'traversal.seal-collected', value: parcelSeals, collectibleIndex: 0, act: collectible.act });
       }
@@ -412,49 +490,50 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
       emit({ type: 'traversal.delivery', value: Math.round(attemptTime * 1000), act: 3 });
     }
 
-    if (player.grounded && Math.abs(player.vx) > 1 && revision % 7 === 0) {
-      spawnTrail(1, revision % 14 === 0 ? 1 : 0, 1.1);
+    if (player.grounded && Math.abs(player.vx) > 2.4 && revision % 4 === 0) {
+      spawnTrail(1, revision % 12 === 0 ? 1 : 0, 1.2 + Math.abs(player.vx) * 0.08);
     }
     updateParticles(dt);
   };
 
   const updateParticles = (dt: number): void => {
-    trail.forEach((particle) => {
-      if (particle.life <= 0) return;
+    for (let index = 0; index < trail.length; index += 1) {
+      const particle = trail[index]!;
+      if (particle.life <= 0) continue;
       particle.life -= dt;
       particle.x += particle.vx * dt;
       particle.y += particle.vy * dt;
       particle.vy -= 2.8 * dt;
       if (particle.life <= 0) particle.y = -20;
-    });
+    }
   };
 
-  const snapshot = (copy: boolean): TraversalSnapshot => {
+  const syncLiveSnapshot = (): TraversalSnapshot => {
     const remainingTime = Math.max(0, STORM_DURATION_SECONDS - attemptTime);
-    const state = {
-      time,
-      attemptTime,
-      remainingTime,
-      storm: 1 - remainingTime / STORM_DURATION_SECONDS,
-      revision,
-      resetSerial,
-      attempt,
-      distance: Math.max(0, Math.min(COURSE_LENGTH, player.x)),
-      progress: Math.max(0, Math.min(1, player.x / DELIVERY_X)),
-      act: actAt(player.x),
-      controlMode,
-      outcome,
-      failureReason,
-      checkpointIndex,
-      parcelSeals,
-      collectedSeal,
-      jumps,
-      falls,
-      effects,
-      player,
-      trail,
-    };
-    if (!copy) return state;
+    liveSnapshot.time = time;
+    liveSnapshot.attemptTime = attemptTime;
+    liveSnapshot.remainingTime = remainingTime;
+    liveSnapshot.storm = 1 - remainingTime / STORM_DURATION_SECONDS;
+    liveSnapshot.revision = revision;
+    liveSnapshot.resetSerial = resetSerial;
+    liveSnapshot.attempt = attempt;
+    liveSnapshot.distance = Math.max(0, Math.min(COURSE_LENGTH, player.x));
+    liveSnapshot.progress = Math.max(0, Math.min(1, player.x / DELIVERY_X));
+    liveSnapshot.act = actAt(player.x);
+    liveSnapshot.controlMode = controlMode;
+    liveSnapshot.outcome = outcome;
+    liveSnapshot.failureReason = failureReason;
+    liveSnapshot.checkpointIndex = checkpointIndex;
+    liveSnapshot.parcelSeals = parcelSeals;
+    liveSnapshot.collectedSeal = collectedSeal;
+    liveSnapshot.damagedHazardMask = damagedHazardMask;
+    liveSnapshot.jumps = jumps;
+    liveSnapshot.falls = falls;
+    return liveSnapshot;
+  };
+
+  const readSnapshot = (): TraversalSnapshot => {
+    const state = syncLiveSnapshot();
     return Object.freeze({
       ...state,
       effects: Object.freeze({ ...effects }),
@@ -465,8 +544,8 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
 
   return Object.freeze({
     update,
-    view: () => snapshot(false),
-    read: () => snapshot(true),
+    view: syncLiveSnapshot,
+    read: readSnapshot,
     digest: () => [
       revision,
       attempt,
@@ -483,6 +562,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
       Math.max(0, STORM_DURATION_SECONDS - attemptTime).toFixed(3),
       jumps,
       falls,
+      damagedHazardMask,
     ].join(':'),
   });
 }

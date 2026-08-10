@@ -147,6 +147,176 @@
           }
         }
       ]
+    },
+    {
+      "catalogId": "quaternius:ultimateplatformer",
+      "officialSourcePageUrl": "https://quaternius.com/packs/ultimateplatformer.html",
+      "officialDownloadUrl": "https://drive.google.com/drive/folders/1NDZn_aGnn0vfFV3M22Y8GPcDjO8BVcLs?usp=sharing",
+      "publisherArchive": {
+        "accessPageUrl": "https://quaternius.itch.io/ultimate-platformer-pack/purchase",
+        "uploadId": "4975456",
+        "archiveFileName": "Ultimate Platformer Pack by Quaternius.zip",
+        "sha256": "2d0cac0f3cb58f6845f779a4c6b4a92be6fa27d118ee0b976ead55c6834a53d4"
+      },
+      "archive": {
+        "archiveFileName": "quaternius-ultimateplatformer-selection.zip",
+        "sha256": "a3735d04295a40cf2d24fdc297cd7032e37407934c35fb7388d3ce098ea40aea",
+        "kind": "deterministic exact-source subset assembled from the publisher archive and its mirrored public source folder",
+        "contents": [
+          "Character.gltf",
+          "Cloud_2.gltf",
+          "Cloud_3.gltf",
+          "LICENSE.txt",
+          "RockPlatforms_Large.gltf",
+          "Tower.gltf",
+          "Tree.gltf"
+        ],
+        "construction": {
+          "script": "scripts/build-quaternius-selection.mjs",
+          "entryOrder": [
+            "Character.gltf",
+            "Cloud_2.gltf",
+            "Cloud_3.gltf",
+            "LICENSE.txt",
+            "RockPlatforms_Large.gltf",
+            "Tower.gltf",
+            "Tree.gltf"
+          ],
+          "timestamp": "1980-01-01T00:00:00Z",
+          "compression": "store"
+        }
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "officialEvidenceUrl": "https://quaternius.com/faq.html",
+        "sourcePath": "License.txt",
+        "sourceFileId": "1v0aHJ-urPz4Ex4hChrbKKCLYw1Segi96",
+        "sourceSha256": "de990ef6fc68cffd7fd1ae342c4d0c823b541b8848d8f76bca5d3339f4de6f6e",
+        "copiedTo": "assets/quaternius/ultimate-platformer/LICENSE.txt"
+      },
+      "normalization": "Package-local scripts/normalize-quaternius.mjs decodes each source glTF data-URI buffer, applies source node transforms, merges all primitives, bakes material baseColorFactor values into a nearest-sampled embedded PNG palette, writes palette UVs, and emits one indexed BroMetal-safe GLB primitive. Character.gltf additionally bakes the source Run animation and skin at 0.18 seconds before merging; the source rig and 18 animations remain documented provenance but are not retained in the presentation GLB.",
+      "files": [
+        {
+          "originalPath": "Character/glTF/Character.gltf",
+          "officialFileUrl": "https://drive.google.com/file/d/1wTsUGEh1-ZpX2ix4TgqsR5qmiETpkzwK/view?usp=drivesdk",
+          "originalSha256": "5913c61c972d752cdce20db1281e2fe48fdb55a5baf8b298fc432c8c30b11232",
+          "transformation": "Bake source Run animation and skin at 0.18 seconds; merge 11 color-material primitives into one palette-textured primitive.",
+          "derivedPath": "assets/quaternius/ultimate-platformer/courier.glb",
+          "derivedSha256": "6ea8086f7394298deeb68ee319456c910ee03b6cce5566f6d2ac9181f2a3ce8e",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 1895,
+            "indices": 8724,
+            "bounds": {
+              "min": [-1.258022427558899, -0.00622106809169054, -0.4004991352558136],
+              "max": [1.2250511646270752, 3.4834468364715576, 1.1804832220077515]
+            }
+          }
+        },
+        {
+          "originalPath": "Nature/glTF/Cloud_3.gltf",
+          "officialArchivePath": "Ultimate Platformer Pack - Dec 2021/Nature/glTF/Cloud_3.gltf",
+          "originalSha256": "fc8e4fa2da9d9eb2047d5c234d361426d45d3efb844603006a481b7dfa066130",
+          "transformation": "Merge one color-material primitive into one palette-textured primitive.",
+          "derivedPath": "assets/quaternius/ultimate-platformer/cloud-small.glb",
+          "derivedSha256": "49402ab090031a365df777365e851955a6d0c4f9769085040bac6c9f4ad49452",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 393,
+            "indices": 1722,
+            "bounds": {
+              "min": [-2.5491342544555664, -0.350820392370224, -1.7464878559112549],
+              "max": [3.302924394607544, 2.809738874435425, 1.746488094329834]
+            }
+          }
+        },
+        {
+          "originalPath": "Nature/glTF/Cloud_2.gltf",
+          "officialFileUrl": "https://drive.google.com/file/d/1FU0qs6X1y2BHEHEKd1ZaKp1K7BMKRzOq/view?usp=drivesdk",
+          "originalSha256": "3b67cdbd76315a41f7199ff761500975dfde8b54ede5780cbde2044d34d77e58",
+          "transformation": "Merge one color-material primitive into one palette-textured primitive.",
+          "derivedPath": "assets/quaternius/ultimate-platformer/cloud-large.glb",
+          "derivedSha256": "78d036382ab3468b3110b6c6f63d17d24c249454739dda4b072b248299c59c07",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 339,
+            "indices": 1524,
+            "bounds": {
+              "min": [-2.0149080753326416, -0.23559501767158508, -1.223745584487915],
+              "max": [1.9912298917770386, 2.166006565093994, 1.2237458229064941]
+            }
+          }
+        },
+        {
+          "originalPath": "Nature/glTF/RockPlatforms_Large.gltf",
+          "officialFileUrl": "https://drive.google.com/file/d/1F4pINtOKAnxXm8VpD6VH2DW033uJp036/view?usp=drivesdk",
+          "originalSha256": "3316601ca7688b4f8c4df5f04fdc2b71ce59ba9ee057267ee438e1bd0f2cf94e",
+          "transformation": "Merge one color-material primitive into one palette-textured primitive.",
+          "derivedPath": "assets/quaternius/ultimate-platformer/coastal-cliff.glb",
+          "derivedSha256": "1379d943f46479c20d14d7f64f72b6fd5b69bbb3c5a5127d4e66ace47b39d422",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 306,
+            "indices": 1392,
+            "bounds": {
+              "min": [-3.7422685623168945, 1.7881393432617188e-7, -2.5818421840667725],
+              "max": [3.6371774673461914, 3.6316299438476562, 2.580955982208252]
+            }
+          }
+        },
+        {
+          "originalPath": "Nature/glTF/Tree.gltf",
+          "officialFileUrl": "https://drive.google.com/file/d/19PKl285ynA6Sxgjx_RuYpXXhYbO98n2j/view?usp=drivesdk",
+          "originalSha256": "3dccc3668294821e3715c70700d4da34233a413d743219a67061b17a8137a69a",
+          "transformation": "Merge two color-material primitives into one palette-textured primitive.",
+          "derivedPath": "assets/quaternius/ultimate-platformer/coastal-tree.glb",
+          "derivedSha256": "b5199db9c85ea399cce3926829408232ac03b9c83bb3dbf10a250986a8c48068",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 1915,
+            "indices": 8064,
+            "bounds": {
+              "min": [-2.7672407627105713, 0.009273810312151909, -2.774606466293335],
+              "max": [2.7672407627105713, 8.635451316833496, 2.774606466293335]
+            }
+          }
+        },
+        {
+          "originalPath": "Level and Mechanics/glTF/Tower.gltf",
+          "officialFileUrl": "https://drive.google.com/uc?export=download&id=1ZwygnPEOK0lNMNXfvmyuWl5C1hN6HDqg",
+          "originalSha256": "2c351e87e9f2ba7753ddf09efd1d6436a7b514d5004773008eefcc12b1e8be25",
+          "transformation": "Merge ten color-material primitives into one palette-textured primitive.",
+          "derivedPath": "assets/quaternius/ultimate-platformer/relay-tower.glb",
+          "derivedSha256": "470038d8cf5f3d4c546949d6f869680fbd23dfee9e214107b297adfb30055a24",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 3658,
+            "indices": 8196,
+            "bounds": {
+              "min": [-4.623603343963623, -0.09623143821954727, -4.8195390701293945],
+              "max": [4.812933921813965, 14.502351760864258, 4.156678676605225]
+            }
+          }
+        }
+      ]
     }
   ]
 }

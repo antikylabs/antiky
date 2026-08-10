@@ -5,7 +5,7 @@ export type TraversalBatchMeasurement = Readonly<{
 }>;
 
 export const TRAVERSAL_MEASUREMENT_NOTE =
-  'Finite Antiky courier course; embedded-image Kenney GLBs rendered by BroMetal';
+  'Finite Antiky courier course; embedded-image Kenney and Quaternius GLBs rendered by BroMetal';
 
 export function summarizeTraversalMeasurements(batches: readonly TraversalBatchMeasurement[]) {
   return Object.freeze({

@@ -21,6 +21,8 @@ export default shader({
     uCameraPosition: 'vec3',
     uTime: 'float',
     uTint: 'vec3',
+    uGradeColor: 'vec3',
+    uGradeMix: 'float',
     uTex: 'sampler2D',
   },
   varyings: { vWorld: 'vec3', vNormal: 'vec3', vUv: 'vec2', vWash: 'float' },
@@ -41,14 +43,15 @@ export default shader({
     return uViewProj.mul(vec4(world, 1));
   },
 
-  fragment({ uCameraPosition, uTint, uTex }, { vWorld, vNormal, vUv, vWash }) {
+  fragment({ uCameraPosition, uTint, uGradeColor, uGradeMix, uTex }, { vWorld, vNormal, vUv, vWash }) {
     const texel = texture(uTex, vUv).xyz;
     const normal = normalize(vNormal);
     const light = normalize(vec3(-0.38, 0.84, 0.48));
     const diffuse = max(dot(normal, light), 0);
     const band = 0.54 + smoothstep(0.18, 0.25, diffuse) * 0.2
       + smoothstep(0.62, 0.7, diffuse) * 0.24;
-    const base = texel.mul(uTint).scale(band * vWash);
+    const graded = mix(texel, uGradeColor, uGradeMix);
+    const base = graded.mul(uTint).scale(band * vWash);
     const distanceFog = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
     return vec4(mix(base, vec3(0.55, 0.65, 0.66), distanceFog * 0.42), 1);
   },

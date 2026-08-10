@@ -6,11 +6,18 @@ import {
 } from '@antiky/framework/game';
 
 import { TRAVERSAL_WORLD_ID, createTraversalInspectionModel } from './inspection.ts';
-import { createTraversalInputBuffer } from './input-buffer.ts';
+import {
+  createTraversalInputBuffer,
+  createTraversalSessionInputCapture,
+} from './input-buffer.ts';
 import { createTraversalRenderer } from './renderer.ts';
 import { createTraversalSimulation, type TraversalInput } from './simulation.ts';
 
-function captureInput(context: Parameters<GameModuleEntry>[0]): TraversalInput {
+type MutableTraversalInput = {
+  -readonly [Key in keyof Required<TraversalInput>]: Required<TraversalInput>[Key];
+};
+
+function captureInput(context: Parameters<GameModuleEntry>[0], target: MutableTraversalInput): void {
   const horizontal = context.movement.active && Number.isFinite(context.movement.x)
     ? Math.max(-1, Math.min(1, context.movement.x))
     : 0;
@@ -19,13 +26,11 @@ function captureInput(context: Parameters<GameModuleEntry>[0]): TraversalInput {
     : 0;
   const jump = context.pointer.clicked || vertical < -0.4;
   const active = Math.abs(horizontal) > 0.01 || Math.abs(vertical) > 0.01 || context.pointer.clicked;
-  return Object.freeze({
-    horizontal,
-    active,
-    jump,
-    brake: vertical > 0.4,
-    retry: active,
-  });
+  target.horizontal = horizontal;
+  target.active = active;
+  target.jump = jump;
+  target.brake = vertical > 0.4;
+  target.retry = active;
 }
 
 const game: GameModuleEntry = async (context) => {
@@ -41,25 +46,18 @@ const game: GameModuleEntry = async (context) => {
         id: 'gale-post-traversal',
         run(step) { simulation.update(step.fixedDeltaSeconds, step.input); },
       })],
-      captureInput(input) {
-        if (!Number.isFinite(input.horizontal)) return null;
-        return Object.freeze({
-          horizontal: Math.max(-1, Math.min(1, input.horizontal)),
-          active: input.active === true,
-          jump: input.jump === true,
-          brake: input.brake === true,
-          retry: input.retry === true,
-        });
-      },
+      captureInput: createTraversalSessionInputCapture(),
       getStateDigest: () => simulation.digest(),
     });
 
     context.report(presentation.measurements);
     const inputBuffer = createTraversalInputBuffer();
+    const hostInput: MutableTraversalInput = { horizontal: 0, active: false, jump: false, brake: false, retry: false };
     let previousPlatformTime: number | null = null;
     let disposed = false;
     const semanticInput = (): TraversalInput => {
-      inputBuffer.capture(captureInput(context));
+      captureInput(context, hostInput);
+      inputBuffer.capture(hostInput);
       return inputBuffer.read();
     };
     const render = (deltaSeconds: number): void => {

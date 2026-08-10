@@ -14,7 +14,17 @@ export type TraversalCameraRig = Readonly<{
   ): TraversalCameraFrame;
 }>;
 
-export function traversalCameraFrame(
+type MutableCameraFrame = {
+  position: [number, number, number];
+  target: [number, number, number];
+};
+
+function createCameraFrame(): MutableCameraFrame {
+  return { position: [0, 0, 0], target: [0, 0, 0] };
+}
+
+function writeTraversalCameraFrame(
+  output: MutableCameraFrame,
   aspect: number,
   state: Pick<TraversalSnapshot, 'player'>,
   pointer: Readonly<{ x: number; y: number }>,
@@ -22,44 +32,54 @@ export function traversalCameraFrame(
   const mobile = aspect < 0.9;
   const pointerY = Number.isFinite(pointer.y) ? Math.max(0, Math.min(1, pointer.y)) : 0.5;
   const pointerLift = (pointerY - 0.5) * (mobile ? 0.28 : 0.42);
-  const speedLookAhead = Math.max(-1.2, Math.min(2.4, state.player.vx * 0.48));
-  const verticalAnticipation = Math.max(-0.45, Math.min(0.9, state.player.vy * 0.1));
-  const lead = (mobile ? 0.65 : 1.9) + speedLookAhead;
-  const targetY = Math.max(1.2, state.player.y * 0.45 + 1.05 + verticalAnticipation);
+  const speed = Math.abs(state.player.vx);
+  const speedLookAhead = mobile
+    ? Math.max(-1.7, Math.min(2.15, state.player.vx * 0.34))
+    : Math.max(-3.4, Math.min(4.4, state.player.vx * 0.78));
+  const verticalAnticipation = Math.max(-0.7, Math.min(1.2, state.player.vy * 0.14));
+  const speedPullback = mobile
+    ? Math.min(3.1, speed * 0.38)
+    : Math.min(1.3, speed * 0.16);
+  const lead = (mobile ? 0.45 : 1.75) + speedLookAhead;
+  const targetY = Math.max(1.15, state.player.y * 0.55 + 0.95 + verticalAnticipation);
 
-  return Object.freeze({
-    position: Object.freeze([
-      state.player.x + lead + (mobile ? 1.2 : 1.7),
-      targetY + (mobile ? 5.2 : 3.55) + pointerLift,
-      mobile ? 16 : 11.2,
-    ] as const),
-    target: Object.freeze([state.player.x + lead, targetY, -0.25] as const),
-  });
+  output.position[0] = state.player.x + lead + (mobile ? 0.8 : 1.7);
+  output.position[1] = targetY + (mobile ? 5.1 : 3.45) + pointerLift + speedPullback * 0.15;
+  output.position[2] = (mobile ? 16.6 : 11) + speedPullback;
+  output.target[0] = state.player.x + lead;
+  output.target[1] = targetY;
+  output.target[2] = -0.25;
+  return output;
+}
+
+export function traversalCameraFrame(
+  aspect: number,
+  state: Pick<TraversalSnapshot, 'player'>,
+  pointer: Readonly<{ x: number; y: number }>,
+): TraversalCameraFrame {
+  return writeTraversalCameraFrame(createCameraFrame(), aspect, state, pointer);
 }
 
 export function createTraversalCameraRig(): TraversalCameraRig {
-  const position = [0, 0, 0];
-  const target = [0, 0, 0];
+  const desired = createCameraFrame();
+  const frame = createCameraFrame();
   let initialized = false;
   let resetSerial = -1;
 
   return Object.freeze({
     update(aspect, state, pointer, deltaSeconds) {
-      const desired = traversalCameraFrame(aspect, state, pointer);
+      writeTraversalCameraFrame(desired, aspect, state, pointer);
       const reset = !initialized || state.resetSerial !== resetSerial;
-      const easing = reset ? 1 : 1 - Math.exp(-Math.max(0, deltaSeconds) * 5.4);
+      const easing = reset ? 1 : 1 - Math.exp(-Math.max(0, deltaSeconds) * 8.4);
       for (let index = 0; index < 3; index += 1) {
-        const previousPosition = position[index]!;
-        const previousTarget = target[index]!;
-        position[index] = previousPosition + (desired.position[index]! - previousPosition) * easing;
-        target[index] = previousTarget + (desired.target[index]! - previousTarget) * easing;
+        const previousPosition = frame.position[index]!;
+        const previousTarget = frame.target[index]!;
+        frame.position[index] = previousPosition + (desired.position[index]! - previousPosition) * easing;
+        frame.target[index] = previousTarget + (desired.target[index]! - previousTarget) * easing;
       }
       initialized = true;
       resetSerial = state.resetSerial;
-      return Object.freeze({
-        position: Object.freeze([...position] as [number, number, number]),
-        target: Object.freeze([...target] as [number, number, number]),
-      });
+      return frame;
     },
   });
 }
