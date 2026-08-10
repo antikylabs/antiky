@@ -20,7 +20,10 @@ import { createDevelopmentActionBroker } from '../src/host/actions.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import { createEvidenceStore } from '../src/host/evidence-store.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { parseCaptureFrameRequestV2 } from '../src/development/capture.ts';
+import {
+  parseCaptureFrameRequestV2,
+  parseCaptureFrameRequestV3,
+} from '../src/development/capture.ts';
 import type { ObservationRefV1 } from '../src/development/observation.ts';
 
 const WORLD_ID = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
@@ -168,6 +171,29 @@ test('capture requests are strict, bounded, and immutable', () => {
     ...request,
     expected: { ...request.expected, completedStepCount: 4, sessionId: undefined },
   }));
+  const managed = parseCaptureFrameRequestV3({
+    schemaVersion: 3,
+    expected: {
+      developmentSessionId: observation.developmentSessionId,
+      acceptedBuildRevision: observation.acceptedBuildRevision,
+      currentRuntimeInstanceId: null,
+    },
+    runtimePolicy: 'managed-only',
+    target: { width: 1280, height: 720, deviceScaleFactor: 1 },
+    warmUpFrames: 2,
+    idempotencyKey: 'strict-managed-capture-001',
+  });
+  assert.ok(Object.isFrozen(managed));
+  assert.equal(managed.expected.currentRuntimeInstanceId, null);
+  assert.throws(() => parseCaptureFrameRequestV3({
+    ...managed,
+    expected: { ...managed.expected, sessionId: observation.session!.sessionId },
+  }));
+  const retainedManaged = parseCaptureFrameRequestV3({
+    ...managed,
+    expected: { ...managed.expected, currentRuntimeInstanceId: observation.runtimeInstanceId },
+  });
+  assert.equal(retainedManaged.expected.currentRuntimeInstanceId, observation.runtimeInstanceId);
 });
 
 test('capture fences reject unavailable, wrong-session, stale-step, and unpaused observations safely', async () => {

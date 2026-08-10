@@ -33,6 +33,7 @@ export function captureFailure(code: CaptureFailureCode, message: string): Antik
 export function validateCaptureObservation(
   request: CaptureFrameRequestV2,
   context: CaptureRuntimeContext,
+  source: 'interactive-runtime' | 'managed-runtime' = 'interactive-runtime',
 ): ObservationRefV1 {
   const observation = context.observation;
   if (!context.connected || !observation || observation.freshness !== 'current') {
@@ -41,7 +42,7 @@ export function validateCaptureObservation(
       'Read a current runtime observation before retrying capture.',
     );
   }
-  if (request.runtimePolicy === 'managed-only') {
+  if (request.runtimePolicy === 'managed-only' && source !== 'managed-runtime') {
     throw captureFailure(
       'CAPTURE_RUNTIME_UNAVAILABLE',
       'This capture path is attached to the current interactive runtime.',

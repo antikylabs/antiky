@@ -144,13 +144,17 @@ type PendingAction = {
   captureV2?: Readonly<{
     request: CaptureFrameRequestV2;
     evidenceId: string;
+    source: DevelopmentCaptureResultV2['source'];
   }>;
 };
 
 export interface DevelopmentActionBroker {
   requestReload(): Promise<DevelopmentReloadResult>;
   captureFrame(): Promise<LegacyDevelopmentCaptureResult>;
-  captureFrameV2(request: unknown): Promise<DevelopmentCaptureResultV2>;
+  captureFrameV2(
+    request: unknown,
+    source?: DevelopmentCaptureResultV2['source'],
+  ): Promise<DevelopmentCaptureResultV2>;
   setPointLightPower(command: SetPointLightPowerCommand): Promise<PointLightCommandResult>;
   correctPointLightPower(
     request: CorrectPointLightPowerRequest,
@@ -283,16 +287,19 @@ export function createDevelopmentActionBroker(
   return Object.freeze({
     requestReload: () => createPending<DevelopmentReloadResult>('reload'),
     captureFrame: () => createPending<LegacyDevelopmentCaptureResult>('capture'),
-    async captureFrameV2(requestInput: unknown): Promise<DevelopmentCaptureResultV2> {
+    async captureFrameV2(
+      requestInput: unknown,
+      source: DevelopmentCaptureResultV2['source'] = 'interactive-runtime',
+    ): Promise<DevelopmentCaptureResultV2> {
       const request = parseCaptureFrameRequestV2(requestInput);
       const runtimeContext = options.readRuntimeContext();
-      validateCaptureObservation(request, runtimeContext);
+      validateCaptureObservation(request, runtimeContext, source);
       const evidenceId = `evidence-${randomUUID()}`;
       return createPending<DevelopmentCaptureResultV2>(
         'capture',
         { evidenceId, target: request.target, warmUpFrames: request.warmUpFrames },
         runtimeContext,
-        Object.freeze({ request, evidenceId }),
+        Object.freeze({ request, evidenceId, source }),
       );
     },
     setPointLightPower: (command: SetPointLightPowerCommand) => (
@@ -387,10 +394,10 @@ export function createDevelopmentActionBroker(
         throw cause;
       }
       if (active.captureV2) {
-        const { request, evidenceId } = active.captureV2;
+        const { request, evidenceId, source } = active.captureV2;
         let observation: ObservationRefV1;
         try {
-          observation = validateCaptureObservation(request, options.readRuntimeContext());
+          observation = validateCaptureObservation(request, options.readRuntimeContext(), source);
           if (input.publicationSequence !== observation.publicationSequence) {
             throw captureFailure(
               'CAPTURE_OBSERVATION_STALE',
@@ -444,7 +451,7 @@ export function createDevelopmentActionBroker(
           schemaVersion: 2 as const,
           actionId: active.action.actionId,
           captureId: active.action.captureId,
-          source: 'interactive-runtime' as const,
+          source,
           observation,
           deviceScaleFactor: request.target.deviceScaleFactor,
           artifact,

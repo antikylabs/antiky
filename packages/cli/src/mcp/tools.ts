@@ -18,6 +18,7 @@ export const MCP_POINT_LIGHT_READ_TOOL_NAMES = Object.freeze([
 
 export const MCP_READ_TOOL_NAMES = Object.freeze([
   ...MCP_SNAPSHOT_READ_TOOL_NAMES,
+  'get_capture_capabilities',
   'get_session_status',
   'get_world_inspection',
   'get_event_log',
@@ -92,23 +93,44 @@ const stepSimulationInputSchema = Object.freeze({
   additionalProperties: false,
 } as const);
 
+const captureExpectedV2Schema = Object.freeze({
+  type: 'object',
+  properties: {
+    developmentSessionId: { type: 'string', minLength: 1, maxLength: 128 },
+    acceptedBuildRevision: { type: 'integer', minimum: 0 },
+    runtimeInstanceId: { type: 'string', minLength: 1, maxLength: 128 },
+    sessionId: { type: 'string', minLength: 1, maxLength: 128 },
+    completedStepCount: { type: 'integer', minimum: 0 },
+    stateDigest: { type: ['string', 'null'], maxLength: 512 },
+  },
+  required: ['developmentSessionId', 'acceptedBuildRevision', 'runtimeInstanceId'],
+  additionalProperties: false,
+} as const);
+
+const captureExpectedV3Schema = Object.freeze({
+  type: 'object',
+  properties: {
+    developmentSessionId: { type: 'string', minLength: 1, maxLength: 128 },
+    acceptedBuildRevision: { type: 'integer', minimum: 0 },
+    currentRuntimeInstanceId: {
+      anyOf: [
+        { type: 'string', minLength: 1, maxLength: 128 },
+        { type: 'null' },
+      ],
+    },
+    sessionId: { type: 'string', minLength: 1, maxLength: 128 },
+    completedStepCount: { type: 'integer', minimum: 0 },
+    stateDigest: { type: ['string', 'null'], maxLength: 512 },
+  },
+  required: ['developmentSessionId', 'acceptedBuildRevision', 'currentRuntimeInstanceId'],
+  additionalProperties: false,
+} as const);
+
 const captureFrameInputSchema = Object.freeze({
   type: 'object',
   properties: {
-    schemaVersion: { const: 2 },
-    expected: {
-      type: 'object',
-      properties: {
-        developmentSessionId: { type: 'string', minLength: 1, maxLength: 128 },
-        acceptedBuildRevision: { type: 'integer', minimum: 0 },
-        runtimeInstanceId: { type: 'string', minLength: 1, maxLength: 128 },
-        sessionId: { type: 'string', minLength: 1, maxLength: 128 },
-        completedStepCount: { type: 'integer', minimum: 0 },
-        stateDigest: { type: ['string', 'null'], maxLength: 512 },
-      },
-      required: ['developmentSessionId', 'acceptedBuildRevision', 'runtimeInstanceId'],
-      additionalProperties: false,
-    },
+    schemaVersion: { enum: [2, 3] },
+    expected: { oneOf: [captureExpectedV2Schema, captureExpectedV3Schema] },
     runtimePolicy: { enum: ['current-or-managed', 'managed-only'] },
     target: {
       type: 'object',
@@ -125,6 +147,10 @@ const captureFrameInputSchema = Object.freeze({
   },
   required: [
     'schemaVersion', 'expected', 'runtimePolicy', 'target', 'warmUpFrames', 'idempotencyKey',
+  ],
+  oneOf: [
+    { properties: { schemaVersion: { const: 2 }, expected: captureExpectedV2Schema } },
+    { properties: { schemaVersion: { const: 3 }, expected: captureExpectedV3Schema } },
   ],
   additionalProperties: false,
 } as const);
@@ -176,6 +202,12 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
   {
     name: 'get_diagnostics',
     description: 'Call when a build is not ready, the runtime is unavailable, or another MCP action fails. It returns bounded development and framework diagnostics with a stable code, severity, message, and related identities. Use the stable code to choose recovery before relying on prose. It takes no arguments.',
+    inputSchema: emptyInputSchema,
+    annotations: readToolAnnotations,
+  },
+  {
+    name: 'get_capture_capabilities',
+    description: 'Call before capturing game pixels to discover the pinned managed Chromium runtime, launch-free WebGPU status, configured final-canvas target, still and motion formats, presentation-input kinds, strict limits, retention scope, and whether an interactive runtime is connected. This read never launches a browser or exposes a path, process, profile, user agent, or device identity.',
     inputSchema: emptyInputSchema,
     annotations: readToolAnnotations,
   },
@@ -268,8 +300,29 @@ export function projectMcpReadTool(
         developmentSessionId: snapshot.developmentSessionId,
         acceptedBuildRevision: snapshot.acceptedBuildRevision,
         startedAt: snapshot.startedAt,
-        project: snapshot.project,
-        processes: snapshot.processes,
+        project: {
+          name: snapshot.project.name,
+          revision: snapshot.project.revision,
+          gameUrl: snapshot.project.gameUrl,
+          host: snapshot.project.host,
+          gamePort: snapshot.project.gamePort,
+          inspectionPort: snapshot.project.inspectionPort,
+          viewport: snapshot.project.viewport,
+        },
+        processes: {
+          game: {
+            state: snapshot.processes.game.state,
+            ...(snapshot.processes.game.exitCode === undefined
+              ? {}
+              : { exitCode: snapshot.processes.game.exitCode }),
+          },
+          shaders: {
+            state: snapshot.processes.shaders.state,
+            ...(snapshot.processes.shaders.exitCode === undefined
+              ? {}
+              : { exitCode: snapshot.processes.shaders.exitCode }),
+          },
+        },
         connection: snapshot.connection,
         cleanup: snapshot.cleanup,
         measurements: snapshot.measurements,

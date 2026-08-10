@@ -3,6 +3,8 @@ import test from 'node:test';
 
 import { createDevelopmentClient } from '@antiky/cli/development';
 import { AntikyCliError } from '../src/errors.ts';
+// @ts-ignore direct TypeScript source import for the Node strip-types runner
+import { readCaptureCapabilities } from '../src/host/capture-capability-service.ts';
 import type {
   DevelopmentMcpCallLog,
   DevelopmentSnapshot,
@@ -66,6 +68,18 @@ const snapshotV2: DevelopmentSnapshotV2 = {
   },
 };
 
+const captureCapabilities = readCaptureCapabilities({
+  configuredWidth: 1280,
+  configuredHeight: 720,
+  interactiveRuntimeConnected: true,
+  probe: () => ({
+    playwrightVersion: '1.62.1',
+    browserRevision: '1234',
+    browserVersion: '151.0.7922.34',
+    browserInstalled: true,
+  }),
+});
+
 const artifact = Object.freeze({
   schemaVersion: 1 as const,
   evidenceId: 'evidence-018f0f3a-7b2c-7a1d-8e2f-123456789ab0',
@@ -103,11 +117,23 @@ test('browser client uses an explicit loopback connection without exposing its c
         return Response.json(snapshot);
       }
       if (String(input).endsWith('/v2/development')) return Response.json(snapshotV2);
+      if (String(input).endsWith('/v1/capture-capabilities')) {
+        return Response.json(captureCapabilities);
+      }
       if (String(input).endsWith('/v2/actions/capture')) return Response.json({
         schemaVersion: 2,
         actionId: 'action-capture-002',
         captureId: 'capture-002',
         source: 'interactive-runtime',
+        observation: snapshotV2.observation,
+        deviceScaleFactor: 1,
+        artifact,
+      });
+      if (String(input).endsWith('/v3/actions/capture')) return Response.json({
+        schemaVersion: 3,
+        actionId: 'action-capture-003',
+        captureId: 'capture-003',
+        source: 'managed-runtime',
         observation: snapshotV2.observation,
         deviceScaleFactor: 1,
         artifact,
@@ -130,6 +156,7 @@ test('browser client uses an explicit loopback connection without exposing its c
 
   assert.deepEqual(await client.readDevelopmentSnapshot(), snapshot);
   assert.deepEqual(await client.readDevelopmentSnapshotV2(), snapshotV2);
+  assert.deepEqual(await client.getCaptureCapabilities(), captureCapabilities);
   assert.deepEqual(await client.getMcpCallLog(), mcpCallLog);
   await client.pauseSimulation();
   const capture = await client.captureFrameV2({
@@ -147,13 +174,28 @@ test('browser client uses an explicit loopback connection without exposing its c
   assert.deepEqual(await client.readEvidenceArtifact(capture.artifact), new Uint8Array([
     137, 80, 78, 71, 13, 10, 26, 10,
   ]));
+  const managedCapture = await client.captureFrameV3({
+    schemaVersion: 3,
+    expected: {
+      developmentSessionId: snapshot.developmentSessionId,
+      acceptedBuildRevision: 2,
+      currentRuntimeInstanceId: null,
+    },
+    runtimePolicy: 'managed-only',
+    target: { width: 1, height: 1, deviceScaleFactor: 1 },
+    warmUpFrames: 0,
+    idempotencyKey: 'browser-client-managed-fixture',
+  });
+  assert.equal(managedCapture.source, 'managed-runtime');
   assert.deepEqual(requests.map(({ url }) => url), [
     'http://127.0.0.1:3011/v1/development',
     'http://127.0.0.1:3011/v2/development',
+    'http://127.0.0.1:3011/v1/capture-capabilities',
     'http://127.0.0.1:3011/v1/mcp-calls',
     'http://127.0.0.1:3011/v1/actions/pause-simulation',
     'http://127.0.0.1:3011/v2/actions/capture',
     `http://127.0.0.1:3011/v1/evidence/${artifact.evidenceId}/${artifact.artifactId}`,
+    'http://127.0.0.1:3011/v3/actions/capture',
   ]);
   assert.equal(requests[0]?.init?.headers instanceof Headers, true);
   assert.equal((requests[0]?.init?.headers as Headers).get('authorization'), `Bearer ${'a'.repeat(48)}`);

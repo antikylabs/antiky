@@ -7,7 +7,12 @@ import type { AntikyProject } from '../project.ts';
 import type { DevelopmentConnection } from '../development/browser-client.ts';
 import { createBuildTracker } from './build-tracker.ts';
 import { createDevelopmentActionBroker } from './actions.ts';
-import type { CaptureFrameRequestV2 } from '../development/capture.ts';
+import { readCaptureCapabilities } from './capture-capability-service.ts';
+import type {
+  CaptureFrameRequestV2,
+  CaptureFrameRequestV3,
+} from '../development/capture.ts';
+import { createCaptureService } from './capture-service.ts';
 import { createEvidenceStore } from './evidence-store.ts';
 import {
   DEVELOPMENT_SCHEMA_VERSION,
@@ -29,6 +34,7 @@ import { createInspectionServer } from './inspection-server.ts';
 import { createDevelopmentGameHost } from './game-server.ts';
 import { createRuntimeConnection } from './runtime-connection.ts';
 import type { RuntimeConnectionSnapshot } from './runtime-connection.ts';
+import { createManagedCaptureRuntime } from './managed-capture-runtime.ts';
 import {
   getSessionDescriptorPath,
   removeSessionDescriptor,
@@ -53,6 +59,7 @@ type ManagedChild = {
 
 export type DevelopmentCleanupOperation =
   | 'action-broker'
+  | 'capture-service'
   | 'evidence-store'
   | 'game-port-reservation'
   | 'inspection-port-reservation'
@@ -344,6 +351,36 @@ export async function startDevelopmentSession(
       : { timeoutMilliseconds: options.actionTimeoutMilliseconds }),
   });
 
+  const managedCaptureRuntime = createManagedCaptureRuntime({
+    gameUrl: project.development.url,
+    inspectionUrl,
+    configuredWidth: project.development.viewport.width,
+    configuredHeight: project.development.viewport.height,
+    readRuntime: () => {
+      const runtime = runtimeConnection.read();
+      return Object.freeze({
+        state: runtime.state,
+        runtimeInstanceId: runtime.runtimeInstanceId,
+        lifecycle: runtime.inspection?.runtime.lifecycle ?? null,
+      });
+    },
+  });
+  const captureService = createCaptureService({
+    configuredWidth: project.development.viewport.width,
+    configuredHeight: project.development.viewport.height,
+    readState: () => {
+      const runtime = runtimeConnection.read();
+      return Object.freeze({
+        developmentSessionId: id,
+        acceptedBuildRevision: buildTracker.snapshot().revision,
+        connectionState: runtime.state,
+        observation: runtime.observation,
+      });
+    },
+    managedRuntime: managedCaptureRuntime,
+    submitCapture: (request, source) => actionBroker.captureFrameV2(request, source),
+  });
+
   const snapshotFromRuntime = (
     runtime: RuntimeConnectionSnapshot,
   ): DevelopmentSnapshot => {
@@ -399,6 +436,12 @@ export async function startDevelopmentSession(
     diagnosticSink,
     readDevelopmentSnapshot: snapshot,
     readDevelopmentSnapshotV2: snapshotV2,
+    readCaptureCapabilities: () => readCaptureCapabilities({
+      configuredWidth: project.development.viewport.width,
+      configuredHeight: project.development.viewport.height,
+      interactiveRuntimeConnected: runtimeConnection.read().state === 'connected',
+      webGpu: managedCaptureRuntime.webGpuStatus(),
+    }),
     acceptInspection(inspection, publicationSequence) {
       const acceptedBuildRevision = runtimeConnection.accept(inspection, publicationSequence);
       if (
@@ -417,7 +460,16 @@ export async function startDevelopmentSession(
     completePointLightCommand: (input) => actionBroker.completePointLightCommand(input),
     completeSessionControl: (input) => actionBroker.completeSessionControl(input),
     requestReload: () => actionBroker.requestReload(),
-    captureFrameV2: (request: CaptureFrameRequestV2) => actionBroker.captureFrameV2(request),
+    captureFrameV2: async (request: CaptureFrameRequestV2) => {
+      const result = await captureService.captureFrame(request);
+      if (result.schemaVersion !== 2) throw new Error('Capture service version mismatch.');
+      return result;
+    },
+    captureFrameV3: async (request: CaptureFrameRequestV3) => {
+      const result = await captureService.captureFrame(request);
+      if (result.schemaVersion !== 3) throw new Error('Capture service version mismatch.');
+      return result;
+    },
     readEvidence: (lookup) => evidenceStore.read(lookup),
     setPointLightPower: (command) => actionBroker.setPointLightPower(command),
     correctPointLightPower: (request) => actionBroker.correctPointLightPower(request),
@@ -453,6 +505,10 @@ export async function startDevelopmentSession(
         {
           name: 'action-broker',
           operation: async () => { actionBroker.stop(); },
+        },
+        {
+          name: 'capture-service',
+          operation: () => captureService.stop(),
         },
         {
           name: 'evidence-store',

@@ -37,9 +37,12 @@ import type {
 } from '../development/types.ts';
 import type {
   CaptureFrameRequestV2,
+  CaptureFrameRequestV3,
   DevelopmentCaptureResultV2,
+  DevelopmentCaptureResultV3,
 } from '../development/capture.ts';
 import type { EvidenceArtifactRefV1 } from '../development/evidence.ts';
+import type { CaptureCapabilitiesV1 } from '../development/capture-capabilities.ts';
 import type { EvidenceArtifact, EvidenceLookup } from './evidence-store.ts';
 import { AntikyCliError } from '../errors.ts';
 import {
@@ -80,6 +83,7 @@ const DEVELOPMENT_GET_PATHS = new Set([
   '/v1/development',
   '/v2/development',
   '/v1/mcp-calls',
+  '/v1/capture-capabilities',
 ]);
 
 const DEVELOPMENT_POST_PATHS = new Set([
@@ -90,6 +94,7 @@ const DEVELOPMENT_POST_PATHS = new Set([
   '/v1/actions/set-point-light-power',
   '/v1/actions/correct-point-light-power',
   '/v2/actions/capture',
+  '/v3/actions/capture',
 ]);
 
 type InspectionServerOptions = Readonly<{
@@ -101,6 +106,7 @@ type InspectionServerOptions = Readonly<{
   diagnosticSink?: CliDiagnosticSink;
   readDevelopmentSnapshot(): DevelopmentSnapshot;
   readDevelopmentSnapshotV2(): DevelopmentSnapshotV2;
+  readCaptureCapabilities(): CaptureCapabilitiesV1;
   acceptInspection(snapshot: InspectionSnapshot, publicationSequence: number): number;
   disconnectRuntime(runtimeInstanceId: string, publicationSequence: number): void;
   touchRuntime(runtimeInstanceId: string): void;
@@ -110,6 +116,7 @@ type InspectionServerOptions = Readonly<{
   completeSessionControl(input: SessionControlActionResultInput): Promise<void>;
   requestReload(): Promise<DevelopmentReloadResult>;
   captureFrameV2(request: CaptureFrameRequestV2): Promise<DevelopmentCaptureResultV2>;
+  captureFrameV3(request: CaptureFrameRequestV3): Promise<DevelopmentCaptureResultV3>;
   readEvidence(lookup: EvidenceLookup): Promise<EvidenceArtifact>;
   setPointLightPower(command: SetPointLightPowerCommand): Promise<PointLightCommandResult>;
   correctPointLightPower(
@@ -191,6 +198,17 @@ function actionStatus(cause: AntikyCliError): number {
   if (cause.code === 'ANTIKY_RUNTIME_UNAVAILABLE') return 503;
   if (cause.code === 'ANTIKY_CAPTURE_INVALID') return 400;
   if (cause.code === 'ANTIKY_CAPTURE_SAVE_FAILED') return 500;
+  if (cause.code === 'CAPTURE_ARTIFACT_FAILED') return 500;
+  if (cause.code === 'CAPTURE_RUNTIME_TIMEOUT') return 504;
+  if (
+    cause.code === 'CAPTURE_RUNTIME_UNAVAILABLE'
+    || cause.code === 'CAPTURE_BROWSER_LAUNCH_FAILED'
+    || cause.code === 'CAPTURE_BROWSER_VERSION_MISMATCH'
+    || cause.code === 'CAPTURE_WEBGPU_UNAVAILABLE'
+    || cause.code === 'CAPTURE_RUNTIME_DISCONNECTED'
+  ) return 503;
+  if (cause.code === 'CAPTURE_LIMIT_EXCEEDED') return 413;
+  if (cause.code === 'CAPTURE_TRACE_INVALID') return 400;
   return 409;
 }
 
@@ -211,8 +229,10 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
   const mcpClient = Object.freeze({
     async readDevelopmentSnapshot() { return options.readDevelopmentSnapshot(); },
     async readDevelopmentSnapshotV2() { return options.readDevelopmentSnapshotV2(); },
+    async getCaptureCapabilities() { return options.readCaptureCapabilities(); },
     requestReload: options.requestReload,
     captureFrameV2: options.captureFrameV2,
+    captureFrameV3: options.captureFrameV3,
     async readEvidenceArtifact(artifact: EvidenceArtifactRefV1) {
       return (await options.readEvidence({
         evidenceId: artifact.evidenceId,
@@ -329,6 +349,10 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
           writeJson(response, 200, mcpCallLog.read(), allowedResponseOrigin);
           return;
         }
+        if (request.method === 'GET' && requestUrl.pathname === '/v1/capture-capabilities') {
+          writeJson(response, 200, options.readCaptureCapabilities(), allowedResponseOrigin);
+          return;
+        }
         const evidenceMatch = requestUrl.pathname.match(
           /^\/v1\/evidence\/(evidence-[a-z0-9][a-z0-9-]{7,126})\/(artifact-[0-9a-f]{64})$/u,
         );
@@ -415,13 +439,16 @@ export function createInspectionServer(options: InspectionServerOptions): Inspec
         }
         if (
           request.method === 'POST'
-          && requestUrl.pathname === '/v2/actions/capture'
+          && (requestUrl.pathname === '/v2/actions/capture'
+            || requestUrl.pathname === '/v3/actions/capture')
         ) {
           const input = await readJson(request, MAX_BROWSER_MESSAGE_BYTES);
           writeJson(
             response,
             200,
-            await options.captureFrameV2(input as CaptureFrameRequestV2),
+            requestUrl.pathname.includes('/v3/')
+              ? await options.captureFrameV3(input as CaptureFrameRequestV3)
+              : await options.captureFrameV2(input as CaptureFrameRequestV2),
             allowedResponseOrigin,
           );
           return;

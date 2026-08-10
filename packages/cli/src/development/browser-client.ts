@@ -1,6 +1,10 @@
 import { createInspectionSnapshot } from '@antiky/framework';
 
 import { AntikyCliError } from '../errors.ts';
+import {
+  parseCaptureCapabilitiesV1,
+  type CaptureCapabilitiesV1,
+} from './capture-capabilities.ts';
 import { parseDevelopmentMcpCallLog } from './mcp-calls.ts';
 import {
   projectDevelopmentEventHistory,
@@ -11,9 +15,13 @@ import {
 import { parseObservationRefV1 } from './observation.ts';
 import {
   parseCaptureFrameRequestV2,
+  parseCaptureFrameRequestV3,
   parseDevelopmentCaptureResultV2,
+  parseDevelopmentCaptureResultV3,
   type CaptureFrameRequestV2,
+  type CaptureFrameRequestV3,
   type DevelopmentCaptureResultV2,
+  type DevelopmentCaptureResultV3,
 } from './capture.ts';
 import {
   parseEvidenceArtifactRefV1,
@@ -70,8 +78,10 @@ export type DevelopmentClientOptions = Readonly<{
 export interface DevelopmentClient {
   readDevelopmentSnapshot(): Promise<DevelopmentSnapshot>;
   readDevelopmentSnapshotV2(): Promise<DevelopmentSnapshotV2>;
+  getCaptureCapabilities(): Promise<CaptureCapabilitiesV1>;
   requestReload(): Promise<DevelopmentReloadResult>;
   captureFrameV2(request: CaptureFrameRequestV2): Promise<DevelopmentCaptureResultV2>;
+  captureFrameV3(request: CaptureFrameRequestV3): Promise<DevelopmentCaptureResultV3>;
   readEvidenceArtifact(artifact: EvidenceArtifactRefV1): Promise<Uint8Array>;
   listPointLights(): Promise<DevelopmentPointLightList>;
   listPointLightsV2(): Promise<DevelopmentPointLightListV2>;
@@ -141,7 +151,8 @@ type ActionPath =
   | '/v1/actions/pause-simulation'
   | '/v1/actions/resume-simulation'
   | '/v1/actions/step-simulation'
-  | '/v2/actions/capture';
+  | '/v2/actions/capture'
+  | '/v3/actions/capture';
 
 function argumentError(message: string): never {
   throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', message);
@@ -404,6 +415,35 @@ export function createDevelopmentClient(
     }
   };
 
+  const getCaptureCapabilities = async (): Promise<CaptureCapabilitiesV1> => {
+    let response: Response;
+    try {
+      response = await fetchRequest(`${connection.inspectionUrl}/v1/capture-capabilities`, {
+        headers: new Headers({ authorization: `Bearer ${connection.credential}` }),
+        signal: AbortSignal.timeout(snapshotTimeout),
+      });
+    } catch {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky capture capability service is unavailable.',
+      );
+    }
+    if (!response.ok) {
+      throw new AntikyCliError(
+        response.status === 401 ? 'ANTIKY_UNAUTHORIZED' : 'ANTIKY_SESSION_UNAVAILABLE',
+        `The Antiky capture capability service rejected the request with status ${response.status}.`,
+      );
+    }
+    try {
+      return parseCaptureCapabilitiesV1(await response.json());
+    } catch {
+      throw new AntikyCliError(
+        'ANTIKY_SESSION_UNAVAILABLE',
+        'The Antiky capture capability service returned an incompatible descriptor.',
+      );
+    }
+  };
+
   const readEvidenceArtifact = async (
     artifactInput: EvidenceArtifactRefV1,
   ): Promise<Uint8Array> => {
@@ -454,12 +494,20 @@ export function createDevelopmentClient(
   return Object.freeze({
     readDevelopmentSnapshot,
     readDevelopmentSnapshotV2,
+    getCaptureCapabilities,
     getMcpCallLog,
     requestReload: () => requestAction<DevelopmentReloadResult>('/v1/actions/reload'),
     async captureFrameV2(requestInput: CaptureFrameRequestV2) {
       const request = parseCaptureFrameRequestV2(requestInput);
       return parseDevelopmentCaptureResultV2(await requestAction<unknown>(
         '/v2/actions/capture',
+        request,
+      ));
+    },
+    async captureFrameV3(requestInput: CaptureFrameRequestV3) {
+      const request = parseCaptureFrameRequestV3(requestInput);
+      return parseDevelopmentCaptureResultV3(await requestAction<unknown>(
+        '/v3/actions/capture',
         request,
       ));
     },

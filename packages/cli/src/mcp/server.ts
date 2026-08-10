@@ -13,7 +13,10 @@ import {
 } from '@antiky/framework';
 
 import type { DevelopmentClient } from '../development/client.ts';
-import { parseCaptureFrameRequestV2 } from '../development/capture.ts';
+import {
+  parseCaptureFrameRequestV2,
+  parseCaptureFrameRequestV3,
+} from '../development/capture.ts';
 import {
   projectDevelopmentEventHistoryV2,
   projectDevelopmentWorldInspectionV2,
@@ -55,7 +58,11 @@ type McpDevelopmentClient = Pick<DevelopmentClient,
   | 'resumeSimulation'
   | 'stepSimulation'
 > & Partial<Pick<DevelopmentClient,
-  'readDevelopmentSnapshotV2' | 'captureFrameV2' | 'readEvidenceArtifact'
+  | 'readDevelopmentSnapshotV2'
+  | 'getCaptureCapabilities'
+  | 'captureFrameV2'
+  | 'captureFrameV3'
+  | 'readEvidenceArtifact'
 >>;
 
 type JsonRpcRequest = Readonly<{
@@ -275,6 +282,18 @@ export async function processMcpRequest(
         return response(id, toolFailure(cause));
       }
     }
+    if (params.name === 'get_capture_capabilities') {
+      if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
+      try {
+        if (!client.getCaptureCapabilities) throw new AntikyCliError(
+          'CAPTURE_RUNTIME_UNAVAILABLE',
+          'Capture capability discovery is unavailable.',
+        );
+        return response(id, toolResult(await client.getCaptureCapabilities()));
+      } catch (cause: unknown) {
+        return response(id, toolFailure(cause));
+      }
+    }
     if (params.name === 'list_point_lights') {
       if (!emptyArguments(params.arguments)) return errorResponse(id, -32602, 'Invalid tool call.');
       try {
@@ -345,7 +364,10 @@ export async function processMcpRequest(
     if (params.name === 'capture_frame') {
       let request;
       try {
-        request = parseCaptureFrameRequestV2(params.arguments);
+        const version = readRecord(params.arguments)?.schemaVersion;
+        request = version === 3
+          ? parseCaptureFrameRequestV3(params.arguments)
+          : parseCaptureFrameRequestV2(params.arguments);
       } catch {
         return errorResponse(id, -32602, 'Invalid tool call.');
       }
@@ -356,7 +378,15 @@ export async function processMcpRequest(
             'Version-two capture evidence is unavailable.',
           );
         }
-        const capture = await client.captureFrameV2(request);
+        const capture = request.schemaVersion === 3
+          ? await (() => {
+            if (!client.captureFrameV3) throw new AntikyCliError(
+              'CAPTURE_RUNTIME_UNAVAILABLE',
+              'Managed capture is unavailable.',
+            );
+            return client.captureFrameV3(request);
+          })()
+          : await client.captureFrameV2(request);
         const bytes = await client.readEvidenceArtifact(capture.artifact);
         return response(id, imageToolResult(capture, bytes));
       } catch (cause: unknown) {

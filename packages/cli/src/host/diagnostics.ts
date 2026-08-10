@@ -35,7 +35,8 @@ export type CliDiagnosticComponent =
   | 'shaders-child'
   | 'inspection-server'
   | 'runtime-connection'
-  | 'capture-store';
+  | 'capture-store'
+  | 'capture-service';
 
 export type CliDiagnosticEvent = Readonly<{
   schemaVersion: 1;

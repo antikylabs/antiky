@@ -55,7 +55,8 @@ Use `--input '<json>'` instead of positional JSON if that is easier for your she
 ### `get_dev_status`
 
 Call this first. It takes no input and returns the development-session ID, accepted build revision,
-validated project, process health, runtime connection, cleanup state, and CLI timing measurements.
+validated project identity and viewport, process health without process IDs, runtime connection,
+cleanup state, and CLI timing measurements. It never returns local project paths.
 
 ```sh
 antiky tool get_dev_status

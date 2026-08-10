@@ -235,6 +235,12 @@ test('digest changes for every future-driving cooldown, motion, attack, and proj
   });
 });
 
+test('digest fits the engine session transport limit', () => {
+  const digest = createCombatSimulation(() => {}).digest();
+  assert.ok(digest.length > 0);
+  assert.ok(digest.length <= 256, `digest was ${digest.length} characters`);
+});
+
 test('terminal retry consumes one press and requires release before a new combat action', () => {
   const simulation = createCombatSimulation(() => {});
   runFrames(simulation, 60 * 40);

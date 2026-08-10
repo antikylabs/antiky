@@ -47,6 +47,29 @@ export type DevelopmentCaptureResultV2 = Readonly<{
   artifact: EvidenceArtifactRefV1;
 }>;
 
+export type CaptureExpectedRuntimeV3 = Readonly<{
+  developmentSessionId: string;
+  acceptedBuildRevision: number;
+  currentRuntimeInstanceId: string | null;
+  sessionId?: string;
+  completedStepCount?: number;
+  stateDigest?: string | null;
+}>;
+
+export type CaptureFrameRequestV3 = Readonly<{
+  schemaVersion: 3;
+  expected: CaptureExpectedRuntimeV3;
+  runtimePolicy: CaptureRuntimePolicy;
+  target: CaptureFrameRequestV2['target'];
+  warmUpFrames: number;
+  idempotencyKey: string;
+}>;
+
+export type DevelopmentCaptureResultV3 = Readonly<
+  Omit<DevelopmentCaptureResultV2, 'schemaVersion'>
+  & Readonly<{ schemaVersion: 3 }>
+>;
+
 type UnknownRecord = Record<string, unknown>;
 
 function invalid(message: string, path: string): never {
@@ -157,6 +180,77 @@ export function parseCaptureFrameRequestV2(value: unknown): CaptureFrameRequestV
   });
 }
 
+export function parseCaptureFrameRequestV3(value: unknown): CaptureFrameRequestV3 {
+  const record = object(value, '$');
+  exactKeys(record, [
+    'schemaVersion', 'expected', 'runtimePolicy', 'target', 'warmUpFrames', 'idempotencyKey',
+  ], [], '$');
+  if (record.schemaVersion !== 3) invalid('Unsupported capture request version.', '$.schemaVersion');
+  if (record.runtimePolicy !== 'current-or-managed' && record.runtimePolicy !== 'managed-only') {
+    invalid('Unknown capture runtime policy.', '$.runtimePolicy');
+  }
+  const expected = object(record.expected, '$.expected');
+  exactKeys(expected, [
+    'developmentSessionId', 'acceptedBuildRevision', 'currentRuntimeInstanceId',
+  ], ['sessionId', 'completedStepCount', 'stateDigest'], '$.expected');
+  const currentRuntimeInstanceId = expected.currentRuntimeInstanceId === null
+    ? null
+    : string(expected.currentRuntimeInstanceId, '$.expected.currentRuntimeInstanceId');
+  if (currentRuntimeInstanceId === null && (
+    expected.sessionId !== undefined
+    || expected.completedStepCount !== undefined
+    || expected.stateDigest !== undefined
+  )) invalid('Session fences require a current runtime.', '$.expected.sessionId');
+  if (expected.completedStepCount !== undefined && expected.sessionId === undefined) {
+    invalid('A completed-step fence requires a session identity.', '$.expected.completedStepCount');
+  }
+  if (expected.stateDigest !== undefined && expected.completedStepCount === undefined) {
+    invalid('A state-digest fence requires a completed step.', '$.expected.stateDigest');
+  }
+  const target = object(record.target, '$.target');
+  exactKeys(target, ['width', 'height', 'deviceScaleFactor'], [], '$.target');
+  const deviceScaleFactor = target.deviceScaleFactor;
+  if (
+    typeof deviceScaleFactor !== 'number'
+    || !Number.isFinite(deviceScaleFactor)
+    || deviceScaleFactor < 0.5
+    || deviceScaleFactor > CAPTURE_MAX_DEVICE_SCALE_FACTOR
+  ) invalid('Capture device scale factor exceeds limits.', '$.target.deviceScaleFactor');
+  return Object.freeze({
+    schemaVersion: 3,
+    expected: Object.freeze({
+      developmentSessionId: string(expected.developmentSessionId, '$.expected.developmentSessionId'),
+      acceptedBuildRevision: count(expected.acceptedBuildRevision, '$.expected.acceptedBuildRevision'),
+      currentRuntimeInstanceId,
+      ...(expected.sessionId === undefined
+        ? {}
+        : { sessionId: string(expected.sessionId, '$.expected.sessionId') }),
+      ...(expected.completedStepCount === undefined
+        ? {}
+        : { completedStepCount: count(expected.completedStepCount, '$.expected.completedStepCount') }),
+      ...(expected.stateDigest === undefined
+        ? {}
+        : {
+          stateDigest: expected.stateDigest === null
+            ? null
+            : string(expected.stateDigest, '$.expected.stateDigest', 512),
+        }),
+    }),
+    runtimePolicy: record.runtimePolicy,
+    target: Object.freeze({
+      width: count(target.width, '$.target.width', CAPTURE_MAX_WIDTH) || invalid(
+        'Capture width must be positive.', '$.target.width',
+      ),
+      height: count(target.height, '$.target.height', CAPTURE_MAX_HEIGHT) || invalid(
+        'Capture height must be positive.', '$.target.height',
+      ),
+      deviceScaleFactor,
+    }),
+    warmUpFrames: count(record.warmUpFrames, '$.warmUpFrames', CAPTURE_MAX_WARM_UP_FRAMES),
+    idempotencyKey: string(record.idempotencyKey, '$.idempotencyKey'),
+  });
+}
+
 export function parseDevelopmentCaptureResultV2(value: unknown): DevelopmentCaptureResultV2 {
   const record = object(value, '$');
   exactKeys(record, [
@@ -192,4 +286,11 @@ export function parseDevelopmentCaptureResultV2(value: unknown): DevelopmentCapt
     deviceScaleFactor,
     artifact,
   });
+}
+
+export function parseDevelopmentCaptureResultV3(value: unknown): DevelopmentCaptureResultV3 {
+  const record = object(value, '$');
+  if (record.schemaVersion !== 3) invalid('Unsupported capture result version.', '$.schemaVersion');
+  const parsed = parseDevelopmentCaptureResultV2({ ...record, schemaVersion: 2 });
+  return Object.freeze({ ...parsed, schemaVersion: 3 });
 }

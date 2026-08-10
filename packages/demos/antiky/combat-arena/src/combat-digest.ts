@@ -1,7 +1,25 @@
 import type { CombatSnapshot } from './combat-state.ts';
 
+const HASH_SEEDS = Object.freeze([
+  0x811c9dc5,
+  0x9e3779b9,
+  0x85ebca6b,
+  0xc2b2ae35,
+]);
+
+function hashState(serialized: string): string {
+  const lanes = [...HASH_SEEDS];
+  for (let index = 0; index < serialized.length; index += 1) {
+    const codeUnit = serialized.charCodeAt(index);
+    for (let lane = 0; lane < lanes.length; lane += 1) {
+      lanes[lane] = Math.imul(lanes[lane]! ^ codeUnit, 0x01000193) >>> 0;
+    }
+  }
+  return lanes.map((lane) => lane.toString(16).padStart(8, '0')).join('');
+}
+
 export function combatDigest(state: CombatSnapshot): string {
-  return JSON.stringify({
+  const serialized = JSON.stringify({
     time: state.time,
     revision: state.revision,
     phase: state.phase,
@@ -56,4 +74,5 @@ export function combatDigest(state: CombatSnapshot): string {
       ownerIndex: projectile.ownerIndex,
     })),
   });
+  return `starbreaker-v1:${hashState(serialized)}`;
 }

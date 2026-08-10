@@ -18,12 +18,25 @@ import { AntikyCliError } from '../src/errors.ts';
 import { processMcpRequest, runMcpServer } from '../src/mcp/server.ts';
 // @ts-ignore explicit TypeScript extension is for the direct test runner
 import { MCP_TOOL_NAMES } from '../src/mcp/tools.ts';
+// @ts-ignore explicit TypeScript extension is for the direct test runner
+import { readCaptureCapabilities } from '../src/host/capture-capability-service.ts';
 
 const WORLD_ID = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
 const LIGHT_ID = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abd');
 const SET_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac0');
 const CORRECTION_COMMAND_ID = parseCommandId('018f0f3a-7b2c-7a1d-8e2f-123456789ac1');
 const SESSION_ID = parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
+const captureCapabilities = readCaptureCapabilities({
+  configuredWidth: 1280,
+  configuredHeight: 720,
+  interactiveRuntimeConnected: true,
+  probe: () => ({
+    playwrightVersion: '1.62.1',
+    browserRevision: '1234',
+    browserVersion: '151.0.7922.34',
+    browserInstalled: true,
+  }),
+});
 
 const runningSession = {
   schemaVersion: 2 as const,
@@ -111,7 +124,10 @@ const developmentSnapshot = {
     inspectionPort: 3011,
     viewport: { width: 1280, height: 720 },
   },
-  processes: { game: { state: 'running' }, shaders: { state: 'running' } },
+  processes: {
+    game: { state: 'running', pid: 41001 },
+    shaders: { state: 'running', pid: 41002 },
+  },
   connection: { state: 'connected' },
   cleanup: { state: 'active' },
   build: {
@@ -214,6 +230,10 @@ test('MCP exposes one well-described tools-only development surface', async () =
       calls.push('read-v2');
       return developmentSnapshotV2;
     },
+    async getCaptureCapabilities() {
+      calls.push('capture-capabilities');
+      return captureCapabilities;
+    },
     async requestReload() {
       calls.push('reload');
       return {
@@ -248,6 +268,18 @@ test('MCP exposes one well-described tools-only development surface', async () =
         actionId: 'action-capture-002',
         captureId: 'capture-002',
         source: 'interactive-runtime',
+        observation,
+        deviceScaleFactor: 1,
+        artifact: captureArtifact,
+      } as const;
+    },
+    async captureFrameV3() {
+      calls.push('capture-v3');
+      return {
+        schemaVersion: 3,
+        actionId: 'action-capture-003',
+        captureId: 'capture-003',
+        source: 'managed-runtime',
         observation,
         deviceScaleFactor: 1,
         artifact: captureArtifact,
@@ -414,6 +446,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
     'get_runtime_status',
     'get_render_stats',
     'get_diagnostics',
+    'get_capture_capabilities',
     'get_session_status',
     'get_world_inspection',
     'get_event_log',
@@ -432,6 +465,7 @@ test('MCP exposes one well-described tools-only development surface', async () =
     get_runtime_status: [/before .*dev_reload.*capture_frame/i, /null inspection/i],
     get_render_stats: [/renderer health or performance/i, /does not capture/i],
     get_diagnostics: [/build is not ready/i, /stable code/i],
+    get_capture_capabilities: [/never launches a browser/i, /final-canvas/i],
     get_session_status: [/fixed clock/i, /takes no arguments/i],
     get_world_inspection: [/entity hierarchy/i, /named store/i],
     get_event_log: [/accepted event-sourcing/i, /runtime-instance/i],
@@ -479,7 +513,17 @@ test('MCP exposes one well-described tools-only development surface', async () =
     assert.equal(read.result.structuredContent.schemaVersion, index < 2 ? 1 : 2);
     if (index >= 2) assert.equal(read.result.structuredContent.observation, observation);
     assert.doesNotMatch(JSON.stringify(read), /credential/i);
+    assert.doesNotMatch(
+      JSON.stringify(read),
+      /\/project|manifestPath|projectRoot|"pid"/i,
+      `${name} must not expose local paths or process identities`,
+    );
   }
+
+  const capabilities = await processMcpRequest(client, {
+    jsonrpc: '2.0', id: 49, method: 'tools/call', params: { name: 'get_capture_capabilities' },
+  });
+  assert.deepEqual(capabilities.result.structuredContent, captureCapabilities);
 
   const listed = await processMcpRequest(client, {
     jsonrpc: '2.0', id: 50, method: 'tools/call', params: { name: 'list_point_lights' },
@@ -535,6 +579,28 @@ test('MCP exposes one well-described tools-only development surface', async () =
   assert.equal(capture.result.content[1].mimeType, 'image/png');
   assert.equal(capture.result.content[1].data, capturePng.toString('base64'));
   assert.doesNotMatch(JSON.stringify(capture.result.structuredContent), /path|base64|\/Users\//i);
+  const managedCapture = await processMcpRequest(client, {
+    jsonrpc: '2.0',
+    id: 321,
+    method: 'tools/call',
+    params: {
+      name: 'capture_frame',
+      arguments: {
+        schemaVersion: 3,
+        expected: {
+          developmentSessionId: observation.developmentSessionId,
+          acceptedBuildRevision: observation.acceptedBuildRevision,
+          currentRuntimeInstanceId: null,
+        },
+        runtimePolicy: 'managed-only',
+        target: { width: 1, height: 1, deviceScaleFactor: 1 },
+        warmUpFrames: 0,
+        idempotencyKey: 'mcp-managed-capture-fixture',
+      },
+    },
+  });
+  assert.equal(managedCapture.result.structuredContent.source, 'managed-runtime');
+  assert.equal(managedCapture.result.content[1].type, 'image');
   const setPower = await processMcpRequest(client, {
     jsonrpc: '2.0',
     id: 33,
@@ -587,8 +653,10 @@ test('MCP exposes one well-described tools-only development surface', async () =
   assert.equal(stepped.result.structuredContent.result.code, 'STEPPED');
   assert.deepEqual(calls, [
     'read', 'read',
-    'read-v2', 'read-v2', 'read-v2', 'read-v2', 'read-v2', 'read-v2', 'read-v2',
-    'reload', 'capture-v2', 'read-evidence',
+    'read-v2', 'read-v2', 'read-v2',
+    'capture-capabilities',
+    'read-v2', 'read-v2', 'read-v2', 'read-v2',
+    'reload', 'capture-v2', 'read-evidence', 'capture-v3', 'read-evidence',
     `set-point-light:${JSON.stringify({
       protocolVersion: 1,
       commandVersion: 1,

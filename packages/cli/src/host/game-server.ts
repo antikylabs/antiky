@@ -639,6 +639,16 @@ export function createDevelopmentGameHost(
           type = file.type;
           body = file.body;
         }
+      } else if (url.pathname.startsWith('/assets/')) {
+        const file = await readBuildFile(
+          buildRoot,
+          `${BUILD_PREFIX}${url.pathname.slice(1)}`,
+        );
+        if (!file) status = 404;
+        else {
+          type = file.type;
+          body = file.body;
+        }
       } else if (url.pathname === expectedUrl.pathname) {
         type = 'text/html; charset=utf-8';
         body = hostHtml(options);

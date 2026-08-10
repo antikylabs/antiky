@@ -285,6 +285,9 @@ test('development session owns the game host when the project command only watch
 test('public demo manifests mount their compiled module in the CLI-owned host', async () => {
   for (const [category, slug] of [
     ['antiky', 'antiky-town'],
+    ['antiky', 'combat-arena'],
+    ['antiky', 'point-light-expo'],
+    ['antiky', 'traversal-study'],
     ['brometal', 'town-study'],
     ['brometal', 'shader-study'],
   ] as const) {
@@ -304,7 +307,16 @@ test('public demo manifests mount their compiled module in the CLI-owned host', 
       const moduleResponse = await fetch(moduleUrl);
       assert.equal(moduleResponse.status, 200, slug);
       assert.match(moduleResponse.headers.get('content-type') ?? '', /^text\/javascript/);
-      assert.ok((await moduleResponse.arrayBuffer()).byteLength > 1_000, slug);
+      const moduleSource = await moduleResponse.text();
+      assert.ok(moduleSource.length > 1_000, slug);
+      const absoluteAssets = [...moduleSource.matchAll(/["'`](\/assets\/[^"'`]+)["'`]/gu)]
+        .map((match) => match[1]!)
+        .slice(0, 3);
+      for (const assetPath of absoluteAssets) {
+        const assetResponse = await fetch(`${new URL(config.development.url).origin}${assetPath}`);
+        assert.equal(assetResponse.status, 200, `${slug}:${assetPath}`);
+        assert.ok((await assetResponse.arrayBuffer()).byteLength > 0, `${slug}:${assetPath}`);
+      }
       const snapshot = session.snapshot();
       assert.equal(snapshot.processes.game.state, 'running', slug);
       assert.equal(snapshot.processes.shaders.state, 'running', slug);
@@ -422,6 +434,7 @@ test('antiky dev starts a loopback Streamable HTTP MCP endpoint', async () => {
       'get_runtime_status',
       'get_render_stats',
       'get_diagnostics',
+      'get_capture_capabilities',
       'get_session_status',
       'get_world_inspection',
       'get_event_log',
@@ -777,6 +790,7 @@ test('cleanup attempts every resource and settles when one cleanup operation fai
     assert.equal(session.snapshot().cleanup.state, 'failed');
     assert.deepEqual(new Set(attempted), new Set([
       'action-broker',
+      'capture-service',
       'evidence-store',
       'game-port-reservation',
       'inspection-port-reservation',
@@ -1472,6 +1486,9 @@ test('unexpected inspection failures emit a safe request-correlated diagnostic',
     readDevelopmentSnapshotV2() {
       throw new Error('authorization and payload must-not-appear');
     },
+    readCaptureCapabilities() {
+      throw new Error('authorization and payload must-not-appear');
+    },
     acceptInspection: () => 0,
     disconnectRuntime: () => {},
     touchRuntime: () => {},
@@ -1481,6 +1498,7 @@ test('unexpected inspection failures emit a safe request-correlated diagnostic',
     completeSessionControl: async () => {},
     requestReload: async () => { throw new Error('not reached'); },
     captureFrameV2: async () => { throw new Error('not reached'); },
+    captureFrameV3: async () => { throw new Error('not reached'); },
     readEvidence: async () => { throw new Error('not reached'); },
     setPointLightPower: async () => { throw new Error('not reached'); },
     correctPointLightPower: async () => { throw new Error('not reached'); },
