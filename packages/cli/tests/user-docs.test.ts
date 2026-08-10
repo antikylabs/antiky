@@ -52,7 +52,7 @@ test('the asset guide documents discovery, honest verification states, and agent
   assert.match(source, /antiky asset install poly-haven:forest-floor --project/);
   assert.match(source, /\/llms\.txt/);
   assert.match(source, /\/llms-full\.txt/);
-  assert.match(source, /\/assets\/catalog\.json/);
+  assert.match(source, /https:\/\/catalog-api\.antikylabs\.com\/v1\/catalog\.json/);
   assert.match(source, /does not download.*archive/is);
 });
 

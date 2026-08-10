@@ -72,13 +72,16 @@ and asset summaries together:
 /llms-full.txt
 ```
 
-The complete static catalog is also published as JSON:
+The catalog API is a set of versioned static JSON files generated during deployment. It has no
+request-time database, crawler, or server function. Browser applications and agents can read its
+version index and complete catalog directly:
 
 ```text
-/assets/catalog.json
+https://catalog-api.antikylabs.com/v1/
+https://catalog-api.antikylabs.com/v1/catalog.json
 ```
 
-The JSON file uses schema version 2 and includes:
+Version 1 includes:
 
 - `totalCatalogAssets` and the complete `assets` collection;
 - names, descriptions, tags, categories, formats, and published facts;
@@ -93,7 +96,13 @@ Open one durable human-readable record with its provider and slug:
 /assets/poly-haven/forest-floor
 ```
 
-An agent should use `llms.txt` for discovery, inspect `catalog.json` or a permanent asset page, and
+Or read the corresponding static JSON record:
+
+```text
+https://catalog-api.antikylabs.com/v1/assets/poly-haven/forest-floor.json
+```
+
+An agent should use `llms.txt` for discovery, inspect the static catalog JSON or a permanent asset page, and
 install only when the status is `install-verified`. For other records, it should send you to the
 original source rather than claim that Antiky verified downloadable bytes.
 

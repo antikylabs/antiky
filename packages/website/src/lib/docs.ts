@@ -268,7 +268,8 @@ export function renderLlmsTxt(entries: DocsEntry[], navigation: DocsNavigationSe
     '',
     '## Asset Catalog',
     '',
-    `- [Complete asset catalog JSON](${canonical('/assets/catalog.json')}): Static schema-versioned JSON containing all ${CATALOG_ASSETS.length.toLocaleString('en-US')} asset records.`,
+    `- [Static catalog API](https://catalog-api.antikylabs.com/v1/): Versioned index for frontend and agent clients.`,
+    `- [Complete asset catalog JSON](https://catalog-api.antikylabs.com/v1/catalog.json): Static schema-versioned JSON containing all ${CATALOG_ASSETS.length.toLocaleString('en-US')} asset records.`,
   );
   for (const asset of CATALOG_ASSETS) {
     lines.push(`- [${asset.name}](${canonical(`/assets/${asset.provider.id}/${asset.slug}`)}): ${asset.provider.name} ${asset.kind}; ${asset.license.name}; ${asset.verification}.`);
@@ -303,6 +304,7 @@ export function renderLlmsFullTxt(entries: DocsEntry[]): string {
       `### ${asset.name}`,
       '',
       `- Catalog URL: ${canonical(`/assets/${asset.provider.id}/${asset.slug}`)}`,
+      `- JSON URL: https://catalog-api.antikylabs.com/v1/assets/${asset.provider.id}/${asset.slug}.json`,
       `- Stable ID: ${asset.id}`,
       `- Provider: ${asset.provider.name}`,
       `- Creator: ${asset.provenance.creator}`,

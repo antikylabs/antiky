@@ -9,11 +9,12 @@
     "./node": "./src/node/install.ts"
   },
   "scripts": {
+    "build": "node --experimental-strip-types scripts/build-static-api.mjs",
     "catalog:crawl": "node --experimental-strip-types --experimental-transform-types scripts/crawl-poly-haven.mjs",
     "catalog:crawl:curated": "node --experimental-strip-types --experimental-transform-types scripts/crawl-curated-sources.mjs",
     "previews": "node --experimental-strip-types --experimental-transform-types scripts/generate-previews.mjs ../asset-site/public",
     "catalog:check": "node --experimental-strip-types --experimental-transform-types scripts/check-poly-haven.mjs",
-    "test": "node --experimental-strip-types --experimental-transform-types --test src/catalog.test.ts src/install.test.ts",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test src/catalog.test.ts src/install.test.ts tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

@@ -15,6 +15,7 @@ test('the main website owns the static asset catalog routes', async () => {
   assert.match(detailPage, /generateStaticParams/);
   assert.match(detailPage, /AssetDetail/);
   assert.equal(assetPackage.exports['./ui'], './src/public.ts');
+  await assert.rejects(readFile(new URL('src/app/assets/catalog.json/route.ts', websiteRoot)), { code: 'ENOENT' });
 });
 
 test('the static website publishes one canonical llms index and complete context', async () => {
@@ -29,20 +30,19 @@ test('the static website publishes one canonical llms index and complete context
 
 test('the production build statically generates assets and complete agent context', async () => {
   const outputRoot = new URL('.next/server/app/', websiteRoot);
-  const [assetsPage, natureKit, catalog, llms, llmsFull] = await Promise.all([
+  const [assetsPage, natureKit, llms, llmsFull] = await Promise.all([
     readFile(new URL('assets.html', outputRoot), 'utf8'),
     readFile(new URL('assets/kenney/nature-kit.html', outputRoot), 'utf8'),
-    readFile(new URL('assets/catalog.json.body', outputRoot), 'utf8'),
     readFile(new URL('llms.txt.body', outputRoot), 'utf8'),
     readFile(new URL('llms-full.txt.body', outputRoot), 'utf8'),
   ]);
 
   assert.match(assetsPage, /Start with/);
   assert.match(natureKit, /Nature Kit/);
-  assert.equal(JSON.parse(catalog).totalCatalogAssets, 1292);
   assert.match(llms, /^# Antiky Labs\n\n> /);
   assert.match(llms, /https:\/\/antikylabs\.com\/llms-full\.txt/);
   assert.match(llms, /https:\/\/antikylabs\.com\/assets\/kenney\/nature-kit/);
+  assert.match(llms, /https:\/\/catalog-api\.antikylabs\.com\/v1\/catalog\.json/);
   assert.match(llmsFull, /## Documentation: Framework API reference/);
   assert.match(llmsFull, /## Documentation: Find and use game assets/);
   assert.match(llmsFull, /### Nature Kit/);
