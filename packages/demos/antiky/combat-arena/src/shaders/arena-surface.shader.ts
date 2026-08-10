@@ -39,7 +39,7 @@ export default shader({
   },
 
   vertex({ aPosition, aNormal, iOffset, iScale, iColor, iParams }, { uViewProj, uTime }, v) {
-    const angle = uTime * iParams.z + iOffset.x * 0.17 + iOffset.z * 0.11;
+    const angle = iParams.z;
     const rotatedPosition = rotate2(aPosition.xz.mul(iScale.xz), angle);
     const rotatedNormal = rotate2(aNormal.xz, angle);
     const bob = sin(uTime * (2.1 + iParams.z * 0.2) + iOffset.x + iOffset.z) * iParams.x * 0.025;

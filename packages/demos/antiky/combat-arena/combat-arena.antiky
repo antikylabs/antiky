@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "name": "Combat Arena",
+  "name": "Starbreaker Circuit",
   "development": {
     "command": ["npm", "run", "dev"],
     "shaderCommand": ["npm", "run", "shaders:watch"],

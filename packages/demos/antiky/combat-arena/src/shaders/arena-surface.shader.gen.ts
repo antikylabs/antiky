@@ -37,7 +37,7 @@ fn tonemapACES(color : vec3f) -> vec3f {
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
-  let angle = bm_u.uTime * bm_in.iParams.z + bm_in.iOffset.x * 0.17 + bm_in.iOffset.z * 0.11;
+  let angle = bm_in.iParams.z;
   let rotatedPosition = rotate2(bm_in.aPosition.xz * bm_in.iScale.xz, angle);
   let rotatedNormal = rotate2(bm_in.aNormal.xz, angle);
   let bob = sin(bm_u.uTime * (2.1 + bm_in.iParams.z * 0.2) + bm_in.iOffset.x + bm_in.iOffset.z) * bm_in.iParams.x * 0.025;
