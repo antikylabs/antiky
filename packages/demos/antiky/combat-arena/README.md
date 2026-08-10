@@ -45,40 +45,84 @@ defeat states.
 
 Antiky is authoritative. [`combat-state.ts`](src/combat-state.ts) defines the bounded pools, stable
 combat state, roles, and authored round roster. [`simulation.ts`](src/simulation.ts) coordinates the
-fixed-step rules while the demo-local encounter, AI, projectile, pool, and digest modules own their
+fixed-step rules while the demo-local encounter, AI, projectile, pool, hull-contract, and digest modules own their
 cohesive parts. Together they own input, thrust, marks, stagger, drive, swept blade collision,
 invulnerability, deflection, damage, enemy telegraph/attack/recovery, rounds, outcomes, retry,
 events, and digest. [`inspection.ts`](src/inspection.ts) publishes semantic copies of phase, round,
 hull, drive, combo, roles/states, damage, pools, and bounded deterministic simulation-fact history.
+[`scripts/intake-quaternius-ships.mjs`](scripts/intake-quaternius-ships.mjs) parses every normalized
+ship vertex through BroMetal and generates [`ship-footprints.gen.ts`](src/ship-footprints.gen.ts).
+For each runtime X/Z scale, it records the scaled span and maximum
+`hypot(position.x * scale.x, position.z * scale.z)`, including off-center pivots and diagonal
+vertices. [`combat-hulls.ts`](src/combat-hulls.ts) consumes those generated radial footprints for
+authoritative blade, projectile, and charge collision. The shipped/runtime-scaled farthest XZ
+radii are 1.338 for the rusher, 1.387 for the gunner, 1.751 for the shield-anchor, 3.118 for the
+Warden, and 1.001 for the player. Projectile contact uses the enemy radial footprint; the blade
+adds a 0.16 edge allowance; charge contact adds the player's intentionally smaller 0.46 damage
+core rather than making the complete rendered player rectangle vulnerable.
 
-BroMetal is presentation only. [`arena-assets.ts`](src/arena-assets.ts) loads the catalog GLBs and
-embedded PNG images; [`renderer.ts`](src/renderer.ts) projects snapshots into instanced meshes,
-packs live particles into the active prefix of its upload buffer, draws grounding shadows and
-diegetic geometry signals/gauges, and applies bounded impact plus velocity/aim camera lead. It
-cannot decide hits, damage, deflection, resources, enemy intent, outcomes, or retry. Renderer
-measurements are derived from the actual capacities and catalog model set.
+BroMetal is presentation only. [`arena-assets.ts`](src/arena-assets.ts) loads the textured station
+GLBs and their embedded PNG images; [`ship-assets.ts`](src/ship-assets.ts) loads five normalized
+Quaternius Ultimate Spaceships GLBs and samples each ship's selected authored color texture in one
+draw per hull type. [`renderer.ts`](src/renderer.ts) coordinates those resources while
+[`combat-projection.ts`](src/combat-projection.ts) packs live particles into the active prefix of a
+bounded upload buffer, draws grounding shadows and diegetic geometry signals/gauges, and applies
+the presentation hierarchy. A one-draw procedural layer behind the carrier adds restrained stars,
+nebular depth, and a planet limb without adding another asset family. BroMetal cannot decide hits,
+damage, deflection, resources, enemy intent, outcomes, or retry. Renderer measurements are derived
+from actual capacities: 14 draws, 384 maximum instances, and 15,864 bytes of dynamic instance
+upload per frame. Steady rendering
+reuses its camera frame/vectors, cached role profiles, direct numeric instance writers, and a fixed
+draw callback; it does not sort threats or create per-instance tuple arrays. Resource construction
+is transactional at the renderer, arena-catalog, ship-fleet, backdrop, and projection layers,
+including bitmap/texture/program handoffs and post-program attribute/index setup. The ship shader
+uploads reciprocal per-axis scale and applies rotation after that inverse scale, the
+inverse-transpose-equivalent normal transform for these diagonal-scale-plus-yaw model transforms.
+The Quaternius materials all author `doubleSided: true`, so this renderer disables back-face culling
+instead of silently dropping authored faces.
 
 ## Catalog assets and provenance
 
-The production renderer loads and draws all five normalized catalog files. BroMetal `loadGlb`
-parses each model, `createImageBitmap` decodes its embedded PNG, and BroMetal `createTexture`
-uploads it. Vite emits every GLB as a separate, non-inlined `dist/assets` file.
+The production renderer loads and draws ten catalog GLBs. BroMetal `loadGlb` parses every model,
+and all ten files use self-contained embedded PNG textures. The five primary combatants are one
+coherent Quaternius Ultimate Spaceships family; Blaster Kit targets and grenades remain secondary
+station displays, emitters, and hardpoints rather than character bodies. Every ship retains its own
+authored material/texture identity instead of assuming a universal primitive order. Vite emits
+every GLB as a separate, non-inlined `dist/assets` file.
 
 | Catalog/source | File | Runtime use |
 | --- | --- | --- |
 | `kenney:modular-space-kit` | `room-small.glb` | Dark neutral station shell and arena walls |
-| `kenney:modular-space-kit` | `template-floor-layer.glb` | Nine authored circuit-floor panels |
-| `kenney:modular-space-kit` | `cables.glb` | Eight perimeter cable clusters that ground the room |
-| `kenney:blaster-kit` | `target-detail.glb` | Repeated enemy role silhouettes, scaled by role/Warden status |
-| `kenney:blaster-kit` | `grenade-a.glb` | Perimeter props and gunner/anchor/Warden weapon silhouettes |
+| `kenney:modular-space-kit` | `template-floor-layer.glb` | Twenty-five carrier-deck panels and scale grid |
+| `kenney:modular-space-kit` | `cables.glb` | Repeated perimeter cable conduits and approach-lane bundles |
+| `quaternius:ultimatespaceships` | `spitfire-blue.glb` | Blue Starbreaker player hull |
+| `quaternius:ultimatespaceships` | `striker-red.glb` | Narrow, forward-heavy rusher hull |
+| `quaternius:ultimatespaceships` | `omen-orange.glb` | Broad orange gunner hull |
+| `quaternius:ultimatespaceships` | `imperial-red.glb` | Heavy shield-anchor hull |
+| `quaternius:ultimatespaceships` | `executioner-red.glb` | Enlarged Circuit Warden command hull |
+| `kenney:blaster-kit` | `target-detail.glb` | Station targeting displays plus anchor/Warden shield emitters |
+| `kenney:blaster-kit` | `grenade-a.glb` | Perimeter turrets plus gunner/anchor/Warden weapon hardpoints |
 
-Both kits are by Kenney under CC0 1.0. The verified Modular Space Kit archive SHA-256 is
+The two Kenney kits and Quaternius Ultimate Spaceships are CC0 1.0. The verified Modular Space Kit archive SHA-256 is
 `f394f7fd9eaf29c9de7e090e55b69926f699841af33b0b116f5cc0088de8a4dc`; the verified Blaster Kit
-archive SHA-256 is `91e3093e95427d59625e7e2ce2d0399b861600160fd0b4ada7714796b67cea8c`. Intake preserved the
-archive geometry, UVs, materials, and texture mappings while embedding each kit's `colormap.png` so
-the selected GLBs are self-contained. Official URLs, original and derived file hashes, image
-hashes, parser counts, bounds, normalization notes, and copied license paths are recorded in
+archive SHA-256 is `91e3093e95427d59625e7e2ce2d0399b861600160fd0b4ada7714796b67cea8c`.
+Ultimate Spaceships is delivered as an official Google Drive folder rather than a single archive,
+so provenance records the folder URL and exact Drive file ID plus SHA-256 for every selected glTF,
+color PNG, and license file. [`scripts/intake-quaternius-ships.mjs`](scripts/intake-quaternius-ships.mjs)
+validates those source hashes, preserves geometry/accessors/material and UV mappings, substitutes
+the selected official color texture, reproducibly packs each source into a self-contained GLB, and
+regenerates the runtime radial-footprint catalog from the normalized output vertices.
+Official URLs, original and derived file hashes, parser counts, bounds, normalization notes,
+runtime selection, and copied license paths are recorded in
 [`assets/antiky-assets.json`](assets/antiky-assets.json).
+
+The tradeoff for authored texture detail is bundle and decoded-memory weight. The five ship GLBs
+total exactly 15,375,156 bytes: 15.4 MB in decimal units, or 14.66 MiB. Each embeds one 2048×2048
+PNG. Estimated decoded GPU texture storage for five RGBA8 textures with complete mip chains is
+about 106.7 MiB, assuming four bytes per texel and a full mip pyramid costing roughly 4/3 of the
+base level. That estimate excludes decode staging, upload copies, row alignment, and implementation
+bookkeeping, so peak runtime memory can be higher. There is no runtime LOD or compressed texture
+path in this vertical slice.
 
 ## Build and test
 
@@ -90,14 +134,26 @@ npm test --workspace @antiky/demo-combat-arena
 npm run typecheck --workspace @antiky/demo-combat-arena
 ```
 
-`npm test` compiles the production shaders, builds the game, verifies every selected GLB parses
-with its embedded image, verifies all five GLBs ship separately, and runs deterministic simulation,
-inspection, camera, renderer-measurement, risk, dash, deflection, victory, defeat, retry, and digest
-tests. The canonical test traces prove that 40 seconds of idle input loses with a score of zero and
-that a deterministic marked-target trace clears round one with hull remaining. Session-boundary
+`npm test` compiles the production shaders, builds the game, verifies the five station/prop assets
+and all five textured ship hulls parse through BroMetal with embedded images, verifies all ten GLBs ship
+separately, and runs deterministic simulation, inspection, camera, renderer-measurement, risk,
+dash, deflection, victory, defeat, retry, and digest tests. Fault-injection tests prove that partial
+arena, ship, backdrop, projection, and top-level renderer construction rolls back all successfully-created
+resources and repeated disposal does not double-destroy them. Allocation regressions prove that the steady camera reuses references without sorting,
+role profiles are cached, and digesting succeeds with `JSON.stringify` disabled; digest hashing
+writes live fields directly into a reusable four-lane hash state. The canonical test traces prove that 40
+seconds of idle input loses with a score of zero, that a deterministic marked-target trace clears
+round one with hull remaining, and that the opening trace produces a mark by four seconds, dash by
+eight, hostile telegraph by thirteen, round-one clear by eighteen, and the next formation by
+twenty-one. Response regressions require 90% cruise speed within 116.7 ms, decay to 20% within 150
+ms after release, and a dash position change in its accepted fixed step. Session-boundary
 regressions prove that a click arriving on a 120 Hz render frame with zero fixed steps is latched,
 consumed by at most one completed fixed step, and cannot skip clear through victory during catch-up.
 Retry and the next combat action require release followed by a fresh press.
+Asset and cross-contract regressions also verify the exact five-GLB byte total, 2048² texture
+dimensions and stated mip estimate, authored two-sided material flags, reciprocal normal-scale
+uploads/generated shader layout, geometry-derived radial radii for every ship, and tangent/just-
+outside Warden blade, cannon, and charge contacts.
 
 ## CLI and MCP inspection workflow
 

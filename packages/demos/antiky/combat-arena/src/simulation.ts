@@ -19,6 +19,7 @@ import {
   type ProjectileKind,
 } from './combat-state.ts';
 import { updateEnemyBehavior } from './combat-ai.ts';
+import { ENEMY_HULL_CONTRACTS } from './combat-hulls.ts';
 import { nearestActiveEnemy, populateRound, resetCombatants } from './combat-encounter.ts';
 import { combatDigest } from './combat-digest.ts';
 import { createParticlePool, createProjectilePool } from './combat-pools.ts';
@@ -291,7 +292,7 @@ export function createCombatSimulation(emit: (event: CombatEvent) => void): Comb
     if (player.dash <= 0) return;
     enemies.forEach((enemy, enemyIndex) => {
       if (!enemy.active || enemy.lastDash === dashSequence) return;
-      const radius = enemy.role === 'warden' ? 1.12 : 0.78;
+      const radius = ENEMY_HULL_CONTRACTS[enemy.role].bladeRadius;
       if (segmentDistanceSquared(previousX, previousZ, player.x, player.z, enemy.x, enemy.z) > radius ** 2) return;
       enemy.lastDash = dashSequence;
       const chained = enemy.mark > 0;
@@ -420,11 +421,17 @@ export function createCombatSimulation(emit: (event: CombatEvent) => void): Comb
     const previousPlayerX = player.x;
     const previousPlayerZ = player.z;
     if (player.dash <= 0) {
-      player.vx += moveX * 18 * dt;
-      player.vz += moveZ * 18 * dt;
-      const damping = Math.exp(-7.8 * dt);
-      player.vx *= damping;
-      player.vz *= damping;
+      const moveLength = Math.hypot(moveX, moveZ);
+      if (moveLength > 0.001) {
+        const moveScale = moveLength > 1 ? 1 / moveLength : 1;
+        const response = 1 - Math.exp(-24 * dt);
+        player.vx += (moveX * moveScale * 6.4 - player.vx) * response;
+        player.vz += (moveZ * moveScale * 6.4 - player.vz) * response;
+      } else {
+        const damping = Math.exp(-14 * dt);
+        player.vx *= damping;
+        player.vz *= damping;
+      }
       player.drive = Math.min(player.maxDrive, player.drive + 5.5 * dt);
     } else {
       const damping = Math.exp(-1.4 * dt);

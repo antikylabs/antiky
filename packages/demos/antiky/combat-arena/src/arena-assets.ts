@@ -5,9 +5,11 @@ import {
   type BroMetalProgram,
   type BroMetalTexture,
   type Model,
+  type ModelImage,
   type Renderer,
 } from 'brometal';
 
+import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
 import arenaModelShader from './shaders/arena-model.shader.gen.ts';
 
 type Vec3 = readonly [number, number, number];
@@ -26,8 +28,15 @@ export type ModelBatch = Readonly<{
   program: BroMetalProgram;
   clear(): void;
   set(index: number, offset: Vec3, scale: Vec3, tint: Vec3, material: Vec3): void;
+  setValues(
+    index: number,
+    offsetX: number, offsetY: number, offsetZ: number,
+    scaleX: number, scaleY: number, scaleZ: number,
+    tint: Vec3,
+    emissive: number, hit: number, rotation: number,
+  ): void;
   upload(): void;
-  frame(viewProjection: Float32Array, cameraPosition: Float32Array): void;
+  frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void;
   dispose(): void;
 }>;
 
@@ -37,11 +46,33 @@ export type ArenaCatalogResources = Readonly<{
   cables: ModelBatch;
   targets: ModelBatch;
   grenades: ModelBatch;
-  frame(viewProjection: Float32Array, cameraPosition: Float32Array): void;
+  frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void;
   dispose(): void;
 }>;
 
-async function createModelBatch(renderer: Renderer, model: Model, capacity: number): Promise<ModelBatch> {
+export type ArenaAssetDependencies = Readonly<{
+  loadModel(url: string): Promise<Model>;
+  createBitmap(image: ModelImage): Promise<ImageBitmap>;
+  createTexture(renderer: Renderer, bitmap: ImageBitmap): BroMetalTexture;
+  createProgram(renderer: Renderer): BroMetalProgram;
+}>;
+
+const ARENA_ASSET_DEPENDENCIES: ArenaAssetDependencies = Object.freeze({
+  loadModel: loadGlb,
+  createBitmap: async (image) => createImageBitmap(new Blob(
+    [image.data.slice() as unknown as BlobPart],
+    { type: image.mimeType },
+  )),
+  createTexture: (renderer, bitmap) => createTexture(renderer, bitmap, { flipY: false, anisotropy: 4 }),
+  createProgram: (renderer) => createProgram(renderer, arenaModelShader),
+});
+
+async function createModelBatch(
+  renderer: Renderer,
+  model: Model,
+  capacity: number,
+  dependencies: ArenaAssetDependencies,
+): Promise<ModelBatch> {
   const mesh = model.meshes[0];
   if (mesh === undefined || mesh.normals === null || mesh.uvs === null || mesh.indices === null) {
     throw new Error('Combat catalog model requires indexed positions, normals, and UVs');
@@ -50,18 +81,26 @@ async function createModelBatch(renderer: Renderer, model: Model, capacity: numb
     throw new Error('Combat catalog model requires an embedded base-color image');
   }
   const image = model.images[mesh.imageIndex]!;
-  const bitmap = await createImageBitmap(new Blob(
-    [image.data.slice() as unknown as BlobPart],
-    { type: image.mimeType },
-  ));
-  const texture: BroMetalTexture = createTexture(renderer, bitmap, { flipY: false, anisotropy: 4 });
-  bitmap.close();
-  const program = createProgram(renderer, arenaModelShader);
-  program.attributes.aPosition.set(mesh.positions);
-  program.attributes.aNormal.set(mesh.normals);
-  program.attributes.aUv.set(mesh.uvs);
-  program.setIndices(mesh.indices);
-  program.uniforms.uTex.set(texture);
+  const owned: { dispose(): void }[] = [];
+  const bitmap = await dependencies.createBitmap(image);
+  let texture: BroMetalTexture;
+  let program: BroMetalProgram;
+  try {
+    try {
+      texture = registerResource(owned, dependencies.createTexture(renderer, bitmap));
+    } finally {
+      bitmap.close();
+    }
+    program = registerResource(owned, dependencies.createProgram(renderer));
+    program.attributes.aPosition!.set(mesh.positions);
+    program.attributes.aNormal!.set(mesh.normals);
+    program.attributes.aUv!.set(mesh.uvs);
+    program.setIndices(mesh.indices);
+    program.uniforms.uTex!.set(texture);
+  } catch (cause: unknown) {
+    rollbackResources(owned);
+    throw cause;
+  }
   const offsets = new Float32Array(capacity * 3);
   const scales = new Float32Array(capacity * 3);
   const tints = new Float32Array(capacity * 3);
@@ -80,19 +119,34 @@ async function createModelBatch(renderer: Renderer, model: Model, capacity: numb
       tints.set(tint, index * 3);
       params.set(material, index * 3);
     },
-    upload(): void {
-      program.instanceAttributes.iOffset.set(offsets);
-      program.instanceAttributes.iScale.set(scales);
-      program.instanceAttributes.iTint.set(tints);
-      program.instanceAttributes.iParams.set(params);
+    setValues(index, offsetX, offsetY, offsetZ, scaleX, scaleY, scaleZ, tint, emissive, hit, rotation): void {
+      const at = index * 3;
+      offsets[at] = offsetX;
+      offsets[at + 1] = offsetY;
+      offsets[at + 2] = offsetZ;
+      scales[at] = scaleX;
+      scales[at + 1] = scaleY;
+      scales[at + 2] = scaleZ;
+      tints[at] = tint[0];
+      tints[at + 1] = tint[1];
+      tints[at + 2] = tint[2];
+      params[at] = emissive;
+      params[at + 1] = hit;
+      params[at + 2] = rotation;
     },
-    frame(viewProjection: Float32Array, cameraPosition: Float32Array): void {
-      program.uniforms.uViewProj.set(viewProjection);
-      program.uniforms.uCameraPosition.set(cameraPosition);
+    upload(): void {
+      program.instanceAttributes.iOffset!.set(offsets);
+      program.instanceAttributes.iScale!.set(scales);
+      program.instanceAttributes.iTint!.set(tints);
+      program.instanceAttributes.iParams!.set(params);
+    },
+    frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
+      program.uniforms.uViewProj!.set(viewProjection);
+      program.uniforms.uCameraPosition!.set(cameraPosition);
+      program.uniforms.uTime!.set(time);
     },
     dispose(): void {
-      texture.dispose();
-      program.dispose();
+      disposeResources(owned);
     },
   });
 }
@@ -106,54 +160,22 @@ export async function createArenaCatalogResources(
     targets: number;
     grenades: number;
   }>,
+  dependencies: ArenaAssetDependencies = ARENA_ASSET_DEPENDENCIES,
 ): Promise<ArenaCatalogResources> {
   const models = await Promise.all([
-    loadGlb(MODEL_URLS.room),
-    loadGlb(MODEL_URLS.floor),
-    loadGlb(MODEL_URLS.cables),
-    loadGlb(MODEL_URLS.target),
-    loadGlb(MODEL_URLS.grenade),
+    dependencies.loadModel(MODEL_URLS.room),
+    dependencies.loadModel(MODEL_URLS.floor),
+    dependencies.loadModel(MODEL_URLS.cables),
+    dependencies.loadModel(MODEL_URLS.target),
+    dependencies.loadModel(MODEL_URLS.grenade),
   ]);
   const resources: ModelBatch[] = [];
   try {
-    const [room, floorTiles, cables, targets, grenades] = await Promise.all([
-      createModelBatch(renderer, models[0]!, capacity.room),
-      createModelBatch(renderer, models[1]!, capacity.floor),
-      createModelBatch(renderer, models[2]!, capacity.cables),
-      createModelBatch(renderer, models[3]!, capacity.targets),
-      createModelBatch(renderer, models[4]!, capacity.grenades),
-    ]);
-    resources.push(room, floorTiles, cables, targets, grenades);
-
-    room.set(0, [0, -0.24, 0], [1.42, 0.82, 1.42], [0.3, 0.32, 0.35], [0.04, 0, 0]);
-    room.upload();
-    floorTiles.clear();
-    let floorIndex = 0;
-    for (let zIndex = -1; zIndex <= 1; zIndex += 1) {
-      for (let xIndex = -1; xIndex <= 1; xIndex += 1) {
-        floorTiles.set(
-          floorIndex,
-          [xIndex * 4.34, -0.19, zIndex * 4.34],
-          [1.04, 0.7, 1.04],
-          [0.31, 0.34, 0.38],
-          [0.03, 0, (xIndex + zIndex) % 2 === 0 ? 0 : Math.PI / 2],
-        );
-        floorIndex += 1;
-      }
-    }
-    floorTiles.upload();
-    cables.clear();
-    for (let index = 0; index < capacity.cables; index += 1) {
-      const angle = index / capacity.cables * Math.PI * 2 + Math.PI / 8;
-      cables.set(
-        index,
-        [Math.cos(angle) * 6.15, -0.13, Math.sin(angle) * 6.15],
-        [0.82, 0.82, 0.82],
-        [0.32, 0.34, 0.38],
-        [0.02, 0, angle],
-      );
-    }
-    cables.upload();
+    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies));
+    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies));
+    const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies));
+    const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies));
+    const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies));
 
     return Object.freeze({
       room,
@@ -161,15 +183,17 @@ export async function createArenaCatalogResources(
       cables,
       targets,
       grenades,
-      frame(viewProjection, cameraPosition): void {
-        resources.forEach((batch) => batch.frame(viewProjection, cameraPosition));
+      frame(viewProjection, cameraPosition, time): void {
+        for (let index = 0; index < resources.length; index += 1) {
+          resources[index]!.frame(viewProjection, cameraPosition, time);
+        }
       },
       dispose(): void {
-        resources.reverse().forEach((batch) => batch.dispose());
+        disposeResources(resources);
       },
     });
   } catch (cause: unknown) {
-    resources.reverse().forEach((batch) => batch.dispose());
+    rollbackResources(resources);
     throw cause;
   }
 }

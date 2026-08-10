@@ -2,10 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { combatDigest } from '../src/combat-digest.ts';
+import { updateEnemyBehavior } from '../src/combat-ai.ts';
+import { updateCombatProjectiles } from '../src/combat-projectiles.ts';
+import { BLADE_EDGE_ALLOWANCE, PLAYER_HURT_RADIUS } from '../src/combat-hulls.ts';
+import { createCombatStatePools } from '../src/combat-state.ts';
+import { SHIP_FOOTPRINTS } from '../src/ship-footprints.gen.ts';
 import {
   createCombatSimulation,
+  type CombatEnemy,
   type CombatInput,
   type CombatEvent,
+  type CombatPlayer,
 } from '../src/simulation.ts';
 
 const idle: CombatInput = Object.freeze({
@@ -145,6 +152,112 @@ test('a blade dash deflects a hostile bolt during its invulnerability window', (
   assert.ok(simulation.read().deflections >= 1);
 });
 
+function bladeHitsWardenAtOffset(offset: number): boolean {
+  const events: CombatEvent[] = [];
+  const simulation = createCombatSimulation((event) => events.push(event));
+  runFrames(simulation, 60);
+  const live = simulation.view() as unknown as { player: CombatPlayer; enemies: CombatEnemy[] };
+  live.player.x = -3;
+  live.player.z = 0;
+  live.player.vx = 0;
+  live.player.vz = 0;
+  live.player.drive = 100;
+  live.player.dashCooldown = 0;
+  live.player.attackHeld = false;
+  live.enemies.forEach((enemy) => { enemy.active = false; });
+  Object.assign(live.enemies[0]!, {
+    active: true,
+    role: 'warden',
+    x: 0,
+    z: offset,
+    vx: 0,
+    vz: 0,
+    hull: 4,
+    maxHull: 4,
+    shield: 0,
+    mark: 3,
+    state: 'staggered',
+    stateTime: 10,
+    lastDash: -1,
+  });
+  for (let frame = 0; frame < 14; frame += 1) {
+    simulation.update(1 / 60, Object.freeze({
+      movement: Object.freeze({ x: 1, z: 0, active: true }),
+      aim: Object.freeze({ x: 1, z: 0 }),
+      attack: frame === 0,
+    }));
+  }
+  return events.some((event) => event.type === 'combat.dash-hit' && event.role === 'warden');
+}
+
+test('blade sweep hits the true Warden radial edge and misses beyond its blade allowance', () => {
+  const radialEdge = SHIP_FOOTPRINTS.ships.warden.radialRadius;
+  assert.equal(bladeHitsWardenAtOffset(radialEdge), true);
+  assert.equal(bladeHitsWardenAtOffset(radialEdge + BLADE_EDGE_ALLOWANCE), true);
+  assert.equal(bladeHitsWardenAtOffset(radialEdge + BLADE_EDGE_ALLOWANCE + 0.02), false);
+});
+
+function cannonHitsWardenAtOffset(offset: number): boolean {
+  const { player, enemies, projectiles } = createCombatStatePools();
+  const enemy = enemies[0]!;
+  Object.assign(enemy, { active: true, role: 'warden', x: 0, z: 0, hull: 4, maxHull: 4 });
+  projectiles[0] = {
+    x: -3,
+    z: offset,
+    previousX: -3,
+    previousZ: offset,
+    vx: 360,
+    vz: 0,
+    life: 1,
+    enemy: false,
+    kind: 'cannon',
+    ownerIndex: -1,
+  };
+  let hits = 0;
+  updateCombatProjectiles(projectiles, enemies, player, 1 / 60, player.x, player.z, {
+    onPlayerHit() {},
+    onEnemyHit() { hits += 1; },
+    onDeflection() {},
+  });
+  return hits === 1;
+}
+
+test('cannon path hits the true Warden radial edge and misses just outside', () => {
+  const radialEdge = SHIP_FOOTPRINTS.ships.warden.radialRadius;
+  assert.equal(cannonHitsWardenAtOffset(radialEdge), true);
+  assert.equal(cannonHitsWardenAtOffset(radialEdge + 0.02), false);
+});
+
+function wardenChargeHitsAtOffset(offset: number): boolean {
+  const { player, enemies } = createCombatStatePools();
+  Object.assign(player, { x: 0, z: 0, invulnerable: 0 });
+  const enemy = enemies[0]!;
+  Object.assign(enemy, {
+    active: true,
+    role: 'warden',
+    state: 'attack',
+    stateTime: 1,
+    pattern: 2,
+    x: -3,
+    z: offset,
+    vx: 360,
+    vz: 0,
+  });
+  let contacts = 0;
+  updateEnemyBehavior(enemy, 0, 1 / 60, player, {
+    fireHostile() {},
+    damagePlayer() { contacts += 1; },
+  });
+  return contacts === 1;
+}
+
+test('Warden charge hits its true radial edge and misses beyond the player damage core', () => {
+  const radialEdge = SHIP_FOOTPRINTS.ships.warden.radialRadius;
+  assert.equal(wardenChargeHitsAtOffset(radialEdge), true);
+  assert.equal(wardenChargeHitsAtOffset(radialEdge + PLAYER_HURT_RADIUS), true);
+  assert.equal(wardenChargeHitsAtOffset(radialEdge + PLAYER_HURT_RADIUS + 0.02), false);
+});
+
 test('defeat and victory both accept click-to-retry into a fresh intro', () => {
   const defeatEvents: CombatEvent[] = [];
   const defeated = createCombatSimulation((event) => defeatEvents.push(event));
@@ -190,6 +303,22 @@ test('identical fixed-step traces produce identical state digests', () => {
     second.update(1 / 60, input);
   }
   assert.equal(first.digest(), second.digest());
+});
+
+test('digest hashes live state without JSON serialization', () => {
+  const simulation = createCombatSimulation(() => {});
+  const originalStringify = JSON.stringify;
+  JSON.stringify = () => {
+    throw new Error('digest must not allocate a serialized object graph');
+  };
+  try {
+    const first = simulation.digest();
+    simulation.update(1 / 60, idle);
+    const second = simulation.digest();
+    assert.notEqual(first, second);
+  } finally {
+    JSON.stringify = originalStringify;
+  }
 });
 
 test('digest changes for every future-driving cooldown, motion, attack, and projectile field', () => {
@@ -256,4 +385,63 @@ test('terminal retry consumes one press and requires release before a new combat
   simulation.update(1 / 60, idle);
   simulation.update(1 / 60, heldAttack);
   assert.equal(simulation.read().dashes, 1);
+});
+
+test('normal thrust and release meet the combat response budget while dash appears in one fixed step', () => {
+  const cruising = createCombatSimulation(() => {});
+  const response = createCombatSimulation(() => {});
+  runFrames(cruising, 60, () => idle);
+  runFrames(response, 60, () => idle);
+  const thrust: CombatInput = Object.freeze({
+    movement: Object.freeze({ x: 1, z: 0, active: true }),
+    aim: Object.freeze({ x: 1, z: 0 }),
+    attack: false,
+  });
+  runFrames(cruising, 60, () => thrust);
+  runFrames(response, 7, () => thrust);
+  const cruiseSpeed = Math.hypot(cruising.read().player.vx, cruising.read().player.vz);
+  const responseSpeed = Math.hypot(response.read().player.vx, response.read().player.vz);
+  assert.ok(responseSpeed >= cruiseSpeed * 0.9);
+
+  runFrames(response, 9, () => idle);
+  const releasedSpeed = Math.hypot(response.read().player.vx, response.read().player.vz);
+  assert.ok(releasedSpeed <= cruiseSpeed * 0.2);
+
+  const beforeDash = response.read();
+  response.update(1 / 60, Object.freeze({ ...thrust, attack: true }));
+  const afterDash = response.read();
+  assert.equal(afterDash.dashes, beforeDash.dashes + 1);
+  assert.ok(afterDash.player.dash > 0);
+  assert.notEqual(afterDash.player.x, beforeDash.player.x);
+});
+
+test('the skilled opening trace establishes the first-thirty-second escalation beats', () => {
+  const events: CombatEvent[] = [];
+  const simulation = createCombatSimulation((event) => events.push(event));
+  let firstTelegraph = Number.POSITIVE_INFINITY;
+  runFrames(simulation, 60 * 21, () => {
+    const state = simulation.view();
+    if (state.enemies.some((enemy) => enemy.active && enemy.state === 'telegraph')) {
+      firstTelegraph = Math.min(firstTelegraph, state.time);
+    }
+    const target = state.enemies.find((enemy) => enemy.active && enemy.mark > 0)
+      ?? state.enemies.find((enemy) => enemy.active);
+    if (target === undefined) return idle;
+    const aim = toward(target.x - state.player.x, target.z - state.player.z);
+    return Object.freeze({
+      movement: Object.freeze({ ...aim, active: true }),
+      aim,
+      attack: target.mark > 0 && state.player.dashCooldown <= 0 && state.player.drive >= 32,
+    });
+  });
+
+  const firstMark = events.find((event) => event.type === 'combat.enemy-marked');
+  const firstDash = events.find((event) => event.type === 'combat.dash');
+  const firstClear = events.find((event) => event.type === 'combat.round-cleared' && event.round === 1);
+  const secondRound = events.find((event) => event.type === 'combat.round-started' && event.round === 2);
+  assert.ok(firstMark && firstMark.simulationTime <= 4);
+  assert.ok(firstDash && firstDash.simulationTime <= 8);
+  assert.ok(firstTelegraph <= 13);
+  assert.ok(firstClear && firstClear.simulationTime <= 18);
+  assert.ok(secondRound && secondRound.simulationTime <= 21);
 });

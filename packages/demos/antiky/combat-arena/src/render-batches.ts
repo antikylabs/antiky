@@ -1,4 +1,4 @@
-import { createProgram, type Geometry, type Renderer } from 'brometal';
+import { createProgram, type BroMetalProgram, type Geometry, type Renderer } from 'brometal';
 
 import arenaGlowShader from './shaders/arena-glow.shader.gen.ts';
 import arenaSurfaceShader from './shaders/arena-surface.shader.gen.ts';
@@ -21,11 +21,23 @@ export function horizontalGeometry(geometry: Geometry): Geometry {
   return Object.freeze({ ...geometry, positions, normals });
 }
 
-export function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
-  const program = createProgram(renderer, arenaSurfaceShader);
-  program.attributes.aPosition.set(geometry.positions);
-  program.attributes.aNormal.set(geometry.normals);
-  program.setIndices(geometry.indices);
+type BatchProgramFactory = (renderer: Renderer) => BroMetalProgram;
+
+export function createSurfaceBatch(
+  renderer: Renderer,
+  geometry: Geometry,
+  capacity: number,
+  programFactory: BatchProgramFactory = (target) => createProgram(target, arenaSurfaceShader),
+) {
+  const program = programFactory(renderer);
+  try {
+    program.attributes.aPosition!.set(geometry.positions);
+    program.attributes.aNormal!.set(geometry.normals);
+    program.setIndices(geometry.indices);
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
   const offsets = new Float32Array(capacity * 3);
   const scales = new Float32Array(capacity * 3);
   const colors = new Float32Array(capacity * 3);
@@ -44,16 +56,37 @@ export function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capac
       colors.set(color, index * 3);
       params.set(material, index * 3);
     },
+    setValues(
+      index: number,
+      offsetX: number, offsetY: number, offsetZ: number,
+      scaleX: number, scaleY: number, scaleZ: number,
+      colorR: number, colorG: number, colorB: number,
+      emissive: number, hit: number, rotation: number,
+    ): void {
+      const at = index * 3;
+      offsets[at] = offsetX;
+      offsets[at + 1] = offsetY;
+      offsets[at + 2] = offsetZ;
+      scales[at] = scaleX;
+      scales[at + 1] = scaleY;
+      scales[at + 2] = scaleZ;
+      colors[at] = colorR;
+      colors[at + 1] = colorG;
+      colors[at + 2] = colorB;
+      params[at] = emissive;
+      params[at + 1] = hit;
+      params[at + 2] = rotation;
+    },
     upload(): void {
-      program.instanceAttributes.iOffset.set(offsets);
-      program.instanceAttributes.iScale.set(scales);
-      program.instanceAttributes.iColor.set(colors);
-      program.instanceAttributes.iParams.set(params);
+      program.instanceAttributes.iOffset!.set(offsets);
+      program.instanceAttributes.iScale!.set(scales);
+      program.instanceAttributes.iColor!.set(colors);
+      program.instanceAttributes.iParams!.set(params);
     },
     frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
-      program.uniforms.uViewProj.set(viewProjection);
-      program.uniforms.uCameraPosition.set(cameraPosition);
-      program.uniforms.uTime.set(time);
+      program.uniforms.uViewProj!.set(viewProjection);
+      program.uniforms.uCameraPosition!.set(cameraPosition);
+      program.uniforms.uTime!.set(time);
     },
     dispose(): void {
       program.dispose();
@@ -61,11 +94,21 @@ export function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capac
   });
 }
 
-export function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
-  const program = createProgram(renderer, arenaGlowShader, { blend: 'additive' });
-  program.attributes.aPosition.set(geometry.positions);
-  program.attributes.aNormal.set(geometry.normals);
-  program.setIndices(geometry.indices);
+export function createGlowBatch(
+  renderer: Renderer,
+  geometry: Geometry,
+  capacity: number,
+  programFactory: BatchProgramFactory = (target) => createProgram(target, arenaGlowShader, { blend: 'additive' }),
+) {
+  const program = programFactory(renderer);
+  try {
+    program.attributes.aPosition!.set(geometry.positions);
+    program.attributes.aNormal!.set(geometry.normals);
+    program.setIndices(geometry.indices);
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
   const offsets = new Float32Array(capacity * 3);
   const scales = new Float32Array(capacity * 3);
   const colors = new Float32Array(capacity * 3);
@@ -95,18 +138,39 @@ export function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity
       rotations[index] = rotation;
       phases[index] = phase;
     },
+    setValues(
+      index: number,
+      offsetX: number, offsetY: number, offsetZ: number,
+      scaleX: number, scaleY: number, scaleZ: number,
+      colorR: number, colorG: number, colorB: number,
+      alpha: number, rotation: number, phase: number,
+    ): void {
+      const at = index * 3;
+      offsets[at] = offsetX;
+      offsets[at + 1] = offsetY;
+      offsets[at + 2] = offsetZ;
+      scales[at] = scaleX;
+      scales[at + 1] = scaleY;
+      scales[at + 2] = scaleZ;
+      colors[at] = colorR;
+      colors[at + 1] = colorG;
+      colors[at + 2] = colorB;
+      alphas[index] = alpha;
+      rotations[index] = rotation;
+      phases[index] = phase;
+    },
     upload(): void {
-      program.instanceAttributes.iOffset.set(offsets);
-      program.instanceAttributes.iScale.set(scales);
-      program.instanceAttributes.iColor.set(colors);
-      program.instanceAttributes.iAlpha.set(alphas);
-      program.instanceAttributes.iRotation.set(rotations);
-      program.instanceAttributes.iPhase.set(phases);
+      program.instanceAttributes.iOffset!.set(offsets);
+      program.instanceAttributes.iScale!.set(scales);
+      program.instanceAttributes.iColor!.set(colors);
+      program.instanceAttributes.iAlpha!.set(alphas);
+      program.instanceAttributes.iRotation!.set(rotations);
+      program.instanceAttributes.iPhase!.set(phases);
     },
     frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
-      program.uniforms.uViewProj.set(viewProjection);
-      program.uniforms.uCameraPosition.set(cameraPosition);
-      program.uniforms.uTime.set(time);
+      program.uniforms.uViewProj!.set(viewProjection);
+      program.uniforms.uCameraPosition!.set(cameraPosition);
+      program.uniforms.uTime!.set(time);
     },
     dispose(): void {
       program.dispose();

@@ -33,6 +33,31 @@ test('combat inspection exposes hierarchy, runtime stores, and bounded events', 
   assert.ok(events.events.some((event) => record(event.data).round === 1));
   assert.ok(events.events.length <= events.retention.capacity);
   assert.equal(events.counts.available, events.counts.retained + events.retention.droppedCount);
+  const renderStore = world.stores.find((store) => store.kind === 'render');
+  assert.ok(renderStore);
+  const arenaRender = renderStore.entries.find((entry) => entry.key === 'arena');
+  const playerRender = renderStore.entries.find((entry) => entry.key === 'player');
+  const enemyRender = renderStore.entries.find((entry) => entry.key === 'enemies');
+  assert.equal(record(arenaRender?.data).catalogAssets, 5);
+  assert.equal(record(playerRender?.data).catalogAssets, 1);
+  assert.equal(record(enemyRender?.data).catalogAssets, 4);
+});
+
+test('defeat inspection reports the still-rendered damaged player hull as visible', () => {
+  const inspection = createCombatInspectionModel('combat-defeat-visibility-test');
+  const simulation = createCombatSimulation((event) => inspection.record(event));
+  const idle = Object.freeze({
+    movement: Object.freeze({ x: 0, z: 0, active: false }),
+    aim: Object.freeze({ x: 0, z: -1 }),
+    attack: false,
+  });
+  for (let frame = 0; frame < 60 * 40 && simulation.read().phase !== 'defeat'; frame += 1) {
+    simulation.update(1 / 60, idle);
+  }
+  assert.equal(simulation.read().phase, 'defeat');
+  const renderStore = inspection.world(simulation.read()).stores.find((store) => store.kind === 'render');
+  const playerRender = renderStore?.entries.find((entry) => entry.key === 'player');
+  assert.equal(record(playerRender?.data).visible, true);
 });
 
 test('combat event history labels deterministic simulation facts without claiming wall-clock or command provenance', () => {

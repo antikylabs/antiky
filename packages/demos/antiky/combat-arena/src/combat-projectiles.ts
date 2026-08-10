@@ -5,6 +5,7 @@ import {
   type CombatPlayer,
   type CombatProjectile,
 } from './combat-state.ts';
+import { ENEMY_HULL_CONTRACTS, PLAYER_HURT_RADIUS } from './combat-hulls.ts';
 
 export type ProjectileCollisionPort = Readonly<{
   onPlayerHit(): void;
@@ -80,7 +81,7 @@ export function updateCombatProjectiles(
         projectile.z,
         player.x,
         player.z,
-      ) < 0.46 ** 2) {
+      ) < PLAYER_HURT_RADIUS ** 2) {
         projectile.life = 0;
         port.onPlayerHit();
       }
@@ -90,7 +91,7 @@ export function updateCombatProjectiles(
     for (let enemyIndex = 0; enemyIndex < enemies.length; enemyIndex += 1) {
       const enemy = enemies[enemyIndex]!;
       if (!enemy.active) continue;
-      const radius = enemy.role === 'warden' ? 1.05 : 0.68;
+      const radius = ENEMY_HULL_CONTRACTS[enemy.role].projectileRadius;
       if (segmentDistanceSquared(
         projectile.previousX,
         projectile.previousZ,

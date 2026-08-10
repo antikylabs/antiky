@@ -132,6 +132,134 @@
           }
         }
       ]
+    },
+    {
+      "catalogId": "quaternius:ultimatespaceships",
+      "officialSourcePageUrl": "https://quaternius.com/packs/ultimatespaceships.html",
+      "officialDownloadUrl": "https://drive.google.com/drive/folders/1NpfT3wqe2k3Jwue2xryi7tzxP4bWzETu?usp=sharing",
+      "sourceFolder": {
+        "provider": "Google Drive",
+        "folderId": "1NpfT3wqe2k3Jwue2xryi7tzxP4bWzETu",
+        "retrievedAt": "2026-08-10",
+        "note": "The official source is a folder rather than an archive; exact selected file IDs and hashes are recorded per file."
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "sourcePath": "License.txt",
+        "sourceFileId": "16iPJQOxZQgJB6UBiutO-PU35YROyGEL8",
+        "sourceSha256": "83d8959f9fc56353ed571fbe2dc52e4bcd64508e2399501cd45ac2ce3df0bf8c",
+        "copiedTo": "assets/quaternius/ultimate-spaceships/License.txt"
+      },
+      "normalization": "Validated each official glTF and selected official color PNG by exact SHA-256, decoded the glTF data-URI buffer, preserved geometry/accessors/mesh/nodes/material/UV mappings, substituted the selected official color PNG for the source model's embedded Orange image bufferView, rebuilt four-byte-aligned bufferViews, and packed JSON plus binary data into a self-contained GLB.",
+      "transformationScript": "scripts/intake-quaternius-ships.mjs",
+      "runtimeFootprints": {
+        "derivedPath": "src/ship-footprints.gen.ts",
+        "parser": "brometal@0.15.0 parseGlb",
+        "derivation": "For each normalized shipped GLB, calculate the maximum hypot(position.x * runtimeScale.x, position.z * runtimeScale.z) over every parsed vertex; also record scaled X/Z spans and the exact runtime X/Z scale.",
+        "consumer": "src/combat-hulls.ts"
+      },
+      "files": [
+        {
+          "originalPath": "Spitfire.gltf",
+          "originalFileId": "190E7T13jvAH8rVzD3dd484gPfN5fV8X3",
+          "originalSha256": "65df89a9a163ca1ce2d2ef253668b1b4e670f6903052fd566f54162ac5a92920",
+          "selectedTexturePath": "Spitfire_Blue.png",
+          "selectedTextureFileId": "1LM7mPH8IevKEeKI7_MnvA1ysmzzfupxU",
+          "selectedTextureSha256": "59965e110e6ebe0a3f62120a42099b5d6107a9d1ad124afa1189b9bc1954f08d",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/spitfire-blue.glb",
+          "derivedSha256": "eb584744f6b0bf3ecf0fa25eb55c867b5a6b06a26aca6e9a88c4aae5d684de81",
+          "runtimeUse": "Starbreaker player hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 4107,
+            "indices": 10536,
+            "bounds": { "min": [-5.2618442, -2.0253601, -3.139415], "max": [5.2618442, 1.0298198, 4.3938928] }
+          }
+        },
+        {
+          "originalPath": "Striker.gltf",
+          "originalFileId": "1TmKsBDmZnMIHHZL1ec5WD2Yq1FVwu3Ai",
+          "originalSha256": "2f6c4b1d16f11d5ce02833c5841ff17e19700418c83e52501ed29e3c2bc79359",
+          "selectedTexturePath": "Striker_Red.png",
+          "selectedTextureFileId": "1PF7wvd9GFHBvjcjmxFgLcHZo6x_s1TF_",
+          "selectedTextureSha256": "43dfa2597eb1bae1db209686be0ef6cf12e307aa50a5c55d2e04341b3c356255",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/striker-red.glb",
+          "derivedSha256": "f6c0eed0d727b29f3c6c89c4180fedfe6898a725cae0a598a0c7431c947ff441",
+          "runtimeUse": "Rusher hostile hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 4911,
+            "indices": 13590,
+            "bounds": { "min": [-2.5168083, -1.432785, -3.5290728], "max": [2.5168083, 1.2518599, 4.8970942] }
+          }
+        },
+        {
+          "originalPath": "Omen.gltf",
+          "originalFileId": "1AI4LO8e8-CRd9z9fm4h8XPG90OekGdZb",
+          "originalSha256": "dd77f3f08d17227083b714d80cbc0d0470a6b44480003cca9051a53183571160",
+          "selectedTexturePath": "Omen_Orange.png",
+          "selectedTextureFileId": "1u_H0fMN_wSJCIwtoeDoKIOi30Cf4JY0z",
+          "selectedTextureSha256": "4925ba424ad828b1928926e057ca07232b7bfb7af8eb3542fa5e3d77d1d14648",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/omen-orange.glb",
+          "derivedSha256": "83df1cb9c2df3536e356197b2f32ed36d0843eae4d281a650d390ec6ee6ffe2f",
+          "runtimeUse": "Gunner hostile hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 1781,
+            "indices": 4278,
+            "bounds": { "min": [-6.3922052, -1.0619138, -3.9228954], "max": [6.3922052, 2.0766928, 8.6585503] }
+          }
+        },
+        {
+          "originalPath": "Imperial.gltf",
+          "originalFileId": "1QWFecMijLgalCJpj9O_wihq6VE09Hrl-",
+          "originalSha256": "389012d28270b859adb48ce12d1307af536f395ed734aafcb30f59ec8a9bb2e3",
+          "selectedTexturePath": "Imperial_Red.png",
+          "selectedTextureFileId": "1rulcb694V2ZnHWEYFRIEQ2mfjvzRa2aI",
+          "selectedTextureSha256": "eb9d56bdbf8d66a2241ea7dfcf3c6c032e82844c99427466b05461e03bc876be",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/imperial-red.glb",
+          "derivedSha256": "67a815a0590497adb15aa50d7e83fc1b7f02280f51aa9a065b546d073fff18b6",
+          "runtimeUse": "Shield-anchor hostile hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 3673,
+            "indices": 7926,
+            "bounds": { "min": [-3.8647604, -1.3141971, -6.6691833], "max": [3.8647604, 1.9892471, 11.8792019] }
+          }
+        },
+        {
+          "originalPath": "Executioner.gltf",
+          "originalFileId": "1DaCoRPG1Q54SFBOPMrhTOZNaNETsuRB1",
+          "originalSha256": "95dd08b854b0588480e91515949c5fd3e329ec856882e2b58b71e4cdc41348f9",
+          "selectedTexturePath": "Executioner_Red.png",
+          "selectedTextureFileId": "1SNmGO_0L4pOnDGW3Z86J2N7hnz6EmFuw",
+          "selectedTextureSha256": "2b10363d811f45e1ad89e3e808d031ddbded91deb3107b142f84ec604dcd9879",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/executioner-red.glb",
+          "derivedSha256": "009fb5221b23d292a1bd97bbe5eb4e34ac0398601869f38aea3bd43dc694bae4",
+          "runtimeUse": "Circuit Warden hostile hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 3819,
+            "indices": 10164,
+            "bounds": { "min": [-5.0110607, -0.7747538, -3.0779488], "max": [5.0110607, 1.0724101, 6.1242223] }
+          }
+        }
+      ]
     }
   ]
 }

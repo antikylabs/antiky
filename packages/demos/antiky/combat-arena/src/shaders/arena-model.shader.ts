@@ -1,11 +1,14 @@
 import {
   clamp,
   dot,
+  length,
   max,
   mix,
   normalize,
   pow,
   shader,
+  sin,
+  smoothstep,
   texture,
   vec3,
   vec4,
@@ -28,6 +31,7 @@ export default shader({
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTex: 'sampler2D',
+    uTime: 'float',
   },
   varyings: {
     vWorld: 'vec3',
@@ -53,16 +57,19 @@ export default shader({
     return uViewProj.mul(vec4(world, 1));
   },
 
-  fragment({ uCameraPosition, uTex }, { vWorld, vNormal, vUv, vTint, vParams }) {
+  fragment({ uCameraPosition, uTex, uTime }, { vWorld, vNormal, vUv, vTint, vParams }) {
     const normal = normalize(vNormal);
     const light = normalize(vec3(0.38, 0.9, 0.28));
     const view = normalize(uCameraPosition.sub(vWorld));
     const diffuse = max(dot(normal, light), 0);
     const rim = pow(1 - max(dot(normal, view), 0), 2.2);
     const sampled = texture(uTex, vUv).xyz.mul(vTint);
-    const lit = sampled.scale(0.24 + diffuse * 0.68)
-      .add(vTint.scale(clamp(vParams.x, 0, 1) * (0.08 + rim * 0.26)));
+    const fill = max(normal.y, 0) * 0.1;
+    const pulse = 0.72 + sin(uTime * 5.2 + vWorld.x * 0.8 - vWorld.z * 0.55) * 0.28;
+    const lit = sampled.scale(0.16 + diffuse * 0.74 + fill)
+      .add(vTint.scale(clamp(vParams.x, 0, 1) * pulse * (0.12 + rim * 0.34)));
     const confirmed = mix(lit, vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
-    return vec4(tonemapACES(confirmed), 1);
+    const fog = smoothstep(15, 28, length(uCameraPosition.sub(vWorld)));
+    return vec4(tonemapACES(mix(confirmed, vec3(0.006, 0.01, 0.018), fog * 0.72)), 1);
   },
 });

@@ -237,9 +237,9 @@ export function createCombatInspectionModel(runtimeInstanceId: string): CombatIn
       },
     ];
     const renderEntries = [
-      { key: 'arena', entityId: COMBAT_ARENA_ID, data: { layer: 0, visible: true, catalogAssets: 3 } },
-      { key: 'player', entityId: COMBAT_PLAYER_ID, data: { layer: 2, visible: snapshot.phase !== 'defeat' } },
-      { key: 'enemies', entityId: COMBAT_SQUAD_ID, data: { layer: 2, visible: activeEnemies.length > 0, catalogAssets: 2 } },
+      { key: 'arena', entityId: COMBAT_ARENA_ID, data: { layer: 0, visible: true, catalogAssets: 5 } },
+      { key: 'player', entityId: COMBAT_PLAYER_ID, data: { layer: 2, visible: true, catalogAssets: 1 } },
+      { key: 'enemies', entityId: COMBAT_SQUAD_ID, data: { layer: 2, visible: activeEnemies.length > 0, catalogAssets: 4 } },
       { key: 'projectiles', entityId: COMBAT_PROJECTILE_POOL_ID, data: { layer: 3, visible: true, deflections: snapshot.deflections } },
       { key: 'particles', entityId: COMBAT_FX_POOL_ID, data: { layer: 4, visible: true, impact: snapshot.impact } },
     ];

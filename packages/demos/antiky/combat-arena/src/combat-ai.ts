@@ -5,6 +5,7 @@ import {
   type CombatEnemy,
   type CombatPlayer,
 } from './combat-state.ts';
+import { ENEMY_HULL_CONTRACTS } from './combat-hulls.ts';
 
 export type EnemyBehaviorPort = Readonly<{
   fireHostile(enemy: CombatEnemy, enemyIndex: number, spread?: number): void;
@@ -78,7 +79,8 @@ export function updateEnemyBehavior(
       enemy.x += enemy.vx * deltaSeconds;
       enemy.z += enemy.vz * deltaSeconds;
       clampToArena(enemy, 7.3);
-      if (segmentDistanceSquared(previousX, previousZ, enemy.x, enemy.z, player.x, player.z) < 0.68 ** 2) {
+      const contactRadius = ENEMY_HULL_CONTRACTS[enemy.role].chargeRadius;
+      if (segmentDistanceSquared(previousX, previousZ, enemy.x, enemy.z, player.x, player.z) <= contactRadius ** 2) {
         port.damagePlayer('charge');
         enemy.stateTime = 0;
       }
