@@ -218,12 +218,15 @@ async function defaultLauncher(input: ManagedBrowserLaunchInput): Promise<Manage
     async performPresentationAction(action: ManagedPresentationAction): Promise<void> {
       if (action.kind === 'key-press' || action.kind === 'key-release') {
         await page.evaluate(({ kind, code }) => {
+          const target = document.querySelector('#antiky-game');
+          if (!(target instanceof HTMLCanvasElement)) throw new Error('canvas unavailable');
           const key = code === 'Space'
             ? ' '
             : code.startsWith('Key')
               ? code.slice(3).toLowerCase()
               : code;
-          window.dispatchEvent(new KeyboardEvent(kind === 'key-press' ? 'keydown' : 'keyup', {
+          target.focus({ preventScroll: true });
+          target.dispatchEvent(new KeyboardEvent(kind === 'key-press' ? 'keydown' : 'keyup', {
             bubbles: true,
             cancelable: true,
             code,
