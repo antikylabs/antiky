@@ -14,9 +14,23 @@
 | Changed-target guard still throws | Done — fixture with a moved target rejected |
 | Demo captures show no aliasing regression | Done — see caveat below |
 | `npm test` green | Done |
-| **Both upstream pull requests open with URLs** | **BLOCKED — needs owner authorisation** |
+| ~~Both upstream pull requests open with URLs~~ | **Criterion withdrawn by the owner, 2026-08-11.** Patches stay local for now. Drafts kept. |
 
-## Why the last one is blocked
+## Owner decision, 2026-08-11
+
+**The owner chose not to open the pull requests.** The patches stay local; both drafts remain
+committed beside this file so the work is not lost.
+
+The completion criterion requiring open pull requests is withdrawn on the owner's authority. An
+agent may not loosen an acceptance criterion it is failing — the owner may, and did.
+
+**One obligation stays open.** ADR 0021 records that Antiky can patch BroMetal locally, and that
+"for each patch, Antiky will send a focused pull request to the BroMetal project. An accepted pull
+request removes the need for that patch." Not opening them today is a deferral rather than a
+contradiction — the ADR sets no deadline — but the obligation is real and now has no owner. It is
+listed as an action item in `goals/_completed/summary-goal-02.md` so it does not quietly lapse.
+
+## Why it was raised rather than done
 
 Opening a pull request on `github.com/ericdrowell/brometal` publishes content publicly, under the
 owner's GitHub identity, on a third party's project. It also requires forking that repository into
