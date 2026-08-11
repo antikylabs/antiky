@@ -8,13 +8,26 @@ import test from 'node:test';
  *
  * Reference look — LittleBigPlanet: warm daylight, tactile materials, a real sky.
  *
- * These bounds are the TARGET, not the current state. They fail today, on purpose. A budget that
- * passes the day it is written measures nothing. At the time of writing the captured frame reports
- * spread 0.278, p95 0.392 — brighter than the others but still flat.
- *
- * Run with `npm run demos:budget` after `npm run demos:shoot`. These are deliberately not part of
+ * Run with `npm run demos:verify` after `npm run demos:shoot`. Deliberately not part of
  * `npm test`, which stays green as a regression gate.
+ *
+ * **The headline measure is local contrast, not luminance spread.** Local contrast is the median,
+ * across 32-pixel tiles, of how much perceptual lightness varies inside a tile. It answers "does
+ * light model form across surfaces" and is independent of how bright or dark the scene is. A
+ * full-frame percentile spread cannot answer that: it tracks peak brightness almost exactly, so a
+ * frame that is half black void and half flat grey scores well while a beautifully lit dark scene
+ * scores badly.
+ *
+ * The floor below is **8.5**, which is not an aspiration — `antiky-town` already measures 8.61
+ * with no PBR materials and hard-edged shadows. It is the standard this engine is demonstrably
+ * capable of today, so a demo under it is behind work already done in this repository.
+ *
+ * These bounds are provisional and owner-adjustable. If this demo lands a look the owner is happy
+ * with and the budget still fails, the budget is wrong.
  */
+
+const LOCAL_CONTRAST_FLOOR = 8.5;
+const CLIPPING_CEILING = 0.02;
 
 const metricsPath = path.join(import.meta.dirname, '..', 'visual-metrics.json');
 
@@ -22,36 +35,29 @@ async function readMetrics() {
   return JSON.parse(await readFile(metricsPath, 'utf8'));
 }
 
-test('traversal-study frame reaches a real luminance spread', async () => {
+test('traversal-study models form across its surfaces', async () => {
   const metrics = await readMetrics();
   assert.ok(
-    metrics.luminance.spread >= 0.4,
-    `luminance spread was ${metrics.luminance.spread}, budget is >= 0.4. `
-    + 'A narrow spread is what "flat" and "muddy" measure as.',
+    metrics.localContrast.median >= LOCAL_CONTRAST_FLOOR,
+    `local contrast was ${metrics.localContrast.median}, floor is ${LOCAL_CONTRAST_FLOOR}. `
+    + 'Flat, unlit or untextured surfaces measure near zero here.',
   );
 });
 
-test('traversal-study frame reaches genuine highlights', async () => {
+test('traversal-study does not blow out its highlights', async () => {
   const metrics = await readMetrics();
   assert.ok(
-    metrics.luminance.p95 >= 0.5,
-    `p95 luminance was ${metrics.luminance.p95}, budget is >= 0.5.`,
+    metrics.clipping.high <= CLIPPING_CEILING,
+    `${(metrics.clipping.high * 100).toFixed(2)}% of pixels are fully blown, `
+    + `ceiling is ${CLIPPING_CEILING * 100}%.`,
   );
 });
 
-test('traversal-study frame does not blow out its highlights', async () => {
+test('traversal-study keeps recoverable detail in its darks', async () => {
   const metrics = await readMetrics();
   assert.ok(
-    metrics.clipping.high <= 0.02,
-    `${(metrics.clipping.high * 100).toFixed(2)}% of pixels are clipped high, budget is <= 2.0%. `
-    + 'Reaching highlights must not mean clipping them.',
-  );
-});
-
-test('traversal-study frame keeps its colour', async () => {
-  const metrics = await readMetrics();
-  assert.ok(
-    metrics.saturation.mean >= 0.2,
-    `mean saturation was ${metrics.saturation.mean}, budget is >= 0.2.`,
+    metrics.clipping.low <= CLIPPING_CEILING,
+    `${(metrics.clipping.low * 100).toFixed(2)}% of pixels are crushed to pure black, `
+    + `ceiling is ${CLIPPING_CEILING * 100}%. A void background is the usual cause.`,
   );
 });

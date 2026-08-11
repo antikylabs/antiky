@@ -37,6 +37,21 @@ function percentile(sortedValues, fraction) {
   return sortedValues[lowerIndex] * (1 - weight) + sortedValues[upperIndex] * weight;
 }
 
+/**
+ * CIE L*, perceptual lightness, from linear luminance. 0 is black, 100 is white.
+ *
+ * Linear luminance is proportional to photons, which is not how the eye works: the difference
+ * between 0.01 and 0.02 is far more visible than between 0.51 and 0.52. Contrast has to be
+ * measured in a space where equal steps look equal, or every dark scene scores as flat.
+ */
+function linearToLStar(luminance) {
+  const epsilon = (6 / 29) ** 3;
+  const value = luminance > epsilon
+    ? Math.cbrt(luminance)
+    : luminance / (3 * (6 / 29) ** 2) + 4 / 29;
+  return 116 * value - 16;
+}
+
 function standardDeviation(values) {
   if (values.length === 0) return 0;
   let total = 0;
@@ -85,12 +100,18 @@ function saturationAt(data, offset) {
  * "the ground under this object is darker than the ground beside it".
  */
 function probeStats(data, width, height, channels, rectangle) {
-  const left = Math.max(0, Math.round(rectangle.x));
-  const top = Math.max(0, Math.round(rectangle.y));
-  const right = Math.min(width, left + Math.round(rectangle.width));
-  const bottom = Math.min(height, top + Math.round(rectangle.height));
-  if (right <= left || bottom <= top) {
-    throw new Error(`Probe rectangle falls outside the ${width}x${height} frame.`);
+  const left = Math.round(rectangle.x);
+  const top = Math.round(rectangle.y);
+  const right = left + Math.round(rectangle.width);
+  const bottom = top + Math.round(rectangle.height);
+  // Clamping a partly off-frame probe would silently shift the window and measure a different
+  // region than the caller named, while still returning a plausible pixel count. Probe-based
+  // assertions are only meaningful if the probe is where the test says it is.
+  if (left < 0 || top < 0 || right > width || bottom > height || right <= left || bottom <= top) {
+    throw new Error(
+      `Probe rectangle (${rectangle.x}, ${rectangle.y}, ${rectangle.width}x${rectangle.height}) `
+      + `falls outside the ${width}x${height} frame.`,
+    );
   }
   const luminances = [];
   for (let y = top; y < bottom; y += 1) {
@@ -129,11 +150,35 @@ export async function readFrameStats(pngPath, options = {}) {
     const luminance = luminanceAt(data, offset);
     luminances[index] = luminance;
     luminanceTotal += luminance;
-    saturationTotal += saturationAt(data, offset);
+    saturationTotal += saturationAt(data, offset) * luminance;
+    const low = Math.min(data[offset], data[offset + 1], data[offset + 2]);
     const high = Math.max(data[offset], data[offset + 1], data[offset + 2]);
-    if (high === CLIPPED_HIGH_BYTE) clippedHigh += 1;
+    if (low === CLIPPED_HIGH_BYTE) clippedHigh += 1;
     if (high === CLIPPED_LOW_BYTE) clippedLow += 1;
   }
+
+  // Local contrast: the median, across tiles, of the per-tile spread of perceptual lightness.
+  //
+  // This is the metric that answers "does this frame have form". A full-frame percentile spread
+  // cannot: it is dominated by the brightest and darkest things anywhere in the image, so a frame
+  // that is half black void and half flat subject scores well, and a beautifully modelled dark
+  // scene scores the same as an unlit one. Measuring inside small windows and taking the median
+  // asks a different question — does light vary across a surface, typically? — and that question
+  // is independent of how bright the scene is overall.
+  const tileSize = options.tileSize ?? 32;
+  const tileContrasts = [];
+  for (let tileTop = 0; tileTop + tileSize <= height; tileTop += tileSize) {
+    for (let tileLeft = 0; tileLeft + tileSize <= width; tileLeft += tileSize) {
+      const tile = [];
+      for (let y = tileTop; y < tileTop + tileSize; y += 1) {
+        for (let x = tileLeft; x < tileLeft + tileSize; x += 1) {
+          tile.push(linearToLStar(luminances[y * width + x]));
+        }
+      }
+      tileContrasts.push(standardDeviation(tile));
+    }
+  }
+  tileContrasts.sort((a, b) => a - b);
 
   const sorted = Float64Array.prototype.slice.call(luminances).sort();
   const probeResults = {};
@@ -148,11 +193,36 @@ export async function readFrameStats(pngPath, options = {}) {
     luminanceP05: percentile(sorted, 0.05),
     luminanceP50: percentile(sorted, 0.5),
     luminanceP95: percentile(sorted, 0.95),
-    /** The spread between p05 and p95. A flat, lifeless frame has a small value here. */
+    /**
+     * The spread between p05 and p95, in linear light.
+     *
+     * Treat this as a description, not a quality target. Across real captures it tracks p95 almost
+     * exactly (r = 0.99), because p05 is near zero for any scene containing shadows — so asserting
+     * on it is very nearly asserting "be brighter". Use `localContrastMedian` to judge form.
+     */
     luminanceSpread: percentile(sorted, 0.95) - percentile(sorted, 0.05),
+    /** Median per-tile L* standard deviation. The measure of form, independent of brightness. */
+    localContrastMedian: percentile(tileContrasts, 0.5),
+    /** The dullest tenth of the frame. A high value here means detail everywhere, not just locally. */
+    localContrastP10: percentile(tileContrasts, 0.1),
+    /**
+     * Fraction of pixels where every channel is at maximum: genuinely blown highlights.
+     *
+     * Deliberately not "any channel at maximum" — a fully saturated red is at maximum in one
+     * channel while sitting at mid luminance, so that definition reports saturated colour as
+     * over-exposure and would punish exactly the vivid VFX these demos are supposed to have.
+     */
     clippedHigh: clippedHigh / pixelCount,
+    /** Fraction of pixels where every channel is zero: crushed blacks with no recoverable detail. */
     clippedLow: clippedLow / pixelCount,
-    meanSaturation: saturationTotal / pixelCount,
+    /**
+     * Luminance-weighted mean saturation.
+     *
+     * An unweighted mean is dominated by near-black pixels, where chroma is both numerically
+     * maximal and perceptually invisible: rgb(1,0,0) scores a perfect 1.0. Weighting by luminance
+     * measures the colourfulness of the part of the image a viewer can actually see.
+     */
+    meanSaturation: luminanceTotal > 0 ? saturationTotal / luminanceTotal : 0,
     probes: Object.freeze(probeResults),
   });
 }

@@ -177,3 +177,103 @@ test('uniform frame detection catches the blank capture failure mode', async (t)
   assert.equal(await isUniformFrame(blank), true);
   assert.equal(await isUniformFrame(rendered), false);
 });
+
+test('local contrast separates a modelled frame from a flat one at the same brightness', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  const encode = (linear) => Math.round(255 * Math.max(0, Math.min(1, linear)) ** (1 / 2.2));
+  // A genuinely low-key but well-modelled scene: a lit falloff peaking at 0.10 linear.
+  const modelled = await writePng(directory, 'modelled.png', {
+    width: 256,
+    height: 128,
+    fill: (x, y) => {
+      const distance = Math.hypot(x - 90, y - 60) / 60;
+      const byte = encode(Math.max(0, 1 - distance * distance) * 0.1);
+      return [byte, byte, byte];
+    },
+  });
+  const flat = await writePng(directory, 'flat.png', {
+    width: 256,
+    height: 128,
+    fill: () => [encode(0.018), encode(0.018), encode(0.018)],
+  });
+
+  const modelledStats = await readFrameStats(modelled);
+  const flatStats = await readFrameStats(flat);
+
+  // Full-frame spread cannot tell these apart from a dark-but-fine scene; local contrast can.
+  assert.ok(modelledStats.localContrastMedian > 1, `modelled scored ${modelledStats.localContrastMedian}`);
+  // Summing squares over a uniform tile leaves floating-point residue rather than exact zero.
+  assert.ok(flatStats.localContrastMedian < 0.001, `flat scored ${flatStats.localContrastMedian}`);
+});
+
+test('local contrast rejects the frame that games full-frame spread', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // Half black void, half flat grey. Wide spread, no form anywhere. This is the case that makes
+  // a full-frame percentile spread unusable as a quality target.
+  const file = await writePng(directory, 'void.png', {
+    width: 256,
+    height: 128,
+    fill: (x) => (x < 128 ? [0, 0, 0] : [200, 200, 200]),
+  });
+  const stats = await readFrameStats(file);
+
+  assert.ok(stats.luminanceSpread > 0.5, `spread was ${stats.luminanceSpread}`);
+  assert.ok(stats.localContrastMedian < 0.001, `local contrast was ${stats.localContrastMedian}`);
+});
+
+test('a probe that falls partly outside the frame is an error, not a shifted window', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  const file = await writePng(directory, 'split.png', {
+    width: 64,
+    height: 16,
+    fill: (x) => (x < 32 ? [0, 0, 0] : [255, 255, 255]),
+  });
+
+  // Clamping would return a plausible pixel count from the wrong region, so every probe-based
+  // assertion downstream would silently measure somewhere the test never named.
+  await assert.rejects(
+    readFrameStats(file, { probes: { straddling: { x: -2, y: 0, width: 4, height: 16 } } }),
+    /falls outside the 64x16 frame/,
+  );
+});
+
+test('saturated colour is not reported as a blown highlight', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  const vivid = await writePng(directory, 'vivid.png', {
+    width: 16,
+    height: 16,
+    fill: () => [255, 10, 10],
+  });
+  const blown = await writePng(directory, 'blown.png', {
+    width: 16,
+    height: 16,
+    fill: () => [255, 255, 255],
+  });
+
+  // A fully saturated red sits at mid luminance. Counting it as over-exposure would punish
+  // exactly the vivid effects these demos are supposed to have.
+  assert.equal((await readFrameStats(vivid)).clippedHigh, 0);
+  assert.equal((await readFrameStats(blown)).clippedHigh, 1);
+});
+
+test('saturation is weighted by luminance so invisible pixels cannot carry it', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // Half visible neutral grey, half near-black saturated red. An unweighted mean reports ~0.5.
+  const file = await writePng(directory, 'mixed.png', {
+    width: 64,
+    height: 64,
+    fill: (x) => (x < 32 ? [180, 180, 180] : [2, 0, 0]),
+  });
+  const stats = await readFrameStats(file);
+  assert.ok(stats.meanSaturation < 0.01, `weighted saturation was ${stats.meanSaturation}`);
+});

@@ -17,37 +17,59 @@ Two items. Neither blocks starting goals 02, 03, 04 or 10.
 and are covered by tests. They are recorded below because they are traps worth knowing about, not
 because anything is outstanding.
 
-## The headline
+## Correction — the first version of this measurement was wrong
 
-The demos can now be measured, and the first measurement confirms the audit outright.
+**Superseded 2026-08-11 by the critique in [`../../12-VISUAL-METRICS-CRITIQUE.md`](../../12-VISUAL-METRICS-CRITIQUE.md), and fixed.**
 
-| Demo | Luminance spread | p95 | Clipped high | Saturation |
+The metric this summary originally led with, `luminanceSpread` (p95 minus p05 in linear light),
+does not measure contrast. Across the ten real captures it correlates with `p95` at **r = 0.990**,
+because p05 is near zero for any scene containing shadows. Asserting on it was very nearly
+asserting "be brighter".
+
+Verified independently rather than taken on the critic's word:
+
+- A **genuinely low-key but well-modelled** frame scores spread **0.0865** — statistically
+  identical to `point-light-expo`'s 0.0899, which the budget was calling a failure. The budget
+  would have failed legitimately moody art.
+- A frame that is **half black void and half flat grey** scores spread **0.578**, which would have
+  ranked it second of ten, while having no modelling anywhere.
+- `clippedHigh` counted any channel at maximum, so `rgb(255,10,10)` — a saturated red at *mid*
+  luminance — reported as 100% blown. It punished exactly the vivid effects these demos need.
+- `meanSaturation` was unweighted, so `rgb(1,0,0)` scored a perfect 1.000. Colour budgets were
+  being passed by darkness.
+- Probes clamped silently when partly off-frame, returning a plausible pixel count **from the wrong
+  region**. Every probe-based criterion in goal 06 depended on that.
+
+All five are fixed in `scripts/frame-stats.mjs`, with tests for each. The headline measure is now
+**local contrast**: the median, across 32-pixel tiles, of how much perceptual lightness (CIE L\*)
+varies inside a tile. It asks whether light models form across surfaces, and it is independent of
+overall brightness.
+
+## The headline, restated on the corrected metric
+
+| Demo | Local contrast | p95 | Blown | Crushed |
 |---|---|---|---|---|
-| glass-garden (three.js) | **0.830** | 0.838 | 1.51% | 0.313 |
-| antiky-town | 0.342 | 0.370 | 0.00% | 0.315 |
-| town-study | 0.342 | 0.370 | 0.00% | 0.314 |
-| traversal-study | 0.278 | 0.386 | 0.00% | 0.435 |
-| luminous-reef | 0.158 | 0.160 | 0.00% | 0.964 |
-| solar-forge | 0.153 | 0.153 | 0.83% | 0.796 |
-| shader-study | 0.107 | 0.108 | 0.00% | 0.879 |
-| **point-light-expo** | **0.090** | 0.094 | 0.09% | 0.414 |
-| **combat-arena** | **0.085** | 0.085 | 0.13% | 0.688 |
-| orbital-atlas | 0.062 | 0.063 | 2.52% | 0.879 |
+| antiky-town | **8.61** | 0.370 | 0.00% | 0.00% |
+| combat-arena | 5.47 | 0.085 | 0.00% | 0.00% |
+| point-light-expo | 2.97 | 0.104 | 0.00% | 0.00% |
+| traversal-study | **0.00** | 0.400 | 0.00% | 0.00% |
 
-Values are linear light, 0 to 1. Spread is p95 minus p05.
+The ranking **inverts** against the original spread-based table, and the new order matches the
+visual diagnosis where the old one contradicted it:
 
-Three things fall out of this table:
+- **`traversal-study` measures 0.00** — no modelling anywhere. Under the old metric it ranked third
+  of four and looked healthy. `00-VISUAL-DIAGNOSIS.md` says of it: "Every surface is one flat
+  colour." The corrected metric agrees; the original did not.
+- **`antiky-town` leads at 8.61**, which matches the visual read that it is much the strongest work.
+- The budget floor is now **8.5**, and it is not an aspiration: `antiky-town` already clears it with
+  no PBR materials and hard-edged shadows. A demo below it is behind work already done here.
 
-1. **The two demos commissioned against AAA references sit at the bottom.** `point-light-expo` and
-   `combat-arena` have less value range than the small procedural shader studies. This is the
-   audit's central claim — "no value structure" — as a number.
-2. **`glass-garden` has 9.8× the luminance spread of `combat-arena`.** The three.js demo gets PBR,
-   IBL and bloom from its engine for free. That is the damaging comparison the audit predicted,
-   now measured rather than asserted. Note its 1.51% high clipping: it is wide *and* somewhat blown,
-   which matches the poster/runtime mismatch already recorded.
-3. **`antiky-town` and `town-study` report identical numbers to three decimal places.** They are
-   near-copies, which independently confirms the duplicated-code finding from a completely
-   different direction.
+**The 9.8× glass-garden claim is withdrawn.** It was computed on the discredited metric, and the
+critique shows the same comparison is 2.48× in L\* and 0.62× in stops. The ranking it supported was
+an artefact of scene brightness.
+
+**`demos:verify` now reports 8 failures rather than 13.** The original 13 were 4 facts
+double-counted through correlated metrics. Each of the 8 is now a distinct claim.
 
 ## What changed
 

@@ -112,7 +112,13 @@ export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames }) {
       p05: Number(stats.luminanceP05.toFixed(6)),
       p50: Number(stats.luminanceP50.toFixed(6)),
       p95: Number(stats.luminanceP95.toFixed(6)),
+      // Descriptive only. Across real captures this tracks p95 at r = 0.99, so asserting on it
+      // is very nearly asserting "be brighter". Judge form with localContrast.
       spread: Number(stats.luminanceSpread.toFixed(6)),
+    },
+    localContrast: {
+      median: Number(stats.localContrastMedian.toFixed(4)),
+      p10: Number(stats.localContrastP10.toFixed(4)),
     },
     clipping: {
       high: Number(stats.clippedHigh.toFixed(6)),
@@ -257,9 +263,9 @@ async function shootDemo(slug, { warmUpFrames, runs }) {
         warmUpFrames,
       });
       process.stdout.write(
-        `  run ${run}/${runs}: p05 ${sidecar.luminance.p05.toFixed(3)}`
-        + ` p95 ${sidecar.luminance.p95.toFixed(3)}`
-        + ` spread ${sidecar.luminance.spread.toFixed(3)}\n`,
+        `  run ${run}/${runs}: p95 ${sidecar.luminance.p95.toFixed(3)}`
+        + ` localContrast ${sidecar.localContrast.median.toFixed(2)}`
+        + ` sat ${sidecar.saturation.mean.toFixed(3)}\n`,
       );
     }
 
