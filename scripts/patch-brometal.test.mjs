@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -10,9 +10,34 @@ import { promisify } from 'node:util';
 const execute = promisify(execFile);
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
 const patchScript = path.join(repositoryRoot, 'scripts', 'patch-brometal.mjs');
-const installedRuntime = path.join(
-  repositoryRoot, 'node_modules', 'brometal', 'dist', 'runtime', 'webgpu.js',
-);
+const EXPECTED_VERSION = '0.17.2';
+
+/**
+ * Find an installed BroMetal. npm places it wherever hoisting allows, and that has changed with the
+ * dependency graph — it used to sit at the repository root and currently nests inside each demo
+ * workspace. A test that hard-codes one location breaks on a layout change rather than on a defect.
+ */
+async function findInstalledRuntime() {
+  const roots = [path.join(repositoryRoot, 'node_modules/brometal')];
+  const demosRoot = path.join(repositoryRoot, 'packages/demos');
+  for (const category of await readdir(demosRoot, { withFileTypes: true })) {
+    if (!category.isDirectory() || category.name === 'node_modules') continue;
+    for (const demo of await readdir(path.join(demosRoot, category.name), { withFileTypes: true })) {
+      if (!demo.isDirectory()) continue;
+      roots.push(path.join(demosRoot, category.name, demo.name, 'node_modules/brometal'));
+    }
+  }
+  for (const root of roots) {
+    const runtime = path.join(root, 'dist', 'runtime', 'webgpu.js');
+    try {
+      await readFile(runtime);
+      return runtime;
+    } catch {
+      // Not installed here.
+    }
+  }
+  throw new Error('No installed BroMetal found. Run npm install first.');
+}
 
 async function runPatch(brometalRoot) {
   const environment = brometalRoot === undefined
@@ -41,15 +66,44 @@ async function writeFixture(directory, { version, files = {} }) {
 test('patching twice changes no bytes', async () => {
   // The postinstall hook runs on every install, so a patch that is not idempotent corrupts the
   // package the second time it is applied.
+  const runtime = await findInstalledRuntime();
   await runPatch();
-  const before = await checksum(installedRuntime);
+  const before = await checksum(runtime);
   await runPatch();
-  assert.equal(await checksum(installedRuntime), before);
+  assert.equal(await checksum(runtime), before);
+});
+
+test('every installed copy is patched, not just the first one found', async () => {
+  // npm places BroMetal wherever hoisting allows and that placement has changed more than once in
+  // this repository. Patching one copy and leaving another unpatched fails silently — the demo
+  // just renders with the unpatched runtime — so every copy on disk must carry the patch.
+  await runPatch();
+  const roots = [path.join(repositoryRoot, 'node_modules/brometal')];
+  const demosRoot = path.join(repositoryRoot, 'packages/demos');
+  roots.push(path.join(demosRoot, 'node_modules/brometal'));
+  for (const category of await readdir(demosRoot, { withFileTypes: true })) {
+    if (!category.isDirectory() || category.name === 'node_modules') continue;
+    for (const demo of await readdir(path.join(demosRoot, category.name), { withFileTypes: true })) {
+      if (!demo.isDirectory()) continue;
+      roots.push(path.join(demosRoot, category.name, demo.name, 'node_modules/brometal'));
+    }
+  }
+
+  let checked = 0;
+  for (const root of roots) {
+    const runtime = path.join(root, 'dist', 'runtime', 'webgpu.js');
+    let source;
+    try { source = await readFile(runtime, 'utf8'); } catch { continue; }
+    assert.match(source, /const sampleFilter = filter === 'linear'/, `unpatched: ${runtime}`);
+    assert.match(source, /resolveTarget: binding\.view,/, `unpatched: ${runtime}`);
+    checked += 1;
+  }
+  assert.ok(checked > 0, 'no installed BroMetal copies were found to check');
 });
 
 test('the installed package carries both render-pipeline patches', async () => {
   await runPatch();
-  const runtime = await readFile(installedRuntime, 'utf8');
+  const runtime = await readFile(await findInstalledRuntime(), 'utf8');
 
   // W A.1 — filtering is a per-target choice that still defaults to nearest.
   assert.match(runtime, /createWebgpuRenderTarget\(renderer, width, height, depth = false, filter = 'nearest', samples = 1\)/);
@@ -71,7 +125,7 @@ test('a different BroMetal version stops the patch rather than applying it blind
   await assert.rejects(
     runPatch(directory),
     (error) => {
-      assert.match(error.stderr, /Expected BroMetal 0\.15\.0, found 0\.16\.0/);
+      assert.match(error.stderr, /Expected BroMetal 0\.17\.2, found 0\.16\.0/);
       return true;
     },
   );
@@ -82,7 +136,7 @@ test('a moved patch target is an error, never a silent no-op', async (t) => {
   t.after(() => rm(directory, { recursive: true, force: true }));
   // Right version, but the first patch target's surrounding source has changed.
   await writeFixture(directory, {
-    version: '0.15.0',
+    version: EXPECTED_VERSION,
     files: { 'dist/dsl/builtins.js': 'export function texture() { return somethingElse(); }\n' },
   });
 

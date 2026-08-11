@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@antiky/framework": "0.0.0",
-    "brometal": "0.15.0"
+    "brometal": "0.17.2"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",

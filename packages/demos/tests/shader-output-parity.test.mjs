@@ -28,7 +28,7 @@ test('BroMetal version and cut-out shader support match the repository contract'
   ]);
   const metadata = JSON.parse(metadataSource);
 
-  assert.equal(metadata.version, '0.15.0');
+  assert.equal(metadata.version, '0.17.2');
   assert.match(declarations, /\bdiscard\b/);
   assert.match(contextDeclarations, /present\(callback: \(\) => void\): void;/);
   assert.match(webgpuRuntime, /present\(callback\) \{/);
