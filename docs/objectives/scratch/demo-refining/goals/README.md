@@ -52,10 +52,14 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **10** | Fix how the work is presented (Track F) | Not started | 01 | everything | ~3 days |
 | **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 | ~4 days |
 | **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
-| **13** | Motion inspection tooling (goal file not yet written; see [`../11-MOTION-INSPECTION-RESEARCH.md`](../11-MOTION-INSPECTION-RESEARCH.md)) | Not started | 01 | everything | ~4 days |
+| **13** | [Measure motion, so feel can be judged instead of guessed](execute-goal-13.md) | Not started | 01 | everything | ~4 days |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up, in parallel:** 02, 03, 04, 10 (00 and 01 are done). Then 05, then 06.
+**Next up, in parallel:** 02, 03, 04, 10, 13 (00 and 01 are done). Then 05, then 06.
+
+**Land goal 13's P1 before goal 03** if you want the camera-shake fix to be provable rather than
+judged by eye. It is roughly a day, needs no GPU, and makes acceptance criteria that are already
+written into goals 03 and 08 actually executable.
 
 Goal **05** is the largest single visual win and needs neither the HDR buffer nor the BroMetal
 patches — do not let it sit behind the render work.
@@ -134,6 +138,9 @@ If a finding is not in this table, it is not being fixed, and that is a gap to r
 | `npm test` red on `main` | `07-TESTING-WITH-ANTIKY-MCP.md` | 01 |
 | `combat-arena`/`traversal-study` missing from `dev.mjs` | `07-TESTING-WITH-ANTIKY-MCP.md` | 01 |
 | Agents work blind despite shipped capture tooling | `00`, skill research | 01 + skill library |
+| Motion, feel and judder have no measurement path at all | `11-MOTION-INSPECTION-RESEARCH.md` | 13 |
+| `get_render_stats` carries zero motion information | `11-MOTION-INSPECTION-RESEARCH.md` | 13 |
+| Sequence capture stamps only start and end, so no frame ties to a simulation instant | `11-MOTION-INSPECTION-RESEARCH.md` | 13 |
 | `antiky-town` grass: one tuft stamped at uniform scatter, no variation | owner report + capture | 08 |
 | `antiky-town` trees: too few, inconsistent species, no translucency or rim light | owner report + capture | 08 |
 | `antiky-town` water: flat opaque, no flow/foam/reflection; fountains are solid geometry | owner report + capture | 08 |
