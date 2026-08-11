@@ -11,8 +11,23 @@ Hand subagents packets from that document, not phases from this one.
 
 Also in this set: [`03-ART-DIRECTION-AND-VFX.md`](03-ART-DIRECTION-AND-VFX.md) (upgrading the
 existing assets with real PBR materials, stylised lighting, and VFX),
-[`04-COMPLEXITY-REDUCTION.md`](04-COMPLEXITY-REDUCTION.md), and
-[`05-FRAMEWORK-EASY-WINS.md`](05-FRAMEWORK-EASY-WINS.md).
+[`04-COMPLEXITY-REDUCTION.md`](04-COMPLEXITY-REDUCTION.md),
+[`05-FRAMEWORK-EASY-WINS.md`](05-FRAMEWORK-EASY-WINS.md),
+[`07-TESTING-WITH-ANTIKY-MCP.md`](07-TESTING-WITH-ANTIKY-MCP.md), and
+[`08-ADR-IMPACT.md`](08-ADR-IMPACT.md).
+
+> **Decided 2026-08-10 — the promotion target now has a name.** The framework will own a
+> `BroMetalRenderDriver`: BroMetal-specific, no backend abstraction, no plugin seam. Game modules
+> may still hand-write BroMetal if they accept the framework work that comes with it. Other
+> renderers stay compatible but unfunded. See [`09-RENDER-DRIVER-DECISION.md`](09-RENDER-DRIVER-DECISION.md),
+> which carries a draft ADR 0021 superseding framework/0006 and resolving its conflict with
+> studio/0007.
+>
+> **This does not change what gets built first.** Track B stays per-demo: prove the shadow map, HDR
+> target and post chain in `point-light-expo`, then a second demo, then extract the driver from two
+> working implementations. Building it from zero would abstract from a single implementation, which
+> is the failure the decision exists to avoid. Place ADR 0021 before Track B lands so the work sits
+> on a decision a reader can follow.
 
 ---
 

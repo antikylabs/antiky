@@ -377,8 +377,10 @@ W C.1, W C.2, W C.3.
 1. Never assign two packets that own the same file. The owned-file list is the lock.
 2. Never assign a packet whose dependencies are unmet — the acceptance criteria will not be
    satisfiable and the agent will fake them.
-3. Every packet ends with a fresh capture committed to the dated evidence directory. **A visual
-   change that has not been captured and looked at is not done.** This is the single discipline
-   whose absence produced every finding in this audit.
+3. Every packet ends with a fresh capture that the agent **actually looks at**, and a committed
+   `visual-metrics.json` sidecar. **A visual change that has not been captured and looked at is
+   not done.** This is the single discipline whose absence produced every finding in this audit.
+   The **PNG itself is not committed** — `.antiky/` is gitignored, capture evidence is scoped to
+   the development session, and `*.png` is LFS here. The sidecar is the durable artifact.
 4. If a packet's acceptance criteria cannot be met, the agent reports that plainly rather than
    loosening the criteria. Budgets are changed by the owner, not by the agent that is failing them.

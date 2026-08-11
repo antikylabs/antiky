@@ -19,6 +19,25 @@ platformer).
 | [`05-FRAMEWORK-EASY-WINS.md`](05-FRAMEWORK-EASY-WINS.md) | What has earned promotion into `@antiky/framework`, and what has not. |
 | [`06-WORK-PACKETS.md`](06-WORK-PACKETS.md) | **The executable backlog.** Independently dispatchable packets with owned-file locks, dependencies, and bounded testable acceptance criteria. Hand subagents packets from here. |
 | [`07-TESTING-WITH-ANTIKY-MCP.md`](07-TESTING-WITH-ANTIKY-MCP.md) | How to actually see and inspect what you build, using the capture/inspection MCP the repo already ships. Every command verified against a live server. **Read before touching a shader.** |
+| [`08-ADR-IMPACT.md`](08-ADR-IMPACT.md) | ADR compliance gaps and the records this plan needs. **Read before starting Track A or Track B.** |
+| [`09-RENDER-DRIVER-DECISION.md`](09-RENDER-DRIVER-DECISION.md) | The owner's `BroMetalRenderDriver` decision, the reasoning, and a draft ADR ready to place. |
+
+## Before you start: the architecture record and the code disagree
+
+Seven accepted ADRs (framework/0006, 0008, 0009, 0016, 0019, 0020 and studio/0007) are load-bearing
+on a `RenderDriver` component that **does not exist in the codebase**. And framework/0006:25 ("Only
+an Antiky-owned `RenderDriver` will use BroMetal directly") sits against the *later accepted*
+studio/0007:41-42, which says the game module "initializes and resizes the renderer" and "disposes
+its renderer resources" — written across all four renderer choices, including Antiky Framework with
+BroMetal. A reader cannot tell from the record whether a game module may own BroMetal directly.
+
+**The owner has decided this** (2026-08-10): build a `BroMetalRenderDriver` owned by the framework,
+BroMetal-specific with no backend abstraction, while game modules remain free to hand-write BroMetal
+if they accept the framework work that comes with it. Other renderers stay compatible but unfunded.
+`09-RENDER-DRIVER-DECISION.md` carries the reasoning and a draft ADR 0021 that supersedes 0006.
+
+Track B stays per-demo regardless — the driver gets extracted from two working implementations, not
+designed from zero. Place the ADR before Track B lands so the work sits on a readable decision.
 
 ## How to run this work
 
