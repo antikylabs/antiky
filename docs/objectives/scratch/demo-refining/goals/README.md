@@ -52,6 +52,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **10** | Fix how the work is presented (Track F) | Not started | 01 | everything | ~3 days |
 | **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 | ~4 days |
 | **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
+| **13** | Motion inspection tooling (goal file not yet written; see [`../11-MOTION-INSPECTION-RESEARCH.md`](../11-MOTION-INSPECTION-RESEARCH.md)) | Not started | 01 | everything | ~4 days |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
 **Next up, in parallel:** 02, 03, 04, 10 (00 and 01 are done). Then 05, then 06.

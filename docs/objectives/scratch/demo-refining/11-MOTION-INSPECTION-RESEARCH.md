@@ -2,8 +2,10 @@
 
 **Date:** 2026-08-11
 **Status:** research. Every repository claim below was read at HEAD and carries a `file:line`.
-Nothing here has been implemented. Section 8 ranks what I would build; section 9 says plainly
-what I would not.
+Nothing here has been implemented. Section 8 ranks what I would build; section 9 says plainly what I
+would not, and §9.1 says what I do not know. Section 10 is external prior art, tagged by how well
+established each item is; §10.7's optical-flow costs were **measured**, not estimated, and every
+remaining unverified claim in it is called out by name at the end of that subsection.
 **Audience:** the owner, who is not a graphics specialist. Every technical term is defined in one
 plain sentence at first use, and there is a glossary at the end.
 
@@ -185,9 +187,13 @@ single picture of everywhere motion happened.
   you can sample fast enough), "is the background moving as much as the foreground?" (the swivel
   question), "when did the impact happen?" (a spike in the difference series).
 - **Cannot answer:** which direction, or whether the motion was correct.
-- **Verdict:** build the **scalar series** version — mean absolute difference per frame pair — as a
-  first-class output. It is five lines of code and it turns a pile of PNGs into a signal you can run
-  every other analysis on. Build the *image* version only when a spatial question actually comes up.
+- **Verdict:** build the **scalar series** version as a first-class output — and build it as **two**
+  numbers per frame pair, the mean *and* the standard deviation of the difference. That is not a
+  refinement I invented: ITU-T P.910 defines "Temporal Information" as the standard deviation
+  precisely because it ignores a uniform brightness change, which the mean does not (§10.7). Ten
+  lines of code, and the pair separates "something moved" from "the whole frame got brighter" —
+  which matters a great deal in demos that are about to grow bloom. Build the *image* version only
+  when a spatial question actually comes up.
 
 A related trick that is cheaper than it sounds: a **temporal variance image**, where each pixel's
 value is how much that pixel changed across the whole sequence. It gives you a mask of "what moved"
@@ -206,21 +212,27 @@ as when you swivel).
 - **Loses:** it is an *estimate*, and it fails exactly where games are hardest — on repeated
   textures, thin geometry, transparent VFX, fast motion beyond its search range, and lighting
   changes that are not motion at all. A bloom pulse reads as flow.
-- **Cost to make:** **high, and higher than it looks in this repository.** Classical dense flow
-  (Farnebäck) means an OpenCV dependency, which is native. Modern flow (RAFT) is a neural network
-  and needs a model file and a runtime. Neither belongs in a repo whose measurement library is
-  currently 173 lines of pure JavaScript.
+- **Cost to make: the honest answer is "cheap to run, expensive to depend on", and I had that
+  backwards on first pass.** Measured on an M4 Pro with OpenCV 5.0 (§10.7): the modern classical
+  algorithm, **DIS at its ultrafast preset, costs 8.2 ms per 1080p frame on one core**, and at
+  quarter resolution — plenty for a global motion signal — **1.9 ms**, about 18× real time. That is
+  not expensive. What *is* expensive is that every route to it is a **native or neural dependency**
+  in a repository whose entire measurement library is 173 lines of dependency-free JavaScript. The
+  cost is the dependency, not the arithmetic, and it is worth saying that precisely rather than
+  hand-waving "flow is slow".
 - **Cost to read:** a flow field is useless to a language model as raw data. Only the summary is
   readable, and the summary is a handful of numbers.
 - **Answers:** "is this a translation or a rotation?", "which way is the world moving?"
 - **Cannot answer:** why. And it will lie on VFX-heavy frames.
-- **Verdict:** **I would not build this.** The two questions it answers uniquely — translation
-  versus rotation, and dominant direction — are answered *exactly and for free* by the simulation
-  and camera math, and answered approximately for about 5% of the cost by two probe rectangles at
-  different depths (see §7.1). If flow ever becomes genuinely necessary, build **coarse block
-  matching** (16×16 blocks, ±8 px search, sum of absolute differences) — about 60 lines, no
-  dependencies, and it yields the dominant direction and a magnitude histogram. Do not reach for
-  RAFT.
+- **Verdict:** **I would still not build this**, but on the dependency argument alone. The two
+  questions it answers uniquely — translation versus rotation, and dominant direction — are answered
+  *exactly and for free* by the simulation and camera math, and answered approximately by two probe
+  rectangles at different depths (§5.1). If flow ever does become necessary, two corrections to the
+  obvious instinct: **do not reach for Farnebäck** (136 ms per 1080p frame, and it barely threads —
+  14 cores buy it 10%), and **do not reach for RAFT** (a GPU, ~100 ms per frame, multi-gigabyte
+  correlation volumes at 1080p). Reach for **DIS at quarter scale**, or write the sixty lines of
+  coarse block matching (16×16 blocks, ±8 px search, sum of absolute differences) and keep the
+  dependency count at zero.
 
 ### 3.4 Trajectory extraction from simulation state
 
@@ -607,6 +619,11 @@ measurement. Then a frame hold is literally "two consecutive entries with the sa
 frame-time series falls out of the same ring for free. About thirty lines in the host script plus a
 schema field.
 
+That an **exact hash** beats a thresholded difference here is not just an intuition: FFmpeg's own
+`showinfo` filter exposes a per-plane Adler-32 `plane_checksum` for precisely this purpose (§10.7),
+and identical consecutive checksums are a duplicate with no tolerance to tune. The digest ring is
+the same idea, one layer earlier and without decoding anything.
+
 **The caveat that must be written down.** The managed capture browser runs headless
 (`managed-capture-runtime.ts:162`), and headless Chromium's animation-frame rate is not the owner's
 144 Hz display. So the ring will usually observe a 60 Hz page and see no defect. **The loop test
@@ -704,6 +721,19 @@ add fields and one artifact.
 
 Sizes: **XS** ≤ half a day, **S** ≈ 1 day, **M** ≈ 2–3 days, **L** ≈ a week or more.
 
+| # | What | Size | Unblocks | Packet |
+|---|---|---|---|---|
+| P1 | `scripts/motion-stats.mjs` — series analysis, no GPU | S | W D.5, W D.6, AC-V2 — every motion criterion already written | W M.1 |
+| P2 | Per-frame simulation stamps on `capture_gameplay_sequence` | S | every pixel-side motion claim | W M.5 |
+| P3 | Sequence frame statistics and probe traces | XS | the VFX metronome test | W M.4 |
+| P4 | Contact-sheet artifact | S | an agent actually seeing motion | W M.6 |
+| P5 | Presentation frame ring in the dev host | S | judder and frame-hold, at all | W M.8 |
+| P6 | `get_motion_report` MCP tool | M | the agent loop, in one call | W M.9 |
+| P7 | Spatiotemporal slice image | XS | showing a pacing fix to a human | — |
+
+**If only one thing gets built, build P1.** It costs a day, needs no browser, and turns three
+already-written acceptance criteria from prose into pass/fail.
+
 ### P1 — `scripts/motion-stats.mjs`: series analysis, GPU-free — **S, highest value**
 
 A sibling to `frame-stats.mjs`, with the same shape: pure functions, no I/O, unit-tested against
@@ -762,11 +792,27 @@ frames. Everything it needs already exists in that file — the raw decode is `r
 **Why:** this is what turns a pile of PNGs into signals that P1 can analyse. It is the smallest
 piece of new code in this list and it unlocks §7's VFX test.
 
+**Borrow the standard's statistic, don't invent one.** ITU-T Recommendation **P.910** defines
+"Temporal Information" as the **standard deviation** of the per-pixel frame difference, not its mean,
+and FFmpeg implements exactly that as `siti`'s `ti` (§10.7). The standard deviation is the better
+choice for a specific reason: it is robust to a *uniform* brightness change across the whole frame,
+which a mean is not — so a bloom pulse or an exposure shift does not read as motion. Compute
+**both**: the mean (equivalent to FFmpeg's `signalstats` `YDIF` and `scdet`'s `mafd`) and the standard
+deviation (P.910's `TI`). Two numbers, one pass over the same buffer, and the pair distinguishes "the
+whole frame got brighter" from "things moved".
+
 **Cross-reference.** *Which* statistics are worth tracing is a separate argument, and
 [`12-VISUAL-METRICS-CRITIQUE.md`](12-VISUAL-METRICS-CRITIQUE.md) is having it — it challenges
 `luminanceSpread` as a contrast measure. This proposal is orthogonal: it says "compute the
 per-frame series of whatever scalar statistics survive that review". If the statistic changes, the
 series machinery does not. Do not build this on top of a statistic that document has retired.
+
+**And a cautionary tale from the same source.** FFmpeg's `scdet` filter publishes a `score` that
+looks like the obvious motion number and is not: it is `min(mafd, |Δmafd|)`, built specifically to
+*suppress* sustained motion so that scene cuts stand out. Anyone reaching for a published statistic
+without reading its definition can measure the opposite of what they meant. That is the argument for
+this repository computing its own two numbers, from its own lossless masters, with the definition
+written down beside them.
 
 ### P4 — A contact-sheet evidence artifact — **S**
 
@@ -907,7 +953,16 @@ math. If the question ever genuinely arises, build coarse block matching, not RA
 video is to a reference video, for a human viewer, over a compressed transmission. There is no
 reference video here; there is no compression question; and "does this camera swivel" is not a
 question about perceptual similarity. Reaching for VMAF would be adopting a well-known tool for a
-problem it does not have.
+problem it does not have. *One qualification, added after the prior-art sweep:* VMAF's **temporal
+feature alone** ships as a single-input, no-reference measure (`vmafmotion`, §10.7) and is a
+perfectly reasonable motion-energy signal. What is rejected is the fused human-opinion metric and
+its reference video, not that one feature.
+
+**A pipeline built on the WebM.** FFmpeg has genuinely good no-reference per-frame motion filters
+(§10.7) and it would be tempting to point them at the sequence video. Don't: the WebM is declared a
+`review-derivative` (`capture-sequence-service.ts:404-413`) and measuring it measures the VP9 encoder
+alongside the game. The lossless PNG masters are the evidence. Borrow the *statistics* — §8's P3
+does — not the pipeline.
 
 **WebGPU timestamp queries / GPU pass timing.** Requires patching BroMetal, is a performance
 capability rather than a motion one, and sits behind a more basic problem: the draw statistics
@@ -949,7 +1004,298 @@ Stated plainly, because pretending otherwise is how bad complexity hides.
 
 ---
 
-<!-- PRIOR-ART -->
+## 10. Prior art
+
+Sourced from a web sweep run for this document. Each item is tagged **[Established]** (shipping
+product or engine documentation, or widely used practice), **[Research]** (published, not standard
+practice) or **[Speculative]** (nobody appears to have built it). Where I am unsure, I say so.
+
+### 10.1 The industry does not test motion — it deletes it
+
+This is the strongest single finding, and it is a finding by absence.
+
+| Tool | How it handles animation | Source |
+|---|---|---|
+| **Playwright** `toHaveScreenshot()` | `animations: "disabled"` **by default** — finite animations are fast-forwarded to completion, infinite ones cancelled to their initial state | https://playwright.dev/docs/api/class-pageassertions (current) |
+| **Vitest browser mode** `toMatchScreenshot()` | inherits Playwright's disabled-animations default | https://vitest.dev/guide/browser/visual-regression-testing (2025/26) |
+| **Percy** (BrowserStack) | freezes animated GIFs on the first frame, freezes CSS animation styles server-side, and *documents* that JS-driven animation must be manually stopped (it recommends `TweenMax.globalTimeScale(0)`) | https://www.browserstack.com/docs/percy/stabilize-screenshots/animations |
+| **Chromatic** (Storybook) | pauses CSS animations (`pauseAnimationAtEnd`), auto-pauses GIFs and videos on the first frame | https://www.chromatic.com/docs/animations/ |
+| **Applitools Eyes** | animated regions are declared **Layout** or **Ignore** regions — checked for existence, not content | https://applitools.com/blog/handling-animations-and-loading-artifacts-in-visual-testing/ |
+| **Unreal Engine** Automation Screenshot Comparison | per-channel tolerance plus local/global error budgets, a settle **Delay**, and a **"Disable Noisy Rendering Features"** toggle that switches off anti-aliasing, motion blur, screen-space reflections, eye adaptation and contact shadows | https://dev.epicgames.com/documentation/en-us/unreal-engine/screenshot-comparison-tool-in-unreal-engine (UE 5.8) |
+| **Unity** Graphics Test Framework | `ImageAssert.AreEqual(referenceImage, camera, settings)` — one camera render, per-pixel plus whole-image thresholds. **No multi-frame concept in the documentation.** | https://docs.unity3d.com/Packages/com.unity.testframework.graphics@8.6/manual/index.html (rev. 2022-02-16) |
+| **Godot** | rendering has few automated tests because it needs a GPU; the proposal to add reference-image rendering tests (**godot-proposals #1760**, opened 2020-11-02) is **still open** — and independently arrives at fixed time steps plus screenshots at predefined moments | https://github.com/godotengine/godot-proposals/issues/1760 |
+
+**[Established].** No mainstream visual-regression tool asserts on motion. The standard treatment is
+suppression. That is a real, citable gap — and it is why this document does not begin by looking for
+an off-the-shelf answer.
+
+**The one counter-example is instructive, and it agrees with §5.** "Automated regression tests for
+character animation systems" (Madges, Miles, Anderson — ACM SIGGRAPH/Eurographics **SCA 2017**,
+https://dl.acm.org/doi/10.1145/3099564.3106641) tests animation by **diffing generated poses across
+revisions**, against a frozen representative dataset — not by diffing pixels. The industry's working
+answer to "test motion" is deterministic simulation-state diffing. **[Established, niche.]**
+
+### 10.2 Determinism and interpolation: settled for twenty years
+
+- **"Fix Your Timestep!"** — Glenn Fiedler, 2004-06-10, https://gafferongames.com/post/fix_your_timestep/
+  **[Established, canonical.]** The accumulator pattern; and the exact interpolation formula this
+  repository is missing: `state = current × alpha + previous × (1 − alpha)` where
+  `alpha = accumulator / dt`. The framework already publishes `accumulatorSeconds` (§4.1), so the
+  numerator is in hand.
+- **"deWiTTERS Game Loop"** — Koen Witters, https://dewitters.com/dewitters-gameloop/
+  **[Established.]** An independent derivation of the same interpolation, which is worth knowing
+  because it means the pattern is not one author's idiosyncrasy.
+- **"Deterministic Lockstep"** — Fiedler, 2014-11-29,
+  https://gafferongames.com/post/deterministic_lockstep/ **[Established.]** Send inputs, not state;
+  requires a fixed timestep, an identical code path and a seeded generator. **And the caveat that
+  bounds goal 11:** results can diverge between debug and release builds of the same program.
+  "Floating point determinism is a complicated subject and there's no silver bullet."
+- **"Automated Testing and Instant Replays in Retro City Rampage"** — Brian Provinciano, GDC 2015,
+  https://www.gdcvault.com/play/1021825/Automated-Testing-and-Instant-Replays **[Established.]** The
+  full pattern in production: deterministic engine plus recorded button inputs means every build
+  plays itself end to end, replays are kilobytes, and bugs are exactly reproducible. Store the seed
+  in the replay and draw random numbers in the same order.
+- **Unity determinism guidance** —
+  https://support.unity.com/hc/en-us/articles/360015178512-Determinism-with-2D-Physics
+  **[Established.]** Deterministic on the same machine, not across machines. Same scoping as
+  `10-ADR-0013-SEED-GAP.md:44-46`.
+- **Frame pacing as a first-class correctness concern.** Android Frame Pacing / Swappy
+  (https://developer.android.com/games/sdk/frame-pacing) states the problem in exactly the language
+  §3.8 needs: a 30 FPS game on a 60 Hz panel producing intervals of 49 ms, 16 ms, 33 ms causes
+  visible stutter even though the average is fine. It also ships **frame-statistics histograms**.
+  Apple's equivalent guidance (WWDC21 session 10147,
+  https://developer.apple.com/videos/play/wwdc2021/10147/) says never hard-code the refresh rate and
+  — usefully for interpolation — use `targetTimestamp` rather than `timestamp`, because the latter
+  produces interpolation error when the rate changes. **[Established.]** Both vendors treat frame
+  *timing* as separate from frame *content*; neither of their ecosystems' visual-testing tools checks
+  either.
+
+### 10.3 Models are currently bad at judging motion — this is the load-bearing negative result
+
+- **TempGlitch: Evaluating Vision-Language Models for Temporal Glitch Detection in Gameplay Videos**
+  — https://arxiv.org/abs/2605.21443, 2026-05-20. **[Research.]** Separates *spatial* glitches
+  (visible in one frame) from *temporal* ones (need multiple ordered frames). **Twelve proprietary
+  and open-weight models across multiple frame-sampling settings perform near chance**, failing
+  either by missing almost everything or by flagging clean video. Critically: *denser frame sampling
+  and larger models do not reliably fix it.*
+- **MotionBench** — Hong et al., https://arxiv.org/abs/2501.02955, 2025-01-06, CVPR 2025.
+  **[Research.]** Existing vision-language models understand fine-grained motion poorly; higher frame
+  rates help but leave "substantial room for enhancement".
+- **VideoGlitchBench / GLIDE** — https://arxiv.org/abs/2604.07818, 2026-04-09. **[Research.]** 5,238
+  annotated gameplay videos with precise temporal spans; frames the task as needing reasoning about
+  mechanics, physics, rendering, animation and expected state transitions, and distinguishing true
+  glitches from unusual-but-valid events.
+- **How models are actually fed video today.** Gemini samples video at **1 frame per second by
+  default** (258 tokens/frame at default resolution), with custom rates available roughly 0.0–24.0
+  fps and cost scaling linearly. https://ai.google.dev/gemini-api/docs/video-understanding
+  **[Established.]** A 1 fps sampler is structurally incapable of judging a 60 Hz animation.
+
+**What this means for the recommendation.** Even if this repository built a perfect video pipeline,
+the model at the end of it would be close to chance on exactly the defects §5–§7 describe. A
+threshold on a computed number does not have that problem. This is the strongest external support
+for the headline.
+
+### 10.4 Contact sheets work — for "what happened", with conditions
+
+- **IG-VLM: "An Image Grid Can Be Worth a Video"** — Kim, Choi, Lee, Rhee,
+  https://arxiv.org/abs/2403.18406, 2024-03-27. **[Research, but a strong result.]** Sample **six
+  frames uniformly**, tile into a **3×2 grid** as one composite image, add a "grid guidance" prompt
+  saying the tiles are temporally ordered, feed to an off-the-shelf vision model with no video
+  training. It **beats existing methods on 9 of 10 zero-shot video question-answering benchmarks**.
+  The near-square shape was chosen deliberately to match the image proportions models are trained on.
+  The authors flag the six-frame limit themselves, and their ablations find frame count, frame
+  ranking and grid shape all matter.
+- **Independently reinvented for agents.** "Computer-Use Agents as Judges for Generative User
+  Interface" — https://arxiv.org/abs/2511.15567, 2025-11-19 — compresses multi-step navigation
+  histories into concise visual summaries ("CUA Dashboard") for the judging agent. Same idea, arrived
+  at from a different direction. **[Research.]**
+- **Reconcile these honestly.** IG-VLM shows contact sheets work for *semantic, event-level*
+  questions. TempGlitch and MotionBench show fine-grained *motion quality* judgment is still near
+  chance. So: a contact sheet is a strong tool for "did the right thing happen"; it is **not
+  demonstrated** for "did it move correctly". §3.1 and W M.6 are scoped accordingly.
+
+### 10.5 Agents that drive and test games
+
+- **SIMA / SIMA 2** (DeepMind) — a generalist agent across 9+ commercial 3D games using **only pixels
+  in, keyboard and mouse out**. https://arxiv.org/abs/2404.10179 (2024-04-16);
+  https://deepmind.google/blog/sima-2-an-agent-that-plays-reasons-and-learns-with-you-in-virtual-3d-worlds/
+  (2025-11). **[Research.]**
+- **Voyager** — https://arxiv.org/abs/2305.16291, 2023-05-25. **[Research.]** Lifelong-learning
+  Minecraft agent; the transferable idea is the **growing library of executable skills** refined by
+  feeding execution errors back into the prompt.
+- **Cradle** — https://arxiv.org/abs/2403.03186, 2024-03-05, ICML 2025. **[Research.]** Screenshots
+  in, keyboard/mouse out, across Red Dead Redemption 2, Cities: Skylines, Stardew Valley and others.
+- **TITAN — "Leveraging LLM Agents for Automated Video Game Testing"** —
+  https://arxiv.org/abs/2509.22170, 2025-09-26. **[Research, moving to production.]** The closest
+  published prior art for an agentic game-test harness: a perception module abstracting game state
+  into expert-chosen features, retrieval over game documentation, coverage maps, monitors for
+  unfinishable tasks and slowdowns, automatic bug reports. Reported as deployed in eight real QA
+  pipelines.
+- **Reinforcement-learning game testing is genuinely established at AAA scale** — EA SEED,
+  https://www.ea.com/seed/news/automated-game-testing-deep-reinforcement-learning and
+  https://arxiv.org/abs/2103.15819 (2021-03-29), with work on Battlefield V and Dead Space.
+- **Vision models detecting visual bugs in HTML5 canvas apps** — Macklon & Bezemer,
+  https://arxiv.org/abs/2501.09236, 2025-01-16. **[Research.]** Up to 100% per-application accuracy
+  on injected bugs in still screenshots — **but only when the prompt also carried the project README,
+  a description of the bug classes, and a bug-free reference screenshot.** That context-dependency is
+  a directly usable design constraint for any "look at this frame and tell me what is wrong" prompt
+  in this repository.
+
+### 10.6 How robotics and time-series work serialises signals for language models
+
+- **RT-2** — https://arxiv.org/abs/2307.15818, 2023-07-28. **[Established in its field.]** Each
+  continuous action dimension is uniformly discretised into **256 bins** and each bin mapped to an
+  existing text token, so an action is literally a string like `"1 128 91 241 5 101 127"`. This is
+  the canonical citation for serialising continuous control as ordinal text.
+- **PaLM-E** — https://arxiv.org/abs/2303.03378, 2023-03-06, ICML 2023. **[Research.]** The
+  alternative design: project continuous observations into the language embedding space rather than
+  discretising them. Not available through a black-box API, which is what this repository has.
+- **LLMTime — "Large Language Models Are Zero-Shot Time Series Forecasters"** —
+  https://arxiv.org/abs/2310.07820, 2023-10-11, NeurIPS 2023. **[Research.]** The optimistic side:
+  encoding a series as a string of digits works surprisingly well. The practical warning worth
+  carrying: **number tokenisation is a real failure mode** — GPT-4 did worse than GPT-3 on this task
+  because of how it tokenises numbers.
+- **"Are Language Models Actually Useful for Time Series Forecasting?"** — Tan et al.,
+  https://arxiv.org/abs/2406.16964, 2024-06-24, NeurIPS 2024 spotlight. **[Research.]** The skeptical
+  side, and the paper to read before handing a model raw numeric traces: across three popular
+  LLM-based forecasters, **removing the language model, or replacing it with a basic attention layer,
+  does not degrade performance and usually improves it.**
+- **Rendering series as images rather than as text** — the efficiency argument is clean: text-encoding
+  a numeric array costs tokens linearly in its length, while rendering it as one plot costs a constant
+  number regardless. See TimeVista (https://arxiv.org/html/2606.16173v1) and Time-VLM
+  (https://arxiv.org/pdf/2502.04395, 2025-02). **[Research.]**
+
+**Consequence for this document.** Do not paste 600 numbers and ask a model whether they look
+periodic — that is the exact use the NeurIPS 2024 spotlight found unhelpful, and it asks the model to
+do arithmetic a `for` loop does better. Compute the statistic in code; hand over the statistic. If a
+long series must be shown, a plot is cheaper than the numbers.
+
+### 10.7 The measurement tooling I chose not to adopt, and what it actually is
+
+Recorded so the rejections in §9 are rejections of something specific rather than of a vibe. This
+subsection was verified against **FFmpeg master `d9ece3f721` (2026-08-07)** and the generated filter
+manual (2026-08-11), with optical-flow costs **measured** on an M4 Pro with OpenCV 5.0 rather than
+estimated. Where something is unmeasured, it says so.
+
+**Reference-based video quality metrics — rejected, with one carve-out.**
+
+- **VMAF** (Netflix, https://github.com/Netflix/vmaf) predicts how a *human* would rate a distorted
+  video against a pristine reference. Wrong tool here: **no reference video**, no compression stage,
+  no human-rating question. SSIM, MS-SSIM, PSNR, XPSNR and LPIPS are reference-based in the same way,
+  and their frame-alignment assumption is precisely what judder violates. **[Established.]**
+- Two traps if anyone tries anyway: FFmpeg's `libvmaf` filter **emits no per-frame metadata at all**
+  (you must parse `log_path`), it takes the **distorted** input first — the opposite of the `psnr`
+  and `ssim` convention — and its options changed incompatibly twice: `model_path=` works through
+  n6.0 and is **removed at n6.1**. `libvmaf_cuda` additionally needs `--enable-nonfree`, which makes
+  the resulting binary non-redistributable.
+- **The carve-out: `vmafmotion`.** VMAF's *temporal* component ships as a standalone FFmpeg filter
+  that takes **one input and needs no reference**, exporting `lavfi.vmafmotion.score` per frame. It
+  is a well-validated motion-energy measure available on a no-reference capture. So the honest
+  position is narrower than "reject VMAF": reject the fused human-opinion metric, and note that its
+  motion feature alone is a legitimate no-reference signal of the same family as §3.2's
+  frame-difference series.
+- **Perceptual metrics that genuinely model time** — the FovVideoVDP / ColorVideoVDP line (Mantiuk
+  et al.) models the eye's response to flicker and motion over time, which is the right *shape*. Still
+  reference-based, still a research artifact rather than a dependency. **[Research.]**
+
+**FFmpeg's no-reference per-frame filters — the right tool if you have a video, which is the catch.**
+https://ffmpeg.org/ffmpeg-filters.html. Four independent motion-energy signals come out of one pass
+with no custom code:
+
+| Filter | Metadata key | What it is |
+|---|---|---|
+| `siti` | `lavfi.siti.si`, `lavfi.siti.ti` | **ITU-T P.910** Spatial/Temporal Information. `ti` is the **standard deviation** of the per-pixel frame difference. |
+| `vmafmotion` | `lavfi.vmafmotion.score` | VMAF's temporal feature, single-input. |
+| `signalstats` | `lavfi.signalstats.YDIF` | **Mean** absolute luma difference against the previous frame. |
+| `scdet` | `lavfi.scd.mafd` | Mean absolute frame difference. |
+
+Three traps found by reading the source, all worth carrying because they are the kind of thing that
+silently produces a plausible wrong number:
+
+1. **`scdet`'s `score` is not what you want.** It computes `min(mafd, |Δmafd|)` — deliberately
+   constructed to *suppress sustained motion*, since a steady pan has high `mafd` but near-zero
+   change in it. Use **`mafd`**, never `score`. The same construction sits behind `select`'s
+   undocumented `lavfi.scene_score`.
+2. **Several filters' metadata keys are undocumented and irregular** — `blockdetect` writes
+   `lavfi.block` (not `lavfi.blockdetect.block`), `blurdetect` writes `lavfi.blur`, and `identity`,
+   `msad` and `entropy` all **double their own name** in the key.
+3. **`signalstats` initialises the previous frame to the current one**, so `YDIF` is 0 on frame 0.
+   Do not count that as a held frame.
+
+Also worth knowing: **`vfrdet`** gives one-line variable-frame-rate triage at EOF; **`idet`** detects
+field repetition, which is how you distinguish 3:2-pulldown judder from a real pacing bug; and
+**`showinfo`'s `plane_checksum`** (Adler-32 per plane) gives **exact** duplicate-frame detection with
+no threshold to tune — strictly better than thresholding a difference metric when the question is
+"is this frame byte-identical to the last one".
+
+**Why this does not become the plan here.** This repository holds **lossless PNG masters**, and the
+WebM is explicitly a `review-derivative` (`capture-sequence-service.ts:404-413`). Measuring the
+derivative measures the VP9 encoder as well as the game. But the *statistics* transfer directly, and
+one of them improves P3 — see §8's note on ITU-T P.910.
+
+**Compressed-domain motion vectors — a dead end, and more decisively than I first thought.**
+The idea is to read the block motion an encoder already computed instead of computing flow. Verified
+against FFmpeg master: only `mpegutils.c` and `snowdec.c` ever produce `AV_FRAME_DATA_MOTION_VECTORS`,
+and the complete supporting-decoder list is **H.264, MPEG-1/2, MPEG-4 Part 2, H.263, VC-1/WMV3,
+RealVideo 1–4, H.261 and Snow**. **HEVC, VP8, VP9 and AV1 export nothing** — zero matches in their
+decoders. **This repository's own capture artifact is VP9**
+(`packages/cli/src/host/managed-capture-runtime.ts:265-266`), so the technique yields exactly nothing
+here without re-encoding. Three further nails: `ffprobe` cannot print the vectors numerically (the
+side-data printer has no `MOTION_VECTORS` branch — you get a type and a size and no numbers); the
+commonly cited extractor **`mpegflow` no longer builds** against modern FFmpeg (it calls
+`av_register_all()`, removed in 4.0, and `avcodec_decode_video2()`, removed in 5.0; last commit
+2019-04-04); and for judder specifically, intra blocks and I-frames carry no vectors, so the series
+acquires **periodic holes at every GOP boundary — a compression artifact trivially mistaken for a
+pacing artifact.** If block motion is ever wanted regardless of codec, FFmpeg's **`mestimate`** filter
+computes it in the filtergraph — but its default `method=esa` is exhaustive search, so set
+`epzs`/`ds`/`hexbs`, and its runtime is unmeasured.
+
+**Optical flow — measured.** One core, M4 Pro, OpenCV 5.0, synthetic translation pair:
+
+| Method | 720p | 1080p (1 thread) | 1080p (14 threads) |
+|---|---|---|---|
+| absolute difference + mean | — | **0.8 ms** | — |
+| **DIS, ultrafast preset** | **3.5 ms** | **8.2 ms** | **3.0 ms** |
+| Lucas–Kanade, 500 points (tracking only) | 2.9 ms | 3.2 ms | — |
+| DIS, fast preset | 10.1 ms | 22.8 ms | 13.8 ms |
+| **Farnebäck, defaults** | 56.5 ms | **135.9 ms** | **123.4 ms** |
+
+Downscaling first: DIS-fast at quarter resolution (480×270) costs **1.9 ms** end to end, about 18×
+real time on one core — ample for a global motion series.
+
+Three things in that table are worth remembering. **Farnebäck barely threads** — fourteen cores buy
+it 10% — while DIS threads properly. **DIS-ultrafast is roughly 17× faster than Farnebäck at 1080p**
+and, per its own paper (Kroeger et al., ECCV 2016, https://arxiv.org/abs/1603.03590), about an order
+of magnitude *more accurate* at matched runtime. And **Lucas–Kanade tracking is nearly
+resolution-independent** (2.9 ms at 720p, 3.2 ms at 1080p) because the cost is the corner detector,
+not the tracker — seed a fixed grid instead of detecting corners and it is ~3 ms flat.
+
+**RAFT** (https://arxiv.org/abs/2003.12039, ECCV 2020) processes 1088×436 at about 10 frames per
+second on a 1080 Ti — roughly 100 ms per frame — and its all-pairs correlation volume needs the
+`alternate_corr` path or tiling at 1080p. Wrong shape for this problem: a GPU and 100 ms per frame to
+produce sub-pixel accuracy that is immediately collapsed to a scalar. If a learned method is ever
+genuinely needed, look at SEA-RAFT (ECCV 2024) or NeuFlow v2 (https://arxiv.org/abs/2408.10161)
+rather than RAFT itself.
+
+**Desktop frame-pacing tools.** Intel PresentMon (https://github.com/GameTechDev/PresentMon) and its
+relatives measure the interval between presents and between display changes — exactly the signal §3.8
+wants and exactly the signal a web page cannot obtain. Borrow their **metric vocabulary** (interval
+between presents, 1%-low and 0.1%-low frame rates) for W M.8's published projection even though the
+tools do not apply.
+
+**Explicitly unverified in this subsection**, and flagged rather than smoothed over: the FFmpeg filter
+*costs* were reasoned from their algorithms, not benchmarked; `mestimate`'s runtime is unmeasured;
+whether hardware-accelerated H.264 decode yields empty or *garbage* motion vectors was inferred from a
+source guard, not observed; and the RAFT memory figure is derived arithmetic, not a paper number.
+
+### 10.8 What is genuinely mine, not the literature's
+
+**[Speculative.]** The composition proposed in section 8 — deterministic fixed-step simulation as the
+*primary* motion instrument, simulation-state assertions in the SCA-2017 style, pixels reserved for
+post-shader and rendering-only defects, a frequency budget deciding which instrument answers which
+question, and a labelled contact sheet used only for the fuzzy "did the right thing happen" layer —
+is not something I found published anywhere. Every ingredient is established. The assembly is a
+proposal, and it should be treated as one.
 
 ---
 
@@ -1027,9 +1373,15 @@ loop harness it needs. **Depends on:** W M.1. **Fails on purpose until W D.5 lan
 
 **Acceptance criteria**
 - `readSequenceStats(paths, { probes })` returns, for N input PNGs, arrays of length N for every
-  scalar `readFrameStats` already returns, plus an array of length N−1 of the mean absolute
-  per-pixel difference between consecutive frames.
-- Over a synthetic sequence of identical frames, every difference value is exactly **0**.
+  scalar `readFrameStats` already returns, plus two arrays of length N−1 over the per-pixel
+  difference between consecutive frames: its **mean** and its **standard deviation**. The standard
+  deviation is ITU-T P.910's Temporal Information; the definition is written in a comment beside it
+  along with why both are computed (§8, P3).
+- Over a synthetic sequence of identical frames, both difference values are exactly **0**.
+- Over a synthetic sequence where the *whole frame* brightens by a constant each step, the **mean**
+  difference is non-zero and the **standard deviation** is near zero. This is the test that proves
+  the pair can tell "the frame got brighter" from "something moved", and it is the reason both
+  numbers exist.
 - Over a synthetic sequence where one known rectangle brightens linearly, that probe's trace is
   monotonically increasing and every other probe's trace is constant.
 - Mismatched frame dimensions produce a clear error naming the first offending index, not a wrong
@@ -1144,8 +1496,48 @@ parallel with any framework schema work.
 | **Spectral concentration** | How much of a signal's energy sits in a single frequency; near 1 means "this is basically one sine wave". |
 | **Spatiotemporal slice** | An image built by taking one line of pixels from every frame and stacking them, so one axis is space and the other is time. |
 | **Temporal aliasing / crawl** | Detail finer than one pixel flickering on and off as the camera moves, because it cannot be sampled consistently. |
+| **Temporal Information (TI)** | ITU-T P.910's motion measure: the standard deviation of the frame-to-frame pixel difference, which ignores a uniform brightness change. |
+| **Motion vector** | A block-level "this part of the picture moved by roughly this much" estimate that a video encoder computes as a side effect of compressing. |
 | **Step response** | How a system settles after a sudden change in what it is chasing; for a camera, how long it takes to catch up. |
 | **Time constant** | For smoothing that eases toward a target, the time to close about 63% of the remaining gap. |
 | **Trauma model** | The standard screen-shake design: keep one value that spikes on events and decays, and drive shake by its square so small events stay subtle. |
 | **Fixed timestep** | Advancing the simulation in equal-sized quanta regardless of how fast frames are drawn. |
 | **Render interpolation** | Drawing a blend of the two most recent simulation states, so a 60 Hz simulation looks smooth on a faster display. |
+
+---
+
+## Verification of the central claim (reviewing agent, 2026-08-11)
+
+The P1 recommendation — compute motion from the simulation rather than from video — was tested
+rather than accepted. A 40-line script imported `createCombatCameraProjector` from
+`combat-arena/src/presentation.ts`, drove it for 10 simulated seconds at 60 Hz with the documented
+cannon cadence (impact 0.45 every 0.34 s, decaying at 4.2/s), and measured the resulting camera
+path. **No browser, no GPU, no capture, no dev server.** It runs in well under a second.
+
+Both halves of the owner's reported defect reproduce:
+
+| Measurement | Result | Meaning |
+|---|---|---|
+| Camera X offset range | 0.0836 world units | The camera does shake |
+| **Target X offset range** | **0.0000** | **The look-at point does not.** The frame swivels rather than translating — the defect diagnosed by reading the source, now measured |
+| Strongest autocorrelation peak outside lag 0 | **0.759 at 0.667 s** | Strongly periodic |
+| W D.6 criterion (`no peak above 0.3`) | **FAILS** | The proposed acceptance criterion is executable today and correctly rejects the current code |
+
+One refinement to the earlier diagnosis. The dominant period is **0.667 s, not the 1.047 s** beat
+predicted from `|47 − 41|`. That is 2 × the 0.34 s cannon cadence, which confirms the **metronome
+is the stronger periodic signal**, not the sine beat. The retrigger rate is the primary defect and
+the beating frequencies are secondary — so cutting the cannon's contribution matters more than
+changing the waveform, though both are wrong.
+
+Two supporting claims were also checked and hold:
+
+- **`get_render_stats` carries no motion information.** `instances` and `drawCalls` in
+  `combat-arena/src/renderer.ts:55-64` are derived from authored capacity constants, not measured,
+  and are reported once through `context.report(...)` at startup (`game.ts:89-92`).
+- **BroMetal exposes no draw statistics or GPU timing** in its public surface
+  (`node_modules/brometal/dist/index.d.ts`).
+
+**Consequence for planning: W D.6 is no longer blocked on motion capture.** Goal 03 can rebuild the
+camera shake and prove it with a plain Node test today. The capture-side work (P2 onward) remains
+worth doing to prove the renderer presents what the simulation computed, but it is not a
+prerequisite for fixing the defect the owner reported.
