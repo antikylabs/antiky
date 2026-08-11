@@ -1,11 +1,15 @@
 # ADR 0021 — final draft for owner approval
 
-**Nothing has been placed.** `docs/adr/` is untouched and `0006` is untagged and unedited. Per
-`goals/execute-goal-00.md:149-152`, a half-placed supersession is worse than no change, so this
-waits for your approval.
+> **Status: APPROVED AND PLACED, 2026-08-11, commit `288cd76`.** This document is now the historical
+> record of what was approved and on what basis. The live record is
+> `docs/adr/framework/0021-brometal-render-driver-ownership_H.md`; if the two ever differ, the ADR
+> wins. Kept because section 1 carries the language audit and the four terms still awaiting owner
+> approval — see [`goals/_completed/summary-goal-00.md`](goals/_completed/summary-goal-00.md).
 
-Approve, and I run the tag-hash step, place `0021`, set `0006` to `Superseded by`, update the index,
-and correct the website claims in one commit.
+The text below was presented before placement. Per
+`goals/_completed/execute-goal-00.md:149-152`, a half-placed supersession is worse than no change,
+so nothing was written to `docs/adr/` until the owner approved both this text and the `studio/0007`
+question.
 
 ---
 

@@ -5,7 +5,7 @@
 - [Execute goal 01](execute-goal-01.md) is complete. The capture evidence in this goal needs a
   working `capture_frame` path and the frame statistics from W0.2b, and `npm test` must already be
   green (W0.1b) before this goal adds a test file.
-- [Execute goal 00](execute-goal-00.md) is complete, or the owner has released this goal ahead of
+- [Execute goal 00](_completed/execute-goal-00.md) is complete, or the owner has released this goal ahead of
   it. ADR 0021 carries the contribution practice that the upstream pull requests here follow.
 - No commit from goal 01 is in flight. Both goals edit `scripts/repository-policy.test.mjs` and root
   `package.json`, so they must not commit concurrently.

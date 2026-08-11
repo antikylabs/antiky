@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- [Execute goal 00](execute-goal-00.md) is complete, or the owner has explicitly released this goal
+- [Execute goal 00](_completed/execute-goal-00.md) is complete, or the owner has explicitly released this goal
   to run ahead of it. Nothing here depends on ADR 0021 mechanically, and the two are parallel-safe,
   but the render work that consumes this harness does depend on the record.
 - No other agent is running a demo dev server. Every demo manifest binds `127.0.0.1:3010` for the

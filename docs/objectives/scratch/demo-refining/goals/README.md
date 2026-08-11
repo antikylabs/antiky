@@ -6,36 +6,50 @@ say what will actually get built. Review this file and the goal files before any
 
 Run them with `/goal` in order. Where goals are parallel-safe, this document says so explicitly.
 
+## When a goal completes
+
+1. Move its file into [`_completed/`](_completed/) with `git mv`, keeping the same filename.
+2. Write `_completed/summary-goal-<num>.md` beside it. The summary states what changed, the commit,
+   the evidence that each acceptance criterion was met, any owner decisions taken during the goal,
+   and — most importantly — **what is still outstanding**. A summary that only lists successes is
+   not a record, it is a press release.
+3. Repoint any links to the moved file. Later goals reference earlier ones in their Prerequisites,
+   so a move breaks links: `grep -rn "execute-goal-<num>"` and fix every hit.
+4. Mark the row Done in the sequence table below.
+
+`_completed/` mirrors the convention already used at `docs/objectives/antiky-town/_completed/`.
+
 ---
 
 ## The sequence
 
-| # | Goal | Depends on | Parallel-safe with | Rough size |
-|---|------|-----------|--------------------|-----------|
-| **00** | Settle the architecture record and the public claims | — | 01, 02, 10 | ~half a day |
-| **01** | Build the verification loop (Track 0) | — | 00, 02 | ~2 days |
-| **02** | Unblock the render pipeline in BroMetal (Track A) | — | 00, 01, 04, 05, 10 | ~1 day |
-| **03** | Quick wins, motion feel, safe dead-code removal (Track D) | 01 | 04, 05, 10 | ~2 days |
-| **04** | Stop the asset pipeline destroying the assets (Track C) | 01 | 02, 03, 05, 10 | ~3 days |
-| **05** | Give the existing assets real materials — triplanar PBR | 01, 04 | 02, 03, 06, 07, 10 | ~14 days |
-| **06** | The reference render slice in `point-light-expo` (Track B) | 00, 01, 02 | 05, 10 | ~5 days |
-| **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | 06 | 05, 10 | ~10 days |
-| **08** | Art direction and VFX per demo, `antiky-town` included | 05, 07 | 10 | ~16 days |
-| **09** | Remove scar tissue and within-demo divergence | 06, 07 | 10, 11 | ~5 days |
-| **10** | Fix how the work is presented (Track F) | 01 | everything | ~3 days |
-| **11** | Promote what has earned it into the framework | 03, 06, 07 | 09, 10 | ~4 days |
-| **12** | Extract the `BroMetalRenderDriver` | 06, 07, 11 | 10 | ~5 days |
+| # | Goal | Status | Depends on | Parallel-safe with | Rough size |
+|---|------|--------|-----------|--------------------|-----------|
+| **00** | [Settle the architecture record and the public claims](_completed/execute-goal-00.md) | **Done** `288cd76` — [summary](_completed/summary-goal-00.md) | — | 01, 02, 10 | ~half a day |
+| **01** | Build the verification loop (Track 0) | Not started | — | 00, 02 | ~2 days |
+| **02** | Unblock the render pipeline in BroMetal (Track A) | Not started | — | 00, 01, 04, 05, 10 | ~1 day |
+| **03** | Quick wins, motion feel, safe dead-code removal (Track D) | Not started | 01 | 04, 05, 10 | ~2 days |
+| **04** | Stop the asset pipeline destroying the assets (Track C) | Not started | 01 | 02, 03, 05, 10 | ~3 days |
+| **05** | Give the existing assets real materials — triplanar PBR | Not started | 01, 04 | 02, 03, 06, 07, 10 | ~14 days |
+| **06** | The reference render slice in `point-light-expo` (Track B) | Not started | 00, 01, 02 | 05, 10 | ~5 days |
+| **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | Not started | 06 | 05, 10 | ~10 days |
+| **08** | Art direction and VFX per demo, `antiky-town` included | Not started | 05, 07 | 10 | ~16 days |
+| **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 | ~5 days |
+| **10** | Fix how the work is presented (Track F) | Not started | 01 | everything | ~3 days |
+| **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 | ~4 days |
+| **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Start today, in parallel:** 00, 01, 02, 10. Then 03, 04, 05 once 01 lands.
+**Next up, in parallel:** 01, 02, 10 (00 is done). Then 03, 04, 05 once 01 lands.
 
 Goal **05** is the largest single visual win and needs neither the HDR buffer nor the BroMetal
 patches — do not let it sit behind the render work.
 
 ## Why this order
 
-**00 first** because the architecture record currently contradicts itself, and goals 06–07 build
-exactly the thing the record is ambiguous about. Cheap to settle, awkward to retrofit.
+**00 first** because the architecture record contradicted itself, and goals 06–07 build exactly
+the thing it was ambiguous about. Cheap to settle, awkward to retrofit. **Done** — ADR 0021 now
+supersedes 0006 and `studio/0007` is clarified.
 
 **01 second because nothing else can be verified without it.** Every later goal's acceptance
 criteria are measurements, and today nothing measures pixels. This is also the fix for the root
