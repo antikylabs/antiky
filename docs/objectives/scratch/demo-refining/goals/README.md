@@ -41,7 +41,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 |---|------|--------|-----------|--------------------|-----------|
 | **00** | [Settle the architecture record and the public claims](_completed/execute-goal-00.md) | **Done** `288cd76` — [summary](_completed/summary-goal-00.md) | — | 01, 02, 10 | ~half a day |
 | **01** | [Build the verification loop (Track 0)](_completed/execute-goal-01.md) | **Done** `e1ebf4e` — [summary](_completed/summary-goal-01.md) | — | 00, 02 | ~2 days |
-| **02** | Unblock the render pipeline in BroMetal (Track A) | Not started | — | 00, 01, 04, 05, 10 | ~1 day |
+| **02** | [Unblock the render pipeline in BroMetal (Track A)](_completed/execute-goal-02.md) | **Done** `57166ea` — [summary](_completed/summary-goal-02.md) | — | 00, 01, 04, 05, 10 | ~1 day |
 | **03** | Quick wins, motion feel, safe dead-code removal (Track D) | Not started | 01 | 04, 05, 10 | ~2 days |
 | **04** | Stop the asset pipeline destroying the assets (Track C) | Not started | 01 | 02, 03, 05, 10 | ~3 days |
 | **05** | Give the existing assets real materials — triplanar PBR | Not started | 01, 04 | 02, 03, 06, 07, 10 | ~14 days |
@@ -55,7 +55,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **13** | [Measure motion, so feel can be judged instead of guessed](execute-goal-13.md) | Not started | 01 | everything | ~4 days |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up, in parallel:** 02, 03, 04, 10, 13 (00 and 01 are done). Then 05, then 06.
+**Next up, in parallel:** 03, 04, 10, 13 (00, 01 and 02 are done). Then 05, then 06.
 
 **Land goal 13's P1 before goal 03** if you want the camera-shake fix to be provable rather than
 judged by eye. It is roughly a day, needs no GPU, and makes acceptance criteria that are already
@@ -76,8 +76,9 @@ the entire audit: the previous work was done blind. **Done** — `npm run demos:
 demo through the existing MCP and `npm run demos:verify` tracks the targets. The first measurement
 put `point-light-expo` and `combat-arena` at the bottom of all ten demos for luminance spread.
 
-**02 before 06** because rendering to an HDR target silently destroys the 4× MSAA the demos have
-today. Doing 06 first would be a visible regression.
+**02 before 06** because rendering to an HDR target silently destroyed the 4× MSAA the demos have
+today. Doing 06 first would have been a visible regression. **Done** — render targets now take a
+per-target `filter` and `samples`, and BroMetal is on 0.17.2.
 
 **06 before 07** because `point-light-expo` is the reference implementation. Prove the approach on
 the demo whose entire premise is lighting, then carry it.

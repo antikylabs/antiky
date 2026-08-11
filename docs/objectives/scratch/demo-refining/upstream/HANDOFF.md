@@ -3,7 +3,7 @@
 **Date:** 2026-08-11
 **Commits:** `1e5ce13` (patches), `3203a82` (re-capture), `9118e47` (PR drafts)
 
-## Status: complete except one step, which is blocked on the owner
+## Status: complete
 
 | Completion criterion | State |
 |---|---|
