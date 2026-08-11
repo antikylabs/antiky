@@ -11,7 +11,7 @@ Two items. Neither blocks starting goals 02, 03, 04 or 10.
 | # | What | Why it needs you | Blocks |
 |---|---|---|---|
 | 1 | **Approve or adjust the visual budget bounds.** They are in the four `packages/demos/antiky/*/tests/visual-budget.test.mjs` files. | The 13 currently-failing assertions are gated on numbers I chose, not on your art direction. They are deliberately reachable but not trivial. If a demo eventually lands a look you are happy with and its budget still fails, **the budget is wrong** — and it should be changed by you, not by the agent that is failing it. | Judging goals 06 and 07 as done |
-| 2 | **Decide whether motion capture gets unblocked.** `capture_gameplay_sequence` was not touched; only still capture was. | Goal 03 rebuilds the camera shake you reported. Shake cannot be judged from a still frame. Either goal 03 gets a motion measurement path first, or it ships on a still-frame proxy plus your eyes. That is a scope call. | Verifying goal 03's shake fix |
+| 2 | ~~**Decide whether motion capture gets unblocked.**~~ **ANSWERED 2026-08-11: yes.** Motion capture is wanted as part of the inspection tooling. Research is in [`../../11-MOTION-INSPECTION-RESEARCH.md`](../../11-MOTION-INSPECTION-RESEARCH.md), and it becomes a goal of its own rather than being folded into goal 03. | — | Resolved |
 
 **No bug in this summary needs you.** All three found during the work were fixed inside the goal
 and are covered by tests. They are recorded below because they are traps worth knowing about, not
@@ -116,7 +116,7 @@ unassigned.
 
 | Item | Disposition |
 |---|---|
-| `capture_gameplay_sequence` untouched, so motion and feel have no measurement path | **Needs owner** — item 2 above |
+| `capture_gameplay_sequence` untouched, so motion and feel have no measurement path | **Resolved 2026-08-11** — the owner wants motion capture in the inspection tooling. Becomes its own goal, informed by `11-MOTION-INSPECTION-RESEARCH.md`. |
 | Visual budget bounds are unapproved | **Needs owner** — item 1 above |
 | The blank-frame guard has not fired on real data. Every live capture rendered; the three committed blank-white three.js captures are stale artifacts of a capture-timing bug, not a current render failure | **Goal 10** removes them. No action. |
 | Budgets exist only for the four antiky demos. The other six have committed metrics but no authored bounds | **No action.** The six are not targeted against a reference look. Add bounds if that changes. |
