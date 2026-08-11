@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Complete [execute goal 01](execute-goal-01.md) first. Every acceptance criterion below except the
+Complete [execute goal 01](_completed/execute-goal-01.md) first. Every acceptance criterion below except the
 static-source ones is measured from a captured frame with `npm run demos:shoot`, the frame
 statistics library and the named probe rectangles goal 01 delivers.
 

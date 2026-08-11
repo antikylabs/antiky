@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- [Execute goal 01](execute-goal-01.md) is complete. The capture evidence in this goal needs a
+- [Execute goal 01](_completed/execute-goal-01.md) is complete. The capture evidence in this goal needs a
   working `capture_frame` path and the frame statistics from W0.2b, and `npm test` must already be
   green (W0.1b) before this goal adds a test file.
 - [Execute goal 00](_completed/execute-goal-00.md) is complete, or the owner has released this goal ahead of

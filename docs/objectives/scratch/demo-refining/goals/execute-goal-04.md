@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Complete [execute goal 01](execute-goal-01.md) first. The probe tests below are measured from
+Complete [execute goal 01](_completed/execute-goal-01.md) first. The probe tests below are measured from
 captured frames using `npm run demos:shoot` and the frame-statistics library it delivers, and the
 "no asset script discards `TEXCOORD_0` or `normalTexture`" invariant lives in the pipeline-invariant
 test file goal 01 creates. Without those this goal cannot be proven.

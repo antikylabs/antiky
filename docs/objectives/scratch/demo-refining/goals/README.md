@@ -26,7 +26,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | # | Goal | Status | Depends on | Parallel-safe with | Rough size |
 |---|------|--------|-----------|--------------------|-----------|
 | **00** | [Settle the architecture record and the public claims](_completed/execute-goal-00.md) | **Done** `288cd76` — [summary](_completed/summary-goal-00.md) | — | 01, 02, 10 | ~half a day |
-| **01** | Build the verification loop (Track 0) | Not started | — | 00, 02 | ~2 days |
+| **01** | [Build the verification loop (Track 0)](_completed/execute-goal-01.md) | **Done** `e1ebf4e` — [summary](_completed/summary-goal-01.md) | — | 00, 02 | ~2 days |
 | **02** | Unblock the render pipeline in BroMetal (Track A) | Not started | — | 00, 01, 04, 05, 10 | ~1 day |
 | **03** | Quick wins, motion feel, safe dead-code removal (Track D) | Not started | 01 | 04, 05, 10 | ~2 days |
 | **04** | Stop the asset pipeline destroying the assets (Track C) | Not started | 01 | 02, 03, 05, 10 | ~3 days |
@@ -40,7 +40,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up, in parallel:** 01, 02, 10 (00 is done). Then 03, 04, 05 once 01 lands.
+**Next up, in parallel:** 02, 03, 04, 10 (00 and 01 are done). Then 05, then 06.
 
 Goal **05** is the largest single visual win and needs neither the HDR buffer nor the BroMetal
 patches — do not let it sit behind the render work.
@@ -52,9 +52,10 @@ the thing it was ambiguous about. Cheap to settle, awkward to retrofit. **Done**
 supersedes 0006 and `studio/0007` is clarified.
 
 **01 second because nothing else can be verified without it.** Every later goal's acceptance
-criteria are measurements, and today nothing measures pixels. This is also the fix for the root
-cause of the entire audit: the previous work was done blind. Goal 01's first packet is not building
-a harness — the repo already ships one, and it is **broken for the demos that matter**.
+criteria are measurements, and nothing measured pixels. This was also the fix for the root cause of
+the entire audit: the previous work was done blind. **Done** — `npm run demos:shoot` captures every
+demo through the existing MCP and `npm run demos:verify` tracks the targets. The first measurement
+put `point-light-expo` and `combat-arena` at the bottom of all ten demos for luminance spread.
 
 **02 before 06** because rendering to an HDR target silently destroys the 4× MSAA the demos have
 today. Doing 06 first would be a visible regression.

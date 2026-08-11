@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Complete [execute goal 01](execute-goal-01.md) first. It unblocks `capture_frame` on the
+Complete [execute goal 01](_completed/execute-goal-01.md) first. It unblocks `capture_frame` on the
 asset-heavy demos, gets `npm test` green on `main`, and delivers `npm run demos:shoot`, the frame
 statistics library, the per-demo visual budgets and the pipeline-invariant tests. Every acceptance
 criterion below is measured with those tools; without them this goal is unverifiable and must not
