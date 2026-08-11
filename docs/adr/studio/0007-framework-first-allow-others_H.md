@@ -40,6 +40,9 @@ The game module must supply the necessary lifecycle operations.
 
 The game module initializes and resizes the renderer.
 The game module disposes its renderer resources.
+These two statements apply to a game module that owns its renderer.
+If a game module uses the framework render driver, that driver owns the renderer resources.
+[Framework ADR 0021](../framework/0021-brometal-render-driver-ownership_H.md) gives the full rule.
 The game host supplies the canvas and input.
 The game host calls `frame` and replaces the game module.
 
@@ -68,3 +71,7 @@ Host inspection stays available for all game modules.
 A renderer does not supply Framework features or semantic inspection data.
 Antiky Framework stays WebGPU-only.
 Three.js stays a game-module selection, not a Framework render driver.
+
+## Revision history
+
+- `f403e4b2d125d7d13cb69c6cead4866c9f340023` — Prior version before the ADR 0021 render driver clarification.

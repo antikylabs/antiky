@@ -38,6 +38,7 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0018: Select physics authority and physics execution independently](framework/0018-select-physics-authority-and-execution-independently_H.md)
 - [0019: Use Rapier for CPU physics and Nexus for GPU physics](framework/0019-use-rapier-for-cpu-physics-and-nexus-for-gpu-physics_H.md)
 - [0020: Keep game code and game hosts in different modules](framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md)
+- [0021: Own BroMetal in a BroMetal render driver](framework/0021-brometal-render-driver-ownership_H.md)
 
 ### CLI
 

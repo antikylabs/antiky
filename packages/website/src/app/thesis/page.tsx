@@ -199,8 +199,8 @@ export default function ThesisPage() {
             2D, 3D, and 2.3D are creative possibilities—not the boundaries of Antiky.
           </p>
           <p>
-            BroMetal is where Antiky&apos;s rendering work began and remains the Framework&apos;s current
-            render driver. Pure BroMetal and Three.js studies also run in the same portable website
+            BroMetal is where Antiky&apos;s rendering work began and remains the renderer our Framework
+            games use. Pure BroMetal and Three.js studies also run in the same portable website
             host. That evidence helps separate renderer choice from the broader questions about game
             state, development services, and human-agent collaboration.
           </p>

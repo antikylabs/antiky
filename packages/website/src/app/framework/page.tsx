@@ -121,7 +121,7 @@ export default function FrameworkPage() {
           <div>
             <p className="lead">2D, 3D, and 2.3D are creative possibilities.</p>
             <p>
-              BroMetal {BROMETAL_VERSION} is the current Framework render driver and remains an
+              BroMetal {BROMETAL_VERSION} is the renderer our Framework games use today and remains an
               important part of the work. Pure BroMetal and Three.js studies also use the portable
               host boundary. Renderer choice does not own game rules, session state, or development
               authority.

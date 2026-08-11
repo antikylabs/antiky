@@ -82,7 +82,8 @@ Antiky is one development model with several responsibilities and surfaces:
   claim because it appears in a plan or accepted architecture direction.
 
 Studio is not the engine. Framework works without Studio. The game module selects rendering while
-the host supplies platform lifecycle. The current Framework render driver uses BroMetal.
+the host supplies platform lifecycle. Antiky Framework games render with BroMetal today. A
+Framework-owned BroMetal render driver is accepted direction, not a current capability.
 
 ## Evidence status
 
@@ -154,9 +155,9 @@ solutions can become Antiky after working evidence justifies the boundary.
   today.
 
 The creative idea should lead and the engine should follow. 2D, 3D, and 2.3D are creative
-possibilities, not product boundaries. BroMetal is where Antiky's rendering work began and remains
-the current Framework render driver. Preserve its attribution and useful links without presenting it
-as the Antiky Labs identity.
+possibilities, not product boundaries. BroMetal is where Antiky's rendering work began and is the
+renderer Antiky Framework games use today. Preserve its attribution and useful links without
+presenting it as the Antiky Labs identity.
 
 ## Public information architecture
 

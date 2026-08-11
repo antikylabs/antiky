@@ -23,7 +23,8 @@ on scope. antiky-town gets the same treatment as the other demos, plus a facelif
 | [`06-WORK-PACKETS.md`](06-WORK-PACKETS.md) | **The executable backlog.** Independently dispatchable packets with owned-file locks, dependencies, and bounded testable acceptance criteria. Hand subagents packets from here. |
 | [`07-TESTING-WITH-ANTIKY-MCP.md`](07-TESTING-WITH-ANTIKY-MCP.md) | How to actually see and inspect what you build, using the capture/inspection MCP the repo already ships. Every command verified against a live server. **Read before touching a shader.** |
 | [`08-ADR-IMPACT.md`](08-ADR-IMPACT.md) | ADR compliance gaps and the records this plan needs. **Read before starting Track A or Track B.** |
-| [`09-RENDER-DRIVER-DECISION.md`](09-RENDER-DRIVER-DECISION.md) | The owner's `BroMetalRenderDriver` decision, the reasoning, and a draft ADR ready to place. |
+| [`09-RENDER-DRIVER-DECISION.md`](09-RENDER-DRIVER-DECISION.md) | The owner's `BroMetalRenderDriver` decision and the reasoning. The draft ADR it carried is now **placed** as `docs/adr/framework/0021`. |
+| [`10-ADR-0013-SEED-GAP.md`](10-ADR-0013-SEED-GAP.md) | Recorded compliance gap: ADR 0013 requires explicit random seeds and none exist. Recorded by goal 00, implemented by goal 11. |
 
 ## Before you start: the architecture record and the code disagree
 
