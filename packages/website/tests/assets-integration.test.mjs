@@ -8,16 +8,19 @@ test('the main website owns the static asset catalog routes', async () => {
   const manifest = JSON.parse(await readFile(new URL('package.json', websiteRoot), 'utf8'));
   const indexPage = await readFile(new URL('src/app/assets/page.tsx', websiteRoot), 'utf8');
   const detailPage = await readFile(new URL('src/app/assets/[provider]/[slug]/page.tsx', websiteRoot), 'utf8');
-  const assetPackage = JSON.parse(await readFile(new URL('../asset-site/package.json', websiteRoot), 'utf8'));
-  const stageScript = await readFile(new URL('scripts/stage-asset-site.mjs', websiteRoot), 'utf8');
+  const catalogComponent = await readFile(new URL('src/components/assets/AssetCatalog.tsx', websiteRoot), 'utf8');
+  const detailComponent = await readFile(new URL('src/components/assets/AssetDetail.tsx', websiteRoot), 'utf8');
+  const stageScript = await readFile(new URL('scripts/stage-asset-previews.mjs', websiteRoot), 'utf8');
 
-  assert.equal(manifest.dependencies['@antiky/asset-site'], '0.0.0');
+  assert.equal(manifest.dependencies['@antiky/asset-site'], undefined);
   assert.match(indexPage, /AssetCatalog/);
   assert.match(detailPage, /generateStaticParams/);
   assert.match(detailPage, /AssetDetail/);
-  assert.equal(assetPackage.exports['./ui'], './src/public.ts');
+  assert.match(catalogComponent, /window\.location\.search/);
+  assert.match(detailComponent, /catalogApiAssetUrl/);
   assert.match(manifest.scripts['assets:stage'], /build --workspace @antiky\/asset-catalog/);
   assert.match(stageScript, /asset-catalog\/dist\/previews/);
+  await assert.rejects(readFile(new URL('../asset-site/package.json', websiteRoot)), { code: 'ENOENT' });
   await assert.rejects(readFile(new URL('src/app/assets/catalog.json/route.ts', websiteRoot)), { code: 'ENOENT' });
 });
 

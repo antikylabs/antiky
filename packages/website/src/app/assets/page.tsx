@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { AssetCatalog } from '@antiky/asset-site/ui';
+import { AssetCatalog } from '@/components/assets/AssetCatalog';
 
 export const metadata: Metadata = {
   title: 'CC0 game assets',

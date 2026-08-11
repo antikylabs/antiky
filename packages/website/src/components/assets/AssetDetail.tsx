@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import type { CatalogAsset } from '@antiky/asset-catalog';
 import { catalogApiAssetUrl } from '@antiky/asset-catalog/static-api';
-import { fileCountLabel, VERIFICATION_COPY } from '../lib/presentation';
+import { fileCountLabel, VERIFICATION_COPY } from '@/lib/asset-presentation';
 
 export function AssetDetail({ asset }: Readonly<{ asset: CatalogAsset }>) {
   const fileLabel = fileCountLabel(asset.fileCount, true);

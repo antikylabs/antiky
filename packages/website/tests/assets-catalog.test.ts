@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { catalogAsset, catalogSearch } from '../src/lib/catalog.ts';
+import { catalogAsset, catalogSearch } from '../src/lib/assets.ts';
 
 test('supports the public forest model search query', () => {
   const results = catalogSearch({ q: 'forest', type: 'model' });
@@ -22,7 +22,7 @@ test('exposes the expanded catalog to search and agents', () => {
 test('uses a stable source mix weighted toward top-tier creators', () => {
   const firstPage = catalogSearch({}).slice(0, 48);
   assert.deepEqual(firstPage, catalogSearch({}).slice(0, 48));
-  assert.notDeepEqual(firstPage.map((asset) => asset.name), firstPage.map((asset) => asset.name).toSorted());
+  assert.notDeepEqual(firstPage.map((asset) => asset.name), firstPage.map((asset) => asset.name).sort());
   const providerCounts = new Map<string, number>();
   for (const asset of firstPage) {
     providerCounts.set(asset.provider.id, (providerCounts.get(asset.provider.id) ?? 0) + 1);
@@ -61,8 +61,8 @@ test('supports explicit catalog sort orders', () => {
   const mostFiles = catalogSearch({ sort: 'files-desc' });
   const bestQuality = catalogSearch({ sort: 'quality-asc' });
 
-  assert.deepEqual(ascending.map((asset) => asset.name), ascending.map((asset) => asset.name).toSorted((a, b) => a.localeCompare(b)));
-  assert.deepEqual(descending.map((asset) => asset.name), ascending.map((asset) => asset.name).toReversed());
+  assert.deepEqual(ascending.map((asset) => asset.name), ascending.map((asset) => asset.name).sort((a, b) => a.localeCompare(b)));
+  assert.deepEqual(descending.map((asset) => asset.name), ascending.map((asset) => asset.name).reverse());
   assert.ok((mostFiles[0]?.fileCount ?? 0) >= (mostFiles[1]?.fileCount ?? 0));
   assert.ok((bestQuality[0]?.quality ?? 5) <= (bestQuality.at(-1)?.quality ?? 0));
 });

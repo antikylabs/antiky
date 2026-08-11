@@ -5,7 +5,7 @@ import process from 'node:process';
 import sharp from 'sharp';
 import { CATALOG_ASSETS } from '../src/catalog-data.ts';
 
-const outputRoot = path.resolve(process.argv[2] ?? '../asset-site/public');
+const outputRoot = path.resolve(process.argv[2] ?? 'public');
 const polyHaven = CATALOG_ASSETS.filter((asset) => asset.provider.id === 'poly-haven');
 
 for (const asset of polyHaven) {

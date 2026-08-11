@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { AssetDetail, catalogAsset } from '@antiky/asset-site/ui';
+import { AssetDetail } from '@/components/assets/AssetDetail';
+import { catalogAsset } from '@/lib/assets';
 import { CATALOG_ASSETS } from '@antiky/asset-catalog/catalog';
 
 type Params = Promise<{ provider: string; slug: string }>;

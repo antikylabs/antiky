@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { AssetCard } from './AssetCard';
-import { catalogCount, catalogFormats, catalogProviders, catalogSearch, type PublicCatalogQuery } from '../lib/catalog';
+import { catalogCount, catalogFormats, catalogProviders, catalogSearch, type PublicCatalogQuery } from '@/lib/assets';
 
 const PAGE_SIZE = 48;
 

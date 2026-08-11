@@ -7,9 +7,9 @@ import {
   catalogApiAssetPath,
   catalogApiAssetUrl,
 } from '@antiky/asset-catalog/static-api';
-import { catalogAsset, catalogCount } from '../src/lib/catalog.ts';
+import { catalogAsset, catalogCount } from '../src/lib/assets.ts';
 
-test('asset-site consumes the catalog package static delivery contract', async () => {
+test('the website consumes the catalog package static delivery contract', async () => {
   const catalog = JSON.parse(await readFile(new URL('../../asset-catalog/dist/v1/catalog.json', import.meta.url), 'utf8'));
   const natureKit = catalogAsset('kenney', 'nature-kit');
 

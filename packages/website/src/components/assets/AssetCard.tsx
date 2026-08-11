@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import type { CatalogAsset } from '@antiky/asset-catalog';
-import { fileCountLabel, VERIFICATION_COPY } from '../lib/presentation';
+import { fileCountLabel, VERIFICATION_COPY } from '@/lib/asset-presentation';
 
 export function AssetCard({ asset }: Readonly<{ asset: CatalogAsset }>) {
   const fileLabel = fileCountLabel(asset.fileCount);

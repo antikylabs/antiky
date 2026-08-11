@@ -6,7 +6,6 @@
     "packages/cli",
     "packages/asset-catalog",
     "packages/framework",
-    "packages/asset-site",
     "packages/website",
     "packages/demos/*/*",
     "packages/studio/*"

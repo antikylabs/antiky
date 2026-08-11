@@ -15,7 +15,7 @@ import {
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = path.join(packageRoot, 'dist');
 const versionRoot = path.join(outputRoot, CATALOG_API_BASE_PATH.slice(1));
-const previewSource = path.resolve(packageRoot, '../asset-site/public/previews');
+const previewSource = path.resolve(packageRoot, 'public/previews');
 
 const generatedAt = CATALOG_ASSETS.reduce(
   (latest, asset) => asset.provenance.retrievedAt > latest ? asset.provenance.retrievedAt : latest,
