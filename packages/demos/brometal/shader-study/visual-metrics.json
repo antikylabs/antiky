@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "demo": "shader-study",
+  "capturedAt": "2026-08-11T19:12:37.044Z",
+  "warmUpFrames": 60,
+  "frame": {
+    "width": 1280,
+    "height": 720
+  },
+  "luminance": {
+    "mean": 0.024097,
+    "p05": 0.00063,
+    "p50": 0.004735,
+    "p95": 0.107728,
+    "spread": 0.107098
+  },
+  "clipping": {
+    "high": 0,
+    "low": 0
+  },
+  "saturation": {
+    "mean": 0.879022
+  }
+}

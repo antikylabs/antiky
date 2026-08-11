@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "demo": "glass-garden",
+  "capturedAt": "2026-08-11T19:13:13.457Z",
+  "warmUpFrames": 60,
+  "frame": {
+    "width": 1280,
+    "height": 720
+  },
+  "luminance": {
+    "mean": 0.237356,
+    "p05": 0.0075,
+    "p50": 0.14275,
+    "p95": 0.837882,
+    "spread": 0.830382
+  },
+  "clipping": {
+    "high": 0.015141,
+    "low": 0
+  },
+  "saturation": {
+    "mean": 0.313088
+  }
+}
