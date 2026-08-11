@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "demo": "point-light-expo",
+  "capturedAt": "2026-08-11T19:03:59.737Z",
+  "warmUpFrames": 60,
+  "frame": {
+    "width": 1280,
+    "height": 720
+  },
+  "luminance": {
+    "mean": 0.03338,
+    "p05": 0.004012,
+    "p50": 0.026244,
+    "p95": 0.093911,
+    "spread": 0.089899
+  },
+  "clipping": {
+    "high": 0.000905,
+    "low": 0
+  },
+  "saturation": {
+    "mean": 0.413559
+  }
+}

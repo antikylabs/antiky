@@ -79,6 +79,7 @@ export type DevelopmentSessionOptions = Readonly<{
   watchPaths?: readonly string[];
   buildFailureTimeoutMilliseconds?: number;
   actionTimeoutMilliseconds?: number;
+  captureActionTimeoutMilliseconds?: number;
   runtimeConnectionTimeoutMilliseconds?: number;
   diagnosticSink?: CliDiagnosticSink;
   runCleanupOperation?: (
@@ -352,6 +353,9 @@ export async function startDevelopmentSession(
     ...(options.actionTimeoutMilliseconds === undefined
       ? {}
       : { timeoutMilliseconds: options.actionTimeoutMilliseconds }),
+    ...(options.captureActionTimeoutMilliseconds === undefined
+      ? {}
+      : { captureTimeoutMilliseconds: options.captureActionTimeoutMilliseconds }),
   });
 
   const managedCaptureRuntime = createManagedCaptureRuntime({

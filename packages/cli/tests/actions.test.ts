@@ -599,6 +599,9 @@ test('a capture completion cannot complete an action started after its timeout',
       connected: true,
     }),
     timeoutMilliseconds: 1_000,
+    // A capture carries its own budget, so this test sets it explicitly to keep
+    // exercising the timeout path rather than the managed-capture default.
+    captureTimeoutMilliseconds: 1_000,
     now: () => '2026-08-05T03:00:00.000Z',
   });
   const capturePromise = broker.captureFrame();
@@ -789,5 +792,81 @@ test('a capture persistence failure rejects only that action and frees the broke
   } finally {
     broker.stop();
     await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+});
+
+test('a capture gets its own budget so a managed cold start is not charged to the action timeout', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-action-capture-budget-'));
+  const broker = createDevelopmentActionBroker({
+    developmentSessionId: 'development-actions-capture-budget-001',
+    rootDirectory,
+    readRuntimeContext: () => ({
+      runtimeInstanceId: 'runtime-actions-001',
+      buildRevision: 4,
+      connected: true,
+    }),
+    timeoutMilliseconds: 1_000,
+    captureTimeoutMilliseconds: 60_000,
+    now: () => '2026-08-11T03:00:00.000Z',
+  });
+
+  try {
+    const capturePromise = broker.captureFrame();
+    void capturePromise.catch(() => {});
+    const captureAction = broker.nextAction('runtime-actions-001');
+    assert.equal(captureAction?.kind, 'capture');
+
+    // A managed capture launches a browser and loads assets. That work must not be
+    // charged to the interactive action budget, which is sized for a connected runtime.
+    context.mock.timers.tick(59_000);
+
+    await broker.completeCapture({
+      actionId: captureAction!.actionId,
+      runtimeInstanceId: 'runtime-actions-001',
+      mimeType: 'image/png',
+      canvasWidth: 1,
+      canvasHeight: 1,
+      dataBase64: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString('base64'),
+    });
+    const captured = await capturePromise;
+    assert.equal(captured.schemaVersion, 1);
+  } finally {
+    broker.stop();
+    await rm(rootDirectory, { recursive: true, force: true });
+  }
+});
+
+test('a capture still times out when its own budget is exceeded', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const rootDirectory = await mkdtemp(join(tmpdir(), 'antiky-action-capture-budget-limit-'));
+  const broker = createDevelopmentActionBroker({
+    developmentSessionId: 'development-actions-capture-budget-002',
+    rootDirectory,
+    readRuntimeContext: () => ({
+      runtimeInstanceId: 'runtime-actions-001',
+      buildRevision: 4,
+      connected: true,
+    }),
+    timeoutMilliseconds: 1_000,
+    captureTimeoutMilliseconds: 5_000,
+    now: () => '2026-08-11T03:00:00.000Z',
+  });
+
+  try {
+    const capturePromise = broker.captureFrame();
+    void capturePromise.catch(() => {});
+    assert.equal(broker.nextAction('runtime-actions-001')?.kind, 'capture');
+    context.mock.timers.tick(5_000);
+    await assert.rejects(
+      capturePromise,
+      (error: unknown) => (
+        error instanceof AntikyCliError
+        && error.code === 'ANTIKY_ACTION_TIMEOUT'
+      ),
+    );
+  } finally {
+    broker.stop();
+    await rm(rootDirectory, { recursive: true, force: true });
   }
 });

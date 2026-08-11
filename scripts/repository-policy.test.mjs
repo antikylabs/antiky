@@ -25,10 +25,14 @@ test('repository-level scripts stay within the owned allowlist', async () => {
   const tracked = await git(['ls-files', 'scripts']);
   assert.deepEqual(tracked.split('\n'), [
     'scripts/dev.mjs',
+    'scripts/frame-stats.mjs',
+    'scripts/frame-stats.test.mjs',
     'scripts/patch-brometal.mjs',
     'scripts/port-release.mjs',
     'scripts/port-release.test.mjs',
     'scripts/repository-policy.test.mjs',
+    'scripts/shoot-demos.mjs',
+    'scripts/shoot-demos.test.mjs',
   ]);
 });
 
@@ -38,6 +42,7 @@ test('root package commands stay within the cross-workspace allowlist', async ()
     'antiky',
     'build',
     'check',
+    'demos:shoot',
     'dev',
     'dev:demos',
     'dev:framework',

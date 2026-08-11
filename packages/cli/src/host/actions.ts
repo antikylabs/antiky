@@ -45,7 +45,21 @@ import {
   type CliDiagnosticSink,
 } from './diagnostics.ts';
 
+/**
+ * Budget for an action against an already-connected runtime: reload, pause, step, and the
+ * point-light commands. Ten seconds is generous for a round trip to a live browser.
+ */
 const DEFAULT_ACTION_TIMEOUT_MILLISECONDS = 10_000;
+
+/**
+ * Budget for a capture, which is a different shape of work.
+ *
+ * A managed capture can start a browser, load the page, download the project's assets,
+ * initialize WebGPU, render its warm-up frames, and encode a PNG. An asset-heavy demo spends
+ * most of that budget before it draws anything, so charging a capture to the interactive
+ * action budget above makes the capture tool unusable on exactly the projects that need it.
+ */
+const DEFAULT_CAPTURE_ACTION_TIMEOUT_MILLISECONDS = 90_000;
 export { MAX_CAPTURE_ENVELOPE_BYTES } from './capture-action.ts';
 
 type BrowserDevelopmentActionBase = Readonly<{
@@ -111,6 +125,7 @@ type DevelopmentActionBrokerOptions = Readonly<{
   readRuntimeContext(): CaptureRuntimeContext;
   evidenceStore?: EvidenceStore;
   timeoutMilliseconds?: number;
+  captureTimeoutMilliseconds?: number;
   now?: () => string;
   diagnosticSink?: CliDiagnosticSink;
 }>;
@@ -181,6 +196,11 @@ export function createDevelopmentActionBroker(
   options: DevelopmentActionBrokerOptions,
 ): DevelopmentActionBroker {
   const timeoutMilliseconds = options.timeoutMilliseconds ?? DEFAULT_ACTION_TIMEOUT_MILLISECONDS;
+  const captureTimeoutMilliseconds = options.captureTimeoutMilliseconds
+    ?? DEFAULT_CAPTURE_ACTION_TIMEOUT_MILLISECONDS;
+  const budgetFor = (kind: BrowserDevelopmentAction['kind']): number => (
+    kind === 'capture' ? captureTimeoutMilliseconds : timeoutMilliseconds
+  );
   const now = options.now ?? (() => new Date().toISOString());
   const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
   let pending: PendingAction | null = null;
@@ -270,7 +290,7 @@ export function createDevelopmentActionBroker(
         if (!active || active.action.actionId !== actionId) return;
         reportAction(active, 'warning', 'ANTIKY_ACTION_TIMED_OUT');
         rejectPending(active, actionError('ANTIKY_ACTION_TIMEOUT', `${kind} action timed out.`));
-      }, timeoutMilliseconds);
+      }, budgetFor(kind));
       timer.unref();
       pending = {
         action,

@@ -1,0 +1,316 @@
+/**
+ * Capture every demo and record what it looks like, as numbers.
+ *
+ * This wraps the capture and inspection MCP the repository already ships. It does not drive a
+ * browser itself. The MCP owns the managed Chromium, the WebGPU flags, the canvas-only framing,
+ * and the private evidence store, and duplicating any of that here would create a second, weaker
+ * capture path that nobody maintains.
+ *
+ * The captured PNG is deliberately not committed. `.antiky/` is gitignored and evidence retention
+ * is scoped to a development session. The durable artifact is `visual-metrics.json` beside each
+ * demo, which is what the per-demo visual budget tests assert against.
+ *
+ * Demos are captured strictly one at a time. Every manifest binds 127.0.0.1:3010 for the game and
+ * :3011 for inspection, so two demos cannot run at once.
+ *
+ * Usage:
+ *   node scripts/shoot-demos.mjs [--demo <slug>] [--runs <n>] [--warm-up <n>]
+ */
+import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
+
+import { isUniformFrame, readFrameStats } from './frame-stats.mjs';
+
+const repositoryRoot = path.resolve(import.meta.dirname, '..');
+
+/**
+ * Every demo, with the manifest that owns its ports and viewport.
+ * `scripts/dev.mjs` carries the same set for its own purposes, and a test asserts the two agree
+ * with the manifests actually on disk.
+ */
+export const DEMOS = Object.freeze({
+  'antiky-town': 'packages/demos/antiky/antiky-town/antiky-town.antiky',
+  'combat-arena': 'packages/demos/antiky/combat-arena/combat-arena.antiky',
+  'point-light-expo': 'packages/demos/antiky/point-light-expo/point-light-expo.antiky',
+  'traversal-study': 'packages/demos/antiky/traversal-study/traversal-study.antiky',
+  'luminous-reef': 'packages/demos/brometal/luminous-reef/luminous-reef.antiky',
+  'shader-study': 'packages/demos/brometal/shader-study/shader-study.antiky',
+  'solar-forge': 'packages/demos/brometal/solar-forge/solar-forge.antiky',
+  'town-study': 'packages/demos/brometal/town-study/town-study.antiky',
+  'glass-garden': 'packages/demos/threejs/glass-garden/glass-garden.antiky',
+  'orbital-atlas': 'packages/demos/threejs/orbital-atlas/orbital-atlas.antiky',
+});
+
+/** Capture errors that mean "reality moved, read it again" rather than "this failed". */
+const RETRYABLE_CAPTURE_CODES = new Set([
+  'CAPTURE_BUILD_STALE',
+  'CAPTURE_RUNTIME_STALE',
+  'CAPTURE_DIMENSIONS_MISMATCH',
+]);
+
+const MAX_FENCE_ATTEMPTS = 4;
+
+export function resolveDemo(slug) {
+  const manifest = DEMOS[slug];
+  if (manifest === undefined) {
+    throw new Error(`Unknown demo "${slug}". Known demos: ${Object.keys(DEMOS).sort().join(', ')}`);
+  }
+  return { slug, manifest, directory: path.dirname(manifest) };
+}
+
+/**
+ * Build the fenced `capture_frame` input.
+ *
+ * The target must equal the manifest viewport reported by `get_capture_capabilities`, and the
+ * device scale factor must be 1. Asking for the configured size at a scale factor of 2 is rejected
+ * with CAPTURE_DIMENSIONS_MISMATCH even though the result is inside the stated maximums.
+ */
+export function buildCaptureInput({ build, runtime, capabilities, warmUpFrames, idempotencyKey }) {
+  return {
+    schemaVersion: 3,
+    expected: {
+      developmentSessionId: build.developmentSessionId,
+      acceptedBuildRevision: build.acceptedBuildRevision,
+      currentRuntimeInstanceId: runtime.observation?.runtimeInstanceId ?? null,
+    },
+    runtimePolicy: 'managed-only',
+    target: {
+      width: capabilities.target.configuredWidth,
+      height: capabilities.target.configuredHeight,
+      deviceScaleFactor: 1,
+    },
+    warmUpFrames,
+    idempotencyKey,
+  };
+}
+
+/**
+ * Where the evidence store writes a captured artifact.
+ *
+ * Every component comes from identities the capture response already returned, so this reads the
+ * documented layout rather than guessing at a filename.
+ */
+export function evidencePngPath({ demoDirectory, developmentSessionId, evidenceId, artifactId }) {
+  const sessionKey = createHash('sha256').update(developmentSessionId).digest('hex');
+  return path.join(demoDirectory, '.antiky', 'evidence', sessionKey, evidenceId, `${artifactId}.png`);
+}
+
+/** The committed record of what a demo looked like on a given run. */
+export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames }) {
+  return {
+    schemaVersion: 1,
+    demo: slug,
+    capturedAt,
+    warmUpFrames,
+    frame: { width: stats.width, height: stats.height },
+    luminance: {
+      mean: Number(stats.meanLuminance.toFixed(6)),
+      p05: Number(stats.luminanceP05.toFixed(6)),
+      p50: Number(stats.luminanceP50.toFixed(6)),
+      p95: Number(stats.luminanceP95.toFixed(6)),
+      spread: Number(stats.luminanceSpread.toFixed(6)),
+    },
+    clipping: {
+      high: Number(stats.clippedHigh.toFixed(6)),
+      low: Number(stats.clippedLow.toFixed(6)),
+    },
+    saturation: { mean: Number(stats.meanSaturation.toFixed(6)) },
+  };
+}
+
+/**
+ * Invoke the CLI directly rather than through `npm run antiky`.
+ *
+ * npm echoes the resolved command line before running it, and a tool call carries its input as a
+ * JSON argument. That echo lands on stdout ahead of the response and contains braces, so a reader
+ * that scans for the first `{` parses the *input* it just sent. Skipping the npm wrapper removes
+ * the ambiguity rather than trying to out-parse it.
+ */
+function runAntikyTool(name, input, manifest) {
+  return new Promise((resolve, reject) => {
+    const args = [
+      '--experimental-strip-types',
+      '--experimental-transform-types',
+      'packages/cli/src/bin.ts',
+      'tool',
+      name,
+    ];
+    if (input !== undefined) args.push(JSON.stringify(input));
+    args.push('--project', manifest);
+    const child = spawn(process.execPath, args, { cwd: repositoryRoot });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.on('error', reject);
+    child.on('close', () => {
+      const start = stdout.indexOf('{');
+      if (start < 0) {
+        reject(new Error(`${name} produced no JSON. stderr: ${stderr.trim().slice(0, 400)}`));
+        return;
+      }
+      try {
+        resolve(JSON.parse(stdout.slice(start)));
+      } catch (cause) {
+        reject(new Error(`${name} produced unparsable JSON: ${cause.message}`));
+      }
+    });
+  });
+}
+
+async function waitForGameServer(url, timeoutMilliseconds = 120_000) {
+  const deadline = Date.now() + timeoutMilliseconds;
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(2_000) });
+      if (response.ok) return;
+    } catch {
+      // The dev server is not listening yet.
+    }
+    await delay(500);
+  }
+  throw new Error(`The dev server at ${url} did not start within ${timeoutMilliseconds}ms.`);
+}
+
+async function captureWithFence({ manifest, warmUpFrames, idempotencyKey }) {
+  for (let attempt = 1; attempt <= MAX_FENCE_ATTEMPTS; attempt += 1) {
+    const build = await runAntikyTool('get_latest_build', undefined, manifest);
+    const runtime = await runAntikyTool('get_runtime_status', undefined, manifest);
+    const capabilities = await runAntikyTool('get_capture_capabilities', undefined, manifest);
+    if (capabilities.error !== undefined) {
+      throw new Error(
+        `get_capture_capabilities failed: ${capabilities.error.code} — ${capabilities.error.message}`,
+      );
+    }
+    // The status is one of 'unknown-until-launch', 'available' or 'unavailable'. Before a managed
+    // browser has ever started in this session it is 'unknown-until-launch', which is the normal
+    // state for a first capture and must not be treated as a failure. Only a decided 'unavailable'
+    // is worth stopping for, because the capture cannot succeed.
+    if (capabilities.webGpu?.status === 'unavailable') {
+      throw new Error(
+        `WebGPU is unavailable for capture: ${capabilities.webGpu.unavailableReason ?? 'no reason given'}`,
+      );
+    }
+    if (capabilities.managedRuntime?.available === false) {
+      throw new Error(
+        `The managed capture runtime is unavailable: ${capabilities.managedRuntime.unavailableReason ?? 'no reason given'}`,
+      );
+    }
+    const input = buildCaptureInput({
+      build,
+      runtime,
+      capabilities,
+      warmUpFrames,
+      idempotencyKey: `${idempotencyKey}-${attempt}`,
+    });
+    const result = await runAntikyTool('capture_frame', input, manifest);
+    if (result.error === undefined) return { result, build };
+    if (!RETRYABLE_CAPTURE_CODES.has(result.error.code) || attempt === MAX_FENCE_ATTEMPTS) {
+      throw new Error(`capture_frame failed: ${result.error.code} — ${result.error.message}`);
+    }
+    // The managed browser attaching is itself what advances the build revision, so a first
+    // call built from a cold read reliably loses this race once.
+  }
+  throw new Error('capture_frame did not settle within the retry budget.');
+}
+
+async function shootDemo(slug, { warmUpFrames, runs }) {
+  const { manifest, directory } = resolveDemo(slug);
+  const demoDirectory = path.join(repositoryRoot, directory);
+  const server = spawn('npm', ['run', 'antiky', '--', 'dev', '--project', manifest], {
+    cwd: repositoryRoot,
+    stdio: 'ignore',
+  });
+
+  try {
+    await waitForGameServer('http://127.0.0.1:3010/');
+    await delay(2_000);
+
+    let sidecar;
+    for (let run = 1; run <= runs; run += 1) {
+      const { result, build } = await captureWithFence({
+        manifest,
+        warmUpFrames,
+        idempotencyKey: `shoot-${slug}-run-${run}`,
+      });
+      const pngPath = evidencePngPath({
+        demoDirectory,
+        developmentSessionId: build.developmentSessionId,
+        evidenceId: result.artifact.evidenceId,
+        artifactId: result.artifact.artifactId,
+      });
+      if (!existsSync(pngPath)) {
+        throw new Error(`The capture reported success but no artifact exists at ${pngPath}.`);
+      }
+      if (await isUniformFrame(pngPath)) {
+        throw new Error('The captured frame is a single flat colour, which means nothing rendered.');
+      }
+      const stats = await readFrameStats(pngPath);
+      sidecar = buildMetricsSidecar({
+        slug,
+        stats,
+        capturedAt: result.artifact.createdAt,
+        warmUpFrames,
+      });
+      process.stdout.write(
+        `  run ${run}/${runs}: p05 ${sidecar.luminance.p05.toFixed(3)}`
+        + ` p95 ${sidecar.luminance.p95.toFixed(3)}`
+        + ` spread ${sidecar.luminance.spread.toFixed(3)}\n`,
+      );
+    }
+
+    const sidecarPath = path.join(demoDirectory, 'visual-metrics.json');
+    await mkdir(path.dirname(sidecarPath), { recursive: true });
+    await writeFile(sidecarPath, `${JSON.stringify(sidecar, null, 2)}\n`);
+    return { slug, ok: true, sidecarPath };
+  } catch (cause) {
+    return { slug, ok: false, reason: cause.message };
+  } finally {
+    server.kill('SIGTERM');
+    // The dev server owns 3010 and 3011. The next demo cannot bind them until it exits.
+    await delay(3_000);
+  }
+}
+
+function parseArguments(argv) {
+  const options = { demo: undefined, runs: 1, warmUpFrames: 60 };
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (argument === '--demo') options.demo = argv[index += 1];
+    else if (argument === '--runs') options.runs = Number(argv[index += 1]);
+    else if (argument === '--warm-up') options.warmUpFrames = Number(argv[index += 1]);
+    else throw new Error(`Unknown argument "${argument}".`);
+  }
+  if (!Number.isSafeInteger(options.runs) || options.runs < 1) {
+    throw new Error('--runs must be a positive integer.');
+  }
+  return options;
+}
+
+async function main() {
+  const options = parseArguments(process.argv.slice(2));
+  const slugs = options.demo === undefined ? Object.keys(DEMOS) : [resolveDemo(options.demo).slug];
+  const results = [];
+
+  for (const slug of slugs) {
+    process.stdout.write(`${slug}\n`);
+    const result = await shootDemo(slug, options);
+    results.push(result);
+    if (!result.ok) process.stdout.write(`  FAILED: ${result.reason}\n`);
+  }
+
+  const failures = results.filter((result) => !result.ok);
+  if (failures.length > 0) {
+    process.stderr.write(`\n${failures.length} demo(s) failed to capture:\n`);
+    for (const failure of failures) process.stderr.write(`  ${failure.slug}: ${failure.reason}\n`);
+    process.exitCode = 1;
+    return;
+  }
+  process.stdout.write(`\nCaptured ${results.length} demo(s).\n`);
+}
+
+if (process.argv[1] === import.meta.filename) await main();

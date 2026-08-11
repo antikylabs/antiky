@@ -10,7 +10,9 @@ const workspaces = {
 
 const demoProjects = {
   'antiky-town': 'packages/demos/antiky/antiky-town/antiky-town.antiky',
+  'combat-arena': 'packages/demos/antiky/combat-arena/combat-arena.antiky',
   'point-light-expo': 'packages/demos/antiky/point-light-expo/point-light-expo.antiky',
+  'traversal-study': 'packages/demos/antiky/traversal-study/traversal-study.antiky',
   'town-study': 'packages/demos/brometal/town-study/town-study.antiky',
   'shader-study': 'packages/demos/brometal/shader-study/shader-study.antiky',
   'solar-forge': 'packages/demos/brometal/solar-forge/solar-forge.antiky',
