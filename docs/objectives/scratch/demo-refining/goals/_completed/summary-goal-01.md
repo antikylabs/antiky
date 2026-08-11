@@ -10,7 +10,7 @@ Two items. Neither blocks starting goals 02, 03, 04 or 10.
 
 | # | What | Why it needs you | Blocks |
 |---|---|---|---|
-| 1 | **Approve or adjust the visual budget bounds.** They are in the four `packages/demos/antiky/*/tests/visual-budget.test.mjs` files. | The 13 currently-failing assertions are gated on numbers I chose, not on your art direction. They are deliberately reachable but not trivial. If a demo eventually lands a look you are happy with and its budget still fails, **the budget is wrong** — and it should be changed by you, not by the agent that is failing it. | Judging goals 06 and 07 as done |
+| 1 | **Approve or adjust the visual budget bounds.** They are in the four `packages/demos/antiky/*/tests/visual-budget.test.mjs` files. | The failing assertions are gated on a floor I chose (local contrast 8.5). It is defensible — `antiky-town` already clears it — but it is not your art direction. If a demo eventually lands a look you are happy with and its budget still fails, **the budget is wrong** — and it should be changed by you, not by the agent that is failing it. | Judging goals 06 and 07 as done |
 | 2 | ~~**Decide whether motion capture gets unblocked.**~~ **ANSWERED 2026-08-11: yes.** Motion capture is wanted as part of the inspection tooling. Research is in [`../../11-MOTION-INSPECTION-RESEARCH.md`](../../11-MOTION-INSPECTION-RESEARCH.md), and it becomes a goal of its own rather than being folded into goal 03. | — | Resolved |
 
 **No bug in this summary needs you.** All three found during the work were fixed inside the goal
@@ -78,7 +78,7 @@ double-counted through correlated metrics. Each of the 8 is now a distinct claim
 | `packages/cli/src/host/actions.ts` | Capture actions get their own budget, separate from the interactive action budget. |
 | `packages/cli/src/host/session.ts` | `captureActionTimeoutMilliseconds` threaded through session options. |
 | `packages/cli/tests/actions.test.ts` | Two regression tests for the budget split, written before the fix. |
-| `scripts/frame-stats.mjs` + test | Luminance percentiles, clipping, saturation, named probes. GPU-free. |
+| `scripts/frame-stats.mjs` + test | Local contrast in CIE L\*, luminance percentiles, blown/crushed fractions, luminance-weighted saturation, named probes. GPU-free, 13 tests. |
 | `scripts/shoot-demos.mjs` + test | Drives the capture MCP, serially, with the fence-retry sequence. |
 | `scripts/dev.mjs` | `combat-arena` and `traversal-study` added; they could not be started before. |
 | `scripts/repository-policy.test.mjs` | Allowlists updated; the dead published-skills test removed. |
@@ -89,16 +89,18 @@ double-counted through correlated metrics. Each of the 8 is now a distinct claim
 ## Two test suites, on purpose
 
 - **`npm test` is green** and stays the regression gate.
-- **`npm run demos:verify` is red** — 8 pass, 13 fail — and is the target tracker.
+- **`npm run demos:verify` is red** — 9 pass, 8 fail — and is the target tracker.
 
 The budgets and invariants encode defects that goals 03, 04, 06 and 07 remove. They must fail now,
 or they measure nothing. Putting them in `npm test` would make the regression gate permanently red
 and therefore useless, so they live in their own command. Neither is picked up by the demo
 workspaces' `tests/*.test.ts` globs, which is why `npm test` stays clean.
 
-The 13 failures are specific: **spread and highlights fail on all four antiky demos; clipping and
-saturation already pass.** That is a precise statement of what is wrong — value structure, not
-colour and not exposure.
+The 8 failures are specific and non-overlapping: **three demos fail local contrast**
+(`traversal-study` 0.00, `point-light-expo` 2.97, `combat-arena` 5.47 against a floor of 8.5), and
+**five pipeline invariants fail**. No demo fails on clipping. `antiky-town` passes its budget. That
+is a precise statement of what is wrong — surfaces are not modelled by light — rather than the
+earlier claim, which was mostly restating that the frames are dark.
 
 ## Evidence
 
