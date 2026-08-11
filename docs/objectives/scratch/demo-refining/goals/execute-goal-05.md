@@ -1,0 +1,282 @@
+# Execute goal 05: give the existing assets real materials
+
+## Prerequisites
+
+Complete [execute goal 01](execute-goal-01.md) first. Every acceptance criterion below except the
+static-source ones is measured from a captured frame with `npm run demos:shoot`, the frame
+statistics library and the named probe rectangles goal 01 delivers.
+
+Complete [execute goal 04](execute-goal-04.md) as well. It restores the UVs and normal maps this
+goal consumes, and item 7 below extends the material-ID work its scripts do. Work on surfaces that
+never had usable UVs — most of `traversal-study`, all of `combat-arena`'s Kenney arena — may begin
+while goal 04 is still in flight, provided the two never hold the same file.
+
+**This goal is parallel-safe against goals 02, 06 and 07** — the BroMetal patches and the per-demo
+HDR render pipeline. Items 1–9 of `../03-ART-DIRECTION-AND-VFX.md:939-962` need neither the HDR
+buffer nor a patched BroMetal, which is roughly 12 engineer-days of independently verifiable work
+available today. Do not serialise it behind the render work.
+
+## `/goal` objective
+
+Deliver items 1 through 9 of `../03-ART-DIRECTION-AND-VFX.md` — real material assignment on the
+assets already owned, via triplanar world-space projection, plus the lighting and VFX items that
+need nothing BroMetal lacks.
+
+This is the single largest untapped visual gain in the project. Triplanar projection derives texture
+coordinates from world position and surface normal and never reads `TEXCOORD_0`, so a 168-vertex
+Kenney block with five unique UVs can carry a full 2K PBR material set with zero mesh work, zero
+re-UV work and zero new assets. The catalog holds roughly 1,450 CC0 assets including 332 unused
+HDRIs and the Poly Haven PBR material sets named in `../03-ART-DIRECTION-AND-VFX.md:364-412`.
+
+### Correct the record while doing this
+
+`../subagent-reports/03-asset-pipeline-audit.md:334` put ~40% of the visual gap down to a genuine
+asset ceiling, reasoning that a Kenney block with five unique UVs cannot carry detail. That
+reasoning holds only if surface detail must arrive through the mesh's own UVs. It does not, and the
+figure steered the plan toward buying assets that are not needed. The revised split is **~35%
+rendering, ~25% self-inflicted pipeline damage, ~30% simply-absent material assignment (fixable on
+assets already owned), and ~10% genuine ceiling** — and that last 10% is silhouette and bevel
+quality, which no texture fixes. Kenney blocks have no chamfers and will never catch an edge
+highlight the way modelled geometry does. That is real, and it is worth about a tenth of the gap.
+
+**No new asset purchases or kit evaluations — KayKit, Poly Haven kits, Synty — until this goal
+completes.** There is no evidence yet that they are needed, and this goal is the measurement that
+would produce that evidence.
+
+### `antiky-town` is a fourth demo, and triplanar applies unevenly there
+
+`antiky-town` is in scope on the owner's instruction. It is the repository's only **2.3D** artifact
+and the largest Antiky demo — ~12,484 lines under `src/`, 13 shader pairs — and its art is
+atlas-and-sprite based rather than GLB-and-material based. Do not assume uniformity with the other
+three; §"Where triplanar fits in `antiky-town`" below draws the line surface by surface.
+
+It also already has what goals 06 and 07 are building elsewhere: offscreen render targets, five real
+depth-from-light shadow passes, a sky/ground ambient split (`uSkyColor`/`uGroundColor`,
+`src/town/index.ts:457-460`) and a single post-pass tone-map. That changes what this goal owes it —
+several items here are upgrades to terms that already exist rather than additions.
+
+**Effort.** Roughly 12 engineer-days for the original three demos, plus roughly 3 further days for
+`antiky-town`: items 1, 3, 4 and 6 carry real work across 13 shader pairs, items 2, 5, 7 and much of
+8–9 do not apply. Report it separately.
+
+## Required outcome
+
+When the work is complete, the repository must have:
+
+1. a tiling detail normal map, triplanar-projected at a high tile rate, blended over whatever base
+   normal exists, applied to every material shader that draws GLB geometry (item 1) — and in
+   `antiky-town`, to the voxel, prop, awning and water-feature shaders, which draw world-space
+   geometry and are the best triplanar case in the repository;
+2. contact shadows and ring decals that are textured, soft-edged billboards rather than hard
+   primitives (item 2, building on the unlit fix in [execute goal 03](execute-goal-03.md)).
+   `antiky-town` is exempt: it casts real shadows through five depth-from-light passes and has no
+   decal blobs to replace;
+3. an always-on rim/Fresnel term, cloth sheen on `traversal-study` fabric surfaces, and wrapped
+   diffuse on clouds and foliage — `fresnel()` ships at
+   `node_modules/brometal/dist/shader-functions/index.d.ts:42` and **zero demos call it** today
+   (item 3);
+4. SH-9 diffuse irradiance baked offline from one catalog HDRI per demo into nine `vec3` uniforms,
+   replacing the flat ambient constants (item 4). In `antiky-town` this replaces an existing
+   two-term sky/ground split (`src/town/index.ts:457-460`), not a flat constant — a smaller delta
+   than elsewhere, and the one demo where the before/after comparison is a fair test of whether
+   SH-9 is worth its bake step at all;
+5. a hue-shifting ramp LUT driving `traversal-study`'s lighting through `sampler3D` (item 5) — its
+   current three-step toon ramp spans 0.54→0.98, a 1.81:1 contrast ratio with no view-dependent
+   term at all, and is by itself a complete explanation for why the platformer looks flat;
+6. a triplanar PBR material path — albedo, normal, ARM — bound to real Poly Haven material sets on
+   the surfaces named in `../03-ART-DIRECTION-AND-VFX.md:356-362` (item 6);
+7. material-ID routing into the UV-V channel with a LUT lookup for the palette kits (item 7) —
+   `antiky-town` is exempt, its atlas already carries per-face material identity by design;
+8. textured soft billboards for every VFX program (item 8);
+9. VFX timing rebuilt on curves, snap, secondary elements and per-instance de-synchronisation
+   (item 9); and
+10. for `antiky-town`, a written surface-by-surface record of where triplanar was applied, where it
+    was rejected, and why — the section below is the starting position, and any departure from it
+    must be argued from the source.
+
+## In scope
+
+- **The per-demo material route from `../03-ART-DIRECTION-AND-VFX.md:356-362`, as written.**
+  `point-light-expo` keeps UVs on the hero Poly Haven scans and gains a triplanar normal basis;
+  `combat-arena` splits — the Quaternius ships keep their 1,521 authored UVs and gain a detail
+  normal and a Fresnel-weighted specular lobe, while the Kenney arena goes fully triplanar;
+  `traversal-study` goes fully triplanar onto fabric and cardboard materials, which is where the
+  technique pays most and where there is no authored UV information to destroy.
+- **Where triplanar fits in `antiky-town`, and where it does not.** This demo needs the line drawn
+  per surface, because the answer genuinely differs:
+
+  | Surface | Shader | Triplanar? | Why |
+  |---|---|---|---|
+  | Voxel town surfaces | `town-voxel` | **Detail normal yes, albedo no** | Axis-aligned box faces are the ideal triplanar case for a *tiling* detail normal. Albedo must keep its atlas UVs. |
+  | Props, awnings | `town-prop`, `town-awning` | Detail normal yes, albedo no | Same reasoning; the prop atlas carries authored placement. |
+  | Water, water features | `town-water`, `town-water-features` | Yes, for the flow/detail normal | World-space projection is the natural parameterisation for water anyway. |
+  | Foliage cards | `town-foliage` | **No** | Alpha-cut billboards with `uCutoff` 0.35. Triplanar on a card that always faces the camera swims. Wrapped diffuse (item 3) is the right treatment. |
+  | Actor sprites | `town-sprite` | **No** | Pixel-art sprite atlas at `filter: 'nearest'` (`src/town/index.ts:482`). Triplanar would destroy it outright. |
+
+  **The hard rule: never triplanar-project an atlas.** Triplanar ignores UVs, so projecting the
+  material, prop or vegetation atlas across world space would sample straight across tile
+  boundaries and composite unrelated tiles into every surface. Detail normals must come from a
+  separate tiling texture that is *not* an atlas. This is the single most likely way to get
+  `antiky-town` wrong, and it will look like noise rather than like a bug.
+- **Items that apply to `antiky-town` cleanly:** item 1 (detail normals, on the four world-geometry
+  shaders), item 3 (rim/Fresnel and wrapped diffuse — `fresnel()` is uncalled here too, and the
+  foliage cards are exactly what wrapped diffuse is for), item 4 (SH-9 upgrading the existing
+  sky/ground split), and item 6's normal and roughness halves where a tiling material can sit
+  alongside the atlas albedo.
+- **Items that do not apply to `antiky-town`:** item 2 (real shadows already), item 5 (the ramp LUT
+  is scoped to `traversal-study`), item 7 (atlas already encodes material identity). For items 8
+  and 9, assess what VFX the demo actually has before committing — none of the audit documents
+  examined it, so there is no verified VFX inventory to work from, and the honest first step is to
+  produce one.
+  **`antiky-town` is the fourth demo and the exception that must be reasoned about, not assumed.**
+  Its art is atlas-and-sprite based (`assets/textures/town-*-atlas-*.png` plus JSON) rather than
+  per-model GLB, and it is the repository's only 2.3D artifact. Blanket triplanar would fight its
+  authored atlas UVs, which are real information and must not be destroyed the way
+  `normalize-quaternius.mjs` destroyed Quaternius's. The likely route is a tiling **detail normal
+  and roughness** in world space over the existing atlas albedo — surface relief without touching
+  UV assignment — plus material response on its voxel surfaces. Establish this by inspection and
+  state where triplanar applies and where it does not, rather than forcing uniformity across four
+  demos with three different art pipelines.
+- **Detail normals first.** One 512² tiling detail normal at a ~4-unit tile rate on everything is
+  10% of the effort for a large fraction of the "these are flat" read. Land it before any
+  per-material PBR assignment.
+- **Procedural world-space trim** for `combat-arena` in place of a textbook trim sheet: bands
+  derived from `vWorld.y` multiplied into roughness and AO. A real trim sheet needs a second UV
+  channel the loader does not read (`models/glb.js:153-181`) and days of Blender re-UV work.
+- **Catalog material intake**, pulled forward from item 12 only as far as items 6 and 7 require:
+  install the material slugs named in `../03-ART-DIRECTION-AND-VFX.md:364-412`, all four maps,
+  hash-verified through the installer's existing MD5 path
+  (`packages/asset-catalog/src/node/install.ts:45-63`), and record the receipts in each demo's
+  `assets/antiky-assets.json`.
+- **One HDRI per demo** for the SH bake — `dikhololo-night` or `moonless-golf` for
+  `point-light-expo`, `blue-photo-studio` or `neon-photostudio` for `combat-arena`,
+  `kloofendal-48d-partly-cloudy-puresky` for `traversal-study`. The bake is an offline Node script
+  emitting a TypeScript constant of 27 floats; the runtime cost is nine multiply-adds and no texture
+  fetch.
+- Regenerating every touched `*.shader.gen.ts`.
+
+## Required tests and evidence
+
+Use the acceptance criteria already authored in `../03-ART-DIRECTION-AND-VFX.md`. They split into
+three kinds, which is what makes this goal parallelisable internally.
+
+**Every "today it measures X" figure below comes from the audit, which examined three demos and not
+`antiky-town`.** Before applying any criterion to that demo, measure its baseline and record it.
+Where a criterion turns out to be inapplicable there — AC-M2 and AC-L1 are the obvious candidates —
+record that with the reason instead of forcing a number. Do not carry a three-demo baseline onto a
+fourth demo it was never measured against.
+
+**Static-source tests, no rendering:**
+
+- **AC-M3** (`:347`) — every material shader that draws `parseGlb` geometry declares a `sampler2D`
+  whose name matches `/[Nn]ormal/` and references it in the fragment body. Today this passes for
+  zero shaders in all three demos.
+- **AC-M2** (`:310`) — for every Kenney GLB the asset script processes, the emitted `TEXCOORD_0`
+  contains at least two distinct V values, and every V maps to a declared material ID in the LUT.
+- **AC-L1** (`:443`) — the authored ramp texture measured as data: brightest-to-darkest column
+  luminance ratio at least 6:1 (today 1.81:1), and hue shifting at least 20° between them.
+- **AC-V3** (`:797`) — no `*.shader.ts` applies a `sin`/`cos` of `uTime` to an output alpha without
+  a per-instance frequency term. `arena-glow.shader.ts:51` and `traversal-glow.shader.ts:49` both
+  fail today: they phase-offset per instance but share one frequency, which is the beat problem.
+- **AC-V4** (`:802`) — every VFX program declares and samples at least one `sampler2D`. Today zero
+  of the three glow shaders do.
+
+**Presentation-layer test, no rendering:**
+
+- **AC-V2** (`:790`) — drive one impact event through the projection code and record emitted
+  instance values per frame. Peak scale within 3 frames; alpha at frame 10 at most 25% of peak;
+  Pearson correlation between the scale and alpha curves under 0.9; at least two distinct elements
+  with lifetimes differing by at least 1.5×. `combat-arena/tests/presentation.test.ts:62` is the
+  existing precedent for this style of test.
+
+**Frame-capture tests, using named probe rectangles stored in the test files:**
+
+- **AC-M1** (`:263`) — three authored ROIs on large flat surfaces per demo; per-pixel luminance
+  standard deviation at least 0.020 on a 0–1 scale. All three measure below 0.004 today, meaning
+  those surfaces are literally constant.
+- **AC-M4** (`:406`) — each demo's `assets/antiky-assets.json` lists at least one Poly Haven texture
+  receipt with all four maps present and hash-verified.
+- **AC-L4** (`:533`) — on a convex prop, the hue difference between the most sky-facing and most
+  ground-facing lit face is at least 15° and their luminance ratio at least 1.8:1.
+  `point-light-expo` measures 1.8:1 and 0° today.
+- **AC-L6** (`:591`) — the 3-pixel band just inside the player silhouette is at least 1.6× the mean
+  luminance of the character's interior. It is ≈1.0 in all three demos today.
+- **AC-V1** (`:785`) — in a VFX-only capture, the per-pixel luminance gradient along every effect's
+  outer boundary is at most 0.10 per pixel, meaning every effect falls off over at least 10 pixels.
+  The ring VFX transition in 1–2 pixels today.
+
+Plus one `npm run demos:shoot` run per demo at the end with a committed `visual-metrics.json`
+sidecar, an explicit statement that the frames were looked at, and `npm test` green.
+
+### Blocked techniques — do not spend time discovering these
+
+- **Specular anti-aliasing is impossible in-shader.** It needs `dpdx`/`dpdy`/`fwidth`, absent from
+  `node_modules/brometal/dist/dsl/builtins.d.ts`. Adding normal maps and gloss is exactly what
+  creates the need for it, so plan for the substitute: bake normal-variance into roughness offline.
+- **Full IBL prefiltering is impossible.** There are no cubemaps (`dsl/types.d.ts:1` lists
+  `sampler2D` and `sampler3D` only), no explicit-LOD sampling (`compiler/emit-wgsl.js:266-270`
+  never takes LOD as a parameter), and no mips on render targets (`runtime/webgpu.js:748-757`). The
+  viable path is the diffuse half: SH-9 irradiance baked offline into nine `vec3` uniforms. The only
+  specular-IBL option is a `sampler3D` with roughness on W, which is `rgba8unorm` and therefore
+  **LDR** — acceptable for a stylised look, useless for a true HDR sun reflection.
+- **`texture()` inside a DSL helper silently samples LOD 0** (`emit-wgsl.js:125` sets
+  `stage:'helper'`, `:266-270` then picks `textureSampleLevel(…, 0.0)`). A triplanar helper would
+  crawl at distance. Inline every material `texture()` call in the `fragment()` body. This is the
+  highest-risk footgun in the whole material plan.
+- **Vec3 has no reordered swizzles** (`dsl/types.d.ts:13-24` exposes only `.xy`, `.xz`, `.yz`).
+  Build triplanar normal reorientations with explicit constructors.
+
+## Explicit non-goals
+
+- Do not buy, evaluate or download new asset kits. The revised split puts the genuine ceiling at
+  ~10% and this goal is what measures whether that holds.
+- Do not re-UV any kit in Blender.
+- Do not take items 10 through 18 of `../03-ART-DIRECTION-AND-VFX.md:939-958`. Items 10, 11, 13, 15
+  and 17 are chained to the HDR target and belong after the render-pipeline goals; items 12, 14, 16
+  and 18 are deliberately deferred beyond the catalog intake this goal pulls forward.
+- Do not add an HDR render target, a shadow map, bloom, tone-mapping changes or a colour grade, and
+  do not apply the BroMetal patches. Nothing in items 1–9 needs them.
+- Do not chase specular IBL through a `sampler3D` before the diffuse SH and planar reflection work.
+- Do not delete the scar-tissue knobs — they are gated on the colour fix, which this goal does not
+  own.
+- Do not change simulation, input or encounter code.
+- Do not triplanar-project any texture atlas, and do not apply triplanar to `antiky-town`'s foliage
+  cards or actor sprites. Do not raise the actor atlas off `filter: 'nearest'`.
+- Do not rebuild `antiky-town`'s shadow, ambient or post passes to look like the ones goals 06 and
+  07 are writing for the other demos. Its versions predate them and work.
+
+## Engineering constraints
+
+- `packages/demos/antiky/antiky-town` is **in scope**, like every other demo, on the owner's
+  instruction — and it is the one where uniformity is the trap. It is 2.3D, atlas-based, and already
+  holds render targets, five shadow passes and a single post tone-map. Treat "this item does not
+  apply here" as a legitimate and expected outcome, backed by a citation.
+- Demos hand-roll rendering per demo until the `BroMetalRenderDriver` exists. **Do not extract a
+  shared render package.** The triplanar sampling block will be written up to four times, and that
+  is correct — converging implementations are the evidence a future framework slice needs, not a
+  reason to abstract now. The pipeline-invariant tests keep the copies honest.
+- Tests are required for every code change. When fixing a reported bug, write the regression test
+  first, watch it fail, then fix.
+- Commit incrementally with short one-line messages. No coauthor tags. Installed material sets are
+  large — commit assets separately from source so the source diff stays reviewable.
+- Capture PNGs are **not** committed. `.antiky/` is gitignored and `*.png` is LFS here. The
+  committed artifact is the metrics sidecar.
+- Preserve unrelated dirty worktree changes; several `traversal-study` and `packages/website` files
+  are already modified.
+- Every visual change ends with a fresh capture that is actually looked at.
+- Watch the cost honestly: albedo + normal + ARM triplanar is nine `texture()` calls per fragment.
+  That is comfortable at 1600×900 with these scene complexities. Measure it with
+  `antiky tool get_render_stats` rather than assuming.
+
+## Completion definition
+
+The goal is complete when all ten required outcomes are landed, every acceptance criterion named
+above passes on the demos it applies to, the material and HDRI receipts are hash-verified in each
+demo's `assets/antiky-assets.json`, `npm test` is green, and one post-change `visual-metrics.json`
+sidecar per demo — four demos now — is committed.
+
+The goal also produces one honest measurement for the owner: with materials assigned, how much of
+the visual gap remains, and is any part of it genuinely silhouette and topology. Report that number
+with the captures behind it. If it lands near the predicted ~10%, the no-new-assets decision holds;
+if it does not, that is the evidence a kit evaluation would need — and it is the owner's call, not
+the agent's.

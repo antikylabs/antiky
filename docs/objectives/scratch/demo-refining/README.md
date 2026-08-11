@@ -5,7 +5,10 @@ the shipped quality well short of the AAA-stylised targets they were commissione
 (League of Legends for the lighting expo, Rocket League for the arena, LittleBigPlanet for the
 platformer).
 
-`antiky-town` is out of scope and was not touched.
+**Scope update (2026-08-10): `antiky-town` is now in scope.** The audit documents below were
+written while it was excluded, so they say otherwise — the goal files in `goals/` are authoritative
+on scope. antiky-town gets the same treatment as the other demos, plus a facelift of its foliage
+(grass and trees) and water effects, which the owner has called out specifically.
 
 ## Read in this order
 

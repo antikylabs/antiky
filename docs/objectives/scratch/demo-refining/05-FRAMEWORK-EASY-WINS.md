@@ -6,7 +6,9 @@ easier in future?
 **Method:** a capability qualifies when it has been *independently re-implemented in three or more
 demos with the same shape*. Every claim below cites `file:line` and was verified directly. Counts
 are empirical, not suspected.
-**Scope:** `antiky-town/src` was not inspected, per instruction — it appears below only as a
+**Scope:** `antiky-town/src` was not inspected when this was written. **Superseded 2026-08-10:** it
+is now in scope, which strengthens several findings here — most of all the duplicated broadphase,
+where the real fix is now available and not just a guard test. It appears below only as a
 checksum comparison. Documentation only; no source was modified.
 
 ---

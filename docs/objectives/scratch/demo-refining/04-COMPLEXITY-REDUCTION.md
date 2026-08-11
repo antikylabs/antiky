@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-10
 **Scope:** `packages/demos/antiky/point-light-expo`, `combat-arena`, `traversal-study`.
-`antiky-town` was not read and is out of scope.
+`antiky-town` was not read for this document. **Superseded 2026-08-10:** it is now in scope, and
+`goals/execute-goal-09.md` extends this sweep to it. Findings here therefore under-count.
 **Rubric:** `docs/GOOD_ENGINEERING_H.md`.
 **Reads with:** `02-REMEDIATION-PLAN.md`, `subagent-reports/01-antiky-render-audit.md`.
 

@@ -1,7 +1,9 @@
 # Art Direction, Material Upgrade, and VFX
 
 **Date:** 2026-08-10
-**Scope:** `point-light-expo`, `combat-arena`, `traversal-study`. `antiky-town` is out of scope.
+**Scope:** `point-light-expo`, `combat-arena`, `traversal-study`. **Superseded 2026-08-10:**
+`antiky-town` is now in scope and was not analysed here. Its material, lighting, foliage and water
+work is specified in `goals/execute-goal-08.md`.
 **Reads with:** `00-VISUAL-DIAGNOSIS.md`, `02-REMEDIATION-PLAN.md`,
 `subagent-reports/01-antiky-render-audit.md`, `subagent-reports/02-brometal-capability-audit.md`,
 `subagent-reports/03-asset-pipeline-audit.md`.
