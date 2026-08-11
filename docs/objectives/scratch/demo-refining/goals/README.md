@@ -13,6 +13,20 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
    the evidence that each acceptance criterion was met, any owner decisions taken during the goal,
    and — most importantly — **what is still outstanding**. A summary that only lists successes is
    not a record, it is a press release.
+
+   **Every summary must carry an `## Action needed from the owner` section, and it comes first,
+   directly under the headline.** The owner should never have to read a summary to work out what is
+   on their plate. The rules:
+
+   - If nothing needs them, the section says exactly **"None."** Say it explicitly rather than
+     omitting the section, so its absence is never ambiguous.
+   - Each item states **what** is being asked, **why it cannot be decided by an agent**, and
+     whether it **blocks** a later goal or is merely open.
+   - **Every bug reported anywhere in the summary must say whether it was fixed.** A bug the agent
+     already fixed is not an action item and must not read like one. If it was not fixed, it goes
+     in this section with the reason.
+   - Everything in `Outstanding` must be classified as either *handled by goal N* or *needs the
+     owner*. Nothing may be left unassigned.
 3. Repoint any links to the moved file. Later goals reference earlier ones in their Prerequisites,
    so a move breaks links: `grep -rn "execute-goal-<num>"` and fix every hit.
 4. Mark the row Done in the sequence table below.

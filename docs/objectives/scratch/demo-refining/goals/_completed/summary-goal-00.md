@@ -4,6 +4,17 @@
 **Commit:** `288cd76` — *Supersede ADR 0006 with 0021 BroMetal render driver ownership*
 **Goal file:** [`execute-goal-00.md`](execute-goal-00.md)
 
+## Action needed from the owner
+
+One item. It does not block any later goal — ADR 0021 is placed, accepted, and usable today.
+
+| # | What | Why it needs you | Blocks |
+|---|---|---|---|
+| 1 | **Complete the ASD-STE100 Issue 9 audit of ADR 0021, and approve or reject four terms.** The terms are `graphics processing unit (GPU)`, `engineering effort`, `BroMetalRenderDriver`, `pre-1.0`, with reasoning in [`../../0021-FINAL-DRAFT-FOR-APPROVAL.md`](../../0021-FINAL-DRAFT-FOR-APPROVAL.md). | `docs/adr/AGENTS.md` forbids an agent claiming Issue 9 compliance without reading the official standard, which I did not. The hand checklist passes; the controlled-dictionary validation — the substantive half — was not done. Only a human with the standard can close this. | Nothing |
+
+**No bugs were found in this goal**, and no other item needs you. Everything else below is a record
+of what was placed and why.
+
 ## What changed
 
 | Artifact | Change |
@@ -67,6 +78,14 @@ No test was added. This goal changed records and copy, and `AGENTS.md` forbids t
 prose.
 
 ## Outstanding — carried forward
+
+Each item is either assigned to a later goal or listed in **Action needed** above.
+
+| Item | Disposition |
+|---|---|
+| Issue 9 conformance unverified; four terms unapproved | **Needs owner** — item 1 above |
+| ADR 0013 seed compliance gap, recorded not implemented | **Goal 11** implements it. No action. |
+| `studio/0007` clarification | **Done in this goal.** No action. |
 
 **ASD-STE100 Issue 9 conformance is unverified, and 0021 does not claim it.** `docs/adr/AGENTS.md`
 states that format, link, and sentence-length checks do not constitute compliance, and that an agent
