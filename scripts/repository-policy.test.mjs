@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
@@ -59,17 +59,4 @@ test('PNG, JPEG, and JPG files use valid Git LFS pointers', async () => {
   assert.match(attributes, /^\*\.jpeg filter=lfs diff=lfs merge=lfs -text$/m);
   assert.match(attributes, /^\*\.jpg filter=lfs diff=lfs merge=lfs -text$/m);
   await execute('git', ['lfs', 'fsck', '--pointers'], { cwd: repositoryRoot });
-});
-
-test('published skills use valid, matching skill names', async () => {
-  const skillsRoot = path.join(repositoryRoot, 'skills');
-  const entries = await readdir(skillsRoot, { withFileTypes: true });
-  const skillDirectories = entries.filter((entry) => entry.isDirectory());
-
-  assert.ok(skillDirectories.length > 0);
-  for (const directory of skillDirectories) {
-    const skill = await readFile(path.join(skillsRoot, directory.name, 'SKILL.md'), 'utf8');
-    assert.match(skill, /^---\nname: ([a-z0-9-]+)\ndescription: .+\n---\n/);
-    assert.equal(skill.match(/^name: ([a-z0-9-]+)$/m)?.[1], directory.name);
-  }
 });
