@@ -66,6 +66,7 @@ export default shader({
     uCameraPosition: 'vec3',
     uTex: 'sampler2D',
     uDetailNormal: 'sampler2D',
+    uKitMaterials: 'sampler3D',
     uTime: 'float',
   },
   varyings: {
@@ -93,7 +94,7 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uTex, uDetailNormal, uTime },
+    { uCameraPosition, uTex, uDetailNormal, uKitMaterials, uTime },
     { vWorld, vNormal, vUv, vTint, vParams },
   ) {
     const baseNormal = normalize(vNormal);
@@ -143,7 +144,15 @@ export default shader({
     const light = normalize(vec3(-0.44, 0.86, 0.42));
     const view = normalize(uCameraPosition.sub(vWorld));
     const diffuse = max(dot(normal, light), 0);
-    const rim = pow(1 - max(dot(normal, view), 0), 2.2);
+    // Roughness from the kit's own palette, addressed by the same UV the albedo uses: V picks the
+    // palette row, U picks the swatch. Before this every face of every arena piece took one
+    // roughness, so a painted panel and a bare grate scattered light identically.
+    //
+    // Sampled `nearest` — a table of discrete entries, where blending two swatches would invent a
+    // roughness belonging to neither.
+    const kitRoughness = texture(uKitMaterials, vec3(vUv.x, vUv.y, 0.5)).x;
+    // Rough scatters wide and weak; smooth keeps a tight bright edge.
+    const rim = pow(1 - max(dot(normal, view), 0), 2.2) * (1.25 - kitRoughness);
     const sampled = decodeSrgb(texture(uTex, vUv).xyz).mul(vTint);
     const fill = max(normal.y, 0) * 0.1;
     const pulse = 0.72 + sin(uTime * 5.2 + vWorld.x * 0.8 - vWorld.z * 0.55) * 0.28;

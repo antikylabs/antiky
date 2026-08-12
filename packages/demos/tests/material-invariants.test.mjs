@@ -237,19 +237,32 @@ test('AC-M2: every kit UV selects a swatch the material table declares', async (
    */
   const { parseGlb } = await import('brometal');
   const { readdir, readFile } = await import('node:fs/promises');
-  const { TRAVERSAL_KIT_MATERIALS, TRAVERSAL_KIT_GRID } = await import(
-    '../antiky/traversal-study/src/kit-materials.gen.ts'
-  );
-  const declared = new Map(
-    TRAVERSAL_KIT_MATERIALS.map((swatch) => [`${swatch.row}:${swatch.column}`, swatch]),
-  );
-
-  const kit = new URL('../antiky/traversal-study/assets/kenney/platformer-kit/', import.meta.url);
-  const files = (await readdir(kit)).filter((entry) => entry.endsWith('.glb'));
-  assert.ok(files.length >= 5, `expected the platformer kit, found ${files.length} models`);
+  // Both kits. A test scoped to one is exactly what stops noticing when a second arrives — which is
+  // the failure this directory has already been bitten by twice.
+  const kits = [
+    {
+      table: (await import('../antiky/traversal-study/src/kit-materials.gen.ts')),
+      prefix: 'TRAVERSAL',
+      url: new URL('../antiky/traversal-study/assets/kenney/platformer-kit/', import.meta.url),
+    },
+    {
+      table: (await import('../antiky/combat-arena/src/kit-materials.gen.ts')),
+      prefix: 'ARENA',
+      url: new URL('../antiky/combat-arena/assets/kenney/modular-space-kit/', import.meta.url),
+    },
+  ];
 
   const unmapped = new Set();
   let meshes = 0;
+  for (const kitEntry of kits) {
+  const TRAVERSAL_KIT_MATERIALS = kitEntry.table[`${kitEntry.prefix}_KIT_MATERIALS`];
+  const TRAVERSAL_KIT_GRID = kitEntry.table[`${kitEntry.prefix}_KIT_GRID`];
+  const declared = new Map(
+    TRAVERSAL_KIT_MATERIALS.map((swatch) => [`${swatch.row}:${swatch.column}`, swatch]),
+  );
+  const kit = kitEntry.url;
+  const files = (await readdir(kit)).filter((entry) => entry.endsWith('.glb'));
+  assert.ok(files.length >= 3, `${kitEntry.prefix}: expected a kit, found ${files.length} models`);
   for (const file of files) {
     const bytes = await readFile(new URL(file, kit));
     const model = parseGlb(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
@@ -268,6 +281,7 @@ test('AC-M2: every kit UV selects a swatch the material table declares', async (
       assert.ok(values.size >= 2, `${file}: only ${values.size} distinct V, so it carries no swatch variation`);
     }
   }
-  assert.ok(meshes >= 5, `expected to read real meshes, read ${meshes}`);
+  }
+  assert.ok(meshes >= 10, `expected to read real meshes across both kits, read ${meshes}`);
   assert.deepEqual([...unmapped], [], `UVs landing on swatches the table does not declare:\n  ${[...unmapped].join('\n  ')}`);
 });

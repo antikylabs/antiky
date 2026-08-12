@@ -9,6 +9,7 @@ import {
   type Renderer,
 } from 'brometal';
 
+import { createKitMaterialLookup } from './kit-materials.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
 import arenaModelShader from './shaders/arena-model.shader.gen.ts';
@@ -61,6 +62,7 @@ export type ArenaAssetDependencies = Readonly<{
    * and five uploads of the same 512² image is four wasted.
    */
   loadDetailNormal(renderer: Renderer): Promise<BroMetalTexture>;
+  createKitMaterialLookup(renderer: Renderer): BroMetalTexture;
 }>;
 
 const ARENA_ASSET_DEPENDENCIES: ArenaAssetDependencies = Object.freeze({
@@ -72,6 +74,7 @@ const ARENA_ASSET_DEPENDENCIES: ArenaAssetDependencies = Object.freeze({
   createTexture: (renderer, bitmap) => createTexture(renderer, bitmap, { flipY: false, anisotropy: 4 }),
   createProgram: (renderer) => createProgram(renderer, arenaModelShader),
   loadDetailNormal,
+  createKitMaterialLookup,
 });
 
 async function createModelBatch(
@@ -80,6 +83,7 @@ async function createModelBatch(
   capacity: number,
   dependencies: ArenaAssetDependencies,
   detailNormal: BroMetalTexture,
+  kitMaterials: BroMetalTexture,
 ): Promise<ModelBatch> {
   const mesh = model.meshes[0];
   if (mesh === undefined || mesh.normals === null || mesh.uvs === null || mesh.indices === null) {
@@ -106,6 +110,7 @@ async function createModelBatch(
     program.setIndices(mesh.indices);
     program.uniforms.uTex!.set(texture);
     program.uniforms.uDetailNormal!.set(detailNormal);
+    program.uniforms.uKitMaterials!.set(kitMaterials);
   } catch (cause: unknown) {
     rollbackResources(owned);
     throw cause;
@@ -184,11 +189,12 @@ export async function createArenaCatalogResources(
   const resources: { dispose(): void }[] = [];
   try {
     const detailNormal = registerResource(resources, await dependencies.loadDetailNormal(renderer));
-    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal));
-    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal));
-    const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies, detailNormal));
-    const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies, detailNormal));
-    const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies, detailNormal));
+    const kitMaterials = registerResource(resources, dependencies.createKitMaterialLookup(renderer));
+    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials));
+    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials));
+    const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies, detailNormal, kitMaterials));
+    const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies, detailNormal, kitMaterials));
+    const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies, detailNormal, kitMaterials));
 
     // Disposal covers everything the catalog owns; per-frame work is only the batches. Iterating
     // `resources` here would call `frame` on a texture.

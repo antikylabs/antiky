@@ -112,11 +112,21 @@ A workable shape once the rows are named:
   roughness is legible in a toon-shaded demo. `filter: 'nearest'` is deliberate — this is a table of
   discrete entries, and blending two swatches would invent a roughness belonging to neither.
 
-**Still to do:** `combat-arena`. Generate the same table for the modular-space kit and have
-`arena-model` read it. The generator takes the kit path as an argument, so it is one command plus the
-same shader change — `node scripts/build-kit-materials.mjs assets/kenney/modular-space-kit combat-arena ARENA`.
-Extend the AC-M2 test to cover that kit at the same time; it is currently scoped to the platformer
-kit alone, and a second kit is exactly the sort of thing a one-kit test stops noticing.
+- **`combat-arena` reads it too.** Same generator, same shader change; its modular-space atlas is
+  also 512x512 on a 16x4 grid, with 62 of 64 swatches in use against the platformer's 46.
+
+  The grid was **verified rather than assumed**: sampling each cell at its centre and at two offset
+  points gives a worst deviation of 22/255, consistent with the vertical shade gradient inside each
+  swatch. A misaligned grid would cross into a neighbouring hue and show 100 or more. That check is
+  worth repeating for any further kit — a wrong grid produces a table that is silently wrong
+  everywhere rather than obviously wrong somewhere.
+
+- **AC-M2 covers both kits.** It was scoped to the platformer alone, which is exactly what stops a
+  test noticing a second kit; this directory has been bitten by that twice already.
+
+**This step is done.** What remains of item 7 belongs to art rather than code: the roughness rule is
+a convention over colour, and someone who knows how these kits are used may want different numbers.
+Change `roughnessFor` and re-run.
 
 ## Required outcome
 
