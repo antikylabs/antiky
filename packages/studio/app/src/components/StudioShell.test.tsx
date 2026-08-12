@@ -284,12 +284,59 @@ test('Settings overlays one still-mounted workspace instead of replacing its sur
 test('workspace chrome uses the compact website dimensions', () => {
   assert.match(
     shellStyles,
-    /\.studio-shell\s*\{[^}]*grid-template-rows:\s*50px 44px minmax\(0, 1fr\) 30px/s,
+    /\.studio-shell\s*\{[^}]*grid-template-rows:\s*50px minmax\(0, 1fr\) 30px/s,
   );
   assert.match(shellStyles, /\.panel-heading\s*\{[^}]*height:\s*36px/s);
   assert.match(shellStyles, /\.tabs\s*\{[^}]*min-height:\s*34px/s);
   assert.match(shellStyles, /\.control-actions button\s*\{[^}]*min-height:\s*28px/s);
   assert.doesNotMatch(shellStyles, /\.activity-panel \.panel-heading\s*\{[^}]*display:\s*none/s);
+});
+
+test('simulation controls share the title bar and status facts have one owner', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={studioActions}
+      context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+      development={development}
+      platform="native"
+      project={{
+        manifestPath: '/project/antiky-town.antiky',
+        projectRoot: '/project',
+        schemaVersion: 1,
+      }}
+    />,
+  );
+  const titlebar = html.match(/<header class="titlebar"[\s\S]*?<\/header>/)?.[0] ?? '';
+  const statusbar = html.match(/<footer class="statusbar">[\s\S]*?<\/footer>/)?.[0] ?? '';
+
+  assert.match(titlebar, /aria-label="Simulation controls"/);
+  assert.ok(
+    titlebar.indexOf('aria-label="Simulation controls"') < titlebar.indexOf('class="project-context"'),
+    'simulation controls must sit directly to the right of the logo',
+  );
+  assert.doesNotMatch(html, /class="controlbar"|class="session-summary"|class="state-chip"/);
+  assert.doesNotMatch(html, /class="panel-state">connected</);
+  assert.equal(
+    (html.match(/>Connected</g) ?? []).length,
+    1,
+    'the footer must be the only owner of the connected label',
+  );
+  assert.doesNotMatch(
+    titlebar,
+    /class="connection-state"|Development host connected|Step 42|runtime-studio-001|>paused|>Connected</i,
+  );
+  assert.match(statusbar, />Connected</);
+  assert.match(statusbar, />Step 42</);
+  assert.match(statusbar, />Runtime runtime-studio-001</);
+});
+
+test('the footer status dot stays bounded inside its status item', () => {
+  assert.match(shellStyles, /\.statusbar\s*>\s*span\s*\{[^}]*height:\s*100%/s);
+  assert.match(
+    shellStyles,
+    /\.statusbar \.status-dot\s*\{[^}]*width:\s*6px[^}]*height:\s*6px[^}]*padding:\s*0[^}]*border:\s*0/s,
+  );
+  assert.doesNotMatch(shellStyles, /\.statusbar span\s*\{/);
 });
 
 test('connected Studio renders the live game and every semantic inspection surface', () => {
@@ -341,10 +388,6 @@ test('the live game can enter and leave fullscreen without unmounting its frame'
   );
 
   assert.match(html, /<button[^>]*aria-label="Enter game fullscreen"/);
-  assert.ok(
-    html.indexOf('aria-label="Enter game fullscreen"') < html.indexOf('>connected</span>'),
-    'the fullscreen action must remain visible before the lower-priority connection label',
-  );
   assert.equal((html.match(/<iframe/g) ?? []).length, 1);
   assert.match(studioShellSource, /getCurrentWindow\(\)/);
   assert.match(studioShellSource, /changeGameFullscreen/);
@@ -377,7 +420,7 @@ test('a deliberately stopped game has one clear recovery action and no retained 
     />,
   );
 
-  assert.match(html, /Development host stopped/);
+  assert.match(html, /<footer class="statusbar">[\s\S]*>Stopped</);
   assert.match(html, /Game stopped\. Restart when you are ready\./);
   assert.match(html, /<button[^>]*>Restart game<\/button>/);
   assert.match(html, /<button[^>]*disabled=""[^>]*>Stop game<\/button>/);

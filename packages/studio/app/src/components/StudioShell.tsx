@@ -210,6 +210,53 @@ export function StudioShell({
           <img alt="Antiky Labs" src={brandUrl} />
           <span>Studio</span>
         </div>
+        <nav
+          aria-hidden={settingsOpen || undefined}
+          aria-label="Simulation controls"
+          className="titlebar-controls"
+          inert={settingsOpen}
+        >
+          <div className="control-actions">
+            {(development.issue || development.status === 'disconnected') && (
+              <button onClick={() => void actions.refresh()} type="button">Retry</button>
+            )}
+            <button
+              disabled={!controlsAvailable || mode !== 'running'}
+              onClick={() => void actions.pause()}
+              type="button"
+            ><ControlIcon>Ⅱ</ControlIcon>{pending === 'pause' ? 'Pausing' : 'Pause'}</button>
+            <button
+              disabled={!controlsAvailable || mode !== 'paused'}
+              onClick={() => void actions.resume()}
+              type="button"
+            ><ControlIcon>▶</ControlIcon>{pending === 'resume' ? 'Resuming' : 'Resume'}</button>
+            <button
+              disabled={!controlsAvailable || mode !== 'paused'}
+              onClick={() => void actions.step()}
+              type="button"
+            ><ControlIcon>↦</ControlIcon>{pending === 'step' ? 'Stepping' : 'Step'}</button>
+            {platform === 'native' && project && (
+              <>
+                <button
+                  disabled={!lifecycleControlsAvailable}
+                  onClick={() => void actions.restartGame()}
+                  type="button"
+                >{pendingLifecycle === 'restart' ? 'Restarting…' : 'Restart game'}</button>
+                <button
+                  disabled={!lifecycleControlsAvailable || development.status === 'stopped'}
+                  onClick={() => void actions.stopGame()}
+                  type="button"
+                >{pendingLifecycle === 'stop' ? 'Stopping…' : 'Stop game'}</button>
+              </>
+            )}
+          </div>
+        </nav>
+        {development.issue && (
+          <span className="titlebar-issue">{development.issue.message}</span>
+        )}
+        {projectIssue && (
+          <span className="titlebar-issue" role="alert">{projectIssue.message}</span>
+        )}
         <div className="project-context">
           <strong>{projectLabel}</strong>
         </div>
@@ -231,68 +278,7 @@ export function StudioShell({
             {settingsOpen ? 'Workspace' : 'Settings'}
           </button>
         )}
-        <div className="connection-state" aria-label={`Development host ${connectionLabel.toLowerCase()}`}>
-          <span className={`status-dot status-${development.status}`} />
-          {connectionLabel}
-        </div>
       </header>
-
-      <nav
-        aria-hidden={settingsOpen || undefined}
-        className="controlbar"
-        inert={settingsOpen}
-        aria-label="Simulation controls"
-      >
-        <span className="controlbar-label">Simulation</span>
-        <div className="control-actions">
-          {(development.issue || development.status === 'disconnected') && (
-            <button onClick={() => void actions.refresh()} type="button">Retry</button>
-          )}
-          <button
-            disabled={!controlsAvailable || mode !== 'running'}
-            onClick={() => void actions.pause()}
-            type="button"
-          ><ControlIcon>Ⅱ</ControlIcon>{pending === 'pause' ? 'Pausing' : 'Pause'}</button>
-          <button
-            disabled={!controlsAvailable || mode !== 'paused'}
-            onClick={() => void actions.resume()}
-            type="button"
-          ><ControlIcon>▶</ControlIcon>{pending === 'resume' ? 'Resuming' : 'Resume'}</button>
-          <button
-            disabled={!controlsAvailable || mode !== 'paused'}
-            onClick={() => void actions.step()}
-            type="button"
-          ><ControlIcon>↦</ControlIcon>{pending === 'step' ? 'Stepping' : 'Step'}</button>
-          {platform === 'native' && project && (
-            <>
-              <button
-                disabled={!lifecycleControlsAvailable}
-                onClick={() => void actions.restartGame()}
-                type="button"
-              >{pendingLifecycle === 'restart' ? 'Restarting…' : 'Restart game'}</button>
-              <button
-                disabled={!lifecycleControlsAvailable || development.status === 'stopped'}
-                onClick={() => void actions.stopGame()}
-                type="button"
-              >{pendingLifecycle === 'stop' ? 'Stopping…' : 'Stop game'}</button>
-            </>
-          )}
-        </div>
-        <div className="session-summary">
-          <span className="state-chip">{mode ?? 'No session'}</span>
-          <span>
-            {session
-              ? `Step ${session.clock.completedStepCount} · runtime ${inspection?.runtime.instanceId}`
-              : development.status === 'stopped'
-                ? 'Game stopped. Restart when you are ready.'
-                : recoveryMessage(platform)}
-          </span>
-          {development.issue && <span className="control-issue">{development.issue.message}</span>}
-          {projectIssue && (
-            <span className="project-open-issue" role="alert">{projectIssue.message}</span>
-          )}
-        </div>
-      </nav>
 
       <div
         aria-hidden={settingsOpen || undefined}
@@ -312,7 +298,6 @@ export function StudioShell({
                 title="Enter game fullscreen"
                 type="button"
               >Fullscreen</button>
-              <span className="panel-state">{current ? snapshot?.connection.state : connectionLabel}</span>
               {fullscreenIssue && <span className="fullscreen-issue" role="alert">{fullscreenIssue}</span>}
             </div>
           )}
@@ -344,8 +329,8 @@ export function StudioShell({
             ) : (
               <EmptyState title={development.status === 'stopped' ? 'Game stopped' : 'No live game'}>
                 {development.status === 'stopped'
-                  ? 'Restart the game to start a fresh managed session.'
-                  : 'The configured game appears here when the development host is available.'}
+                  ? 'Game stopped. Restart when you are ready.'
+                  : recoveryMessage(platform)}
               </EmptyState>
             )}
           </div>
@@ -427,6 +412,7 @@ export function StudioShell({
         <span><span className={`status-dot status-${development.status}`} />{connectionLabel}</span>
         <span>Build {snapshot?.build.revision ?? '—'}</span>
         <span>Runtime {inspection?.runtime.instanceId ?? '—'}</span>
+        <span>Step {session?.clock.completedStepCount ?? '—'}</span>
         <span>Frame {inspection?.measurements.runtime.frameCount ?? '—'}</span>
         <span>Draws {inspection?.measurements.render.drawCalls ?? '—'}</span>
       </footer>
