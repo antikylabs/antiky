@@ -52,14 +52,14 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **10** | Fix how the work is presented (Track F) | Not started | 01 | everything | ~3 days |
 | **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 | ~4 days |
 | **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
-| **13** | [Measure motion, so feel can be judged instead of guessed](execute-goal-13.md) | Not started | 01 | everything | ~4 days |
+| **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything | ~4 days |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up, in parallel:** 03, 04, 10, 13 (00, 01 and 02 are done). Then 05, then 06.
+**Next up, in parallel:** 03, 04, 10 (00, 01, 02 and 13 are done). Then 05, then 06.
 
-**Land goal 13's P1 before goal 03** if you want the camera-shake fix to be provable rather than
-judged by eye. It is roughly a day, needs no GPU, and makes acceptance criteria that are already
-written into goals 03 and 08 actually executable.
+**Goal 03 now has an instrument.** Goal 13 landed `scripts/motion-stats.mjs` and a camera-shake
+regression that fails against the current code with three named defects. Goal 03's job is to turn
+it green.
 
 Goal **05** is the largest single visual win and needs neither the HDR buffer nor the BroMetal
 patches — do not let it sit behind the render work.
