@@ -52,36 +52,6 @@ function practicalRadiance(
  * the town surface shader. There is intentionally no dilation, halo, keyline,
  * or front-facing white outline in this shader.
  */
-/**
- * sRGB to linear, applied when an albedo texture is sampled.
- *
- * BroMetal exposes no sRGB texture format — everything uploads as `rgba8unorm` — so a sampled albedo
- * texel arrives holding display-encoded values. Lighting maths on those is wrong: mid-tones come out
- * too dark, which then gets compensated by over-bright lights, and the error compounds through every
- * term downstream. This is the sample-side half of colour management; encoding once on output is the
- * other half and belongs to the post pass.
- *
- * Only albedo goes through here. Normal maps, ARM and roughness maps, shadow maps and scene targets
- * already hold linear data, and decoding those would corrupt them.
- *
- * The piecewise curve rather than the 2.2 approximation: they differ most below 0.04045, which is
- * exactly where these dark scenes spend their time.
- *
- * Declared in every shader that needs it rather than imported. The BroMetal MVP resolves only
- * "module-level helper functions declared above their first use" — an imported helper fails to
- * compile. `pipeline-invariants.test.mjs` asserts every copy is identical.
- */
-function channelToLinear(channel: number): number {
-  const low = channel / 12.92;
-  const high = pow((channel + 0.055) / 1.055, 2.4);
-  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
-  return mix(low, high, step(0.04045, channel));
-}
-
-function decodeSrgb(color: Vec3): Vec3 {
-  return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
-}
-
 export default shader({
   attributes: { aPosition: 'vec3', aUv: 'vec2', aShell: 'float' },
   instanceAttributes: {
@@ -206,7 +176,22 @@ export default shader({
     { vUv, vTint, vFacing, vWorld, vBillboardNormal, vDepth },
   ) {
     const encoded = texture(uAtlas, vUv);
-    const texel = vec4(decodeSrgb(encoded.xyz), encoded.w);
+    // Deliberately NOT decoded from sRGB, unlike every other albedo in this demo.
+    //
+    // The actor atlas is hand-painted pixel art with its shading already in the paint, not a linear
+    // reflectance map. Measured against the demo's other three atlases it sits far darker by design
+    // — median luminance 45 against 80 (material), 69 (prop) and 83 (vegetation), and 95th
+    // percentile 107 against 178-202. Those are an artist's chosen *appearance* values.
+    //
+    // Decoding them treats appearance as reflectance and crushes it: the atlas's most common colour,
+    // 23,25,35, is 0.09 in sRGB and 0.0089 linear, a tenfold cut. Through this shader's light
+    // — [1.42, 1.07, 0.99], red-dominant because `uFrontLight` is [1.28, 0.72, 0.38] — only red
+    // survives the tone-map with any strength, so every townsperson reads orange-brown and the darks
+    // go to near black. Mean output luminance across the atlas's commonest colours falls from 107 to
+    // 27. That was shipped once and the owner spotted it immediately.
+    //
+    // If the atlas is ever re-authored as true linear albedo, this decode should come back with it.
+    const texel = encoded;
     const alpha = keyedAlpha(texel, uColorKey, uUseColorKey) * vTint.w;
     if (alpha < uCutoff) discard();
 
