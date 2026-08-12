@@ -186,7 +186,6 @@ test('enemy roles project materially different silhouettes and combat-state emph
   assert.ok(warden.width > anchor.width);
   assert.ok(warden.width >= SHIP_PRESENTATION_SPANS.warden.width * 0.9);
   assert.ok(anchor.width >= SHIP_PRESENTATION_SPANS['shield-anchor'].width * 0.9);
-  assert.ok(warden.catalogParts > anchor.catalogParts);
   assert.ok(telegraph.emissive > recovery.emissive * 2);
 });
 

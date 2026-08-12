@@ -1,5 +1,6 @@
 import { createRenderer } from 'brometal';
 import {
+  FIXED_STEP_SECONDS,
   createEngineSession,
   createInspectionSnapshot,
   createSessionId,
@@ -14,6 +15,7 @@ import {
 import { createRelayInspectionModel } from './inspection.ts';
 import { createRelayInteractionBuffer } from './input-buffer.ts';
 import { EXPO_LIGHT_IDS, EXPO_WORLD_ID, createExpoLightService } from './lights.ts';
+import { createPresentedView } from './presented-view.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
 import { createRelayRenderer } from './renderer.ts';
 import {
@@ -29,6 +31,22 @@ function capturedMovement(context: Parameters<GameModuleEntry>[0]): RelayInput['
     ? Math.max(-1, Math.min(1, context.movement.z))
     : 0;
   return Object.freeze({ x, z, active: Math.hypot(x, z) > 0.01 });
+}
+
+/**
+ * How far to blend from the previous simulation state towards the current one.
+ *
+ * `session.advance` runs its whole batch of fixed steps with no per-step hook, so the state
+ * captured before it is one step old only when the frame ran exactly one step — the normal case at
+ * 60 Hz or above. A frame that ran several steps was already late, so snapping there is both
+ * correct and invisible. Zero steps needs no special case: nothing moved.
+ */
+function presentationAlpha(
+  completedSteps: number,
+  status: Readonly<{ clock: Readonly<{ accumulatorSeconds: number }> }>,
+): number {
+  if (completedSteps > 1) return 1;
+  return status.clock.accumulatorSeconds / FIXED_STEP_SECONDS;
 }
 
 const game: GameModuleEntry = async (context) => {
@@ -48,6 +66,7 @@ const game: GameModuleEntry = async (context) => {
     const powers: [number, number, number] = [0, 0, 0];
     const inspectionModel = createRelayInspectionModel(context.runtimeInstanceId);
     const simulation = createBlackoutRelaySimulation((event) => inspectionModel.record(event));
+    const presentedView = createPresentedView(simulation.view());
     const interaction = createRelayInteractionBuffer();
 
     const refreshPowers = (): void => {
@@ -128,7 +147,7 @@ const game: GameModuleEntry = async (context) => {
         interaction.capture(context.pointer.clicked === true);
         const result = session.step(expectedCompletedStepCount, semanticInput());
         interaction.consume(result.code === 'STEPPED' ? 1 : 0);
-        relayRenderer?.render(simulation.view(), powers, context.pointer);
+        relayRenderer?.render(presentedView.present(1), powers, context.pointer);
         return Object.freeze({ result, session: session.readStatus() });
       },
     });
@@ -143,9 +162,12 @@ const game: GameModuleEntry = async (context) => {
           : platformTimeSeconds - previousPlatformTime;
         previousPlatformTime = platformTimeSeconds;
         interaction.capture(context.pointer.clicked === true);
+        // Captured before the steps run, so the blend has a genuine previous state.
+        presentedView.capture();
         const result = session.advance(elapsed, semanticInput());
         interaction.consume(result.completedSteps);
-        relayRenderer?.render(simulation.view(), powers, context.pointer);
+        const alpha = presentationAlpha(result.completedSteps, session.readStatus());
+        relayRenderer?.render(presentedView.present(alpha), powers, context.pointer);
       },
       dispose(): void {
         if (disposed) return;

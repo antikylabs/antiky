@@ -3,7 +3,6 @@ import type { CombatSnapshot } from './combat-state.ts';
 import type { GlowBatch, SurfaceBatch } from './render-batches.ts';
 
 export const ARENA_STRUCTURE_INSTANCES = 25;
-export const ARENA_ENERGY_INSTANCES = 36;
 export const ARENA_ENVIRONMENT_LAYERS = 3;
 const STRUCTURE_LIGHT = [0.25, 0.27, 0.3] as const;
 const STRUCTURE_DARK = [0.105, 0.12, 0.14] as const;

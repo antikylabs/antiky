@@ -1,4 +1,9 @@
-import { createEngineSession, createInspectionSnapshot, createSessionId } from '@antiky/framework';
+import {
+  FIXED_STEP_SECONDS,
+  createEngineSession,
+  createInspectionSnapshot,
+  createSessionId,
+} from '@antiky/framework';
 import {
   createGameInspectionSnapshot,
   type GameInspectionPort,
@@ -11,7 +16,24 @@ import {
   createTraversalSessionInputCapture,
 } from './input-buffer.ts';
 import { createTraversalRenderer } from './renderer.ts';
+import { createPresentedView } from './presented-view.ts';
 import { createTraversalSimulation, type TraversalInput } from './simulation.ts';
+
+/**
+ * How far to blend from the previous simulation state towards the current one.
+ *
+ * `session.advance` runs its whole batch of fixed steps with no per-step hook, so the state
+ * captured before it is one step old only when the frame ran exactly one step — the normal case at
+ * 60 Hz or above. A frame that ran several steps was already late, so snapping there is both
+ * correct and invisible. Zero steps needs no special case: nothing moved.
+ */
+function presentationAlpha(
+  completedSteps: number,
+  status: Readonly<{ clock: Readonly<{ accumulatorSeconds: number }> }>,
+): number {
+  if (completedSteps > 1) return 1;
+  return status.clock.accumulatorSeconds / FIXED_STEP_SECONDS;
+}
 
 type MutableTraversalInput = {
   -readonly [Key in keyof Required<TraversalInput>]: Required<TraversalInput>[Key];
@@ -60,8 +82,11 @@ const game: GameModuleEntry = async (context) => {
       inputBuffer.capture(hostInput);
       return inputBuffer.read();
     };
-    const render = (deltaSeconds: number): void => {
-      presentation.render(simulation.view(), context.pointer, deltaSeconds);
+    const presentedView = createPresentedView(simulation.view());
+    // `alpha` defaults to 1, meaning "show the newest state exactly", which is what a tool-driven
+    // step wants. Only the real-time loop below presents a partial step.
+    const render = (deltaSeconds: number, alpha = 1): void => {
+      presentation.render(presentedView.present(alpha), context.pointer, deltaSeconds);
     };
 
     const inspection: GameInspectionPort = Object.freeze({
@@ -100,9 +125,11 @@ const game: GameModuleEntry = async (context) => {
           ? 0
           : Math.min(0.1, platformTimeSeconds - previousPlatformTime);
         previousPlatformTime = platformTimeSeconds;
+        // Captured before the steps run, so the blend has a genuine previous state.
+        presentedView.capture();
         const result = session.advance(elapsed, semanticInput());
         inputBuffer.consume(result.completedSteps);
-        render(elapsed);
+        render(elapsed, presentationAlpha(result.completedSteps, session.readStatus()));
       },
       dispose(): void {
         if (disposed) return;

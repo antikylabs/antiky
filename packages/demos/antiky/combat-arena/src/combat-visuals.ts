@@ -75,16 +75,14 @@ export function combatEscalationProfile(
 type RoleShape = Readonly<{
   width: number;
   length: number;
-  height: number;
-  catalogParts: number;
   hardpoints: number;
 }>;
 
 const ROLE_SHAPES: Readonly<Record<EnemyRole, RoleShape>> = Object.freeze({
-  rusher: Object.freeze({ width: 1.41, length: 2.19, height: 0.67, catalogParts: 2, hardpoints: 0 }),
-  gunner: Object.freeze({ width: 1.92, length: 2.01, height: 0.6, catalogParts: 3, hardpoints: 2 }),
-  'shield-anchor': Object.freeze({ width: 1.94, length: 2.6, height: 0.6, catalogParts: 4, hardpoints: 2 }),
-  warden: Object.freeze({ width: 4.81, length: 4.6, height: 0.78, catalogParts: 8, hardpoints: 4 }),
+  rusher: Object.freeze({ width: 1.41, length: 2.19, hardpoints: 0 }),
+  gunner: Object.freeze({ width: 1.92, length: 2.01, hardpoints: 2 }),
+  'shield-anchor': Object.freeze({ width: 1.94, length: 2.6, hardpoints: 2 }),
+  warden: Object.freeze({ width: 4.81, length: 4.6, hardpoints: 4 }),
 });
 
 function stateEmissive(state: EnemyState): number {

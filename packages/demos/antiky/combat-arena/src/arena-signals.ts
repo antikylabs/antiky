@@ -6,7 +6,6 @@ const WHITE: Vec3 = [0.82, 0.9, 1];
 const WARM: Vec3 = [1, 0.24, 0.07];
 const DARK: Vec3 = [0.055, 0.065, 0.075];
 type SignalOffsets = Readonly<{ gauge: number; ring: number }>;
-const DEFAULT_OFFSETS: SignalOffsets = Object.freeze({ gauge: 28, ring: 24 });
 
 function surface(
   gauges: SurfaceBatch,
@@ -98,7 +97,7 @@ export function setCombatSignals(
   gauges: SurfaceBatch,
   rings: GlowBatch,
   state: CombatSnapshot,
-  offsets: SignalOffsets = DEFAULT_OFFSETS,
+  offsets: SignalOffsets,
 ): void {
   const mode = combatSignalMode(state);
   if (mode === 'mark-then-dash') onboarding(gauges, rings, state.time, offsets);

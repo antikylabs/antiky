@@ -148,6 +148,8 @@ type ActorState = {
   walker?: TownWalker;
   progress: number;
   stride: number;
+  /** Interpolated between the last two fixed steps. See the note beside `advance` below. */
+  renderPosition: { x: number; y: number; z: number };
   tint: readonly [number, number, number];
   scale: number;
 };
@@ -709,6 +711,7 @@ async function createTownRuntime(
     motor: heroMotor,
     progress: 1 / world.heroPath.length,
     stride: 0,
+    renderPosition: { ...heroMotor.state.position },
     tint: [1.06, 1, 0.96],
     scale: mode === 'ambient' ? 2.96 : 3.1,
   };
@@ -737,6 +740,7 @@ async function createTownRuntime(
       walker,
       progress,
       stride: index * 1.7,
+      renderPosition: { ...motor.state.position },
       tint: npcTints[index]!,
       scale: 2.46 + (index % 2) * 0.1,
     };
@@ -800,10 +804,14 @@ async function createTownRuntime(
         const dx = target.x - npc.motor.state.position.x;
         const dz = target.z - npc.motor.state.position.z;
         const length = Math.hypot(dx, dz);
-        npc.motor.advance(dt, {
+        const npcResult = npc.motor.advance(dt, {
           x: length > 0.05 ? dx / length : 0,
           z: length > 0.05 ? dz / length : 0,
         });
+        // The motor already interpolates between its last two fixed steps. Discarding the result
+        // and drawing `state.position` instead is what made the townsfolk stair-step on a display
+        // running faster than the 60 Hz simulation.
+        npc.renderPosition = npcResult.renderPosition;
         const speed = Math.hypot(npc.motor.state.velocity.x, npc.motor.state.velocity.z);
         npc.stride += dt * (speed > 0.08 ? 6.8 : 1.2);
       }
@@ -815,9 +823,12 @@ async function createTownRuntime(
       const pose = cameraPose(mode, renderer.aspect);
       if (mode === 'interactive') {
         const offset = pose.offset!;
-        const desiredX = hero.motor.state.position.x + offset[0];
-        const desiredY = hero.motor.state.position.y + offset[1];
-        const desiredZ = hero.motor.state.position.z + offset[2];
+        // Follows the same interpolated position the hero sprite is drawn at. Following
+        // `state.position` instead left the camera stepping at 60 Hz while the sprite moved
+        // smoothly, so the hero jittered against the frame rather than sitting still in it.
+        const desiredX = heroRenderPosition.x + offset[0];
+        const desiredY = heroRenderPosition.y + offset[1];
+        const desiredZ = heroRenderPosition.z + offset[2];
         if (cameraPosition[0] === 0 && cameraPosition[1] === 0 && cameraPosition[2] === 0) {
           cameraPosition.set([desiredX, desiredY, desiredZ]);
         } else {
@@ -828,9 +839,9 @@ async function createTownRuntime(
         }
         camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
         camera.lookAt(
-          hero.motor.state.position.x - (pose.mobile ? 4.5 : 3.8),
-          hero.motor.state.position.y + (pose.mobile ? 2.5 : 2.8),
-          hero.motor.state.position.z - (pose.mobile ? 6.5 : 7.5),
+          heroRenderPosition.x - (pose.mobile ? 4.5 : 3.8),
+          heroRenderPosition.y + (pose.mobile ? 2.5 : 2.8),
+          heroRenderPosition.z - (pose.mobile ? 6.5 : 7.5),
         );
       } else {
         cameraPosition.set(pose.position!);
@@ -865,7 +876,7 @@ async function createTownRuntime(
         facingZ: heroFacing.z,
       });
       for (const npc of npcs) {
-        const root = npc.motor.state.position;
+        const root = npc.renderPosition;
         const facing = npc.motor.state.facing;
         const speed = Math.hypot(npc.motor.state.velocity.x, npc.motor.state.velocity.z);
         actorBatch.push({
@@ -1023,9 +1034,9 @@ async function createTownRuntime(
       texel[0] = 1 / scene.width;
       texel[1] = 1 / scene.height;
       const focusDistance = Math.hypot(
-        cameraPosition[0]! - hero.motor.state.position.x,
-        cameraPosition[1]! - (hero.motor.state.position.y + 1.05),
-        cameraPosition[2]! - hero.motor.state.position.z,
+        cameraPosition[0]! - heroRenderPosition.x,
+        cameraPosition[1]! - (heroRenderPosition.y + 1.05),
+        cameraPosition[2]! - heroRenderPosition.z,
       );
       const mobile = pose.mobile;
       postProgram.uniforms.uScene.set(scene.texture);
