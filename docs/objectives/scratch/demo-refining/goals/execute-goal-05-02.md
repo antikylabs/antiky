@@ -41,6 +41,30 @@ That makes this item much smaller than written, and differently shaped:
   to re-pack them from source or accept them as flat-shaded, and record which.
 - **Leave the Quaternius ships alone.** 1,217 distinct V over a 2048² albedo is authored work.
 
+## The V distribution, measured across each whole kit
+
+| kit | distinct V | range | first values |
+| --- | --- | --- | --- |
+| Kenney platformer (`traversal-study`) | **50** | 0.275 – 0.975 | 0.275 0.300 0.307 0.316 0.324 0.325 0.331 0.340 0.349 0.375 |
+| Kenney modular-space (`combat-arena`) | **33** | 0.005 – 0.975 | 0.005 0.065 0.068 0.077 0.091 0.110 0.132 0.155 0.245 0.525 |
+
+They cluster: tight groups (0.307–0.340) separated by gaps, which is a palette atlas addressed by
+row. The identity is real and it is already there.
+
+**What the LUT cannot be derived from is this table.** Knowing that a row sits at V≈0.32 does not say
+whether it is grass, metal or cloth — that needs someone to open
+`assets/kenney/*/…` alongside these numbers and name each row. That is an art judgement and it is the
+first task of this step, not a detail of it. Do not infer material properties from V ordering; the
+rows are laid out by hue, not by roughness.
+
+A workable shape once the rows are named:
+
+- A LUT constant per kit, mapping a V band to `{ name, roughness, metalness }`.
+- **A test that every observed V falls inside a declared band** — that is AC-M2's second half, and it
+  is what stops the LUT silently drifting from the art. The measurement above is reproducible: parse
+  every GLB in the kit and collect `TEXCOORD_0`'s V channel.
+- The model shaders reading roughness from the band rather than applying one value per mesh.
+
 ## Required outcome
 
 1. **An asset step that assigns material IDs** and writes them into `TEXCOORD_0`'s V channel for the
