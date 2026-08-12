@@ -81,6 +81,33 @@ the kit's colour toward grey exactly where its identity lives. And a dark materi
 compensated; plywood's diffuse is dark enough that multiplying it in cost about a stop of brightness
 before anything else was considered.
 
+### AC-M1, measured on `traversal-study` — and what it says about attribution
+
+Three ROIs on the built surfaces, luminance standard deviation, at 1280x720:
+
+| probe | rect | before the material | after |
+| --- | --- | --- | --- |
+| platform top, left | 410,405 120x40 | 0.0447 | 0.0385 |
+| platform side, left | 420,470 130x45 | 0.0633 | 0.0666 |
+| platform top, right | 1000,400 120x40 | **0.0154** | **0.0270** |
+
+**All three clear AC-M1's 0.020 floor — and two of them already did before item 6 touched
+anything.** The variance was put there by the detail normal (item 1) and the ramp (item 5). What the
+plywood added was the third probe, which crossed the threshold, and a slight *reduction* on the
+first — a material's own albedo can average down a surface that was already varying.
+
+Two things follow, and both matter more than the pass:
+
+- **AC-M1 does not attribute.** It measures whether a surface varies, not what made it vary, so
+  reaching 0.020 does not mean the material path is working. Measure with the material strength at
+  zero and at its intended value, as here, or the criterion will happily report success for a demo
+  whose material never bound.
+- **Record the ROIs in the test file**, which the criterion asks for and which does not exist yet.
+  That needs `shoot-demos.mjs` to pass probe rectangles into `readFrameStats` — it already accepts
+  them and `probeStats` already returns `luminanceStandardDeviation` — and to write the results into
+  `visual-metrics.json` so a budget test can assert on them without a live capture. That plumbing is
+  the last piece of making AC-M1 a gate rather than a measurement someone takes by hand.
+
 ### The original finding
 
 **This was the first task of this step, and it is not a material task.** Either the catalog generator
