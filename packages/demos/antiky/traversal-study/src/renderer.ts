@@ -192,6 +192,31 @@ function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity: numbe
   });
 }
 
+/**
+ * Filtering, decided by what the texture actually is rather than per call site.
+ *
+ * Two classes ship in this demo and they want opposite treatment:
+ *
+ * **Palette strips** — a row of solid swatches, one per source material. Quaternius' Ultimate
+ * Platformer pack is flat-shaded low-poly with no source texture at all, so its colour is baked into
+ * a strip this narrow: `cloud-large` is a single pixel because the model is a single colour. Linear
+ * filtering and anisotropy average adjacent swatches at every seam, which turns a two-colour model
+ * into a muddy gradient, and mips collapse the strip towards its own average. Nearest, no mips.
+ *
+ * **Real textures** — Kenney's platformer kit ships an authored 512x512 colormap with a genuine
+ * unwrap. Those want trilinear and anisotropy, or every surface seen at a grazing angle is
+ * simultaneously over-blurred across and aliased along.
+ *
+ * A palette is recognised by shape, not by filename: one texel tall and no wider than the number of
+ * materials any of these kits produce. The widest today is `relay-tower` at 7.
+ */
+const PALETTE_MAX_WIDTH = 16;
+
+function textureFiltering(width: number, height: number): { filter: 'smooth' | 'nearest'; anisotropy?: number } {
+  const palette = height === 1 && width <= PALETTE_MAX_WIDTH;
+  return palette ? { filter: 'nearest' } : { filter: 'smooth', anisotropy: 8 };
+}
+
 async function createCatalogBatch(
   renderer: Renderer,
   assetId: TraversalAssetId,
@@ -211,13 +236,9 @@ async function createCatalogBatch(
       new Uint8Array(ownedImageBuffer).set(image.data);
       const bitmap = await createImageBitmap(new Blob([ownedImageBuffer], { type: image.mimeType }));
       try {
-        // These are palette strips, not pictures: a handful of solid swatches in a row, one per
-        // material. Linear filtering and anisotropy average adjacent swatches together at every UV
-        // seam, which turns a two-colour model into a muddy gradient. Nearest keeps each swatch the
-        // colour it was authored as. Superseded by goal 04, which restores real UVs and textures.
         textures.push(disposal.adopt(createTexture(renderer, bitmap, {
           flipY: false,
-          filter: 'nearest',
+          ...textureFiltering(bitmap.width, bitmap.height),
         })));
       } finally {
         bitmap.close();

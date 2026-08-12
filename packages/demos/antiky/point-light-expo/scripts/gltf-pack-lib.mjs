@@ -1,3 +1,5 @@
+import { checkFidelity } from '../../../scripts/asset-fidelity-policy.mjs';
+
 function uriPaths(value, path = '', results = []) {
   if (Array.isArray(value)) {
     for (let index = 0; index < value.length; index += 1) {
@@ -93,6 +95,17 @@ export function packExternalGltfToGlb({
     return view;
   });
   const binaryChunk = Buffer.concat(binParts);
+  // The shared policy, enforced before anything is written. This is the check that would have caught
+  // `delete material.normalTexture`.
+  const fidelity = checkFidelity({
+    name: diffuseName,
+    attributes: Object.keys(selectedMesh.primitives[0].attributes),
+    sourceMaterialMaps: source.materials?.[0]?.normalTexture === undefined ? [] : ['normalTexture'],
+    packedMaterialMaps: ['normalTexture'],
+    materialCount: 1,
+    uniqueUvCount: Number.POSITIVE_INFINITY,
+  });
+  if (fidelity.length > 0) throw new Error(fidelity.join('\n'));
   const material = structuredClone(source.materials?.[0] ?? { pbrMetallicRoughness: {} });
   material.pbrMetallicRoughness ??= {};
   material.pbrMetallicRoughness.baseColorTexture = { index: 0 };

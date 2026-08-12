@@ -182,7 +182,10 @@ test('no material shader tone-maps, because tone-mapping belongs in one post pas
 test('no asset script discards the normal map it downloaded', async () => {
   const offenders = [];
   for (const script of await assetScripts()) {
-    if (/delete\s+\w+\.normalTexture/.test(script.text)) offenders.push(script.relative);
+    // Comments are stripped first: the fix for this defect is documented in the very scripts being
+    // scanned, and a comment describing the mistake is not the mistake.
+    const code = script.text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    if (/delete\s+\w+\.normalTexture/.test(code)) offenders.push(script.relative);
   }
   assert.deepEqual(
     offenders,
@@ -464,4 +467,133 @@ test('the decode matches the sRGB standard at its defining points', () => {
   for (const value of [0, 0.02, 0.18, 0.5, 0.75, 1]) {
     assert.ok(Math.abs(encode(decode(value)) - value) < within, `round trip failed at ${value}`);
   }
+});
+
+test('every GLB packing script enforces the shared fidelity policy', async () => {
+  const { SCRIPTED_DEMOS } = await import('../scripts/asset-fidelity-policy.mjs');
+
+  // Three scripts, three kits, one policy. They stay separate because they process genuinely
+  // different sources; what they must agree on is which attributes and material maps survive.
+  const enforcing = [];
+  for (const script of await assetScripts()) {
+    if (/checkFidelity\(/.test(script.text)) enforcing.push(script.relative);
+  }
+  assert.ok(
+    enforcing.length >= 2,
+    `expected the packing scripts to import the shared policy, found: ${enforcing.join(', ') || 'none'}`,
+  );
+
+  // antiky-town is excluded on purpose, and this asserts the exclusion is a decision rather than an
+  // oversight: it has no asset script at all, so there is nothing to hold to the policy.
+  assert.ok(!SCRIPTED_DEMOS.includes('antiky-town'));
+  const townScripts = (await assetScripts()).filter((script) => script.relative.includes('antiky-town'));
+  assert.deepEqual(townScripts, [], 'antiky-town grew an asset script; revisit its policy exclusion');
+});
+
+test('the fidelity policy rejects the two defects that motivated it', async () => {
+  const { checkFidelity } = await import('../scripts/asset-fidelity-policy.mjs');
+
+  // A dropped normal map, which shipped for real.
+  const dropped = checkFidelity({
+    name: 'scan',
+    attributes: ['POSITION', 'NORMAL', 'TEXCOORD_0'],
+    sourceMaterialMaps: ['normalTexture'],
+    packedMaterialMaps: [],
+    materialCount: 1,
+    uniqueUvCount: 5000,
+  });
+  assert.match(dropped.join('\n'), /does not carry it/);
+
+  // A real texture whose unwrap was replaced by a per-material lookup.
+  const collapsed = checkFidelity({
+    name: 'merged',
+    attributes: ['POSITION', 'NORMAL', 'TEXCOORD_0'],
+    textureWidth: 2048,
+    textureHeight: 2048,
+    uniqueUvCount: 1,
+    materialCount: 1,
+  });
+  assert.match(collapsed.join('\n'), /unwrap was replaced/);
+
+  // A missing attribute.
+  assert.match(
+    checkFidelity({ name: 'bare', attributes: ['POSITION'], materialCount: 1, uniqueUvCount: 1 }).join('\n'),
+    /missing TEXCOORD_0/,
+  );
+
+  // And it must NOT reject a legitimate flat-colour palette, which is what the platformer kit is.
+  assert.deepEqual(
+    checkFidelity({
+      name: 'cloud-large',
+      attributes: ['POSITION', 'NORMAL', 'TEXCOORD_0'],
+      textureWidth: 1,
+      textureHeight: 1,
+      uniqueUvCount: 1,
+      materialCount: 1,
+    }),
+    [],
+  );
+});
+
+test('the antiky-town material atlas does not bleed between tiles under mipping', async () => {
+  // The hazard: the three world atlases load with `filter: 'smooth'` and `anisotropy: 8`, and the
+  // shader addresses tiles as `(column + uv) / 4` with no inset. Mipped, anisotropic sampling of an
+  // atlas averages across tile boundaries at exactly the seams tiles meet.
+  //
+  // Measured rather than assumed. The atlas carries NO padding, and 1254/4 = 313.5 means the grid
+  // does not even land on texel boundaries. It passes anyway, because the twelve tiles are natural
+  // materials whose colour gamuts overlap — an average of two adjacent tiles lands inside one of
+  // them. That is a weaker guarantee than padding would give, so this test exists to notice if a
+  // future tile breaks the pattern.
+  const sharp = (await import('sharp')).default;
+  const file = path.join(demosRoot, 'antiky/antiky-town/assets/textures/town-material-atlas-v1.png');
+  const { data, info } = await sharp(file).raw().toBuffer({ resolveWithObject: true });
+  const columns = 4;
+  const rows = 3;
+  const tileWidth = info.width / columns;
+  const tileHeight = info.height / rows;
+  const at = (x, y) => {
+    const index = (Math.min(info.height - 1, y) * info.width + Math.min(info.width - 1, x)) * info.channels;
+    return [data[index], data[index + 1], data[index + 2]];
+  };
+  const quantise = ([r, g, b]) => `${r >> 2},${g >> 2},${b >> 2}`;
+
+  const gamut = [];
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      const colours = new Set();
+      for (let y = Math.ceil(row * tileHeight) + 6; y < Math.floor((row + 1) * tileHeight) - 6; y += 2) {
+        for (let x = Math.ceil(column * tileWidth) + 6; x < Math.floor((column + 1) * tileWidth) - 6; x += 2) {
+          colours.add(quantise(at(x, y)));
+        }
+      }
+      gamut.push(colours);
+    }
+  }
+
+  // Mip 2 is the shallowest level where a texel spans a tile boundary, and the level the goal names.
+  const box = 4;
+  let foreign = 0;
+  let total = 0;
+  for (let y = 30; y < tileHeight - 30; y += box) {
+    for (let offset = -2; offset < 2; offset += 1) {
+      const x0 = Math.round(tileWidth) + offset * box;
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      for (let dy = 0; dy < box; dy += 1) {
+        for (let dx = 0; dx < box; dx += 1) {
+          const [pr, pg, pb] = at(x0 + dx, y + dy);
+          r += pr; g += pg; b += pb;
+        }
+      }
+      const samples = box * box;
+      const key = quantise([Math.round(r / samples), Math.round(g / samples), Math.round(b / samples)]);
+      total += 1;
+      if (!gamut[0].has(key) && !gamut[1].has(key)) foreign += 1;
+    }
+  }
+  assert.ok(total > 100, `expected a meaningful number of boundary texels, got ${total}`);
+  const rate = foreign / total;
+  assert.ok(rate < 0.02, `${(rate * 100).toFixed(1)}% of mip-2 boundary texels take a colour absent from both adjacent tiles`);
 });

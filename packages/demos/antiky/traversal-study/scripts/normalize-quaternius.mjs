@@ -1,6 +1,7 @@
 import { deflateSync } from 'node:zlib';
 import { readFile, writeFile } from 'node:fs/promises';
 import { basename } from 'node:path';
+import { checkFidelity } from '../../../scripts/asset-fidelity-policy.mjs';
 
 const COMPONENT = Object.freeze({ 5121: Uint8Array, 5123: Uint16Array, 5125: Uint32Array, 5126: Float32Array });
 const COMPONENT_BYTES = Object.freeze({ 5121: 1, 5123: 2, 5125: 4, 5126: 4 });
@@ -350,5 +351,16 @@ if (sourcePath === undefined || outputPath === undefined) {
 const source = parseSource(await readFile(sourcePath));
 const geometry = mergedGeometry(source.json, source.binary, animationName || null, Number(sampleAtText));
 const result = createGlb(basename(outputPath, '.glb'), geometry);
+// This kit is flat-shaded and ships no source texture, so the palette is the faithful encoding
+// rather than a lost unwrap. The policy still checks it stays a palette and keeps its attributes.
+const fidelity = checkFidelity({
+  name: basename(outputPath, '.glb'),
+  attributes: ['POSITION', 'NORMAL', 'TEXCOORD_0'],
+  textureWidth: geometry.colors.length,
+  textureHeight: 1,
+  uniqueUvCount: geometry.colors.length,
+  materialCount: geometry.colors.length,
+});
+if (fidelity.length > 0) fail(fidelity.join('\n'));
 await writeFile(outputPath, result.glb);
 process.stdout.write(`${JSON.stringify({ sourcePath, outputPath, animation: animationName || null, sampleAt: Number(sampleAtText), ...result, glb: undefined })}\n`);
