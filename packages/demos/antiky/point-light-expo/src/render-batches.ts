@@ -4,6 +4,7 @@ import {
   type Renderer,
 } from 'brometal';
 
+import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
 import foundryGlowShader from './shaders/foundry-glow.shader.gen.ts';
 import foundryShader from './shaders/foundry.shader.gen.ts';
 
@@ -68,6 +69,78 @@ export function createSurfaceInstanceData(capacity: number) {
       yaws.fill(0);
     },
     setValues,
+  });
+}
+
+/**
+ * A single flat quad on the ground plane, spanning -1..1 so the shadow shader's radial falloff
+ * reaches zero exactly at the inscribed circle.
+ *
+ * The old shadows were boxes. A box drawn with alpha blending paints its top face and its bottom
+ * face over the same pixels, darkening every blob twice with geometry nobody can see.
+ */
+export function groundQuad(): Geometry {
+  return Object.freeze({
+    positions: new Float32Array([-1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1]),
+    normals: new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]),
+    uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+    indices: new Uint16Array([0, 2, 1, 0, 3, 2]),
+  }) as Geometry;
+}
+
+/**
+ * Contact shadows. Separate from the surface batch because they are the one thing in the relay that
+ * must not be lit, and because alpha blending has to run after the opaque pass.
+ */
+export function createContactShadowBatch(
+  renderer: Renderer,
+  capacity: number,
+  createShadowProgram = () => createProgram(renderer, contactShadowShader, { blend: 'alpha' }),
+) {
+  const program = createShadowProgram();
+  const geometry = groundQuad();
+  try {
+    program.attributes.aPosition.set(geometry.positions);
+    program.setIndices(geometry.indices);
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
+  const offsets = new Float32Array(capacity * 3);
+  const scales = new Float32Array(capacity * 3);
+  const colors = new Float32Array(capacity * 3);
+
+  return Object.freeze({
+    program,
+    clear(): void {
+      scales.fill(0);
+      colors.fill(0);
+    },
+    setValues(
+      index: number,
+      offsetX: number, offsetY: number, offsetZ: number,
+      radiusX: number, yaw: number, radiusZ: number,
+      colorR: number, colorG: number, colorB: number,
+    ): void {
+      assertIndex(index, capacity);
+      const at = index * 3;
+      offsets[at] = offsetX;
+      offsets[at + 1] = offsetY;
+      offsets[at + 2] = offsetZ;
+      scales[at] = radiusX;
+      scales[at + 1] = yaw;
+      scales[at + 2] = radiusZ;
+      colors[at] = colorR;
+      colors[at + 1] = colorG;
+      colors[at + 2] = colorB;
+    },
+    upload(): void {
+      program.instanceAttributes.iOffset.set(offsets);
+      program.instanceAttributes.iScale.set(scales);
+      program.instanceAttributes.iColor.set(colors);
+    },
+    draw(): void { program.draw(); },
+    dispose(): void { program.dispose(); },
   });
 }
 

@@ -57,9 +57,13 @@ export const RELAY_RENDER_SLOTS = Object.freeze({
   creatures: createSlotRanges({
     shades: SHADE_COUNT,
   }),
+  // Contact shadows are their own group because they are drawn unlit and alpha-blended. They used
+  // to be the first two ranges of `orbs`, which meant the demo's full PBR material lit them.
+  contacts: createSlotRanges({
+    player: 1,
+    shades: SHADE_COUNT,
+  }),
   orbs: createSlotRanges({
-    playerContact: 1,
-    shadeContacts: SHADE_COUNT,
     playerCore: 1,
     playerPrismMarkers: RELAY_VISUAL_COUNTS.playerPrismMarker,
     shadeCores: SHADE_COUNT,
@@ -128,6 +132,8 @@ const dynamicSurfaceInstances = capacities.forms
   + capacities.orbs
   + capacities.rings;
 const surfaceBytesPerInstance = 13 * Float32Array.BYTES_PER_ELEMENT;
+// Contact shadows upload offset, scale and colour only: no material, no yaw channel of its own.
+const contactBytesPerInstance = 9 * Float32Array.BYTES_PER_ELEMENT;
 const glowBytesPerInstance = 10 * Float32Array.BYTES_PER_ELEMENT;
 
 export const RELAY_RENDER_PROFILE = Object.freeze({
@@ -136,6 +142,7 @@ export const RELAY_RENDER_PROFILE = Object.freeze({
     instances: nonInstancedCount + instancedCount,
     drawCalls: nonInstancedCount + RELAY_RENDER_PASSES.instanced.length,
     uploadBytesPerFrame: dynamicSurfaceInstances * surfaceBytesPerInstance
+      + capacities.contacts * contactBytesPerInstance
       + capacities.glows * glowBytesPerInstance,
   }),
 });

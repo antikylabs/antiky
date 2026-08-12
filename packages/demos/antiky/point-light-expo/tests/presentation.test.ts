@@ -228,7 +228,7 @@ test('render slots are contiguous, bounded, and derived from simulation counts',
   }
   assert.equal(slots.glows.particles.count, RELAY_PARTICLE_CAPACITY);
   assert.equal(slots.creatures.shades.count, SHADE_COUNT);
-  assert.equal(slots.orbs.shadeContacts.count, SHADE_COUNT);
+  assert.equal(slots.contacts.shades.count, SHADE_COUNT);
   assert.equal(slots.rings.shades.count, SHADE_COUNT);
   assert.equal(slots.rocks.relayMassing.count, EXPO_LIGHT_DEFINITIONS.length * 3);
   assert.equal(slots.stumps.relayShrines.count, EXPO_LIGHT_DEFINITIONS.length);
@@ -241,4 +241,35 @@ test('render slots are contiguous, bounded, and derived from simulation counts',
     () => renderSlot(slots.glows.particles, RELAY_PARTICLE_CAPACITY),
     RangeError,
   );
+});
+
+test('contact shadows are unlit, soft, and blended without writing depth', async () => {
+  const shader = (await import('../src/shaders/contact-shadow.shader.gen.ts')).default;
+
+  // The defect this replaces: contact blobs drawn through `foundry`, the demo's full PBR material.
+  // Three point lights, an ambient term, fog and the tone-mapper all acted on them, so walking a
+  // light towards a creature made its own shadow glow.
+  for (const banned of ['uEmberPosition', 'uAmbientColor', 'tonemap', 'uExposure', 'uFogColor']) {
+    assert.ok(!shader.wgslSrc.includes(banned), `contact shadow shader must not reference ${banned}`);
+  }
+  assert.equal(Object.keys(shader.uniforms).length, 1);
+  assert.equal(shader.uniforms.uViewProj, 'mat4');
+  assert.match(shader.wgslSrc, /smoothstep/);
+});
+
+test('the contact shadow quad is flat, so alpha is not applied twice', async () => {
+  const { groundQuad } = await import('../src/render-batches.ts');
+  const geometry = groundQuad();
+  for (let index = 1; index < geometry.positions.length; index += 3) {
+    assert.equal(geometry.positions[index], 0, 'every shadow vertex must sit on the ground plane');
+  }
+  // Two triangles. A sphere or box here would blend front and back faces over the same pixels and
+  // darken every blob twice with geometry nobody can see.
+  assert.equal(geometry.indices.length, 6);
+});
+
+test('contact shadows have their own batch rather than sharing the lit orb slots', () => {
+  const slots = RELAY_RENDER_PROFILE.capacities;
+  assert.equal(slots.contacts, SHADE_COUNT + 1);
+  assert.ok(!('playerContact' in renderProfile.RELAY_RENDER_SLOTS.orbs));
 });

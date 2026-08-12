@@ -2,10 +2,87 @@ import { createProgram, type BroMetalProgram, type Geometry, type Renderer } fro
 
 import arenaGlowShader from './shaders/arena-glow.shader.gen.ts';
 import arenaSurfaceShader from './shaders/arena-surface.shader.gen.ts';
+import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
 
 export type Vec3 = readonly [number, number, number];
 export type SurfaceBatch = ReturnType<typeof createSurfaceBatch>;
 export type GlowBatch = ReturnType<typeof createGlowBatch>;
+export type ContactShadowBatch = ReturnType<typeof createContactShadowBatch>;
+
+/**
+ * A single flat quad on the ground plane, spanning -1..1 so the shadow shader's radial falloff
+ * reaches zero exactly at the inscribed circle.
+ *
+ * The old shadows used `createCube`. A box drawn with alpha blending paints its top face and its
+ * bottom face over the same pixels, so every blob was darkened twice by geometry nobody could see.
+ */
+export function groundQuad(): Geometry {
+  return Object.freeze({
+    positions: new Float32Array([-1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1]),
+    normals: new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]),
+    uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+    indices: new Uint16Array([0, 2, 1, 0, 3, 2]),
+  }) as Geometry;
+}
+
+/**
+ * Contact shadows. Separate from the surface batch because they are the one thing in the arena that
+ * must not be lit, and because alpha blending has to run after the opaque pass.
+ */
+export function createContactShadowBatch(
+  renderer: Renderer,
+  capacity: number,
+  programFactory: BatchProgramFactory = (target) => createProgram(target, contactShadowShader, { blend: 'alpha' }),
+) {
+  const program = programFactory(renderer);
+  const geometry = groundQuad();
+  try {
+    program.attributes.aPosition!.set(geometry.positions);
+    program.setIndices(geometry.indices);
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
+  const offsets = new Float32Array(capacity * 3);
+  const scales = new Float32Array(capacity * 3);
+  const colors = new Float32Array(capacity * 3);
+
+  return Object.freeze({
+    program,
+    clear(): void {
+      scales.fill(0);
+      colors.fill(0);
+    },
+    setValues(
+      index: number,
+      offsetX: number, offsetY: number, offsetZ: number,
+      radiusX: number, rotation: number, radiusZ: number,
+      colorR: number, colorG: number, colorB: number,
+    ): void {
+      const at = index * 3;
+      offsets[at] = offsetX;
+      offsets[at + 1] = offsetY;
+      offsets[at + 2] = offsetZ;
+      scales[at] = radiusX;
+      scales[at + 1] = rotation;
+      scales[at + 2] = radiusZ;
+      colors[at] = colorR;
+      colors[at + 1] = colorG;
+      colors[at + 2] = colorB;
+    },
+    upload(): void {
+      program.instanceAttributes.iOffset!.set(offsets);
+      program.instanceAttributes.iScale!.set(scales);
+      program.instanceAttributes.iColor!.set(colors);
+    },
+    frame(viewProjection: Float32Array): void {
+      program.uniforms.uViewProj!.set(viewProjection);
+    },
+    dispose(): void {
+      program.dispose();
+    },
+  });
+}
 
 export function horizontalGeometry(geometry: Geometry): Geometry {
   const positions = new Float32Array(geometry.positions);

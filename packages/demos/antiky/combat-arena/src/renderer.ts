@@ -13,7 +13,12 @@ import {
   projectArenaCatalog,
 } from './arena-composition.ts';
 import { ARENA_ENVIRONMENT_LAYERS } from './arena-environment.ts';
-import { COMBAT_PROJECTION_CAPACITY, createCombatProjection, type CombatProjection } from './combat-projection.ts';
+import {
+  COMBAT_PROJECTION_CAPACITY,
+  COMBAT_PROJECTION_INSTANCE_FLOATS,
+  createCombatProjection,
+  type CombatProjection,
+} from './combat-projection.ts';
 import { createCombatCameraProjector } from './presentation.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
 import { SHIP_CATALOG_ASSET_COUNT, SHIP_INSTANCE_CAPACITY, createShipFleet, type ShipFleet } from './ship-assets.ts';
@@ -55,14 +60,15 @@ export function deriveCombatRendererMeasurements(): CombatRendererMeasurements {
   const instances = arenaInstances + SHIP_INSTANCE_CAPACITY + projectionInstances + SPACE_BACKDROP_INSTANCES;
   const dynamicInstances = ARENA_CATALOG_CAPACITY.targets
     + ARENA_CATALOG_CAPACITY.grenades
-    + SHIP_INSTANCE_CAPACITY
-    + projectionInstances;
+    + SHIP_INSTANCE_CAPACITY;
   const floatsPerInstance = 12;
+  const projectionFloats = (Object.keys(COMBAT_PROJECTION_CAPACITY) as (keyof typeof COMBAT_PROJECTION_CAPACITY)[])
+    .reduce((total, name) => total + COMBAT_PROJECTION_CAPACITY[name] * COMBAT_PROJECTION_INSTANCE_FLOATS[name], 0);
   return Object.freeze({
     instances,
     drawCalls: Object.keys(ARENA_CATALOG_CAPACITY).length + SHIP_CATALOG_ASSET_COUNT
       + Object.keys(COMBAT_PROJECTION_CAPACITY).length + SPACE_BACKDROP_DRAWS,
-    uploadBytesPerFrame: (dynamicInstances * floatsPerInstance + SHIP_INSTANCE_CAPACITY * 3)
+    uploadBytesPerFrame: (dynamicInstances * floatsPerInstance + projectionFloats + SHIP_INSTANCE_CAPACITY * 3)
       * Float32Array.BYTES_PER_ELEMENT,
     catalogAssets: CATALOG_ASSET_COUNT + SHIP_CATALOG_ASSET_COUNT,
     catalogInstances: ARENA_CATALOG_INSTANCES + SHIP_INSTANCE_CAPACITY,
@@ -116,6 +122,9 @@ export async function createCombatRendererWith(
       catalog.grenades.program.draw();
       catalog.targets.program.draw();
       ships.draw();
+      // Blended passes last, once every opaque surface has written depth. Shadows before glows so
+      // a glow reads as light sitting on top of the shadow rather than under it.
+      projection.drawShadows();
       projection.drawEnergy();
     };
 

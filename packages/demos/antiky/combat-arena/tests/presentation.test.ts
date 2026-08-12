@@ -114,8 +114,8 @@ test('renderer reporting is derived from its capacities and catalog asset set', 
   assert.equal(measurements.catalogAssets, 10);
   assert.ok(measurements.catalogInstances >= 100);
   assert.ok(measurements.environmentLayers >= 4);
-  assert.equal(measurements.drawCalls, 14);
-  assert.equal(measurements.uploadBytesPerFrame, 15_864);
+  assert.equal(measurements.drawCalls, 15);
+  assert.equal(measurements.uploadBytesPerFrame, 15_780);
   assert.ok(measurements.instances <= 384);
   assert.ok(measurements.uploadBytesPerFrame <= 24 * 1_024);
   assert.ok(measurements.uploadBytesPerFrame > 0);

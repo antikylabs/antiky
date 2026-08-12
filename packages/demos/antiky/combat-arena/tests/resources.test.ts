@@ -6,7 +6,7 @@ import { createCube, type Model } from 'brometal';
 import { createArenaCatalogResources } from '../src/arena-assets.ts';
 import { createCombatProjection } from '../src/combat-projection.ts';
 import { createCombatRendererWith } from '../src/renderer.ts';
-import { createSurfaceBatch } from '../src/render-batches.ts';
+import { createContactShadowBatch, createSurfaceBatch, groundQuad } from '../src/render-batches.ts';
 import { createShipFleet } from '../src/ship-assets.ts';
 import shipModelShader from '../src/shaders/ship-model.shader.gen.ts';
 import { createCombatSimulation } from '../src/simulation.ts';
@@ -175,13 +175,14 @@ test('combat projection rolls back surface and glow batches if ring construction
   const batch = (name: string) => ({ dispose() { disposed.push(name); } });
   assert.throws(() => createCombatProjection({} as never, {
     createSurfaceBatch: () => batch('surface') as never,
+    createContactShadowBatch: () => batch('shadow') as never,
     createGlowBatch: () => {
       glowCount += 1;
       if (glowCount === 2) throw new Error('injected ring failure');
       return batch('glow') as never;
     },
   }), /injected ring failure/);
-  assert.deepEqual(disposed, ['glow', 'surface']);
+  assert.deepEqual(disposed, ['glow', 'shadow', 'surface']);
 });
 
 test('steady combat projection uses numeric instance writers instead of tuple writes', () => {
@@ -198,6 +199,7 @@ test('steady combat projection uses numeric instance writers instead of tuple wr
   });
   const projection = createCombatProjection({} as never, {
     createSurfaceBatch: () => batch() as never,
+    createContactShadowBatch: () => batch() as never,
     createGlowBatch: () => batch() as never,
   });
   projection.project(createCombatSimulation(() => {}).read());
@@ -255,7 +257,7 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
       project() {}, frame() {}, draw() {}, dispose() { disposed.push('ships'); },
     }),
     createProjection: () => ({
-      project() {}, frame() {}, drawSurface() {}, drawEnergy() {},
+      project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {},
       dispose() { disposed.push('projection'); },
     }),
     createBackdrop: () => { throw new Error('injected backdrop failure'); },
@@ -283,7 +285,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
       project() {}, frame() {}, draw() {}, dispose() { disposals.ships += 1; },
     }),
     createProjection: () => ({
-      project() {}, frame() {}, drawSurface() {}, drawEnergy() {},
+      project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {},
       dispose() { disposals.projection += 1; },
     }),
     createBackdrop: () => ({
@@ -293,4 +295,55 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
   combatRenderer.dispose();
   combatRenderer.dispose();
   assert.deepEqual(disposals, { catalog: 1, ships: 1, projection: 1, backdrop: 1, renderer: 1 });
+});
+
+test('contact shadows are unlit, soft, and blended without writing depth', async () => {
+  const shader = (await import('../src/shaders/contact-shadow.shader.gen.ts')).default;
+  const source = shader.wgslSrc;
+
+  // The defect this replaces: shadow blobs drawn through `arena-surface`, so the key light, the
+  // fog and the tone-mapper all acted on them. A shadow that brightens under a light is not a
+  // shadow. None of those terms may appear here.
+  for (const banned of ['tonemap', 'uCameraPosition', 'normalize', 'smoothstep(17']) {
+    assert.ok(!source.includes(banned), `contact shadow shader must not reference ${banned}`);
+  }
+
+  // Soft, not a rectangle: the alpha has to vary across the quad.
+  assert.match(source, /smoothstep/);
+  assert.equal(shader.uniforms.uViewProj, 'mat4');
+  assert.equal(Object.keys(shader.uniforms).length, 1);
+});
+
+test('a cleared contact shadow slot paints nothing', () => {
+  const uploads: Record<string, Float32Array> = {};
+  const program = {
+    attributes: { aPosition: { set() {} } },
+    instanceAttributes: {
+      iOffset: { set(v: Float32Array) { uploads.offsets = v; } },
+      iScale: { set(v: Float32Array) { uploads.scales = v; } },
+      iColor: { set(v: Float32Array) { uploads.colors = v; } },
+    },
+    uniforms: { uViewProj: { set() {} } },
+    setIndices() {}, draw() {}, dispose() {},
+  };
+  const batch = createContactShadowBatch({} as never, 3, () => program as never);
+  batch.setValues(0, 1, 2, 3, 0.5, 0, 0.5, 0.1, 0.1, 0.1);
+  batch.clear();
+  batch.upload();
+
+  // `clear` zeroes the radius, and the shader gates on it. Without that gate a zero-size quad
+  // still covers the pixel its vertices collapse onto, painting a dot at the world origin.
+  assert.equal(uploads.scales!.every((value) => value === 0), true);
+  assert.equal(uploads.colors!.every((value) => value === 0), true);
+  batch.dispose();
+});
+
+test('the shadow quad is a single flat surface, so alpha is not applied twice', () => {
+  const geometry = groundQuad();
+  for (let index = 1; index < geometry.positions.length; index += 3) {
+    assert.equal(geometry.positions[index], 0, 'every shadow vertex must sit on the ground plane');
+  }
+  // Two triangles, one facing up. A cube here would blend its top and bottom faces over the same
+  // pixels and darken every blob twice.
+  assert.equal(geometry.indices.length, 6);
 });

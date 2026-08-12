@@ -4,6 +4,7 @@ import { ARENA_STRUCTURE_INSTANCES, setArenaEnergy, setArenaStructure } from './
 import { setCombatSignals } from './arena-signals.ts';
 import { COMBAT_PALETTE, enemyVisualProfile } from './combat-visuals.ts';
 import {
+  createContactShadowBatch,
   createGlowBatch,
   createSurfaceBatch,
   horizontalGeometry,
@@ -13,11 +14,12 @@ import {
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
 import { ENEMY_COUNT, type CombatEnemy, type CombatSnapshot, type EnemyRole } from './combat-state.ts';
 
-const SURFACE_CAPACITY = 68;
+// Was 68 when the seven contact shadows lived here too. They now have their own unlit batch.
+const SURFACE_CAPACITY = 61;
+const CONTACT_SHADOW_CAPACITY = ENEMY_COUNT + 1;
 const GLOW_CAPACITY = 173;
 const RING_CAPACITY = 40;
-const SHADOW_START = ARENA_STRUCTURE_INSTANCES;
-const GAUGE_START = SHADOW_START + ENEMY_COUNT + 1;
+const GAUGE_START = ARENA_STRUCTURE_INSTANCES;
 const SIGNAL_GAUGE_START = GAUGE_START + 28;
 const SIGNAL_RING_START = 24;
 const SIGNAL_OFFSETS = Object.freeze({ gauge: SIGNAL_GAUGE_START, ring: SIGNAL_RING_START });
@@ -34,8 +36,20 @@ export const COMBAT_READABILITY_PROFILE = Object.freeze({
 
 export const COMBAT_PROJECTION_CAPACITY = Object.freeze({
   surfaces: SURFACE_CAPACITY,
+  shadows: CONTACT_SHADOW_CAPACITY,
   glows: GLOW_CAPACITY,
   rings: RING_CAPACITY,
+});
+
+/**
+ * Contact shadows upload three vec3s per instance where every other batch uploads four. The
+ * measurement below would overstate the frame's upload traffic if it assumed one stride for all.
+ */
+export const COMBAT_PROJECTION_INSTANCE_FLOATS = Object.freeze({
+  surfaces: 12,
+  shadows: 9,
+  glows: 12,
+  rings: 12,
 });
 
 function roleColor(role: EnemyRole): Vec3 {
@@ -201,6 +215,7 @@ export type CombatProjection = Readonly<{
   project(state: CombatSnapshot): void;
   frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void;
   drawSurface(): void;
+  drawShadows(): void;
   drawEnergy(): void;
   dispose(): void;
 }>;
@@ -208,11 +223,13 @@ export type CombatProjection = Readonly<{
 export type CombatProjectionDependencies = Readonly<{
   createSurfaceBatch: typeof createSurfaceBatch;
   createGlowBatch: typeof createGlowBatch;
+  createContactShadowBatch: typeof createContactShadowBatch;
 }>;
 
 const COMBAT_PROJECTION_DEPENDENCIES: CombatProjectionDependencies = Object.freeze({
   createSurfaceBatch,
   createGlowBatch,
+  createContactShadowBatch,
 });
 
 export function createCombatProjection(
@@ -221,10 +238,12 @@ export function createCombatProjection(
 ): CombatProjection {
   const resources: { dispose(): void }[] = [];
   let surfaces: ReturnType<typeof createSurfaceBatch>;
+  let shadows: ReturnType<typeof createContactShadowBatch>;
   let glows: ReturnType<typeof createGlowBatch>;
   let rings: ReturnType<typeof createGlowBatch>;
   try {
     surfaces = registerResource(resources, dependencies.createSurfaceBatch(renderer, createCube(), SURFACE_CAPACITY));
+    shadows = registerResource(resources, dependencies.createContactShadowBatch(renderer, CONTACT_SHADOW_CAPACITY));
     glows = registerResource(resources, dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY));
     rings = registerResource(resources, dependencies.createGlowBatch(renderer, horizontalGeometry(createTorus({ radius: 1, tube: 0.035, radialSegments: 10, tubularSegments: 96 })), RING_CAPACITY));
   } catch (cause: unknown) {
@@ -235,29 +254,36 @@ export function createCombatProjection(
   return Object.freeze({
     project(state): void {
       surfaces.clear();
+      shadows.clear();
       setArenaStructure(surfaces);
       const playerVisible = state.phase === 'defeat' ? 0.32 : 1;
-      surfaces.setValues(SHADOW_START, state.player.x, -0.145, state.player.z, 0.72 * playerVisible, 0.025, 0.92 * playerVisible, COMBAT_PALETTE.shadow[0], COMBAT_PALETTE.shadow[1], COMBAT_PALETTE.shadow[2], 0, 0, -Math.atan2(state.player.facingX, state.player.facingZ));
+      shadows.setValues(0, state.player.x, -0.145, state.player.z, 0.72 * playerVisible, -Math.atan2(state.player.facingX, state.player.facingZ), 0.92 * playerVisible, COMBAT_PALETTE.shadow[0], COMBAT_PALETTE.shadow[1], COMBAT_PALETTE.shadow[2]);
       for (let enemyIndex = 0; enemyIndex < state.enemies.length; enemyIndex += 1) {
         const enemy = state.enemies[enemyIndex]!;
         const visible = enemy.active ? 1 : 0;
         const size = shadowSize(enemy);
-        surfaces.setValues(SHADOW_START + enemyIndex + 1, enemy.x, -0.14, enemy.z, size * visible, 0.02, size * 0.8 * visible, COMBAT_PALETTE.shadow[0], COMBAT_PALETTE.shadow[1], COMBAT_PALETTE.shadow[2], 0, 0, 0);
+        shadows.setValues(enemyIndex + 1, enemy.x, -0.14, enemy.z, size * visible, 0, size * 0.8 * visible, COMBAT_PALETTE.shadow[0], COMBAT_PALETTE.shadow[1], COMBAT_PALETTE.shadow[2]);
       }
       setGauges(surfaces, state);
       setCombatRings(rings, state);
       setCombatSignals(surfaces, rings, state, SIGNAL_OFFSETS);
       surfaces.upload();
+      shadows.upload();
       rings.upload();
       setCombatGlows(glows, state);
     },
     frame(viewProjection, cameraPosition, time): void {
       surfaces.frame(viewProjection, cameraPosition, time);
+      shadows.frame(viewProjection);
       rings.frame(viewProjection, cameraPosition, time);
       glows.frame(viewProjection, cameraPosition, time);
     },
     drawSurface(): void {
       surfaces.program.draw();
+    },
+    /** Alpha-blended, so this must run after every opaque draw in the frame. */
+    drawShadows(): void {
+      shadows.program.draw();
     },
     drawEnergy(): void {
       rings.program.draw();

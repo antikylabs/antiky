@@ -1,6 +1,11 @@
 import { EXPO_LIGHT_DEFINITIONS } from './lights.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
-import { createGlowBatch, createSurfaceBatch, type Vec3 } from './render-batches.ts';
+import {
+  createContactShadowBatch,
+  createGlowBatch,
+  createSurfaceBatch,
+  type Vec3,
+} from './render-batches.ts';
 import { RELAY_RENDER_SLOTS, renderSlot } from './render-profile.ts';
 import { authoritativeRelayRegionRadii, type RelaySnapshot } from './simulation.ts';
 
@@ -19,10 +24,12 @@ const {
 
 type SurfaceBatch = ReturnType<typeof createSurfaceBatch>;
 type GlowBatch = ReturnType<typeof createGlowBatch>;
+type ContactShadowBatch = ReturnType<typeof createContactShadowBatch>;
 
 export type RelayVisualBatches = Readonly<{
   forms: SurfaceBatch;
   creatures: SurfaceBatch;
+  contacts: ContactShadowBatch;
   orbs: SurfaceBatch;
   rings: SurfaceBatch;
   glows: GlowBatch;
@@ -69,7 +76,7 @@ function populateFormsAndOrbs(
   state: RelaySnapshot,
   powers: readonly [number, number, number],
 ): void {
-  const { forms, creatures, orbs } = batches;
+  const { forms, creatures, contacts, orbs } = batches;
   const chargeColor = state.player.charge.relayIndex === null
     ? BONE
     : colorForRelay(state.player.charge.relayIndex);
@@ -109,23 +116,20 @@ function populateFormsAndOrbs(
   creatures.upload();
 
   orbs.clear();
-  setSurface(
-    orbs,
-    renderSlot(RELAY_RENDER_SLOTS.orbs.playerContact, 0),
+  contacts.clear();
+  contacts.setValues(
+    renderSlot(RELAY_RENDER_SLOTS.contacts.player, 0),
     state.player.x, -0.375, state.player.z,
-    0.52, 0.018, 0.38,
-    CONTACT_SHADOW,
-    1, 0, 0,
+    0.52, 0, 0.38,
+    CONTACT_SHADOW[0], CONTACT_SHADOW[1], CONTACT_SHADOW[2],
   );
   for (let index = 0; index < state.shades.length; index += 1) {
     const shade = state.shades[index]!;
-    setSurface(
-      orbs,
-      renderSlot(RELAY_RENDER_SLOTS.orbs.shadeContacts, index),
+    contacts.setValues(
+      renderSlot(RELAY_RENDER_SLOTS.contacts.shades, index),
       shade.x, -0.375, shade.z,
-      0.72, 0.018, 0.54,
-      CONTACT_SHADOW,
-      1, 0, 0,
+      0.72, 0, 0.54,
+      CONTACT_SHADOW[0], CONTACT_SHADOW[1], CONTACT_SHADOW[2],
     );
   }
   setSurface(

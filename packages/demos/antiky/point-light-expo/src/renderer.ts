@@ -16,6 +16,7 @@ import { relayOnboardingOpacity } from './onboarding-cues.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
 import {
+  createContactShadowBatch,
   createGlowBatch,
   createSurfaceBatch,
   horizontalGeometry,
@@ -96,6 +97,10 @@ export async function createRelayRenderer(
     renderer,
     createShadeGeometry(),
     RELAY_RENDER_PROFILE.capacities.creatures,
+  ));
+  const contacts = resources.register(createContactShadowBatch(
+    renderer,
+    RELAY_RENDER_PROFILE.capacities.contacts,
   ));
   const orbs = resources.register(createSurfaceBatch(
     renderer,
@@ -197,7 +202,7 @@ export async function createRelayRenderer(
     program.uniforms.uVioletRadius!.set(lights[2]!.pointLight.radius);
   };
 
-  const visualBatches = Object.freeze({ forms, creatures, orbs, rings, glows });
+  const visualBatches = Object.freeze({ forms, creatures, contacts, orbs, rings, glows });
   const hasDeposit = (state: RelaySnapshot): boolean => {
     for (let index = 0; index < state.deposits.length; index += 1) {
       if (state.deposits[index]) return true;
@@ -213,6 +218,9 @@ export async function createRelayRenderer(
     forms.draw();
     creatures.draw();
     orbs.draw();
+    // Blended, so it runs once every opaque surface has written depth. Before glows, so a light
+    // reads as sitting on top of the shadow rather than under it.
+    contacts.draw();
     glows.draw();
     onboarding.draw();
     onboarding.drawStatus();
@@ -271,6 +279,7 @@ export async function createRelayRenderer(
     floorProgram.uniforms.uVioletColor.set(lights[2]!.pointLight.color);
     floorProgram.uniforms.uVioletPower.set(powers[2]);
     floorProgram.uniforms.uVioletRadius.set(lights[2]!.pointLight.radius);
+    contacts.program.uniforms.uViewProj.set(viewProjection);
     glows.program.uniforms.uViewProj.set(viewProjection);
     glows.program.uniforms.uCameraPosition.set(cameraPosition);
     glows.program.uniforms.uTime.set(state.time);
