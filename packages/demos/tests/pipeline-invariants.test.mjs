@@ -66,6 +66,81 @@ async function demoSources(slug) {
   return results;
 }
 
+/** Wider than any colour palette these kits produce; the widest today is relay-tower at 7. */
+const PALETTE_MAX_WIDTH = 16;
+
+/**
+ * Every GLB a demo ships, read as data rather than inferred from the script that made it.
+ *
+ * Reading the artifact is the point: an asset script can be rewritten, replaced or bypassed, and
+ * what matters is what actually reaches the game.
+ */
+async function shippedModels() {
+  const results = [];
+  const walk = async (directory) => {
+    let entries;
+    try {
+      entries = await readdir(directory, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) await walk(full);
+      else if (entry.isFile() && entry.name.endsWith('.glb')) results.push(full);
+    }
+  };
+  for (const slug of ANTIKY_DEMOS) await walk(path.join(demosRoot, 'antiky', slug, 'assets'));
+
+  const models = [];
+  for (const file of results) {
+    const buffer = await readFile(file);
+    if (buffer.length < 20 || buffer.toString('utf8', 0, 4) !== 'glTF') continue;
+    const jsonLength = buffer.readUInt32LE(12);
+    const json = JSON.parse(buffer.toString('utf8', 20, 20 + jsonLength));
+    const binaryOffset = 20 + jsonLength + 8;
+
+    const image = json.images?.[0];
+    let textureWidth;
+    let textureHeight;
+    if (image?.bufferView !== undefined) {
+      const view = json.bufferViews[image.bufferView];
+      const start = binaryOffset + (view.byteOffset ?? 0);
+      // PNG signature, then IHDR width and height as big-endian uint32s.
+      if (buffer.toString('hex', start, start + 4) === '89504e47') {
+        textureWidth = buffer.readUInt32BE(start + 16);
+        textureHeight = buffer.readUInt32BE(start + 20);
+      }
+    }
+
+    const uvs = new Set();
+    for (const mesh of json.meshes ?? []) {
+      for (const primitive of mesh.primitives ?? []) {
+        const accessorIndex = primitive.attributes?.TEXCOORD_0;
+        if (accessorIndex === undefined) continue;
+        const accessor = json.accessors[accessorIndex];
+        // Only float2 UVs appear in these kits; anything else is not something to guess at.
+        if (accessor.componentType !== 5126 || accessor.type !== 'VEC2') continue;
+        const view = json.bufferViews[accessor.bufferView];
+        const start = binaryOffset + (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0);
+        for (let index = 0; index < accessor.count; index += 1) {
+          const at = start + index * 8;
+          uvs.add(`${buffer.readFloatLE(at).toFixed(5)},${buffer.readFloatLE(at + 4).toFixed(5)}`);
+        }
+      }
+    }
+
+    models.push({
+      relative: path.relative(demosRoot, file),
+      textureWidth,
+      textureHeight,
+      uniqueUvs: uvs.size,
+      materialCount: Math.max(1, (json.materials ?? []).length),
+    });
+  }
+  return models;
+}
+
 async function assetScripts() {
   const results = [];
   for (const slug of ANTIKY_DEMOS) {
@@ -116,22 +191,52 @@ test('no asset script discards the normal map it downloaded', async () => {
   );
 });
 
-test('no asset script writes texture coordinates without reading the source ones', async () => {
+test('no shipped model has its texture coordinates collapsed onto a real texture', async () => {
+  // The original form of this test asserted that an asset script must read `attributes.TEXCOORD_0`
+  // before writing UVs. That rule is wrong, and it accused a script that was doing its job.
+  //
+  // Quaternius' Ultimate Platformer pack is flat-shaded low-poly: colour lives in each material's
+  // `baseColorFactor` and there is no source texture at all — the asset receipt records
+  // `embeddedTexture` for Kenney's kit and nothing for this one. `normalize-quaternius.mjs`
+  // therefore bakes the material colours into a palette strip and points every vertex of a given
+  // material at its column. `cloud-large` ships a 1x1 texture because the model is exactly one
+  // colour (#909781). That is a faithful encoding, not data loss.
+  //
+  // The real failure this guards is a script that merges a *textured* model and stamps one UV on
+  // every vertex, which would throw away a genuine unwrap. So the rule is about the data, not the
+  // source: a model carrying a real texture must have real texture coordinates.
   const offenders = [];
-  for (const script of await assetScripts()) {
-    const writesUvs = /\buvs\.push\(|paletteU/.test(script.text);
-    // The read is `primitive.attributes.TEXCOORD_0`. A bare mention is not enough: these scripts
-    // also *write* `TEXCOORD_0: 2` into the output GLB's attribute map, and matching that would
-    // pass a script that synthesises every UV it emits.
-    const readsSourceUvs = /attributes\.TEXCOORD_0/.test(script.text);
-    if (writesUvs && !readsSourceUvs) offenders.push(script.relative);
+  for (const model of await shippedModels()) {
+    if (model.textureWidth === undefined) continue;
+    const palette = model.textureHeight === 1 && model.textureWidth <= PALETTE_MAX_WIDTH;
+    if (palette) continue;
+    if (model.uniqueUvs <= model.materialCount) {
+      offenders.push(
+        `${model.relative}: ${model.textureWidth}x${model.textureHeight} texture but only `
+        + `${model.uniqueUvs} unique UV pair(s) across ${model.materialCount} material(s)`,
+      );
+    }
   }
   assert.deepEqual(
     offenders,
     [],
-    'A script that synthesises texture coordinates without reading TEXCOORD_0 throws away the '
-    + 'authored UVs, which is how shipped textures became 1x1 pixels.',
+    'A model with a real texture must carry the unwrap that addresses it. One UV per material means '
+    + 'the unwrap was replaced by a palette lookup, which is only correct when the source has no '
+    + 'texture to begin with.',
   );
+});
+
+test('a palette-baked model ships a palette, not a stretched texture', async () => {
+  // The other half: a script that bakes flat colours must emit a strip no wider than the colours it
+  // actually found. A palette that has grown past that is a sign the baking went wrong.
+  const offenders = [];
+  for (const model of await shippedModels()) {
+    if (model.textureWidth === undefined || model.textureHeight !== 1) continue;
+    if (model.textureWidth > PALETTE_MAX_WIDTH) {
+      offenders.push(`${model.relative}: ${model.textureWidth}x1 is too wide to be a colour palette`);
+    }
+  }
+  assert.deepEqual(offenders, []);
 });
 
 test('no camera wastes depth precision on an extreme far/near ratio', async () => {
