@@ -39,7 +39,27 @@ checks it exists to perform have no inputs.
 catalog at all, so it is not a counter-example — it is evidence the generator's output changed shape
 at some point and nothing noticed.
 
-**This is the first task of this step, and it is not a material task.** Either the catalog generator
+### Unblocked — `packages/demos/scripts/install-poly-haven-material.mjs`
+
+Rather than wait on the catalog generator, this fetches the same descriptors from the API the
+generator should be reading (`https://api.polyhaven.com/files/<upstream.id>`, which returns `url`,
+`size` and `md5` per map per resolution) and applies **both** checks `installCatalogAsset` would
+have. `plywood` is installed into `traversal-study` — four maps, 2.9 MB, size and md5 verified — and
+**AC-M4 is green**, asserting the receipt names four maps, each with an md5 and a sha256, and each
+file on disk being the size the receipt claims.
+
+Two existing tests had to be scoped to model receipts on the way, and the reason is worth carrying:
+both walked `manifest.assets` assuming every entry was a catalog *model*. One compared the receipt
+list against a fixed array of model IDs; the other read a `derivedPath` and geometry bounds off every
+file. A texture receipt has neither. If you add material sets to the other demos, expect the same two
+assumptions there.
+
+**The catalog generator is still wrong** and should still be fixed — 995 entries that cannot be
+installed is a defect in its own right, and it belongs in its own goal rather than here.
+
+### The original finding
+
+**This was the first task of this step, and it is not a material task.** Either the catalog generator
 needs to populate `downloads` from Poly Haven's file API, or the intake needs its own fetch path with
 its own verification. Until one of those exists, AC-M4 — "at least one Poly Haven texture receipt
 with all four maps present and hash-verified" — cannot be satisfied for any demo by any amount of

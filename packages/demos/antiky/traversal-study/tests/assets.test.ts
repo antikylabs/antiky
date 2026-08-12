@@ -17,7 +17,12 @@ const root = new URL('../', import.meta.url);
 
 test('every catalog GLB parses with indexed geometry and an embedded image', async () => {
   const manifest = JSON.parse(await readFile(new URL('assets/antiky-assets.json', root), 'utf8'));
-  assert.deepEqual(manifest.assets.map((entry: { catalogId: string }) => entry.catalogId), TRAVERSAL_CATALOG_IDS);
+  // Model receipts only. This test is about GLBs parsing, and the manifest also carries texture
+  // receipts now — a material set is not a catalog model and has no geometry to check.
+  const modelIds = manifest.assets
+    .filter((entry: { kind?: string }) => entry.kind !== 'texture')
+    .map((entry: { catalogId: string }) => entry.catalogId);
+  assert.deepEqual(modelIds, TRAVERSAL_CATALOG_IDS);
 
   for (const asset of TRAVERSAL_ASSETS) {
     const path = new URL(asset.relativePath, root);

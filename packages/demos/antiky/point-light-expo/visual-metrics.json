@@ -1,11 +1,11 @@
 {
   "schemaVersion": 2,
   "demo": "point-light-expo",
-  "capturedAt": "2026-08-12T19:42:23.449Z",
+  "capturedAt": "2026-08-12T19:59:58.615Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "57f34630ba5b21ec",
-    "fileCount": 107
+    "digest": "265c456a5ae6dedd",
+    "fileCount": 108
   },
   "frame": {
     "width": 1280,
@@ -29,5 +29,5 @@
   "saturation": {
     "mean": 0.430034
   },
-  "seal": "cb172011c837326b"
+  "seal": "de7f90a8eeaa033b"
 }

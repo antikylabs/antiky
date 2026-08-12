@@ -93,7 +93,11 @@ test('the game-native HUD occupies a compact corner instead of spanning forty pe
 
 test('projected coastal landmarks frame the route without giant cliff slabs taking over the screen', async () => {
   const manifest = JSON.parse(await readFile(new URL('../assets/antiky-assets.json', import.meta.url), 'utf8'));
-  const files = new Map<string, Bounds>(manifest.assets.flatMap(
+  // Model receipts only. Texture receipts describe material maps, which have no geometry bounds —
+  // walking them looked for a `derivedPath` that only a model file carries.
+  const files = new Map<string, Bounds>(manifest.assets.filter(
+    (catalog: { kind?: string }) => catalog.kind !== 'texture',
+  ).flatMap(
     (catalog: { files: Array<{ derivedPath: string; validation: { bounds: Bounds } }> }) => catalog.files.map(
       (file) => [file.derivedPath.split('/').at(-1)!, file.validation.bounds] as const,
     ),

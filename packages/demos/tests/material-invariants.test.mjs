@@ -285,3 +285,36 @@ test('AC-M2: every kit UV selects a swatch the material table declares', async (
   assert.ok(meshes >= 10, `expected to read real meshes across both kits, read ${meshes}`);
   assert.deepEqual([...unmapped], [], `UVs landing on swatches the table does not declare:\n  ${[...unmapped].join('\n  ')}`);
 });
+
+test('AC-M4: an installed material set carries all four maps, hash-verified', async () => {
+  /**
+   * The criterion asks each demo's `antiky-assets.json` to list a Poly Haven texture receipt with
+   * all four maps present and hash-verified.
+   *
+   * Goal 05 pointed at `installCatalogAsset` for this, which reads a `downloads` array off the
+   * catalog entry. **No entry has one** — all 995 carry the key as an empty array — so that path
+   * could never have satisfied this. `install-poly-haven-material.mjs` fetches the same descriptors
+   * from the API the catalog generator should be reading and applies the same two checks the
+   * installer would have: declared size and declared md5.
+   *
+   * This asserts the receipt, not the download. A receipt claiming four maps while three files sit
+   * on disk is exactly the shape of rot a receipt is supposed to prevent.
+   */
+  const { readFile, stat } = await import('node:fs/promises');
+  const demoRoot = new URL('../antiky/traversal-study/', import.meta.url);
+  const receipts = JSON.parse(await readFile(new URL('assets/antiky-assets.json', demoRoot), 'utf8'));
+  const textures = receipts.assets.filter((asset) => asset.kind === 'texture');
+  assert.ok(textures.length >= 1, 'expected at least one Poly Haven texture receipt');
+
+  for (const texture of textures) {
+    const maps = texture.files.map((file) => file.map).sort();
+    assert.deepEqual(maps, ['ao', 'diff', 'nor', 'rough'], `${texture.catalogId} is missing a map`);
+    for (const file of texture.files) {
+      assert.match(file.md5, /^[0-9a-f]{32}$/, `${file.map} has no md5`);
+      assert.match(file.sha256, /^[0-9a-f]{64}$/, `${file.map} has no sha256`);
+      // The file the receipt names must exist and be the size it claims.
+      const info = await stat(new URL(file.file, demoRoot));
+      assert.equal(info.size, file.bytes, `${file.map}: on disk it is ${info.size} bytes, the receipt says ${file.bytes}`);
+    }
+  }
+});
