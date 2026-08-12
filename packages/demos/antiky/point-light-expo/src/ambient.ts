@@ -36,3 +36,17 @@ export function normalisedSkyIrradiance(
     channelValues[2] * scale,
   ] as const)));
 }
+
+
+/**
+ * The two normalisations this demo uses, resolved once.
+ *
+ * The floor and the props were tuned against different flat ambients, so each keeps its own level.
+ * Both are pure functions of committed constants, so they are computed at module scope rather than
+ * threaded through the renderer's construction order.
+ */
+export const FLOOR_SKY = normalisedSkyIrradiance();
+export const SURFACE_SKY = normalisedSkyIrradiance(
+  undefined,
+  RELAY_PRESENTATION.surfaceAmbient.color,
+);

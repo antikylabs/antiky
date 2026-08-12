@@ -13,7 +13,7 @@ import type { GamePointerInput } from '@antiky/framework/game';
 
 import { createRelayFrameScratch, setCameraPosition } from './frame-scratch.ts';
 import { relayOnboardingOpacity } from './onboarding-cues.ts';
-import { normalisedSkyIrradiance } from './ambient.ts';
+import { FLOOR_SKY, SURFACE_SKY } from './ambient.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
@@ -149,7 +149,15 @@ export async function createRelayRenderer(
   const surfaceBatches = [forms, creatures, orbs, rings] as const;
   for (let index = 0; index < surfaceBatches.length; index += 1) {
     const batch = surfaceBatches[index]!;
-    batch.program.uniforms.uAmbientColor.set(RELAY_PRESENTATION.surfaceAmbient.color);
+    batch.program.uniforms.uSh0.set(SURFACE_SKY[0]!);
+    batch.program.uniforms.uSh1.set(SURFACE_SKY[1]!);
+    batch.program.uniforms.uSh2.set(SURFACE_SKY[2]!);
+    batch.program.uniforms.uSh3.set(SURFACE_SKY[3]!);
+    batch.program.uniforms.uSh4.set(SURFACE_SKY[4]!);
+    batch.program.uniforms.uSh5.set(SURFACE_SKY[5]!);
+    batch.program.uniforms.uSh6.set(SURFACE_SKY[6]!);
+    batch.program.uniforms.uSh7.set(SURFACE_SKY[7]!);
+    batch.program.uniforms.uSh8.set(SURFACE_SKY[8]!);
     batch.program.uniforms.uAmbientStrength.set(RELAY_PRESENTATION.surfaceAmbient.strength);
     batch.program.uniforms.uExposure.set(RELAY_PRESENTATION.exposure);
     batch.program.uniforms.uRelayLightStrength.set(RELAY_PRESENTATION.relayLightStrength);
@@ -161,7 +169,15 @@ export async function createRelayRenderer(
   const modelBatches = [organic, rocks, stumps] as const;
   for (let index = 0; index < modelBatches.length; index += 1) {
     const batch = modelBatches[index]!;
-    batch.program.uniforms.uAmbientColor!.set(RELAY_PRESENTATION.surfaceAmbient.color);
+    batch.program.uniforms.uSh0!.set(SURFACE_SKY[0]!);
+    batch.program.uniforms.uSh1!.set(SURFACE_SKY[1]!);
+    batch.program.uniforms.uSh2!.set(SURFACE_SKY[2]!);
+    batch.program.uniforms.uSh3!.set(SURFACE_SKY[3]!);
+    batch.program.uniforms.uSh4!.set(SURFACE_SKY[4]!);
+    batch.program.uniforms.uSh5!.set(SURFACE_SKY[5]!);
+    batch.program.uniforms.uSh6!.set(SURFACE_SKY[6]!);
+    batch.program.uniforms.uSh7!.set(SURFACE_SKY[7]!);
+    batch.program.uniforms.uSh8!.set(SURFACE_SKY[8]!);
     batch.program.uniforms.uAmbientStrength!.set(RELAY_PRESENTATION.catalogMaterial.ambientStrength);
     batch.program.uniforms.uExposure!.set(RELAY_PRESENTATION.exposure);
     batch.program.uniforms.uRelayLightStrength!.set(RELAY_PRESENTATION.relayLightStrength);
@@ -181,16 +197,16 @@ export async function createRelayRenderer(
   // Written out rather than looped: the uniform record is a typed literal, so an index built from a
   // template string is not a key TypeScript can check. Nine lines that the compiler verifies beat a
   // loop that needs a cast to compile.
-  const sky = normalisedSkyIrradiance();
-  floorProgram.uniforms.uSh0.set(sky[0]!);
-  floorProgram.uniforms.uSh1.set(sky[1]!);
-  floorProgram.uniforms.uSh2.set(sky[2]!);
-  floorProgram.uniforms.uSh3.set(sky[3]!);
-  floorProgram.uniforms.uSh4.set(sky[4]!);
-  floorProgram.uniforms.uSh5.set(sky[5]!);
-  floorProgram.uniforms.uSh6.set(sky[6]!);
-  floorProgram.uniforms.uSh7.set(sky[7]!);
-  floorProgram.uniforms.uSh8.set(sky[8]!);
+
+  floorProgram.uniforms.uSh0.set(FLOOR_SKY[0]!);
+  floorProgram.uniforms.uSh1.set(FLOOR_SKY[1]!);
+  floorProgram.uniforms.uSh2.set(FLOOR_SKY[2]!);
+  floorProgram.uniforms.uSh3.set(FLOOR_SKY[3]!);
+  floorProgram.uniforms.uSh4.set(FLOOR_SKY[4]!);
+  floorProgram.uniforms.uSh5.set(FLOOR_SKY[5]!);
+  floorProgram.uniforms.uSh6.set(FLOOR_SKY[6]!);
+  floorProgram.uniforms.uSh7.set(FLOOR_SKY[7]!);
+  floorProgram.uniforms.uSh8.set(FLOOR_SKY[8]!);
   floorProgram.uniforms.uAmbientStrength.set(RELAY_PRESENTATION.floorAmbient.strength);
   floorProgram.uniforms.uExposure.set(RELAY_PRESENTATION.exposure);
   floorProgram.uniforms.uRelayLightStrength.set(RELAY_PRESENTATION.relayLightStrength);

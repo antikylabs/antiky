@@ -57,7 +57,15 @@ export default shader({
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTime: 'float',
-    uAmbientColor: 'vec3',
+    uSh0: 'vec3',
+    uSh1: 'vec3',
+    uSh2: 'vec3',
+    uSh3: 'vec3',
+    uSh4: 'vec3',
+    uSh5: 'vec3',
+    uSh6: 'vec3',
+    uSh7: 'vec3',
+    uSh8: 'vec3',
     uAmbientStrength: 'float',
     uExposure: 'float',
     uRelayLightStrength: 'float',
@@ -120,7 +128,15 @@ export default shader({
   fragment({
     uCameraPosition,
     uTime,
-    uAmbientColor,
+    uSh0,
+    uSh1,
+    uSh2,
+    uSh3,
+    uSh4,
+    uSh5,
+    uSh6,
+    uSh7,
+    uSh8,
     uAmbientStrength,
     uExposure,
     uRelayLightStrength,
@@ -214,7 +230,25 @@ const baseNormal = normalize(vNormal);
     );
     const radiance = ember.add(ion).add(violet).scale(uRelayLightStrength);
     const hemisphere = 0.78 + normal.y * 0.2;
-    const ambient = uAmbientColor.scale(uAmbientStrength * hemisphere);
+    // Ambient that knows which way the surface faces.
+    //
+    // This replaced a flat colour with a crude up-facing fudge bolted on. The nine coefficients come
+    // from a real sky, baked offline by `packages/demos/scripts/bake-sh9-irradiance.mjs`: nine
+    // multiply-adds, no texture fetch, and a genuine sky-to-ground hue shift rather than a scalar
+    // lean toward brighter-if-upward.
+    //
+    // The bake decides direction; the demo's existing exposure still decides level. See
+    // `src/ambient.ts` for why those two are deliberately kept apart.
+    const shIrradiance = uSh0
+      .add(uSh1.scale(normal.y))
+      .add(uSh2.scale(normal.z))
+      .add(uSh3.scale(normal.x))
+      .add(uSh4.scale(normal.x * normal.y))
+      .add(uSh5.scale(normal.y * normal.z))
+      .add(uSh6.scale(3 * normal.z * normal.z - 1))
+      .add(uSh7.scale(normal.x * normal.z))
+      .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
+    const ambient = shIrradiance.scale(uAmbientStrength);
     const lit = vBaseColor.mul(ambient.add(radiance))
       .add(radiance.scale(metalness * 0.2));
     const pulse = 0.92 + sin(uTime * 2.4 + vWorld.x * 0.5) * 0.08;
