@@ -95,17 +95,7 @@ export function packExternalGltfToGlb({
     return view;
   });
   const binaryChunk = Buffer.concat(binParts);
-  // The shared policy, enforced before anything is written. This is the check that would have caught
-  // `delete material.normalTexture`.
-  const fidelity = checkFidelity({
-    name: diffuseName,
-    attributes: Object.keys(selectedMesh.primitives[0].attributes),
-    sourceMaterialMaps: source.materials?.[0]?.normalTexture === undefined ? [] : ['normalTexture'],
-    packedMaterialMaps: ['normalTexture'],
-    materialCount: 1,
-    uniqueUvCount: Number.POSITIVE_INFINITY,
-  });
-  if (fidelity.length > 0) throw new Error(fidelity.join('\n'));
+
   const material = structuredClone(source.materials?.[0] ?? { pbrMetallicRoughness: {} });
   material.pbrMetallicRoughness ??= {};
   material.pbrMetallicRoughness.baseColorTexture = { index: 0 };
@@ -143,5 +133,35 @@ export function packExternalGltfToGlb({
   const binaryHeader = Buffer.alloc(8);
   binaryHeader.writeUInt32LE(binaryChunk.length, 0);
   binaryHeader.writeUInt32LE(0x004e4942, 4);
+  // The shared policy, read off the object that is about to be written rather than off the arguments
+  // that were passed in.
+  //
+  // This check used to sit thirteen lines earlier and assert `packedMaterialMaps: ['normalTexture']`
+  // as a literal — a constant compared against a constant, before the material existed. Deleting
+  // `material.normalTexture` below left it green and shipped three models with no normal map.
+  // Resolved all the way to the image, by name.
+  //
+  // Two weaker versions of this check passed while the normal map was missing. Asserting a literal
+  // `['normalTexture']` compared a constant with a constant. Asserting the key exists passed because
+  // the material is cloned from the source, which carries its own `normalTexture` — and asserting
+  // the index is in range passed too, because the source's index happens to be valid in our shorter
+  // texture list. Only following material -> texture -> image -> name proves the map we packed is
+  // the map the material points at.
+  const packedMaps = [];
+  const normalIndex = runtimeJson.materials[0].normalTexture?.index;
+  const normalSource = normalIndex === undefined ? undefined : runtimeJson.textures[normalIndex]?.source;
+  if (normalSource !== undefined && runtimeJson.images[normalSource]?.name === normalName) {
+    packedMaps.push('normalTexture');
+  }
+  const fidelity = checkFidelity({
+    name: diffuseName,
+    attributes: Object.keys(runtimeJson.meshes[0].primitives[0].attributes),
+    sourceMaterialMaps: source.materials?.[0]?.normalTexture === undefined ? [] : ['normalTexture'],
+    packedMaterialMaps: packedMaps,
+    materialCount: runtimeJson.materials.length,
+    uniqueUvCount: Number.POSITIVE_INFINITY,
+  });
+  if (fidelity.length > 0) throw new Error(fidelity.join('\n'));
+
   return Buffer.concat([header, jsonHeader, jsonChunk, binaryHeader, binaryChunk]);
 }
