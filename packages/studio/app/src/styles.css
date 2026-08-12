@@ -312,6 +312,37 @@ summary:focus-visible,
   background: var(--line);
 }
 
+.studio-shell.game-fullscreen {
+  grid-template-rows: minmax(0, 1fr);
+  background: #000;
+}
+
+.studio-shell.game-fullscreen > .titlebar,
+.studio-shell.game-fullscreen > .controlbar,
+.studio-shell.game-fullscreen > .statusbar {
+  display: none;
+}
+
+.studio-shell.game-fullscreen .workspace {
+  grid-template-areas: "game";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  background: #000;
+}
+
+.studio-shell.game-fullscreen .terminal-panel,
+.studio-shell.game-fullscreen .inspection-panel,
+.studio-shell.game-fullscreen .activity-panel,
+.studio-shell.game-fullscreen .workspace-resizer,
+.studio-shell.game-fullscreen .game-panel > .panel-heading {
+  display: none;
+}
+
+.studio-shell.game-fullscreen .game-stage {
+  height: 100%;
+}
+
 .workspace-resizer {
   position: absolute;
   z-index: 3;
@@ -402,11 +433,24 @@ summary:focus-visible,
 .panel-actions {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 10px;
+}
+
+.panel-actions .panel-state {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fullscreen-issue {
+  color: var(--danger);
+  font-size: 9px;
 }
 
 .panel-action-button,
 .fullscreen-exit-button {
+  flex: 0 0 auto;
   min-height: 24px;
   padding: 3px 8px;
   border: 1px solid var(--line-strong);

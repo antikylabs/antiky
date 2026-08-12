@@ -14,6 +14,7 @@ const shellStyles = [
   readFileSync(new URL('../responsive.css', import.meta.url), 'utf8'),
 ].join('\n');
 const studioShellSource = readFileSync(new URL('./StudioShell.tsx', import.meta.url), 'utf8');
+const gameFullscreenSource = readFileSync(new URL('./gameFullscreen.ts', import.meta.url), 'utf8');
 
 const ROOT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const LIGHT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';
@@ -340,11 +341,19 @@ test('the live game can enter and leave fullscreen without unmounting its frame'
   );
 
   assert.match(html, /<button[^>]*aria-label="Enter game fullscreen"/);
+  assert.ok(
+    html.indexOf('aria-label="Enter game fullscreen"') < html.indexOf('>connected</span>'),
+    'the fullscreen action must remain visible before the lower-priority connection label',
+  );
   assert.equal((html.match(/<iframe/g) ?? []).length, 1);
-  assert.match(studioShellSource, /requestFullscreen\(\)/);
-  assert.match(studioShellSource, /document\.exitFullscreen\(\)/);
+  assert.match(studioShellSource, /getCurrentWindow\(\)/);
+  assert.match(studioShellSource, /changeGameFullscreen/);
+  assert.match(gameFullscreenSource, /browserTarget\.requestFullscreen\(\)/);
+  assert.match(gameFullscreenSource, /browserDocument\.exitFullscreen\(\)/);
+  assert.match(gameFullscreenSource, /nativeWindow\.setFullscreen\(enabled\)/);
   assert.match(studioShellSource, /fullscreenchange/);
   assert.match(shellStyles, /\.game-stage:fullscreen\s*\{/);
+  assert.match(shellStyles, /\.studio-shell\.game-fullscreen \.workspace\s*\{/);
 });
 
 test('a deliberately stopped game has one clear recovery action and no retained frame', () => {

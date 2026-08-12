@@ -39,6 +39,7 @@ test('the main window can invoke only the bounded Studio command surface', async
   assert.deepEqual(capability.permissions, [
     'core:event:allow-listen',
     'core:event:allow-unlisten',
+    'core:window:allow-set-fullscreen',
     'allow-project-initial-event',
     'allow-project-select',
     'allow-project-create',

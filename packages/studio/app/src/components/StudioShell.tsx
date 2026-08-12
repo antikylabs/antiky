@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react';
 
 import type { AntikyProject } from '@antiky/cli/project';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import { NativeTerminal } from '../NativeTerminal.tsx';
 import type { StudioDevelopmentState } from '../development/coordinator.ts';
@@ -18,6 +19,7 @@ import { InspectionPanel } from './InspectionPanel.tsx';
 import { LiveGameFrame } from './LiveGameFrame.tsx';
 import { EmptyState, Panel } from './primitives.tsx';
 import { SettingsPage } from './SettingsPage.tsx';
+import { changeGameFullscreen } from './gameFullscreen.ts';
 import {
   DEFAULT_WORKSPACE_SPLITS,
   resizeWorkspaceSplit,
@@ -86,6 +88,7 @@ export function StudioShell({
 }: StudioShellProps) {
   const [localPage, setLocalPage] = useState(initialPage);
   const [gameFullscreen, setGameFullscreen] = useState(false);
+  const [fullscreenIssue, setFullscreenIssue] = useState<string | null>(null);
   const [resizingAxis, setResizingAxis] = useState<WorkspaceSplitAxis | null>(null);
   const [workspaceSplits, setWorkspaceSplits] = useState(DEFAULT_WORKSPACE_SPLITS);
   const gameStageRef = useRef<HTMLDivElement>(null);
@@ -125,12 +128,27 @@ export function StudioShell({
     const gameStage = gameStageRef.current;
     if (!gameStage) return;
 
-    if (document.fullscreenElement === gameStage) {
-      await document.exitFullscreen();
-      return;
+    const enabled = platform === 'native'
+      ? !gameFullscreen
+      : document.fullscreenElement !== gameStage;
+    try {
+      const changed = await changeGameFullscreen({
+        browserDocument: document,
+        browserTarget: gameStage,
+        enabled,
+        nativeWindow: platform === 'native' ? getCurrentWindow() : undefined,
+        platform,
+      });
+      if (!changed) {
+        setFullscreenIssue('Fullscreen is unavailable in this Studio.');
+        return;
+      }
+      setFullscreenIssue(null);
+      if (platform === 'native') setGameFullscreen(enabled);
+    } catch (error) {
+      console.error('Studio could not change game fullscreen.', error);
+      setFullscreenIssue('Studio could not change fullscreen.');
     }
-
-    await gameStage.requestFullscreen();
   };
 
   useEffect(() => {
@@ -186,7 +204,7 @@ export function StudioShell({
   } as CSSProperties;
 
   return (
-    <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'} platform-${platform}`}>
+    <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'} platform-${platform}${gameFullscreen ? ' game-fullscreen' : ''}`}>
       <header className="titlebar" data-tauri-drag-region="true">
         <div className="brand-lockup">
           <img alt="Antiky Labs" src={brandUrl} />
@@ -286,7 +304,6 @@ export function StudioShell({
         <Panel
           actions={(
             <div className="panel-actions">
-              <span className="panel-state">{current ? snapshot?.connection.state : connectionLabel}</span>
               <button
                 aria-label="Enter game fullscreen"
                 className="panel-action-button"
@@ -295,6 +312,8 @@ export function StudioShell({
                 title="Enter game fullscreen"
                 type="button"
               >Fullscreen</button>
+              <span className="panel-state">{current ? snapshot?.connection.state : connectionLabel}</span>
+              {fullscreenIssue && <span className="fullscreen-issue" role="alert">{fullscreenIssue}</span>}
             </div>
           )}
           className="game-panel"
