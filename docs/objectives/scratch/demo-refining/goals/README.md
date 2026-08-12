@@ -49,7 +49,13 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **03** | [Quick wins, motion feel, safe dead-code removal (Track D)](_completed/execute-goal-03.md) | **Done** `4b6ecaa` — [summary](_completed/summary-goal-03.md) | 01 | 04, 05, 10 | ~2 days |
 | **04** | [Stop the asset pipeline destroying the assets (Track C)](_completed/execute-goal-04.md) | **Done** `bf56f6c` — [summary](_completed/summary-goal-04.md) | 01 | 02, 03, 05, 10 | ~3 days |
 | **05** | Give the existing assets real materials — triplanar PBR | Not started | 01, 04 | 02, 03, 06, 07, 10 | ~14 days |
-| **06** | The reference render slice in `point-light-expo` (Track B) | Not started | 00, 01, 02 | 05, 10 | ~5 days |
+| **06** | [The reference render slice in `point-light-expo` (Track B)](execute-goal-06.md) — **six steps, run individually** | Not started | 00, 01, 02 | 05, 10 | ~5 days |
+| 06-01 | [Finish colour management — the encode on output](execute-goal-06-01.md) | Not started | 06 prereqs | — | — |
+| 06-02 | [One HDR target and exactly one tone-map](execute-goal-06-02.md) | Not started | 06-01 | — | — |
+| 06-03 | [A specular model that does not need a ceiling](execute-goal-06-03.md) | Not started | 06-02 | — | — |
+| 06-04 | [One sun and a shadow map](execute-goal-06-04.md) | Not started | 06-03 | — | — |
+| 06-05 | [Ambient that knows which way is up](execute-goal-06-05.md) | Not started | 06-04 | — | — |
+| 06-06 | [Bloom, grade and vignette, and the budget green](execute-goal-06-06.md) | Not started | 06-05 | — | — |
 | **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | Not started | 06 | 05, 10 | ~10 days |
 | **08** | Art direction and VFX per demo, `antiky-town` included | Not started | 05, 07 | 10 | ~16 days |
 | **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 | ~5 days |
