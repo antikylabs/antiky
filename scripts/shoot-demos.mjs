@@ -111,7 +111,12 @@ export function evidencePngPath({ demoDirectory, developmentSessionId, evidenceI
  * atlas bleeding, that was the wrong boundary. It now covers `src`, `assets` and the `.antiky`
  * manifest, and hashes by content rather than by extension.
  */
-export async function sourceDigest(directory) {
+export async function sourceDigest(rawDirectory) {
+  // Resolved first, so every path collected below is absolute. Mixing an absolute repository path
+  // with a relative demo path made `files.sort()` order them differently depending on how the caller
+  // spelled its argument, and the same demo hashed two ways — the shoot script recorded one and the
+  // budget tests computed the other, so every budget declared itself stale.
+  const directory = path.resolve(rawDirectory);
   const hash = createHash('sha256');
   const files = [];
   const walk = async (current) => {
@@ -134,7 +139,11 @@ export async function sourceDigest(directory) {
   // The shared code every demo renders through. Changing `FIXED_STEP_SECONDS` in the framework
   // alters what every capture would show, and left the digest untouched — a boundary drawn at the
   // demo folder misses the thing they all depend on.
-  const repositoryRoot = path.resolve(path.dirname(directory), '..', '..', '..');
+  // Resolved from this file's own location, not by counting `..` from the caller's argument. The
+  // argument arrives relative from the shoot script and absolute from the budget tests, and walking
+  // up from each gave two different roots — so the same demo hashed to two different digests and
+  // every budget reported itself stale.
+  const repositoryRoot = path.resolve(import.meta.dirname, '..');
   await walk(path.join(repositoryRoot, 'packages', 'framework', 'src'));
   await walk(path.join(repositoryRoot, 'packages', 'demos', 'scripts'));
   for (const entry of await readdir(directory, { withFileTypes: true })) {

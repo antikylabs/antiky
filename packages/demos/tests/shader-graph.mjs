@@ -179,9 +179,121 @@ export function parseGeneratedShader(relative, source) {
     level: match[0].includes('Level') ? 'explicit' : 'auto',
   }));
 
+  /** Resolve an identifier to a number, following simple constant bindings. */
+  const numeric = (token) => {
+    const direct = Number(token);
+    if (Number.isFinite(direct)) return direct;
+    const binding = statements.find((statement) => statement.name === token.trim());
+    if (binding === undefined) return undefined;
+    const value = Number(binding.expression.trim());
+    return Number.isFinite(value) ? value : undefined;
+  };
+
+  /**
+   * Every direction the shader lights a surface with.
+   *
+   * A light is defined by what it *does* — it is the vector dotted with the surface normal — rather
+   * than by what it is called or which way it points. Three separate evasions defeated the previous
+   * version, which matched five identifier names and required the vector to point upward: renaming
+   * `light` to `sunDir`, flipping a sun to point downward, and building it from three component
+   * constants instead of a literal. None of those change the fact that it is dotted with the normal.
+   *
+   * The view vector is dotted with the normal too, for rim and specular terms, so anything derived
+   * from the camera position is excluded — that is a property of the value, not of its name.
+   *
+   * Returned in source order. A shader may legitimately have a key and a fill; what must agree
+   * across a demo is the **first** — the key — which is the one these shaders compute first and the
+   * one the original defect got wrong, lighting the arena floor from the opposite side to the ships.
+   */
+  const lightDirections = () => {
+    const found = new Map();  // insertion-ordered: the key light is first
+    // Which locals derive from the interpolated surface normal, and which from the camera.
+    const derivesFrom = (needle) => {
+      const live = new Set([needle]);
+      for (let pass = 0; pass < 3; pass += 1) {
+        for (const statement of statements) {
+          if ([...live].some((held) => new RegExp(`\\b${held}\\b`).test(statement.expression))) {
+            live.add(statement.name);
+          }
+        }
+      }
+      return live;
+    };
+    const normalish = derivesFrom('vNormal');
+    // Every spelling of the camera. `antiky-town` calls it `uCamPos`, and a view vector dotted with
+    // the normal is a rim or specular term, not a light.
+    const viewish = new Set([...derivesFrom('uCameraPosition'), ...derivesFrom('uCamPos')]);
+    const viewUniform = /cam|view|eye/i;
+
+    for (const [, a, b] of wgsl.matchAll(/dot\(\s*([\w.]+)\s*,\s*([\w.]+)\s*\)/g)) {
+      const base = (token) => token.split('.')[0];
+      const pair = [[a, b], [b, a]];
+      for (const [left, right] of pair) {
+        if (!normalish.has(base(left))) continue;
+        if (viewish.has(base(right))) continue;
+        // Follow aliases to the definition. `let light = sunDir;` is one hop; a chain of renames is
+        // several, and stopping at the first binding let a renamed-and-flipped sun pass.
+        let binding = statements.find((statement) => statement.name === base(right));
+        for (let hop = 0; hop < 8 && binding !== undefined; hop += 1) {
+          const alias = binding.expression.trim().match(/^(\w+)$/);
+          if (!alias) break;
+          binding = statements.find((statement) => statement.name === alias[1]);
+        }
+        if (binding === undefined) continue;
+        const literal = binding.expression.match(/normalize\(vec3f\(([^)]*)\)\)/);
+        if (literal) {
+          const parts = literal[1].split(',').map((part) => numeric(part));
+          if (parts.every((value) => value !== undefined)) {
+            // Normalised, so two spellings of the same direction compare equal.
+            const length = Math.hypot(...parts) || 1;
+            found.set(parts.map((value) => (value / length).toFixed(3)).join(', '), 'literal');
+          }
+          continue;
+        }
+        const uniform = binding.expression.match(/\bbm_u\.(\w+)/);
+        if (uniform && !viewUniform.test(uniform[1])) found.set(`uniform:${uniform[1]}`, 'uniform');
+      }
+    }
+    return found;
+  };
+
+  /**
+   * Every fog range, keyed by the distance it measures rather than by how that distance is spelled.
+   *
+   * The distance expression is resolved through its bindings, so binding it to a name first does not
+   * hide the range — which is exactly how the previous version was defeated.
+   */
+  const fogRanges = () => {
+    const found = new Map();
+    const cameraDerived = new Set();
+    for (let pass = 0; pass < 3; pass += 1) {
+      for (const statement of statements) {
+        const mentionsCamera = /uCameraPosition|uCamPos|\bvDepth\b/.test(statement.expression)
+          || [...cameraDerived].some((held) => new RegExp(`\\b${held}\\b`).test(statement.expression));
+        // A camera *position* is not a distance; a length or a depth is.
+        if (mentionsCamera && /length\(|distance\(|\bvDepth\b/.test(statement.expression)) {
+          cameraDerived.add(statement.name);
+        }
+      }
+    }
+    for (const [, low, high, argument] of wgsl.matchAll(/smoothstep\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([^;)]*(?:\([^)]*\))?[^;)]*)\)/g)) {
+      const measuresDistance = /uCameraPosition|uCamPos|\bvDepth\b/.test(argument)
+        || [...cameraDerived].some((held) => new RegExp(`\\b${held}\\b`).test(argument));
+      if (!measuresDistance) continue;
+      found.set(`${Number(low)}..${Number(high)}`, 'literal');
+    }
+    // A uniform-driven range is one value by construction.
+    if (/smoothstep\(\s*bm_u\.uFog\w*\s*,\s*bm_u\.uFog\w*\s*,/.test(wgsl)) {
+      found.set('uniform:uFogStart..uFogEnd', 'uniform');
+    }
+    return found;
+  };
+
   return {
     relative,
     wgsl,
+    lightDirections,
+    fogRanges,
     samplers,
     samples,
     sampledTextures: [...new Set(samples.map((sample) => sample.texture))],

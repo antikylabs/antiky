@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
   "demo": "traversal-study",
-  "capturedAt": "2026-08-12T07:51:04.400Z",
+  "capturedAt": "2026-08-12T08:26:43.540Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "9772f3364099399c",
+    "digest": "ae059086c3dced9f",
     "fileCount": 71
   },
   "frame": {
@@ -29,5 +29,5 @@
   "saturation": {
     "mean": 0.43836
   },
-  "seal": "3b49df446892d701"
+  "seal": "42a71756bed0540a"
 }

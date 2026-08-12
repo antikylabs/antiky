@@ -685,62 +685,64 @@ test('no material sample silently loses its mip chain', async () => {
 });
 
 test('every demo agrees with itself about where its light comes from', async () => {
-  // Read from the compiled shader: the vectors as emitted, not the identifiers they were bound to.
-  // The previous version matched five variable names, so renaming `light` to `sunDir` reintroduced
-  // the original defect — a floor lit from the opposite side to the ships — while staying green.
+  // A light is identified by what it does — it is the vector dotted with the surface normal — not by
+  // what it is called or which way it points.
+  //
+  // Three separate evasions defeated the previous version, which matched five identifier names and
+  // required the vector to point upward: renaming `light` to `sunDir`, flipping the sun to point
+  // downward, and assembling it from three component constants instead of one literal. All three
+  // are still dotted with the normal, because that is what lighting a surface means.
+  //
+  // The first such direction in a shader is its key. A key and a fill are not a disagreement; two
+  // different keys are, and that was the original defect — the arena floor lit from the opposite
+  // side to the ships standing on it.
   const disagreements = [];
-  let checked = 0;
+  let demosWithLight = 0;
   for (const demo of demos) {
-    const directions = new Map();
+    const keys = new Map();
     for (const shader of await discoverShaders(demo)) {
-      // `normalize(vec3f(a, b, c))` in the shipped program, whatever it was called in TypeScript.
-      for (const [, vector] of shader.wgsl.matchAll(/normalize\(vec3f\(([-\d., ]+)\)\)/g)) {
-        const key = vector.split(',').map((part) => Number(part.trim()).toFixed(4)).join(', ');
-        // A normalised constant that points mostly upward is a light; the rest are axes and offsets.
-        const [x, y, z] = key.split(', ').map(Number);
-        const length = Math.hypot(x, y, z);
-        if (Math.abs(length - 1) > 0.06 || y <= 0.2) continue;
-        if (!directions.has(key)) directions.set(key, []);
-        directions.get(key).push(shader.relative);
-      }
+      const directions = [...shader.lightDirections().keys()];
+      if (directions.length === 0) continue;
+      const key = directions[0];
+      if (!keys.has(key)) keys.set(key, []);
+      keys.get(key).push(shader.relative);
     }
-    checked += directions.size;
-    if (directions.size > 1) {
-      disagreements.push({ demo: demo.slug, directions: Object.fromEntries(directions) });
-    }
+    if (keys.size === 0) continue;
+    demosWithLight += 1;
+    if (keys.size > 1) disagreements.push({ demo: demo.slug, keys: Object.fromEntries(keys) });
   }
-  assert.ok(checked > 0, 'found no light directions at all — the pattern no longer matches');
+  assert.ok(demosWithLight >= 3, `expected several demos to light something, found ${demosWithLight}`);
   assert.deepEqual(
     disagreements,
     [],
-    'Objects lit by different suns cannot read as one space. One direction per demo — a shared '
+    'Objects lit by different suns cannot read as one space. One key direction per demo — a shared '
     + 'uniform is fine and is what antiky-town does.',
   );
 });
 
 test('every demo agrees with itself about its fog range', async () => {
+  // Fog is identified by what it measures: a smoothstep over the distance from the camera to this
+  // fragment. The distance is traced through its bindings, so writing
+  // `const d = length(uCameraPosition.sub(vWorld)); smoothstep(2, 9, d)` no longer hides the range —
+  // that evasion worked against the previous version, which required the argument to contain the
+  // uniform's name literally.
+  //
+  // A previous comment in this file claimed the argument was traced when it was not. That is the
+  // same failure the WGSL rewrite exists to prevent, written into a test rather than a shader.
   const disagreements = [];
+  let ranges = 0;
   for (const demo of demos) {
-    const ranges = new Map();
+    const found = new Map();
     for (const shader of await discoverShaders(demo)) {
-      // The distance argument is traced rather than pattern-matched, so binding it to a name first
-      // does not hide the range.
-      for (const match of shader.wgsl.matchAll(/smoothstep\(([\d.]+),\s*([\d.]+),\s*([^;)]*)\)/g)) {
-        const argument = match[3];
-        // Distance from the camera to this fragment, however it is written. `planetDistance` in the
-        // space backdrop is a distance too, but to a planet, not the viewer — matching on the word
-        // "distance" pulled in a nebula falloff and reported it as a disagreeing fog range.
-        const isCameraDistance = /uCameraPosition/.test(argument)
-          || /\bvDepth\b/.test(argument)
-          || /\bviewDistance\b/.test(argument);
-        if (!isCameraDistance) continue;
-        const key = `${match[1]}..${match[2]}`;
-        if (!ranges.has(key)) ranges.set(key, []);
-        ranges.get(key).push(shader.relative);
+      for (const [range, files] of shader.fogRanges()) {
+        if (!found.has(range)) found.set(range, []);
+        found.get(range).push(`${shader.relative}${files === 'uniform' ? ' (uniform)' : ''}`);
       }
     }
-    if (ranges.size > 1) disagreements.push({ demo: demo.slug, ranges: Object.fromEntries(ranges) });
+    ranges += found.size;
+    if (found.size > 1) disagreements.push({ demo: demo.slug, ranges: Object.fromEntries(found) });
   }
+  assert.ok(ranges > 0, 'found no fog at all — the analysis no longer recognises it');
   assert.deepEqual(
     disagreements,
     [],

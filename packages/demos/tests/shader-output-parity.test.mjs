@@ -8,23 +8,34 @@ import { promisify } from 'node:util';
 
 const execute = promisify(execFile);
 /**
- * Every package that ships generated shaders, not just the two town demos this once covered.
- * `src/` is the search root so nested shader directories are included wherever a demo puts them.
+ * Every package that ships generated shaders, discovered rather than listed.
+ *
+ * A hardcoded list meant a new demo's `.gen.ts` was never compared against a compiler and could
+ * assert anything — an audit added a package containing `{ wgslSrc: "garbage that never compiled" }`
+ * and this test passed. Discovery makes omission impossible instead of merely unlikely.
  */
-const shaderPackages = [
-  { category: 'antiky', slug: 'antiky-town' },
-  { category: 'antiky', slug: 'combat-arena' },
-  { category: 'antiky', slug: 'point-light-expo' },
-  { category: 'antiky', slug: 'traversal-study' },
-  { category: 'brometal', slug: 'luminous-reef' },
-  { category: 'brometal', slug: 'shader-study' },
-  { category: 'brometal', slug: 'solar-forge' },
-  { category: 'brometal', slug: 'town-study' },
-].map(({ category, slug }) => ({
-  slug,
-  packageDirectory: fileURLToPath(new URL(`../${category}/${slug}/`, import.meta.url)),
-  sourceDirectory: new URL(`../${category}/${slug}/src/`, import.meta.url),
-}));
+async function discoverShaderPackages() {
+  const packages = [];
+  for (const category of ['antiky', 'brometal', 'threejs']) {
+    const root = fileURLToPath(new URL(`../${category}/`, import.meta.url));
+    let entries;
+    try {
+      entries = await readdir(root, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
+      if (!entry.isDirectory()) continue;
+      const packageDirectory = path.join(root, entry.name);
+      const sourceDirectory = new URL(`../${category}/${entry.name}/src/`, import.meta.url);
+      const generated = await generatedFiles(sourceDirectory);
+      if (generated.length === 0) continue;
+      packages.push({ slug: entry.name, packageDirectory, sourceDirectory });
+    }
+  }
+  return packages;
+}
+
 const brometalEntry = fileURLToPath(import.meta.resolve('brometal'));
 const brometalDirectory = path.resolve(path.dirname(brometalEntry), '..');
 const compiler = path.join(brometalDirectory, 'dist/cli/index.js');
@@ -77,6 +88,11 @@ test('the committed shader output is what the compiler actually produces', async
    * is committed, not against itself.
    */
   let checked = 0;
+  const shaderPackages = await discoverShaderPackages();
+  assert.ok(
+    shaderPackages.length >= 8,
+    `expected to discover every package with generated shaders, found ${shaderPackages.length}`,
+  );
   for (const shaderPackage of shaderPackages) {
     const paths = await generatedFiles(shaderPackage.sourceDirectory);
     assert.ok(
@@ -84,6 +100,27 @@ test('the committed shader output is what the compiler actually produces', async
       `${shaderPackage.slug}: found no .shader.gen.ts files — the search root is wrong, and an `
       + 'empty list would otherwise pass this test without asserting anything',
     );
+    // Every generated shader must have the source it was generated from.
+    //
+    // Without this the comparison below can be vacuous: the compiler only rewrites a `.gen.ts` that
+    // has a `.shader.ts` beside it, so an orphan generated file is never touched and "what the
+    // compiler produces" equals "what is committed" trivially. An audit shipped a package whose only
+    // shader was `{ wgslSrc: 'garbage that never compiled' }` and this test passed.
+    for (const generated of paths) {
+      const authored = fileURLToPath(generated).replace(/\.shader\.gen\.ts$/, '.shader.ts');
+      let exists = true;
+      try {
+        await readFile(authored);
+      } catch {
+        exists = false;
+      }
+      assert.ok(
+        exists,
+        `${shaderPackage.slug}: ${path.basename(fileURLToPath(generated))} has no .shader.ts beside `
+        + 'it, so nothing regenerates it and its contents are unverified.',
+      );
+    }
+
     const committed = await readOutputs(paths);
     try {
       for (const mode of [['dev', '--once'], ['prod']]) {
