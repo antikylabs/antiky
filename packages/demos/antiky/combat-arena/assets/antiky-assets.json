@@ -33,8 +33,16 @@
             "vertices": 8184,
             "indices": 14628,
             "bounds": {
-              "min": [-6, -1.7067471635751237e-14, -5.999999046325684],
-              "max": [6.000000476837158, 4.25, 6.000000476837158]
+              "min": [
+                -6,
+                -1.7067471635751237e-14,
+                -5.999999046325684
+              ],
+              "max": [
+                6.000000476837158,
+                4.25,
+                6.000000476837158
+              ]
             }
           }
         },
@@ -51,8 +59,16 @@
             "vertices": 856,
             "indices": 1644,
             "bounds": {
-              "min": [-2.0999999046325684, -2.1374605108721352e-17, -2.0999999046325684],
-              "max": [2.0999999046325684, 0.4000000059604645, 2.0999999046325684]
+              "min": [
+                -2.0999999046325684,
+                -2.1374605108721352e-17,
+                -2.0999999046325684
+              ],
+              "max": [
+                2.0999999046325684,
+                0.4000000059604645,
+                2.0999999046325684
+              ]
             }
           }
         },
@@ -69,8 +85,16 @@
             "vertices": 800,
             "indices": 1200,
             "bounds": {
-              "min": [-1.0457701683044434, 0, -1.0313173532485962],
-              "max": [0.8690575361251831, 0.1600000113248825, 1.070632815361023]
+              "min": [
+                -1.0457701683044434,
+                0,
+                -1.0313173532485962
+              ],
+              "max": [
+                0.8690575361251831,
+                0.1600000113248825,
+                1.070632815361023
+              ]
             }
           }
         }
@@ -108,8 +132,16 @@
             "vertices": 260,
             "indices": 492,
             "bounds": {
-              "min": [-0.12999999523162842, 0, 0],
-              "max": [0, 0.35999998450279236, 0.36000001430511475]
+              "min": [
+                -0.12999999523162842,
+                0,
+                0
+              ],
+              "max": [
+                0,
+                0.35999998450279236,
+                0.36000001430511475
+              ]
             }
           }
         },
@@ -126,8 +158,16 @@
             "vertices": 340,
             "indices": 600,
             "bounds": {
-              "min": [-0.09892172366380692, 0, -0.08997199684381485],
-              "max": [0.06997200101613998, 0.23770800232887268, 0.06997200101613998]
+              "min": [
+                -0.09892172366380692,
+                0,
+                -0.08997199684381485
+              ],
+              "max": [
+                0.06997200101613998,
+                0.23770800232887268,
+                0.06997200101613998
+              ]
             }
           }
         }
@@ -176,7 +216,18 @@
             "images": 1,
             "vertices": 4107,
             "indices": 10536,
-            "bounds": { "min": [-5.2618442, -2.0253601, -3.139415], "max": [5.2618442, 1.0298198, 4.3938928] }
+            "bounds": {
+              "min": [
+                -5.2618442,
+                -2.0253601,
+                -3.139415
+              ],
+              "max": [
+                5.2618442,
+                1.0298198,
+                4.3938928
+              ]
+            }
           }
         },
         {
@@ -196,7 +247,18 @@
             "images": 1,
             "vertices": 4911,
             "indices": 13590,
-            "bounds": { "min": [-2.5168083, -1.432785, -3.5290728], "max": [2.5168083, 1.2518599, 4.8970942] }
+            "bounds": {
+              "min": [
+                -2.5168083,
+                -1.432785,
+                -3.5290728
+              ],
+              "max": [
+                2.5168083,
+                1.2518599,
+                4.8970942
+              ]
+            }
           }
         },
         {
@@ -216,7 +278,18 @@
             "images": 1,
             "vertices": 1781,
             "indices": 4278,
-            "bounds": { "min": [-6.3922052, -1.0619138, -3.9228954], "max": [6.3922052, 2.0766928, 8.6585503] }
+            "bounds": {
+              "min": [
+                -6.3922052,
+                -1.0619138,
+                -3.9228954
+              ],
+              "max": [
+                6.3922052,
+                2.0766928,
+                8.6585503
+              ]
+            }
           }
         },
         {
@@ -236,7 +309,18 @@
             "images": 1,
             "vertices": 3673,
             "indices": 7926,
-            "bounds": { "min": [-3.8647604, -1.3141971, -6.6691833], "max": [3.8647604, 1.9892471, 11.8792019] }
+            "bounds": {
+              "min": [
+                -3.8647604,
+                -1.3141971,
+                -6.6691833
+              ],
+              "max": [
+                3.8647604,
+                1.9892471,
+                11.8792019
+              ]
+            }
           }
         },
         {
@@ -256,8 +340,79 @@
             "images": 1,
             "vertices": 3819,
             "indices": 10164,
-            "bounds": { "min": [-5.0110607, -0.7747538, -3.0779488], "max": [5.0110607, 1.0724101, 6.1242223] }
+            "bounds": {
+              "min": [
+                -5.0110607,
+                -0.7747538,
+                -3.0779488
+              ],
+              "max": [
+                5.0110607,
+                1.0724101,
+                6.1242223
+              ]
+            }
           }
+        }
+      ]
+    },
+    {
+      "catalogId": "poly-haven:metal-plate",
+      "kind": "texture",
+      "installedAt": "2026-08-12T20:28:10.850Z",
+      "provider": {
+        "id": "poly-haven",
+        "name": "Poly Haven",
+        "url": "https://polyhaven.com"
+      },
+      "upstream": {
+        "id": "metal_plate",
+        "url": "https://polyhaven.com/a/metal_plate",
+        "filesHash": "1046b39bf68d65eeb80dab84a99186a453ee94e0",
+        "retrievedAt": "2026-08-09T22:15:47.937Z"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "resolution": "1k",
+      "format": "jpg",
+      "files": [
+        {
+          "map": "diff",
+          "file": "assets/poly-haven/metal-plate/metal-plate_diff_1k.jpg",
+          "bytes": 692234,
+          "md5": "bd9daf4c04046ca392a38b8df955ed26",
+          "sha256": "c6b6739eac2c75ccc898e753d7833df24eafbdb9aa92fb6eabfb92abd1a680a5",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_diff_1k.jpg"
+        },
+        {
+          "map": "nor",
+          "file": "assets/poly-haven/metal-plate/metal-plate_nor_1k.jpg",
+          "bytes": 770307,
+          "md5": "d379e66130ad6ccff217ac9b13de935d",
+          "sha256": "994f851a84d52b51e97906021a1b7070ee6eac9a789fef041132268de47d8e6b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_nor_gl_1k.jpg"
+        },
+        {
+          "map": "rough",
+          "file": "assets/poly-haven/metal-plate/metal-plate_rough_1k.jpg",
+          "bytes": 775206,
+          "md5": "6e1c8672d804b90546a23db621515b16",
+          "sha256": "756308485ce742a52831453c296452f48cf0adead7d85adfffd34c08dce23ec1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_rough_1k.jpg"
+        },
+        {
+          "map": "ao",
+          "file": "assets/poly-haven/metal-plate/metal-plate_ao_1k.jpg",
+          "bytes": 565996,
+          "md5": "544f16f963e8904495834a94c71c7078",
+          "sha256": "715f90d663af5366ff7839369161b6ad42786aed5f3fc1409ba20fa635aaeacd",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_ao_1k.jpg"
         }
       ]
     }

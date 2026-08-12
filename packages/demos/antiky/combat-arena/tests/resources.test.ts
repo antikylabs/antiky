@@ -31,7 +31,7 @@ function fakeProgram(disposed: number[], failAttribute = false) {
   return {
     attributes: { aPosition: { set }, aNormal: { set }, aUv: { set }, aColor: { set }, aAccent: { set } },
     instanceAttributes: {},
-    uniforms: { uTex: { set() {} }, uDetailNormal: { set() {} }, uKitMaterials: { set() {} } },
+    uniforms: { uTex: { set() {} }, uDetailNormal: { set() {} }, uKitMaterials: { set() {} }, uMaterialDiffuse: { set() {} }, uMaterialStrength: { set() {} } },
     setIndices() {},
     draw() {},
     dispose() { disposed.push(1); },
@@ -53,6 +53,7 @@ test('arena catalog rolls back completed batches and the in-flight texture on co
     createProgram: () => fakeProgram(programs, ++programCount === 2) as never,
     loadDetailNormal: async () => ({ dispose() { detailDisposed += 1; } }),
     createKitMaterialLookup: () => ({ dispose() {} }),
+    loadKitMaterialMaps: async () => ({ diffuse: { dispose() {} }, roughness: { dispose() {} } }),
   }), /injected attribute failure/);
   assert.equal(bitmaps.length, 2);
   assert.equal(textures.length, 2);
@@ -85,6 +86,7 @@ test('arena catalog disposes a created texture even if bitmap close fails during
     createProgram: () => fakeProgram([]) as never,
     loadDetailNormal: async () => ({ dispose() { detailDisposed += 1; } }),
     createKitMaterialLookup: () => ({ dispose() {} }),
+    loadKitMaterialMaps: async () => ({ diffuse: { dispose() {} }, roughness: { dispose() {} } }),
   }), /injected close failure/);
   assert.equal(texturesDisposed, 1);
   assert.equal(detailDisposed, 1);

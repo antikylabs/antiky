@@ -9,6 +9,7 @@ import {
   type Renderer,
 } from 'brometal';
 
+import { loadKitMaterialMaps } from './kit-material-maps.ts';
 import { createKitMaterialLookup } from './kit-materials.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
@@ -63,6 +64,7 @@ export type ArenaAssetDependencies = Readonly<{
    */
   loadDetailNormal(renderer: Renderer): Promise<BroMetalTexture>;
   createKitMaterialLookup(renderer: Renderer): BroMetalTexture;
+  loadKitMaterialMaps(renderer: Renderer): Promise<Readonly<{ diffuse: BroMetalTexture; roughness: BroMetalTexture }>>;
 }>;
 
 const ARENA_ASSET_DEPENDENCIES: ArenaAssetDependencies = Object.freeze({
@@ -75,6 +77,7 @@ const ARENA_ASSET_DEPENDENCIES: ArenaAssetDependencies = Object.freeze({
   createProgram: (renderer) => createProgram(renderer, arenaModelShader),
   loadDetailNormal,
   createKitMaterialLookup,
+  loadKitMaterialMaps,
 });
 
 async function createModelBatch(
@@ -84,6 +87,9 @@ async function createModelBatch(
   dependencies: ArenaAssetDependencies,
   detailNormal: BroMetalTexture,
   kitMaterials: BroMetalTexture,
+  plating: BroMetalTexture,
+  /** The deck and structure are plated; cables and blaster-kit props are not. */
+  platingStrength: number,
 ): Promise<ModelBatch> {
   const mesh = model.meshes[0];
   if (mesh === undefined || mesh.normals === null || mesh.uvs === null || mesh.indices === null) {
@@ -111,6 +117,8 @@ async function createModelBatch(
     program.uniforms.uTex!.set(texture);
     program.uniforms.uDetailNormal!.set(detailNormal);
     program.uniforms.uKitMaterials!.set(kitMaterials);
+    program.uniforms.uMaterialDiffuse!.set(plating);
+    program.uniforms.uMaterialStrength!.set(platingStrength);
   } catch (cause: unknown) {
     rollbackResources(owned);
     throw cause;
@@ -190,11 +198,14 @@ export async function createArenaCatalogResources(
   try {
     const detailNormal = registerResource(resources, await dependencies.loadDetailNormal(renderer));
     const kitMaterials = registerResource(resources, dependencies.createKitMaterialLookup(renderer));
-    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials));
-    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials));
-    const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies, detailNormal, kitMaterials));
-    const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies, detailNormal, kitMaterials));
-    const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies, detailNormal, kitMaterials));
+    const materialMaps = await dependencies.loadKitMaterialMaps(renderer);
+    registerResource(resources, materialMaps.diffuse);
+    registerResource(resources, materialMaps.roughness);
+    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
+    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
+    const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0));
+    const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35));
+    const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0));
 
     // Disposal covers everything the catalog owns; per-frame work is only the batches. Iterating
     // `resources` here would call `frame` on a texture.

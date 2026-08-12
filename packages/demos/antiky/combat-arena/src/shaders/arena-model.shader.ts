@@ -67,6 +67,8 @@ export default shader({
     uTex: 'sampler2D',
     uDetailNormal: 'sampler2D',
     uKitMaterials: 'sampler3D',
+    uMaterialDiffuse: 'sampler2D',
+    uMaterialStrength: 'float',
     uTime: 'float',
   },
   varyings: {
@@ -94,7 +96,7 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uTex, uDetailNormal, uKitMaterials, uTime },
+    { uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uTime },
     { vWorld, vNormal, vUv, vTint, vParams },
   ) {
     const baseNormal = normalize(vNormal);
@@ -153,7 +155,28 @@ export default shader({
     const kitRoughness = texture(uKitMaterials, vec3(vUv.x, vUv.y, 0.5)).x;
     // Rough scatters wide and weak; smooth keeps a tight bright edge.
     const rim = pow(1 - max(dot(normal, view), 0), 2.2) * (1.25 - kitRoughness);
-    const sampled = decodeSrgb(texture(uTex, vUv).xyz).mul(vTint);
+    // What the deck is plated with, projected in world space over the kit's palette colour.
+    //
+    // Normalised by the material's own mean linear luminance (0.0357 for this one) so it modulates
+    // brightness rather than removing it — multiplying a dark metal albedo straight into a palette
+    // colour costs about five stops and turns a lit deck into a black hole. Centred on 1.0, panel
+    // grain lighter than the average brightens and grain darker than it darkens.
+    //
+    // `uMaterialStrength` is per batch: the deck and structure are plated, the cables and the
+    // blaster-kit props are not.
+    //
+    // Sampled in the fragment body, never through a helper — `texture()` inside a DSL helper
+    // compiles to `textureSampleLevel(..., 0.0)` and loses the mip chain.
+    const platingRate = 0.30;
+    const platingX = texture(uMaterialDiffuse, vec2(vWorld.z, vWorld.y).scale(platingRate)).xyz;
+    const platingY = texture(uMaterialDiffuse, vWorld.xz.scale(platingRate)).xyz;
+    const platingZ = texture(uMaterialDiffuse, vWorld.xy.scale(platingRate)).xyz;
+    const plating = decodeSrgb(
+      platingX.scale(weightX).add(platingY.scale(weightY)).add(platingZ.scale(weightZ))
+        .scale(1 / weightSum),
+    ).scale(28.03);
+    const surface = mix(vec3(1, 1, 1), mix(vec3(1, 1, 1), plating, 0.5), uMaterialStrength);
+    const sampled = decodeSrgb(texture(uTex, vUv).xyz).mul(vTint).mul(surface);
     // Earthshine. In orbit the planet fills a large part of the sky and bounces a lot of blue light
     // onto everything facing it — that fill is the difference between "in space" and "in orbit", and
     // it is why the arena was reading as a deck in a void.
