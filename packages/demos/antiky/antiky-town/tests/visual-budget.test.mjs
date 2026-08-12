@@ -32,7 +32,25 @@ const CLIPPING_CEILING = 0.02;
 const metricsPath = path.join(import.meta.dirname, '..', 'visual-metrics.json');
 
 async function readMetrics() {
-  return JSON.parse(await readFile(metricsPath, 'utf8'));
+  const metrics = JSON.parse(await readFile(metricsPath, 'utf8'));
+
+  // A budget judges a capture, so it is only meaningful while the capture still describes the demo.
+  // Without this check one good frame keeps a budget green forever: the sidecar carries a
+  // `capturedAt` that nothing reads, and the demo underneath it can change completely.
+  //
+  // `sourceDigest` hashes the demo's whole `src` tree and the capture records it. A mismatch means
+  // the numbers below describe code that no longer exists, which is not a pass — it is an unanswered
+  // question.
+  const { sourceDigest } = await import('../../../../../scripts/shoot-demos.mjs');
+  const current = await sourceDigest(path.join(import.meta.dirname, '..'));
+  assert.equal(
+    metrics.source?.digest,
+    current.digest,
+    'visual-metrics.json was captured from different source than is present now '
+    + `(recorded ${metrics.source?.digest ?? 'nothing'}, current ${current.digest}). `
+    + 'Re-run `npm run demos:shoot -- --demo antiky-town` and commit the sidecar.',
+  );
+  return metrics;
 }
 
 test('antiky-town models form across its surfaces', async () => {

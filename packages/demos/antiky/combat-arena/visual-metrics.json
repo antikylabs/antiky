@@ -1,28 +1,32 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "demo": "combat-arena",
-  "capturedAt": "2026-08-12T04:36:28.613Z",
+  "capturedAt": "2026-08-12T06:28:12.262Z",
   "warmUpFrames": 60,
+  "source": {
+    "digest": "d368835bd8148a3d",
+    "fileCount": 37
+  },
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.02025,
+    "mean": 0.020008,
     "p05": 0.000044,
-    "p50": 0.002419,
+    "p50": 0.002312,
     "p95": 0.080934,
     "spread": 0.08089
   },
   "localContrast": {
-    "median": 6.0478,
-    "p10": 1.4375
+    "median": 5.9903,
+    "p10": 1.4405
   },
   "clipping": {
     "high": 0,
     "low": 0
   },
   "saturation": {
-    "mean": 0.626547
+    "mean": 0.6262
   }
 }
