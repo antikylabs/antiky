@@ -91,21 +91,35 @@ function offsets(series) {
   return series.map((value) => value - rest);
 }
 
-test('the frame translates rather than swivelling', () => {
-  // Shake is added to the camera position but not to its look-at target, so the view rotates
-  // instead of moving. A rotation sweeps the whole frame, including the far arena edges, which is
-  // far more nauseating than a translation of the same size.
-  const shaken = sustainedCannon();
-  const positionRange = Math.max(...shaken.positionX) - Math.min(...shaken.positionX);
-  const targetRange = Math.max(...shaken.targetX) - Math.min(...shaken.targetX);
+test('the frame translates rather than swivelling', async () => {
+  // Shake applied to the camera position but not to its look-at target rotates the view instead of
+  // moving it. A rotation sweeps the whole frame, including the far arena edges, which is far more
+  // nauseating than a translation of the same size. That was the original defect.
+  //
+  // This is a source assertion, and it has to be. The earlier version compared `positionX` against
+  // `targetX` from the `track()` harness — but that harness pushes the same `shakeOffset` value into
+  // both arrays, so it asserted `x >= x / 2`, which is true for any x. Driving the real projector
+  // instead would be just as empty today, because `REACTIVE_CAMERA_STRENGTH` is zero and both
+  // offsets come out as 0.
+  //
+  // So what is actually worth holding is the structure: whoever turns shake back on must find it
+  // wired into both, not one. The `presentation.test.ts` suite covers the zeroed runtime behaviour.
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../src/presentation.ts', import.meta.url), 'utf8');
 
-  assert.ok(positionRange > 0, 'the camera should shake at all');
-  assert.ok(
-    targetRange >= positionRange * 0.5,
-    `camera position moves ${positionRange.toFixed(4)} but the look-at target moves `
-    + `${targetRange.toFixed(4)}. Offset both together so the frame translates, or apply a `
-    + 'rotational shake — do not move one without the other.',
-  );
+  for (const [axis, offset] of [[0, 'shakeX'], [2, 'shakeZ']]) {
+    assert.match(
+      source,
+      new RegExp(`position\\[${axis}\\] = [^;]*\\b${offset}\\b`),
+      `the shake's ${offset} must be added to position[${axis}]`,
+    );
+    assert.match(
+      source,
+      new RegExp(`target\\[${axis}\\] = [^;]*\\b${offset}\\b`),
+      `the shake's ${offset} must be added to target[${axis}] as well as the position, or the frame `
+      + 'swivels instead of translating',
+    );
+  }
 });
 
 test('the shake is not periodic', () => {

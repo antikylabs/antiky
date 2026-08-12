@@ -292,9 +292,14 @@ test('every visual batch that gets drawn also gets its instance data uploaded', 
   const names = [...declaration[1].matchAll(/^\s*(\w+):/gm)].map((match) => match[1]);
   assert.ok(names.length >= 5, `expected the full batch set, found ${names.join(', ')}`);
 
-  const missing = names.filter((name) => {
-    if (!new RegExp(`\\b${name}\\.draw\\(\\)`).test(renderer)) return false;
-    return !new RegExp(`\\b${name}\\.upload\\(\\)`).test(visuals);
-  });
+  // `.draw(` with any arguments, not `.draw()` exactly. Requiring empty parentheses meant
+  // `glows.draw({ instanceCount: liveGlows })` — a shape this demo already advertises through
+  // `particlePacking: 'active-prefix'` — skipped the batch entirely, so deleting its upload passed.
+  const drawn = names.filter((name) => new RegExp(`\\b${name}\\.draw\\(`).test(renderer));
+  assert.ok(
+    drawn.length >= 5,
+    `expected most of the batch set to be drawn, matched ${drawn.length}: ${drawn.join(', ')}`,
+  );
+  const missing = drawn.filter((name) => !new RegExp(`\\b${name}\\.upload\\(`).test(visuals));
   assert.deepEqual(missing, [], 'these batches are drawn every frame but never have their instance data uploaded');
 });

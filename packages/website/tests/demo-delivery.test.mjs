@@ -272,9 +272,25 @@ test('a browser without WebGPU is shown posters, not error cards', async () => {
   // The defect: `setPhase('error')` on a browser that simply lacks WebGPU turned eight of ten
   // cards into red alerts blaming the visitor for their browser. A still frame captured from the
   // running study is evidence; an error card is a bug report sent to the wrong person.
-  const gate = host.slice(host.indexOf('requiresWebGpu && !webGpuAvailable()'));
-  assert.match(gate.slice(0, 160), /setPhase\('gated'\)/);
-  assert.ok(!/setPhase\('error'\)/.test(gate.slice(0, 160)));
+  // Every place the WebGPU gate is evaluated must resolve to the gated phase.
+  //
+  // This used to slice a fixed 160 characters after the gate expression, so a comment or a log line
+  // inside the branch pushed `setPhase('error')` past the window and the red card shipped green.
+  // The gate appears twice and in two shapes — a braced `if` in `activate()` and a single-statement
+  // `if` in the effect — so instead of matching a block, take the text from each occurrence up to
+  // whichever `setPhase(` call comes next, and require it to be the gated one.
+  const occurrences = [...host.matchAll(/requiresWebGpu && !webGpuAvailable\(\)/g)];
+  assert.ok(occurrences.length >= 1, 'the WebGPU gate is gone');
+  for (const occurrence of occurrences) {
+    const after = host.slice(occurrence.index);
+    const next = after.match(/setPhase\('(\w+)'\)/);
+    assert.ok(next, 'the WebGPU gate does not set a phase at all');
+    assert.equal(
+      next[1],
+      'gated',
+      'a browser that simply lacks WebGPU must be shown its poster, not an error card',
+    );
+  }
 
   // The gated stage keeps the poster visible and captions it.
   assert.match(host, /className="stage-badge"/);
