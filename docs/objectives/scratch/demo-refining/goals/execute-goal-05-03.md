@@ -57,6 +57,30 @@ assumptions there.
 **The catalog generator is still wrong** and should still be fixed — 995 entries that cannot be
 installed is a defect in its own right, and it belongs in its own goal rather than here.
 
+### An attempt at binding it, reverted — read this before trying again
+
+The maps were wired into `traversal-model` — triplanar diffuse multiplied into the graded albedo,
+roughness folded into the rim — and it made the demo clearly worse. The capture came back with
+**brown clouds** and muddy greens.
+
+The mistake is structural, not a tuning problem: `traversal-model` draws **every catalog batch** —
+grass blocks, rock, trees, the courier, and the clouds. Binding one material to that shader applies
+plywood to all of them. A cloud made of plywood is exactly as wrong as it sounds.
+
+**The fix the demo is already shaped for.** Each catalog batch builds its own program
+(`createCatalogBatch` is called thirteen times, one per asset), so material maps belong as a
+*per-batch argument* alongside `gradeColor`, `gradeMix` and `wrap` — which are already per-batch for
+this same reason. Grass takes `leafy-grass`, platform sides take `plywood`, rock takes
+`rock-boulder-dry`, and clouds take **none**, falling back to the palette alone.
+
+That is more installs and a fourth per-batch parameter, but it is the shape the goal's own material
+table at `../03-ART-DIRECTION-AND-VFX.md:364-412` describes — a material per *surface*, not per demo.
+
+Also worth carrying: multiply, not mix, when combining a palette tint with a material — mixing washes
+the kit's colour toward grey exactly where its identity lives. And a dark material needs its level
+compensated; plywood's diffuse is dark enough that multiplying it in cost about a stop of brightness
+before anything else was considered.
+
 ### The original finding
 
 **This was the first task of this step, and it is not a material task.** Either the catalog generator
