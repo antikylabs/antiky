@@ -86,7 +86,7 @@ export type CombatRendererDependencies = Readonly<{
   createProjection(renderer: Renderer, billboard: BroMetalTexture): CombatProjection;
   /** Injected like every other GPU resource here, so tests can build a renderer without a DOM. */
   loadVfxBillboard(renderer: Renderer): Promise<BroMetalTexture>;
-  createBackdrop(renderer: Renderer): SpaceBackdrop;
+  createBackdrop(renderer: Renderer): Promise<SpaceBackdrop>;
 }>;
 
 const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
@@ -112,13 +112,13 @@ export async function createCombatRendererWith(
     // the async boundary and `createCombatProjection` is not one.
     const billboard = registerResource(disposables, await dependencies.loadVfxBillboard(renderer));
     const projection = registerResource(disposables, dependencies.createProjection(renderer, billboard));
-    const backdrop = registerResource(disposables, dependencies.createBackdrop(renderer));
+    const backdrop = registerResource(disposables, await dependencies.createBackdrop(renderer));
 
     const cameraPosition = new Float32Array(3);
     const cameraProjector = createCombatCameraProjector();
     // near 0.2 against far 60 is 300:1. The camera is a fixed high three-quarter view roughly 20
     // units from the arena floor, so nothing is ever closer than a few units.
-    const camera = createCamera({ position: [0, 13.4, 14.8], fovY: Math.PI / 3.85, near: 0.2, far: 60 });
+    const camera = createCamera({ position: [0, 13.4, 14.8], fovY: Math.PI / 3.85, near: 0.3, far: 140 });
     const measurements = deriveCombatRendererMeasurements();
     let disposed = false;
     const draw = (): void => {
@@ -150,7 +150,7 @@ export async function createCombatRendererWith(
       catalog.frame(viewProjection, cameraPosition, state.time);
       ships.frame(viewProjection, cameraPosition, state.time);
       projection.frame(viewProjection, cameraPosition, state.time);
-      backdrop.frame(viewProjection, state.time);
+      backdrop.frame(viewProjection, state.time, cameraPosition);
 
       renderer.present(draw);
     };

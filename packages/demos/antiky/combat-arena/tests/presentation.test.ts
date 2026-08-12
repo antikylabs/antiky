@@ -122,7 +122,10 @@ test('renderer reporting is derived from its capacities and catalog asset set', 
   assert.equal(measurements.catalogAssets, 10);
   assert.ok(measurements.catalogInstances >= 100);
   assert.ok(measurements.environmentLayers >= 4);
-  assert.equal(measurements.drawCalls, 15);
+  // 16, not 15: the backdrop is two draws now — the sky plane and Earth's globe. The number is
+  // derived from the capacity records rather than typed, so this is the one place that has to move
+  // when the scene gains a pass, and it should move deliberately.
+  assert.equal(measurements.drawCalls, 16);
   assert.equal(measurements.uploadBytesPerFrame, 15_780);
   assert.ok(measurements.instances <= 384);
   assert.ok(measurements.uploadBytesPerFrame <= 24 * 1_024);

@@ -175,15 +175,19 @@ export default shader({
       platingX.scale(weightX).add(platingY.scale(weightY)).add(platingZ.scale(weightZ))
         .scale(1 / weightSum),
     ).scale(28.03);
-    const surface = mix(vec3(1, 1, 1), mix(vec3(1, 1, 1), plating, 0.5), uMaterialStrength);
+    const surface = mix(vec3(1, 1, 1), mix(vec3(1, 1, 1), plating, 0.34), uMaterialStrength);
     const sampled = decodeSrgb(texture(uTex, vUv).xyz).mul(vTint).mul(surface);
     // Earthshine. In orbit the planet fills a large part of the sky and bounces a lot of blue light
     // onto everything facing it — that fill is the difference between "in space" and "in orbit", and
     // it is why the arena was reading as a deck in a void.
-    const fill = max(normal.y, 0) * 0.34;
+    // Earthshine, arriving from the planet rather than from overhead. Earth sits down and to the
+    // left, so surfaces facing that way catch its blue bounce and surfaces facing away do not —
+    // which is the difference between "lit by a planet" and "lit by a blue lamp on the ceiling".
+    const earthward = normalize(vec3(-0.78, -0.42, -0.46));
+    const fill = max(dot(normal, earthward), 0) * 0.62 + max(normal.y, 0) * 0.2;
     const pulse = 0.72 + sin(uTime * 5.2 + vWorld.x * 0.8 - vWorld.z * 0.55) * 0.28;
-    const lit = sampled.mul(vec3(0.34, 0.42, 0.55).scale(0.62 + fill))
-      .add(sampled.scale(diffuse * 0.92))
+    const lit = sampled.mul(vec3(0.46, 0.57, 0.74).scale(0.72 + fill))
+      .add(sampled.scale(diffuse * 1.15))
       .add(vTint.scale(clamp(vParams.x, 0, 1) * pulse * (0.12 + rim * 0.34)));
     const confirmed = mix(lit, vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the

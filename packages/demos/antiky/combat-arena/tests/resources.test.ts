@@ -156,34 +156,86 @@ test('ship fleet uploads inverse scale for correct nonuniform normal transformat
   fleet.dispose();
 });
 
-test('space backdrop disposes its in-flight program when geometry setup throws', () => {
+test('space backdrop disposes its in-flight program when geometry setup throws', async () => {
   const disposed: number[] = [];
-  assert.throws(() => createSpaceBackdrop(
+  await assert.rejects(() => createSpaceBackdrop(
     {} as never,
     () => fakeProgram(disposed, true) as never,
+    undefined,
+    async () => ({
+      starMap: { dispose() { disposed.push(1); } },
+      earthAlbedo: { dispose() { disposed.push(1); } },
+      earthClouds: { dispose() { disposed.push(1); } },
+    }),
   ), /injected attribute failure/);
+  // Only the program was created before the throw — the textures load after it, so nothing else
+  // exists to roll back. This is the assertion that would catch a leak if that order ever changed.
   assert.equal(disposed.length, 1);
 });
 
-test('space backdrop submits upward-facing geometry for the renderer back-face policy', () => {
+test('the sky sphere faces inward so the camera inside it is not culled away', async () => {
   let positions: Float32Array<ArrayBufferLike> = new Float32Array();
   let indices: Uint16Array<ArrayBufferLike> = new Uint16Array();
-  const backdrop = createSpaceBackdrop({} as never, () => ({
-    attributes: { aPosition: { set(values: Float32Array) { positions = values; } } },
-    uniforms: {},
+  const fakeProgram = () => ({
+    attributes: {
+      aPosition: { set(values: Float32Array) { positions = values; } },
+      aNormal: { set() {} },
+    },
+    uniforms: {
+      uStarMap: { set() {} }, uAlbedo: { set() {} }, uClouds: { set() {} },
+      uCenter: { set() {} }, uRadius: { set() {} }, uViewProj: { set() {} }, uTime: { set() {} },
+    },
     setIndices(values: Uint16Array) { indices = values; },
     draw() {},
     dispose() {},
-  }) as never);
-  const a = indices[0]! * 3;
-  const b = indices[1]! * 3;
-  const c = indices[2]! * 3;
-  const edgeBX = positions[b]! - positions[a]!;
-  const edgeBZ = positions[b + 2]! - positions[a + 2]!;
-  const edgeCX = positions[c]! - positions[a]!;
-  const edgeCZ = positions[c + 2]! - positions[a + 2]!;
-  const normalY = edgeBZ * edgeCX - edgeBX * edgeCZ;
-  assert.ok(normalY > 0);
+  }) as never;
+  // Only the backdrop plane's winding is under test here, so the globe's own program keeps its
+  // separate capture and the sky textures are stubbed — `loadTexture` needs a DOM.
+  let planeCaptured = false;
+  const backdrop = await createSpaceBackdrop(
+    {} as never,
+    () => { planeCaptured = true; return fakeProgram(); },
+    () => ({
+      attributes: { aPosition: { set() {} }, aNormal: { set() {} } },
+      uniforms: {
+        uAlbedo: { set() {} }, uClouds: { set() {} }, uCenter: { set() {} },
+        uRadius: { set() {} }, uViewProj: { set() {} }, uTime: { set() {} },
+      },
+      setIndices() {}, draw() {}, dispose() {},
+    }) as never,
+    async () => ({
+      starMap: { dispose() {} },
+      earthAlbedo: { dispose() {} },
+      earthClouds: { dispose() {} },
+    }),
+  );
+  assert.ok(planeCaptured);
+  // The sky is a sphere the camera sits inside, so every triangle must wind toward the centre. The
+  // demo culls back faces, and an outward-wound sky sphere is invisible from within — which looks
+  // exactly like the texture failing to load, so it is worth asserting rather than eyeballing.
+  //
+  // Checked across many triangles, not just the first: a sphere generator can wind its polar caps
+  // differently from its bands, and one sampled triangle would not notice.
+  let inward = 0;
+  let outward = 0;
+  for (let triangle = 0; triangle + 2 < indices.length; triangle += 3 * 37) {
+    const a = indices[triangle]! * 3;
+    const b = indices[triangle + 1]! * 3;
+    const c = indices[triangle + 2]! * 3;
+    const edgeB = [positions[b]! - positions[a]!, positions[b + 1]! - positions[a + 1]!, positions[b + 2]! - positions[a + 2]!];
+    const edgeC = [positions[c]! - positions[a]!, positions[c + 1]! - positions[a + 1]!, positions[c + 2]! - positions[a + 2]!];
+    const face = [
+      edgeB[1]! * edgeC[2]! - edgeB[2]! * edgeC[1]!,
+      edgeB[2]! * edgeC[0]! - edgeB[0]! * edgeC[2]!,
+      edgeB[0]! * edgeC[1]! - edgeB[1]! * edgeC[0]!,
+    ];
+    // Against the outward radius at that vertex: negative means the face looks back at the centre.
+    const towardCentre = face[0]! * positions[a]! + face[1]! * positions[a + 1]! + face[2]! * positions[a + 2]!;
+    if (towardCentre < 0) inward += 1;
+    else if (towardCentre > 0) outward += 1;
+  }
+  assert.ok(inward > 8, `expected to sample many triangles, found ${inward} inward`);
+  assert.equal(outward, 0, `${outward} sky triangles face outward and would be culled`);
   backdrop.dispose();
 });
 
@@ -310,7 +362,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
       project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {},
       dispose() { disposals.projection += 1; },
     }),
-    createBackdrop: () => ({
+    createBackdrop: async () => ({
       frame() {}, draw() {}, dispose() { disposals.backdrop += 1; },
     }),
   });

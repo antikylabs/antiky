@@ -145,7 +145,10 @@ export default shader({
     const pulse = 0.76 + sin(uTime * 5.4 + vWorld.x * 0.75 - vWorld.z * 0.52) * 0.24;
     // Same earthshine as the arena beneath them, tinted the same way, so hulls and deck agree about
     // where the light in this scene comes from.
-    const earthshine = vec3(0.34, 0.42, 0.55).scale(0.56 + max(normal.y, 0) * 0.4);
+    // Same planet, same direction as the deck below, so hulls and arena agree about the light.
+    const earthward = normalize(vec3(-0.78, -0.42, -0.46));
+    const earthshine = vec3(0.40, 0.50, 0.66)
+      .scale(0.44 + max(dot(normal, earthward), 0) * 0.72 + max(normal.y, 0) * 0.22);
     const lit = authored.mul(earthshine)
       .add(authored.scale(keyLight * 1.15 + fillLight * 0.32));
     const energy = vTint.scale(clamp(vParams.x, 0, 1.2) * pulse * (0.12 + rim * 0.44));

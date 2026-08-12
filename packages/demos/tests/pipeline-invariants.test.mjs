@@ -72,6 +72,14 @@ const SAMPLER_ROLES = Object.freeze({
   uMaterialDiffuse: 'colour',
   // A second ground albedo blended over the first. Display-encoded like any other albedo.
   uSecondGround: 'colour',
+  // NASA Blue Marble, a display-encoded photograph of the Earth's surface, lit like any albedo.
+  uAlbedo: 'colour',
+  // Cloud opacity, read from the red channel of a greyscale composite. A coverage fraction, not a
+  // colour — decoding it would thin every cloud deck toward the shallow end of the curve.
+  uClouds: 'data',
+  // The star map is emissive sky, looked at rather than lit. Decoding it would crush the faint
+  // stars that carry the Milky Way, which are most of what makes it read as a real sky.
+  uStarMap: 'data',
   // Roughness. Numbers, not colour — decoding would bend every value toward the shallow end.
   uMaterialRoughness: 'data',
   uRoughness: 'data',

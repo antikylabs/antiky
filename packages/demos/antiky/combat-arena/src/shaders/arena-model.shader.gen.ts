@@ -94,11 +94,12 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let platingY = textureSample(uMaterialDiffuse, uMaterialDiffuse_sampler, bm_in.vWorld.xz * platingRate).xyz;
   let platingZ = textureSample(uMaterialDiffuse, uMaterialDiffuse_sampler, bm_in.vWorld.xy * platingRate).xyz;
   let plating = decodeSrgb((platingX * weightX + platingY * weightY + platingZ * weightZ) * (1.0 / weightSum)) * 28.03;
-  let surface = mix(vec3f(1.0, 1.0, 1.0), mix(vec3f(1.0, 1.0, 1.0), plating, 0.5), bm_u.uMaterialStrength);
+  let surface = mix(vec3f(1.0, 1.0, 1.0), mix(vec3f(1.0, 1.0, 1.0), plating, 0.34), bm_u.uMaterialStrength);
   let sampled = decodeSrgb(textureSample(uTex, uTex_sampler, bm_in.vUv).xyz) * bm_in.vTint * surface;
-  let fill = max(normal.y, 0.0) * 0.34;
+  let earthward = normalize(vec3f(-0.78, -0.42, -0.46));
+  let fill = max(dot(normal, earthward), 0.0) * 0.62 + max(normal.y, 0.0) * 0.2;
   let pulse = 0.72 + sin(bm_u.uTime * 5.2 + bm_in.vWorld.x * 0.8 - bm_in.vWorld.z * 0.55) * 0.28;
-  let lit = sampled * (vec3f(0.34, 0.42, 0.55) * (0.62 + fill)) + sampled * (diffuse * 0.92) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));
+  let lit = sampled * (vec3f(0.46, 0.57, 0.74) * (0.72 + fill)) + sampled * (diffuse * 1.15) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));
   let confirmed = mix(lit, vec3f(1.7, 1.8, 1.9), clamp(bm_in.vParams.y, 0.0, 1.0));
   let fog = smoothstep(17.0, 34.0, length(bm_u.uCameraPosition - bm_in.vWorld));
   return vec4f(tonemapACES(mix(confirmed, vec3f(0.006, 0.01, 0.018), fog * 0.72)), 1.0);
