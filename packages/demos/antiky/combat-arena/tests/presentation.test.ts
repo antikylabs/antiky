@@ -26,7 +26,7 @@ test('combat camera keeps the action framed for wide and portrait canvases', () 
   assert.deepEqual(wide.position, [0, 13.4, 14.875]);
   assert.ok(Math.abs(wide.target[0]) < 0.000_001);
   assert.ok(Math.abs(wide.target[1] - 0.3) < 0.000_001);
-  assert.ok(Math.abs(wide.target[2] - 1.02) < 0.000_001);
+  assert.ok(Math.abs(wide.target[2] - 1.3) < 0.000_001);
   assert.ok(portrait.position[1] > wide.position[1]);
   assert.ok(portrait.position[2] > wide.position[2]);
   assert.ok(portrait.target[2] > wide.target[2]);
@@ -62,23 +62,29 @@ test('steady camera projection reuses its frame vectors and never sorts enemy st
   }
 });
 
-test('combat camera leads velocity and bounds player-action impact', () => {
+test('extreme velocity, aim and impact do not move the camera', () => {
+  // This used to assert the opposite: that the camera led the player's velocity, swung with their
+  // aim, and was pushed by impact. The owner turned all of that off after it made them motion sick,
+  // so the test now guards the same inputs from the other side. The values are deliberately absurd
+  // - 200 units per second, an impact of 50 - because if anything still leaks through, it will show
+  // up here first.
   const state = createCombatSimulation(() => {}).read();
-  const moving = {
+  const calm = projectOnce(16 / 9, state, { x: 0.5, y: 0.5 });
+  const violent = projectOnce(16 / 9, {
     ...state,
     time: 0.031,
     impact: 50,
     player: { ...state.player, vx: 200, vz: -200, facingX: 1, facingZ: 0 },
-  };
-  const frame = projectOnce(16 / 9, moving, { x: 0.5, y: 0.5 });
+  }, { x: 0.5, y: 0.5 });
 
-  assert.ok(frame.target[0] > 0.7);
-  assert.ok(frame.target[2] < 1.25);
-  assert.ok(Math.abs(frame.position[0]) < 0.6);
-  assert.ok(frame.position[2] > 14.35);
+  assert.deepEqual(violent.position, calm.position);
+  assert.deepEqual(violent.target, calm.target);
 });
 
-test('combat camera composes marked threats and gives the blade dash a bounded push-in', () => {
+test('a marked, telegraphing threat and a blade dash leave the camera where it was', () => {
+  // Previously this asserted the camera lurched towards the most dangerous enemy and pushed in on a
+  // dash. Measured against the real fight, the threat lurch was the single worst offender: when the
+  // priority flipped, the look-at target moved 0.4046 units in one frame. Both are off now.
   const state = createCombatSimulation(() => {}).read();
   const calm = projectOnce(16 / 9, state, { x: 0.5, y: 0.5 });
   const markedThreat = {
@@ -94,10 +100,9 @@ test('combat camera composes marked threats and gives the blade dash a bounded p
     player: { ...state.player, dash: 0.2, facingX: 1, facingZ: 0 },
   }, { x: 0.5, y: 0.5 });
 
-  assert.ok(threatFrame.target[0] > calm.target[0] + 0.45);
-  assert.ok(threatFrame.target[2] < calm.target[2] - 0.2);
-  assert.ok(dashFrame.position[1] < threatFrame.position[1] - 0.2);
-  assert.ok(dashFrame.position[1] > threatFrame.position[1] - 0.8);
+  assert.deepEqual(threatFrame.target, calm.target);
+  assert.deepEqual(threatFrame.position, calm.position);
+  assert.deepEqual(dashFrame.position, calm.position);
 });
 
 test('terminal camera gives the result composition priority over player drift', () => {

@@ -87,7 +87,9 @@ function noiseAt(position: number): number {
  *    its look-at point rotates the view, which sweeps the far arena edges and is far more
  *    nauseating than a translation of the same size.
  */
-function shakeOffset(time: number, trauma: number): readonly [number, number] {
+/** Exported for its own tests: the shipped camera scales this to zero, so driving it through the
+ * projector would measure nothing. */
+export function shakeOffset(time: number, trauma: number): readonly [number, number] {
   // Below the floor the camera does not move at all. The auto-cannon fires every 0.34s for the
   // whole fight, and letting it shake — however gently — puts a repeating envelope on the camera
   // that reads as vibration no matter how good the noise inside it is. Feedback for a routine hit
@@ -137,6 +139,25 @@ const CAMERA_RESET_SECONDS = 0.25;
  */
 const THREAT_SWITCH_MARGIN = 1.2;
 
+/**
+ * How much of the camera's reactive motion to apply. **Zero, on the owner's instruction.**
+ *
+ * The camera used to move on its own: leading the player's velocity, swinging with their aim,
+ * lurching towards whichever enemy was most dangerous, dropping on a dash, and shaking on impact.
+ * Each of those was a deliberate piece of game feel, and together they made the owner motion sick
+ * across three separate reports. Smoothing the motion helped and did not fix it, because the
+ * problem was never how *abruptly* the camera moved — it was that it moved at all without being
+ * asked.
+ *
+ * What remains at zero is a camera that follows the player and obeys the pointer. Nothing moves it
+ * that the player did not do themselves.
+ *
+ * This is one number rather than five deletions so the effect stays reversible and legible. Set it
+ * to 1 for the original feel, or something small like 0.25 to reintroduce it gently — but treat any
+ * value above zero as a change that needs the owner to look at it, not just a passing test.
+ */
+export const REACTIVE_CAMERA_STRENGTH = 0;
+
 function threatPriority(state: CameraState, enemyIndex: number): number {
   const enemy = state.enemies[enemyIndex]!;
   return (enemy.mark > 0 ? 4 : 0)
@@ -160,16 +181,19 @@ export function createCombatCameraProjector(): CombatCameraProjector {
     project(aspect, state, pointer): CombatCameraFrame {
       const mobile = aspect < 0.9;
       const actionImpact = Math.max(0, Math.min(1, state.impact));
-      const [shakeX, shakeZ] = shakeOffset(state.time, actionImpact);
+      const [rawShakeX, rawShakeZ] = shakeOffset(state.time, actionImpact);
+      const shakeX = rawShakeX * REACTIVE_CAMERA_STRENGTH;
+      const shakeZ = rawShakeZ * REACTIVE_CAMERA_STRENGTH;
       const pointerX = Number.isFinite(pointer.x) ? Math.max(0, Math.min(1, pointer.x)) : 0.5;
       const pointerY = Number.isFinite(pointer.y) ? Math.max(0, Math.min(1, pointer.y)) : 0.5;
       const terminal = state.phase === 'victory' || state.phase === 'defeat';
       const driftX = terminal ? 0 : (pointerX - 0.5) * (mobile ? 0.55 : 0.9);
       const driftY = terminal ? 0 : (pointerY - 0.5) * (mobile ? 0.28 : 0.42);
-      const velocityLeadX = Math.max(-0.42, Math.min(0.42, state.player.vx * 0.035));
-      const velocityLeadZ = Math.max(-0.34, Math.min(0.34, state.player.vz * 0.028));
-      const aimLeadX = state.player.facingX * (mobile ? 0.18 : 0.32);
-      const aimLeadZ = state.player.facingZ * (mobile ? 0.16 : 0.28);
+      const reactive = REACTIVE_CAMERA_STRENGTH;
+      const velocityLeadX = Math.max(-0.42, Math.min(0.42, state.player.vx * 0.035)) * reactive;
+      const velocityLeadZ = Math.max(-0.34, Math.min(0.34, state.player.vz * 0.028)) * reactive;
+      const aimLeadX = state.player.facingX * (mobile ? 0.18 : 0.32) * reactive;
+      const aimLeadZ = state.player.facingZ * (mobile ? 0.16 : 0.28) * reactive;
       let threatIndex = -1;
       let bestPriority = Number.NEGATIVE_INFINITY;
       for (let enemyIndex = 0; enemyIndex < state.enemies.length; enemyIndex += 1) {
@@ -190,9 +214,9 @@ export function createCombatCameraProjector(): CombatCameraProjector {
       }
       heldThreatIndex = threatIndex;
       const threat = threatIndex < 0 ? undefined : state.enemies[threatIndex];
-      const threatLeadX = threat === undefined || terminal ? 0 : Math.max(-0.82, Math.min(0.82, (threat.x - state.player.x) * 0.14));
-      const threatLeadZ = threat === undefined || terminal ? 0 : Math.max(-0.68, Math.min(0.68, (threat.z - state.player.z) * 0.12));
-      const dashPush = Math.max(0, Math.min(1, state.player.dash / 0.2));
+      const threatLeadX = threat === undefined || terminal ? 0 : Math.max(-0.82, Math.min(0.82, (threat.x - state.player.x) * 0.14)) * reactive;
+      const threatLeadZ = threat === undefined || terminal ? 0 : Math.max(-0.68, Math.min(0.68, (threat.z - state.player.z) * 0.12)) * reactive;
+      const dashPush = Math.max(0, Math.min(1, state.player.dash / 0.2)) * reactive;
 
       // The pose the camera wants, with no shake in it. Shake is added after easing, below.
       const desiredPosition: readonly [number, number, number] = terminal

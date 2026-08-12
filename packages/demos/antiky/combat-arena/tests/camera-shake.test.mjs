@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCombatCameraProjector } from '../src/presentation.ts';
+import {
+  REACTIVE_CAMERA_STRENGTH,
+  createCombatCameraProjector,
+  shakeOffset,
+} from '../src/presentation.ts';
 import {
   dutyCycle,
   onsetShape,
@@ -15,11 +19,15 @@ import {
  * Named `.test.mjs` rather than `.test.ts` so the demo's own `tests/*.test.ts` glob does not pick
  * it up: `npm test` must stay green as a regression gate. Run it with `npm run demos:verify`.
  *
- * These began as a failing contract: they encoded the three defects the owner reported as "shakes
- * and judders a lot, it's too much". Goal 03 turned them green, so the file is now part of
- * `npm test` as a regression gate rather than only `npm run demos:verify`. A later report — that
- * the camera still flinched on a regular beat — added the two tests at the foot of this file, which
- * turned out to be a different defect entirely.
+ * **The shipped camera no longer moves reactively at all.** After three reports ending in motion
+ * sickness, `REACTIVE_CAMERA_STRENGTH` is zero: no shake, no velocity lead, no aim swing, no threat
+ * lurch, no dash drop. The first test below is that contract.
+ *
+ * The shake tests that follow drive `shakeOffset` **directly** rather than through the projector.
+ * That is deliberate and load-bearing: the projector scales the shake to zero, so a test driving it
+ * through the projector would pass no matter how badly the shake were written. Four of these tests
+ * did exactly that for one commit, and passing meant nothing. They are kept because the shake is
+ * still there behind a constant, and whoever turns it back up deserves to inherit a correct one.
  *
  * No browser, no GPU, no capture: every visible camera value is a pure function of the simulation
  * snapshot and `state.time`, so the whole camera path is computable by driving the projector
@@ -43,9 +51,9 @@ const IMPACT_DECAY_PER_SECOND = 4.2;
  * sustained-cannon case and a single hull loss.
  */
 function track(impactAt) {
-  const projector = createCombatCameraProjector();
-  const player = { x: 0, z: 0, vx: 0, vz: 0, facingX: 0, facingZ: 1, dash: 0 };
-  const enemies = [{ active: true, x: 3, z: 2, mark: 0, state: 'idle' }];
+  // Drives `shakeOffset` directly, not the projector. The projector multiplies the shake by
+  // REACTIVE_CAMERA_STRENGTH, which ships at zero, so every assertion below would hold trivially
+  // against a completely broken shake if this went through the camera.
   const out = { positionX: [], positionZ: [], targetX: [], targetZ: [] };
 
   let impact = 0;
@@ -53,15 +61,13 @@ function track(impactAt) {
     const time = step * DT;
     impact = Math.max(0, impact - DT * IMPACT_DECAY_PER_SECOND);
     impact = impactAt(time, impact);
-    const frame = projector.project(
-      1.78,
-      { time, impact, phase: 'combat', player, enemies },
-      { x: 0.5, y: 0.5 },
-    );
-    out.positionX.push(frame.position[0]);
-    out.positionZ.push(frame.position[2]);
-    out.targetX.push(frame.target[0]);
-    out.targetZ.push(frame.target[2]);
+    const [shakeX, shakeZ] = shakeOffset(time, impact);
+    // The projector adds the same offset to position and target, so the frame translates rather
+    // than swivelling. Mirrored here so the first test still measures that relationship.
+    out.positionX.push(shakeX);
+    out.positionZ.push(shakeZ);
+    out.targetX.push(shakeX);
+    out.targetZ.push(shakeZ);
   }
   return out;
 }
@@ -224,4 +230,74 @@ test('easing the camera does not flatten it into a static shot', async () => {
   const spread = Math.max(...targetX) - Math.min(...targetX);
   assert.ok(spread > 0.5, `the look-at target only spans ${spread.toFixed(3)}; the camera stopped following`);
   assert.ok(Math.max(...positionX) - Math.min(...positionX) > 0.2, 'the camera position stopped moving');
+});
+
+/**
+ * The contract the owner asked for, after three reports ending in "that jumping still makes me
+ * nauseous, can we just turn that shit off".
+ *
+ * The camera may follow the player and obey the pointer. Nothing else may move it.
+ */
+
+test('the shipped camera does not move on its own', () => {
+  assert.equal(
+    REACTIVE_CAMERA_STRENGTH,
+    0,
+    'The owner turned reactive camera motion off because it made them motion sick. Raising this is '
+    + 'their call, not a passing test\'s.',
+  );
+});
+
+test('nothing but the player moves the camera', async () => {
+  const { createCombatSimulation } = await import('../src/simulation.ts');
+  const simulation = createCombatSimulation(() => {});
+  const view = simulation.view();
+  const projector = createCombatCameraProjector();
+  const idle = { movement: { x: 0, z: 0, active: false }, aim: { x: 0, z: 1 }, attack: false };
+  while (view.phase !== 'combat') simulation.update(DT, idle);
+
+  // Holding fire without touching the movement stick. Enemies charge, telegraph, take hits and die
+  // all around; the player is carried along the arena by the simulation itself.
+  //
+  // The camera's only permitted inputs are the player's position and the pointer, so its whole path
+  // has to be predictable from `player.x`/`player.z` alone. Anything left over is the camera
+  // reacting to the fight, which is what made the owner motion sick.
+  const residualX = [];
+  const residualZ = [];
+  for (let frame = 0; frame < 30 * HZ; frame += 1) {
+    simulation.update(DT, { ...idle, attack: true });
+    // The terminal pose is a deliberate cut to an overview shot, not reactive motion.
+    if (view.phase !== 'combat') break;
+    const camera = projector.project(1.78, view, { x: 0.5, y: 0.5 });
+    residualX.push(camera.target[0] - view.player.x * 0.12);
+    residualZ.push(camera.target[2] - view.player.z * 0.1);
+  }
+  assert.ok(residualX.length > 5 * HZ, 'the fight ended too early to measure anything');
+
+  const spreadX = Math.max(...residualX) - Math.min(...residualX);
+  const spreadZ = Math.max(...residualZ) - Math.min(...residualZ);
+  // Not exactly zero: the camera eases towards the player rather than snapping to them, so it lags
+  // by a fraction of a unit while they are being pushed around. Nothing else may contribute.
+  assert.ok(spreadX < 0.25, `${spreadX.toFixed(3)} of sideways camera motion is not explained by the player`);
+  assert.ok(spreadZ < 0.25, `${spreadZ.toFixed(3)} of forward camera motion is not explained by the player`);
+});
+
+test('losing hull does not shake the shipped camera', async () => {
+  const projector = createCombatCameraProjector();
+  const player = { x: 0, z: 0, vx: 0, vz: 0, facingX: 0, facingZ: 1, dash: 0 };
+  const enemies = [{ active: true, x: 3, z: 2, mark: 0, state: 'idle' }];
+  const calm = projector.project(1.78, { time: 0, impact: 0, phase: 'combat', player, enemies }, { x: 0.5, y: 0.5 });
+  const restingX = calm.position[0];
+
+  // The worst impact in the game, at the moment it lands.
+  let worst = 0;
+  for (let frame = 1; frame < 60; frame += 1) {
+    const shaken = projector.project(
+      1.78,
+      { time: frame * DT, impact: HULL_LOSS_IMPACT, phase: 'combat', player, enemies },
+      { x: 0.5, y: 0.5 },
+    );
+    worst = Math.max(worst, Math.abs(shaken.position[0] - restingX));
+  }
+  assert.ok(worst < 1e-9, `a hull loss still moved the camera by ${worst.toFixed(6)}`);
 });

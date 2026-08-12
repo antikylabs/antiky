@@ -129,6 +129,32 @@ synthetic impact function and all passed. The defect only appears when enemies a
 and telegraphing, which is why the new tests drive the real simulation. A model of the input can
 agree with itself and still miss the bug.
 
+## The camera shake report, third pass: turned off
+
+After the easing landed, the owner's report was *"that jumping still makes me nauseous.... can we
+just turn that shit off?"*
+
+**It is off.** `REACTIVE_CAMERA_STRENGTH` in `src/presentation.ts` is `0`, and it scales every
+camera move the player did not ask for: the shake, the velocity lead, the aim swing, the threat
+lurch and the dash push-in. What remains is a camera that follows the player and obeys the pointer.
+
+One constant rather than five deletions, so the work stays reversible and a future reader can see
+what was removed and why. Set it to `1` for the original feel. **Any value above zero needs the
+owner to look at it** — three rounds of measurement each produced a camera that satisfied its tests
+and still made them ill, which is the strongest evidence in this objective that a passing budget is
+not the same as a good result.
+
+**Four tests had to be rescued from passing vacuously.** The shake tests drove the shake *through
+the projector*, which now multiplies it by zero, so they held no matter how badly the shake were
+written. They were rewired to drive `shakeOffset` directly. The shake code stays tested because it
+is still there behind the constant, and whoever turns it up deserves a correct one.
+
+Three tests in `presentation.test.ts` asserted the reactive behaviour directly — velocity leading,
+threat composition, the dash push-in. They now assert the opposite, with the same deliberately
+extreme inputs (200 units per second, an impact of 50), so anything leaking back through shows up
+there first. Both new contract tests were checked against `REACTIVE_CAMERA_STRENGTH` of 1 and 0.25
+to confirm they fail when the motion returns.
+
 ## Town work, reported separately
 
 The goal asked for this not to be absorbed silently. `antiky-town` took: the near-plane correction at
