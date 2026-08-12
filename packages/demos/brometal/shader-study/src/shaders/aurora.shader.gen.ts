@@ -136,9 +136,13 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let moonDistance = length(moonPoint);
   let moonDisc = 1.0 - smoothstep(0.135, 0.148, moonDistance);
   let moonHalo = 0.018 / max(moonDistance, 0.045) * (1.0 - smoothstep(0.14, 0.58, moonDistance));
-  let craterCell = vec2f(floor(moonPoint.x * 32.0), floor(moonPoint.y * 32.0));
+  let craterGrid = vec2f(moonPoint.x * 32.0, moonPoint.y * 32.0);
+  let craterCell = vec2f(floor(craterGrid.x), floor(craterGrid.y));
+  let craterLocal = vec2f(fract(craterGrid.x) - 0.5, fract(craterGrid.y) - 0.5);
+  let craterPoint = (hash22(craterCell + vec2f(5.7, 2.3)) - vec2f(0.5, 0.5)) * 0.66;
   let craterSeed = hash21(craterCell);
-  let crater = smoothstep(0.72, 0.94, craterSeed) * moonDisc * 0.16;
+  let craterDistance = length(craterLocal - craterPoint);
+  let crater = smoothstep(0.72, 0.94, craterSeed) * (1.0 - smoothstep(0.1, 0.34, craterDistance)) * moonDisc * 0.16;
   let curtainA = auroraCurtain(p, 0.22, 0.3, bm_u.uTime);
   let curtainB = auroraCurtain(p, 0.4, 2.1, bm_u.uTime) * 0.78;
   let curtainC = auroraCurtain(p, 0.58, 4.4, bm_u.uTime) * 0.52;
@@ -158,8 +162,9 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let skyColor = sky + vec3f(0.74, 0.86, 1.2) * stars + vec3f(0.08, 0.055, 0.2) * (milky * 0.22) + vec3f(0.24, 0.34, 0.72) * (moonHalo * 0.14) + vec3f(1.35, 1.2, 0.78) * (moonDisc * (0.9 - crater)) + aurora;
   let mountains = ((skyColor * (1.0 - farMountain) + vec3f(0.025, 0.055, 0.11) * farMountain) * (1.0 - nearMountain) + vec3f(0.008, 0.016, 0.035) * nearMountain + vec3f(0.26, 0.36, 0.52) * (snowLine * 0.38)) * (1.0 - pines) + vec3f(0.002, 0.008, 0.018) * pines;
   let composed = mountains * (1.0 - waterMask) + water * waterMask;
+  let graded = tonemapACES(composed);
   let grain = filmGrain(bm_in.vUv, bm_u.uTime) * 0.012;
-  return vec4f(tonemapACES(composed + vec3f(grain, grain, grain)), 1.0);
+  return vec4f(graded + vec3f(grain, grain, grain), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aUv: 'vec2' },

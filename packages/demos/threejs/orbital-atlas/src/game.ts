@@ -29,6 +29,7 @@ import {
 import type { Material, BufferGeometry as ThreeGeometry } from 'three';
 import type { StudioGameEntry } from './studio-game.ts';
 import { createShardOrbits } from './scene-layout.ts';
+import { createResizeGuard } from './resize-guard.ts';
 
 const STAR_COUNT = 1_400;
 const SHARD_COUNT = 180;
@@ -207,14 +208,12 @@ const game: StudioGameEntry = ({ canvas, pointer, report }) => {
   });
 
   let disposed = false;
-  const resize = (): void => {
-    const width = Math.max(1, canvas.clientWidth || 1280);
-    const height = Math.max(1, canvas.clientHeight || 720);
-    if (canvas.width === width && canvas.height === height) return;
+  const applyResize = createResizeGuard((width, height) => {
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-  };
+  });
+  const resize = (): void => applyResize(canvas.clientWidth, canvas.clientHeight);
 
   return Object.freeze({
     frame(time: number): void {

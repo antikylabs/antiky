@@ -97,9 +97,19 @@ export default shader({
     const moonDisc = 1 - smoothstep(0.135, 0.148, moonDistance);
     const moonHalo = 0.018 / max(moonDistance, 0.045)
       * (1 - smoothstep(0.14, 0.58, moonDistance));
-    const craterCell = vec2(floor(moonPoint.x * 32), floor(moonPoint.y * 32));
+    // Point-sampling a hash over a floored grid gives every selected cell a hard axis-aligned
+    // square, which is what turned the moon's craters into pixels. Placing a point inside the cell
+    // and shading by distance to it makes a round crater with a soft rim, the same construction the
+    // starfield above uses.
+    const craterGrid = vec2(moonPoint.x * 32, moonPoint.y * 32);
+    const craterCell = vec2(floor(craterGrid.x), floor(craterGrid.y));
+    const craterLocal = vec2(fract(craterGrid.x) - 0.5, fract(craterGrid.y) - 0.5);
+    const craterPoint = hash22(craterCell.add(vec2(5.7, 2.3))).sub(vec2(0.5, 0.5)).scale(0.66);
     const craterSeed = hash21(craterCell);
-    const crater = smoothstep(0.72, 0.94, craterSeed) * moonDisc * 0.16;
+    const craterDistance = length(craterLocal.sub(craterPoint));
+    const crater = smoothstep(0.72, 0.94, craterSeed)
+      * (1 - smoothstep(0.1, 0.34, craterDistance))
+      * moonDisc * 0.16;
 
     const curtainA = auroraCurtain(p, 0.22, 0.3, uTime);
     const curtainB = auroraCurtain(p, 0.4, 2.1, uTime) * 0.78;
@@ -146,7 +156,11 @@ export default shader({
       .scale(1 - pines)
       .add(vec3(0.002, 0.008, 0.018).scale(pines));
     const composed = mountains.scale(1 - waterMask).add(water.scale(waterMask));
+    // Dither goes after the tone-map, not before it. ACES compresses the dark range hardest, which
+    // is exactly where the dither is needed to break up banding — adding it first meant the tone
+    // curve squashed the thing that was supposed to survive it.
+    const graded = tonemapACES(composed);
     const grain = filmGrain(vUv, uTime) * 0.012;
-    return vec4(tonemapACES(composed.add(vec3(grain, grain, grain))), 1);
+    return vec4(graded.add(vec3(grain, grain, grain)), 1);
   },
 });

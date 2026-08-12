@@ -136,9 +136,17 @@ export default shader({
       * smoothstep(0.78, 0.96, bubbleSeed)
       * smoothstep(-0.72, 0.78, p.y);
 
-    const particleCell = vec2(floor(p.x * 48), floor((p.y + uTime * 0.035) * 48));
+    // Each selected cell must draw a round speck, not fill itself. Thresholding the cell seed with
+    // no local-distance test is what made the plankton a field of axis-aligned squares. This is the
+    // same cell/local/point construction `bubbleGlow` uses ten lines above.
+    const particleGrid = vec2(p.x * 48, (p.y + uTime * 0.035) * 48);
+    const particleCell = vec2(floor(particleGrid.x), floor(particleGrid.y));
+    const particleLocal = vec2(fract(particleGrid.x) - 0.5, fract(particleGrid.y) - 0.5);
+    const particlePoint = hash22(particleCell.add(vec2(3.1, 9.7))).sub(vec2(0.5, 0.5)).scale(0.7);
     const particleSeed = hash21(particleCell);
+    const particleDistance = length(particleLocal.sub(particlePoint));
     const plankton = smoothstep(0.987, 0.999, particleSeed)
+      * (1 - smoothstep(0.04, 0.13, particleDistance))
       * (0.5 + sin(uTime * 1.2 + particleSeed * 60) * 0.35);
 
     const background = vec3(0.0015, 0.014, 0.045)

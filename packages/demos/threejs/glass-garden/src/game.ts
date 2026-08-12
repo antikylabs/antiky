@@ -32,6 +32,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import type { BufferGeometry, Material } from 'three';
 import type { StudioGameEntry } from './studio-game.ts';
 import { createGlassBloomLayout } from './scene-layout.ts';
+import { createResizeGuard } from './resize-guard.ts';
 
 const terrainNoise = new ImprovedNoise();
 
@@ -241,19 +242,13 @@ const game: StudioGameEntry = ({ canvas, pointer, report }) => {
   });
 
   let disposed = false;
-  let renderWidth = 0;
-  let renderHeight = 0;
-  const resize = (): void => {
-    const width = Math.max(1, canvas.clientWidth || 1280);
-    const height = Math.max(1, canvas.clientHeight || 720);
-    if (renderWidth === width && renderHeight === height) return;
-    renderWidth = width;
-    renderHeight = height;
+  const applyResize = createResizeGuard((width, height) => {
     renderer.setSize(width, height, false);
     composer.setSize(width, height);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-  };
+  });
+  const resize = (): void => applyResize(canvas.clientWidth, canvas.clientHeight);
 
   return Object.freeze({
     frame(time: number): void {

@@ -195,9 +195,13 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let bubbleSeed = hash21(bubbleCell + vec2f(14.2, 7.6));
   let bubbleDistance = length(bubbleLocal - bubblePoint);
   let bubbleGlow = (1.0 - smoothstep(0.012, 0.038, abs(bubbleDistance - 0.07 - bubbleSeed * 0.035))) * smoothstep(0.78, 0.96, bubbleSeed) * smoothstep(-0.72, 0.78, p.y);
-  let particleCell = vec2f(floor(p.x * 48.0), floor((p.y + bm_u.uTime * 0.035) * 48.0));
+  let particleGrid = vec2f(p.x * 48.0, (p.y + bm_u.uTime * 0.035) * 48.0);
+  let particleCell = vec2f(floor(particleGrid.x), floor(particleGrid.y));
+  let particleLocal = vec2f(fract(particleGrid.x) - 0.5, fract(particleGrid.y) - 0.5);
+  let particlePoint = (hash22(particleCell + vec2f(3.1, 9.7)) - vec2f(0.5, 0.5)) * 0.7;
   let particleSeed = hash21(particleCell);
-  let plankton = smoothstep(0.987, 0.999, particleSeed) * (0.5 + sin(bm_u.uTime * 1.2 + particleSeed * 60.0) * 0.35);
+  let particleDistance = length(particleLocal - particlePoint);
+  let plankton = smoothstep(0.987, 0.999, particleSeed) * (1.0 - smoothstep(0.04, 0.13, particleDistance)) * (0.5 + sin(bm_u.uTime * 1.2 + particleSeed * 60.0) * 0.35);
   let background = vec3f(0.0015, 0.014, 0.045) + vec3f(0.002, 0.16, 0.2) * (depth * 0.62 + waterNoise * 0.26) + vec3f(0.025, 0.08, 0.2) * (deepTurbulence * 0.18) + vec3f(0.06, 0.34, 0.43) * (godRays * 0.42 + caustics * surfaceMask * 0.15);
   let life = vec3f(0.02, 1.25, 0.94) * (jellyA * (0.72 + sin(bm_u.uTime * 1.4) * 0.08)) + vec3f(0.48, 0.16, 1.55) * (jellyB * (0.78 + sin(bm_u.uTime * 1.1 + 2.0) * 0.09)) + vec3f(1.35, 0.2, 0.64) * jellyC + vec3f(0.18, 0.72, 1.5) * jellyD + vec3f(0.22, 0.65, 0.9) * (fishBody * 0.8) + vec3f(1.1, 0.38, 0.72) * (fishBodyNear * 0.72) + vec3f(0.34, 0.85, 1.25) * (bubbleGlow * 0.2) + vec3f(0.15, 0.75, 1.1) * (plankton * 0.65);
   let reef = vec3f(0.03, 0.065, 0.085) * seabed + vec3f(0.05, 0.9, 0.52) * (coralStem * 0.62) + vec3f(1.15, 0.16, 0.48) * (coralTips * 0.8) + vec3f(0.03, 0.54, 0.42) * (kelp * 0.72);
