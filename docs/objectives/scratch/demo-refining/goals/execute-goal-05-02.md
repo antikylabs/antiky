@@ -93,6 +93,23 @@ A workable shape once the rows are named:
   every GLB in the kit and collect `TEXCOORD_0`'s V channel.
 - The model shaders reading roughness from the band rather than applying one value per mesh.
 
+## What has landed
+
+- **`packages/demos/scripts/build-kit-materials.mjs`** samples the atlas embedded in the kit's own
+  GLBs on a 16x4 grid and emits `src/kit-materials.gen.ts` — 64 swatches, 46 in use, each with its
+  measured colour and an assigned roughness.
+- **The roughness rule lives in one function**, `roughnessFor`, and is stated rather than implied: a
+  saturated bright reads as painted or moulded and takes a tighter highlight; a desaturated or dark
+  swatch reads as stone, bark or worn metal and scatters. Disagree with it there, in one place,
+  instead of editing generated numbers.
+- **AC-M2 is green**, in the two-dimensional shape the art actually has: every UV emitted by every
+  model in the platformer kit lands on a declared swatch, and every mesh carries at least two
+  distinct V values.
+
+**Still to do:** the shaders reading it. `traversal-model` and `arena-model` still apply one
+roughness per mesh. The lookup needs both UV components — `row = floor(v * 4)`,
+`column = floor(u * 16)` — and the same table generated for the modular-space kit.
+
 ## Required outcome
 
 1. **An asset step that assigns material IDs** and writes them into `TEXCOORD_0`'s V channel for the

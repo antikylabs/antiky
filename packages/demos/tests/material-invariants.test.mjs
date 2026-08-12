@@ -222,3 +222,52 @@ test('AC-L1: the lighting ramp separates shadow from light by more than brightne
     );
   }
 });
+
+test('AC-M2: every kit UV selects a swatch the material table declares', async () => {
+  /**
+   * The criterion as written asks for two distinct V values per Kenney GLB and for every V to map to
+   * a declared material ID. The first half already passed before any work here — Kenney's atlas
+   * addresses swatches by row, so the models carry 3 to 30 distinct V values each, and the goal's
+   * claim that "every Kenney GLB would fail (single V)" was measured wrong.
+   *
+   * The second half is what this asserts, and in the shape the art actually has: **identity is two
+   * dimensional.** V picks a row of the atlas and U picks the swatch within it, so a table keyed on
+   * V alone would name a row of a dozen unrelated colours. Every UV a mesh emits must land on a
+   * swatch the table declares, and that swatch must be one the atlas actually uses.
+   */
+  const { parseGlb } = await import('brometal');
+  const { readdir, readFile } = await import('node:fs/promises');
+  const { TRAVERSAL_KIT_MATERIALS, TRAVERSAL_KIT_GRID } = await import(
+    '../antiky/traversal-study/src/kit-materials.gen.ts'
+  );
+  const declared = new Map(
+    TRAVERSAL_KIT_MATERIALS.map((swatch) => [`${swatch.row}:${swatch.column}`, swatch]),
+  );
+
+  const kit = new URL('../antiky/traversal-study/assets/kenney/platformer-kit/', import.meta.url);
+  const files = (await readdir(kit)).filter((entry) => entry.endsWith('.glb'));
+  assert.ok(files.length >= 5, `expected the platformer kit, found ${files.length} models`);
+
+  const unmapped = new Set();
+  let meshes = 0;
+  for (const file of files) {
+    const bytes = await readFile(new URL(file, kit));
+    const model = parseGlb(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+    for (const mesh of model.meshes) {
+      if (mesh.uvs === null) continue;
+      meshes += 1;
+      const values = new Set();
+      for (let at = 0; at < mesh.uvs.length; at += 2) {
+        const column = Math.min(TRAVERSAL_KIT_GRID.columns - 1, Math.floor(mesh.uvs[at] * TRAVERSAL_KIT_GRID.columns));
+        const row = Math.min(TRAVERSAL_KIT_GRID.rows - 1, Math.floor(mesh.uvs[at + 1] * TRAVERSAL_KIT_GRID.rows));
+        const key = `${row}:${column}`;
+        values.add(mesh.uvs[at + 1]);
+        const swatch = declared.get(key);
+        if (swatch === undefined || swatch.roughness === null) unmapped.add(`${file} → ${key}`);
+      }
+      assert.ok(values.size >= 2, `${file}: only ${values.size} distinct V, so it carries no swatch variation`);
+    }
+  }
+  assert.ok(meshes >= 5, `expected to read real meshes, read ${meshes}`);
+  assert.deepEqual([...unmapped], [], `UVs landing on swatches the table does not declare:\n  ${[...unmapped].join('\n  ')}`);
+});
