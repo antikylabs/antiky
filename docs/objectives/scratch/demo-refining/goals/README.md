@@ -41,31 +41,31 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 
 ## The sequence
 
-| # | Goal | Status | Depends on | Parallel-safe with | Rough size |
-|---|------|--------|-----------|--------------------|-----------|
-| **00** | [Settle the architecture record and the public claims](_completed/execute-goal-00.md) | **Done** `288cd76` — [summary](_completed/summary-goal-00.md) | — | 01, 02, 10 | ~half a day |
-| **01** | [Build the verification loop (Track 0)](_completed/execute-goal-01.md) | **Done** `e1ebf4e` — [summary](_completed/summary-goal-01.md) | — | 00, 02 | ~2 days |
-| **02** | [Unblock the render pipeline in BroMetal (Track A)](_completed/execute-goal-02.md) | **Done** `57166ea` — [summary](_completed/summary-goal-02.md) | — | 00, 01, 04, 05, 10 | ~1 day |
-| **03** | [Quick wins, motion feel, safe dead-code removal (Track D)](_completed/execute-goal-03.md) | **Done** `4b6ecaa` — [summary](_completed/summary-goal-03.md) | 01 | 04, 05, 10 | ~2 days |
-| **04** | [Stop the asset pipeline destroying the assets (Track C)](_completed/execute-goal-04.md) | **Done** `bf56f6c` — [summary](_completed/summary-goal-04.md) | 01 | 02, 03, 05, 10 | ~3 days |
-| **05** | Give the existing assets real materials — triplanar PBR | Not started | 01, 04 | 02, 03, 06, 07, 10 | ~14 days |
-| **06** | [The reference render slice in `point-light-expo` (Track B)](execute-goal-06.md) — **six steps, run individually** | Not started | 00, 01, 02 | 05, 10 | ~5 days |
-| 06-01 | [Finish colour management — the encode on output](execute-goal-06-01.md) | Not started | 06 prereqs | — | — |
-| 06-02 | [One HDR target and exactly one tone-map](execute-goal-06-02.md) | Not started | 06-01 | — | — |
-| 06-03 | [A specular model that does not need a ceiling](execute-goal-06-03.md) | Not started | 06-02 | — | — |
-| 06-04 | [One sun and a shadow map](execute-goal-06-04.md) | Not started | 06-03 | — | — |
-| 06-05 | [Ambient that knows which way is up](execute-goal-06-05.md) | Not started | 06-04 | — | — |
-| 06-06 | [Bloom, grade and vignette, and the budget green](execute-goal-06-06.md) | Not started | 06-05 | — | — |
-| **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | Not started | 06 | 05, 10 | ~10 days |
-| **08** | Art direction and VFX per demo, `antiky-town` included | Not started | 05, 07 | 10 | ~16 days |
-| **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 | ~5 days |
-| **10** | [Fix how the work is presented](_completed/execute-goal-10.md) | **Done** `079c325` — [summary](_completed/summary-goal-10.md) | 01 | everything | ~3 days |
-| **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 | ~4 days |
-| **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
-| **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything | ~4 days |
-| **14** | [Give Antiky a way to build and check texture atlases](execute-goal-14.md) | Not started | 04 | everything except 15 | — |
-| **15** | [Give BroMetal the texture capabilities WebGPU already has](execute-goal-15.md) | Not started | 14 | everything except 14 | — |
-| **99** | [The revisit register — check what we deliberately deferred](execute-goal-99.md) | Not started | all | — | ~1 day |
+| # | Goal | Status | Depends on | Parallel-safe with |
+|---|------|--------|-----------|--------------------|
+| **00** | [Settle the architecture record and the public claims](_completed/execute-goal-00.md) | **Done** `288cd76` — [summary](_completed/summary-goal-00.md) | — | 01, 02, 10 |
+| **01** | [Build the verification loop (Track 0)](_completed/execute-goal-01.md) | **Done** `e1ebf4e` — [summary](_completed/summary-goal-01.md) | — | 00, 02 |
+| **02** | [Unblock the render pipeline in BroMetal (Track A)](_completed/execute-goal-02.md) | **Done** `57166ea` — [summary](_completed/summary-goal-02.md) | — | 00, 01, 04, 05, 10 |
+| **03** | [Quick wins, motion feel, safe dead-code removal (Track D)](_completed/execute-goal-03.md) | **Done** `4b6ecaa` — [summary](_completed/summary-goal-03.md) | 01 | 04, 05, 10 |
+| **04** | [Stop the asset pipeline destroying the assets (Track C)](_completed/execute-goal-04.md) | **Done** `bf56f6c` — [summary](_completed/summary-goal-04.md) | 01 | 02, 03, 05, 10 |
+| **05** | Give the existing assets real materials — triplanar PBR | Not started | 01, 04 | 02, 03, 06, 07, 10 |
+| **06** | [The reference render slice in `point-light-expo` (Track B)](execute-goal-06.md) — **six steps, run individually** | Not started | 00, 01, 02 | 05, 10 |
+| 06-01 | [Finish colour management — the encode on output](execute-goal-06-01.md) | Not started | 06 prereqs | — |
+| 06-02 | [One HDR target and exactly one tone-map](execute-goal-06-02.md) | Not started | 06-01 | — |
+| 06-03 | [A specular model that does not need a ceiling](execute-goal-06-03.md) | Not started | 06-02 | — |
+| 06-04 | [One sun and a shadow map](execute-goal-06-04.md) | Not started | 06-03 | — |
+| 06-05 | [Ambient that knows which way is up](execute-goal-06-05.md) | Not started | 06-04 | — |
+| 06-06 | [Bloom, grade and vignette, and the budget green](execute-goal-06-06.md) | Not started | 06-05 | — |
+| **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | Not started | 06 | 05, 10 |
+| **08** | Art direction and VFX per demo, `antiky-town` included | Not started | 05, 07 | 10 |
+| **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 |
+| **10** | [Fix how the work is presented](_completed/execute-goal-10.md) | **Done** `079c325` — [summary](_completed/summary-goal-10.md) | 01 | everything |
+| **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 |
+| **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 |
+| **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything |
+| **14** | [Give Antiky a way to build and check texture atlases](execute-goal-14.md) | Not started | 04 | everything except 15 |
+| **15** | [Give BroMetal the texture capabilities WebGPU already has](execute-goal-15.md) | Not started | 14 | everything except 14 |
+| **99** | [The revisit register — check what we deliberately deferred](execute-goal-99.md) | Not started | all | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
 **Next up, in parallel:** 03, 04, 10 (00, 01, 02 and 13 are done). Then 05, then 06.

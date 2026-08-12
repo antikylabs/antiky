@@ -137,6 +137,7 @@ What follows are short bullet points on what makes good engineering, will be exp
 - Engineers don't have to speak in technical jargon to get things done.
 - Speaking in ways that others can understand helps build collaboration and cooperation.
 - Understand your audience when you write documentation, or talk to people.
+- Don't report time estimates. You are not good at that, and often are wrong. Never report estimated time to complete a goal/feature/objective.
 
 ## File Size and Cohesion
 - Keep handwritten production files below 500 lines when practical.

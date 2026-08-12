@@ -280,3 +280,72 @@ the visual gap remains, and is any part of it genuinely silhouette and topology.
 with the captures behind it. If it lands near the predicted ~10%, the no-new-assets decision holds;
 if it does not, that is the evidence a kit evaluation would need — and it is the owner's call, not
 the agent's.
+
+---
+
+## Progress so far
+
+Written mid-goal so the next session starts from measurements rather than assumptions. Every commit
+below left `npm test` green and `npm run demos:verify` at its six known targets.
+
+### Landed
+
+| Item | State |
+|---|---|
+| **1** — tiling detail normal, triplanar | **Done, four demos.** `packages/demos/scripts/build-detail-normal.mjs` generates one 512² map into each demo. Projected by ten shaders: four model shaders, the reliquary floor and props, and the town voxel/prop/awning/water surfaces. |
+| **3** — rim/Fresnel, wrapped diffuse | **Done bar cloth sheen.** Rim added to the four model shaders that lacked one; wrapped diffuse for traversal's clouds behind an explicit per-batch `uWrap`. Cloth sheen needs fabric materials, so it waits on item 6. |
+| **4** — SH-9 irradiance | **Script done; point-light-expo fully wired.** `bake-sh9-irradiance.mjs` fetches an HDRI, decodes Radiance RGBE by hand, projects onto nine harmonics, emits 27 floats. Coefficients baked for all three named HDRIs. |
+| AC-M3 | **Green**, and it discovers GLB-drawing shaders from source rather than a list. |
+
+### Measured, before → after
+
+| demo | localContrast median |
+|---|---|
+| point-light-expo | 3.156 → **4.45** |
+| antiky-town | 7.997 → 8.06 |
+| combat-arena | 5.990 → 6.00 |
+| traversal-study | 0.00 → 0.00 |
+
+`traversal-study` reads zero because more than half its frame is flat sky, so the median tile has no
+variation. That is the metric's shape, not a defect — and it means `localContrastMedian` is the wrong
+instrument for that demo. Use AC-M1's probe rectangles there.
+
+### The finding that should shape the rest of this goal
+
+**A detail normal does nothing without directional light to modulate.** Measured with the term in and
+out: 40.6% of `antiky-town`'s frame changed, because that demo already has a sun, a sky/ground split
+and shadows. In `point-light-expo` the floor probes were *identical* either way — 0.0271 both times —
+because its ambient was a flat colour that never consulted the normal. Wiring SH-9 there nearly
+doubled the worst floor probe (0.0072 → 0.0126) and moved the demo's local contrast 3.57 → 4.45.
+
+Items 1 and 4 are coupled. Anywhere light is ambient-dominated, item 1 is inert until item 4 lands.
+
+### Corrections to this goal's premises
+
+- **"`fresnel()` ships and zero demos call it"** — the BroMetal *helper* is uncalled, but 13 of 29
+  shaders already hand-roll a rim or Fresnel term, and `town-foliage` already has wrapped diffuse
+  *and* transmission. The real gap was four model shaders, now closed.
+- **AC-M3's "passes for zero shaders in all three demos"** — stale. `point-light-expo` already had a
+  live normal map, restored by goal 04.
+- **AC-M1's "all three measure below 0.004"** — not so. Measured 0.0072–0.0272 across three floor
+  probes in `point-light-expo`. Those surfaces are not constant.
+
+### Two things the owner may want to weigh in on
+
+- HDRIs download to a gitignored `.hdri-cache/`; only the baked floats and a receipt are committed.
+- `brometal/town-study` is now diverged from its `antiky-town` twin (12 shaders were byte-identical).
+  Mirroring would mean editing a fifth demo this goal does not name. Left diverged deliberately.
+
+### Next, in order of value
+
+1. **Finish item 4** — `combat-arena` and `traversal-study` have coefficients baked but not wired;
+   `antiky-town` should upgrade its existing `uSkyColor`/`uGroundColor` split.
+2. **Item 5** — the ramp LUT. `traversal-study` is the flattest demo in the set and its ramp is three
+   `smoothstep` bands spanning 0.54→0.98 with no view-dependent term at all.
+3. **Item 7**, then **item 6** (largest — needs the Poly Haven intake), then items 2, 8, 9, 10.
+
+### Instrument added
+
+`npm run demos:shoot -- --keep <dir>` copies the captured frame somewhere durable. Evidence is
+session-scoped and the store clears it on teardown, so before-and-after comparison was impossible
+without it — and "the frames were actually looked at" was a claim nobody could act on.
