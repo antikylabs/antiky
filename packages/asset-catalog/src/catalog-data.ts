@@ -2,6 +2,8 @@ import type { AssetDownload } from './index.ts';
 import { GENERATED_CURATED_ASSETS } from './generated-curated-catalog.ts';
 import { GENERATED_COMMUNITY_ASSETS } from './generated-community-catalog.ts';
 import { GENERATED_POLY_HAVEN_ASSETS } from './generated-catalog.ts';
+import { GENERATED_HANDPICKED_ASSETS } from './generated-handpicked-catalog.ts';
+import { applyHandpickedQuality } from './providers/handpicked-client.ts';
 import { createPolyHavenAsset } from './providers/poly-haven.ts';
 
 const retrievedAt = '2026-08-09T00:00:00.000Z';
@@ -65,4 +67,5 @@ export const CATALOG_ASSETS = Object.freeze([
   ...GENERATED_POLY_HAVEN_ASSETS,
   ...GENERATED_CURATED_ASSETS,
   ...GENERATED_COMMUNITY_ASSETS,
-]);
+  ...GENERATED_HANDPICKED_ASSETS,
+].map(applyHandpickedQuality));

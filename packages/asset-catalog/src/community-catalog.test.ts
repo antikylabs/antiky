@@ -3,12 +3,78 @@ import test from 'node:test';
 
 import { CATALOG_ASSETS } from './catalog-data.ts';
 import { GENERATED_COMMUNITY_REPORT } from './generated-community-catalog.ts';
+import { GENERATED_HANDPICKED_REPORT } from './generated-handpicked-catalog.ts';
 import {
   parseKayKitIndex,
   parseKayKitPage,
   parseOpenDuelystTree,
   parseScreamingBrainIndex,
 } from './providers/community-client.ts';
+import { HANDPICKED_ITCH_SOURCES, parseHandpickedItchPage } from './providers/handpicked-client.ts';
+
+test('publishes every handpicked itch source once at its reviewed quality tier', () => {
+  assert.equal(HANDPICKED_ITCH_SOURCES.length, 19);
+  assert.equal(new Set(HANDPICKED_ITCH_SOURCES.map((source) => source.url)).size, 19);
+  assert.equal(new Set(HANDPICKED_ITCH_SOURCES.map((source) => source.catalogId)).size, 19);
+  assert.deepEqual(
+    Array.from({ length: 6 }, (_, quality) => HANDPICKED_ITCH_SOURCES.filter((source) => source.quality === quality).length),
+    [7, 4, 5, 1, 2, 0],
+  );
+  assert.equal(GENERATED_HANDPICKED_REPORT.sourceCount, 19);
+  assert.equal(GENERATED_HANDPICKED_REPORT.assetCount, 13);
+  assert.equal(GENERATED_HANDPICKED_REPORT.aliasCount, 6);
+  for (const source of HANDPICKED_ITCH_SOURCES) {
+    const asset = CATALOG_ASSETS.find((candidate) => candidate.id === source.catalogId);
+    assert.ok(asset, `${source.catalogId} is missing`);
+    assert.equal(asset.quality, source.quality, `${source.catalogId} has the wrong quality`);
+  }
+});
+
+test('parses source-verified itch metadata without downloading archives', () => {
+  const source = HANDPICKED_ITCH_SOURCES.find((candidate) => candidate.catalogId === 'datagoblin:monogram')!;
+  const asset = parseHandpickedItchPage(`
+    <meta content="elegant monospace pixel font" property="og:description">
+    <meta content="https://img.itch.zone/monogram.png" property="og:image">
+    <h1 class="game_title">monogram</h1>
+    <div class="formatted_description">Monogram is a monospace bitmap font, free and CC0!</div>
+    <div class="game_info_panel_widget"><table><tr><td>Tags</td><td>
+      <a>8-Bit</a>, <a>Fonts</a>, <a>Pixel Art</a>
+    </td></tr></table></div>
+    <div class="uploads"><strong class="name">monogram.ttf</strong></div>
+  `, source, '2026-08-12T00:00:00.000Z');
+  assert.equal(asset.id, 'datagoblin:monogram');
+  assert.equal(asset.kind, 'font');
+  assert.equal(asset.quality, 2);
+  assert.equal(asset.description, 'elegant monospace pixel font');
+  assert.ok(asset.tags.includes('pixel art'));
+  assert.deepEqual(asset.formats, ['ttf', 'png', 'json', 'p8']);
+  assert.equal(asset.preview.sourceUrl, 'https://img.itch.zone/monogram.png');
+  assert.equal(asset.verification, 'source-verified');
+  assert.deepEqual(asset.downloads, []);
+});
+
+test('rejects a handpicked itch page when its CC0 evidence disappears', () => {
+  const source = HANDPICKED_ITCH_SOURCES.find((candidate) => candidate.catalogId === 'datagoblin:monogram')!;
+  assert.throws(() => parseHandpickedItchPage(`
+    <meta content="elegant monospace pixel font" property="og:description">
+    <meta content="https://img.itch.zone/monogram.png" property="og:image">
+    <h1 class="game_title">monogram</h1>
+    <div class="formatted_description">All rights reserved.</div>
+  `, source, '2026-08-12T00:00:00.000Z'), /CC0 evidence/);
+});
+
+test('accepts CC0 evidence scoped to a named itch upload', () => {
+  const source = HANDPICKED_ITCH_SOURCES.find((candidate) => candidate.catalogId === 'pixel-frog:tiny-swords')!;
+  const asset = parseHandpickedItchPage(`
+    <meta content="Colorful strategy sprites" property="og:description">
+    <meta content="https://img.itch.zone/tiny-swords.png" property="og:image">
+    <h1 class="game_title">Tiny Swords</h1>
+    <div class="formatted_description">Commercial use and modification are allowed.</div>
+    <div class="uploads"><strong class="name">TS_old version_CC0 Licensed</strong></div>
+  `, source, '2026-08-12T00:00:00.000Z');
+  assert.equal(asset.id, 'pixel-frog:tiny-swords');
+  assert.equal(asset.verification, 'source-verified');
+});
 
 test('publishes exact community-source coverage and requested quality tiers', () => {
   const kaykit = CATALOG_ASSETS.filter((asset) => asset.provider.id === 'kaykit');
@@ -20,7 +86,8 @@ test('publishes exact community-source coverage and requested quality tiers', ()
   assert.equal(kaykit.length, 17);
   assert.equal(screamingBrain.length, 62);
   assert.equal(openDuelyst.reduce((sum, asset) => sum + (asset.fileCount ?? 0), 0), GENERATED_COMMUNITY_REPORT.openDuelyst.coveredFileCount);
-  assert.ok(kaykit.every((asset) => asset.quality === 1));
+  const promotedKayKit = new Set(['kaykit:medieval-hexagon', 'kaykit:dungeon-remastered', 'kaykit:forest-nature-pack']);
+  assert.ok(kaykit.every((asset) => asset.quality === (promotedKayKit.has(asset.id) ? 0 : 1)));
   assert.ok(openDuelyst.every((asset) => asset.quality === 2));
   assert.ok(screamingBrain.every((asset) => asset.quality === 3));
 });

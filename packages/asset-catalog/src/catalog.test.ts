@@ -83,7 +83,10 @@ test('publishes the complete generated Kenney and Quaternius pack catalogs', () 
   assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'kenney').length >= 200);
   assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'quaternius').length >= 80);
   assert.equal(CATALOG_ASSETS.filter((asset) => asset.verification === 'install-verified').length, 3);
-  assert.ok(CATALOG_ASSETS.filter((asset) => ['kenney', 'quaternius'].includes(asset.provider.id)).every((asset) => asset.quality === 0));
+  assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'kenney').every((asset) => asset.quality === 0));
+  assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'quaternius').every((asset) => (
+    asset.quality === (asset.id === 'quaternius:universalanimationlibrary' ? 1 : 0)
+  )));
   assert.ok(CATALOG_ASSETS.filter((asset) => asset.provider.id === 'poly-haven').every((asset) => asset.quality === 1));
 });
 
