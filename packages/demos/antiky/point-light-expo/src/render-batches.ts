@@ -219,8 +219,14 @@ export function createGlowInstanceData(capacity: number) {
   });
 }
 
-export function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
+export function createGlowBatch(
+  renderer: Renderer,
+  geometry: Geometry,
+  capacity: number,
+  billboard: BroMetalTexture,
+) {
   const program = createProgram(renderer, foundryGlowShader, { blend: 'additive' });
+  program.uniforms.uBillboard.set(billboard);
   try {
     program.attributes.aPosition.set(geometry.positions);
     program.attributes.aNormal.set(geometry.normals);

@@ -15,6 +15,7 @@ import { createRelayFrameScratch, setCameraPosition } from './frame-scratch.ts';
 import { relayOnboardingOpacity } from './onboarding-cues.ts';
 import { FLOOR_SKY, SURFACE_SKY } from './ambient.ts';
 import { loadDetailNormal } from './detail-normal.ts';
+import { loadVfxBillboard } from './vfx-billboard.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
 import {
@@ -84,6 +85,8 @@ export async function createRelayRenderer(
   // Loaded once and shared by the floor and every prop batch. The reliquary has five programs that
   // want it, and five uploads of the same 512x512 image is four wasted.
   const detailNormal = resources.register(await loadDetailNormal(renderer));
+  // One sprite for every glow: it is the demo's effect texture, not a per-effect material.
+  const vfxBillboard = resources.register(await loadVfxBillboard(renderer));
   const floorProgram = resources.register(createProgram(renderer, floorShader));
   floorProgram.attributes.aPosition.set(floorGeometry.positions);
   floorProgram.attributes.aUv.set(floorGeometry.uvs);
@@ -131,6 +134,7 @@ export async function createRelayRenderer(
     renderer,
     createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }),
     RELAY_RENDER_PROFILE.capacities.glows,
+    vfxBillboard,
   ));
   const organic = resources.register(await createReliquaryModelBatch(
     renderer,

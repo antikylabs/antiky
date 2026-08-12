@@ -1,4 +1,4 @@
-import { cos, dot, max, normalize, pow, shader, sin, vec3, vec4 } from 'brometal';
+import { cos, dot, max, normalize, pow, shader, sin, texture, vec2, vec3, vec4 } from 'brometal';
 
 export default shader({
   attributes: {
@@ -14,6 +14,7 @@ export default shader({
     iMotion: 'float',
   },
   uniforms: {
+    uBillboard: 'sampler2D',
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTime: 'float',
@@ -43,10 +44,17 @@ export default shader({
     return uViewProj.mul(vec4(world, 1));
   },
 
-  fragment({ uCameraPosition }, { vWorld, vNormal, vColor, vPower }) {
+  fragment({ uCameraPosition, uBillboard }, { vWorld, vNormal, vColor, vPower }) {
     const view = normalize(uCameraPosition.sub(vWorld));
     const rim = pow(1 - max(dot(normalize(vNormal), view), 0), 2.4);
     const strength = (0.3 + rim * 2.2) * (0.35 + vPower * 0.2);
-    return vec4(vColor.scale(strength), 0.32 + rim * 0.55);
+    // Structure, so a cluster of relays reads as a cluster of things rather than as copies of one
+    // circle. These glows are spheres and carry no `vUv`, so the view-facing normal is the texture
+    // coordinate: `normal.xy` maps the visible hemisphere onto the sprite and reaches its rim, where
+    // the alpha is already zero, exactly at the silhouette — so the edge softens instead of ending.
+    const surfaceNormal = normalize(vNormal);
+    const structure = texture(uBillboard, vec2(surfaceNormal.x * 0.5 + 0.5, surfaceNormal.y * 0.5 + 0.5)).w;
+    const textured = 0.55 + structure * 0.45;
+    return vec4(vColor.scale(strength * textured), (0.32 + rim * 0.55) * textured);
   },
 });
