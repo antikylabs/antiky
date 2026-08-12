@@ -93,6 +93,19 @@ touching `combat-arena`'s lifetime code.
    light passes that intent but fails the count. They now name `uViewProj` and `uBillboard`, so a
    third uniform still fails.
 3. **Timing rebuilt on curves, snap and secondary elements** (the rest of item 9).
+
+   **Check AC-V2's premise before scoping this.** It asks you to "drive one impact event through the
+   projection code and record emitted instance values per frame", which assumes event-driven bursts
+   exist. In `combat-arena` the rings are *static arena decoration* — `combat-projection.ts:181-184`
+   writes three of them at fixed radii every frame, driven by `state.phase` and `state.time` rather
+   than by an impact. The per-instance `hit` parameter on the ship shader is the closest thing to an
+   impact response, and it is a colour mix rather than a scale-and-fade curve.
+
+   So the honest first step is an inventory of what actually fires on an event in each demo, the same
+   way item 8 needed one for `antiky-town`. AC-V2's four measurements — peak scale within 3 frames,
+   alpha at frame 10 under 25% of peak, scale-alpha correlation under 0.9, two elements with
+   lifetimes differing by 1.5x — are the right shape, but they need something event-driven to measure
+   and part of this step is building that rather than instrumenting it.
 4. **An `antiky-town` VFX inventory first.** No audit document examined it, so there is no verified
    list to work from. Produce one before deciding what applies.
 
