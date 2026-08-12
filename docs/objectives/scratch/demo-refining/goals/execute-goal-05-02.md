@@ -106,9 +106,17 @@ A workable shape once the rows are named:
   model in the platformer kit lands on a declared swatch, and every mesh carries at least two
   distinct V values.
 
-**Still to do:** the shaders reading it. `traversal-model` and `arena-model` still apply one
-roughness per mesh. The lookup needs both UV components — `row = floor(v * 4)`,
-`column = floor(u * 16)` — and the same table generated for the modular-space kit.
+- **`traversal-model` reads it.** The table uploads as a 16x4 lookup through `createTexture3D`
+  (BroMetal's only raw-buffer upload) sampled with the same UV as the albedo, and roughness drives
+  the rim: a rough surface scatters, so its edge light is broader and weaker, which is the one place
+  roughness is legible in a toon-shaded demo. `filter: 'nearest'` is deliberate — this is a table of
+  discrete entries, and blending two swatches would invent a roughness belonging to neither.
+
+**Still to do:** `combat-arena`. Generate the same table for the modular-space kit and have
+`arena-model` read it. The generator takes the kit path as an argument, so it is one command plus the
+same shader change — `node scripts/build-kit-materials.mjs assets/kenney/modular-space-kit combat-arena ARENA`.
+Extend the AC-M2 test to cover that kit at the same time; it is currently scoped to the platformer
+kit alone, and a second kit is exactly the sort of thing a one-kit test stops noticing.
 
 ## Required outcome
 
