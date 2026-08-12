@@ -51,20 +51,24 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let surfaceUv = vec2f(surfaceLongitude * 0.159155 + 0.5, 0.5 - latitude * 0.31831);
   let surface = decodeSrgb(textureSample(uAlbedo, uAlbedo_sampler, surfaceUv).xyz);
   let cloudLongitude = atan2(normal.z, normal.x) + bm_u.uTime * 0.031;
-  let cloudUv = vec2f(cloudLongitude * 0.159155 + 0.5, 0.5 - latitude * 0.31831);
-  let cloudDensity = clamp(textureSample(uClouds, uClouds_sampler, cloudUv).x * 1.25, 0.0, 1.0);
+  let warp = sin(latitude * 7.4 + bm_u.uTime * 0.06) * 0.055 + sin(cloudLongitude * 3.1 - bm_u.uTime * 0.04) * 0.03;
+  let streakUv = vec2f(cloudLongitude * 0.159155 * 0.62 + 0.5, 0.5 - latitude * 0.31831 + warp);
+  let wispUv = vec2f(cloudLongitude * 0.159155 * 1.35 + 0.22, 0.5 - latitude * 0.31831 - warp * 1.7);
+  let streaks = textureSample(uClouds, uClouds_sampler, streakUv).x;
+  let wisps = textureSample(uClouds, uClouds_sampler, wispUv).x;
+  let cloudDensity = clamp(pow(clamp(streaks * wisps * 2.1, 0.0, 1.0), 1.5) * 1.5, 0.0, 1.0);
   let sun = normalize(vec3f(-0.44, 0.86, 0.42));
   let lambert = max(dot(normal, sun), 0.0);
-  let dayNight = clamp(lambert * 1.35 + 0.06, 0.0, 1.25);
-  let night = vec3f(0.012, 0.018, 0.035);
+  let dayNight = clamp(lambert * 3.4 + 0.18, 0.0, 3.4);
+  let night = vec3f(0.02, 0.03, 0.06);
   let oceanMask = clamp((surface.z - surface.x) * 3.4, 0.0, 1.0);
   let glint = pow(max(dot(normalize(sun + view), normal), 0.0), 90.0) * oceanMask * lambert;
   let litSurface = surface * dayNight + vec3f(0.28, 0.44, 0.75) * (glint * 0.5);
-  let litClouds = vec3f(0.95, 0.96, 0.99) * (dayNight * 0.92);
+  let litClouds = vec3f(1.05, 1.07, 1.12) * (dayNight * 0.95);
   let daySide = mix(litSurface, litClouds, cloudDensity * 0.82);
   let withNight = mix(night, daySide, clamp(lambert * 2.4 + 0.08, 0.0, 1.0));
   let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.6);
-  let haze = vec3f(0.24, 0.52, 0.95) * (rim * (0.35 + max(dot(normal, sun), 0.0) * 1.5));
+  let haze = vec3f(0.24, 0.52, 0.95) * (rim * (0.45 + max(dot(normal, sun), 0.0) * 2.4));
   return vec4f(withNight + haze, 1.0);
 }
 `,
