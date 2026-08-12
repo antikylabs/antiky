@@ -18,9 +18,9 @@ x studio - add full screen game
 x studio - add make panels resizeable
 x studio - fix unable to pause game
 x studio - fix status bar and duplicate information
+x skills - add user documentation skill - diataxis.fr
 \ demos - fix up demos to be better quality
 \ website - review all marketing and website changes.
-skills - add user documentation skill - diataxis.fr
 studio - fix terminal bugs on codex /exit causes weird execute problems
 studio - fix terminal bugs random crashes
 repo health - setup release and versioning and packaging github actions
