@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import sharp from 'sharp';
 
-import { isUniformFrame, readFrameStats } from './frame-stats.mjs';
+import { isUniformFrame, readFrameStats, readSequenceStats } from './frame-stats.mjs';
 
 /**
  * These tests need no GPU and no demo. They run against synthetic images with known
@@ -276,4 +276,60 @@ test('saturation is weighted by luminance so invisible pixels cannot carry it', 
   });
   const stats = await readFrameStats(file);
   assert.ok(stats.meanSaturation < 0.01, `weighted saturation was ${stats.meanSaturation}`);
+});
+
+test('sequence statistics report one entry per frame and per adjacent pair', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  const files = [];
+  for (let frame = 0; frame < 4; frame += 1) {
+    files.push(await writePng(directory, `f${frame}.png`, {
+      width: 32,
+      height: 32,
+      fill: (x) => (x < 16 + frame ? [200, 200, 200] : [20, 20, 20]),
+    }));
+  }
+  const stats = await readSequenceStats(files);
+
+  assert.equal(stats.frameCount, 4);
+  assert.equal(stats.frames.length, 4);
+  assert.equal(stats.temporalDifference.length, 3);
+  assert.equal(stats.series.meanLuminance.length, 4);
+  assert.ok(stats.temporalDifference.every((entry) => entry.standardDeviation > 0));
+});
+
+test('temporal difference ignores a uniform brightness shift, which is not motion', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // Two frames identical apart from every pixel being lifted by the same amount: a fade, an
+  // exposure change, a light coming on. The mean difference rises; the deviation must not.
+  const before = await writePng(directory, 'a.png', {
+    width: 32,
+    height: 32,
+    fill: (x) => (x < 16 ? [100, 100, 100] : [140, 140, 140]),
+  });
+  const after = await writePng(directory, 'b.png', {
+    width: 32,
+    height: 32,
+    fill: (x) => (x < 16 ? [130, 130, 130] : [170, 170, 170]),
+  });
+  const [shift] = (await readSequenceStats([before, after])).temporalDifference;
+
+  assert.ok(shift.mean > 0.01, `a brightness shift should move the mean, got ${shift.mean}`);
+  assert.ok(
+    shift.standardDeviation < shift.mean * 0.5,
+    `deviation ${shift.standardDeviation} should stay well under the mean ${shift.mean}: nothing moved`,
+  );
+});
+
+test('a sequence of mismatched sizes is an error rather than a silent comparison', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  const small = await writePng(directory, 'small.png', { width: 8, height: 8, fill: () => [10, 10, 10] });
+  const large = await writePng(directory, 'large.png', { width: 16, height: 16, fill: () => [10, 10, 10] });
+
+  await assert.rejects(readSequenceStats([small, large]), /differ in size/);
 });

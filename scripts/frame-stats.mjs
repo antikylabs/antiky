@@ -241,3 +241,61 @@ export async function isUniformFrame(pngPath) {
   }
   return true;
 }
+
+/**
+ * Statistics across a captured sequence, plus how much the picture changes between frames.
+ *
+ * The between-frame measure is **Temporal Information** as ITU-T P.910 defines it: the *standard
+ * deviation* of the per-pixel difference between consecutive frames, not its mean. The mean is
+ * moved by a uniform brightness change — a fade, an exposure shift, a light turning on — which is
+ * not motion. The standard deviation only rises when different parts of the frame change by
+ * different amounts, which is what motion actually looks like. Both are reported, because their
+ * disagreement is itself informative: a high mean with a low deviation is the whole frame getting
+ * brighter, and nothing moving.
+ */
+export async function readSequenceStats(pngPaths, options = {}) {
+  if (pngPaths.length === 0) throw new Error('A sequence needs at least one frame.');
+
+  const frames = [];
+  for (const pngPath of pngPaths) frames.push(await readFrameStats(pngPath, options));
+
+  const differences = [];
+  let previous = null;
+  for (const pngPath of pngPaths) {
+    const current = await readPixels(pngPath);
+    if (previous !== null) {
+      if (previous.width !== current.width || previous.height !== current.height) {
+        throw new Error('Sequence frames differ in size, so they cannot be compared.');
+      }
+      const pixelCount = current.width * current.height;
+      const perPixel = new Float64Array(pixelCount);
+      for (let index = 0; index < pixelCount; index += 1) {
+        const offset = index * current.channels;
+        perPixel[index] = Math.abs(
+          luminanceAt(current.data, offset) - luminanceAt(previous.data, offset),
+        );
+      }
+      let total = 0;
+      for (const value of perPixel) total += value;
+      const mean = total / pixelCount;
+      let variance = 0;
+      for (const value of perPixel) variance += (value - mean) ** 2;
+      differences.push({ mean, standardDeviation: Math.sqrt(variance / pixelCount) });
+    }
+    previous = current;
+  }
+
+  const series = (pick) => frames.map(pick);
+  return Object.freeze({
+    frameCount: frames.length,
+    frames,
+    /** One entry per adjacent pair, so length is `frameCount - 1`. */
+    temporalDifference: differences,
+    /** Per-frame series, ready to hand to `motion-stats`. */
+    series: Object.freeze({
+      meanLuminance: series((frame) => frame.meanLuminance),
+      localContrastMedian: series((frame) => frame.localContrastMedian),
+      clippedHigh: series((frame) => frame.clippedHigh),
+    }),
+  });
+}
