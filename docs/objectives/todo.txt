@@ -14,13 +14,13 @@ x website - fix what codex messed up with demos and stuff (arena is not an arena
 x tooling - create skill library (initial)
 x repo health - add agent skill ASD-STE100
 x tooling - motion measurement
+x studio - add full screen game
+x studio - add make panels resizeable
+x studio - fix unable to pause game
 \ demos - fix up demos to be better quality
 \ website - review all marketing and website changes.
-\ studio - add full screen game
-\ studio - add make panels resizeable
 skills - add user documentation skill - diataxis.fr
 studio - fix status bar and duplicate information
-studio - fix unable to pause game
 studio - fix terminal bug on codex /exit causes weird execute problems
 repo health - setup release and versioning and packaging github actions
 docs - run over user docs and validate everything is good to go
