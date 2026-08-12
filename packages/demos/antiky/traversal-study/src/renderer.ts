@@ -36,6 +36,7 @@ import {
 } from './resource-scope.ts';
 import { summarizeTraversalMeasurements } from './measurements.ts';
 import { COURSE_SKY } from './ambient.ts';
+import { createKitMaterialLookup } from './kit-materials.ts';
 import { createLightingRamp } from './lighting-ramp.ts';
 import { loadVfxBillboard } from './vfx-billboard.ts';
 import { loadDetailNormal } from './detail-normal.ts';
@@ -233,6 +234,7 @@ async function createCatalogBatch(
   capacity: number,
   detailNormal: BroMetalTexture,
   ramp: BroMetalTexture,
+  kitMaterials: BroMetalTexture,
   gradeColor: Vec3 = [1, 1, 1],
   gradeMix = 0,
   /** How far light wraps past the terminator. Clouds are volumes; everything else here is solid. */
@@ -271,6 +273,7 @@ async function createCatalogBatch(
       program.uniforms.uTex.set(textures[mesh.imageIndex]!);
       program.uniforms.uDetailNormal.set(detailNormal);
       program.uniforms.uRamp.set(ramp);
+      program.uniforms.uKitMaterials.set(kitMaterials);
       program.uniforms.uSh0.set(COURSE_SKY[0]!);
       program.uniforms.uSh1.set(COURSE_SKY[1]!);
       program.uniforms.uSh2.set(COURSE_SKY[2]!);
@@ -358,22 +361,23 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     // One ramp for every catalog batch: it is the demo's lighting model, not a per-object
     // material, so there is exactly one of it.
     const ramp = owned.adopt(createLightingRamp(renderer));
+    const kitMaterials = owned.adopt(createKitMaterialLookup(renderer));
     // One sprite for every effect: it is the demo's effect texture, not a per-effect material.
     const vfxBillboard = owned.adopt(await loadVfxBillboard(renderer));
     const catalogTransaction = await acquireTransactional([
-      () => createCatalogBatch(renderer, 'grass', TRAVERSAL_BATCH_CAPACITIES.grass, detailNormal, ramp),
-      () => createCatalogBatch(renderer, 'overhang', TRAVERSAL_BATCH_CAPACITIES.overhang, detailNormal, ramp),
-      () => createCatalogBatch(renderer, 'moving', TRAVERSAL_BATCH_CAPACITIES.moving, detailNormal, ramp),
-      () => createCatalogBatch(renderer, 'flag', TRAVERSAL_BATCH_CAPACITIES.flag, detailNormal, ramp),
-      () => createCatalogBatch(renderer, 'coin', TRAVERSAL_BATCH_CAPACITIES.coin, detailNormal, ramp),
-      () => createCatalogBatch(renderer, 'spikes', TRAVERSAL_BATCH_CAPACITIES.spikes, detailNormal, ramp, [0.92, 0.22, 0.09], 0.62),
-      () => createCatalogBatch(renderer, 'tree', TRAVERSAL_BATCH_CAPACITIES.tree, detailNormal, ramp),
-      () => createCatalogBatch(renderer, 'courier', TRAVERSAL_BATCH_CAPACITIES.courier, detailNormal, ramp),
-      () => createCatalogBatch(renderer, 'cloud-small', TRAVERSAL_BATCH_CAPACITIES['cloud-small'], detailNormal, ramp, [0.96, 0.98, 1], 0.9, 0.65),
-      () => createCatalogBatch(renderer, 'cloud-large', TRAVERSAL_BATCH_CAPACITIES['cloud-large'], detailNormal, ramp, [0.96, 0.98, 1], 0.9, 0.65),
-      () => createCatalogBatch(renderer, 'coastal-cliff', TRAVERSAL_BATCH_CAPACITIES['coastal-cliff'], detailNormal, ramp, [0.3, 0.45, 0.55], 0.78),
-      () => createCatalogBatch(renderer, 'coastal-tree', TRAVERSAL_BATCH_CAPACITIES['coastal-tree'], detailNormal, ramp, [0.18, 0.38, 0.24], 0.28),
-      () => createCatalogBatch(renderer, 'relay-tower', TRAVERSAL_BATCH_CAPACITIES['relay-tower'], detailNormal, ramp, [0.64, 0.71, 0.74], 0.38),
+      () => createCatalogBatch(renderer, 'grass', TRAVERSAL_BATCH_CAPACITIES.grass, detailNormal, ramp, kitMaterials),
+      () => createCatalogBatch(renderer, 'overhang', TRAVERSAL_BATCH_CAPACITIES.overhang, detailNormal, ramp, kitMaterials),
+      () => createCatalogBatch(renderer, 'moving', TRAVERSAL_BATCH_CAPACITIES.moving, detailNormal, ramp, kitMaterials),
+      () => createCatalogBatch(renderer, 'flag', TRAVERSAL_BATCH_CAPACITIES.flag, detailNormal, ramp, kitMaterials),
+      () => createCatalogBatch(renderer, 'coin', TRAVERSAL_BATCH_CAPACITIES.coin, detailNormal, ramp, kitMaterials),
+      () => createCatalogBatch(renderer, 'spikes', TRAVERSAL_BATCH_CAPACITIES.spikes, detailNormal, ramp, kitMaterials, [0.92, 0.22, 0.09], 0.62),
+      () => createCatalogBatch(renderer, 'tree', TRAVERSAL_BATCH_CAPACITIES.tree, detailNormal, ramp, kitMaterials),
+      () => createCatalogBatch(renderer, 'courier', TRAVERSAL_BATCH_CAPACITIES.courier, detailNormal, ramp, kitMaterials),
+      () => createCatalogBatch(renderer, 'cloud-small', TRAVERSAL_BATCH_CAPACITIES['cloud-small'], detailNormal, ramp, kitMaterials, [0.96, 0.98, 1], 0.9, 0.65),
+      () => createCatalogBatch(renderer, 'cloud-large', TRAVERSAL_BATCH_CAPACITIES['cloud-large'], detailNormal, ramp, kitMaterials, [0.96, 0.98, 1], 0.9, 0.65),
+      () => createCatalogBatch(renderer, 'coastal-cliff', TRAVERSAL_BATCH_CAPACITIES['coastal-cliff'], detailNormal, ramp, kitMaterials, [0.3, 0.45, 0.55], 0.78),
+      () => createCatalogBatch(renderer, 'coastal-tree', TRAVERSAL_BATCH_CAPACITIES['coastal-tree'], detailNormal, ramp, kitMaterials, [0.18, 0.38, 0.24], 0.28),
+      () => createCatalogBatch(renderer, 'relay-tower', TRAVERSAL_BATCH_CAPACITIES['relay-tower'], detailNormal, ramp, kitMaterials, [0.64, 0.71, 0.74], 0.38),
     ]);
     owned.adopt(catalogTransaction);
     const catalogEntries = catalogTransaction.resources;

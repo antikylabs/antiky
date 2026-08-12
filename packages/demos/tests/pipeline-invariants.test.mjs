@@ -65,6 +65,9 @@ const SAMPLER_ROLES = Object.freeze({
   // A white sprite whose information is all in the alpha. There is no colour in it to decode, and
   // the shader tints it with whatever the effect already carries.
   uBillboard: 'data',
+  // A table of roughness values addressed by the palette swatch a face lands on. Numbers, not
+  // colour — decoding it would bend every roughness toward the shallow end of the sRGB curve.
+  uKitMaterials: 'data',
   uRoughness: 'data',
   uAo: 'data',
   uShadowMap: 'data',

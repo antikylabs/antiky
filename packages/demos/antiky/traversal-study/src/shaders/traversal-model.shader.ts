@@ -60,6 +60,7 @@ export default shader({
     uWrap: 'float',
     uTex: 'sampler2D',
     uRamp: 'sampler3D',
+    uKitMaterials: 'sampler3D',
     uSh0: 'vec3',
     uSh1: 'vec3',
     uSh2: 'vec3',
@@ -90,7 +91,7 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
+    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uKitMaterials, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
     { vWorld, vNormal, vUv, vWash },
   ) {
     const texel = decodeSrgb(texture(uTex, vUv).xyz);
@@ -165,8 +166,19 @@ export default shader({
     // Hand-rolled rather than calling BroMetal's `fresnel()`. The helper takes its power as a
     // parameter and compiles the sample-free maths inline anyway, so the only difference is that
     // this spelling matches the twelve other places in this repository that already do it.
+    // Roughness from the kit's own palette, addressed by the same UV the albedo uses.
+    //
+    // The swatch a face lands on is its material identity: V picks the palette row, U picks the
+    // swatch. Before this, every face of every model took one roughness, so a grass top and a
+    // painted crate side scattered light identically.
+    //
+    // Sampled `nearest`: this is a table of discrete entries, and blending two swatches would invent
+    // a roughness belonging to neither.
+    const kitRoughness = texture(uKitMaterials, vec3(vUv.x, vUv.y, 0.5)).x;
     const view = normalize(uCameraPosition.sub(vWorld));
-    const rim = pow(1 - max(dot(normal, view), 0), 2.6);
+    // A rough surface scatters, so its edge light is broader and weaker; a smooth one keeps a
+    // tight bright rim. That is the one place roughness is visible in a toon-shaded demo.
+    const rim = pow(1 - max(dot(normal, view), 0), 2.6) * (1.25 - kitRoughness);
     const graded = mix(texel, uGradeColor, uGradeMix);
     // Tinted toward the sky rather than the surface colour, so the edge reads as light coming from
     // the world behind the object instead of the object glowing.
