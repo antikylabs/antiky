@@ -253,7 +253,7 @@ export function createCombatProjection(
   let rings: ReturnType<typeof createGlowBatch>;
   try {
     surfaces = registerResource(resources, dependencies.createSurfaceBatch(renderer, createCube(), SURFACE_CAPACITY));
-    shadows = registerResource(resources, dependencies.createContactShadowBatch(renderer, CONTACT_SHADOW_CAPACITY));
+    shadows = registerResource(resources, dependencies.createContactShadowBatch(renderer, CONTACT_SHADOW_CAPACITY, billboard));
     glows = registerResource(resources, dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY, billboard));
     rings = registerResource(resources, dependencies.createGlowBatch(renderer, horizontalGeometry(createTorus({ radius: 1, tube: 0.035, radialSegments: 10, tubularSegments: 96 })), RING_CAPACITY, billboard));
   } catch (cause: unknown) {

@@ -75,8 +75,23 @@ touching `combat-arena`'s lifetime code.
    `foundry-glow`, `traversal-glow` and `arena-glow` each sample the billboard by their view-facing
    normal. **AC-V4 is satisfied**; it wanted at least one `sampler2D` per VFX program and previously
    had zero of three.
-2. **Contact shadows and ring decals textured** (item 2). `antiky-town` is exempt — it casts real
-   shadows through five depth-from-light passes and has no decal blobs to replace.
+2. **Contact shadows and ring decals textured** (item 2). **Done for `point-light-expo` and
+   `combat-arena`** — both contact-shadow shaders sample the billboard through `vLocal`, which
+   already runs -1..1 across the quad and is therefore the UV. The analytic `smoothstep` stays: it
+   guarantees the edge reaches zero at the inscribed circle, and the sprite adds variation on top.
+   Rings are drawn by the glow batches and were textured with item 8.
+
+   **`antiky-town` is exempt** — real shadows, no decal blobs.
+
+   **`traversal-study` is not done, and needs a decision first.** Its contact shadow is drawn by
+   `traversal-surface`, which also draws the HUD bars — texturing that shader would texture the HUD
+   too. Either split the shader or give the contact shadow its own, and that is a small design
+   choice rather than a mechanical change.
+
+   Two test assertions had to move from counting uniforms to naming them. Both shaders were guarded
+   by `Object.keys(shader.uniforms).length === 1`, standing in for "unlit"; a sampler that carries no
+   light passes that intent but fails the count. They now name `uViewProj` and `uBillboard`, so a
+   third uniform still fails.
 3. **Timing rebuilt on curves, snap and secondary elements** (the rest of item 9).
 4. **An `antiky-town` VFX inventory first.** No audit document examined it, so there is no verified
    list to work from. Produce one before deciding what applies.

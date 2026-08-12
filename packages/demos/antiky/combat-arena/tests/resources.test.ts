@@ -329,7 +329,10 @@ test('contact shadows are unlit, soft, and blended without writing depth', async
   // Soft, not a rectangle: the alpha has to vary across the quad.
   assert.match(source, /smoothstep/);
   assert.equal(shader.uniforms.uViewProj, 'mat4');
-  assert.equal(Object.keys(shader.uniforms).length, 1);
+  // Named rather than counted. The count stood in for "unlit", and it did that job until a
+  // texture arrived that carries no light — so this says which two belong, which still keeps a
+  // third from slipping in while letting the sprite through.
+  assert.deepEqual(Object.keys(shader.uniforms).sort(), ['uBillboard', 'uViewProj']);
 });
 
 test('a cleared contact shadow slot paints nothing', () => {
@@ -341,10 +344,10 @@ test('a cleared contact shadow slot paints nothing', () => {
       iScale: { set(v: Float32Array) { uploads.scales = v; } },
       iColor: { set(v: Float32Array) { uploads.colors = v; } },
     },
-    uniforms: { uViewProj: { set() {} } },
+    uniforms: { uViewProj: { set() {} }, uBillboard: { set() {} } },
     setIndices() {}, draw() {}, dispose() {},
   };
-  const batch = createContactShadowBatch({} as never, 3, () => program as never);
+  const batch = createContactShadowBatch({} as never, 3, { dispose() {} }, () => program as never);
   batch.setValues(0, 1, 2, 3, 0.5, 0, 0.5, 0.1, 0.1, 0.1);
   batch.clear();
   batch.upload();

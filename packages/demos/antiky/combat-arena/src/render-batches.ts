@@ -32,6 +32,7 @@ export function groundQuad(): Geometry {
 export function createContactShadowBatch(
   renderer: Renderer,
   capacity: number,
+  billboard: BroMetalTexture,
   programFactory: BatchProgramFactory = (target) => createProgram(target, contactShadowShader, { blend: 'alpha' }),
 ) {
   const program = programFactory(renderer);
@@ -39,6 +40,7 @@ export function createContactShadowBatch(
   try {
     program.attributes.aPosition!.set(geometry.positions);
     program.setIndices(geometry.indices);
+    program.uniforms.uBillboard!.set(billboard);
   } catch (cause: unknown) {
     program.dispose();
     throw cause;
