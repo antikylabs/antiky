@@ -27,6 +27,8 @@ test('repository-level scripts stay within the owned allowlist', async () => {
     'scripts/dev.mjs',
     'scripts/frame-stats.mjs',
     'scripts/frame-stats.test.mjs',
+    'scripts/motion-stats.mjs',
+    'scripts/motion-stats.test.mjs',
     'scripts/patch-brometal.mjs',
     'scripts/patch-brometal.test.mjs',
     'scripts/patch-brometal/attribute-buffer-defects.mjs',

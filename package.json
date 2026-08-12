@@ -15,7 +15,7 @@
     "portRelease": "node scripts/port-release.mjs",
     "postinstall": "node scripts/patch-brometal.mjs",
     "demos:shoot": "node scripts/shoot-demos.mjs",
-    "demos:verify": "node --test packages/demos/antiky/*/tests/visual-budget.test.mjs packages/demos/tests/pipeline-invariants.test.mjs",
+    "demos:verify": "node --experimental-strip-types --experimental-transform-types --test packages/demos/antiky/*/tests/visual-budget.test.mjs packages/demos/antiky/combat-arena/tests/camera-shake.test.mjs packages/demos/tests/pipeline-invariants.test.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:website": "node scripts/dev.mjs website",
     "dev:framework": "node scripts/dev.mjs framework",
@@ -26,7 +26,7 @@
     "docs:api:check": "npm run docs:api:check --workspace @antiky/framework",
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "sh docs/adr/tag-hash.test.sh && node --test scripts/frame-stats.test.mjs scripts/patch-brometal.test.mjs scripts/port-release.test.mjs scripts/repository-policy.test.mjs scripts/shoot-demos.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader-output-parity.test.mjs && npm test --workspaces --if-present",
+    "test": "sh docs/adr/tag-hash.test.sh && node --test scripts/frame-stats.test.mjs scripts/motion-stats.test.mjs scripts/patch-brometal.test.mjs scripts/port-release.test.mjs scripts/repository-policy.test.mjs scripts/shoot-demos.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader-output-parity.test.mjs && npm test --workspaces --if-present",
     "check": "npm run typecheck && npm test"
   },
   "dependencies": {
