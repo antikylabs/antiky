@@ -36,6 +36,26 @@ has the useful side effect of fading the silhouette, since the texture's alpha r
 where `normal.xy` reaches the unit circle. The alternative is to convert the glows to real
 billboards, which is a larger change and worth its own decision.
 
+**The obstacle is not the shader — it is resource lifetime.** An attempt to wire `combat-arena` got
+as far as a compiling shader and then stopped here: `createCombatProjection` in
+`src/combat-projection.ts` is **synchronous**, and `loadTexture` is not. There are three ways out and
+they are not equivalent:
+
+- Make the projection factory async. Cleanest to read, but it ripples through every caller and every
+  test that builds one.
+- Load the billboard higher up — in `renderer.ts`, where textures are already loaded and awaited —
+  and pass it in. Smallest diff, and it matches how `detail-normal` is already threaded into the
+  model batches in this same demo.
+- Use `createTexture` against a canvas built synchronously from the generator's data, avoiding the
+  load entirely. Removes the async problem but adds a code path that does not exist yet.
+
+The second is almost certainly right, because it is the shape this demo already uses. Whoever picks
+it up should start there rather than rediscovering the constraint the way this attempt did.
+
+`traversal-study` and `point-light-expo` build their effect batches inside already-async factories,
+so neither has this problem — start with one of those if you want the shader work validated before
+touching `combat-arena`'s lifetime code.
+
 ## Required outcome
 
 1. **Textured soft billboards for every VFX program** (item 8). Today zero of the three glow shaders
