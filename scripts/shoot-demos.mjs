@@ -18,7 +18,7 @@
  */
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -99,13 +99,46 @@ export function evidencePngPath({ demoDirectory, developmentSessionId, evidenceI
   return path.join(demoDirectory, '.antiky', 'evidence', sessionKey, evidenceId, `${artifactId}.png`);
 }
 
+/**
+ * A digest of everything that decides what a demo renders.
+ *
+ * Without this a `visual-metrics.json` is just a number with a timestamp nobody reads, so one good
+ * capture keeps a budget green forever no matter what the demo does afterwards. The budget tests
+ * recompute this and refuse to judge a sidecar that measured different code.
+ */
+export async function sourceDigest(directory) {
+  const hash = createHash('sha256');
+  const files = [];
+  const walk = async (current) => {
+    let entries;
+    try {
+      entries = await readdir(current, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) await walk(full);
+      else if (entry.isFile() && /\.(ts|mjs|json)$/.test(entry.name)) files.push(full);
+    }
+  };
+  await walk(path.join(directory, 'src'));
+  for (const file of files.sort()) {
+    hash.update(path.relative(directory, file));
+    hash.update(await readFile(file));
+  }
+  return { digest: hash.digest('hex').slice(0, 16), fileCount: files.length };
+}
+
 /** The committed record of what a demo looked like on a given run. */
-export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames }) {
+export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, source }) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     demo: slug,
     capturedAt,
     warmUpFrames,
+    // What was measured. A budget read against a different digest is stale, not passing.
+    source,
     frame: { width: stats.width, height: stats.height },
     luminance: {
       mean: Number(stats.meanLuminance.toFixed(6)),
@@ -261,6 +294,7 @@ async function shootDemo(slug, { warmUpFrames, runs }) {
         stats,
         capturedAt: result.artifact.createdAt,
         warmUpFrames,
+        source: await sourceDigest(directory),
       });
       process.stdout.write(
         `  run ${run}/${runs}: p95 ${sidecar.luminance.p95.toFixed(3)}`

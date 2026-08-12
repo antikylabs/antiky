@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { access } from 'node:fs/promises';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -14,6 +14,7 @@ import {
   buildMetricsSidecar,
   evidencePngPath,
   resolveDemo,
+  sourceDigest,
 } from './shoot-demos.mjs';
 
 /** These tests need no GPU, no browser, and no dev server. */
@@ -132,9 +133,12 @@ test('the metrics sidecar records the numbers the budgets assert against', async
     stats: await readFrameStats(file),
     capturedAt: '2026-08-11T00:00:00.000Z',
     warmUpFrames: 60,
+    source: { digest: 'abc123', fileCount: 7 },
   });
 
-  assert.equal(sidecar.schemaVersion, 1);
+  assert.equal(sidecar.schemaVersion, 2);
+  // The digest is what stops a budget judging a capture taken from different code.
+  assert.deepEqual(sidecar.source, { digest: 'abc123', fileCount: 7 });
   assert.equal(sidecar.demo, 'combat-arena');
   assert.equal(sidecar.warmUpFrames, 60);
   assert.deepEqual(sidecar.frame, { width: 64, height: 16 });
@@ -145,4 +149,30 @@ test('the metrics sidecar records the numbers the budgets assert against', async
   assert.equal(sidecar.clipping.low, 0.5);
   // The sidecar is committed, so it must serialise cleanly and stay diff-friendly.
   assert.equal(typeof JSON.parse(JSON.stringify(sidecar)).luminance.mean, 'number');
+});
+
+test('the source digest changes when the demo changes and not otherwise', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-digest-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const source = path.join(directory, 'src');
+  await mkdir(source, { recursive: true });
+  await writeFile(path.join(source, 'game.ts'), 'export const speed = 1;');
+  await writeFile(path.join(source, 'notes.md'), 'not code');
+
+  const first = await sourceDigest(directory);
+  assert.equal(first.fileCount, 1, 'only source files count towards the digest');
+
+  // Re-reading unchanged files must give the same answer, or every budget goes stale immediately.
+  assert.deepEqual(await sourceDigest(directory), first);
+
+  await writeFile(path.join(source, 'game.ts'), 'export const speed = 2;');
+  const second = await sourceDigest(directory);
+  assert.notEqual(second.digest, first.digest, 'a changed demo must produce a different digest');
+
+  // A file added deeper in the tree also counts: the walk is recursive on purpose.
+  await mkdir(path.join(source, 'shaders'), { recursive: true });
+  await writeFile(path.join(source, 'shaders', 'sky.shader.ts'), 'export default {};');
+  const third = await sourceDigest(directory);
+  assert.notEqual(third.digest, second.digest);
+  assert.equal(third.fileCount, 2);
 });
