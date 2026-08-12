@@ -141,6 +141,20 @@ test('a managed presentation trace produces private PNG masters, poster, WebM, a
     assert.equal(result.source, 'managed-runtime');
     assert.equal(result.cadence.actualFrameCount, 2);
     assert.equal(result.cadence.droppedFrameCount, 0);
+
+    // Every frame carries the simulation instant it was taken at. Without this a capture can say
+    // how a frame looked but not when, so an event and a frame cannot be correlated and any motion
+    // claim made from pixels is unfalsifiable.
+    assert.equal(result.cadence.frames.length, result.cadence.actualFrameCount);
+    result.cadence.frames.forEach((frame, index) => {
+      assert.equal(frame.offsetMilliseconds, result.cadence.captureOffsetsMilliseconds[index]);
+    });
+    const steps = result.cadence.frames
+      .map((frame) => frame.completedStepCount)
+      .filter((value): value is number => value !== null);
+    for (let index = 1; index < steps.length; index += 1) {
+      assert.ok(steps[index]! >= steps[index - 1]!, 'completed steps must not go backwards');
+    }
     assert.deepEqual(actions.map((action) => action.kind), ['key-press', 'key-release']);
     assert.equal(result.artifacts.masterFrameCount, 2);
     assert.equal(result.artifacts.poster.kind, 'poster');

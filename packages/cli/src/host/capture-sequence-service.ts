@@ -262,6 +262,15 @@ export function createCaptureSequenceService(
 
       const frames: Buffer[] = [];
       const captureOffsetsMilliseconds: number[] = [];
+      // What the simulation was doing when each frame was taken. Without this, no pixel
+      // measurement can be tied to a simulation instant, so no claim correlating an event with a
+      // frame is falsifiable.
+      const frameObservations: {
+        offsetMilliseconds: number;
+        completedStepCount: number | null;
+        stateDigest: string | null;
+        eventSequence: number | null;
+      }[] = [];
       const frameIntervalMilliseconds = 1000 / request.source.framesPerSecond;
       const startedAtMilliseconds = nowMilliseconds();
       let nextFrameOffsetMilliseconds = frameIntervalMilliseconds;
@@ -291,7 +300,15 @@ export function createCaptureSequenceService(
           throw failure('CAPTURE_LIMIT_EXCEEDED', 'Sequence master bytes exceed limits.');
         }
         frames.push(frame);
-        captureOffsetsMilliseconds.push(Math.round(actualOffset * 1000) / 1000);
+        const offsetMilliseconds = Math.round(actualOffset * 1000) / 1000;
+        captureOffsetsMilliseconds.push(offsetMilliseconds);
+        const frameState = options.readState();
+        frameObservations.push({
+          offsetMilliseconds,
+          completedStepCount: frameState.observation?.session?.completedStepCount ?? null,
+          stateDigest: frameState.observation?.session?.stateDigest ?? null,
+          eventSequence: frameState.observation?.publicationSequence ?? null,
+        });
         nextFrameOffsetMilliseconds += frameIntervalMilliseconds;
       };
 
@@ -418,6 +435,7 @@ export function createCaptureSequenceService(
         lateFrameCount: 0 as const,
         droppedFrameCount: 0 as const,
         captureOffsetsMilliseconds: Object.freeze(captureOffsetsMilliseconds),
+        frames: Object.freeze(frameObservations.map((entry) => Object.freeze(entry))),
       });
       const completedSteps = Object.freeze({
         start: startObservation.session?.completedStepCount ?? null,

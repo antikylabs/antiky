@@ -71,6 +71,20 @@ export type CaptureGameplaySequenceResultV1 = Readonly<{
     lateFrameCount: 0;
     droppedFrameCount: 0;
     captureOffsetsMilliseconds: readonly number[];
+    /**
+     * What the simulation was doing when each frame was taken, parallel to
+     * `captureOffsetsMilliseconds`.
+     *
+     * A capture without this can only say how a frame looked, never which simulation instant it
+     * looked that way at — so an event and a frame cannot be correlated and any motion claim made
+     * from pixels is unfalsifiable.
+     */
+    frames: readonly Readonly<{
+      offsetMilliseconds: number;
+      completedStepCount: number | null;
+      stateDigest: string | null;
+      eventSequence: number | null;
+    }>[];
   }>;
   completedSteps: Readonly<{
     start: number | null;
@@ -329,7 +343,7 @@ export function parseCaptureGameplaySequenceResultV1(
   const cadence = object(record.cadence, '$.cadence');
   exactKeys(cadence, [
     'framesPerSecond', 'requestedFrameCount', 'actualFrameCount', 'lateFrameCount',
-    'droppedFrameCount', 'captureOffsetsMilliseconds',
+    'droppedFrameCount', 'captureOffsetsMilliseconds', 'frames',
   ], '$.cadence');
   if (!Array.isArray(cadence.captureOffsetsMilliseconds)) {
     invalid('Sequence offsets are invalid.', '$.cadence.captureOffsetsMilliseconds');
@@ -349,6 +363,35 @@ export function parseCaptureGameplaySequenceResultV1(
   if (offsets.length !== actualFrameCount) {
     invalid('Sequence offsets do not match frame count.', '$.cadence.captureOffsetsMilliseconds');
   }
+  if (!Array.isArray(cadence.frames) || cadence.frames.length !== actualFrameCount) {
+    invalid('Sequence frame observations do not match frame count.', '$.cadence.frames');
+  }
+  const frameObservations = Object.freeze(cadence.frames.map((entry, index) => {
+    const frame = object(entry, `$.cadence.frames[${index}]`);
+    exactKeys(
+      frame,
+      ['offsetMilliseconds', 'completedStepCount', 'stateDigest', 'eventSequence'],
+      `$.cadence.frames[${index}]`,
+    );
+    if (frame.offsetMilliseconds !== offsets[index]) {
+      invalid('Frame observation offset does not match its capture offset.', `$.cadence.frames[${index}]`);
+    }
+    for (const key of ['completedStepCount', 'eventSequence'] as const) {
+      const value = frame[key];
+      if (value !== null && (typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
+        invalid('Frame observation counter is invalid.', `$.cadence.frames[${index}].${key}`);
+      }
+    }
+    if (frame.stateDigest !== null && typeof frame.stateDigest !== 'string') {
+      invalid('Frame observation digest is invalid.', `$.cadence.frames[${index}].stateDigest`);
+    }
+    return Object.freeze({
+      offsetMilliseconds: frame.offsetMilliseconds as number,
+      completedStepCount: frame.completedStepCount as number | null,
+      stateDigest: frame.stateDigest as string | null,
+      eventSequence: frame.eventSequence as number | null,
+    });
+  }));
   if (cadence.lateFrameCount !== 0 || cadence.droppedFrameCount !== 0) {
     invalid('A successful exact sequence cannot report dropped frames.', '$.cadence');
   }
@@ -369,6 +412,7 @@ export function parseCaptureGameplaySequenceResultV1(
     lateFrameCount: 0 as const,
     droppedFrameCount: 0 as const,
     captureOffsetsMilliseconds: offsets,
+    frames: frameObservations,
   });
   const steps = object(record.completedSteps, '$.completedSteps');
   exactKeys(steps, ['start', 'end', 'startStateDigest', 'endStateDigest'], '$.completedSteps');

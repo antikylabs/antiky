@@ -138,6 +138,14 @@ const sequenceResult = Object.freeze({
     lateFrameCount: 0 as const,
     droppedFrameCount: 0 as const,
     captureOffsetsMilliseconds: Object.freeze([100]),
+    frames: Object.freeze([
+      Object.freeze({
+        offsetMilliseconds: 100,
+        completedStepCount: 12,
+        stateDigest: 'digest-browser-001',
+        eventSequence: 3,
+      }),
+    ]),
   }),
   completedSteps: Object.freeze({
     start: null,

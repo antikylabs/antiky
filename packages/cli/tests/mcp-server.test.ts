@@ -291,6 +291,14 @@ const captureSequenceResult = Object.freeze({
     lateFrameCount: 0 as const,
     droppedFrameCount: 0 as const,
     captureOffsetsMilliseconds: Object.freeze([100]),
+    frames: Object.freeze([
+      Object.freeze({
+        offsetMilliseconds: 100,
+        completedStepCount: 42,
+        stateDigest: 'digest-mcp-001',
+        eventSequence: 7,
+      }),
+    ]),
   }),
   completedSteps: Object.freeze({
     start: observation.session!.completedStepCount,
