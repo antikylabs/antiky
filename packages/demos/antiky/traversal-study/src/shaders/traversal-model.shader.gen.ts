@@ -100,16 +100,18 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let kitRoughness = textureSample(uKitMaterials, uKitMaterials_sampler, vec3f(bm_in.vUv.x, bm_in.vUv.y, 0.5)).x;
   let view = normalize(bm_u.uCameraPosition - bm_in.vWorld);
   let materialRough = mix(1.0, textureSample(uMaterialRoughness, uMaterialRoughness_sampler, bm_in.vWorld.xz * 0.42).x, bm_u.uMaterialStrength);
-  let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.6) * (1.25 - kitRoughness * materialRough);
+  let rim = pow(1.0 - max(dot(normal, view), 0.0), 3.4) * (1.25 - kitRoughness * materialRough);
   let materialRate = 0.42;
   let materialX = textureSample(uMaterialDiffuse, uMaterialDiffuse_sampler, vec2f(bm_in.vWorld.z, bm_in.vWorld.y) * materialRate).xyz;
   let materialY = textureSample(uMaterialDiffuse, uMaterialDiffuse_sampler, bm_in.vWorld.xz * materialRate).xyz;
   let materialZ = textureSample(uMaterialDiffuse, uMaterialDiffuse_sampler, bm_in.vWorld.xy * materialRate).xyz;
-  let materialAlbedo = decodeSrgb((materialX * weightX + materialY * weightY + materialZ * weightZ) * (1.0 / weightSum)) * 1.9;
-  let surface = mix(vec3f(1.0, 1.0, 1.0), materialAlbedo, bm_u.uMaterialStrength);
-  let graded = mix(texel, bm_u.uGradeColor, bm_u.uGradeMix) * surface;
+  let materialAlbedo = decodeSrgb((materialX * weightX + materialY * weightY + materialZ * weightZ) * (1.0 / weightSum)) * 7.32;
+  let surface = mix(vec3f(1.0, 1.0, 1.0), mix(vec3f(1.0, 1.0, 1.0), materialAlbedo, 0.55), bm_u.uMaterialStrength);
+  let palette = mix(texel, bm_u.uGradeColor, bm_u.uGradeMix);
+  let paletteLuminance = palette.x * 0.2126 + palette.y * 0.7152 + palette.z * 0.0722;
+  let graded = mix(palette, vec3f(paletteLuminance, paletteLuminance, paletteLuminance), 0.22) * surface;
   let skyAmbient = bm_u.uSh0 + bm_u.uSh1 * normal.y + bm_u.uSh2 * normal.z + bm_u.uSh3 * normal.x + bm_u.uSh4 * (normal.x * normal.y) + bm_u.uSh5 * (normal.y * normal.z) + bm_u.uSh6 * (3.0 * normal.z * normal.z - 1.0) + bm_u.uSh7 * (normal.x * normal.z) + bm_u.uSh8 * (normal.x * normal.x - normal.y * normal.y);
-  let base = graded * (rampLight + skyAmbient * (1.0 - diffuse)) * bm_in.vWash + vec3f(0.55, 0.65, 0.66) * (rim * 0.3 * bm_in.vWash);
+  let base = graded * (rampLight + skyAmbient * (1.0 - diffuse)) * bm_in.vWash + vec3f(0.62, 0.72, 0.78) * (rim * 0.55 * bm_in.vWash);
   let distanceFog = smoothstep(22.0, 58.0, length(bm_u.uCameraPosition - bm_in.vWorld));
   return vec4f(mix(base, vec3f(0.55, 0.65, 0.66), distanceFog * 0.42), 1.0);
 }

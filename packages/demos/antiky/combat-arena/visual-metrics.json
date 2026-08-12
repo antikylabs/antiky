@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
   "demo": "combat-arena",
-  "capturedAt": "2026-08-12T19:59:49.514Z",
+  "capturedAt": "2026-08-12T20:23:18.273Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "8892fdbb9f559a89",
+    "digest": "3b7bf30037ccdf60",
     "fileCount": 99
   },
   "frame": {
@@ -29,5 +29,5 @@
   "saturation": {
     "mean": 0.625312
   },
-  "seal": "ae6b347b9fed2ab3"
+  "seal": "9e65bdc582d1a616"
 }

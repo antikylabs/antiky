@@ -375,9 +375,9 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     // One sprite for every effect: it is the demo's effect texture, not a per-effect material.
     const vfxBillboard = owned.adopt(await loadVfxBillboard(renderer));
     const catalogTransaction = await acquireTransactional([
-      () => createCatalogBatch(renderer, 'grass', TRAVERSAL_BATCH_CAPACITIES.grass, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 0.85),
-      () => createCatalogBatch(renderer, 'overhang', TRAVERSAL_BATCH_CAPACITIES.overhang, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 0.85),
-      () => createCatalogBatch(renderer, 'moving', TRAVERSAL_BATCH_CAPACITIES.moving, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 0.85),
+      () => createCatalogBatch(renderer, 'grass', TRAVERSAL_BATCH_CAPACITIES.grass, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 1),
+      () => createCatalogBatch(renderer, 'overhang', TRAVERSAL_BATCH_CAPACITIES.overhang, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 1),
+      () => createCatalogBatch(renderer, 'moving', TRAVERSAL_BATCH_CAPACITIES.moving, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 1),
       () => createCatalogBatch(renderer, 'flag', TRAVERSAL_BATCH_CAPACITIES.flag, detailNormal, ramp, kitMaterials, materialMaps),
       () => createCatalogBatch(renderer, 'coin', TRAVERSAL_BATCH_CAPACITIES.coin, detailNormal, ramp, kitMaterials, materialMaps),
       () => createCatalogBatch(renderer, 'spikes', TRAVERSAL_BATCH_CAPACITIES.spikes, detailNormal, ramp, kitMaterials, materialMaps, [0.92, 0.22, 0.09], 0.62),

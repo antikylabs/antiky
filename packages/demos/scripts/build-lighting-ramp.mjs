@@ -28,11 +28,15 @@ const STEPS = 64;
  * most sensitive to it.
  */
 const CONTROL = [
-  [0.0, [0.045, 0.062, 0.140]],
-  [0.35, [0.230, 0.205, 0.300]],
-  [0.60, [0.560, 0.430, 0.360]],
-  [0.82, [0.880, 0.760, 0.520]],
-  [1.0, [1.000, 0.945, 0.790]],
+  // The shadow end was [0.045, 0.062, 0.140] — near black and strongly blue, which made every
+  // surface facing away from the sun read as a dark hole and dragged the whole demo down. A
+  // platformer sky this bright bounces a lot of light into its own shadows; they should be *cooler*
+  // than the lit side, not absent from it.
+  [0.0, [0.120, 0.140, 0.230]],
+  [0.35, [0.330, 0.320, 0.390]],
+  [0.60, [0.600, 0.500, 0.440]],
+  [0.82, [0.890, 0.790, 0.590]],
+  [1.0, [1.000, 0.950, 0.820]],
 ];
 
 function sample(at) {

@@ -189,7 +189,7 @@ export default shader({
     );
     // A rough surface scatters, so its edge light is broader and weaker; a smooth one keeps a
     // tight bright rim. That is the one place roughness is visible in a toon-shaded demo.
-    const rim = pow(1 - max(dot(normal, view), 0), 2.6) * (1.25 - kitRoughness * materialRough);
+    const rim = pow(1 - max(dot(normal, view), 0), 3.4) * (1.25 - kitRoughness * materialRough);
     // What the surface is made of, projected in world space and applied **per batch**.
     //
     // `uMaterialStrength` is the important part. This shader draws every catalog batch — grass,
@@ -211,9 +211,30 @@ export default shader({
     const materialAlbedo = decodeSrgb(
       materialX.scale(weightX).add(materialY.scale(weightY)).add(materialZ.scale(weightZ))
         .scale(1 / weightSum),
-    ).scale(1.9);
-    const surface = mix(vec3(1, 1, 1), materialAlbedo, uMaterialStrength);
-    const graded = mix(texel, uGradeColor, uGradeMix).mul(surface);
+    // Normalised so the material *modulates* brightness instead of removing it.
+    //
+    // Plywood's mean linear luminance is 0.1367, so multiplying its albedo straight into a palette
+    // colour costs about three stops and turns a green top into dark olive. Dividing by that mean
+    // centres it on 1.0: grain lighter than the average brightens, grain darker than it darkens, and
+    // the surface keeps the level the palette and the ramp gave it.
+    //
+    // This is the difference between "the platform is made of plywood" and "the platform is painted
+    // with a photograph of plywood", and only the first one is what the art direction wants.
+    ).scale(7.32);
+    // Pulled toward 1 as well as toward the material, so the grain reads as relief rather than as a
+    // second albedo fighting the first.
+    const surface = mix(vec3(1, 1, 1), mix(vec3(1, 1, 1), materialAlbedo, 0.55), uMaterialStrength);
+    // The Kenney palette is poster paint — fully saturated flat colour, which is what made the
+    // course read as plastic blocks rather than as made of anything. Pulling it a fifth of the way
+    // toward its own luminance keeps the colour language the kit was designed around while letting
+    // the material underneath carry the surface.
+    const palette = mix(texel, uGradeColor, uGradeMix);
+    const paletteLuminance = palette.x * 0.2126 + palette.y * 0.7152 + palette.z * 0.0722;
+    const graded = mix(
+      palette,
+      vec3(paletteLuminance, paletteLuminance, paletteLuminance),
+      0.22,
+    ).mul(surface);
     // Tinted toward the sky rather than the surface colour, so the edge reads as light coming from
     // the world behind the object instead of the object glowing.
     // Real sky in the shadows, the authored ramp everywhere else.
@@ -234,7 +255,7 @@ export default shader({
       .add(uSh6.scale(3 * normal.z * normal.z - 1))
       .add(uSh7.scale(normal.x * normal.z))
       .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
-    const base = graded.mul(rampLight.add(skyAmbient.scale(1 - diffuse))).scale(vWash).add(vec3(0.55, 0.65, 0.66).scale(rim * 0.3 * vWash));
+    const base = graded.mul(rampLight.add(skyAmbient.scale(1 - diffuse))).scale(vWash).add(vec3(0.62, 0.72, 0.78).scale(rim * 0.55 * vWash));
     const distanceFog = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
     return vec4(mix(base, vec3(0.55, 0.65, 0.66), distanceFog * 0.42), 1);
   },
