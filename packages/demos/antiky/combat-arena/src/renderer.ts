@@ -124,6 +124,8 @@ export async function createCombatRendererWith(
     const draw = (): void => {
       backdrop.draw();
       catalog.room.program.draw();
+      catalog.walls.program.draw();
+      catalog.wallDetails.program.draw();
       catalog.floorTiles.program.draw();
       catalog.cables.program.draw();
       projection.drawSurface();

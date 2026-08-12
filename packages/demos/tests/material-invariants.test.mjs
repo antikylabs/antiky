@@ -318,3 +318,85 @@ test('AC-M4: an installed material set carries all four maps, hash-verified', as
     }
   }
 });
+
+test('every instanced batch that is written is also uploaded and drawn', async () => {
+  /**
+   * Written is not drawn.
+   *
+   * A batch whose instance data never reaches the GPU renders nothing, and the demo looks exactly as
+   * it did before — so the mistake survives a capture, a metrics comparison and a code review. It
+   * has now shipped twice in this repository: contact shadows in an earlier goal, and the arena wall
+   * panels in this one, which went through *three* captures looking unchanged.
+   *
+   * Two separate omissions cause it, and this checks both: a batch written but never `upload()`ed,
+   * and a batch uploaded but never `draw()`n.
+   */
+  const { readdir, readFile } = await import('node:fs/promises');
+  const demos = await discoverDemos(['antiky']);
+  const problems = [];
+  let checked = 0;
+
+  for (const demo of demos) {
+    const sources = await discoverDemoSources(demo);
+    const text = sources.map((module) => module.text).join('\n');
+    // Anchored on *any* access through the catalog, not on the write.
+    //
+    // Keying off `catalog.<name>.setValues(` was the obvious rule and it missed the very batch that
+    // prompted this test: the wall layout writes through a local alias
+    // (`const batch = detailed ? catalog.wallDetails : catalog.walls`), so no write site mentions
+    // the batch by name. Every batch is still *reached* through the catalog somewhere — `clear()`
+    // at minimum — and that is the anchor a textual scan can rely on.
+    const accessors = new Set(['frame', 'dispose', 'draw', 'upload']);
+    const written = new Set(
+      [...text.matchAll(/\bcatalog\.(\w+)\./g)]
+        .map(([, name]) => name)
+        .filter((name) => !accessors.has(name)),
+    );
+    for (const name of written) {
+      checked += 1;
+      if (!new RegExp(`\\bcatalog\\.${name}\\.upload\\(`).test(text)) {
+        problems.push(`${demo.slug}: catalog.${name} is written but never uploaded`);
+      }
+      if (!new RegExp(`\\bcatalog\\.${name}\\.(?:program\\.)?draw\\(`).test(text)) {
+        problems.push(`${demo.slug}: catalog.${name} is uploaded but never drawn`);
+      }
+    }
+  }
+
+  assert.ok(checked >= 5, `expected to find instanced batches to check, found ${checked}`);
+  assert.deepEqual(problems, [], `batches that will silently render nothing:\n  ${problems.join('\n  ')}`);
+});
+
+test('combat-arena has no vignette and no depth-of-field blur', async () => {
+  /**
+   * An owner decision, asserted so it stays true rather than being rediscovered.
+   *
+   * A vignette darkens the frame's corners and a depth-of-field pass blurs by distance. Both are
+   * standard cinematic post and both are wrong here: this is a top-down arena where the corners hold
+   * play and every ship must stay crisp at every depth. Goal 05's item 5 adds a vignette to other
+   * demos, so the risk is that it arrives by pattern-matching rather than by decision.
+   *
+   * Reads compiled WGSL: the shipped program, with no comments to hide an assertion in.
+   */
+  const [demo] = (await discoverDemos(['antiky'])).filter((entry) => entry.slug === 'combat-arena');
+  assert.ok(demo, 'combat-arena is missing');
+
+  const found = [];
+  for (const shader of await discoverShaders(demo)) {
+    // A vignette is a radial darkening keyed on distance from screen centre, which in practice means
+    // a `length` of a centred screen coordinate multiplying the output.
+    if (/vignette/i.test(shader.wgsl)) found.push(`${shader.relative}: names a vignette`);
+    if (/depthOfField|circleOfConfusion|bokeh/i.test(shader.wgsl)) {
+      found.push(`${shader.relative}: names a depth-of-field term`);
+    }
+    // A blur reads its own input at neighbouring offsets. Any shader sampling one texture five or
+    // more times is either a blur kernel or a mistake, and both are worth stopping here.
+    for (const texture of shader.sampledTextures) {
+      const samples = shader.samples.filter((sample) => sample.texture === texture).length;
+      // The globe samples albedo and clouds a few times each for its stylised bands, and triplanar
+      // costs three per map — five is comfortably above both and well below a kernel.
+      if (samples >= 5) found.push(`${shader.relative}: samples ${texture} ${samples} times, which is a blur kernel`);
+    }
+  }
+  assert.deepEqual(found, [], `combat-arena must stay free of vignette and depth-of-field:\n  ${found.join('\n  ')}`);
+});

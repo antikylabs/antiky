@@ -54,3 +54,4 @@ docs/objectives/**/verification/
 .playwright-mcp/
 /*.png
 .hdri-cache/
+.kenney-cache/

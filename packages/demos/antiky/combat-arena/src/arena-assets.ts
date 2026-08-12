@@ -24,6 +24,10 @@ const MODEL_URLS = Object.freeze({
   cables: new URL('../assets/kenney/modular-space-kit/cables.glb?no-inline', import.meta.url).href,
   target: new URL('../assets/kenney/blaster-kit/target-detail.glb?no-inline', import.meta.url).href,
   grenade: new URL('../assets/kenney/blaster-kit/grenade-a.glb?no-inline', import.meta.url).href,
+  // Real wall panels from the same kit, in place of one room shell scaled 1.5x. The kit ships forty
+  // models and the demo had three of them; these are the pieces it was actually missing.
+  wall: new URL('../assets/kenney/modular-space-kit/template-wall.glb?no-inline', import.meta.url).href,
+  wallDetail: new URL('../assets/kenney/modular-space-kit/template-wall-detail-a.glb?no-inline', import.meta.url).href,
 });
 
 export const CATALOG_ASSET_COUNT = Object.keys(MODEL_URLS).length;
@@ -46,6 +50,8 @@ export type ModelBatch = Readonly<{
 
 export type ArenaCatalogResources = Readonly<{
   room: ModelBatch;
+  walls: ModelBatch;
+  wallDetails: ModelBatch;
   floorTiles: ModelBatch;
   cables: ModelBatch;
   targets: ModelBatch;
@@ -183,6 +189,8 @@ export async function createArenaCatalogResources(
   renderer: Renderer,
   capacity: Readonly<{
     room: number;
+    walls: number;
+    wallDetails: number;
     floor: number;
     cables: number;
     targets: number;
@@ -196,6 +204,8 @@ export async function createArenaCatalogResources(
     dependencies.loadModel(MODEL_URLS.cables),
     dependencies.loadModel(MODEL_URLS.target),
     dependencies.loadModel(MODEL_URLS.grenade),
+    dependencies.loadModel(MODEL_URLS.wall),
+    dependencies.loadModel(MODEL_URLS.wallDetail),
   ]);
   // The detail normal is owned by the catalog, not by any one batch, so it is registered first and
   // rolled back with the rest. A texture created before the failure point and not registered is a
@@ -212,13 +222,17 @@ export async function createArenaCatalogResources(
     const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0));
     const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35));
     const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0));
+    const walls = registerResource(resources, await createModelBatch(renderer, models[5]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
+    const wallDetails = registerResource(resources, await createModelBatch(renderer, models[6]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
 
     // Disposal covers everything the catalog owns; per-frame work is only the batches. Iterating
     // `resources` here would call `frame` on a texture.
-    const batches: ModelBatch[] = [room, floorTiles, cables, targets, grenades];
+    const batches: ModelBatch[] = [room, floorTiles, cables, targets, grenades, walls, wallDetails];
 
     return Object.freeze({
       room,
+      walls,
+      wallDetails,
       floorTiles,
       cables,
       targets,

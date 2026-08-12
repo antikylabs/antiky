@@ -48,7 +48,7 @@ test('arena catalog rolls back completed batches and the in-flight texture on co
   const programs: number[] = [];
   let programCount = 0;
   await assert.rejects(createArenaCatalogResources({} as never, {
-    room: 1, floor: 1, cables: 1, targets: 1, grenades: 1,
+    room: 1, walls: 1, wallDetails: 1, floor: 1, cables: 1, targets: 1, grenades: 1,
   }, {
     loadModel: async () => fakeModel,
     createBitmap: async () => ({ close() { bitmaps.push(1); } }) as never,
@@ -81,7 +81,7 @@ test('arena catalog disposes a created texture even if bitmap close fails during
   let detailDisposed = 0;
   let texturesDisposed = 0;
   await assert.rejects(createArenaCatalogResources({} as never, {
-    room: 1, floor: 1, cables: 1, targets: 1, grenades: 1,
+    room: 1, walls: 1, wallDetails: 1, floor: 1, cables: 1, targets: 1, grenades: 1,
   }, {
     loadModel: async () => fakeModel,
     createBitmap: async () => ({ close() { throw new Error('injected close failure'); } }) as never,
@@ -245,7 +245,12 @@ test('the sky sphere faces inward so the camera inside it is not culled away', a
 test('combat projection rolls back surface and glow batches if ring construction fails', () => {
   const disposed: string[] = [];
   let glowCount = 0;
-  const batch = (name: string) => ({ dispose() { disposed.push(name); } });
+  // Enough of a batch for initializeArenaCatalog to run against: it lays out the wall ring and the
+  // floor grid before the renderer reaches the failure this test injects.
+  const batch = (name: string) => ({
+    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, draw() {},
+    dispose() { disposed.push(name); },
+  });
   assert.throws(() => createCombatProjection({} as never, { dispose() {} } as never, {
     createSurfaceBatch: () => batch('surface') as never,
     createContactShadowBatch: () => batch('shadow') as never,
@@ -301,12 +306,14 @@ test('renderer rolls back ships and catalog when top-level projection creation f
   const disposed: string[] = [];
   const renderer = { destroy() { disposed.push('renderer'); } };
   const batch = {
-    clear() {}, set() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
+    // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
+    // renderer reaches the failure these tests inject.
+    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
   };
   await assert.rejects(createCombatRendererWith({} as HTMLCanvasElement, {
     createRenderer: async () => renderer as never,
     createCatalog: async () => ({
-      room: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
+      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
       frame() {}, dispose() { disposed.push('catalog'); },
     }) as never,
     createShips: async () => ({
@@ -322,12 +329,14 @@ test('renderer rolls back ships and catalog when top-level projection creation f
 test('renderer rolls back projection, ships, and catalog when backdrop creation fails', async () => {
   const disposed: string[] = [];
   const batch = {
-    clear() {}, set() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
+    // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
+    // renderer reaches the failure these tests inject.
+    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
   };
   await assert.rejects(createCombatRendererWith({} as HTMLCanvasElement, {
     createRenderer: async () => ({ destroy() { disposed.push('renderer'); } }) as never,
     createCatalog: async () => ({
-      room: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
+      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
       frame() {}, dispose() { disposed.push('catalog'); },
     }) as never,
     createShips: async () => ({
@@ -346,7 +355,9 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
 test('renderer disposal is idempotent and destroys every GPU owner once', async () => {
   const disposals = { catalog: 0, ships: 0, projection: 0, backdrop: 0, renderer: 0 };
   const batch = {
-    clear() {}, set() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
+    // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
+    // renderer reaches the failure these tests inject.
+    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
   };
   const renderer = {
     aspect: 16 / 9,
@@ -356,7 +367,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
   const combatRenderer = await createCombatRendererWith({} as HTMLCanvasElement, {
     createRenderer: async () => renderer as never,
     createCatalog: async () => ({
-      room: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
+      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
       frame() {}, dispose() { disposals.catalog += 1; },
     }) as never,
     createShips: async () => ({

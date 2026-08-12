@@ -1,11 +1,11 @@
 {
   "schemaVersion": 2,
   "demo": "antiky-town",
-  "capturedAt": "2026-08-12T21:36:40.546Z",
+  "capturedAt": "2026-08-12T22:13:38.882Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "d42a542899a0d7f0",
-    "fileCount": 104
+    "digest": "94d29fb72f36ad49",
+    "fileCount": 106
   },
   "frame": {
     "width": 1280,
@@ -29,5 +29,5 @@
   "saturation": {
     "mean": 0.298494
   },
-  "seal": "470b91d3900e9136"
+  "seal": "5d109cc15b3002b9"
 }

@@ -2,105 +2,6 @@
   "schemaVersion": 1,
   "assets": [
     {
-      "catalogId": "kenney:modular-space-kit",
-      "officialSourcePageUrl": "https://kenney.nl/assets/modular-space-kit",
-      "officialDownloadUrl": "https://kenney.nl/media/pages/assets/modular-space-kit/8261428a47-1771146076/kenney_modular-space-kit_1.0.zip",
-      "archive": {
-        "archiveFileName": "kenney_modular-space-kit.zip",
-        "sha256": "f394f7fd9eaf29c9de7e090e55b69926f699841af33b0b116f5cc0088de8a4dc"
-      },
-      "license": {
-        "id": "CC0-1.0",
-        "sourcePath": "License.txt",
-        "copiedTo": "assets/kenney/modular-space-kit/LICENSE.txt"
-      },
-      "normalization": "Embedded the archive-delivered Models/GLB format/Textures/colormap.png as an image bufferView in each GLB binary chunk; geometry buffers/accessors, meshes/primitives, nodes, materials, textures, and material-to-texture mappings are unchanged.",
-      "embeddedTexture": {
-        "originalPath": "Models/GLB format/Textures/colormap.png",
-        "sha256": "5aa7d186416e85310d99308c8e5510ededda181f3354ba9f4887cd56273f2b1e"
-      },
-      "files": [
-        {
-          "originalPath": "Models/GLB format/room-small.glb",
-          "originalSha256": "b77a7d211401bda96f611ff2b0a10c8aff1a41cccb9d46add21f86a4feb029a7",
-          "derivedPath": "assets/kenney/modular-space-kit/room-small.glb",
-          "derivedSha256": "55a016788592ea483d96b6edda4a62e50836ce7b23fe7811be174f9187f2b9e6",
-          "validation": {
-            "parser": "brometal@0.15.0 parseGlb",
-            "result": "pass",
-            "meshes": 1,
-            "images": 1,
-            "vertices": 8184,
-            "indices": 14628,
-            "bounds": {
-              "min": [
-                -6,
-                -1.7067471635751237e-14,
-                -5.999999046325684
-              ],
-              "max": [
-                6.000000476837158,
-                4.25,
-                6.000000476837158
-              ]
-            }
-          }
-        },
-        {
-          "originalPath": "Models/GLB format/template-floor-layer.glb",
-          "originalSha256": "5348c711f9540d015043888c2d14b0265b58b8d4caacb62eff896089e2a1ae84",
-          "derivedPath": "assets/kenney/modular-space-kit/template-floor-layer.glb",
-          "derivedSha256": "04af0906dfad414076e7c1b347ee0ed75ede928754126194e8446d531ee4eb7a",
-          "validation": {
-            "parser": "brometal@0.15.0 parseGlb",
-            "result": "pass",
-            "meshes": 1,
-            "images": 1,
-            "vertices": 856,
-            "indices": 1644,
-            "bounds": {
-              "min": [
-                -2.0999999046325684,
-                -2.1374605108721352e-17,
-                -2.0999999046325684
-              ],
-              "max": [
-                2.0999999046325684,
-                0.4000000059604645,
-                2.0999999046325684
-              ]
-            }
-          }
-        },
-        {
-          "originalPath": "Models/GLB format/cables.glb",
-          "originalSha256": "f689e942aad71167bde86c559061aea03537bfb07f2851aeac9fb538fec72526",
-          "derivedPath": "assets/kenney/modular-space-kit/cables.glb",
-          "derivedSha256": "24bb2eb9af74b9f0c9d4987593af33d61ad528caf3d876f7f4631d603d61e5f4",
-          "validation": {
-            "parser": "brometal@0.15.0 parseGlb",
-            "result": "pass",
-            "meshes": 1,
-            "images": 1,
-            "vertices": 800,
-            "indices": 1200,
-            "bounds": {
-              "min": [
-                -1.0457701683044434,
-                0,
-                -1.0313173532485962
-              ],
-              "max": [
-                0.8690575361251831,
-                0.1600000113248825,
-                1.070632815361023
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
       "catalogId": "kenney:blaster-kit",
       "officialSourcePageUrl": "https://kenney.nl/assets/blaster-kit",
       "officialDownloadUrl": "https://kenney.nl/media/pages/assets/blaster-kit/261d80a716-1753959510/kenney_blaster-kit_2.1.zip",
@@ -413,6 +314,53 @@
           "md5": "544f16f963e8904495834a94c71c7078",
           "sha256": "715f90d663af5366ff7839369161b6ad42786aed5f3fc1409ba20fa635aaeacd",
           "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_ao_1k.jpg"
+        }
+      ]
+    },
+    {
+      "catalogId": "kenney:modular-space-kit",
+      "kind": "model",
+      "installedAt": "2026-08-12T22:01:08.903Z",
+      "provider": {
+        "id": "kenney",
+        "name": "Kenney",
+        "url": "https://kenney.nl"
+      },
+      "upstream": {
+        "id": "modular-space-kit",
+        "url": "https://kenney.nl/assets/modular-space-kit",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-09T22:33:55.877Z",
+        "archive": "https://kenney.nl/media/pages/assets/modular-space-kit/8261428a47-1771146076/kenney_modular-space-kit_1.0.zip"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "files": [
+        {
+          "file": "assets/kenney/modular-space-kit/template-wall.glb",
+          "bytes": 38472,
+          "sha256": "d12cfc5bebbabf8f71f5f8898548bd0af4dcaafa7edd386c9de5dacf280ade5f"
+        },
+        {
+          "file": "assets/kenney/modular-space-kit/template-wall-detail-a.glb",
+          "bytes": 84516,
+          "sha256": "9506622c3ef46acc0d8a3096eb637816f8eb45635c8ce65eb702275f8584d9fa"
+        },
+        {
+          "file": "assets/kenney/modular-space-kit/template-wall-corner.glb",
+          "bytes": 7420,
+          "sha256": "9102860b0f75536786b607ccc77853a57885a7688277a21e849acc35410918ad"
+        },
+        {
+          "file": "assets/kenney/modular-space-kit/template-wall-top.glb",
+          "bytes": 31684,
+          "sha256": "06ec7991181f1068c45abd1c6be69fd372dfc3137727dcc363a9f85fc655d58e"
         }
       ]
     }

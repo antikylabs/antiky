@@ -119,15 +119,22 @@ test('terminal camera gives the result composition priority over player drift', 
 
 test('renderer reporting is derived from its capacities and catalog asset set', () => {
   const measurements = deriveCombatRendererMeasurements();
-  assert.equal(measurements.catalogAssets, 10);
+  // Twelve: the two wall panels joined the ten the demo already loaded.
+  assert.equal(measurements.catalogAssets, 12);
   assert.ok(measurements.catalogInstances >= 100);
   assert.ok(measurements.environmentLayers >= 4);
-  // 16, not 15: the backdrop is two draws now — the sky plane and Earth's globe. The number is
-  // derived from the capacity records rather than typed, so this is the one place that has to move
-  // when the scene gains a pass, and it should move deliberately.
-  assert.equal(measurements.drawCalls, 16);
+  // 18: sixteen, plus one draw each for the two wall-panel batches. Derived from the capacity
+  // records rather than typed, so this is the one place that has to move when the scene gains a
+  // pass — and it should move deliberately, which is why it is a literal and not a computation.
+  assert.equal(measurements.drawCalls, 18);
   assert.equal(measurements.uploadBytesPerFrame, 15_780);
-  assert.ok(measurements.instances <= 384);
+  // Raised from 384 on the owner's instruction to replace the stretched room shell with real wall
+  // panels from the kit. Sixteen ring positions — eleven plain, five detailed — is +16 instances.
+  //
+  // The bound is not arbitrary and should not drift: it is the per-frame instance count the demo
+  // commits to, and 384 was exactly where the scene sat before. Anything that raises it should be a
+  // decision someone made, not a number that grew.
+  assert.ok(measurements.instances <= 400, `instances ${measurements.instances} over the 400 budget`);
   assert.ok(measurements.uploadBytesPerFrame <= 24 * 1_024);
   assert.ok(measurements.uploadBytesPerFrame > 0);
   assert.equal(measurements.particlePacking, 'active-prefix');

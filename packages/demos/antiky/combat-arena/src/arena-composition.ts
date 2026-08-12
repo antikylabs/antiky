@@ -4,6 +4,8 @@ import type { CombatSnapshot } from './combat-state.ts';
 import type { Vec3 } from './render-batches.ts';
 
 export const ARENA_CATALOG_CAPACITY = Object.freeze({
+  walls: 9,
+  wallDetails: 3,
   room: 1,
   floor: 25,
   cables: 28,
@@ -23,7 +25,73 @@ export const ARENA_ROOM_PROFILE = Object.freeze({
   sourceHeight: 4.25,
 });
 
+/**
+ * The wall ring, from the kit's own 4 x 4.25 panels.
+ *
+ * The arena used to be one `room-small` shell scaled 1.5 horizontally — a single mesh stretched into
+ * a shape it was not modelled for, which is why the walls read as smooth featureless banks. The kit
+ * ships proper wall pieces and this uses them: sixteen plain panels forming the ring, with eight
+ * detailed panels alternating in so the perimeter has some rhythm rather than repeating one profile.
+ *
+ * The panels are one unit deep and four wide, so a radius of 9 gives sixteen of them a comfortable
+ * ring with the play area (roughly 8 across) inside it.
+ */
+function setArenaWalls(catalog: ArenaCatalogResources): void {
+  catalog.walls.clear();
+  catalog.wallDetails.clear();
+  // The room shell is a 12 x 12 box scaled 1.5 horizontally, so its walls stand at x = +-9 and
+  // z = +-9. The panels go just inside that line, which reads as the wall being *panelled* rather
+  // than as a second wall standing next to the first.
+  //
+  // A first attempt laid them on a circle of radius 9 and nothing appeared: the circle touched the
+  // square exactly at the side midpoints, so every panel was buried in the shell it was meant to
+  // dress. The shell is square; the panelling has to be square too.
+  const WALL_LINE = 8.55;
+  // Darker than the deck so the walls sit behind the play area rather than competing with it. The
+  // first pass used 0.62 and the panels read as bright white slabs — a wall should frame the space,
+  // not be the brightest thing in it.
+  const PANEL_TINT: readonly [number, number, number] = [0.26, 0.31, 0.4];
+  // Panels are four units wide, so four to a side covers sixteen of the eighteen-unit span and
+  // leaves the corners to the shell's own curve.
+  const SPAN = [-6, -2, 2, 6];
+  // The near side is deliberately absent. The camera looks down the +Z axis, so a wall there stands
+  // between the viewer and the arena — the room shell's own low lip already closes the composition
+  // from that angle, and the panels are for the three sides the player actually sees behind play.
+  const SIDES = [
+    { axis: 'z' as const, sign: -1, rotation: 0 },
+    { axis: 'x' as const, sign: 1, rotation: -Math.PI / 2 },
+    { axis: 'x' as const, sign: -1, rotation: Math.PI / 2 },
+  ];
+
+  let plain = 0;
+  let detail = 0;
+  for (let sideIndex = 0; sideIndex < SIDES.length; sideIndex += 1) {
+    const side = SIDES[sideIndex]!;
+    for (let slot = 0; slot < SPAN.length; slot += 1) {
+      const along = SPAN[slot]!;
+      const x = side.axis === 'x' ? WALL_LINE * side.sign : along;
+      const z = side.axis === 'z' ? WALL_LINE * side.sign : along;
+      // One detailed panel per side, so the ring has a beat without becoming busy.
+      const detailed = slot === (sideIndex % 2 === 0 ? 1 : 2) && detail < 3;
+      const batch = detailed ? catalog.wallDetails : catalog.walls;
+      const index = detailed ? detail : plain;
+      batch.setValues(
+        index, x, ARENA_ROOM_PROFILE.offsetY, z, 1, 1, 1,
+        PANEL_TINT, 0, 0, side.rotation,
+      );
+      if (detailed) detail += 1;
+      else plain += 1;
+    }
+  }
+  // Written is not drawn. A batch whose instance data never reaches the GPU renders nothing at all,
+  // and the demo looks exactly as it did before — which is how this went unnoticed through two
+  // captures, and how the same mistake shipped in an earlier goal.
+  catalog.walls.upload();
+  catalog.wallDetails.upload();
+}
+
 export function initializeArenaCatalog(catalog: ArenaCatalogResources): void {
+  setArenaWalls(catalog);
   catalog.room.clear();
   catalog.room.set(
     0,
