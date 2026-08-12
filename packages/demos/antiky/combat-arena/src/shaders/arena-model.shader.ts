@@ -49,6 +49,30 @@ function decodeSrgb(color: Vec3): Vec3 {
   return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
 }
 
+/**
+ * One floodlight's contribution, inverse-square with a smooth cut-off at its radius.
+ *
+ * Colour arrives premultiplied by power and falloff arrives as `1 / radius^2`, so this is a couple
+ * of multiplies rather than a divide per light per fragment — six lights on every arena fragment is
+ * where that starts to matter.
+ *
+ * The clamp is what bounds the range: pure inverse square never reaches zero, so lights would
+ * contribute faintly across the whole deck and the six would sum into flat fill.
+ */
+function arenaFloodlight(
+  world: Vec3,
+  normal: Vec3,
+  lightPosition: Vec3,
+  lightColor: Vec3,
+  falloff: number,
+): Vec3 {
+  const toLight = lightPosition.sub(world);
+  const distanceSquared = dot(toLight, toLight);
+  const range = clamp(1 - distanceSquared * falloff, 0, 1);
+  const lambert = max(dot(normal, normalize(toLight)), 0);
+  return lightColor.scale(range * range * lambert);
+}
+
 export default shader({
   attributes: {
     aPosition: 'vec3',
@@ -67,6 +91,24 @@ export default shader({
     uTex: 'sampler2D',
     uDetailNormal: 'sampler2D',
     uKitMaterials: 'sampler3D',
+    uLightPosition0: 'vec3',
+    uLightColor0: 'vec3',
+    uLightFalloff0: 'float',
+    uLightPosition1: 'vec3',
+    uLightColor1: 'vec3',
+    uLightFalloff1: 'float',
+    uLightPosition2: 'vec3',
+    uLightColor2: 'vec3',
+    uLightFalloff2: 'float',
+    uLightPosition3: 'vec3',
+    uLightColor3: 'vec3',
+    uLightFalloff3: 'float',
+    uLightPosition4: 'vec3',
+    uLightColor4: 'vec3',
+    uLightFalloff4: 'float',
+    uLightPosition5: 'vec3',
+    uLightColor5: 'vec3',
+    uLightFalloff5: 'float',
     uMaterialDiffuse: 'sampler2D',
     uMaterialStrength: 'float',
     uTime: 'float',
@@ -96,7 +138,7 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uTime },
+    { uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
     { vWorld, vNormal, vUv, vTint, vParams },
   ) {
     const baseNormal = normalize(vNormal);
@@ -189,7 +231,19 @@ export default shader({
     const lit = sampled.mul(vec3(0.46, 0.57, 0.74).scale(0.72 + fill))
       .add(sampled.scale(diffuse * 1.15))
       .add(vTint.scale(clamp(vParams.x, 0, 1) * pulse * (0.12 + rim * 0.34)));
-    const confirmed = mix(lit, vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
+    // The six floodlights posted around the rim, in `src/arena-lights.ts`.
+    //
+    // These are what make the arena read as a place with power rather than as a lit object: the key
+    // light and Earth's bounce both arrive from one side and neither belongs to the structure. Their
+    // colours alternate cyan and amber, which is the demo's own signal language.
+    const floodlit = lit
+      .add(arenaFloodlight(vWorld, normal, uLightPosition0, uLightColor0, uLightFalloff0))
+      .add(arenaFloodlight(vWorld, normal, uLightPosition1, uLightColor1, uLightFalloff1))
+      .add(arenaFloodlight(vWorld, normal, uLightPosition2, uLightColor2, uLightFalloff2))
+      .add(arenaFloodlight(vWorld, normal, uLightPosition3, uLightColor3, uLightFalloff3))
+      .add(arenaFloodlight(vWorld, normal, uLightPosition4, uLightColor4, uLightFalloff4))
+      .add(arenaFloodlight(vWorld, normal, uLightPosition5, uLightColor5, uLightFalloff5));
+    const confirmed = mix(floodlit, vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the
     // ship shader's original range. The tighter floor ranges faded the ground while ships at the
     // same distance were still crisp, which is what made near and far disagree about depth.

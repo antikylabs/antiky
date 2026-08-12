@@ -1,0 +1,56 @@
+export type ArenaLight = Readonly<{
+  position: readonly [number, number, number];
+  color: readonly [number, number, number];
+  power: number;
+  radius: number;
+}>;
+
+/**
+ * The floodlights posted around the arena rim.
+ *
+ * The arena is lit by a key light and Earth's bounce, both of which arrive from one side and neither
+ * of which belongs to the arena itself. Without local sources the deck reads as a lit *object* in
+ * space rather than as a place with lighting rigged around it, and nothing in the frame says the
+ * structure has power.
+ *
+ * Six posts on the perimeter, alternating the demo's two signal colours so the ring reads as
+ * deliberate rig rather than as decoration. Kept just outside the play radius (8.25 is where the
+ * cable posts sit) so they light the deck edges and the wall inner faces without washing the centre,
+ * where the ships need to stay readable against a dark floor.
+ *
+ * Radius is generous relative to power: a tight falloff on a large deck gives six bright discs, and
+ * what this wants is six gradients that overlap.
+ */
+export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4, 5].map((index) => {
+  const angle = index / 6 * Math.PI * 2 + Math.PI / 6;
+  const warm = index % 2 === 1;
+  return Object.freeze({
+    position: Object.freeze([Math.cos(angle) * 8.6, 1.85, Math.sin(angle) * 8.6] as const),
+    // The demo's own cyan and amber, at the strength they read as light rather than as paint.
+    color: Object.freeze(warm ? [1, 0.62, 0.24] as const : [0.36, 0.78, 1] as const),
+    // Six lights sum. At 2.6 each the deck blew to white — the arena is roughly 16 across and every
+    // point on it is inside two or three of these, so the useful figure is roughly a sixth of what a
+    // single light would want. These are accents picking out the rim, not the scene's key.
+    power: warm ? 0.42 : 0.46,
+    // Tight enough that each stays near its own post. A radius spanning the whole deck turns six
+    // lights into one flat fill, which is the opposite of what posting lights around a space does.
+    radius: 6.5,
+  });
+}));
+
+/** Flattened for upload: BroMetal's DSL has no array uniforms, so each light is its own binding. */
+export function arenaLightUniforms(): Readonly<Record<string, readonly number[] | number>> {
+  const uniforms: Record<string, readonly number[] | number> = {};
+  ARENA_LIGHTS.forEach((light, index) => {
+    uniforms[`uLightPosition${index}`] = light.position;
+    // Colour premultiplied by power, and the inverse square radius alongside it, so the shader does
+    // one multiply and one subtract per light rather than a divide.
+    uniforms[`uLightColor${index}`] = [
+      light.color[0] * light.power,
+      light.color[1] * light.power,
+      light.color[2] * light.power,
+    ];
+    uniforms[`uLightFalloff${index}`] = 1 / (light.radius * light.radius);
+  });
+  return Object.freeze(uniforms);
+}

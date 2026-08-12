@@ -134,6 +134,7 @@ export async function createCombatRendererWith(
       // a glow reads as light sitting on top of the shadow rather than under it.
       projection.drawShadows();
       projection.drawEnergy();
+      projection.drawHud();
     };
 
     const render = (state: CombatSnapshot, pointer: Readonly<{ x: number; y: number }>): void => {

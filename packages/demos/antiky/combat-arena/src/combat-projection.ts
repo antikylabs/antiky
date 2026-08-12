@@ -1,3 +1,4 @@
+import { createHudBatch, type HudBatch } from './arena-hud.ts';
 import type { BroMetalTexture } from 'brometal';
 import { createCube, createSphere, createTorus, type Renderer } from 'brometal';
 
@@ -67,27 +68,58 @@ function shadowSize(enemy: Readonly<CombatEnemy>): number {
   return 1.05;
 }
 
-function setGauges(surfaces: ReturnType<typeof createSurfaceBatch>, state: CombatSnapshot): void {
-  let index = GAUGE_START;
+/**
+ * The player's readouts, drawn flat over the frame.
+ *
+ * These used to be cubes in the world at z = 5.95: lit by the scene, shaded by earthshine, and
+ * foreshortened toward the edges of the frame. A meter is interface — it should be the same size
+ * and the same colour wherever it lands, and it should not move when the camera does.
+ *
+ * Coordinates are normalised device coordinates: (-1, -1) bottom left, (1, 1) top right. Sizes are
+ * chosen in that space directly rather than derived from world units, because the whole point is
+ * that they have no world position to derive from.
+ */
+function setGauges(hud: HudBatch, state: CombatSnapshot): void {
+  hud.clear();
+  let index = 0;
+
+  // Hull, bottom left. The player's own health is the thing read most often, so it gets the
+  // largest segments and the most stable position on screen.
   for (let hull = 0; hull < state.player.maxHull; hull += 1) {
     const active = hull < state.player.hull;
-    const color = active ? COMBAT_PALETTE.cyan : COMBAT_PALETTE.steelDark;
-    surfaces.setValues(index, -5.35 + hull * 0.59, 0.18, COMBAT_READABILITY_PROFILE.hudZ, COMBAT_READABILITY_PROFILE.hullSegmentWidth, 0.16, 0.31, color[0], color[1], color[2], active ? 0.58 : 0, 0, 0);
+    hud.set(
+      index, -0.88 + hull * 0.062, -0.88, 0.026, 0.022,
+      active ? COMBAT_PALETTE.cyan : COMBAT_PALETTE.steelDark,
+      active ? 1 : 0, active ? 0.95 : 0.4,
+    );
     index += 1;
   }
+
+  // Drive, directly beneath hull. Ten thin segments so a partial charge reads as a level rather
+  // than as a count.
+  const driveSegments = Math.ceil(state.player.drive / state.player.maxDrive * 10);
   for (let drive = 0; drive < 10; drive += 1) {
-    const active = drive < Math.ceil(state.player.drive / state.player.maxDrive * 10);
-    const color = active ? COMBAT_PALETTE.cyan : COMBAT_PALETTE.steelDark;
-    surfaces.setValues(index, 1.78 + drive * 0.39, 0.15, COMBAT_READABILITY_PROFILE.hudZ, COMBAT_READABILITY_PROFILE.driveSegmentWidth, 0.115, 0.19, color[0], color[1], color[2], active ? 0.5 : 0, 0, 0);
+    const active = drive < driveSegments;
+    hud.set(
+      index, -0.88 + drive * 0.038, -0.935, 0.015, 0.011,
+      active ? COMBAT_PALETTE.cyan : COMBAT_PALETTE.steelDark,
+      active ? 1 : 0, active ? 0.85 : 0.32,
+    );
     index += 1;
   }
+
+  // Round pips, top centre — glanced at between rounds rather than during them.
   for (let round = 0; round < state.maxRounds; round += 1) {
     const complete = round + 1 < state.round || state.phase === 'victory';
     const current = round + 1 === state.round;
-    const color = complete ? COMBAT_PALETTE.white : current ? COMBAT_PALETTE.amber : COMBAT_PALETTE.steelDark;
-    surfaces.setValues(index, -0.5 + round * 0.5, 0.16, 6.28, 0.32, 0.11, 0.22, color[0], color[1], color[2], complete || current ? 0.34 : 0, 0, 0);
+    hud.set(
+      index, -0.04 + round * 0.042, 0.9, 0.014, 0.014,
+      complete ? COMBAT_PALETTE.white : current ? COMBAT_PALETTE.amber : COMBAT_PALETTE.steelDark,
+      complete || current ? 1 : 0, complete || current ? 0.9 : 0.3,
+    );
     index += 1;
   }
+
   let boss: (typeof state.enemies)[number] | undefined;
   for (let enemyIndex = 0; enemyIndex < state.enemies.length; enemyIndex += 1) {
     const enemy = state.enemies[enemyIndex]!;
@@ -96,11 +128,15 @@ function setGauges(surfaces: ReturnType<typeof createSurfaceBatch>, state: Comba
       break;
     }
   }
+  // The boss bar, top centre and wider, present only while a warden is alive.
   for (let segment = 0; segment < 12; segment += 1) {
     const active = boss !== undefined && segment < Math.ceil(boss.hull / boss.maxHull * 12);
     const visible = boss === undefined ? 0 : 1;
-    const color = active ? COMBAT_PALETTE.warm : COMBAT_PALETTE.steelDark;
-    surfaces.setValues(index, -2.75 + segment * 0.5, 0.12, -6.35, 0.39 * visible, 0.075 * visible, 0.12 * visible, color[0], color[1], color[2], active ? 0.22 : 0, 0, 0);
+    hud.set(
+      index, -0.23 + segment * 0.042, 0.82, 0.018 * visible, 0.013 * visible,
+      active ? COMBAT_PALETTE.warm : COMBAT_PALETTE.steelDark,
+      active ? 1 : 0, visible * (active ? 0.92 : 0.34),
+    );
     index += 1;
   }
 }
@@ -218,18 +254,22 @@ export type CombatProjection = Readonly<{
   drawSurface(): void;
   drawShadows(): void;
   drawEnergy(): void;
+  /** Flat, screen-space, and last: the HUD sits over everything the scene drew. */
+  drawHud(): void;
   dispose(): void;
 }>;
 
 export type CombatProjectionDependencies = Readonly<{
   createSurfaceBatch: typeof createSurfaceBatch;
   createGlowBatch: typeof createGlowBatch;
+  createHudBatch: typeof createHudBatch;
   createContactShadowBatch: typeof createContactShadowBatch;
 }>;
 
 const COMBAT_PROJECTION_DEPENDENCIES: CombatProjectionDependencies = Object.freeze({
   createSurfaceBatch,
   createGlowBatch,
+  createHudBatch,
   createContactShadowBatch,
 });
 
@@ -250,10 +290,12 @@ export function createCombatProjection(
   let surfaces: ReturnType<typeof createSurfaceBatch>;
   let shadows: ReturnType<typeof createContactShadowBatch>;
   let glows: ReturnType<typeof createGlowBatch>;
+  let hud: HudBatch;
   let rings: ReturnType<typeof createGlowBatch>;
   try {
     surfaces = registerResource(resources, dependencies.createSurfaceBatch(renderer, createCube(), SURFACE_CAPACITY));
     shadows = registerResource(resources, dependencies.createContactShadowBatch(renderer, CONTACT_SHADOW_CAPACITY, billboard));
+    hud = registerResource(resources, dependencies.createHudBatch(renderer));
     glows = registerResource(resources, dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY, billboard));
     rings = registerResource(resources, dependencies.createGlowBatch(renderer, horizontalGeometry(createTorus({ radius: 1, tube: 0.035, radialSegments: 10, tubularSegments: 96 })), RING_CAPACITY, billboard));
   } catch (cause: unknown) {
@@ -274,10 +316,11 @@ export function createCombatProjection(
         const size = shadowSize(enemy);
         shadows.setValues(enemyIndex + 1, enemy.x, -0.14, enemy.z, size * visible, 0, size * 0.8 * visible, COMBAT_PALETTE.shadow[0], COMBAT_PALETTE.shadow[1], COMBAT_PALETTE.shadow[2]);
       }
-      setGauges(surfaces, state);
+      setGauges(hud, state);
       setCombatRings(rings, state);
       setCombatSignals(surfaces, rings, state, SIGNAL_OFFSETS);
       surfaces.upload();
+      hud.upload();
       shadows.upload();
       rings.upload();
       setCombatGlows(glows, state);
@@ -298,6 +341,9 @@ export function createCombatProjection(
     drawEnergy(): void {
       rings.program.draw();
       glows.program.draw();
+    },
+    drawHud(): void {
+      hud.draw();
     },
     dispose(): void {
       disposeResources(resources);

@@ -10,6 +10,7 @@ import {
 } from 'brometal';
 
 import { loadKitMaterialMaps } from './kit-material-maps.ts';
+import { arenaLightUniforms } from './arena-lights.ts';
 import { createKitMaterialLookup } from './kit-materials.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
@@ -119,6 +120,11 @@ async function createModelBatch(
     program.uniforms.uKitMaterials!.set(kitMaterials);
     program.uniforms.uMaterialDiffuse!.set(plating);
     program.uniforms.uMaterialStrength!.set(platingStrength);
+    // The rim floodlights. BroMetal's DSL has no array uniforms, so each light is three bindings and
+    // this loop is the one place that knows it — the shader side stays a plain sum of six terms.
+    for (const [name, value] of Object.entries(arenaLightUniforms())) {
+      program.uniforms[name as keyof typeof program.uniforms]!.set(value as never);
+    }
   } catch (cause: unknown) {
     rollbackResources(owned);
     throw cause;

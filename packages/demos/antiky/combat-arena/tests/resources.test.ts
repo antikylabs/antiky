@@ -31,7 +31,10 @@ function fakeProgram(disposed: number[], failAttribute = false) {
   return {
     attributes: { aPosition: { set }, aNormal: { set }, aUv: { set }, aColor: { set }, aAccent: { set } },
     instanceAttributes: {},
-    uniforms: { uTex: { set() {} }, uDetailNormal: { set() {} }, uKitMaterials: { set() {} }, uMaterialDiffuse: { set() {} }, uMaterialStrength: { set() {} } },
+    // Any uniform, answered generically. These tests are about disposal order when construction
+    // throws; which uniforms exist is `shader-output-parity.test.mjs`'s job, and hand-listing them
+    // here meant every new uniform broke a test about something else.
+    uniforms: new Proxy({}, { get: () => ({ set() {} }) }),
     setIndices() {},
     draw() {},
     dispose() { disposed.push(1); },
@@ -246,6 +249,7 @@ test('combat projection rolls back surface and glow batches if ring construction
   assert.throws(() => createCombatProjection({} as never, { dispose() {} } as never, {
     createSurfaceBatch: () => batch('surface') as never,
     createContactShadowBatch: () => batch('shadow') as never,
+    createHudBatch: () => ({ clear() {}, set() {}, upload() {}, draw() {}, dispose() {} }) as never,
     createGlowBatch: () => {
       glowCount += 1;
       if (glowCount === 2) throw new Error('injected ring failure');
@@ -271,6 +275,7 @@ test('steady combat projection uses numeric instance writers instead of tuple wr
     createSurfaceBatch: () => batch() as never,
     createContactShadowBatch: () => batch() as never,
     createGlowBatch: () => batch() as never,
+    createHudBatch: () => ({ clear() {}, set() {}, upload() {}, draw() {}, dispose() {} }) as never,
   });
   projection.project(createCombatSimulation(() => {}).read());
   assert.equal(tupleWrites, 0);
@@ -330,7 +335,7 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
     }),
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => ({
-      project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {},
+      project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {}, drawHud() {},
       dispose() { disposed.push('projection'); },
     }),
     createBackdrop: () => { throw new Error('injected backdrop failure'); },
@@ -359,7 +364,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
     }),
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => ({
-      project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {},
+      project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {}, drawHud() {},
       dispose() { disposals.projection += 1; },
     }),
     createBackdrop: async () => ({
