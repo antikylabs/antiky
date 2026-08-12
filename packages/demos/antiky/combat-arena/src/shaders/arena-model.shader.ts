@@ -1,4 +1,5 @@
 import {
+  step,
   clamp,
   dot,
   length,
@@ -12,8 +13,40 @@ import {
   texture,
   vec3,
   vec4,
+  type Vec3,
 } from 'brometal';
 import { rotate2, tonemapACES } from 'brometal/shader-functions';
+import { decodeSrgb } from './color.ts';
+
+/**
+ * sRGB to linear, applied when an albedo texture is sampled.
+ *
+ * BroMetal exposes no sRGB texture format — everything uploads as `rgba8unorm` — so a sampled albedo
+ * texel arrives holding display-encoded values. Lighting maths on those is wrong: mid-tones come out
+ * too dark, which then gets compensated by over-bright lights, and the error compounds through every
+ * term downstream. This is the sample-side half of colour management; encoding once on output is the
+ * other half and belongs to the post pass.
+ *
+ * Only albedo goes through here. Normal maps, ARM and roughness maps, shadow maps and scene targets
+ * already hold linear data, and decoding those would corrupt them.
+ *
+ * The piecewise curve rather than the 2.2 approximation: they differ most below 0.04045, which is
+ * exactly where these dark scenes spend their time.
+ *
+ * Declared in every shader that needs it rather than imported. The BroMetal MVP resolves only
+ * "module-level helper functions declared above their first use" — an imported helper fails to
+ * compile. `pipeline-invariants.test.mjs` asserts every copy is identical.
+ */
+function channelToLinear(channel: number): number {
+  const low = channel / 12.92;
+  const high = pow((channel + 0.055) / 1.055, 2.4);
+  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
+  return mix(low, high, step(0.04045, channel));
+}
+
+function decodeSrgb(color: Vec3): Vec3 {
+  return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 
 export default shader({
   attributes: {
@@ -71,7 +104,7 @@ export default shader({
     const view = normalize(uCameraPosition.sub(vWorld));
     const diffuse = max(dot(normal, light), 0);
     const rim = pow(1 - max(dot(normal, view), 0), 2.2);
-    const sampled = texture(uTex, vUv).xyz.mul(vTint);
+    const sampled = decodeSrgb(texture(uTex, vUv).xyz).mul(vTint);
     const fill = max(normal.y, 0) * 0.1;
     const pulse = 0.72 + sin(uTime * 5.2 + vWorld.x * 0.8 - vWorld.z * 0.55) * 0.28;
     const lit = sampled.scale(0.16 + diffuse * 0.74 + fill)

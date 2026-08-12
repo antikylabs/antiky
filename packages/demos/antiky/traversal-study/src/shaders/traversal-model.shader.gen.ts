@@ -32,6 +32,14 @@ fn rotate2(p : vec2f, angle : f32) -> vec2f {
   let s = sin(angle);
   return vec2f(p.x * c - p.y * s, p.x * s + p.y * c);
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -49,7 +57,7 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
 }
 @fragment
 fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
-  let texel = textureSample(uTex, uTex_sampler, bm_in.vUv).xyz;
+  let texel = decodeSrgb(textureSample(uTex, uTex_sampler, bm_in.vUv).xyz);
   let normal = normalize(bm_in.vNormal);
   let light = normalize(vec3f(-0.38, 0.84, 0.48));
   let diffuse = max(dot(normal, light), 0.0);

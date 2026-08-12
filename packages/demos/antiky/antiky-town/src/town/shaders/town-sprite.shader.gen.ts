@@ -80,6 +80,14 @@ fn practicalRadiance(world : vec3f, normal : vec3f, posInvRangeSq : vec4f, color
   let wrappedDiffuse = 0.2 + 0.8 * max(dot(normal, normalize(toLight)), 0.0);
   return colorPower.xyz * (colorPower.w * attenuation * wrappedDiffuse * lobe);
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -97,7 +105,8 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
 }
 @fragment
 fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
-  let texel = textureSample(uAtlas, uAtlas_sampler, bm_in.vUv);
+  let encoded = textureSample(uAtlas, uAtlas_sampler, bm_in.vUv);
+  let texel = vec4f(decodeSrgb(encoded.xyz), encoded.w);
   let alpha = keyedAlpha(texel, bm_u.uColorKey, bm_u.uUseColorKey) * bm_in.vTint.w;
   if (alpha < bm_u.uCutoff) {
     discard;

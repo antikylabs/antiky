@@ -97,6 +97,14 @@ fn pointRadiance(world : vec3f, normal : vec3f, view : vec3f, lightPosition : ve
   let specular = min(specGGX(normal, light, view, roughness), 1.5) * 0.12;
   return lightColor * (lightPower * attenuation * (diffuse + specular));
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -138,7 +146,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let materialMap = textureSample(uArm, uArm_sampler, bm_in.vUv).xyz;
   let roughness = clamp(mix(materialMap.y, materialMap.x, bm_u.uMaterialLayout) + bm_in.vMaterial.x, 0.18, 1.0);
   let occlusion = mix(0.58 + materialMap.x * 0.42, 1.0, bm_u.uMaterialLayout);
-  let sourceBase = textureSample(uDiffuse, uDiffuse_sampler, bm_in.vUv).xyz;
+  let sourceBase = decodeSrgb(textureSample(uDiffuse, uDiffuse_sampler, bm_in.vUv).xyz);
   let sourceLuminance = dot(sourceBase, vec3f(0.2126, 0.7152, 0.0722));
   let saturated = mix(vec3f(sourceLuminance, sourceLuminance, sourceLuminance), sourceBase, bm_u.uSaturation);
   let lifted = mix(vec3f(0.48, 0.48, 0.48), saturated, bm_u.uTextureContrast) + vec3f(bm_u.uDiffuseLift, bm_u.uDiffuseLift, bm_u.uDiffuseLift);

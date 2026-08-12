@@ -69,6 +69,14 @@ fn materialPresentationFloorLight(world : vec3f, normal : vec3f, view : vec3f, l
   let specular = specGGX(normal, light, view, roughness) * 0.12;
   return lightColor * (lightPower * range * range * (diffuse + specular));
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -81,7 +89,7 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
 }
 @fragment
 fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
-  let sourceDiffuse = textureSample(uDiffuse, uDiffuse_sampler, bm_in.vUv).xyz;
+  let sourceDiffuse = decodeSrgb(textureSample(uDiffuse, uDiffuse_sampler, bm_in.vUv).xyz);
   let diffuseSample = mix(vec3f(0.38, 0.36, 0.31), sourceDiffuse, bm_u.uTextureContrast);
   let ao = mix(0.64, 1.0, textureSample(uAo, uAo_sampler, bm_in.vUv).x);
   let roughness = clamp(textureSample(uRoughness, uRoughness_sampler, bm_in.vUv).x, 0.2, 0.98);

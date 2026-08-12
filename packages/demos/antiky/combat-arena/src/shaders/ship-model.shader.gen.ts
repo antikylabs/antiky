@@ -38,6 +38,14 @@ fn tonemapACES(color : vec3f) -> vec3f {
   let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
   return clamp(num / den, vec3f(0.0), vec3f(1.0));
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -63,7 +71,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let keyLight = max(dot(normal, key), 0.0);
   let fillLight = max(dot(normal, fill), 0.0);
   let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.25);
-  let authored = textureSample(uTex, uTex_sampler, bm_in.vUv).xyz;
+  let authored = decodeSrgb(textureSample(uTex, uTex_sampler, bm_in.vUv).xyz);
   let pulse = 0.76 + sin(bm_u.uTime * 5.4 + bm_in.vWorld.x * 0.75 - bm_in.vWorld.z * 0.52) * 0.24;
   let lit = authored * (0.25 + keyLight * 1.02 + fillLight * 0.28) + vec3f(0.025, 0.045, 0.075) * (0.4 + max(normal.y, 0.0) * 0.34);
   let energy = bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.2) * pulse * (0.12 + rim * 0.44));

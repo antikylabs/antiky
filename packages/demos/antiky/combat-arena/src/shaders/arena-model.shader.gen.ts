@@ -37,6 +37,14 @@ fn tonemapACES(color : vec3f) -> vec3f {
   let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
   return clamp(num / den, vec3f(0.0), vec3f(1.0));
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -59,7 +67,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let view = normalize(bm_u.uCameraPosition - bm_in.vWorld);
   let diffuse = max(dot(normal, light), 0.0);
   let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.2);
-  let sampled = textureSample(uTex, uTex_sampler, bm_in.vUv).xyz * bm_in.vTint;
+  let sampled = decodeSrgb(textureSample(uTex, uTex_sampler, bm_in.vUv).xyz) * bm_in.vTint;
   let fill = max(normal.y, 0.0) * 0.1;
   let pulse = 0.72 + sin(bm_u.uTime * 5.2 + bm_in.vWorld.x * 0.8 - bm_in.vWorld.z * 0.55) * 0.28;
   let lit = sampled * (0.16 + diffuse * 0.74 + fill) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));

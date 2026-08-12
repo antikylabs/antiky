@@ -372,3 +372,96 @@ test('the batch factories expose one instance writer, not two', async () => {
   }
   assert.deepEqual(offenders, []);
 });
+
+/**
+ * Shaders that sample an albedo texture and therefore must decode sRGB, against those that sample
+ * data — normal, ARM, roughness, shadow and scene-target reads are already linear and decoding them
+ * would corrupt them.
+ */
+const ALBEDO_SHADERS = Object.freeze([
+  'antiky/combat-arena/src/shaders/arena-model.shader.ts',
+  'antiky/combat-arena/src/shaders/ship-model.shader.ts',
+  'antiky/traversal-study/src/shaders/traversal-model.shader.ts',
+  'antiky/point-light-expo/src/shaders/reliquary-model.shader.ts',
+  'antiky/point-light-expo/src/shaders/reliquary-floor.shader.ts',
+  'antiky/antiky-town/src/town/shaders/town-voxel.shader.ts',
+  'antiky/antiky-town/src/town/shaders/town-awning.shader.ts',
+  'antiky/antiky-town/src/town/shaders/town-prop.shader.ts',
+  'antiky/antiky-town/src/town/shaders/town-foliage.shader.ts',
+  'antiky/antiky-town/src/town/shaders/town-sprite.shader.ts',
+]);
+
+/** Samplers that carry data rather than colour. Decoding any of these is a defect. */
+const LINEAR_SAMPLERS = Object.freeze(['uShadowMap', 'uNormalMap', 'uArm', 'uRoughness', 'uAo', 'uScene']);
+
+test('every shader that samples albedo decodes it from sRGB', async () => {
+  // The check that catches the one shader somebody forgets. BroMetal has no sRGB texture format, so
+  // the decode cannot be delegated to the sampler.
+  const missing = [];
+  for (const relative of ALBEDO_SHADERS) {
+    const text = await readFile(path.join(demosRoot, relative), 'utf8');
+    if (!/function decodeSrgb/.test(text)) {
+      missing.push(`${relative}: no decodeSrgb helper`);
+      continue;
+    }
+    // Two shapes are legitimate. Where only colour is needed the decode wraps the sample directly.
+    // Where the alpha is needed too, the sample is bound first and only its .xyz is decoded, because
+    // sampling twice to avoid the extra name would cost a second texture fetch per fragment.
+    const direct = /decodeSrgb\(texture\(/.test(text);
+    const viaBinding = [...text.matchAll(/const (\w+) = texture\(/g)]
+      .some(([, name]) => new RegExp(`decodeSrgb\\(${name}\\.xyz\\)`).test(text));
+    if (!direct && !viaBinding) missing.push(`${relative}: helper present but never applied to a sample`);
+  }
+  assert.deepEqual(missing, []);
+});
+
+test('no data texture is put through the colour decode', async () => {
+  const offenders = [];
+  for (const slug of ANTIKY_DEMOS) {
+    for (const shader of await shaderSources(slug)) {
+      for (const sampler of LINEAR_SAMPLERS) {
+        if (new RegExp(`decodeSrgb\\(texture\\(${sampler}\\b`).test(shader.text)) {
+          offenders.push(`${shader.relative}: ${sampler} holds data, not colour`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+
+test('every copy of the decode helper is identical', async () => {
+  // It is duplicated because the BroMetal MVP resolves only helpers declared in the same module —
+  // an imported one fails to compile. Duplication is therefore forced, but drift is not.
+  const bodies = new Map();
+  for (const relative of ALBEDO_SHADERS) {
+    const text = await readFile(path.join(demosRoot, relative), 'utf8');
+    const start = text.indexOf('function channelToLinear');
+    const end = text.indexOf('\n}\n', text.indexOf('function decodeSrgb'));
+    const body = text.slice(start, end).replace(/\s+/g, ' ').trim();
+    if (!bodies.has(body)) bodies.set(body, []);
+    bodies.get(body).push(relative);
+  }
+  assert.equal(bodies.size, 1, `the decode has diverged into ${bodies.size} versions:\n${
+    [...bodies.values()].map((files) => `  - ${files.join(', ')}`).join('\n')}`);
+});
+
+test('the decode matches the sRGB standard at its defining points', () => {
+  // The maths the shaders run, checked against the analytic curve. If this is wrong, every demo is
+  // wrong in the same direction and nothing else would reveal it.
+  const decode = (channel) => (channel <= 0.04045
+    ? channel / 12.92
+    : ((channel + 0.055) / 1.055) ** 2.4);
+
+  const within = 1 / 255;
+  assert.ok(Math.abs(decode(0) - 0) < 1e-12);
+  assert.ok(Math.abs(decode(1) - 1) < 1e-12);
+  // Mid grey: the whole point. 0.5 encoded is 0.2140 linear, not 0.5 — a 57% error if skipped.
+  assert.ok(Math.abs(decode(0.5) - 0.21404114) < within, `mid grey decoded to ${decode(0.5)}`);
+  // The knee, where the piecewise curve joins and the 2.2 approximation is worst.
+  assert.ok(Math.abs(decode(0.04045) - 0.0031308) < within);
+  // Round trip through the encode the post pass applies.
+  const encode = (linear) => (linear <= 0.0031308 ? linear * 12.92 : 1.055 * linear ** (1 / 2.4) - 0.055);
+  for (const value of [0, 0.02, 0.18, 0.5, 0.75, 1]) {
+    assert.ok(Math.abs(encode(decode(value)) - value) < within, `round trip failed at ${value}`);
+  }
+});
