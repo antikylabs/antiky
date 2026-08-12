@@ -17,6 +17,25 @@ vary the rate per instance, with a test that catches a regression.
 **Contact shadows are already unlit and soft-edged**, from goal 03 — `smoothstep(1, 0.12, length)`
 is a smooth analytic falloff. What they lack is *variation*, which is AC-V4's subject, not AC-V1's.
 
+## The billboard texture is built and measured
+
+`packages/demos/scripts/build-vfx-billboard.mjs` generates `vfx-billboard-256.png` into the three
+demos that have VFX. Measured: alpha reaches exactly 0 at the rim, max gradient **0.055** per pixel
+overall and **0.008** across the outer boundary, against AC-V1's ceiling of 0.10.
+
+It is a soft radial core with angular filaments layered over it. The filaments are damped toward the
+centre as well as the rim, because angle changes fastest per pixel at the middle and undamped
+angular variation there measured 0.153 per pixel — steeper than anything at the boundary, and over
+the ceiling. That is a trap worth knowing about before authoring any radial effect texture.
+
+**Not yet wired**, and the reason matters for how you wire it: the three glow programs draw
+*spheres*, not screen-facing quads. They carry `vNormal` and no `vUv`, so there is no texture
+coordinate to sample with. The cheapest honest option is to sample by the view-facing normal —
+`vec2(normal.x, normal.y) * 0.5 + 0.5` — which maps the texture across the visible hemisphere and
+has the useful side effect of fading the silhouette, since the texture's alpha reaches zero exactly
+where `normal.xy` reaches the unit circle. The alternative is to convert the glows to real
+billboards, which is a larger change and worth its own decision.
+
 ## Required outcome
 
 1. **Textured soft billboards for every VFX program** (item 8). Today zero of the three glow shaders

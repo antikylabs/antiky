@@ -1,0 +1,6 @@
+{
+  "name": "vfx-billboard-256.png",
+  "generator": "packages/demos/scripts/build-vfx-billboard.mjs",
+  "size": 256,
+  "sha256": "9e29861d571154dd5f4c13852e75e51cf4400a30491c0bc18370e217ae8809dc"
+}
