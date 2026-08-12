@@ -23,10 +23,27 @@ settle the one that measured worse.
    11.3% of the frame — the shadowed faces, which is exactly the set it should touch. `kloofendal`
    is bright midday, so its raw band-0 is about eleven times the ramp's shadow end; dropping it in
    unscaled would have washed the shadows out completely. See `src/ambient.ts`.
-2. **`antiky-town`.** It already has a two-term `uSkyColor`/`uGroundColor` split, so this is an
-   upgrade to something real rather than a replacement for a constant. **It is the fairest test in
-   the repository of whether nine coefficients earn their bake step over two hand-picked colours.**
-   If they do not, say so with the measurement and leave the split alone.
+2. **`antiky-town` — baked and validated, not yet wired.** `venice-sunset` is committed at
+   `src/sh9-irradiance.gen.ts`: zero negative irradiance across 3,000 directions, up-to-down
+   luminance ratio 5.05:1.
+
+   **The interesting part is what it reproduces.** The town's hand-picked constants are
+   `SKY_COLOR [0.24, 0.38, 0.68]` (cool blue) and `GROUND_COLOR [0.56, 0.27, 0.15]` (warm brown).
+   The measured sky lands at `[0.58, 0.69, 1.06]` looking up and `[0.16, 0.13, 0.13]` looking down —
+   independently the same decision, cool above and warm below, arrived at from a photograph rather
+   than by eye. Whoever picked those two colours picked well.
+
+   That reframes the remaining question. This is not "will SH-9 fix a wrong ambient" but "do nine
+   coefficients earn their bake step over two colours that are already right". The honest test is
+   whether the *second band* — the part two colours cannot express, where light varies around the
+   horizon rather than just up-versus-down — is visible on the plaza. Wire it, capture both, and if
+   the answer is no, **say so and leave the split alone.** That is a legitimate outcome and it is
+   worth more to this repository than a change nobody can see.
+
+   Normalisation: the existing split averages about 0.105 in luminance over the sphere
+   (`uSkyIntensity` 0.46, `uGroundIntensity` 0.12) against the bake's band-0 of 0.495, so the scale
+   factor is about 0.212. Five programs bind these uniforms — `worldProgram`, `awningProgram`,
+   `propProgram`, `waterFeatureProgram` and `actorEdgeProgram`, which shares the voxel shader.
 3. **`combat-arena` — an owner decision, not an implementation.** SH-9 measured worse than its
    hand-tuned ambient with both HDRIs this goal names (5.99 hand-tuned, 5.87 `blue-photo-studio`,
    5.68 `neon-photostudio`), because both are studio captures and studio light is deliberately even.
