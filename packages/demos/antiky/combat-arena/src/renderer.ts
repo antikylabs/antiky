@@ -102,7 +102,9 @@ export async function createCombatRendererWith(
 
     const cameraPosition = new Float32Array(3);
     const cameraProjector = createCombatCameraProjector();
-    const camera = createCamera({ position: [0, 13.4, 14.8], fovY: Math.PI / 3.85, near: 0.1, far: 60 });
+    // near 0.2 against far 60 is 300:1. The camera is a fixed high three-quarter view roughly 20
+    // units from the arena floor, so nothing is ever closer than a few units.
+    const camera = createCamera({ position: [0, 13.4, 14.8], fovY: Math.PI / 3.85, near: 0.2, far: 60 });
     const measurements = deriveCombatRendererMeasurements();
     let disposed = false;
     const draw = (): void => {

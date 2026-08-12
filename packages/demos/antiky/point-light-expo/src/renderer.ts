@@ -174,7 +174,9 @@ export async function createRelayRenderer(
   const camera = createCamera({
     position: RELAY_PRESENTATION.camera.position,
     fovY: RELAY_PRESENTATION.camera.fovY,
-    near: 0.1,
+    // near 0.1 against far 45 was 450:1, already inside the 500:1 budget but wasteful: this is a
+    // fixed overhead camera and nothing reaches within a metre of it. 0.15 gives 300:1.
+    near: 0.15,
     far: 45,
   });
   const setLights = (

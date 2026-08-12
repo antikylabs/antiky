@@ -39,6 +39,33 @@ async function shaderSources(slug) {
   return results;
 }
 
+/** Far-plane constants declared outside the file that uses them. */
+const FAR_CONSTANTS = Object.freeze({ FAR_DEPTH: 180 });
+
+/** Every TypeScript source file in a demo, so nested cameras are not missed by a renderer glob. */
+async function demoSources(slug) {
+  const results = [];
+  const root = path.join(demosRoot, 'antiky', slug, 'src');
+  const walk = async (directory) => {
+    let entries;
+    try {
+      entries = await readdir(directory, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        await walk(full);
+      } else if (entry.isFile() && entry.name.endsWith('.ts') && !entry.name.endsWith('.gen.ts')) {
+        results.push({ relative: path.relative(demosRoot, full), text: await readFile(full, 'utf8') });
+      }
+    }
+  };
+  await walk(root);
+  return results;
+}
+
 async function assetScripts() {
   const results = [];
   for (const slug of ANTIKY_DEMOS) {
@@ -105,6 +132,34 @@ test('no asset script writes texture coordinates without reading the source ones
     'A script that synthesises texture coordinates without reading TEXCOORD_0 throws away the '
     + 'authored UVs, which is how shipped textures became 1x1 pixels.',
   );
+});
+
+test('no camera wastes depth precision on an extreme far/near ratio', async () => {
+  // A large far/near ratio spends most of the depth buffer on the first fraction of a metre, which
+  // nothing in these scenes occupies. Budget is 500:1.
+  //
+  // The scan walks the whole `src` tree rather than `*/src/renderer.ts`: antiky-town's two cameras
+  // are nested at `src/town/index.ts`, and a renderer.ts glob silently misses them.
+  const offenders = [];
+  for (const slug of ANTIKY_DEMOS) {
+    for (const source of await demoSources(slug)) {
+      const constants = new Map();
+      for (const match of source.text.matchAll(/^\s*(?:export\s+)?const\s+([A-Z_][A-Z0-9_]*)\s*=\s*([\d.]+)\s*;/gm)) {
+        constants.set(match[1], Number(match[2]));
+      }
+      const pattern = /near:\s*([\d.]+)\s*,\s*far:\s*([\d.]+|[A-Z_][A-Z0-9_]*)/g;
+      for (const match of source.text.matchAll(pattern)) {
+        const near = Number(match[1]);
+        const far = Number.isNaN(Number(match[2])) ? constants.get(match[2]) ?? FAR_CONSTANTS[match[2]] : Number(match[2]);
+        if (far === undefined || near === 0) continue;
+        const ratio = far / near;
+        if (ratio > 500.5) {
+          offenders.push(`${source.relative}: far/near = ${ratio.toFixed(0)}:1 (near ${near}, far ${far})`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], 'Raise `near` until the ratio is at most 500:1.');
 });
 
 test('every shader in a demo agrees on the direction of the key light', async () => {

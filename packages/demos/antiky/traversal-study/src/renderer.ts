@@ -213,7 +213,14 @@ async function createCatalogBatch(
       new Uint8Array(ownedImageBuffer).set(image.data);
       const bitmap = await createImageBitmap(new Blob([ownedImageBuffer], { type: image.mimeType }));
       try {
-        textures.push(disposal.adopt(createTexture(renderer, bitmap, { flipY: false, anisotropy: 4 })));
+        // These are palette strips, not pictures: a handful of solid swatches in a row, one per
+        // material. Linear filtering and anisotropy average adjacent swatches together at every UV
+        // seam, which turns a two-colour model into a muddy gradient. Nearest keeps each swatch the
+        // colour it was authored as. Superseded by goal 04, which restores real UVs and textures.
+        textures.push(disposal.adopt(createTexture(renderer, bitmap, {
+          flipY: false,
+          filter: 'nearest',
+        })));
       } finally {
         bitmap.close();
       }
@@ -294,7 +301,10 @@ export type TraversalRenderer = Readonly<{
 }>;
 
 export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promise<TraversalRenderer> {
-  const renderer = await createRenderer(canvas, { clearColor: [0.38, 0.57, 0.68, 1], cull: 'none' });
+  // Back-face culling: the course geometry is closed, so every back face drawn was fragment work
+  // thrown away. If a specific mesh ever needs double-siding, draw that mesh in its own pass rather
+  // than reverting this for the whole demo.
+  const renderer = await createRenderer(canvas, { clearColor: [0.38, 0.57, 0.68, 1], cull: 'back' });
   const lifetime = createRendererResourceLifetime(() => renderer.destroy());
   const owned = lifetime.resources;
   try {
@@ -334,7 +344,11 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     const effects = owned.adopt(createGlowBatch(renderer, createTorus({ radius: 1, tube: 0.055, radialSegments: 8, tubularSegments: 48 }), TRAVERSAL_BATCH_CAPACITIES.effects));
     const procedural = [contactShadow, hud, trail, effects];
     const cameraRig = createTraversalCameraRig();
-    const camera = createCamera({ position: [0, 5, 12], fovY: Math.PI / 3.6, near: 0.1, far: 240 });
+    // near 0.5 against far 240 is a 480:1 depth ratio, inside the 500:1 budget. The old 0.1 gave
+    // 2400:1 and spent most of the depth buffer's precision on the first half-metre, which nothing
+    // in a side-on platformer ever occupies — the camera sits 12 units back and never approaches
+    // the course.
+    const camera = createCamera({ position: [0, 5, 12], fovY: Math.PI / 3.6, near: 0.5, far: 240 });
     const cameraPosition = new Float32Array(3);
 
     const measurements = summarizeTraversalMeasurements([...catalogEntries, ...procedural]);

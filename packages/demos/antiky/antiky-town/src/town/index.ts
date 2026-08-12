@@ -730,7 +730,9 @@ async function createTownRuntime(
   });
   const actorBatch = new SpriteBatch(actorAtlas, 1 + npcs.length);
 
-  const camera = createCamera({ fovY: 0.56, near: 0.32, far: FAR_DEPTH });
+  // 180 / 0.36 = 500:1, exactly the budget. This is a close third-person camera, so `near` cannot
+  // move far: the character motor's closest approach sets the floor. 0.32 gave 562:1.
+  const camera = createCamera({ fovY: 0.56, near: 0.36, far: FAR_DEPTH });
   const cameraPosition = new Float32Array(3);
   const billboardRight = new Float32Array(3);
   const billboardUp = new Float32Array(3);
@@ -822,7 +824,9 @@ async function createTownRuntime(
         camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
         camera.lookAt(pose.target![0], pose.target![1], pose.target![2]);
       }
-      camera.setLens({ fovY: pose.fovY, near: 0.32, far: FAR_DEPTH });
+      // Must match the `createCamera` near above: this runs every frame and would otherwise
+      // silently restore the old ratio.
+      camera.setLens({ fovY: pose.fovY, near: 0.36, far: FAR_DEPTH });
       const viewProjection = camera.viewProjection(renderer.aspect);
       billboardBasis(camera.view(), billboardRight, billboardUp, 0.32);
       const slotZeroPower = updatePracticalLights(simulationTime, pose.mobile);
