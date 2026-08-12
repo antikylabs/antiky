@@ -1,5 +1,20 @@
 # Execute goal 05: give the existing assets real materials
 
+> **Items 1, 3, 5, 10 and AC-V3 have landed.** What remains runs as four separate steps, each
+> independently shippable. Run them with `/goal` in order; the detail is in each file.
+>
+> | Step | What is left | Items |
+> | --- | --- | --- |
+> | [05-01](execute-goal-05-01.md) | Finish the ambient work | rest of 4 |
+> | [05-02](execute-goal-05-02.md) | Material identity for the palette kits | 7 |
+> | [05-03](execute-goal-05-03.md) | Real materials from the catalog — **largest by far** | 6, intake |
+> | [05-04](execute-goal-05-04.md) | The VFX pass | 2, 8, rest of 9 |
+>
+> The sections below are the original goal, kept intact because the four steps reference it. The
+> **Progress so far** section at the end is the current state, and it corrects three of this
+> document's own premises — read it before trusting a baseline number here.
+
+
 ## Prerequisites
 
 Complete [execute goal 01](_completed/execute-goal-01.md) first. Every acceptance criterion below except the
