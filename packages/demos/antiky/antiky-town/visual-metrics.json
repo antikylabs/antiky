@@ -1,33 +1,33 @@
 {
   "schemaVersion": 2,
   "demo": "antiky-town",
-  "capturedAt": "2026-08-12T19:09:17.350Z",
+  "capturedAt": "2026-08-12T19:14:00.407Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "8337c62474a1a278",
-    "fileCount": 100
+    "digest": "d11fa1527a84399f",
+    "fileCount": 101
   },
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.12695,
+    "mean": 0.126895,
     "p05": 0.022465,
     "p50": 0.086549,
-    "p95": 0.406811,
-    "spread": 0.384346
+    "p95": 0.406619,
+    "spread": 0.384154
   },
   "localContrast": {
-    "median": 8.4561,
-    "p10": 1.8804
+    "median": 8.5011,
+    "p10": 1.8749
   },
   "clipping": {
     "high": 0,
     "low": 0
   },
   "saturation": {
-    "mean": 0.298529
+    "mean": 0.298494
   },
-  "seal": "6893007efc7be196"
+  "seal": "fde4b98af8f27e70"
 }
