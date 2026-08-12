@@ -4,6 +4,7 @@ import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parseGlb } from 'brometal';
+import { checkFidelity } from '../../../scripts/asset-fidelity-policy.mjs';
 
 const records = Object.freeze([
   {
@@ -116,6 +117,20 @@ function normalize(gltfBytes, textureBytes, textureName) {
   if (gltf.images?.length !== 1 || gltf.images[0].bufferView === undefined) {
     throw new Error('Expected one archive-authored bufferView image');
   }
+  // The shared policy. This script copies the source GLB's structure wholesale, which is why its
+  // 2048x2048 ship textures kept their unwraps while a merging script would have lost them — but
+  // "it happens to be right" is not a guarantee, so it asserts like the other two.
+  const primitive = gltf.meshes?.[0]?.primitives?.[0];
+  const fidelity = checkFidelity({
+    name: textureName,
+    attributes: Object.keys(primitive?.attributes ?? {}),
+    sourceMaterialMaps: gltf.materials?.[0]?.normalTexture === undefined ? [] : ['normalTexture'],
+    packedMaterialMaps: gltf.materials?.[0]?.normalTexture === undefined ? [] : ['normalTexture'],
+    materialCount: Math.max(1, gltf.materials?.length ?? 1),
+    uniqueUvCount: Number.POSITIVE_INFINITY,
+  });
+  if (fidelity.length > 0) throw new Error(fidelity.join('\n'));
+
   const sourceBinary = Buffer.from(gltf.buffers[0].uri.split(',', 2)[1], 'base64');
   const imageBufferView = gltf.images[0].bufferView;
   const chunks = [];

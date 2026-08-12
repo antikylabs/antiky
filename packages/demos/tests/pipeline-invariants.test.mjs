@@ -180,13 +180,16 @@ async function assetScripts() {
 
 test('no material shader tone-maps, because tone-mapping belongs in one post pass', async () => {
   const offenders = [];
+  let scanned = 0;
   for (const slug of ANTIKY_DEMOS) {
     for (const shader of await shaderSources(slug)) {
+      scanned += 1;
       // A demo's single post pass is allowed to tone-map. Every material shader is not.
       if (/post\.shader\.ts$/.test(shader.relative)) continue;
       if (/tonemapACES/.test(shader.text)) offenders.push(shader.relative);
     }
   }
+  assert.ok(scanned >= 20, `expected to scan every demo shader, scanned ${scanned}`);
   assert.deepEqual(
     offenders,
     [],
@@ -243,7 +246,9 @@ test('no shipped model has its texture coordinates collapsed onto a real texture
   // every vertex, which would throw away a genuine unwrap. So the rule is about the data, not the
   // source: a model carrying a real texture must have real texture coordinates.
   const offenders = [];
+  let scanned = 0;
   for (const model of await shippedModels()) {
+    scanned += 1;
     if (model.textureWidth === undefined) continue;
     const palette = model.textureHeight === 1 && model.textureWidth <= PALETTE_MAX_WIDTH;
     if (palette) continue;
@@ -254,6 +259,7 @@ test('no shipped model has its texture coordinates collapsed onto a real texture
       );
     }
   }
+  assert.ok(scanned >= 15, `expected to inspect every shipped model, inspected ${scanned}`);
   assert.deepEqual(
     offenders,
     [],
@@ -267,12 +273,15 @@ test('a palette-baked model ships a palette, not a stretched texture', async () 
   // The other half: a script that bakes flat colours must emit a strip no wider than the colours it
   // actually found. A palette that has grown past that is a sign the baking went wrong.
   const offenders = [];
+  let scanned = 0;
   for (const model of await shippedModels()) {
+    scanned += 1;
     if (model.textureWidth === undefined || model.textureHeight !== 1) continue;
     if (model.textureWidth > PALETTE_MAX_WIDTH) {
       offenders.push(`${model.relative}: ${model.textureWidth}x1 is too wide to be a colour palette`);
     }
   }
+  assert.ok(scanned >= 15, `expected to inspect every shipped model, inspected ${scanned}`);
   assert.deepEqual(offenders, []);
 });
 
@@ -463,8 +472,10 @@ const DELETED_NAMES = Object.freeze([
 
 test('the dead code this objective deleted has not come back', async () => {
   const offenders = [];
+  let scanned = 0;
   for (const slug of ANTIKY_DEMOS) {
     for (const source of await demoSources(slug)) {
+      scanned += 1;
       for (const { name, why } of DELETED_NAMES) {
         if (new RegExp(`\\b${name}\\b`).test(source.text)) {
           offenders.push(`${source.relative}: ${name} — removed because ${why}`);
@@ -472,6 +483,7 @@ test('the dead code this objective deleted has not come back', async () => {
       }
     }
   }
+  assert.ok(scanned >= 20, `expected to scan every demo source, scanned ${scanned}`);
   assert.deepEqual(offenders, []);
 });
 
@@ -521,7 +533,9 @@ test('every shader that samples albedo decodes it from sRGB', async () => {
   // The check that catches the one shader somebody forgets. BroMetal has no sRGB texture format, so
   // the decode cannot be delegated to the sampler.
   const missing = [];
+  let scanned = 0;
   for (const relative of ALBEDO_SHADERS) {
+    scanned += 1;
     const text = await readFile(path.join(demosRoot, relative), 'utf8');
     if (!/function decodeSrgb/.test(text)) {
       missing.push(`${relative}: no decodeSrgb helper`);
@@ -535,20 +549,38 @@ test('every shader that samples albedo decodes it from sRGB', async () => {
       .some(([, name]) => new RegExp(`decodeSrgb\\(${name}\\.xyz\\)`).test(text));
     if (!direct && !viaBinding) missing.push(`${relative}: helper present but never applied to a sample`);
   }
+  assert.equal(scanned, ALBEDO_SHADERS.length, 'every listed albedo shader must be read');
   assert.deepEqual(missing, []);
 });
 
 test('no data texture is put through the colour decode', async () => {
+  // Normal, ARM, roughness, AO, shadow and scene-target samples are already linear; decoding them
+  // corrupts them.
+  //
+  // This used to match only `decodeSrgb(texture(uArm` — the single-expression form. The two-step
+  // form is the one the test twenty lines above explicitly blesses for samplers whose alpha is
+  // needed, and it is what several shaders actually use, so the codebase's own preferred idiom was
+  // the blind spot.
   const offenders = [];
+  let scanned = 0;
   for (const slug of ANTIKY_DEMOS) {
     for (const shader of await shaderSources(slug)) {
+      scanned += 1;
       for (const sampler of LINEAR_SAMPLERS) {
         if (new RegExp(`decodeSrgb\\(texture\\(${sampler}\\b`).test(shader.text)) {
           offenders.push(`${shader.relative}: ${sampler} holds data, not colour`);
+          continue;
+        }
+        // `const n = texture(uNormalMap, uv); ... decodeSrgb(n.xyz)`
+        for (const [, name] of shader.text.matchAll(new RegExp(`const (\\w+) = texture\\(${sampler}\\b`, 'g'))) {
+          if (new RegExp(`decodeSrgb\\(\\s*${name}\\s*\\.`).test(shader.text)) {
+            offenders.push(`${shader.relative}: ${sampler} decoded via \`${name}\` — it holds data, not colour`);
+          }
         }
       }
     }
   }
+  assert.ok(scanned >= 20, `expected to scan every demo shader, scanned ${scanned}`);
   assert.deepEqual(offenders, []);
 });
 
@@ -615,14 +647,25 @@ test('every GLB packing script enforces the shared fidelity policy', async () =>
 
   // Three scripts, three kits, one policy. They stay separate because they process genuinely
   // different sources; what they must agree on is which attributes and material maps survive.
-  const enforcing = [];
-  for (const script of await assetScripts()) {
-    if (/checkFidelity\(/.test(script.text)) enforcing.push(script.relative);
+  // Named, not counted. `>= 2` was the number that happened to pass, and it let
+  // `combat-arena/scripts/intake-quaternius-ships.mjs` — which writes the ship GLBs — sit outside
+  // the policy entirely while the test reported convergence.
+  const MUST_ENFORCE = Object.freeze([
+    'antiky/combat-arena/scripts/intake-quaternius-ships.mjs',
+    'antiky/point-light-expo/scripts/gltf-pack-lib.mjs',
+    'antiky/traversal-study/scripts/normalize-quaternius.mjs',
+  ]);
+  const scripts = await assetScripts();
+  assert.ok(scripts.length >= 5, `expected to scan the asset scripts, found ${scripts.length}`);
+  const missing = [];
+  for (const relative of MUST_ENFORCE) {
+    const script = scripts.find((candidate) => candidate.relative === relative);
+    assert.ok(script, `${relative} is gone — update this list or restore the script`);
+    // Comments are stripped: a script that only mentions the policy in prose is not enforcing it.
+    const code = script.text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    if (!/checkFidelity\(/.test(code)) missing.push(relative);
   }
-  assert.ok(
-    enforcing.length >= 2,
-    `expected the packing scripts to import the shared policy, found: ${enforcing.join(', ') || 'none'}`,
-  );
+  assert.deepEqual(missing, [], 'these scripts write GLBs without enforcing the shared fidelity policy');
 
   // antiky-town is excluded on purpose, and this asserts the exclusion is a decision rather than an
   // oversight: it has no asset script at all, so there is nothing to hold to the policy.
