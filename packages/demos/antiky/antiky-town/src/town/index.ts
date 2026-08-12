@@ -680,7 +680,21 @@ async function createTownRuntime(
   postProgram.uniforms.uBloomKnee.set(0.2);
   postProgram.uniforms.uBloomStrength.set(mode === 'ambient' ? 0.075 : 0.05);
   postProgram.uniforms.uBloomTint.set([1, 0.63, 0.34]);
-  postProgram.uniforms.uExposure.set(1.1);
+  // Re-derived after the sRGB decode landed, not re-tuned by eye.
+  //
+  // The old 1.1 was calibrated against a scene whose albedo was never decoded, so every texel
+  // arrived roughly 2.2x too bright in linear terms and the exposure was pulled down to compensate.
+  // Decoding correctly dropped the median frame luminance from 0.086 to 0.0615, a 28.5% loss that
+  // was the compensation coming off.
+  //
+  // 1.45 puts the median back at 0.0859 — the brightness the scene was authored to — while the
+  // colour maths underneath it is now right. Measured across a sweep: 1.45 -> p50 0.0859,
+  // 1.8 -> 0.111, 2.2 -> 0.141, with no highlight clipping at any of them.
+  //
+  // Deliberately NOT raised to 1.8, which is what it would take to clear the 8.5 local-contrast
+  // budget. That would make the town brighter than it was ever authored to be in order to satisfy a
+  // threshold the agent proposed rather than the owner set. See M1 on the revisit register.
+  postProgram.uniforms.uExposure.set(1.45);
   postProgram.uniforms.uSaturation.set(1.07);
   postProgram.uniforms.uContrast.set(1.02);
   postProgram.uniforms.uGradeStrength.set(0.16);

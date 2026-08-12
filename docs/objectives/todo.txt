@@ -11,32 +11,41 @@ x research - AOT WSGL compilers and renderer benchmarks (see https://github.com/
 x website - move port to soemthing other than 3010
 x studio - add project open/recent settings on already open project
 x website - fix what codex messed up with demos and stuff (arena is not an arena???)
-\ tooling - create skill library
+x tooling - create skill library (initial)
+x repo health - add agent skill ASD-STE100
+x tooling - motion measurement
 \ demos - fix up demos to be better quality
 \ website - review all marketing and website changes.
-\ repo health - add agent skills repo (brometal, antiky, game dev, studio, mcp, etc...) how to work with and use stuff.
-studio - add full screen game
+\ studio - add full screen game
+\ studio - add make panels resizeable
+skills - add user documentation skill - diataxis.fr
 studio - fix status bar and duplicate information
 studio - fix unable to pause game
 studio - fix terminal bug on codex /exit causes weird execute problems
-studio - add make panels resizeable
 repo health - setup release and versioning and packaging github actions
-repo health - add agent skill ASD-STE100
-repo health - add agent skill diataxis.fr
-framework - add nexus and rapier objects
-framework - add nexus -> brometal pipeline
+docs - run over user docs and validate everything is good to go
+-- release v0.1.0
+tooling - enable code mode for mcp
+tooling - motion measurement interpretation
 framework - finish porting brometal demo to antiky
 studio - add studio click on scene and comment
 studio - add studio attach/detach
+skills - add agent skills repo (brometal, antiky, game dev, studio, mcp, etc...) how to work with and use stuff.
+-- release v0.2.0
 framework - add input capture and controls
 framework - add sprite animation and character movement timings
 framework - add sprite flipbook first class object
 framework - add field of view control
 framework - add vignettee control
-marketing - documents getting started tutorial, build a game
+-- release v0.3.0
 studio - add asset browser
 studio - add sprite editor
 studio - add flipbook editor
 studio - add object properties
+-- release v0.4.0
+marketing - documents getting started tutorial, build a game
+framework - add nexus and rapier objects
+framework - add nexus -> brometal pipeline
+
 antiky - marketing - find open source threejs or brometal games and redo in antiky
 marketing - setup awesome-antiky and awesome-brometal

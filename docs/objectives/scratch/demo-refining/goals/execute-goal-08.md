@@ -194,6 +194,13 @@ shadow pass, ideally with a penumbra that grows with receiver distance, is cheap
 frame. This is a change to the shadow lookup only — the shadow pass, its target and its resolution
 switch all stay.
 
+> **The grade exclusion below was written against a capture that no longer exists.** Goal 04 added
+> the sRGB decode, which dropped `antiky-town`'s median frame luminance 28.5% because the old
+> exposure of 1.1 had been calibrated against undecoded albedo. Exposure was re-derived to 1.45 in
+> goal 04's follow-up, restoring the authored median of ~0.086 with the colour maths now correct.
+> **That correction is done.** The exclusion still stands for everything else listed here — it is a
+> ban on art-directing the grade, not on repairing a compensation that came off.
+
 **What `antiky-town` does not need, and must not receive.** No sky replacement, no fog or aerial
 perspective rework, no composition or camera pass, no value-range widening, no colour-grade rewrite,
 no triplanar material reassignment on the voxel surface, props, awnings or buildings, and no new

@@ -51,6 +51,17 @@ demo the packets are strictly serial.
 
 When the work is complete, all three demos must have:
 
+> **Half of W B.1 already landed.** Goal 04 added the sRGB decode on albedo sample across all ten
+> texture-sampling shaders in the four Antiky demos, with `pipeline-invariants.test.mjs` asserting
+> every albedo sampler decodes, no data texture is decoded, and every copy of the helper is
+> identical. **What remains here is the encode on output.** Do not re-add the decode.
+>
+> Note what that leaves behind: `antiky-town` already encodes (`town-post.shader.ts:268`) so it is
+> correct end to end, but the other three demos have no post pass and therefore no encode at all.
+> They are currently decoded-but-not-encoded, which is why they measure darker than before goal 04
+> — combat-arena p95 0.101 -> 0.081, point-light-expo 0.090 -> 0.050, traversal-study 0.400 -> 0.258.
+> That is the cancellation described below coming apart, and closing it is this packet's job.
+
 1. **W B.1 — managed colour.** sRGB decode on albedo sample, lighting in linear, one encode on
    output, matching the reference. Colour-pipeline unit test per demo.
 2. **W B.2 — one HDR RGBA16F scene target and exactly one tone-map** in a post pass. For
