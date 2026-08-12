@@ -91,6 +91,44 @@ alpha cards — not a lighting one, so they belong to the foliage and art-direct
 worse.** A budget number moving up is not on its own evidence that a change helped, which is now a
 row on the register against M1.
 
+## The camera shake report, second pass
+
+The owner reported after the rebuild that the camera *"still shakes uncomfortably on a regular
+interval (reacting to something in the game)"*. Measuring against the real simulation rather than
+the synthetic impact model showed **the trauma shake was not the cause** — it fires on 1.4% of
+frames and spans 0.044 units.
+
+The cause was that **the camera had no smoothing of any kind**. Every term was read straight from
+the current snapshot and assigned, including `threatLead`, which tracks the highest-priority enemy
+and is clamped to +/-0.82. When that enemy died or another began telegraphing, the look-at target
+teleported: **0.4046 units in a single frame, 24 units per second of instantaneous travel**, against
+a mean step of 0.004. Enemies telegraph on a cadence, so the flinch arrived on a beat — exactly what
+was reported.
+
+Two changes, because the snap had two halves:
+
+- **Ease the camera towards its desired pose** instead of assigning it, exponentially so the result
+  does not depend on frame rate. The rate is set from a stated feel — half the gap in about a tenth
+  of a second — rather than tuned until a threshold passed.
+- **Make the threat choice sticky.** A rival now has to beat the held enemy by a clear margin. Easing
+  smooths a switch; hysteresis stops the camera trading between two similarly-ranked enemies at all.
+
+Shake is applied **after** easing, at full strength, so smoothing cannot turn a punch into a wobble.
+
+| Measure | Before | After |
+|---|---|---|
+| Largest single-frame move of the look-at target | 0.4046 | 0.0466 |
+| Frames moving more than 0.05 | 21 of 1799 | 0 |
+| 99th-percentile frame step | 0.0570 | 0.0259 |
+
+A second test guards the opposite failure: smoothing hard enough to remove the snap can also stop
+the camera following the fight, so the path's spread is asserted too.
+
+**This is a lesson about the measurement, not just the camera.** The original camera tests drove a
+synthetic impact function and all passed. The defect only appears when enemies are actually dying
+and telegraphing, which is why the new tests drive the real simulation. A model of the input can
+agree with itself and still miss the bug.
+
 ## Town work, reported separately
 
 The goal asked for this not to be absorbed silently. `antiky-town` took: the near-plane correction at

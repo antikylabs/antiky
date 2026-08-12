@@ -15,9 +15,11 @@ import {
  * Named `.test.mjs` rather than `.test.ts` so the demo's own `tests/*.test.ts` glob does not pick
  * it up: `npm test` must stay green as a regression gate. Run it with `npm run demos:verify`.
  *
- * **These tests fail against the current camera, on purpose.** They encode the three defects the
- * owner reported as "shakes and judders a lot, it's too much", and goal 03 is what turns them
- * green. A test that passed today would be measuring nothing.
+ * These began as a failing contract: they encoded the three defects the owner reported as "shakes
+ * and judders a lot, it's too much". Goal 03 turned them green, so the file is now part of
+ * `npm test` as a regression gate rather than only `npm run demos:verify`. A later report — that
+ * the camera still flinched on a regular beat — added the two tests at the foot of this file, which
+ * turned out to be a different defect entirely.
  *
  * No browser, no GPU, no capture: every visible camera value is a pure function of the simulation
  * snapshot and `state.time`, so the whole camera path is computable by driving the projector
