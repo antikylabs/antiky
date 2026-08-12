@@ -7,7 +7,7 @@
 > | --- | --- | --- |
 > | [05-01](execute-goal-05-01.md) | Finish the ambient work — **`traversal-study` and `antiky-town` done**; only `combat-arena` left, and it needs an owner decision, not code | rest of 4 |
 > | ~~[05-02](execute-goal-05-02.md)~~ | **Done.** AC-M2 green, both kits read their material table | 7 |
-> | [05-03](execute-goal-05-03.md) | Real materials from the catalog — **largest by far** | 6, intake |
+> | [05-03](execute-goal-05-03.md) | Real materials from the catalog — **largest by far, and blocked**: no catalog entry carries a download descriptor | 6, intake |
 > | [05-04](execute-goal-05-04.md) | The VFX pass — **item 8 done, AC-V4 satisfied**; items 2 and the rest of 9 remain | 2, rest of 9 |
 >
 > The sections below are the original goal, kept intact because the four steps reference it. The

@@ -17,6 +17,39 @@ Bind real Poly Haven material sets — albedo, normal, ARM — to the surfaces n
 `../03-ART-DIRECTION-AND-VFX.md:356-362`, sampled triplanar where the geometry has no UVs worth
 keeping and through UVs where it does.
 
+## Read this before planning: the intake path does not work as described
+
+Goal 05 says to "install the material slugs ... hash-verified through the installer's existing MD5
+path (`packages/asset-catalog/src/node/install.ts:45-63`)". That installer reads a `downloads` array
+off each catalog entry — per-file URL, size and hash — and refuses anything that does not match.
+
+**No catalog entry has one.** Measured across `packages/asset-catalog/data/poly-haven.generated.json`:
+
+| kind | entries | with a non-empty `downloads` |
+| --- | --- | --- |
+| texture | 332 | **0** |
+| hdri | 332 | **0** |
+| model | 331 | **0** |
+
+Every entry carries the key and every one is an empty array. So `installCatalogAsset` cannot fetch a
+single asset in the catalog as it stands: there is nothing for it to fetch, and the size and hash
+checks it exists to perform have no inputs.
+
+`point-light-expo`'s `forest-floor` receipt predates this and its slug is not in the generated
+catalog at all, so it is not a counter-example — it is evidence the generator's output changed shape
+at some point and nothing noticed.
+
+**This is the first task of this step, and it is not a material task.** Either the catalog generator
+needs to populate `downloads` from Poly Haven's file API, or the intake needs its own fetch path with
+its own verification. Until one of those exists, AC-M4 — "at least one Poly Haven texture receipt
+with all four maps present and hash-verified" — cannot be satisfied for any demo by any amount of
+shader work.
+
+Worth noting what *did* work while this was being established: `bake-sh9-irradiance.mjs` fetches
+HDRIs directly from `dl.polyhaven.org` using the upstream id, verifies nothing, and is fine for a
+bake whose output is 27 committed floats. That is not a template for shipping texture assets, but it
+does prove the URLs are predictable and reachable.
+
 ## Required outcome
 
 1. **Catalog intake.** Install the material slugs at `../03-ART-DIRECTION-AND-VFX.md:364-412`, all
