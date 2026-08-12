@@ -131,6 +131,12 @@ export async function sourceDigest(directory) {
   };
   await walk(path.join(directory, 'src'));
   await walk(path.join(directory, 'assets'));
+  // The shared code every demo renders through. Changing `FIXED_STEP_SECONDS` in the framework
+  // alters what every capture would show, and left the digest untouched — a boundary drawn at the
+  // demo folder misses the thing they all depend on.
+  const repositoryRoot = path.resolve(path.dirname(directory), '..', '..', '..');
+  await walk(path.join(repositoryRoot, 'packages', 'framework', 'src'));
+  await walk(path.join(repositoryRoot, 'packages', 'demos', 'scripts'));
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     if (!entry.isFile()) continue;
     if (entry.name.endsWith('.antiky') || entry.name === 'vite.config.ts' || entry.name === 'package.json') {
@@ -183,7 +189,24 @@ export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, sou
   return { ...sidecar, seal: sealMetrics(sidecar) };
 }
 
-/** A digest of the measured values, so a hand-edited number stops matching. */
+/**
+ * A digest of the measured values, so a hand-edited number stops matching.
+ *
+ * This is deliberately not a secret. Anyone can call it and re-seal an edited file, which an audit
+ * duly did — so on its own it stops a careless edit, not a determined one.
+ *
+ * **What it is and is not.** It is a tripwire against carelessness: opening the file and typing a
+ * bigger number to pass a budget no longer works, and that was a two-second edit that looked like a
+ * result. It is not a control against intent — calling this function again re-seals whatever you
+ * wrote.
+ *
+ * It cannot be made into one here, and the reason is worth stating rather than papering over.
+ * Closing it would mean committing the captured frame so a budget could recompute its own numbers,
+ * and `scripts/repository-policy.test.mjs` asserts that capture evidence is never tracked. So the
+ * honest boundary is: the seal plus `source.digest` catch an edited measurement and a stale one.
+ * Neither catches someone who captures legitimately, edits the number, and re-seals. If that
+ * matters, the fix is a trusted capture step, not a longer hash.
+ */
 export function sealMetrics(sidecar) {
   const { seal, capturedAt, ...measured } = sidecar;
   return createHash('sha256').update(JSON.stringify(measured)).digest('hex').slice(0, 16);

@@ -86,6 +86,14 @@ fn practicalRadiance(world : vec3f, normal : vec3f, ao : f32, posInvRangeSq : ve
   let wrappedDiffuse = 0.18 + 0.82 * max(dot(normal, normalize(toLight)), 0.0);
   return colorPower.xyz * (colorPower.w * attenuation * wrappedDiffuse * (0.55 + 0.45 * ao) * lobe);
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -224,7 +232,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let atlasColumn = ((atlasTile) - (4.0) * floor((atlasTile) / (4.0)));
   let atlasRow = floor(atlasTile / 4.0);
   let atlasUv = vec2f((atlasColumn + surfaceUv.x) / 4.0, (2.0 - atlasRow + surfaceUv.y) / 3.0);
-  let materialSample = textureSample(uMaterialAtlas, uMaterialAtlas_sampler, atlasUv).xyz;
+  let materialSample = decodeSrgb(textureSample(uMaterialAtlas, uMaterialAtlas_sampler, atlasUv).xyz);
   let sampleLuma = max(dot(materialSample, vec3f(0.299, 0.587, 0.114)), 0.08);
   let microValue = clamp(1.0 + (sampleLuma - 0.5) * 0.82, 0.62, 1.4);
   let microChroma = materialSample * (1.0 / sampleLuma);

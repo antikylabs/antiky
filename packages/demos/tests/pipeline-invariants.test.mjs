@@ -8,7 +8,6 @@ import {
   discoverAssetScripts,
   discoverDemoSources,
   discoverDemos,
-  discoverShaderSources,
   discoverShaders,
 } from './shader-graph.mjs';
 // One definition, imported rather than restated. It existed as three unrelated literals — here, in
@@ -80,6 +79,14 @@ const SAMPLER_EXCEPTIONS = Object.freeze({
   'antiky/antiky-town/src/town/shaders/town-foliage-shadow.shader.gen.ts': { uAtlas: 'mask' },
   // UI drawn over the scene and shown as authored, not lit.
   'antiky/point-light-expo/src/shaders/onboarding.shader.gen.ts': { uAtlas: 'authored' },
+  // `town-study` is the Framework-free twin of `antiky-town` and ships the same shaders against the
+  // same atlases, so it carries the same exceptions for the same reasons. It was outside every
+  // invariant here until discovery covered all three demo categories, and was found to be sampling
+  // its material atlas with no sRGB decode at all — a live defect, now fixed.
+  'brometal/town-study/src/town/shaders/town-sprite.shader.gen.ts': { uAtlas: 'authored' },
+  'brometal/town-study/src/town/shaders/town-sprite-shadow.shader.gen.ts': { uAtlas: 'mask' },
+  'brometal/town-study/src/town/shaders/town-prop-shadow.shader.gen.ts': { uAtlas: 'mask' },
+  'brometal/town-study/src/town/shaders/town-foliage-shadow.shader.gen.ts': { uAtlas: 'mask' },
 });
 
 function roleOf(shader, texture) {
@@ -95,9 +102,6 @@ async function allShaders() {
   assert.ok(shaders.length >= 25, `expected to find the demos' shaders, found ${shaders.length}`);
   return shaders;
 }
-
-
-
 
 /**
  * Every GLB a demo ships, read as data rather than inferred from the script that made it.
@@ -343,44 +347,6 @@ test('no camera wastes depth precision on an extreme far/near ratio', async () =
 });
 
 /**
- * A shader satisfies the "one sun" and "one fog" rules in one of two ways: it reads a shared
- * uniform, which is one value by construction, or it hard-codes a literal that every other shader
- * in the demo must match.
- *
- * The first version of these tests only knew about literals. `antiky-town` drives its sun from
- * `uLightDir` and `point-light-expo` drives fog from `uFogStart`/`uFogEnd` — both correct — so the
- * regexes matched zero shaders in the two largest demos, and `size > 1` cannot fire on an empty
- * map. The two demos with the most shaders were the two being checked least.
- *
- * That also made the tests actively misleading: their own failure message tells you to move to a
- * shared constant, and doing so used to delete the check.
- */
-/**
- * `point-light-expo` is exempt from the key-light rule, by design rather than by omission: it is a
- * point-light demo and has no directional sun at all — everything is lit by `pointRadiance` from
- * `uEmberPosition`, `uIonPosition` and `uVioletPosition`. Naming the exemption means a demo that
- * loses its sun by accident is still caught.
- */
-const DEMOS_WITHOUT_A_KEY_LIGHT = Object.freeze(['point-light-expo']);
-
-function classifyLighting(text) {
-  const literals = [...text.matchAll(/const\s+(?:key|sun|light|keyLight|sunDirection)\s*=\s*normalize\(vec3\(([^)]*)\)\)/gi)]
-    .map((match) => match[1].split(',').map((part) => part.trim()).join(', '));
-  const usesUniform = /\buLightDir\b|\buSunDirection\b/.test(text);
-  return { literals, usesUniform };
-}
-
-function classifyFog(text) {
-  const literals = [...text.matchAll(/smoothstep\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*length\(uCameraPosition/g)]
-    .map((match) => `${match[1]}..${match[2]}`);
-  const usesUniform = /smoothstep\(\s*uFog(?:Start|Near)\s*,\s*uFog(?:End|Far)\s*,/.test(text)
-    || /\buFogStart\b/.test(text);
-  return { literals, usesUniform };
-}
-
-
-
-/**
  * Names the complexity audit proved dead and this objective deleted.
  *
  * A deletion without a guard comes back: the next agent to touch the file sees a uniform its
@@ -427,35 +393,12 @@ test('the batch factories expose one instance writer, not two', async () => {
 });
 
 /**
- * Shaders that sample an albedo texture and therefore must decode sRGB, against those that sample
- * data — normal, ARM, roughness, shadow and scene-target reads are already linear and decoding them
- * would corrupt them.
- */
-const ALBEDO_SHADERS = Object.freeze([
-  'antiky/combat-arena/src/shaders/arena-model.shader.ts',
-  'antiky/combat-arena/src/shaders/ship-model.shader.ts',
-  'antiky/traversal-study/src/shaders/traversal-model.shader.ts',
-  'antiky/point-light-expo/src/shaders/reliquary-model.shader.ts',
-  'antiky/point-light-expo/src/shaders/reliquary-floor.shader.ts',
-  'antiky/antiky-town/src/town/shaders/town-voxel.shader.ts',
-  'antiky/antiky-town/src/town/shaders/town-awning.shader.ts',
-  'antiky/antiky-town/src/town/shaders/town-prop.shader.ts',
-  'antiky/antiky-town/src/town/shaders/town-foliage.shader.ts',
-]);
-
-/**
  * The antiky-town actor atlas is deliberately absent from the list above. It is hand-painted pixel
  * art whose shading is already in the paint — median luminance 45 against 80/69/83 for the demo's
  * three material atlases — so decoding it treats appearance as reflectance and crushes every
  * townsperson to orange-brown. The reasoning is written out at the sample site in
  * town-sprite.shader.ts.
  */
-
-/** Samplers that carry data rather than colour. Decoding any of these is a defect. */
-const LINEAR_SAMPLERS = Object.freeze(['uShadowMap', 'uNormalMap', 'uArm', 'uRoughness', 'uAo', 'uScene']);
-
-
-
 
 test('the decode matches the sRGB standard at its defining points', () => {
   // The maths the shaders run, checked against the analytic curve. If this is wrong, every demo is
@@ -593,6 +536,40 @@ test('every mipped atlas declares a gutter and is sampled inside it', async () =
       atlases += 1;
 
       const relative = path.relative(demosRoot, descriptorPath);
+      // A declared gutter is checked against the image, not taken on trust. `"gutter": 8` typed into
+      // the JSON with the pixels untouched turned this test green while every tile still sat
+      // edge-to-edge — a self-certifying field is not a measurement.
+      if (descriptor.gutter !== undefined && descriptor.gutter > 0) {
+        const image = path.join(path.dirname(descriptorPath), descriptor.image);
+        const sharp = (await import('sharp')).default;
+        const { data, info } = await sharp(image).raw().toBuffer({ resolveWithObject: true });
+        const tileWidth = info.width / descriptor.grid.columns;
+        const at = (x, y) => {
+          const index = (y * info.width + x) * info.channels;
+          return [data[index], data[index + 1], data[index + 2]];
+        };
+        // Inside a real gutter the edge colour is extruded, so pixels either side of a tile boundary
+        // belong to their own tile and barely differ from their inward neighbour.
+        let abrupt = 0;
+        let sampled = 0;
+        for (let column = 1; column < descriptor.grid.columns; column += 1) {
+          const boundary = Math.round(column * tileWidth);
+          for (let y = 20; y < info.height - 20; y += 8) {
+            const inside = at(boundary - 1, y);
+            const outside = at(boundary, y);
+            const change = Math.max(...[0, 1, 2].map((c) => Math.abs(inside[c] - outside[c])));
+            sampled += 1;
+            if (change > 24) abrupt += 1;
+          }
+        }
+        if (sampled > 0 && abrupt / sampled > 0.1) {
+          failures.push(
+            `${relative}: declares a gutter of ${descriptor.gutter} but `
+            + `${((abrupt / sampled) * 100).toFixed(0)}% of its tile boundaries change abruptly — `
+            + 'the pixels were never extruded.',
+          );
+        }
+      }
       if (descriptor.gutter === undefined) {
         failures.push(
           `${relative}: no gutter declared. Its ${descriptor.grid.columns}x${descriptor.grid.rows} `

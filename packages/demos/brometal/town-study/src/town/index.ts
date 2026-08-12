@@ -730,7 +730,7 @@ async function createTownRuntime(
   });
   const actorBatch = new SpriteBatch(actorAtlas, 1 + npcs.length);
 
-  const camera = createCamera({ fovY: 0.56, near: 0.32, far: FAR_DEPTH });
+  const camera = createCamera({ fovY: 0.56, near: 0.36, far: FAR_DEPTH });
   const cameraPosition = new Float32Array(3);
   const billboardRight = new Float32Array(3);
   const billboardUp = new Float32Array(3);
@@ -822,7 +822,7 @@ async function createTownRuntime(
         camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
         camera.lookAt(pose.target![0], pose.target![1], pose.target![2]);
       }
-      camera.setLens({ fovY: pose.fovY, near: 0.32, far: FAR_DEPTH });
+      camera.setLens({ fovY: pose.fovY, near: 0.36, far: FAR_DEPTH });
       const viewProjection = camera.viewProjection(renderer.aspect);
       billboardBasis(camera.view(), billboardRight, billboardUp, 0.32);
       const slotZeroPower = updatePracticalLights(simulationTime, pose.mobile);

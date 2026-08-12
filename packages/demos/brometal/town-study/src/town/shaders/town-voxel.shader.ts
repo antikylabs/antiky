@@ -58,6 +58,36 @@ function practicalRadiance(
  * The shadow map stores packed normalized light depth in RG; it must be rendered
  * by town-shadow.shader.ts into a depth-enabled target cleared to [1,1,1,1].
  */
+/**
+ * sRGB to linear, applied when an albedo texture is sampled.
+ *
+ * BroMetal exposes no sRGB texture format — everything uploads as `rgba8unorm` — so a sampled albedo
+ * texel arrives holding display-encoded values. Lighting maths on those is wrong: mid-tones come out
+ * too dark, which then gets compensated by over-bright lights, and the error compounds through every
+ * term downstream. This is the sample-side half of colour management; encoding once on output is the
+ * other half and belongs to the post pass.
+ *
+ * Only albedo goes through here. Normal maps, ARM and roughness maps, shadow maps and scene targets
+ * already hold linear data, and decoding those would corrupt them.
+ *
+ * The piecewise curve rather than the 2.2 approximation: they differ most below 0.04045, which is
+ * exactly where these dark scenes spend their time.
+ *
+ * Declared in every shader that needs it rather than imported. The BroMetal MVP resolves only
+ * "module-level helper functions declared above their first use" — an imported helper fails to
+ * compile. `pipeline-invariants.test.mjs` asserts every copy is identical.
+ */
+function channelToLinear(channel: number): number {
+  const low = channel / 12.92;
+  const high = pow((channel + 0.055) / 1.055, 2.4);
+  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
+  return mix(low, high, step(0.04045, channel));
+}
+
+function decodeSrgb(color: Vec3): Vec3 {
+  return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
+
 export default shader({
   attributes: {
     aPosition: 'vec3',
@@ -252,7 +282,7 @@ export default shader({
       (atlasColumn + surfaceUv.x) / 4,
       (2 - atlasRow + surfaceUv.y) / 3,
     );
-    const materialSample = texture(uMaterialAtlas, atlasUv).xyz;
+    const materialSample = decodeSrgb(texture(uMaterialAtlas, atlasUv).xyz);
     const sampleLuma = max(dot(materialSample, vec3(0.299, 0.587, 0.114)), 0.08);
     const microValue = clamp(1 + (sampleLuma - 0.5) * 0.82, 0.62, 1.4);
     const microChroma = materialSample.scale(1 / sampleLuma);

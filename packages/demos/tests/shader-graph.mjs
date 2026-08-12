@@ -44,26 +44,28 @@ async function walk(directory, accept) {
  * A demo is a directory holding a `*.antiky` file — the same thing the CLI and the website use to
  * identify one, so a demo cannot exist for the runtime and not for these tests.
  */
-export async function discoverDemos(category = 'antiky') {
-  const root = path.join(demosRoot, category);
+export async function discoverDemos(categories = ['antiky', 'brometal', 'threejs']) {
   const demos = [];
-  let entries;
-  try {
-    entries = await readdir(root, { withFileTypes: true });
-  } catch {
-    return demos;
-  }
-  for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
-    if (!entry.isDirectory()) continue;
-    const directory = path.join(root, entry.name);
-    const manifests = (await readdir(directory)).filter((name) => name.endsWith('.antiky'));
-    if (manifests.length === 0) continue;
-    demos.push({
-      slug: entry.name,
-      category,
-      directory,
-      manifest: path.join(directory, manifests[0]),
-    });
+  for (const category of categories) {
+    const root = path.join(demosRoot, category);
+    let entries;
+    try {
+      entries = await readdir(root, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
+      if (!entry.isDirectory()) continue;
+      const directory = path.join(root, entry.name);
+      const manifests = (await readdir(directory)).filter((name) => name.endsWith('.antiky'));
+      if (manifests.length === 0) continue;
+      demos.push({
+        slug: entry.name,
+        category,
+        directory,
+        manifest: path.join(directory, manifests[0]),
+      });
+    }
   }
   return demos;
 }
@@ -88,7 +90,14 @@ export function parseGeneratedShader(relative, source) {
 
   // Statements, in order. This compiler emits straight-line `let name = expr;`, so following a
   // value is a forward pass rather than a real dataflow problem.
-  const statements = [...wgsl.matchAll(/\blet\s+(\w+)\s*=\s*([^;]*);/g)]
+  // Both binding forms. A TypeScript `let` compiles to a WGSL `var`, and the shipped shaders already
+  // contain dozens of them — reading only `let` silently dropped those values out of the analysis,
+  // so an sRGB decode applied to a normal map went unnoticed.
+  const statements = [...wgsl.matchAll(/\b(?:let|var)\s+(\w+)\s*(?::\s*[\w<>]+\s*)?=\s*([^;]*);/g)]
+    .map(([, name, expression]) => ({ name, expression }));
+
+  // Assignments after the fact, so a value routed through a mutable accumulator is still followed.
+  const reassignments = [...wgsl.matchAll(/^\s*(\w+)\s*=\s*([^;]*);/gm)]
     .map(([, name, expression]) => ({ name, expression }));
 
   /**
@@ -110,24 +119,54 @@ export function parseGeneratedShader(relative, source) {
     }
     return found;
   };
-  for (const statement of statements) {
-    const from = sources(statement.expression);
-    if (from.size > 0) tainted.set(statement.name, from);
+  // Two passes, because a later statement can taint a name an earlier one already used.
+  for (let pass = 0; pass < 2; pass += 1) {
+    for (const statement of [...statements, ...reassignments]) {
+      const from = sources(statement.expression);
+      if (from.size === 0) continue;
+      const existing = tainted.get(statement.name) ?? new Set();
+      for (const texture of from) existing.add(texture);
+      tainted.set(statement.name, existing);
+    }
   }
+
+  /**
+   * Whether a value survives to the fragment's return, rather than merely existing.
+   *
+   * Presence is not use. `raw * tint + decodeSrgb(raw) * 0.0` contains a correct decode that the GPU
+   * discards, and a check that only looked for the call reported success while the albedo shipped
+   * undecoded.
+   */
+  const survives = (name) => {
+    const live = new Set([name]);
+    for (let pass = 0; pass < 4; pass += 1) {
+      for (const statement of [...statements, ...reassignments]) {
+        if ([...live].some((held) => new RegExp(`\\b${held}\\b`).test(statement.expression))) {
+          live.add(statement.name);
+        }
+      }
+    }
+    // Anything the fragment returns, or writes into its output struct.
+    const returns = [...wgsl.matchAll(/return\s+([^;]*);/g)].map(([, value]) => value).join(' ');
+    const outputs = [...wgsl.matchAll(/bm_out\.\w+\s*=\s*([^;]*);/g)].map(([, value]) => value).join(' ');
+    const tail = `${returns} ${outputs}`;
+    return [...live].some((held) => new RegExp(`\\b${held}\\b`).test(tail));
+  };
 
   /** Every texture whose sampled value reaches the given function, however many hops away. */
   const reaches = (fn) => {
     const result = new Set();
     const pattern = new RegExp(`\\b${fn}\\s*\\(`);
-    for (const statement of statements) {
+    for (const statement of [...statements, ...reassignments]) {
       if (!pattern.test(statement.expression)) continue;
-      // Only the arguments of that call matter, not the rest of the statement.
+      // The call's arguments, and only if what it produces is still alive at the return.
       const at = statement.expression.search(pattern);
       const tail = statement.expression.slice(at);
+      if (!survives(statement.name)) continue;
       for (const texture of sources(tail)) result.add(texture);
     }
-    // Also catch a direct `return f(textureSample(...))` with no binding at all.
-    for (const match of wgsl.matchAll(new RegExp(`\\b${fn}\\s*\\(([^;]*)`, 'g'))) {
+    // A direct `return f(textureSample(...))` with no binding at all.
+    for (const match of wgsl.matchAll(new RegExp(`return[^;]*\\b${fn}\\s*\\(([^;]*)`, 'g'))) {
       for (const texture of sources(match[1])) result.add(texture);
     }
     return result;
@@ -147,6 +186,7 @@ export function parseGeneratedShader(relative, source) {
     samples,
     sampledTextures: [...new Set(samples.map((sample) => sample.texture))],
     reaches,
+    survives,
     functions: [...wgsl.matchAll(/fn (\w+)\s*\(/g)].map(([, name]) => name),
     calls: (name) => new RegExp(`\\b${name}\\s*\\(`).test(wgsl),
   };
@@ -154,7 +194,9 @@ export function parseGeneratedShader(relative, source) {
 
 /** Every compiled shader a demo ships, keyed by demo. */
 export async function discoverShaders(demo) {
-  const files = await walk(path.join(demo.directory, 'src'), (name) => name.endsWith('.shader.gen.ts'));
+  // The whole demo, not just `src`. A shader moved one directory sideways was invisible to every
+  // invariant here while still being imported and shipped.
+  const files = await walk(demo.directory, (name) => name.endsWith('.shader.gen.ts'));
   const shaders = [];
   for (const file of files) {
     const relative = path.relative(demosRoot, file);
@@ -166,7 +208,7 @@ export async function discoverShaders(demo) {
 /** Every hand-written shader source, for the few checks that genuinely concern authoring. */
 export async function discoverShaderSources(demo) {
   const files = await walk(
-    path.join(demo.directory, 'src'),
+    demo.directory,
     (name) => name.endsWith('.shader.ts') && !name.endsWith('.shader.gen.ts'),
   );
   const sources = [];

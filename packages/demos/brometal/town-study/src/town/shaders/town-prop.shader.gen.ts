@@ -58,6 +58,14 @@ fn specGGX(normal : vec3f, lightDir : vec3f, viewDir : vec3f, roughness : f32) -
   let ndotl = max(dot(n, normalize(lightDir)), 0.0);
   return ndf * ndotl * 0.25;
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -88,7 +96,8 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
 }
 @fragment
 fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
-  let texel = textureSample(uAtlas, uAtlas_sampler, bm_in.vUv);
+  let encoded = textureSample(uAtlas, uAtlas_sampler, bm_in.vUv);
+  let texel = vec4f(decodeSrgb(encoded.xyz), encoded.w);
   if (texel.w < bm_u.uCutoff) {
     discard;
   }

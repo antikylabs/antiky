@@ -48,6 +48,14 @@ struct BmVSOut {
   @location(4) vSide : f32,
   @location(5) vDepth : f32,
 }
+fn channelToLinear(channel : f32) -> f32 {
+  let low = channel / 12.92;
+  let high = pow((channel + 0.055) / 1.055, 2.4);
+  return mix(low, high, step(0.04045, channel));
+}
+fn decodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -91,7 +99,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let farInset = vec2f(1.0, 1.0) - localInset;
   let clothUv = vec2f(mix(localInset.x, farInset.x, bm_in.vUv.x), mix(localInset.y, farInset.y, bm_in.vUv.y));
   let atlasUv = vec2f(clothUv.x / 4.0, clothUv.y / 3.0);
-  let clothSample = textureSample(uMaterialAtlas, uMaterialAtlas_sampler, atlasUv).xyz;
+  let clothSample = decodeSrgb(textureSample(uMaterialAtlas, uMaterialAtlas_sampler, atlasUv).xyz);
   let sampleLuma = max(dot(clothSample, vec3f(0.299, 0.587, 0.114)), 0.04);
   let stripe = smoothstep(0.045, 0.19, clothSample.x - max(clothSample.y, clothSample.z));
   var stripeColor = vec3f(0.58, 0.15, 0.09);
