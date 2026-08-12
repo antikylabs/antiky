@@ -187,7 +187,7 @@ test('combat projection rolls back surface and glow batches if ring construction
   const disposed: string[] = [];
   let glowCount = 0;
   const batch = (name: string) => ({ dispose() { disposed.push(name); } });
-  assert.throws(() => createCombatProjection({} as never, {
+  assert.throws(() => createCombatProjection({} as never, { dispose() {} } as never, {
     createSurfaceBatch: () => batch('surface') as never,
     createContactShadowBatch: () => batch('shadow') as never,
     createGlowBatch: () => {
@@ -211,7 +211,7 @@ test('steady combat projection uses numeric instance writers instead of tuple wr
     program: { draw() {} },
     dispose() {},
   });
-  const projection = createCombatProjection({} as never, {
+  const projection = createCombatProjection({} as never, { dispose() {} } as never, {
     createSurfaceBatch: () => batch() as never,
     createContactShadowBatch: () => batch() as never,
     createGlowBatch: () => batch() as never,
@@ -229,6 +229,7 @@ test('renderer destroys its context and catalog if the next top-level resource f
     createRenderer: async () => renderer as never,
     createCatalog: async () => ({ dispose() { disposed.push('catalog'); } }) as never,
     createShips: async () => { throw new Error('injected fleet failure'); },
+    loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => { throw new Error('must not reach projection'); },
     createBackdrop: () => { throw new Error('must not reach backdrop'); },
   }), /injected fleet failure/);
@@ -250,6 +251,7 @@ test('renderer rolls back ships and catalog when top-level projection creation f
     createShips: async () => ({
       project() {}, frame() {}, draw() {}, dispose() { disposed.push('ships'); },
     }),
+    loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => { throw new Error('injected projection failure'); },
     createBackdrop: () => { throw new Error('must not reach backdrop'); },
   }), /injected projection failure/);
@@ -270,6 +272,7 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
     createShips: async () => ({
       project() {}, frame() {}, draw() {}, dispose() { disposed.push('ships'); },
     }),
+    loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => ({
       project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {},
       dispose() { disposed.push('projection'); },
@@ -298,6 +301,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
     createShips: async () => ({
       project() {}, frame() {}, draw() {}, dispose() { disposals.ships += 1; },
     }),
+    loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => ({
       project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {},
       dispose() { disposals.projection += 1; },

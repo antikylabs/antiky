@@ -8,7 +8,7 @@
 > | [05-01](execute-goal-05-01.md) | Finish the ambient work — **`traversal-study` and `antiky-town` done**; only `combat-arena` left, and it needs an owner decision, not code | rest of 4 |
 > | [05-02](execute-goal-05-02.md) | Material identity for the palette kits | 7 |
 > | [05-03](execute-goal-05-03.md) | Real materials from the catalog — **largest by far** | 6, intake |
-> | [05-04](execute-goal-05-04.md) | The VFX pass | 2, 8, rest of 9 |
+> | [05-04](execute-goal-05-04.md) | The VFX pass — **item 8 done, AC-V4 satisfied**; items 2 and the rest of 9 remain | 2, rest of 9 |
 >
 > The sections below are the original goal, kept intact because the four steps reference it. The
 > **Progress so far** section at the end is the current state, and it corrects three of this

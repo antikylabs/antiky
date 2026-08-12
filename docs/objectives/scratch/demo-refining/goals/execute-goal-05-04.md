@@ -34,7 +34,7 @@ argument. The view-facing-normal trick works: `normal.xy` maps the visible hemis
 and reaches its rim, where alpha is already zero, exactly at the silhouette, so the edge softens
 instead of ending.
 
-**`combat-arena` is not wired**, and the reason matters: the three glow programs draw
+**`combat-arena` is wired too**, and how it got there is the useful part: the three glow programs draw
 *spheres*, not screen-facing quads. They carry `vNormal` and no `vUv`, so there is no texture
 coordinate to sample with. The cheapest honest option is to sample by the view-facing normal —
 `vec2(normal.x, normal.y) * 0.5 + 0.5` — which maps the texture across the visible hemisphere and
@@ -55,8 +55,15 @@ they are not equivalent:
 - Use `createTexture` against a canvas built synchronously from the generator's data, avoiding the
   load entirely. Removes the async problem but adds a code path that does not exist yet.
 
-The second is almost certainly right, because it is the shape this demo already uses. Whoever picks
-it up should start there rather than rediscovering the constraint the way this attempt did.
+**The second is what landed.** `createCombatProjection` takes the billboard as an argument, and
+`renderer.ts` — which is already async and already owns the catalog and the fleet — loads it and
+passes it down. The projection borrows; the renderer owns.
+
+One further correction the tests forced: the loader must be *injected* through
+`CombatRendererDependencies` rather than imported and called directly, because `loadTexture` reaches
+for `Image` and the renderer's rollback tests build a renderer with no DOM. Three tests went red on
+`Image is not defined` before that was fixed. Every other GPU resource in that file is already
+injected for exactly this reason.
 
 `traversal-study` and `point-light-expo` build their effect batches inside already-async factories,
 so neither has this problem — start with one of those if you want the shader work validated before
@@ -64,9 +71,10 @@ touching `combat-arena`'s lifetime code.
 
 ## Required outcome
 
-1. **Textured soft billboards for every VFX program** (item 8). **Two of three done** —
-   `foundry-glow` and `traversal-glow` sample it; `arena-glow` is blocked on the lifetime problem
-   below.
+1. ~~**Textured soft billboards for every VFX program**~~ (item 8). **Done, all three demos.**
+   `foundry-glow`, `traversal-glow` and `arena-glow` each sample the billboard by their view-facing
+   normal. **AC-V4 is satisfied**; it wanted at least one `sampler2D` per VFX program and previously
+   had zero of three.
 2. **Contact shadows and ring decals textured** (item 2). `antiky-town` is exempt — it casts real
    shadows through five depth-from-light passes and has no decal blobs to replace.
 3. **Timing rebuilt on curves, snap and secondary elements** (the rest of item 9).

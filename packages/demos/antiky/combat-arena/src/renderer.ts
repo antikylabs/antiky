@@ -1,3 +1,5 @@
+import type { BroMetalTexture } from 'brometal';
+import { loadVfxBillboard } from './vfx-billboard.ts';
 import {
   createCamera,
   createRenderer as createBroMetalRenderer,
@@ -81,7 +83,9 @@ export type CombatRendererDependencies = Readonly<{
   createRenderer(canvas: HTMLCanvasElement): Promise<Renderer>;
   createCatalog: typeof createArenaCatalogResources;
   createShips: typeof createShipFleet;
-  createProjection(renderer: Renderer): CombatProjection;
+  createProjection(renderer: Renderer, billboard: BroMetalTexture): CombatProjection;
+  /** Injected like every other GPU resource here, so tests can build a renderer without a DOM. */
+  loadVfxBillboard(renderer: Renderer): Promise<BroMetalTexture>;
   createBackdrop(renderer: Renderer): SpaceBackdrop;
 }>;
 
@@ -90,6 +94,7 @@ const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
   createCatalog: createArenaCatalogResources,
   createShips: createShipFleet,
   createProjection: createCombatProjection,
+  loadVfxBillboard,
   createBackdrop: createSpaceBackdrop,
 });
 
@@ -103,7 +108,10 @@ export async function createCombatRendererWith(
     const catalog = registerResource(disposables, await dependencies.createCatalog(renderer, ARENA_CATALOG_CAPACITY));
     const ships: ShipFleet = registerResource(disposables, await dependencies.createShips(renderer));
     initializeArenaCatalog(catalog);
-    const projection = registerResource(disposables, dependencies.createProjection(renderer));
+    // The renderer owns the effect sprite; the projection borrows it. Loaded here because this is
+    // the async boundary and `createCombatProjection` is not one.
+    const billboard = registerResource(disposables, await dependencies.loadVfxBillboard(renderer));
+    const projection = registerResource(disposables, dependencies.createProjection(renderer, billboard));
     const backdrop = registerResource(disposables, dependencies.createBackdrop(renderer));
 
     const cameraPosition = new Float32Array(3);

@@ -1,4 +1,4 @@
-import { createProgram, type BroMetalProgram, type Geometry, type Renderer } from 'brometal';
+import { createProgram, type BroMetalProgram, type BroMetalTexture, type Geometry, type Renderer } from 'brometal';
 
 import arenaGlowShader from './shaders/arena-glow.shader.gen.ts';
 import arenaSurfaceShader from './shaders/arena-surface.shader.gen.ts';
@@ -169,9 +169,11 @@ export function createGlowBatch(
   renderer: Renderer,
   geometry: Geometry,
   capacity: number,
+  billboard: BroMetalTexture,
   programFactory: BatchProgramFactory = (target) => createProgram(target, arenaGlowShader, { blend: 'additive' }),
 ) {
   const program = programFactory(renderer);
+  program.uniforms.uBillboard!.set(billboard);
   try {
     program.attributes.aPosition!.set(geometry.positions);
     program.attributes.aNormal!.set(geometry.normals);

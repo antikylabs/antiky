@@ -1,3 +1,4 @@
+import type { BroMetalTexture } from 'brometal';
 import { createCube, createSphere, createTorus, type Renderer } from 'brometal';
 
 import { ARENA_STRUCTURE_INSTANCES, setArenaEnergy, setArenaStructure } from './arena-environment.ts';
@@ -234,6 +235,15 @@ const COMBAT_PROJECTION_DEPENDENCIES: CombatProjectionDependencies = Object.free
 
 export function createCombatProjection(
   renderer: Renderer,
+  /**
+   * Loaded by the caller, not here.
+   *
+   * This factory is synchronous and `loadTexture` is not, so the billboard arrives as an argument
+   * from `renderer.ts`, which is already async and already owns the catalog and the fleet. That is
+   * the same shape the detail normal uses in this demo, and it keeps the ownership honest: the
+   * renderer holds it, the projection borrows it.
+   */
+  billboard: BroMetalTexture,
   dependencies: CombatProjectionDependencies = COMBAT_PROJECTION_DEPENDENCIES,
 ): CombatProjection {
   const resources: { dispose(): void }[] = [];
@@ -244,8 +254,8 @@ export function createCombatProjection(
   try {
     surfaces = registerResource(resources, dependencies.createSurfaceBatch(renderer, createCube(), SURFACE_CAPACITY));
     shadows = registerResource(resources, dependencies.createContactShadowBatch(renderer, CONTACT_SHADOW_CAPACITY));
-    glows = registerResource(resources, dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY));
-    rings = registerResource(resources, dependencies.createGlowBatch(renderer, horizontalGeometry(createTorus({ radius: 1, tube: 0.035, radialSegments: 10, tubularSegments: 96 })), RING_CAPACITY));
+    glows = registerResource(resources, dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY, billboard));
+    rings = registerResource(resources, dependencies.createGlowBatch(renderer, horizontalGeometry(createTorus({ radius: 1, tube: 0.035, radialSegments: 10, tubularSegments: 96 })), RING_CAPACITY, billboard));
   } catch (cause: unknown) {
     rollbackResources(resources);
     throw cause;
