@@ -68,6 +68,10 @@ const SAMPLER_ROLES = Object.freeze({
   // A table of roughness values addressed by the palette swatch a face lands on. Numbers, not
   // colour — decoding it would bend every roughness toward the shallow end of the sRGB curve.
   uKitMaterials: 'data',
+  // A Poly Haven albedo, so display-encoded like every other colour texture and decoded on sample.
+  uMaterialDiffuse: 'colour',
+  // Roughness. Numbers, not colour — decoding would bend every value toward the shallow end.
+  uMaterialRoughness: 'data',
   uRoughness: 'data',
   uAo: 'data',
   uShadowMap: 'data',

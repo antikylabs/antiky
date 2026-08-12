@@ -61,6 +61,9 @@ export default shader({
     uTex: 'sampler2D',
     uRamp: 'sampler3D',
     uKitMaterials: 'sampler3D',
+    uMaterialDiffuse: 'sampler2D',
+    uMaterialRoughness: 'sampler2D',
+    uMaterialStrength: 'float',
     uSh0: 'vec3',
     uSh1: 'vec3',
     uSh2: 'vec3',
@@ -91,7 +94,7 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uKitMaterials, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
+    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uKitMaterials, uMaterialDiffuse, uMaterialRoughness, uMaterialStrength, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
     { vWorld, vNormal, vUv, vWash },
   ) {
     const texel = decodeSrgb(texture(uTex, vUv).xyz);
@@ -176,10 +179,41 @@ export default shader({
     // a roughness belonging to neither.
     const kitRoughness = texture(uKitMaterials, vec3(vUv.x, vUv.y, 0.5)).x;
     const view = normalize(uCameraPosition.sub(vWorld));
+    // The material's own roughness, folded in at the same per-batch strength so a batch with no
+    // material keeps the swatch value alone. One projection: roughness is low frequency, and a third
+    // of the samples is a third of the cost.
+    const materialRough = mix(
+      1,
+      texture(uMaterialRoughness, vWorld.xz.scale(0.42)).x,
+      uMaterialStrength,
+    );
     // A rough surface scatters, so its edge light is broader and weaker; a smooth one keeps a
     // tight bright rim. That is the one place roughness is visible in a toon-shaded demo.
-    const rim = pow(1 - max(dot(normal, view), 0), 2.6) * (1.25 - kitRoughness);
-    const graded = mix(texel, uGradeColor, uGradeMix);
+    const rim = pow(1 - max(dot(normal, view), 0), 2.6) * (1.25 - kitRoughness * materialRough);
+    // What the surface is made of, projected in world space and applied **per batch**.
+    //
+    // `uMaterialStrength` is the important part. This shader draws every catalog batch — grass,
+    // rock, trees, the courier and the clouds — so a material bound to the shader is a material on
+    // all of them. A first attempt did exactly that and produced brown clouds. Strength is set per
+    // batch beside `gradeColor` and `gradeMix`, which are already per-batch for the same reason, so
+    // a cloud takes none and stays palette-only.
+    //
+    // Multiplied rather than mixed: a tint over a material is a multiply, and mixing would wash the
+    // kit's colour toward grey exactly where its identity lives. The 1.9 restores the stop that
+    // plywood's dark diffuse costs.
+    //
+    // Sampled in the fragment body, never through a helper — `texture()` inside a DSL helper
+    // compiles to `textureSampleLevel(..., 0.0)` and loses the mip chain.
+    const materialRate = 0.42;
+    const materialX = texture(uMaterialDiffuse, vec2(vWorld.z, vWorld.y).scale(materialRate)).xyz;
+    const materialY = texture(uMaterialDiffuse, vWorld.xz.scale(materialRate)).xyz;
+    const materialZ = texture(uMaterialDiffuse, vWorld.xy.scale(materialRate)).xyz;
+    const materialAlbedo = decodeSrgb(
+      materialX.scale(weightX).add(materialY.scale(weightY)).add(materialZ.scale(weightZ))
+        .scale(1 / weightSum),
+    ).scale(1.9);
+    const surface = mix(vec3(1, 1, 1), materialAlbedo, uMaterialStrength);
+    const graded = mix(texel, uGradeColor, uGradeMix).mul(surface);
     // Tinted toward the sky rather than the surface colour, so the edge reads as light coming from
     // the world behind the object instead of the object glowing.
     // Real sky in the shadows, the authored ramp everywhere else.
