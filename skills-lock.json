@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "team-brometal": {
+      "source": "antikylabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/team-brometal/SKILL.md",
+      "computedHash": "34fd201aa78d25f3b05ceef1b0bd60f5660698784cd00e2b4206bf3d41c31f25"
+    },
+    "team-simplified-technical-english": {
+      "source": "antikylabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/team-simplified-technical-english/SKILL.md",
+      "computedHash": "99eb15b473df85102bb3fc9993cac602e52d9f19dbe6fd8c52e5a02a9e6d569a"
+    },
+    "team-write-adrs": {
+      "source": "antikylabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/team-write-adrs/SKILL.md",
+      "computedHash": "bfb4e3b87a9b1a3d1c55d3f9dbe9ce8f2e65e2ab75329a88e5b6639257fc9a2d"
+    },
+    "team-write-objectives": {
+      "source": "antikylabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/team-write-objectives/SKILL.md",
+      "computedHash": "168ba7625dd4aa9fa9212e9b50f453f1af2011ca82faa9db90e0270c7fc1feb8"
+    }
+  }
+}
