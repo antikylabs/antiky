@@ -6,6 +6,10 @@ const FLOOR_ASSETS = Object.freeze({
   'virtual:blackout-relay/forest-floor-diffuse': './assets/poly-haven/forest-floor/forest_floor_diff_1k.jpg',
   'virtual:blackout-relay/forest-floor-ao': './assets/poly-haven/forest-floor/forest_floor_ao_1k.jpg',
   'virtual:blackout-relay/forest-floor-roughness': './assets/poly-haven/forest-floor/forest_floor_rough_1k.jpg',
+  // A second ground, blended over the first so the floor stops reading as one texture stretched
+  // across the whole reliquary. Fetched and verified by
+  // `packages/demos/scripts/install-poly-haven-material.mjs`.
+  'virtual:blackout-relay/second-ground': './assets/poly-haven/forrest-ground-01/forrest-ground-01_diff_1k.jpg',
 });
 
 function bundledFloorAssets(): Plugin {

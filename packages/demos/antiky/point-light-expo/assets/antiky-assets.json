@@ -148,6 +148,66 @@
           "size": 724384
         }
       ]
+    },
+    {
+      "catalogId": "poly-haven:forrest-ground-01",
+      "kind": "texture",
+      "installedAt": "2026-08-12T21:15:27.137Z",
+      "provider": {
+        "id": "poly-haven",
+        "name": "Poly Haven",
+        "url": "https://polyhaven.com"
+      },
+      "upstream": {
+        "id": "forrest_ground_01",
+        "url": "https://polyhaven.com/a/forrest_ground_01",
+        "filesHash": "ea3ef3539e362d9a9ffa409ecd467d08028569d5",
+        "retrievedAt": "2026-08-09T22:15:47.937Z"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "resolution": "1k",
+      "format": "jpg",
+      "files": [
+        {
+          "map": "diff",
+          "file": "assets/poly-haven/forrest-ground-01/forrest-ground-01_diff_1k.jpg",
+          "bytes": 833711,
+          "md5": "236e7d928f5e357a194fd92de189cbe4",
+          "sha256": "3dd6875cb3908e022a3c45ebbffa5e84c670ff2691fbbb6dc9ea4bff88523800",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_diff_1k.jpg"
+        },
+        {
+          "map": "nor",
+          "file": "assets/poly-haven/forrest-ground-01/forrest-ground-01_nor_1k.jpg",
+          "bytes": 1428763,
+          "md5": "ba4265df25aea293913d004b69ef9ab0",
+          "sha256": "32528a7cdee962cc0b248ee4023a74d0df175737ea90e1eb425122351e0bdab4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_nor_gl_1k.jpg"
+        },
+        {
+          "map": "rough",
+          "file": "assets/poly-haven/forrest-ground-01/forrest-ground-01_rough_1k.jpg",
+          "bytes": 257165,
+          "md5": "72dacf5b829cafc025f08ca64e92e5eb",
+          "sha256": "30d8b56a03d7b12da16f58011b675662a40e58e1cdc768119a5f03968140058c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_rough_1k.jpg"
+        },
+        {
+          "map": "ao",
+          "file": "assets/poly-haven/forrest-ground-01/forrest-ground-01_ao_1k.jpg",
+          "bytes": 660492,
+          "md5": "e4bf07c1a9b664468b3ec419179ac8a8",
+          "sha256": "a3632232fa080e28239d456526a3f0c83e0a404515581339b9d6633324dca6a4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_ao_1k.jpg"
+        }
+      ]
     }
   ]
 }

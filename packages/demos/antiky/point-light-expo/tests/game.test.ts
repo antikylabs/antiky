@@ -9,15 +9,25 @@ test('Blackout Relay compiles one playable game-module entry', () => {
   assert.equal(typeof game, 'function');
 });
 
-test('the production build bundles all three forest-floor material channels', async () => {
+test('the production build bundles every ground material channel', async () => {
   const assetDirectory = new URL('../dist/assets/', import.meta.url);
   const files = await readdir(assetDirectory);
   const materialFiles = files.filter((file) => file.endsWith('.jpg')).sort();
 
-  assert.equal(materialFiles.length, 3);
-  assert.ok(materialFiles.some((file) => file.startsWith('forest_floor_diff_1k-')));
-  assert.ok(materialFiles.some((file) => file.startsWith('forest_floor_ao_1k-')));
-  assert.ok(materialFiles.some((file) => file.startsWith('forest_floor_rough_1k-')));
+  // Named rather than counted. The count stood in for "every channel the floor needs" and did that
+  // job until the ground gained a second layer; naming them keeps the check meaningful while letting
+  // the demo grow, and still fails if one goes missing.
+  for (const expected of [
+    'forest_floor_diff_1k-',
+    'forest_floor_ao_1k-',
+    'forest_floor_rough_1k-',
+    'forrest-ground-01_diff_1k-',
+  ]) {
+    assert.ok(
+      materialFiles.some((file) => file.startsWith(expected)),
+      `the build is missing ${expected}, so a ground channel never reached dist`,
+    );
+  }
   for (const file of materialFiles) {
     assert.ok((await stat(new URL(file, assetDirectory))).size > 10_000);
   }

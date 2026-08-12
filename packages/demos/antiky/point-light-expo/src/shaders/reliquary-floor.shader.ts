@@ -9,6 +9,7 @@ import {
   mix,
   normalize,
   shader,
+  sin,
   smoothstep,
   texture,
   vec2,
@@ -76,6 +77,7 @@ export default shader({
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uDiffuse: 'sampler2D',
+    uSecondGround: 'sampler2D',
     uAo: 'sampler2D',
     uRoughness: 'sampler2D',
     uDetailNormal: 'sampler2D',
@@ -125,6 +127,7 @@ export default shader({
   fragment({
     uCameraPosition,
     uDiffuse,
+    uSecondGround,
     uAo,
     uRoughness,
     uDetailNormal,
@@ -159,7 +162,27 @@ export default shader({
     uVioletPower,
     uVioletRadius,
   }, { vWorld, vUv }) {
-    const sourceDiffuse = decodeSrgb(texture(uDiffuse, vUv).xyz);
+    // A second ground blended over the first, so the floor stops reading as one texture stretched
+    // over eighteen by thirteen units.
+    //
+    // The mask is two crossed sines at incommensurable rates rather than a noise texture: it costs
+    // no sample, and at this scale the eye reads it as patchy ground rather than as a pattern. A
+    // world-space mask also means the patches stay put when the plane's UVs are scaled.
+    //
+    // The second layer is projected at its own rate, so the two do not share a repeat and the
+    // combined result has no obvious tile.
+    const groundMask = clamp(
+      0.5
+        + sin(vWorld.x * 0.31 + sin(vWorld.z * 0.17) * 1.4) * 0.35
+        + sin(vWorld.z * 0.23 - vWorld.x * 0.11) * 0.3,
+      0,
+      1,
+    );
+    // Normalised by its own mean linear luminance (0.2483) so blending it in changes what the ground
+    // is made of without changing how bright it is.
+    const secondGround = decodeSrgb(texture(uSecondGround, vWorld.xz.scale(0.42)).xyz).scale(4.03);
+    const firstGround = decodeSrgb(texture(uDiffuse, vUv).xyz);
+    const sourceDiffuse = firstGround.mul(mix(vec3(1, 1, 1), secondGround, groundMask * 0.55));
     const diffuseSample = mix(vec3(0.38, 0.36, 0.31), sourceDiffuse, uTextureContrast);
     const ao = mix(0.64, 1, texture(uAo, vUv).x);
     const roughness = clamp(texture(uRoughness, vUv).x, 0.2, 0.98);

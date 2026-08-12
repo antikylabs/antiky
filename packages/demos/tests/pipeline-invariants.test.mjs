@@ -70,6 +70,8 @@ const SAMPLER_ROLES = Object.freeze({
   uKitMaterials: 'data',
   // A Poly Haven albedo, so display-encoded like every other colour texture and decoded on sample.
   uMaterialDiffuse: 'colour',
+  // A second ground albedo blended over the first. Display-encoded like any other albedo.
+  uSecondGround: 'colour',
   // Roughness. Numbers, not colour — decoding would bend every value toward the shallow end.
   uMaterialRoughness: 'data',
   uRoughness: 'data',

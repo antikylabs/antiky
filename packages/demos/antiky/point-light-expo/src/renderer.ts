@@ -39,6 +39,7 @@ import floorShader from './shaders/reliquary-floor.shader.gen';
 import FLOOR_AO_URL from 'virtual:blackout-relay/forest-floor-ao';
 import FLOOR_DIFFUSE_URL from 'virtual:blackout-relay/forest-floor-diffuse';
 import FLOOR_ROUGHNESS_URL from 'virtual:blackout-relay/forest-floor-roughness';
+import SECOND_GROUND_URL from 'virtual:blackout-relay/second-ground';
 
 type PresentationLight = Readonly<{
   transform: Readonly<{ position: readonly [number, number, number] }>;
@@ -73,6 +74,10 @@ export async function createRelayRenderer(
       filter: 'smooth', wrap: 'repeat', anisotropy: 8,
     }));
     const roughnessTexture = resources.register(await loadTexture(renderer, FLOOR_ROUGHNESS_URL, {
+      filter: 'smooth', wrap: 'repeat', anisotropy: 8,
+    }));
+    // The second ground layer, blended over the first by a world-space mask.
+    const secondGroundTexture = resources.register(await loadTexture(renderer, SECOND_GROUND_URL, {
       filter: 'smooth', wrap: 'repeat', anisotropy: 8,
     }));
 
