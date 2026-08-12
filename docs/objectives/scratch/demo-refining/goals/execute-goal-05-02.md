@@ -51,6 +51,28 @@ That makes this item much smaller than written, and differently shaped:
 They cluster: tight groups (0.307–0.340) separated by gaps, which is a palette atlas addressed by
 row. The identity is real and it is already there.
 
+### A preliminary sample of the atlas, which may sink this item entirely
+
+Sampling the Kenney platformer atlas (512x512, embedded in the GLBs) at each distinct V, using the
+first U seen with that V, returns a **smooth monotonic gradient** rather than discrete swatches:
+
+```
+0.275 rgb 61,63,75    0.324 rgb 66,69,81    0.410 rgb 75,78,92
+0.300 rgb 63,66,78    0.340 rgb 67,70,83    0.425 rgb 76,80,94
+0.307 rgb 64,67,79    0.375 rgb 71,74,88    0.450 rgb 79,82,97
+```
+
+Every step is one or two units brighter than the last, in the same hue. **If that holds, V is not
+carrying material identity at all — it is carrying a continuous shade position**, and "route material
+IDs into the V channel" is the wrong model for this kit. You would be quantising a gradient into
+bands that mean nothing.
+
+**Verify before building anything.** Two things could make this sample misleading: the U taken is
+simply the first one seen with that V and may not be representative, and the sampled region may be a
+background area rather than the palette. Open the atlas, look at it, and sample a proper grid before
+concluding. But do that *first* — the whole item rests on the answer, and the goal's model of this
+kit has already been wrong once.
+
 **What the LUT cannot be derived from is this table.** Knowing that a row sits at V≈0.32 does not say
 whether it is grass, metal or cloth — that needs someone to open
 `assets/kenney/*/…` alongside these numbers and name each row. That is an art judgement and it is the
