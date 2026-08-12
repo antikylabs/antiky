@@ -519,11 +519,11 @@ const ALBEDO_SHADERS = Object.freeze([
 ]);
 
 /**
- * 's actor atlas is deliberately absent from the list above. It is hand-painted pixel
+ * The antiky-town actor atlas is deliberately absent from the list above. It is hand-painted pixel
  * art whose shading is already in the paint — median luminance 45 against 80/69/83 for the demo's
  * three material atlases — so decoding it treats appearance as reflectance and crushes every
  * townsperson to orange-brown. The reasoning is written out at the sample site in
- * .
+ * town-sprite.shader.ts.
  */
 
 /** Samplers that carry data rather than colour. Decoding any of these is a defect. */
