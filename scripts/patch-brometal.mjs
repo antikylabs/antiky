@@ -21,6 +21,10 @@ import {
   name as offscreenMultisampling,
   apply as applyOffscreenMultisampling,
 } from './patch-brometal/offscreen-multisampling.mjs';
+import {
+  name as attributeBufferDefects,
+  apply as applyAttributeBufferDefects,
+} from './patch-brometal/attribute-buffer-defects.mjs';
 
 const EXPECTED_VERSION = '0.17.2';
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
@@ -31,6 +35,7 @@ export const PATCHES = Object.freeze([
   { name: present, apply: applyPresent },
   { name: renderTargetFiltering, apply: applyRenderTargetFiltering },
   { name: offscreenMultisampling, apply: applyOffscreenMultisampling },
+  { name: attributeBufferDefects, apply: applyAttributeBufferDefects },
 ]);
 
 /**
