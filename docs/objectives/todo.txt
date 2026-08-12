@@ -26,27 +26,37 @@ studio - fix terminal bugs random crashes
 repo health - setup release and versioning and packaging github actions
 docs - run over user docs and validate everything is good to go
 -- release v0.1.0
+
+
 tooling - enable code mode for mcp
 tooling - motion measurement interpretation
 framework - finish porting brometal demo to antiky
+studio - allow panel arrangement
 studio - add studio click on scene and comment
 studio - add studio attach/detach
 skills - add agent skills repo (brometal, antiky, game dev, studio, mcp, etc...) how to work with and use stuff.
 -- release v0.2.0
+
+
 framework - add input capture and controls
 framework - add sprite animation and character movement timings
 framework - add sprite flipbook first class object
 framework - add field of view control
 framework - add vignettee control
+studio - add mini-app extension framework
+studio - add gadget extension framework (adds panels not full apps)
 -- release v0.3.0
+
+
 studio - add asset browser
 studio - add sprite editor
 studio - add flipbook editor
 studio - add object properties
 -- release v0.4.0
+
+
 marketing - documents getting started tutorial, build a game
 framework - add nexus and rapier objects
 framework - add nexus -> brometal pipeline
-
 antiky - marketing - find open source threejs or brometal games and redo in antiky
 marketing - setup awesome-antiky and awesome-brometal

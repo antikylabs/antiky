@@ -62,6 +62,7 @@ No row may be silently dropped. A register that shrinks without explanation is w
 |---|---|---|---|
 | U1 | **Retire local patches as their PRs land.** [#3](https://github.com/ericdrowell/brometal/pull/3)–[#7](https://github.com/ericdrowell/brometal/pull/7). | Not ours to schedule. | Each merge or release. Every module in `scripts/patch-brometal/` names its PR and the three places to edit. |
 | U2 | **PR #2 will be closed** in favour of the focused PRs. | Owner's call, and it carries work the five PRs do not: `mat4.orthographic`, `Swizzles<C>`, component-wise intrinsics, `draw({ instanceCount })`, and four sprite demos. | When #2 closes, decide whether any of that unmerged work is worth its own PR. |
+| U4 | **Atlas tile bleeding, and the BroMetal capability behind it.** Measured at 25.3% of samples taken across a tile boundary in `antiky-town`'s material atlas. | Split on a rule: asset packing and measurement are Antiky ([goal 14](execute-goal-14.md)), array textures and mip clamping are BroMetal ([goal 15](execute-goal-15.md)). | Both goals. Close this row when the measurement reads zero rather than "under budget". |
 | U3 | **BroMetal version guard is pinned to 0.17.2.** | A version bump is a separate reviewed change. | Any upgrade. All 19 patch targets must be re-checked; the last upgrade also silently changed dependency placement. |
 
 ### Records

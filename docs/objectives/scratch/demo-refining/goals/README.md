@@ -57,6 +57,8 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 | ~4 days |
 | **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
 | **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything | ~4 days |
+| **14** | [Give Antiky a way to build and check texture atlases](execute-goal-14.md) | Not started | 04 | everything except 15 | — |
+| **15** | [Give BroMetal the texture capabilities WebGPU already has](execute-goal-15.md) | Not started | 14 | everything except 14 | — |
 | **99** | [The revisit register — check what we deliberately deferred](execute-goal-99.md) | Not started | all | — | ~1 day |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.

@@ -1,12 +1,12 @@
-# Execute goal 14: stop texture atlases bleeding across their tiles
+# Execute goal 14: give Antiky a way to build and check texture atlases
 
 ## Prerequisites
 
-- **Goal 04** — `pipeline-invariants.test.mjs` carries the tile boundary measurement this goal has to turn
-  green, and the shared `asset-fidelity-policy.mjs` is where an atlas rule belongs.
-- Nothing else. This goal owns `packages/demos/antiky/antiky-town/assets/textures/**`,
-  `assets/sprites/**`, a new atlas tool under `packages/demos/scripts/`, and the atlas-addressing
-  lines of the town shaders. No other goal owns those.
+- **Goal 04** — `pipeline-invariants.test.mjs` carries the tile-boundary measurement this goal
+  generalises, and `packages/demos/scripts/asset-fidelity-policy.mjs` is where an atlas rule belongs.
+- **Not** [goal 15](execute-goal-15.md). That goal adds array textures to BroMetal, which is the
+  better long-term answer. This goal is deliberately built so it serves either renderer: it slices
+  and describes, and the output format follows what the renderer can consume.
 
 ## `/goal` objective
 
@@ -14,106 +14,109 @@ An atlas packs many textures into one image. The GPU shrinks that image to draw 
 and shrinking averages neighbouring pixels — so near a tile's edge it averages in **the tile next
 door**. Stone picks up the grass beside it in the file and shows a wrong-coloured fringe.
 
-Give the repository one way to build and address atlases that cannot do that, and prove it with a
-measurement rather than by looking.
+Give Antiky one way to build an atlas that does not do that, and one measurement that proves it.
+
+## Where the line sits between this goal and BroMetal
+
+The owner's question, settled: **is this a BroMetal thing or a game-engine thing?** Both, split on a
+rule worth keeping.
+
+> If WebGPU can do it and BroMetal does not expose it, it is a BroMetal gap.
+> If it is about how assets are authored, packed, verified or shipped, it is Antiky.
+
+| Piece | Owner |
+| --- | --- |
+| Array textures, mip-level clamping | **BroMetal** — [goal 15](execute-goal-15.md) |
+| Slicing an authored image into tiles or layers | **Antiky** — this goal |
+| The JSON companion that describes the layout | **Antiky** — this goal |
+| The tile-boundary measurement | **Antiky** — this goal |
+| How one shader addresses its atlas | The demo that owns the shader |
+
+BroMetal has no asset pipeline and should not grow one. Antiky already has the CLI, the asset
+receipts and the frame measurements, so this is where it goes.
 
 ## The measured state today
 
-Not a suspicion. `pipeline-invariants.test.mjs` samples across a tile boundary at mip levels 2, 3 and 4
-and reports **25.3% of samples taken across a tile boundary come out a colour that is in neither of the two tiles**.
-Painting one neighbouring tile solid magenta drives that to 73.3%, so the measurement discriminates.
+Not a suspicion. `pipeline-invariants.test.mjs` samples across a tile boundary at mip levels 2, 3 and
+4 and reports **25.3% of samples taken across a boundary come out a colour that is in neither of the
+two tiles**. Painting one neighbouring tile solid magenta drives that to 73.3%, so the measurement
+discriminates rather than just reporting noise.
 
-Three facts make it worse than a tuning problem:
+Three facts make it structural rather than a tuning problem:
 
 - **There is no padding.** `town-material-atlas-v1.json` declares no gutter and the shader addresses
-  tiles as `(column + uv) / 4` with no inset, so a sample at the tile edge sits exactly on the boundary.
-- **The grid does not land on pixels.** 1254 / 4 = **313.5**. The boundary falls *between* texels
-  313 and 314, so even a half-texel inset cannot be expressed exactly.
-- **The tiles are not power-of-two.** 313.5 x 418 means every mip level rounds differently and the
-  tile boundary drifts as the chain descends.
-
-## What is and is not available
-
-**Texture arrays would delete this problem** — one tile per layer, mips built per layer, bleeding
-impossible by construction. **BroMetal does not have them.** Its DSL exposes `sampler2D` and
-`sampler3D` only, and the runtime has no array layer in `TextureOptions`
-(`node_modules/brometal/dist/runtime/texture.d.ts`). Verified before this goal was written; do not
-plan around it.
-
-`sampler3D` is **not** a substitute. A 3D texture's mips blend along Z as well, so slices would
-average into each other — the same defect by a different route.
-
-**Mip clamping is also unavailable.** `TextureOptions` exposes `wrap`, `filter` and `anisotropy` and
-nothing else, so a mip chain cannot be capped.
-
-That leaves **padding with edge extrusion, plus a tile-clamped sample**, which is the fix this goal
-builds. The texture-array gap belongs upstream — see the non-goals.
+  tiles as `(column + uv) / 4` with no inset, so a sample at a tile's edge sits exactly on the
+  boundary.
+- **The grid does not land on pixels.** 1254 / 4 = **313.5**, so the boundary falls *between* texels
+  313 and 314 and even a half-texel inset cannot be expressed exactly.
+- **The tiles are not power-of-two.** 313.5 x 418 means each mip level rounds differently and the
+  boundary moves as the chain descends.
 
 ## Required outcome
 
-1. **An atlas tool** at `packages/demos/scripts/build-texture-atlas.mjs` that takes a source image
-   and its tile map and emits a padded atlas plus an updated JSON companion. It must:
-   - slice on the declared grid;
-   - **extrude** each tile's edge pixels outward into the gutter rather than filling it with
-     transparent or black, because a mip average must find more of the same material, not a hole;
-   - lay tiles at power-of-two sizes so the mip chain stays aligned as it descends;
-   - write each tile's **inner rectangle** into the JSON in normalised coordinates, so the shader
-     addresses the safe region rather than recomputing it from a grid assumption;
-   - be deterministic — same input, same bytes — and record its input hash in the JSON.
-2. **Gutter wide enough for the mip levels these surfaces actually reach.** Derive it, do not guess:
-   a texel at mip N averages 2^N source texels, so a tile clean to mip N needs at least 2^N pixels of
-   extrusion. State the deepest mip a town surface selects at its far plane and size the gutter from
-   that.
-3. **The three world atlases rebuilt** — material, prop, vegetation — with their JSON companions
-   updated and their `imageSha256` receipts regenerated.
-4. **The shaders addressing the inner rectangle.** `town-voxel`, `town-awning`, `town-prop` and
-   `town-foliage` currently compute `(column + uv) / 4`. They must read the tile rect from a uniform
-   or an instance attribute instead, so a change to the atlas layout cannot silently desynchronise
-   from the shader that samples it.
-5. **The tile-boundary check green** on all three atlases, promoted from one hard-coded file to a loop
-   over every atlas the demo ships.
-6. **A rule in `asset-fidelity-policy.mjs`** so a future atlas cannot arrive without a gutter, in the
-   same shape as the existing attribute and material-map rules.
-7. **The actor sprite atlas assessed, and left alone unless the measurement says otherwise.** It
-   loads `filter: 'nearest'` with no anisotropy and no mips, so it is not currently at risk. Record
-   the measurement. **Do not add mips to it.**
+1. **An atlas tool** at `packages/demos/scripts/build-texture-atlas.mjs` whose core job is
+   **slicing**: read a source image and a tile map, and produce one clean tile per entry. Slicing is
+   what both renderer routes need — padded tiles today, array layers once goal 15 lands — so it is
+   the part built to last.
+2. **Two emit modes over that one slicer:**
+   - `--layers`, writing each tile as its own image plus a manifest. This is the shape goal 15
+     consumes, and it is the mode that makes bleeding impossible rather than merely unlikely.
+   - `--padded`, re-laying tiles into a single atlas at power-of-two sizes with a gutter, and
+     **extruding** each tile's edge pixels into that gutter rather than filling it with transparent
+     or black — a mip average must find more of the same material, not a hole. This is the mode that
+     works against BroMetal as it is today.
+3. **A gutter width derived, not guessed.** A texel at mip N averages 2^N source texels, so a tile
+   clean to mip N needs at least 2^N pixels of extrusion. State the deepest mip a town surface
+   selects at its far plane and size the gutter from that.
+4. **A JSON companion that describes the layout** rather than implying it: each tile's inner
+   rectangle in normalised coordinates, the gutter width, the emit mode, and a hash of the input
+   image. The shader must be able to address a tile without recomputing a grid assumption.
+5. **The three world atlases rebuilt** in `--padded` mode — material, prop, vegetation — with their
+   JSON companions and `imageSha256` receipts regenerated.
+6. **The four town shaders addressing the inner rectangle.** `town-voxel`, `town-awning`,
+   `town-prop` and `town-foliage` compute `(column + uv) / 4` today. They must read the tile rect
+   from the layout instead, so a change to the atlas cannot silently desynchronise from the shader.
+7. **The tile-boundary measurement generalised** from one hard-coded file to every atlas a demo
+   ships, and green on all three.
+8. **A rule in `asset-fidelity-policy.mjs`** so a future atlas cannot arrive without a declared
+   gutter, in the same shape as the existing attribute and material-map rules.
+9. **The actor sprite atlas measured and left alone.** It loads `filter: 'nearest'` with no
+   anisotropy and no mips, so it is not at risk today. Record the number. **Do not add mips to it.**
 
 ## In scope
 
-- The tool, the three rebuilt world atlases, the shader addressing change, the policy rule, and the
-  generalised tile boundary test.
-- A short note in the tool's header on why extrusion rather than a transparent gutter, because the
-  next person to build an atlas will otherwise reach for the obvious wrong thing.
+- The tool, its two emit modes, the three rebuilt atlases, the shader addressing change, the policy
+  rule, and the generalised measurement.
+- A note in the tool's header on why extrusion rather than a transparent gutter, because the next
+  person will otherwise reach for the obvious wrong thing.
 
 ## Required tests and evidence
 
-- **The tile-boundary test, generalised**, running over every atlas in `assets/textures/` rather than one
-  named file, at mip levels 2 through 5. It must fail if any atlas loses its gutter — prove that by
-  rebuilding one atlas with zero padding and watching it go red.
-- **A tool test with a synthetic atlas**: two tiles of known, deliberately distant colours. Assert
-  the gutter contains the extruded edge colour rather than black or transparent, that the inner
-  rectangle in the JSON addresses only the original pixels, and that a mip-4 average taken across
-  the tile boundary stays inside one tile's gamut.
-- **Determinism**: running the tool twice on the same input produces byte-identical output.
-- **A capture before and after** for `antiky-town`, with the mid-tone and local-contrast numbers
-  stated. The fix should not move them much; a large move means the addressing change was wrong
-  rather than the padding working.
+- **The tile-boundary test, generalised**, over every atlas in `assets/textures/`, at mip levels 2
+  through 5. Prove it can fail: rebuild one atlas with a zero gutter and watch it go red.
+- **A slicer test on a synthetic atlas** of two deliberately distant colours. Assert the gutter holds
+  the extruded edge colour rather than black or transparent, that the inner rectangle addresses only
+  original pixels, and that a mip-4 average taken across the boundary stays inside one tile's gamut.
+- **Both emit modes tested.** `--layers` must produce one image per tile with no gutter and no
+  cross-tile pixels at all — that is the mode goal 15 will consume, and it should be correct before
+  anything depends on it.
+- **Determinism**: the tool run twice on the same input produces byte-identical output.
+- **A capture before and after** for `antiky-town` with the mid-tone and local-contrast numbers
+  stated. The fix should barely move them; a large move means the addressing change was wrong rather
+  than the padding working.
 - **Look at a tile boundary at distance in both captures.** This goal's whole subject is a visible
-  fringe, and a measurement that never gets looked at is how the previous atlas result was wrong.
+  fringe, and the previous atlas result was wrong precisely because nobody looked.
 - `npm test` green. `npm run demos:verify` reports its state with every remaining failure explained.
 
 ## Explicit non-goals
 
 - **Do not re-author the atlas art.** The three atlases are generated images with no generator
-  script (`provenance.generator` records the image model). This goal re-lays existing pixels; it
-  does not paint new ones.
-- **Do not add mips or anisotropy to the sprite atlas.** Pixel art wants neither, and goal 04
-  already reverted an sRGB decode on it for a related reason.
+  script (`provenance.generator` records the image model). This goal re-lays existing pixels.
+- **Do not add mips or anisotropy to the sprite atlas.** Pixel art wants neither, and goal 04 already
+  reverted an sRGB decode on it for a related reason.
+- **Do not patch BroMetal here.** That is goal 15, with its own review.
 - **Do not build a general texture-packing framework.** Three atlases with one layout is not a
-  packing problem.
-- **Do not patch BroMetal for texture arrays in this goal.** Record it as an upstream request with
-  the measurement attached, following `docs/objectives/ideas/skill-text.md`. It is the right
-  long-term answer and it is a separate piece of work with its own review.
+  packing problem, and `GOOD_ENGINEERING_H.md` is direct about abstracting early.
 
 ## Engineering constraints
 
@@ -124,21 +127,21 @@ builds. The texture-array gap belongs upstream — see the non-goals.
 
 ## Completion definition
 
-Complete when the three world atlases carry a derived gutter, the shaders address the inner
-rectangle, the generalised tile boundary test is green and proven to fail without padding, the sprite atlas
-has a recorded measurement and no changes, and a fresh `antiky-town` capture has been looked at
-against the previous one.
+Complete when the slicer emits both modes with tests, the three world atlases carry a derived gutter,
+the shaders address the inner rectangle, the generalised measurement is green and proven to fail
+without a gutter, the sprite atlas has a recorded number and no changes, and a fresh `antiky-town`
+capture has been looked at beside the previous one.
 
-## Why this will come back
+## Why this outlives the three atlases
 
 The owner's instinct when this was found: *"I have a feeling this will pop back up on sprite sheets
 and sprite maps."* That is correct and worth writing down.
 
-Every atlas has this property. It stays hidden while a texture is drawn at or near its authored size
+Every atlas has this property. It stays hidden while a texture is drawn at roughly its authored size
 with `nearest` filtering, and appears the moment anything is minified, mipped, filtered or rotated —
-which is exactly what happens when a 2D game adds a zoom-out, a parallax layer, or a rotating
-sprite. The sprite atlas is safe **today** because of how it happens to be sampled, not because it
-is built correctly.
+which is exactly what happens when a 2D game adds a zoom-out, a parallax layer, or a rotating sprite.
+The actor atlas is safe **today** because of how it happens to be sampled, not because it was built
+correctly.
 
-So the deliverable that outlives this goal is not the three rebuilt atlases. It is the tool and the
-measurement: a way to build an atlas that cannot bleed, and a test that says so.
+So the lasting deliverable is not three rebuilt atlases. It is a slicer and a measurement: a way to
+build an atlas that cannot bleed, and a check that says whether it does.
