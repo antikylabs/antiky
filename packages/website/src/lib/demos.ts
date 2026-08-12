@@ -12,10 +12,21 @@ export type DemoSlug =
 
 export type DemoPillar = 'Framework' | 'BroMetal' | 'Three.js';
 
+/**
+ * Splits the BroMetal pillar by what a study actually is.
+ *
+ * Town Study is roughly nine thousand lines: a voxel surface mesher, a sprite batcher, a tested
+ * character motor, and twelve shader pairs including dedicated shadow passes and a post pass. The
+ * other three are fullscreen quads. Billing them identically read as a claim that a fullscreen
+ * quad is the ceiling of what BroMetal does, which is the opposite of the point.
+ */
+export type DemoTier = 'engine' | 'shader-study';
+
 export type DemoMeta = Readonly<{
   slug: DemoSlug;
   title: string;
   pillar: DemoPillar;
+  tier?: DemoTier;
   tagline: string;
   notes: string;
   proves: readonly string[];
@@ -28,6 +39,7 @@ export type DemoMeta = Readonly<{
 export const DEMO_GROUPS: readonly Readonly<{
   id: string;
   pillar: DemoPillar;
+  tier?: DemoTier;
   title: string;
   description: string;
 }>[] = [
@@ -40,8 +52,16 @@ export const DEMO_GROUPS: readonly Readonly<{
   {
     id: 'brometal-demos',
     pillar: 'BroMetal',
+    tier: 'engine',
     title: 'BroMetal',
     description: 'Pure WebGPU projects that use BroMetal without an Antiky Framework dependency.',
+  },
+  {
+    id: 'brometal-shader-demos',
+    pillar: 'BroMetal',
+    tier: 'shader-study',
+    title: 'BroMetal shader studies',
+    description: 'Single-quad studies, each isolating one property of the typed shader compiler rather than a whole scene.',
   },
   {
     id: 'threejs-demos',
@@ -124,6 +144,7 @@ export const DEMOS: readonly DemoMeta[] = [
     slug: 'town-study',
     title: 'Town Study',
     pillar: 'BroMetal',
+    tier: 'engine',
     tagline: 'A living pixel cast inside a golden-hour voxel town.',
     notes:
       'Cross the canal and enter a market town at sunset. This edition is a pure BroMetal project: the renderer and game own the scene while Studio supplies only the portable host lifecycle.',
@@ -141,6 +162,7 @@ export const DEMOS: readonly DemoMeta[] = [
     slug: 'shader-study',
     title: 'Shader Study',
     pillar: 'BroMetal',
+    tier: 'shader-study',
     tagline: 'One typed aurora shader compiled ahead of time for WebGPU.',
     notes:
       'Shader Study isolates one useful property of BroMetal: typed shader source compiles ahead of time to WGSL. The website runs only the generated game artifact.',
@@ -156,9 +178,10 @@ export const DEMOS: readonly DemoMeta[] = [
     slug: 'solar-forge',
     title: 'Solar Forge',
     pillar: 'BroMetal',
-    tagline: 'A turbulent procedural eclipse forged from typed shader code.',
+    tier: 'shader-study',
+    tagline: 'A black hole with a photon ring and a Doppler-beamed accretion disk, in one draw call.',
     notes:
-      'Layered noise, a molten corona, orbiting sparks, and a black-hot core form a cinematic stellar furnace with one draw call and no textures.',
+      'A gravitationally lensed photon ring, an accretion disk with relativistic Doppler beaming, layered noise and orbiting sparks — one draw call, no textures.',
     proves: [
       'A custom pure BroMetal shader rather than a prebuilt effect',
       'Layered procedural detail with one compact draw call',
@@ -166,12 +189,13 @@ export const DEMOS: readonly DemoMeta[] = [
     ],
     tags: ['BroMetal', 'procedural', 'one draw call'],
     requiresWebGpu: true,
-    controls: 'Move the pointer to bend the view around the eclipse',
+    controls: 'Move the pointer to bend the view around the black hole',
   },
   {
     slug: 'luminous-reef',
     title: 'Luminous Reef',
     pillar: 'BroMetal',
+    tier: 'shader-study',
     tagline: 'Bioluminescent life and caustic water in one custom shader.',
     notes:
       'A procedural seascape layers drifting water, cellular caustics, jelly forms, coral silhouettes, and responsive parallax without texture assets.',

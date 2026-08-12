@@ -88,7 +88,10 @@ test('the website catalog exposes all renderer families and gates only WebGPU de
   assert.match(catalog, /pillar: 'Framework'/);
   assert.match(catalog, /pillar: 'BroMetal'/);
   assert.match(catalog, /pillar: 'Three\.js'/);
-  assert.match(host, /requiresWebGpu && !\('gpu' in navigator\)/);
+  // The support check lives in one helper so the render path and the activation path cannot drift.
+  assert.match(host, /function webGpuAvailable\(\)/);
+  assert.match(host, /'gpu' in navigator/);
+  assert.match(host, /requiresWebGpu && !webGpuAvailable\(\)/);
   assert.match(host, /onPointerEnter/);
   assert.match(host, /onFocusCapture/);
   assert.match(host, /prefers-reduced-motion/);
@@ -261,4 +264,95 @@ test('staging rejects an unapproved renderer label at the publication boundary',
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test('a browser without WebGPU is shown posters, not error cards', async () => {
+  const host = await readFile(new URL('../src/components/DemoStage.tsx', import.meta.url), 'utf8');
+
+  // The defect: `setPhase('error')` on a browser that simply lacks WebGPU turned eight of ten
+  // cards into red alerts blaming the visitor for their browser. A still frame captured from the
+  // running study is evidence; an error card is a bug report sent to the wrong person.
+  const gate = host.slice(host.indexOf('requiresWebGpu && !webGpuAvailable()'));
+  assert.match(gate.slice(0, 160), /setPhase\('gated'\)/);
+  assert.ok(!/setPhase\('error'\)/.test(gate.slice(0, 160)));
+
+  // The gated stage keeps the poster visible and captions it.
+  assert.match(host, /className="stage-badge"/);
+  assert.match(host, /Static capture/);
+
+  const styles = await readFile(new URL('../src/app/globals.css', import.meta.url), 'utf8');
+  assert.match(styles, /\[data-phase='gated'\] \.stage-canvas \{ opacity: 0/);
+  assert.match(styles, /\.stage-badge \{/);
+});
+
+test('the WebGPU requirement is stated once at page level', async () => {
+  const page = await readFile(new URL('../src/app/demos/page.tsx', import.meta.url), 'utf8');
+  const mentions = page.match(/WebGPU/g) ?? [];
+  // Once, deliberately, in the page lead — not repeated on eight separate cards.
+  assert.equal(mentions.length, 1, `expected one page-level WebGPU statement, found ${mentions.length}`);
+  assert.match(page, /className="page-note"/);
+});
+
+test('a thumb renders an activation control that does not depend on hovering', async () => {
+  const host = await readFile(new URL('../src/components/DemoStage.tsx', import.meta.url), 'utf8');
+  const thumbStart = host.indexOf("variant === 'thumb' ? (");
+  assert.ok(thumbStart > 0, 'failed to locate the thumb branch');
+  // Slice forward from the branch, not to the first "Open study" in the file — the gated branch
+  // above the thumb branch has one too.
+  const thumbBranch = host.slice(thumbStart, host.indexOf('Open study', thumbStart));
+
+  // Touch devices never fire pointerenter, so hover-only activation left the mobile page as ten
+  // static posters with no way to start anything.
+  assert.match(thumbBranch, /className="stage-activate"/);
+  assert.match(thumbBranch, /onClick=\{\(\) => void activate\(\)\}/);
+
+  const styles = await readFile(new URL('../src/app/globals.css', import.meta.url), 'utf8');
+  // ...and a running thumb must accept input rather than swallowing it.
+  assert.match(styles, /\.stage-thumb\[data-phase='running'\] \.stage-canvas.*pointer-events: auto/);
+});
+
+test('mobile posters are fitted rather than cropped past their subject', async () => {
+  const styles = await readFile(new URL('../src/app/globals.css', import.meta.url), 'utf8');
+
+  // `.deck-stage` is `height: 68svh`, which at a 390px viewport is a portrait box. `cover` against
+  // a 2560x1440 master then shows only its middle ~35%, cutting Orbital Atlas's ringed planet and
+  // Shader Study's moon out of frame. `contain` shows 100% of the master's width.
+  const mobileRule = styles.slice(styles.indexOf('.stage-has-poster { background-image: var(--stage-poster-mobile)'));
+  assert.match(mobileRule.slice(0, 120), /background-size: contain/);
+
+  const posterAspect = 2560 / 1440;
+  const stageAspect = 390 / (844 * 0.68);
+  const visibleWidthWithCover = stageAspect / posterAspect;
+  assert.ok(visibleWidthWithCover < 0.7, 'this test is meaningless if cover would already fit');
+});
+
+test('Town Study is not billed as a shader study', async () => {
+  const { DEMOS, DEMO_GROUPS } = await import('../src/lib/demos.ts');
+
+  // Town Study is ~9,000 lines: a voxel surface mesher, a sprite batcher, a tested character motor,
+  // and twelve shader pairs including dedicated shadow passes. The other three BroMetal studies are
+  // fullscreen quads. One group for both read as a claim that a quad is BroMetal's ceiling.
+  const townStudy = DEMOS.find((demo) => demo.slug === 'town-study');
+  assert.equal(townStudy?.tier, 'engine');
+  for (const slug of ['shader-study', 'solar-forge', 'luminous-reef']) {
+    assert.equal(DEMOS.find((demo) => demo.slug === slug)?.tier, 'shader-study');
+  }
+
+  const groups = DEMO_GROUPS.filter((group) => group.pillar === 'BroMetal');
+  assert.equal(groups.length, 2, 'the BroMetal pillar must present two clearly separated groups');
+  assert.deepEqual(groups.map((group) => group.id).sort(), ['brometal-demos', 'brometal-shader-demos']);
+  assert.equal(new Set(DEMO_GROUPS.map((group) => group.id)).size, DEMO_GROUPS.length);
+});
+
+test('Solar Forge copy describes what its shader implements', async () => {
+  const { DEMOS } = await import('../src/lib/demos.ts');
+  const solarForge = DEMOS.find((demo) => demo.slug === 'solar-forge');
+
+  // The shader implements a photon ring, an accretion disk and relativistic Doppler beaming. Calling
+  // that "a turbulent procedural eclipse" with "a black-hot core" undersold its own content.
+  const copy = `${solarForge?.tagline} ${solarForge?.notes}`;
+  assert.ok(!/eclipse/i.test(copy), 'the shader does not implement an eclipse');
+  assert.match(copy, /photon ring/i);
+  assert.match(copy, /accretion disk/i);
+  assert.match(copy, /doppler/i);
 });

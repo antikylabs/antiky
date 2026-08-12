@@ -23,12 +23,23 @@ import {
   type DemoSlug,
 } from '@/lib/demos';
 
+/** Safari and Firefox do not expose `navigator.gpu` today, which is what gates eight of ten demos. */
+function webGpuAvailable(): boolean {
+  return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
 type StageStyle = CSSProperties & {
   '--stage-poster'?: string;
   '--stage-poster-mobile'?: string;
 };
 
-type StagePhase = 'poster' | 'ready' | 'loading' | 'running' | 'paused' | 'error';
+/**
+ * `gated` is a browser without WebGPU meeting a demo that needs it. It is deliberately not `error`:
+ * the visitor did nothing wrong and there is nothing to retry, so the stage shows the demo's poster
+ * — a real still frame of the demo running — with a badge saying why it is not live. A still frame
+ * is evidence; a red error card is a bug report addressed to the wrong person.
+ */
+type StagePhase = 'poster' | 'ready' | 'gated' | 'loading' | 'running' | 'paused' | 'error';
 
 type Props = Readonly<{
   slug: DemoSlug;
@@ -91,6 +102,11 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
   const [measurements, setMeasurements] = useState<GameMeasurements>({});
   const [framesPerSecond, setFramesPerSecond] = useState<number | null>(null);
   const requiresWebGpu = findDemo(slug)?.requiresWebGpu ?? true;
+  useEffect(() => {
+    // Runs after hydration on purpose: `navigator` does not exist during server rendering, and the
+    // server must emit the same markup the client starts from.
+    if (requiresWebGpu && !webGpuAvailable()) setPhase('gated');
+  }, [requiresWebGpu]);
 
   const stopRuntime = useCallback(() => {
     const runtime = runtimeRef.current;
@@ -105,9 +121,8 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
     if (runtimeRef.current || activationPendingRef.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (requiresWebGpu && !('gpu' in navigator)) {
-      setError('This demo needs a browser with WebGPU support.');
-      setPhase('error');
+    if (requiresWebGpu && !webGpuAvailable()) {
+      setPhase('gated');
       return;
     }
 
@@ -208,7 +223,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
     try {
       const moduleUrl = demoModuleUrl(slug);
       const loaded = await import(/* webpackIgnore: true */ moduleUrl) as { default?: unknown };
-      if (typeof loaded.default !== 'function') throw new Error('The compiled game has no default game-module entry.');
+      if (typeof loaded.default !== 'function') throw new Error('This study could not start. Its build looks incomplete.');
       const entry = loaded.default as GameModuleEntry;
       const context: GameHostContext = {
         canvas,
@@ -221,7 +236,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
         },
       };
       instance = await entry(context);
-      if (!validGameInstance(instance)) throw new Error('The compiled game returned an invalid game instance.');
+      if (!validGameInstance(instance)) throw new Error('This study could not start. Its build looks incomplete.');
       if (!mountedRef.current) {
         instance.dispose();
         return;
@@ -320,9 +335,23 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
       }}
     >
       <canvas ref={canvasRef} className="stage-canvas" aria-label={label} tabIndex={variant === 'thumb' ? -1 : 0} />
-      {variant === 'thumb' ? (
+      {phase === 'gated' ? (
+        <>
+          <p className="stage-badge">Static capture — this study needs WebGPU</p>
+          {variant === 'thumb' && (
+            <Link className="demo-open" href={`/demos/${slug}`}>Open study <ArrowUpRight /></Link>
+          )}
+        </>
+      ) : variant === 'thumb' ? (
         <>
           {phase === 'loading' && <div className="stage-status">Loading live preview…</div>}
+          {(phase === 'poster' || phase === 'ready') && (
+            // Touch devices never fire pointerenter, so without this the whole page is posters.
+            <button className="stage-activate" type="button" onClick={() => void activate()}>
+              <span className="stage-play" aria-hidden="true">▶</span>
+              Run preview
+            </button>
+          )}
           <Link className="demo-open" href={`/demos/${slug}`}>Open study <ArrowUpRight /></Link>
         </>
       ) : phase === 'loading' ? (
