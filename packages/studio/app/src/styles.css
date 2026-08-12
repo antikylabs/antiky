@@ -337,6 +337,36 @@ summary:focus-visible,
   letter-spacing: .02em;
 }
 
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-action-button,
+.fullscreen-exit-button {
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.panel-action-button:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.panel-action-button:not(:disabled):hover,
+.fullscreen-exit-button:hover {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
 .game-panel {
   grid-area: game;
 }
@@ -376,6 +406,21 @@ summary:focus-visible,
   position: relative;
   background: var(--media);
   box-shadow: inset 0 0 0 1px #111216;
+}
+
+.game-stage:fullscreen {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  box-shadow: none;
+}
+
+.fullscreen-exit-button {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  background: rgba(9, 10, 13, .82);
 }
 
 .game-connection-note {

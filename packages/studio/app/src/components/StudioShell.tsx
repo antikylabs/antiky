@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { AntikyProject } from '@antiky/cli/project';
 
@@ -77,6 +77,8 @@ export function StudioShell({
   sspsPresenceEnabled = true,
 }: StudioShellProps) {
   const [localPage, setLocalPage] = useState(initialPage);
+  const [gameFullscreen, setGameFullscreen] = useState(false);
+  const gameStageRef = useRef<HTMLDivElement>(null);
   const page = controlledPage ?? localPage;
   const settingsOpen = platform === 'native' && page === 'settings';
   const current = development.status === 'connected';
@@ -108,6 +110,25 @@ export function StudioShell({
     setLocalPage(nextPage);
     onPageChange(nextPage);
   };
+  const toggleGameFullscreen = async () => {
+    const gameStage = gameStageRef.current;
+    if (!gameStage) return;
+
+    if (document.fullscreenElement === gameStage) {
+      await document.exitFullscreen();
+      return;
+    }
+
+    await gameStage.requestFullscreen();
+  };
+
+  useEffect(() => {
+    const updateFullscreenState = () => {
+      setGameFullscreen(document.fullscreenElement === gameStageRef.current);
+    };
+    document.addEventListener('fullscreenchange', updateFullscreenState);
+    return () => document.removeEventListener('fullscreenchange', updateFullscreenState);
+  }, []);
 
   return (
     <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'} platform-${platform}`}>
@@ -206,12 +227,24 @@ export function StudioShell({
         inert={settingsOpen}
       >
         <Panel
-          actions={<span className="panel-state">{current ? snapshot?.connection.state : connectionLabel}</span>}
+          actions={(
+            <div className="panel-actions">
+              <span className="panel-state">{current ? snapshot?.connection.state : connectionLabel}</span>
+              <button
+                aria-label="Enter game fullscreen"
+                className="panel-action-button"
+                disabled={!snapshot}
+                onClick={() => void toggleGameFullscreen()}
+                title="Enter game fullscreen"
+                type="button"
+              >Fullscreen</button>
+            </div>
+          )}
           className="game-panel"
           title="Live game"
           workspaceArea="game"
         >
-          <div className="game-stage">
+          <div className="game-stage" ref={gameStageRef}>
             {snapshot ? (
               <>
                 <LiveGameFrame
@@ -222,6 +255,14 @@ export function StudioShell({
                   <span className="game-connection-note" role="status">
                     {stale ? 'Reconnecting…' : 'Waiting for game…'}
                   </span>
+                )}
+                {gameFullscreen && (
+                  <button
+                    aria-label="Exit game fullscreen"
+                    className="fullscreen-exit-button"
+                    onClick={() => void toggleGameFullscreen()}
+                    type="button"
+                  >Exit fullscreen</button>
                 )}
               </>
             ) : (

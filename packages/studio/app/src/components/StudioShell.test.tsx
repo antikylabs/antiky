@@ -13,6 +13,7 @@ const shellStyles = [
   readFileSync(new URL('../styles.css', import.meta.url), 'utf8'),
   readFileSync(new URL('../responsive.css', import.meta.url), 'utf8'),
 ].join('\n');
+const studioShellSource = readFileSync(new URL('./StudioShell.tsx', import.meta.url), 'utf8');
 
 const ROOT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const LIGHT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';
@@ -306,6 +307,24 @@ test('connected Studio renders the live game and every semantic inspection surfa
   assert.match(html, /<button[^>]*>Restart game<\/button>/);
   assert.match(html, /<button[^>]*>Stop game<\/button>/);
   assert.doesNotMatch(html, /contenteditable|Save changes|Edit component/i);
+});
+
+test('the live game can enter and leave fullscreen without unmounting its frame', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={studioActions}
+      context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+      development={development}
+      platform="native"
+    />,
+  );
+
+  assert.match(html, /<button[^>]*aria-label="Enter game fullscreen"/);
+  assert.equal((html.match(/<iframe/g) ?? []).length, 1);
+  assert.match(studioShellSource, /requestFullscreen\(\)/);
+  assert.match(studioShellSource, /document\.exitFullscreen\(\)/);
+  assert.match(studioShellSource, /fullscreenchange/);
+  assert.match(shellStyles, /\.game-stage:fullscreen\s*\{/);
 });
 
 test('a deliberately stopped game has one clear recovery action and no retained frame', () => {
