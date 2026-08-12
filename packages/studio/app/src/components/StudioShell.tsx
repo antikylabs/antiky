@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react';
 
 import type { AntikyProject } from '@antiky/cli/project';
 
@@ -17,6 +18,13 @@ import { InspectionPanel } from './InspectionPanel.tsx';
 import { LiveGameFrame } from './LiveGameFrame.tsx';
 import { EmptyState, Panel } from './primitives.tsx';
 import { SettingsPage } from './SettingsPage.tsx';
+import {
+  DEFAULT_WORKSPACE_SPLITS,
+  resizeWorkspaceSplit,
+  stepWorkspaceSplit,
+  WORKSPACE_SPLIT_LIMITS,
+} from './workspaceLayout.ts';
+import type { WorkspaceSplitAxis } from './workspaceLayout.ts';
 
 const brandUrl = new URL(
   '../../../../website/public/brand/antiky-labs-wordmark-and-text-white.svg',
@@ -78,7 +86,10 @@ export function StudioShell({
 }: StudioShellProps) {
   const [localPage, setLocalPage] = useState(initialPage);
   const [gameFullscreen, setGameFullscreen] = useState(false);
+  const [resizingAxis, setResizingAxis] = useState<WorkspaceSplitAxis | null>(null);
+  const [workspaceSplits, setWorkspaceSplits] = useState(DEFAULT_WORKSPACE_SPLITS);
   const gameStageRef = useRef<HTMLDivElement>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
   const page = controlledPage ?? localPage;
   const settingsOpen = platform === 'native' && page === 'settings';
   const current = development.status === 'connected';
@@ -129,6 +140,50 @@ export function StudioShell({
     document.addEventListener('fullscreenchange', updateFullscreenState);
     return () => document.removeEventListener('fullscreenchange', updateFullscreenState);
   }, []);
+
+  const updateWorkspaceSplit = (axis: WorkspaceSplitAxis, pointerPosition: number) => {
+    const bounds = workspaceRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+
+    const nextValue = resizeWorkspaceSplit(axis, pointerPosition, bounds);
+    setWorkspaceSplits((currentSplits) => ({ ...currentSplits, [axis]: nextValue }));
+  };
+  const beginWorkspaceResize = (
+    axis: WorkspaceSplitAxis,
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setResizingAxis(axis);
+    updateWorkspaceSplit(axis, axis === 'column' ? event.clientX : event.clientY);
+  };
+  const continueWorkspaceResize = (
+    axis: WorkspaceSplitAxis,
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    updateWorkspaceSplit(axis, axis === 'column' ? event.clientX : event.clientY);
+  };
+  const finishWorkspaceResize = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setResizingAxis(null);
+  };
+  const handleWorkspaceResizeKey = (
+    axis: WorkspaceSplitAxis,
+    event: KeyboardEvent<HTMLDivElement>,
+  ) => {
+    const nextValue = stepWorkspaceSplit(axis, workspaceSplits[axis], event.key);
+    if (nextValue === workspaceSplits[axis]) return;
+
+    event.preventDefault();
+    setWorkspaceSplits((currentSplits) => ({ ...currentSplits, [axis]: nextValue }));
+  };
+  const workspaceStyle = {
+    '--workspace-column-split': `${workspaceSplits.column}%`,
+    '--workspace-row-split': `${workspaceSplits.row}%`,
+  } as CSSProperties;
 
   return (
     <main className={`studio-shell connection-${development.status} page-${settingsOpen ? 'settings' : 'workspace'} platform-${platform}`}>
@@ -223,8 +278,10 @@ export function StudioShell({
 
       <div
         aria-hidden={settingsOpen || undefined}
-        className="workspace"
+        className={`workspace${resizingAxis ? ` is-resizing-${resizingAxis}` : ''}`}
         inert={settingsOpen}
+        ref={workspaceRef}
+        style={workspaceStyle}
       >
         <Panel
           actions={(
@@ -296,6 +353,47 @@ export function StudioShell({
           mcpCallLog={development.mcpCallLog}
           snapshot={snapshot}
           stale={stale}
+        />
+
+        <div
+          role="separator"
+          aria-label="Resize game and inspection panels"
+          aria-orientation="vertical"
+          aria-valuemax={WORKSPACE_SPLIT_LIMITS.column.max}
+          aria-valuemin={WORKSPACE_SPLIT_LIMITS.column.min}
+          aria-valuenow={Math.round(workspaceSplits.column)}
+          className="workspace-resizer workspace-column-resizer"
+          onDoubleClick={() => setWorkspaceSplits((current) => ({
+            ...current,
+            column: DEFAULT_WORKSPACE_SPLITS.column,
+          }))}
+          onKeyDown={(event) => handleWorkspaceResizeKey('column', event)}
+          onPointerCancel={finishWorkspaceResize}
+          onPointerDown={(event) => beginWorkspaceResize('column', event)}
+          onPointerMove={(event) => continueWorkspaceResize('column', event)}
+          onPointerUp={finishWorkspaceResize}
+          tabIndex={0}
+          title="Drag or use Left and Right Arrow keys. Press Home or double-click to reset."
+        />
+        <div
+          role="separator"
+          aria-label="Resize upper and lower panels"
+          aria-orientation="horizontal"
+          aria-valuemax={WORKSPACE_SPLIT_LIMITS.row.max}
+          aria-valuemin={WORKSPACE_SPLIT_LIMITS.row.min}
+          aria-valuenow={Math.round(workspaceSplits.row)}
+          className="workspace-resizer workspace-row-resizer"
+          onDoubleClick={() => setWorkspaceSplits((current) => ({
+            ...current,
+            row: DEFAULT_WORKSPACE_SPLITS.row,
+          }))}
+          onKeyDown={(event) => handleWorkspaceResizeKey('row', event)}
+          onPointerCancel={finishWorkspaceResize}
+          onPointerDown={(event) => beginWorkspaceResize('row', event)}
+          onPointerMove={(event) => continueWorkspaceResize('row', event)}
+          onPointerUp={finishWorkspaceResize}
+          tabIndex={0}
+          title="Drag or use Up and Down Arrow keys. Press Home or double-click to reset."
         />
       </div>
 

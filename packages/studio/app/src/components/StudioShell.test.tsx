@@ -203,6 +203,26 @@ test('workspace follows the website game-first layout contract', () => {
   }
 });
 
+test('workspace panels expose bounded pointer and keyboard resize controls', () => {
+  const html = renderToStaticMarkup(
+    <StudioShell
+      actions={studioActions}
+      context={{ projectDirectory: '/project', projectName: 'antiky-town' }}
+      development={development}
+      platform="native"
+    />,
+  );
+
+  assert.match(html, /role="separator"[^>]*aria-orientation="vertical"/);
+  assert.match(html, /role="separator"[^>]*aria-orientation="horizontal"/);
+  assert.equal((html.match(/aria-valuemin="25"/g) ?? []).length, 2);
+  assert.match(html, /aria-label="Resize game and inspection panels"/);
+  assert.match(html, /aria-label="Resize upper and lower panels"/);
+  assert.match(shellStyles, /grid-template-columns:[^;]*--workspace-column-split/);
+  assert.match(shellStyles, /grid-template-rows:[^;]*--workspace-row-split/);
+  assert.match(shellStyles, /@media \(max-width: 760px\)[\s\S]*\.workspace-resizer\s*\{[^}]*display:\s*none/s);
+});
+
 test('native workspace names the active project without spending a row on manifest metadata', () => {
   const html = renderToStaticMarkup(
     <StudioShell
