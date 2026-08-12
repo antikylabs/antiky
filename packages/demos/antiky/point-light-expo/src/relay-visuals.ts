@@ -238,6 +238,9 @@ function populateFormsAndOrbs(
     );
   }
   orbs.upload();
+  // Written above alongside the orbs; without this the contact-shadow program is drawn with empty
+  // instance buffers and BroMetal refuses the draw, taking the whole demo down with it.
+  contacts.upload();
 }
 
 function populateRings(

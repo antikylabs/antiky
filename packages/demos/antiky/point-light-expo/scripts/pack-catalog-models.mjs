@@ -19,6 +19,7 @@ const configurations = [
     binPath: 'dead_tree_trunk.bin',
     diffusePath: 'textures/dead_tree_trunk_diff_1k.jpg',
     materialPath: 'textures/dead_tree_trunk_arm_1k.jpg',
+    normalPath: 'textures/dead_tree_trunk_nor_gl_1k.jpg',
     imageUris: [
       'textures/dead_tree_trunk_nor_gl_1k.jpg',
       'textures/dead_tree_trunk_diff_1k.jpg',
@@ -28,6 +29,7 @@ const configurations = [
     outputPath: 'dead-tree-trunk-runtime.glb',
     diffuseName: 'dead_tree_trunk_diff',
     materialName: 'dead_tree_trunk_arm',
+    normalName: 'dead_tree_trunk_nor',
     materialLayout: 'arm',
   },
   {
@@ -39,6 +41,7 @@ const configurations = [
     binPath: 'rock_moss_set_01.bin',
     diffusePath: 'textures/rock_moss_set_01_diff_1k.jpg',
     materialPath: 'textures/rock_moss_set_01_rough_1k.jpg',
+    normalPath: 'textures/rock_moss_set_01_nor_gl_1k.jpg',
     imageUris: [
       'textures/rock_moss_set_01_nor_gl_1k.jpg',
       'textures/rock_moss_set_01_diff_1k.jpg',
@@ -48,6 +51,7 @@ const configurations = [
     outputPath: 'rock-moss-set-01-runtime.glb',
     diffuseName: 'catalog_diff',
     materialName: 'catalog_material',
+    normalName: 'catalog_normal',
     materialLayout: 'roughness-red',
   },
   {
@@ -59,6 +63,7 @@ const configurations = [
     binPath: 'tree_stump_01.bin',
     diffusePath: 'textures/tree_stump_01_diff_1k.jpg',
     materialPath: 'textures/tree_stump_01_arm_1k.jpg',
+    normalPath: 'textures/tree_stump_01_nor_gl_1k.jpg',
     imageUris: [
       'textures/tree_stump_01_nor_gl_1k.jpg',
       'textures/tree_stump_01_diff_1k.jpg',
@@ -68,6 +73,7 @@ const configurations = [
     outputPath: 'tree-stump-01-runtime.glb',
     diffuseName: 'catalog_diff',
     materialName: 'catalog_material',
+    normalName: 'catalog_normal',
     materialLayout: 'arm',
   },
 ];
@@ -85,14 +91,17 @@ for (const configuration of configurations) {
   const sourceBin = await readFile(new URL(configuration.binPath, sourceRoot));
   const diffuse = await readFile(new URL(configuration.diffusePath, sourceRoot));
   const materialMap = await readFile(new URL(configuration.materialPath, sourceRoot));
+  const normalMap = await readFile(new URL(configuration.normalPath, sourceRoot));
   const runtimeGlb = packExternalGltfToGlb({
     source: sourceJson,
     sourceBin,
     selectedMeshIndex: configuration.selectedMeshIndex,
     diffuse,
     materialMap,
+    normalMap,
     diffuseName: configuration.diffuseName,
     materialName: configuration.materialName,
+    normalName: configuration.normalName,
     generator: 'Antiky allowlisted external-gltf-to-glb packer v2',
   });
   const outputPath = `assets/derived/${configuration.outputPath}`;

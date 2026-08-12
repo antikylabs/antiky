@@ -54,10 +54,18 @@ export function packExternalGltfToGlb({
   selectedMeshIndex,
   diffuse,
   materialMap,
+  normalMap,
   diffuseName,
   materialName,
+  normalName,
   generator,
 }) {
+  // The normal map used to be downloaded, hash-verified, committed, and then deleted here. Without
+  // it the Poly Haven scans lose every surface detail smaller than a triangle, which is why the
+  // rock read as clay: nothing for a light to catch.
+  if (!Buffer.isBuffer(normalMap) || normalMap.length === 0) {
+    throw new Error('A packed catalog model must carry its normal map.');
+  }
   if (source.buffers[0]?.byteLength !== sourceBin.length) {
     throw new Error('External glTF buffer length does not match its verified source binary.');
   }
@@ -77,7 +85,7 @@ export function packExternalGltfToGlb({
 
   const binParts = [padded(sourceBin)];
   let byteOffset = binParts[0].length;
-  const embeddedImages = [diffuse, materialMap].map((image) => {
+  const embeddedImages = [diffuse, materialMap, normalMap].map((image) => {
     const view = { buffer: 0, byteOffset, byteLength: image.length };
     const bytes = padded(image);
     binParts.push(bytes);
@@ -86,10 +94,10 @@ export function packExternalGltfToGlb({
   });
   const binaryChunk = Buffer.concat(binParts);
   const material = structuredClone(source.materials?.[0] ?? { pbrMetallicRoughness: {} });
-  delete material.normalTexture;
   material.pbrMetallicRoughness ??= {};
   material.pbrMetallicRoughness.baseColorTexture = { index: 0 };
   material.pbrMetallicRoughness.metallicRoughnessTexture = { index: 1 };
+  material.normalTexture = { index: 2 };
   const sourceBufferViews = structuredClone(source.bufferViews);
   const runtimeJson = {
     asset: { version: '2.0', generator },
@@ -99,9 +107,10 @@ export function packExternalGltfToGlb({
     images: [
       { name: diffuseName, mimeType: 'image/jpeg', bufferView: sourceBufferViews.length },
       { name: materialName, mimeType: 'image/jpeg', bufferView: sourceBufferViews.length + 1 },
+      { name: normalName, mimeType: 'image/jpeg', bufferView: sourceBufferViews.length + 2 },
     ],
     samplers: [structuredClone(source.samplers?.[0] ?? {})],
-    textures: [{ sampler: 0, source: 0 }, { sampler: 0, source: 1 }],
+    textures: [{ sampler: 0, source: 0 }, { sampler: 0, source: 1 }, { sampler: 0, source: 2 }],
     materials: [material],
     meshes: [selectedMesh],
     nodes: [{ mesh: 0, name: selectedMesh.name ?? 'catalog-model' }],

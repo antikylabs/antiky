@@ -29,8 +29,8 @@
       ],
       "output": {
         "path": "assets/derived/dead-tree-trunk-runtime.glb",
-        "sha256": "0f3b4db64db1209590ce75ccecd5f72fed3938a669c729b750c27fcb23e1619a",
-        "size": 3733260
+        "sha256": "e962c99254db0fe307128e02d8d4df3cd36b82ff6dcf6a85e5b0f8eb3bd686ff",
+        "size": 4786512
       },
       "transform": {
         "script": "scripts/pack-catalog-models.mjs",
@@ -75,8 +75,8 @@
       ],
       "output": {
         "path": "assets/derived/rock-moss-set-01-runtime.glb",
-        "sha256": "0bf52ded7d769acee77fd65ea08e2eae9e8f95a5fea5155778f9fed5fae033de",
-        "size": 1721680
+        "sha256": "d6fd91b74090d2746627ddd395f2d6d30524eb668ba49f5c245f3401f6ab2020",
+        "size": 1931828
       },
       "transform": {
         "script": "scripts/pack-catalog-models.mjs",
@@ -121,8 +121,8 @@
       ],
       "output": {
         "path": "assets/derived/tree-stump-01-runtime.glb",
-        "sha256": "8a246ccbef52ecbe6d90f6991d9db6a14bd2580a4558fd34044727805ab893c7",
-        "size": 2700076
+        "sha256": "c51e9c53a652362b7e2cb1d4460a4c91e233486c496d1aaebad4bc5d4ff9b3a1",
+        "size": 3938652
       },
       "transform": {
         "script": "scripts/pack-catalog-models.mjs",

@@ -273,3 +273,28 @@ test('contact shadows have their own batch rather than sharing the lit orb slots
   assert.equal(slots.contacts, SHADE_COUNT + 1);
   assert.ok(!('playerContact' in renderProfile.RELAY_RENDER_SLOTS.orbs));
 });
+
+test('every visual batch that gets drawn also gets its instance data uploaded', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const visuals = await readFile(new URL('../src/relay-visuals.ts', import.meta.url), 'utf8');
+  const renderer = await readFile(new URL('../src/renderer.ts', import.meta.url), 'utf8');
+
+  // This guards a real regression that shipped: the contact-shadow batch was added, written to and
+  // drawn, but never uploaded. BroMetal refuses a draw with empty instance buffers — "no instance
+  // data — call set(...) before draw()" — and the whole demo failed to start. Nothing caught it,
+  // because every test here runs without a GPU and the capture path still produced a frame.
+  //
+  // Scoped to `visualBatches`, which is exactly the set with a write-then-upload-then-draw contract
+  // each frame. The floor and onboarding programs are not instanced, and the three model batches
+  // upload once at construction in `reliquary-models.ts`.
+  const declaration = visuals.match(/export type RelayVisualBatches = Readonly<\{([\s\S]*?)\}>;/);
+  assert.ok(declaration, 'failed to locate the RelayVisualBatches declaration');
+  const names = [...declaration[1].matchAll(/^\s*(\w+):/gm)].map((match) => match[1]);
+  assert.ok(names.length >= 5, `expected the full batch set, found ${names.join(', ')}`);
+
+  const missing = names.filter((name) => {
+    if (!new RegExp(`\\b${name}\\.draw\\(\\)`).test(renderer)) return false;
+    return !new RegExp(`\\b${name}\\.upload\\(\\)`).test(visuals);
+  });
+  assert.deepEqual(missing, [], 'these batches are drawn every frame but never have their instance data uploaded');
+});

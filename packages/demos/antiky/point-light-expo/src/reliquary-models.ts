@@ -22,7 +22,7 @@ export const TREE_STUMP_RUNTIME_URL = new URL(
   '../assets/derived/tree-stump-01-runtime.glb?no-inline', import.meta.url,
 ).href;
 
-type TextureRole = 'diffuse' | 'material';
+type TextureRole = 'diffuse' | 'material' | 'normal';
 
 export type ReliquaryModelDependencies = Readonly<{
   loadModel(url: string): Promise<Model>;
@@ -49,6 +49,7 @@ type ModelBatchDescriptor = Readonly<{
   url: string;
   diffuseImage: string;
   materialImage: string;
+  normalImage: string;
   materialLayout: 0 | 1;
 }>;
 
@@ -57,6 +58,7 @@ const DEAD_TREE = Object.freeze({
   url: DEAD_TREE_RUNTIME_URL,
   diffuseImage: 'dead_tree_trunk_diff',
   materialImage: 'dead_tree_trunk_arm',
+  normalImage: 'dead_tree_trunk_nor',
   materialLayout: 0 as const,
 });
 const ROCK_MOSS = Object.freeze({
@@ -64,6 +66,7 @@ const ROCK_MOSS = Object.freeze({
   url: ROCK_MOSS_RUNTIME_URL,
   diffuseImage: 'catalog_diff',
   materialImage: 'catalog_material',
+  normalImage: 'catalog_normal',
   materialLayout: 1 as const,
 });
 const TREE_STUMP = Object.freeze({
@@ -71,6 +74,7 @@ const TREE_STUMP = Object.freeze({
   url: TREE_STUMP_RUNTIME_URL,
   diffuseImage: 'catalog_diff',
   materialImage: 'catalog_material',
+  normalImage: 'catalog_normal',
   materialLayout: 0 as const,
 });
 
@@ -124,6 +128,7 @@ async function createCatalogModelBatch(
     };
     const diffuse = await loadTexture(descriptor.diffuseImage, 'diffuse');
     const material = await loadTexture(descriptor.materialImage, 'material');
+    const normalMap = await loadTexture(descriptor.normalImage, 'normal');
     const program = registerResource(owned, dependencies.createProgram(renderer));
     program.attributes.aPosition!.set(mesh.positions);
     program.attributes.aNormal!.set(mesh.normals);
@@ -131,6 +136,9 @@ async function createCatalogModelBatch(
     program.setIndices(mesh.indices);
     program.uniforms.uDiffuse!.set(diffuse);
     program.uniforms.uArm!.set(material);
+    program.uniforms.uNormalMap!.set(normalMap);
+    // Full strength. The scans are 1K and their detail is the whole reason they were chosen.
+    program.uniforms.uNormalStrength!.set(1);
     program.uniforms.uMaterialLayout!.set(descriptor.materialLayout);
 
     const offsets = new Float32Array(capacity * 3);

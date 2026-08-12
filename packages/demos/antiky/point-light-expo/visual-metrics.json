@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
   "demo": "point-light-expo",
-  "capturedAt": "2026-08-12T02:31:08.842Z",
+  "capturedAt": "2026-08-12T04:21:18.848Z",
   "warmUpFrames": 60,
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.032856,
+    "mean": 0.032096,
     "p05": 0.004012,
-    "p50": 0.026244,
-    "p95": 0.094201,
-    "spread": 0.090189
+    "p50": 0.025389,
+    "p95": 0.089573,
+    "spread": 0.08556
   },
   "localContrast": {
-    "median": 2.7859,
+    "median": 3.0367,
     "p10": 0
   },
   "clipping": {
@@ -23,6 +23,6 @@
     "low": 0
   },
   "saturation": {
-    "mean": 0.424628
+    "mean": 0.409392
   }
 }

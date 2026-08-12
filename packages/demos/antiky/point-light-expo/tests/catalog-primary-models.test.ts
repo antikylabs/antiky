@@ -57,6 +57,7 @@ function fakeProgram(disposed: string[]) {
     },
     uniforms: {
       uDiffuse: handle('uDiffuse'), uArm: handle('uArm'), uMaterialLayout: handle('uMaterialLayout'),
+      uNormalMap: handle('uNormalMap'), uNormalStrength: handle('uNormalStrength'),
     },
     setIndices(value: unknown) { retained.set('indices', value); },
     draw() { retained.set('draws', (retained.get('draws') as number | undefined ?? 0) + 1); },
@@ -120,7 +121,7 @@ test('rock and stump derivatives are distinct one-draw BroMetal models with embe
     assert.ok(model.meshes[0]?.normals);
     assert.ok(model.meshes[0]?.uvs);
     assert.ok(model.meshes[0]?.indices);
-    assert.deepEqual(model.images.map((image) => image.name), ['catalog_diff', 'catalog_material']);
+    assert.deepEqual(model.images.map((image) => image.name), ['catalog_diff', 'catalog_material', 'catalog_normal']);
     const json = glbJson(bytes[index]!);
     assert.equal(hasUri(json), false);
     const pbr = (json.materials as { pbrMetallicRoughness: {
@@ -169,7 +170,7 @@ test('both primary model factories upload and draw their parsed catalog geometry
     batch.draw();
     assert.equal(program.retained.get('draws'), 1);
     batch.dispose();
-    assert.deepEqual(disposed, ['program', 'material', 'diffuse']);
+    assert.deepEqual(disposed, ['program', 'normal', 'material', 'diffuse']);
   }
 });
 

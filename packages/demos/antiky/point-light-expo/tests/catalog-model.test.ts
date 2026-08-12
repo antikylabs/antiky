@@ -43,6 +43,7 @@ const fakeModel: Model = {
   images: [
     { name: 'dead_tree_trunk_diff', mimeType: 'image/jpeg', data: new Uint8Array([1]) },
     { name: 'dead_tree_trunk_arm', mimeType: 'image/jpeg', data: new Uint8Array([2]) },
+    { name: 'dead_tree_trunk_nor', mimeType: 'image/jpeg', data: new Uint8Array([3]) },
   ],
 };
 
@@ -63,6 +64,7 @@ function fakeProgram(disposed: string[], failAttribute = false) {
     },
     uniforms: {
       uDiffuse: handle('uDiffuse'), uArm: handle('uArm'), uViewProj: handle('uViewProj'),
+      uNormalMap: handle('uNormalMap'), uNormalStrength: handle('uNormalStrength'),
       uMaterialLayout: handle('uMaterialLayout'),
       uCameraPosition: handle('uCameraPosition'), uTime: handle('uTime'),
     },
@@ -86,6 +88,9 @@ test('the verified external glTF is transformed into one BroMetal-parseable runt
   assert.deepEqual(model.images.map((image) => image.name), [
     'dead_tree_trunk_diff',
     'dead_tree_trunk_arm',
+    // The normal map. It used to be downloaded, hash-verified, committed and then deleted at
+    // pack time, which is why these scans read as clay.
+    'dead_tree_trunk_nor',
   ]);
   const runtimeJson = glbJson(runtimeBytes);
   assert.equal(containsExternalUri(runtimeJson), false);
@@ -157,8 +162,8 @@ test('catalog model construction rolls back textures, bitmaps, and the in-flight
     createTexture: (_renderer, _bitmap, role) => ({ dispose() { disposed.push(role); } }) as never,
     createProgram: () => fakeProgram(disposed, true) as never,
   }), /injected model attribute failure/);
-  assert.deepEqual(closed, ['dead_tree_trunk_diff', 'dead_tree_trunk_arm']);
-  assert.deepEqual(disposed, ['program', 'material', 'diffuse']);
+  assert.deepEqual(closed, ['dead_tree_trunk_diff', 'dead_tree_trunk_arm', 'dead_tree_trunk_nor']);
+  assert.deepEqual(disposed, ['program', 'normal', 'material', 'diffuse']);
 });
 
 test('catalog model uploads reuse retained instance storage and draw the parsed mesh', async () => {
@@ -181,5 +186,5 @@ test('catalog model uploads reuse retained instance storage and draw the parsed 
   batch.draw();
   assert.equal(program.retained.get('draws'), 1);
   batch.dispose();
-  assert.deepEqual(disposed, ['program', 'material', 'diffuse']);
+  assert.deepEqual(disposed, ['program', 'normal', 'material', 'diffuse']);
 });

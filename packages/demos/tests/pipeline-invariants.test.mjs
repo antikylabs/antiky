@@ -135,6 +135,7 @@ async function shippedModels() {
       textureWidth,
       textureHeight,
       uniqueUvs: uvs.size,
+      hasNormalTexture: (json.materials ?? []).some((material) => material.normalTexture !== undefined),
       materialCount: Math.max(1, (json.materials ?? []).length),
     });
   }
@@ -189,6 +190,22 @@ test('no asset script discards the normal map it downloaded', async () => {
     'Normal maps are downloaded, hash-verified and committed, and then deleted at build time. '
     + 'Apply them through triplanar projection, which needs no tangent basis.',
   );
+});
+
+test('every model packed from a source with a normal map still declares one', async () => {
+  // The script-level check above can be satisfied by deleting the line and still never packing the
+  // map. This reads the shipped artifact instead: point-light-expo's three Poly Haven scans each
+  // ship a `*_nor_gl_1k.jpg` in the repository, so each derived GLB must declare a normalTexture.
+  const offenders = [];
+  for (const model of await shippedModels()) {
+    if (!model.relative.includes('point-light-expo')) continue;
+    if (!model.relative.endsWith('-runtime.glb')) continue;
+    if (!model.hasNormalTexture) offenders.push(`${model.relative}: no normalTexture`);
+  }
+  assert.equal(offenders.length, 0, offenders.join('\n'));
+  // Guards the other direction: a filter that matched nothing would pass this test silently.
+  const packed = (await shippedModels()).filter((model) => model.relative.endsWith('-runtime.glb'));
+  assert.equal(packed.length, 3, `expected three packed catalog models, saw ${packed.length}`);
 });
 
 test('no shipped model has its texture coordinates collapsed onto a real texture', async () => {
