@@ -47,7 +47,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **01** | [Build the verification loop (Track 0)](_completed/execute-goal-01.md) | **Done** `e1ebf4e` — [summary](_completed/summary-goal-01.md) | — | 00, 02 | ~2 days |
 | **02** | [Unblock the render pipeline in BroMetal (Track A)](_completed/execute-goal-02.md) | **Done** `57166ea` — [summary](_completed/summary-goal-02.md) | — | 00, 01, 04, 05, 10 | ~1 day |
 | **03** | [Quick wins, motion feel, safe dead-code removal (Track D)](_completed/execute-goal-03.md) | **Done** `4b6ecaa` — [summary](_completed/summary-goal-03.md) | 01 | 04, 05, 10 | ~2 days |
-| **04** | Stop the asset pipeline destroying the assets (Track C) | Not started | 01 | 02, 03, 05, 10 | ~3 days |
+| **04** | [Stop the asset pipeline destroying the assets (Track C)](_completed/execute-goal-04.md) | **Done** `bf56f6c` — [summary](_completed/summary-goal-04.md) | 01 | 02, 03, 05, 10 | ~3 days |
 | **05** | Give the existing assets real materials — triplanar PBR | Not started | 01, 04 | 02, 03, 06, 07, 10 | ~14 days |
 | **06** | The reference render slice in `point-light-expo` (Track B) | Not started | 00, 01, 02 | 05, 10 | ~5 days |
 | **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | Not started | 06 | 05, 10 | ~10 days |
