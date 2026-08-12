@@ -10,6 +10,18 @@ function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
+/**
+ * This test builds the whole town twice, because that is what proves determinism — one build cannot
+ * disagree with itself. Two builds cost about 4.5 seconds on an idle machine, against vitest's
+ * default 5 second timeout, so the margin was roughly half a second and the test failed whenever
+ * anything else was running. Raised well clear of the real cost: a slow machine should make this
+ * test slow, not red.
+ *
+ * If it ever approaches this budget, the fix is to make `buildTownWorld` faster rather than to raise
+ * the number again.
+ */
+const BUILD_TWICE_TIMEOUT_MS = 30_000;
+
 test('the town stays valid and deterministic', () => {
   const first = buildTownWorld();
   const validation = validateTownWorld(first);
@@ -51,4 +63,4 @@ test('the town stays valid and deterministic', () => {
   );
   assert(maxBridgeRise <= VOXEL_SIZE / TOWN_DETAIL_RESOLUTION + 1e-6, 'bridge rise exceeds one detail cell');
   assert(maxBridgeRise < 0.3, 'bridge rise exceeds the character-motor step gate');
-});
+}, BUILD_TWICE_TIMEOUT_MS);
