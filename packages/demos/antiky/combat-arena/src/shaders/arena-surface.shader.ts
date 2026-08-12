@@ -59,7 +59,15 @@ export default shader({
   fragment({ uCameraPosition }, { vWorld, vNormal, vColor, vParams, vPulse }) {
     const normal = normalize(vNormal);
     const view = normalize(uCameraPosition.sub(vWorld));
-    const light = normalize(vec3(0.46, 0.88, 0.3));
+    // Key light for the whole arena. This vector is repeated in every combat-arena shader because
+    // the BroMetal MVP cannot read a module-level constant from a shader body ("unknown identifier
+    // — only shader parameters and local consts are in scope"). `pipeline-invariants.test.mjs`
+    // fails if the copies ever disagree, so the test is what keeps them in step.
+    //
+    // It is the ship shader's original value. The ships are the subject, and the contact shadows
+    // land on the arena floor, so the floor must agree with what lights the ships rather than the
+    // other way round. The floor's old +X sun lit it from the opposite side from the ships.
+    const light = normalize(vec3(-0.44, 0.86, 0.42));
     const diffuse = max(dot(normal, light), 0);
     const rim = pow(1 - max(dot(normal, view), 0), 2.1);
     const heightGlow = smoothstep(-0.45, 1.2, vWorld.y);
@@ -69,7 +77,10 @@ export default shader({
       .add(vec3(0.22, 0.6, 1.2).scale(rim * (0.32 + heightGlow * 0.24)));
     const hit = clamp(vParams.y, 0, 1);
     const flashed = mix(base.add(energy), vec3(2.6, 2.8, 3.2), hit * hit);
-    const fog = smoothstep(13, 26, length(uCameraPosition.sub(vWorld)));
+    // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the
+    // ship shader's original range. The tighter floor ranges faded the ground while ships at the
+    // same distance were still crisp, which is what made near and far disagree about depth.
+    const fog = smoothstep(17, 34, length(uCameraPosition.sub(vWorld)));
     return vec4(tonemapACES(mix(flashed, vec3(0.008, 0.012, 0.03), fog * 0.8)), 1);
   },
 });

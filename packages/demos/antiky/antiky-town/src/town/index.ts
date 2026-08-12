@@ -452,6 +452,16 @@ async function createTownRuntime(
   for (const program of foliagePrograms) {
     program.uniforms.uLightViewProj.set(lightViewProjection);
     program.uniforms.uLightDir.set(LIGHT_DIR);
+    // Foliage is the one thing in town lit by a different sun: paler than SUN_COLOR and 2.5x
+    // weaker than the 2.65 every other surface uses. It is called out here so the shared-sun
+    // invariant can whitelist it and nobody "fixes" it by accident.
+    //
+    // It is NOT known to be deliberate. It arrived with the original demo commit (f2d0ded) with no
+    // stated reason, and the foliage shader already models transmission through leaves properly
+    // (`wrappedDiffuse` and `transmitted`), so this is a tuning offset rather than a different
+    // lighting model. A canopy 2.5x darker than the buildings behind it is a strong suspect for
+    // why the trees read as flat cut-outs. The foliage goal owns that call; this goal only records
+    // it, because changing a light while unifying lights would hide which change did what.
     program.uniforms.uSunColor.set([1, 0.82, 0.58]);
     program.uniforms.uSunIntensity.set(1.05);
     program.uniforms.uSkyColor.set(SKY_COLOR);
@@ -669,6 +679,9 @@ async function createTownRuntime(
   postProgram.uniforms.uAtmosphereStrength.set(0.21);
   postProgram.uniforms.uSkyZenith.set([0.038, 0.082, 0.19]);
   postProgram.uniforms.uSkyHorizon.set([1.08, 0.47, 0.2]);
+  // Deliberately not SUN_COLOR: this is the emissive sun disc in the sky, not a light. It is an
+  // HDR value above 1 so the disc survives tone mapping, where SUN_COLOR is the colour that sun
+  // casts onto surfaces. Same sun, two different quantities.
   postProgram.uniforms.uSunColor.set([2.15, 1.02, 0.39]);
   postProgram.uniforms.uSunScreenPosition.set([0.82, 0.82]);
   postProgram.uniforms.uSunRadius.set(0.052);

@@ -62,6 +62,9 @@ export default shader({
   fragment({ uCameraPosition, uTex, uTime }, { vWorld, vNormal, vUv, vTint, vParams }) {
     const normal = normalize(vNormal);
     const view = normalize(uCameraPosition.sub(vWorld));
+    // This is the arena's key light, and this shader is where the value comes from: the ships are
+    // the subject, so the floor was moved to agree with them rather than the other way round. The
+    // same vector appears in arena-model and arena-surface, guarded by `pipeline-invariants`.
     const key = normalize(vec3(-0.44, 0.86, 0.42));
     const fill = normalize(vec3(0.72, 0.3, -0.52));
     const keyLight = max(dot(normal, key), 0);

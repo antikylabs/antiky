@@ -56,7 +56,11 @@ export default shader({
 
   fragment({ uCameraPosition }, { vWorld, vNormal, vColor, vMaterial, vPulse }) {
     const normal = normalize(vNormal);
-    const light = normalize(vec3(-0.42, 0.86, 0.48));
+    // Same key light as traversal-model, which is where the value comes from: the model shader
+    // lights what the player watches, and this surface is what its shadows land on. Repeated
+    // rather than shared because the BroMetal MVP cannot read a module-level constant from a
+    // shader body; `pipeline-invariants.test.mjs` fails if the two copies drift apart.
+    const light = normalize(vec3(-0.38, 0.84, 0.48));
     const view = normalize(uCameraPosition.sub(vWorld));
     const rawLight = max(dot(normal, light), 0);
     const litBand = smoothstep(0.18, 0.24, rawLight) * 0.28
@@ -66,7 +70,9 @@ export default shader({
       .add(vec3(0.16, 0.2, 0.18).scale(0.12 + normal.y * 0.08));
     const emissive = vColor.scale(vMaterial.x * (0.16 + vPulse * 0.24));
     const highlight = vec3(1.05, 0.83, 0.48).scale(clamp(vMaterial.y, 0, 1) * (0.16 + rim * 0.3));
-    const depth = smoothstep(20, 58, length(uCameraPosition.sub(vWorld)));
+    // Matched to traversal-model's range for the same reason. Was 20..58 here against 22..58
+    // there, so the ground began fading two metres before the props standing on it did.
+    const depth = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
     const heightHaze = (1 - smoothstep(-5, 6, vWorld.y)) * 0.08;
     const sky = vec3(0.52, 0.63, 0.65).add(vec3(0.08, 0.06, 0.02).scale(heightHaze));
     return vec4(tonemapACES(mix(base.add(emissive).add(highlight), sky, depth * 0.5)), 1);

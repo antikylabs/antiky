@@ -55,7 +55,7 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
 fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let normal = normalize(bm_in.vNormal);
   let view = normalize(bm_u.uCameraPosition - bm_in.vWorld);
-  let light = normalize(vec3f(0.46, 0.88, 0.3));
+  let light = normalize(vec3f(-0.44, 0.86, 0.42));
   let diffuse = max(dot(normal, light), 0.0);
   let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.1);
   let heightGlow = smoothstep(-0.45, 1.2, bm_in.vWorld.y);
@@ -63,7 +63,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let energy = bm_in.vColor * (bm_in.vParams.x * (0.35 + bm_in.vPulse * 0.65)) + vec3f(0.22, 0.6, 1.2) * (rim * (0.32 + heightGlow * 0.24));
   let hit = clamp(bm_in.vParams.y, 0.0, 1.0);
   let flashed = mix(base + energy, vec3f(2.6, 2.8, 3.2), hit * hit);
-  let fog = smoothstep(13.0, 26.0, length(bm_u.uCameraPosition - bm_in.vWorld));
+  let fog = smoothstep(17.0, 34.0, length(bm_u.uCameraPosition - bm_in.vWorld));
   return vec4f(tonemapACES(mix(flashed, vec3f(0.008, 0.012, 0.03), fog * 0.8)), 1.0);
 }
 `,
