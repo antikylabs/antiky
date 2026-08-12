@@ -361,9 +361,12 @@ available in the two demos still to be wired.
 
 ### Next, in order of value
 
-1. **Finish item 4** — `traversal-study` has coefficients baked but not wired, and its
-   `kloofendal` sky has real directional structure so it should behave like `point-light-expo`
-   rather than like `combat-arena`. `antiky-town` should upgrade its existing
+1. **Item 5 and the rest of item 4 are the same change in `traversal-study`.** That demo has no
+   ambient term to replace — its lighting is a three-band toon ramp whose `0.54` base *is* the
+   ambient. Wiring SH-9 into it before item 5 means writing lighting that item 5 immediately
+   rewrites, so do them together: the ramp reads light amount, SH-9 supplies the colour it is
+   tinted by. Coefficients are already baked from `kloofendal`, which unlike the arena's studio
+   captures has real directional structure, so expect it to behave like `point-light-expo`. `antiky-town` should upgrade its existing
    `uSkyColor`/`uGroundColor` split. **`combat-arena` is done and deliberately not wired** — see
    the measurement above; it needs an owner decision about what the arena is lit by.
 2. **Item 5** — the ramp LUT. `traversal-study` is the flattest demo in the set and its ramp is three
