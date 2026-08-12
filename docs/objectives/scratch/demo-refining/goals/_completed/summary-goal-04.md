@@ -51,7 +51,12 @@ Quaternius' Ultimate Platformer pack is flat-shaded low-poly: colour lives in `b
 
 **The mip footgun is real and was avoided.** A `texture()` call inside a DSL helper compiles to `textureSampleLevel(…, 0.0)` and silently loses mips. Every material sample stays inlined in `fragment()`; the generated WGSL contains `textureSample` and no `textureSampleLevel`.
 
-**The atlas passes for a weaker reason than padding.** `antiky-town`'s material atlas carries **no padding**, and `1254 / 4 = 313.5` means the tile grid does not land on texel boundaries at all. Bleed measures 0.3% at mip 2 and 0.0% at mips 3–6 — it passes because the twelve tiles are natural materials whose colour gamuts overlap, so an average of two adjacent tiles lands inside one of them. A future tile that breaks that pattern would break the seam, which is why the measurement is now a test rather than a note.
+**Correction, found later the same day: the atlas does bleed.** The measurement below sampled boxes
+that never crossed a tile boundary, so it reported a clean result from a check that was not looking
+at the thing it claimed to measure. Corrected, it reads 25.3%. Goal 14 owns the fix. The original
+finding is left in place below because the mistake is the useful part.
+
+**The atlas appeared to pass for a weaker reason than padding.** `antiky-town`'s material atlas carries **no padding**, and `1254 / 4 = 313.5` means the tile grid does not land on texel boundaries at all. Bleed measures 0.3% at mip 2 and 0.0% at mips 3–6 — it passes because the twelve tiles are natural materials whose colour gamuts overlap, so an average of two adjacent tiles lands inside one of them. A future tile that breaks that pattern would break the seam, which is why the measurement is now a test rather than a note.
 
 **Two DSL limits, one of which the goal warned about.** `.zy` is not a legal swizzle — only `.xy`, `.xz`, `.yz` — as the goal said. It did **not** warn that `abs` is scalar-only, which the triplanar blend weights hit immediately.
 

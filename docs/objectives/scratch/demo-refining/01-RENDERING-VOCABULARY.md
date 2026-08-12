@@ -256,6 +256,37 @@ the environment around it."*
 
 ---
 
+## Words to use precisely, or not at all
+
+Vocabulary is only useful while it stays specific. A term that gets reached for whenever something
+is roughly nearby stops carrying information and starts hiding it — the reader assumes you named a
+known thing, and goes looking in the wrong place.
+
+### Seam
+
+**Legitimate use — narrow.** A *UV seam* is where a mesh's unwrap is cut so a 3D surface can lie
+flat on a 2D texture. It is a property of the unwrap, and it is where texture filtering and normal
+maps visibly break on a model. If you mean that, say **UV seam** in full.
+
+**Do not use it for anything else.** In particular, the edge between two tiles packed into a
+texture atlas is a **tile boundary**, not a seam. Calling it a seam sends the reader to the mesh
+unwrap when the problem is in how the image was packed — a different file, a different tool, a
+different fix.
+
+**Say this instead:**
+
+| Instead of | Say |
+| --- | --- |
+| "seam" between atlas tiles | **tile boundary** or **tile edge** |
+| "seam" where two meshes meet | **the join** or name the two objects |
+| "seam" where a texture repeats visibly | **tiling repeat** |
+| "seam" in a shadow or lighting term | name the actual term — shadow acne, peter-panning, light leak |
+
+The same rule applies to any word here. If you cannot say what a term means in one plain sentence
+and what it looks like when it is missing, it does not belong in a review.
+
+---
+
 ## How to use this on an agent
 
 Bad prompt: *"make it look better, more AAA."*

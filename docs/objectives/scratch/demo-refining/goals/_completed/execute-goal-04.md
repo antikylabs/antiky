@@ -76,7 +76,7 @@ When the work is complete, the repository must have:
 8. for `antiky-town` specifically: the sRGB decode across its 13 shader pairs, and a measured answer
    on atlas edge bleed. Its three world atlases load with `filter: 'smooth'`, `wrap: 'clamp'` and
    `anisotropy: 8` (`src/town/index.ts:258`, `:263`, `:268`). Mipped, anisotropic sampling of an
-   *atlas* averages across tile boundaries at exactly the seams tiles meet — the same class of
+   *atlas* averages across tile boundaries at exactly the edges where tiles meet — the same class of
    defect as the palette-strip mud, arriving by a different route. Either prove it does not happen
    at this atlas's padding, or fix it with padding or a tile-clamped sample.
 
