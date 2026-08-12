@@ -21,7 +21,7 @@ Complete [execute goal 01](_completed/execute-goal-01.md) first. Every acceptanc
 static-source ones is measured from a captured frame with `npm run demos:shoot`, the frame
 statistics library and the named probe rectangles goal 01 delivers.
 
-Complete [execute goal 04](execute-goal-04.md) as well. It restores the UVs and normal maps this
+Complete [execute goal 04](_completed/execute-goal-04.md) as well. It restores the UVs and normal maps this
 goal consumes, and item 7 below extends the material-ID work its scripts do. Work on surfaces that
 never had usable UVs — most of `traversal-study`, all of `combat-arena`'s Kenney arena — may begin
 while goal 04 is still in flight, provided the two never hold the same file.
@@ -83,7 +83,7 @@ When the work is complete, the repository must have:
    `antiky-town`, to the voxel, prop, awning and water-feature shaders, which draw world-space
    geometry and are the best triplanar case in the repository;
 2. contact shadows and ring decals that are textured, soft-edged billboards rather than hard
-   primitives (item 2, building on the unlit fix in [execute goal 03](execute-goal-03.md)).
+   primitives (item 2, building on the unlit fix in [execute goal 03](_completed/execute-goal-03.md)).
    `antiky-town` is exempt: it casts real shadows through five depth-from-light passes and has no
    decal blobs to replace;
 3. an always-on rim/Fresnel term, cloth sheen on `traversal-study` fabric surfaces, and wrapped
