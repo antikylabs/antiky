@@ -55,6 +55,10 @@ const SAMPLER_ROLES = Object.freeze({
   uAtlas: 'colour',
   uArm: 'data',
   uNormalMap: 'data',
+  // Surface direction, not colour. Decoding it would bend every perturbed normal toward the shallow
+  // end of the curve and tilt the whole surface — the same corruption as decoding a roughness map,
+  // and just as invisible until something looks subtly wrong everywhere.
+  uDetailNormal: 'data',
   uRoughness: 'data',
   uAo: 'data',
   uShadowMap: 'data',

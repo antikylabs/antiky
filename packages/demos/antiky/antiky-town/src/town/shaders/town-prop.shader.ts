@@ -1,4 +1,5 @@
 import {
+  abs,
   pow,
   shader,
   clamp,
@@ -74,6 +75,7 @@ export default shader({
     uLightViewProj: 'mat4',
     uCamPos: 'vec3',
     uAtlas: 'sampler2D',
+    uDetailNormal: 'sampler2D',
     uCutoff: 'float',
     uLightDir: 'vec3',
     uSunColor: 'vec3',
@@ -143,6 +145,7 @@ export default shader({
       uLightViewProj,
       uCamPos,
       uAtlas,
+      uDetailNormal,
       uCutoff,
       uLightDir,
       uSunColor,
@@ -180,7 +183,41 @@ export default shader({
     specularLevel = mix(specularLevel, 0.035, paper);
     specularLevel = mix(0.025, specularLevel, front);
 
-    const normal = normalize(vNormal);
+    const baseNormal = normalize(vNormal);
+    // Triplanar detail normal over the atlas albedo.
+    //
+    // The hard rule this respects: never project an atlas. Triplanar ignores UVs, so projecting the
+    // material atlas across world space would sample across tile boundaries and composite unrelated
+    // tiles into every surface. What is projected here is a separate tiling normal map that carries
+    // no tile layout at all. The atlas keeps its authored UVs and decides colour; this decides only
+    // which way the surface faces.
+    //
+    // Axis-aligned box faces are the ideal case for it - each face lands almost entirely on one
+    // projection, so the three-way blend is nearly a straight lookup with none of the smearing that
+    // shows up on curved geometry.
+    //
+    // Sampled in the fragment body, not through a helper: `texture()` inside a DSL helper compiles
+    // to `textureSampleLevel(..., 0.0)`, which would pin this to the base mip and make it crawl.
+    //
+    // Rate and strength are local consts rather than uniforms. Nothing varies them at run time, and
+    // a uniform would mean binding plumbing for a number that never moves.
+    const detailRate = 0.55;
+    const detailStrength = 0.42;
+    const weightX = abs(baseNormal.x);
+    const weightY = abs(baseNormal.y);
+    const weightZ = abs(baseNormal.z);
+    const weightSum = weightX + weightY + weightZ;
+    const detailX = texture(uDetailNormal, vec2(vWorld.z, vWorld.y).scale(detailRate)).xyz;
+    const detailY = texture(uDetailNormal, vWorld.xz.scale(detailRate)).xyz;
+    const detailZ = texture(uDetailNormal, vWorld.xy.scale(detailRate)).xyz;
+    const tiltX = detailX.scale(2).sub(vec3(1, 1, 1));
+    const tiltY = detailY.scale(2).sub(vec3(1, 1, 1));
+    const tiltZ = detailZ.scale(2).sub(vec3(1, 1, 1));
+    const tilt = vec3(0, tiltX.y, tiltX.x).scale(weightX)
+      .add(vec3(tiltY.x, 0, tiltY.y).scale(weightY))
+      .add(vec3(tiltZ.x, tiltZ.y, 0).scale(weightZ))
+      .scale(detailStrength / weightSum);
+    const normal = normalize(baseNormal.add(tilt));
     const light = normalize(uLightDir);
     const view = normalize(uCamPos.sub(vWorld));
     const ndotl = max(dot(normal, light), 0);

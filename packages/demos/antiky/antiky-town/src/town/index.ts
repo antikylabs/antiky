@@ -33,6 +33,7 @@ import {
   buildTownFoliageRenderData,
   uploadTownFoliageInstances,
 } from './art/town-foliage';
+import { loadDetailNormal } from './detail-normal.ts';
 import { buildTownWaterFeatures } from './art/town-water-features';
 import {
   SpriteBatch,
@@ -254,6 +255,10 @@ async function createTownRuntime(
   options: TownDemoOptions,
 ): Promise<TownRuntime> {
   const world = buildTownWorld();
+  // One tiling detail normal shared by every world-geometry program. It is deliberately not an
+  // atlas: the projection below ignores UVs, and projecting an atlas would composite unrelated
+  // tiles into every surface.
+  const detailNormalTexture = await loadDetailNormal(renderer);
   const materialTexture = await loadTexture(
     renderer,
     MATERIAL_ATLAS_URL,
@@ -349,6 +354,7 @@ async function createTownRuntime(
   waterFeatureProgram.attributes.aUv.set(waterFeatureMesh.uvs);
   waterFeatureProgram.attributes.aFeature.set(waterFeatureMesh.featureData);
   waterFeatureProgram.setIndices(waterFeatureMesh.indices);
+  waterFeatureProgram.uniforms.uDetailNormal.set(detailNormalTexture);
   waterFeatureProgram.uniforms.uLightViewProj.set(lightViewProjection);
   waterFeatureProgram.uniforms.uLightDir.set(LIGHT_DIR);
   waterFeatureProgram.uniforms.uSunColor.set(SUN_COLOR);
@@ -989,6 +995,7 @@ async function createTownRuntime(
           worldProgram.uniforms.uViewProj.set(viewProjection);
           worldProgram.uniforms.uCamPos.set(cameraPosition);
           worldProgram.uniforms.uMaterialAtlas.set(materialTexture);
+          worldProgram.uniforms.uDetailNormal.set(detailNormalTexture);
           worldProgram.uniforms.uShadowMap.set(shadowTarget.texture);
           worldProgram.draw();
 
@@ -1024,6 +1031,7 @@ async function createTownRuntime(
             awningProgram.uniforms.uCamPos.set(cameraPosition);
             awningProgram.uniforms.uTime.set(simulationTime);
             awningProgram.uniforms.uMaterialAtlas.set(materialTexture);
+            awningProgram.uniforms.uDetailNormal.set(detailNormalTexture);
             awningProgram.uniforms.uShadowMap.set(shadowTarget.texture);
             awningProgram.draw();
           }
@@ -1032,6 +1040,7 @@ async function createTownRuntime(
             propProgram.uniforms.uViewProj.set(viewProjection);
             propProgram.uniforms.uCamPos.set(cameraPosition);
             propProgram.uniforms.uAtlas.set(propTexture);
+            propProgram.uniforms.uDetailNormal.set(detailNormalTexture);
             propProgram.uniforms.uShadowMap.set(shadowTarget.texture);
             propProgram.draw();
           }
@@ -1040,6 +1049,7 @@ async function createTownRuntime(
             actorEdgeProgram.uniforms.uViewProj.set(viewProjection);
             actorEdgeProgram.uniforms.uCamPos.set(cameraPosition);
             actorEdgeProgram.uniforms.uMaterialAtlas.set(materialTexture);
+            actorEdgeProgram.uniforms.uDetailNormal.set(detailNormalTexture);
             actorEdgeProgram.uniforms.uShadowMap.set(shadowTarget.texture);
             actorEdgeProgram.draw();
           }
