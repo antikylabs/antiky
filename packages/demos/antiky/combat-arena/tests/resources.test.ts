@@ -31,7 +31,7 @@ function fakeProgram(disposed: number[], failAttribute = false) {
   return {
     attributes: { aPosition: { set }, aNormal: { set }, aUv: { set }, aColor: { set }, aAccent: { set } },
     instanceAttributes: {},
-    uniforms: { uTex: { set() {} } },
+    uniforms: { uTex: { set() {} }, uDetailNormal: { set() {} } },
     setIndices() {},
     draw() {},
     dispose() { disposed.push(1); },
@@ -39,6 +39,7 @@ function fakeProgram(disposed: number[], failAttribute = false) {
 }
 
 test('arena catalog rolls back completed batches and the in-flight texture on construction failure', async () => {
+  let detailDisposed = 0;
   const bitmaps: number[] = [];
   const textures: number[] = [];
   const programs: number[] = [];
@@ -50,10 +51,13 @@ test('arena catalog rolls back completed batches and the in-flight texture on co
     createBitmap: async () => ({ close() { bitmaps.push(1); } }) as never,
     createTexture: () => ({ dispose() { textures.push(1); } }),
     createProgram: () => fakeProgram(programs, ++programCount === 2) as never,
+    loadDetailNormal: async () => ({ dispose() { detailDisposed += 1; } }),
   }), /injected attribute failure/);
   assert.equal(bitmaps.length, 2);
   assert.equal(textures.length, 2);
   assert.equal(programs.length, 2);
+  // Same reasoning as the fleet: catalog-owned, created first, easy to leak on the error path.
+  assert.equal(detailDisposed, 1);
 });
 
 test('surface batch disposes its in-flight program when attribute setup throws', () => {
@@ -69,6 +73,7 @@ test('surface batch disposes its in-flight program when attribute setup throws',
 });
 
 test('arena catalog disposes a created texture even if bitmap close fails during handoff', async () => {
+  let detailDisposed = 0;
   let texturesDisposed = 0;
   await assert.rejects(createArenaCatalogResources({} as never, {
     room: 1, floor: 1, cables: 1, targets: 1, grenades: 1,
@@ -77,11 +82,14 @@ test('arena catalog disposes a created texture even if bitmap close fails during
     createBitmap: async () => ({ close() { throw new Error('injected close failure'); } }) as never,
     createTexture: () => ({ dispose() { texturesDisposed += 1; } }),
     createProgram: () => fakeProgram([]) as never,
+    loadDetailNormal: async () => ({ dispose() { detailDisposed += 1; } }),
   }), /injected close failure/);
   assert.equal(texturesDisposed, 1);
+  assert.equal(detailDisposed, 1);
 });
 
 test('ship fleet rolls back earlier and in-flight programs on batch setup failure', async () => {
+  let detailDisposed = 0;
   const programs: number[] = [];
   const textures: number[] = [];
   const bitmaps: number[] = [];
@@ -91,10 +99,15 @@ test('ship fleet rolls back earlier and in-flight programs on batch setup failur
     createBitmap: async () => ({ close() { bitmaps.push(1); } }) as never,
     createTexture: () => ({ dispose() { textures.push(1); } }),
     createProgram: () => fakeProgram(programs, ++programCount === 2) as never,
+    loadDetailNormal: async () => ({ dispose() { detailDisposed += 1; } }),
   }), /injected attribute failure/);
   assert.equal(bitmaps.length, 2);
   assert.equal(textures.length, 2);
   assert.equal(programs.length, 2);
+  // The detail normal is created before any batch, so a failure partway through the fleet has to
+  // take it down too. It belongs to the fleet rather than to a hull, which is exactly the shape of
+  // resource that gets forgotten on the error path.
+  assert.equal(detailDisposed, 1);
 });
 
 test('ship fleet uploads inverse scale for correct nonuniform normal transformation', async () => {
@@ -106,6 +119,7 @@ test('ship fleet uploads inverse scale for correct nonuniform normal transformat
     loadModel: async () => fakeModel,
     createBitmap: async () => ({ close() {} }) as never,
     createTexture: () => ({ dispose() {} }),
+    loadDetailNormal: async () => ({ dispose() {} }),
     createProgram: () => {
       const capture = batchIndex === 0;
       batchIndex += 1;

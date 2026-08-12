@@ -1,4 +1,5 @@
 import {
+  abs,
   step,
   clamp,
   dot,
@@ -11,6 +12,7 @@ import {
   sin,
   smoothstep,
   texture,
+  vec2,
   vec3,
   vec4,
   type Vec3,
@@ -63,6 +65,7 @@ export default shader({
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTex: 'sampler2D',
+    uDetailNormal: 'sampler2D',
     uTime: 'float',
   },
   varyings: {
@@ -89,8 +92,46 @@ export default shader({
     return uViewProj.mul(vec4(world, 1));
   },
 
-  fragment({ uCameraPosition, uTex, uTime }, { vWorld, vNormal, vUv, vTint, vParams }) {
-    const normal = normalize(vNormal);
+  fragment(
+    { uCameraPosition, uTex, uDetailNormal, uTime },
+    { vWorld, vNormal, vUv, vTint, vParams },
+  ) {
+    const baseNormal = normalize(vNormal);
+    // Triplanar detail normal, written out here rather than called through a helper.
+    //
+    // A `texture()` call inside a DSL helper compiles to `textureSampleLevel(…, 0.0)`, pinning the
+    // sample to the base mip. On a texture tiled this often that reads as crawling static the moment
+    // the camera moves. Inlining the sample in the fragment body is what keeps the mip chain.
+    //
+    // Projection weights come off the surface normal one component at a time, because `abs` is
+    // scalar-only here. Vec3 exposes no reordered swizzles either, so the plane facing X is built
+    // with an explicit `vec2` rather than a `.zy` that does not exist.
+    //
+    // Rate and strength are local consts rather than uniforms on purpose. Nothing varies them at
+    // run time — they are properties of what this surface is made of — and a uniform would mean
+    // binding plumbing at every call site in every demo for a number that never moves. Goal 08 is
+    // where art direction tunes these, and this is the line it wants.
+    const detailRate = 0.25;
+    const detailStrength = 0.55;
+    const weightX = abs(baseNormal.x);
+    const weightY = abs(baseNormal.y);
+    const weightZ = abs(baseNormal.z);
+    const weightSum = weightX + weightY + weightZ;
+    const detailX = texture(uDetailNormal, vec2(vWorld.z, vWorld.y).scale(detailRate)).xyz;
+    const detailY = texture(uDetailNormal, vWorld.xz.scale(detailRate)).xyz;
+    const detailZ = texture(uDetailNormal, vWorld.xy.scale(detailRate)).xyz;
+    const tiltX = detailX.scale(2).sub(vec3(1, 1, 1));
+    const tiltY = detailY.scale(2).sub(vec3(1, 1, 1));
+    const tiltZ = detailZ.scale(2).sub(vec3(1, 1, 1));
+    // Each projection's tangent X/Y is a tilt within that projection's own plane, so it lands in
+    // world space by dropping the axis it was projected along. Summing the three by their weights
+    // needs no tangent basis — which is the whole reason for projecting instead of unwrapping, since
+    // no source mesh here carries TANGENT and the DSL has no derivatives to rebuild one from.
+    const tilt = vec3(0, tiltX.y, tiltX.x).scale(weightX)
+      .add(vec3(tiltY.x, 0, tiltY.y).scale(weightY))
+      .add(vec3(tiltZ.x, tiltZ.y, 0).scale(weightZ))
+      .scale(detailStrength / weightSum);
+    const normal = normalize(baseNormal.add(tilt));
     // Key light for the whole arena. This vector is repeated in every combat-arena shader because
     // the BroMetal MVP cannot read a module-level constant from a shader body ("unknown identifier
     // — only shader parameters and local consts are in scope"). `pipeline-invariants.test.mjs`

@@ -1,0 +1,30 @@
+{
+  "name": "detail-normal-512.png",
+  "generator": "packages/demos/scripts/build-detail-normal.mjs",
+  "kind": "tangent-space detail normal, tiling",
+  "size": 512,
+  "octaves": [
+    [
+      8,
+      1
+    ],
+    [
+      16,
+      0.5
+    ],
+    [
+      32,
+      0.28
+    ],
+    [
+      64,
+      0.16
+    ],
+    [
+      128,
+      0.09
+    ]
+  ],
+  "relief": 8,
+  "sha256": "86f91c65fa11a090c6f96d9a8ebead3c9d05bc72d5a8aa9febe4bb555a7b7b8a"
+}

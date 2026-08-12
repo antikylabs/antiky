@@ -9,6 +9,7 @@ import {
   type Renderer,
 } from 'brometal';
 
+import { loadDetailNormal } from './detail-normal.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
 import arenaModelShader from './shaders/arena-model.shader.gen.ts';
 
@@ -55,6 +56,11 @@ export type ArenaAssetDependencies = Readonly<{
   createBitmap(image: ModelImage): Promise<ImageBitmap>;
   createTexture(renderer: Renderer, bitmap: ImageBitmap): BroMetalTexture;
   createProgram(renderer: Renderer): BroMetalProgram;
+  /**
+   * Loaded once for the whole catalog rather than per batch. Five models share one detail normal,
+   * and five uploads of the same 512² image is four wasted.
+   */
+  loadDetailNormal(renderer: Renderer): Promise<BroMetalTexture>;
 }>;
 
 const ARENA_ASSET_DEPENDENCIES: ArenaAssetDependencies = Object.freeze({
@@ -65,6 +71,7 @@ const ARENA_ASSET_DEPENDENCIES: ArenaAssetDependencies = Object.freeze({
   )),
   createTexture: (renderer, bitmap) => createTexture(renderer, bitmap, { flipY: false, anisotropy: 4 }),
   createProgram: (renderer) => createProgram(renderer, arenaModelShader),
+  loadDetailNormal,
 });
 
 async function createModelBatch(
@@ -72,6 +79,7 @@ async function createModelBatch(
   model: Model,
   capacity: number,
   dependencies: ArenaAssetDependencies,
+  detailNormal: BroMetalTexture,
 ): Promise<ModelBatch> {
   const mesh = model.meshes[0];
   if (mesh === undefined || mesh.normals === null || mesh.uvs === null || mesh.indices === null) {
@@ -97,6 +105,7 @@ async function createModelBatch(
     program.attributes.aUv!.set(mesh.uvs);
     program.setIndices(mesh.indices);
     program.uniforms.uTex!.set(texture);
+    program.uniforms.uDetailNormal!.set(detailNormal);
   } catch (cause: unknown) {
     rollbackResources(owned);
     throw cause;
@@ -169,13 +178,21 @@ export async function createArenaCatalogResources(
     dependencies.loadModel(MODEL_URLS.target),
     dependencies.loadModel(MODEL_URLS.grenade),
   ]);
-  const resources: ModelBatch[] = [];
+  // The detail normal is owned by the catalog, not by any one batch, so it is registered first and
+  // rolled back with the rest. A texture created before the failure point and not registered is a
+  // leak that nothing reports.
+  const resources: { dispose(): void }[] = [];
   try {
-    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies));
-    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies));
-    const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies));
-    const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies));
-    const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies));
+    const detailNormal = registerResource(resources, await dependencies.loadDetailNormal(renderer));
+    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal));
+    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal));
+    const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies, detailNormal));
+    const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies, detailNormal));
+    const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies, detailNormal));
+
+    // Disposal covers everything the catalog owns; per-frame work is only the batches. Iterating
+    // `resources` here would call `frame` on a texture.
+    const batches: ModelBatch[] = [room, floorTiles, cables, targets, grenades];
 
     return Object.freeze({
       room,
@@ -184,8 +201,8 @@ export async function createArenaCatalogResources(
       targets,
       grenades,
       frame(viewProjection, cameraPosition, time): void {
-        for (let index = 0; index < resources.length; index += 1) {
-          resources[index]!.frame(viewProjection, cameraPosition, time);
+        for (let index = 0; index < batches.length; index += 1) {
+          batches[index]!.frame(viewProjection, cameraPosition, time);
         }
       },
       dispose(): void {

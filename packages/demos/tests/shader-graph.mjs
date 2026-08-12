@@ -172,6 +172,28 @@ export function parseGeneratedShader(relative, source) {
     return result;
   };
 
+  /**
+   * Every texture whose sampled value is still alive at the fragment's output.
+   *
+   * `sampledTextures` answers "was it read", which is not the question a material invariant asks. A
+   * normal map bound, sampled and then multiplied by zero is read and does nothing. This is the same
+   * distinction `survives` draws for a single value, applied to the texture behind it.
+   */
+  const liveTextures = () => {
+    const live = new Set();
+    for (const [name, textures] of tainted) {
+      if (!survives(name)) continue;
+      for (const texture of textures) live.add(texture);
+    }
+    // A sample written straight into the return or the output struct, never bound to a name.
+    const returns = [...wgsl.matchAll(/return\s+([^;]*);/g)].map(([, value]) => value);
+    const outputs = [...wgsl.matchAll(/bm_out\.\w+\s*=\s*([^;]*);/g)].map(([, value]) => value);
+    for (const tail of [...returns, ...outputs]) {
+      for (const texture of sources(tail)) live.add(texture);
+    }
+    return live;
+  };
+
   const samples = [...wgsl.matchAll(/textureSample(?:Level)?\(\s*(\w+)\s*,/g)].map((match) => ({
     texture: match[1],
     // `textureSampleLevel(..., 0.0)` is the mip footgun: a texture() inside a DSL helper compiles to
@@ -297,6 +319,7 @@ export function parseGeneratedShader(relative, source) {
     samplers,
     samples,
     sampledTextures: [...new Set(samples.map((sample) => sample.texture))],
+    liveTextures,
     reaches,
     survives,
     functions: [...wgsl.matchAll(/fn (\w+)\s*\(/g)].map(([, name]) => name),

@@ -17,6 +17,7 @@ import {
 } from './combat-hulls.ts';
 import type { CombatSnapshot } from './combat-state.ts';
 import type { Vec3 } from './render-batches.ts';
+import { loadDetailNormal } from './detail-normal.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
 import shipModelShader from './shaders/ship-model.shader.gen.ts';
 
@@ -51,6 +52,11 @@ export type ShipAssetDependencies = Readonly<{
   createBitmap(image: ModelImage): Promise<ImageBitmap>;
   createTexture(renderer: Renderer, bitmap: ImageBitmap): BroMetalTexture;
   createProgram(renderer: Renderer): BroMetalProgram;
+  /**
+   * Loaded once for the whole fleet rather than per hull. Five ships share one detail normal, and
+   * five uploads of the same 512x512 image is four wasted.
+   */
+  loadDetailNormal(renderer: Renderer): Promise<BroMetalTexture>;
 }>;
 
 const SHIP_ASSET_DEPENDENCIES: ShipAssetDependencies = Object.freeze({
@@ -61,6 +67,7 @@ const SHIP_ASSET_DEPENDENCIES: ShipAssetDependencies = Object.freeze({
   )),
   createTexture: (renderer, bitmap) => createTexture(renderer, bitmap, { flipY: false, anisotropy: 4 }),
   createProgram: (renderer) => createProgram(renderer, shipModelShader),
+  loadDetailNormal,
 });
 
 async function createShipBatch(
@@ -68,6 +75,7 @@ async function createShipBatch(
   model: Model,
   capacity: number,
   dependencies: ShipAssetDependencies,
+  detailNormal: BroMetalTexture,
 ): Promise<ShipBatch> {
   const mesh = model.meshes[0];
   if (model.meshes.length !== 1 || mesh === undefined || mesh.normals === null || mesh.uvs === null || mesh.indices === null) {
@@ -93,6 +101,7 @@ async function createShipBatch(
     program.attributes.aUv!.set(mesh.uvs);
     program.setIndices(mesh.indices);
     program.uniforms.uTex!.set(texture);
+    program.uniforms.uDetailNormal!.set(detailNormal);
   } catch (cause: unknown) {
     rollbackResources(owned);
     throw cause;
@@ -158,23 +167,28 @@ export async function createShipFleet(
   dependencies: ShipAssetDependencies = SHIP_ASSET_DEPENDENCIES,
 ): Promise<ShipFleet> {
   const models = await Promise.all(Object.values(SHIP_URLS).map((url) => dependencies.loadModel(url)));
-  const resources: ShipBatch[] = [];
+  // The detail normal is owned by the fleet, not by any one hull, so it is registered first and
+  // rolled back with the rest. A texture created before the failure point and not registered is a
+  // leak that nothing reports.
+  const resources: { dispose(): void }[] = [];
   let player: ShipBatch;
   let rushers: ShipBatch;
   let gunner: ShipBatch;
   let anchor: ShipBatch;
   let warden: ShipBatch;
   try {
-    player = registerResource(resources, await createShipBatch(renderer, models[0]!, 1, dependencies));
-    rushers = registerResource(resources, await createShipBatch(renderer, models[1]!, 2, dependencies));
-    gunner = registerResource(resources, await createShipBatch(renderer, models[2]!, 1, dependencies));
-    anchor = registerResource(resources, await createShipBatch(renderer, models[3]!, 1, dependencies));
-    warden = registerResource(resources, await createShipBatch(renderer, models[4]!, 1, dependencies));
+    const detailNormal = registerResource(resources, await dependencies.loadDetailNormal(renderer));
+    player = registerResource(resources, await createShipBatch(renderer, models[0]!, 1, dependencies, detailNormal));
+    rushers = registerResource(resources, await createShipBatch(renderer, models[1]!, 2, dependencies, detailNormal));
+    gunner = registerResource(resources, await createShipBatch(renderer, models[2]!, 1, dependencies, detailNormal));
+    anchor = registerResource(resources, await createShipBatch(renderer, models[3]!, 1, dependencies, detailNormal));
+    warden = registerResource(resources, await createShipBatch(renderer, models[4]!, 1, dependencies, detailNormal));
   } catch (cause: unknown) {
     rollbackResources(resources);
     throw cause;
   }
-  const batches = resources as readonly ShipBatch[];
+  // Per-frame work is only the hulls; disposal covers everything the fleet owns.
+  const batches: readonly ShipBatch[] = [player, rushers, gunner, anchor, warden];
 
   const project = (state: CombatSnapshot): void => {
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex += 1) batches[batchIndex]!.clear();
