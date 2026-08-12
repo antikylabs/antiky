@@ -176,3 +176,49 @@ test('AC-V3: a time-driven pulse varies its rate per instance, not just its phas
   assert.ok(checked >= 2, `expected to find time-driven pulses to check, found ${checked}`);
   assert.deepEqual(offenders, [], `pulses that will drift into unison:\n  ${offenders.join('\n  ')}`);
 });
+
+test('AC-L1: the lighting ramp separates shadow from light by more than brightness', async () => {
+  /**
+   * What this replaced: three `smoothstep` bands spanning 0.54 to 0.98. A 1.81:1 range with no hue
+   * movement, which means shadow and light differed only in how much grey they had — and that is a
+   * complete explanation on its own for why the platformer read as flat.
+   *
+   * Measured as data rather than from a capture, because the ramp *is* data. A frame could pass this
+   * by accident through fog or exposure; the ramp either carries the separation or it does not.
+   */
+  const { TRAVERSAL_LIGHTING_RAMP: ramp } = await import(
+    '../antiky/traversal-study/src/lighting-ramp.gen.ts'
+  );
+  assert.ok(ramp.length >= 32, `expected a ramp with real resolution, got ${ramp.length} steps`);
+
+  const luminance = ([red, green, blue]) => 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  const hue = ([red, green, blue]) => {
+    const high = Math.max(red, green, blue);
+    const low = Math.min(red, green, blue);
+    if (high === low) return 0;
+    const span = high - low;
+    const raw = high === red
+      ? ((green - blue) / span + 6) % 6
+      : high === green ? (blue - red) / span + 2 : (red - green) / span + 4;
+    return raw * 60;
+  };
+
+  const darkest = ramp[0];
+  const brightest = ramp[ramp.length - 1];
+  const ratio = luminance(brightest) / luminance(darkest);
+  assert.ok(ratio >= 6, `brightest-to-darkest luminance ratio is ${ratio.toFixed(2)}:1, floor is 6:1`);
+
+  // Shortest way round the colour wheel, so a shift through 350 to 10 counts as 20 rather than 340.
+  const separation = Math.abs(hue(brightest) - hue(darkest));
+  const shift = Math.min(separation, 360 - separation);
+  assert.ok(shift >= 20, `hue shifts ${shift.toFixed(1)} degrees from shadow to light, floor is 20`);
+
+  // Monotonic brightness. A ramp that dips in the middle reads as a band rather than as a gradient,
+  // and neither of the two checks above would notice.
+  for (let step = 1; step < ramp.length; step += 1) {
+    assert.ok(
+      luminance(ramp[step]) >= luminance(ramp[step - 1]) - 1e-6,
+      `the ramp dims at step ${step}, so light does not rise monotonically along it`,
+    );
+  }
+});

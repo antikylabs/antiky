@@ -298,6 +298,8 @@ below left `npm test` green and `npm run demos:verify` at its six known targets.
 | **10** — antiky-town surface record | **Done.** `packages/demos/antiky/antiky-town/MATERIALS.md`, colocated with the demo it describes. Records all thirteen shaders including the four rejections, and corrects the goal's table on `town-water`. |
 | **9** — VFX timing (part) | **AC-V3 closed.** `arena-glow` and `traversal-glow` pulsed their alpha on one shared frequency with only a per-instance phase, so instances drifted into unison. Both now vary the rate per instance, with a test that catches a regression. The rest of item 9 — curves, snap, secondary elements — is not done. |
 | AC-V3 | **Green**, scoped to values reaching an alpha. A global rate is correct for a *field*: wind crosses the town at one speed and water waves travel at one speed. An earlier version flagged both and would have pushed someone into breaking them. |
+| **5** — hue-shifting ramp LUT | **Done.** `traversal-study` lit through a 64-step ramp uploaded as a `sampler3D`. Measured **14.8:1** brightest-to-darkest against a 6:1 floor, and **185 degrees** of hue shift against a 20-degree floor. |
+| AC-L1 | **Green**, measured from the ramp as data rather than from a capture — a frame could pass by accident through fog or exposure. |
 | AC-M3 | **Green**, and it discovers GLB-drawing shaders from source rather than a list. |
 
 ### Measured, before → after
@@ -364,7 +366,10 @@ available in the two demos still to be wired.
 
 ### Next, in order of value
 
-1. **Item 5 and the rest of item 4 are the same change in `traversal-study`.** That demo has no
+1. **Item 4 for `traversal-study`.** Item 5 landed first and the ramp now supplies the light colour,
+   so the remaining question is narrower than it was: whether the `kloofendal` coefficients should
+   tint the ramp's shadow end, or replace the flat term the ramp multiplies. Coefficients are
+   already baked. Original note, still true in shape: That demo has no
    ambient term to replace — its lighting is a three-band toon ramp whose `0.54` base *is* the
    ambient. Wiring SH-9 into it before item 5 means writing lighting that item 5 immediately
    rewrites, so do them together: the ramp reads light amount, SH-9 supplies the colour it is

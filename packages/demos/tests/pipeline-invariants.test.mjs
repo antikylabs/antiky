@@ -59,6 +59,9 @@ const SAMPLER_ROLES = Object.freeze({
   // end of the curve and tilt the whole surface — the same corruption as decoding a roughness map,
   // and just as invisible until something looks subtly wrong everywhere.
   uDetailNormal: 'data',
+  // The lighting ramp is authored in linear RGB by its generator, not sampled from an image, so it
+  // is already in the space the shader works in. Decoding it would darken every shadow twice.
+  uRamp: 'data',
   uRoughness: 'data',
   uAo: 'data',
   uShadowMap: 'data',

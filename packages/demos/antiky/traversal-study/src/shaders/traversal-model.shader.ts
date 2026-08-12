@@ -59,6 +59,7 @@ export default shader({
     uGradeMix: 'float',
     uWrap: 'float',
     uTex: 'sampler2D',
+    uRamp: 'sampler3D',
     uDetailNormal: 'sampler2D',
   },
   varyings: { vWorld: 'vec3', vNormal: 'vec3', vUv: 'vec2', vWash: 'float' },
@@ -80,7 +81,7 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uDetailNormal },
+    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uDetailNormal },
     { vWorld, vNormal, vUv, vWash },
   ) {
     const texel = decodeSrgb(texture(uTex, vUv).xyz);
@@ -133,8 +134,18 @@ export default shader({
     // off `uGradeMix`, which happens to be high on clouds today and is really about colour grading,
     // so anything that later graded a rock heavily would start lighting like a cloud.
     const diffuse = max((dot(normal, light) + uWrap) / (1 + uWrap), 0);
-    const band = 0.54 + smoothstep(0.18, 0.25, diffuse) * 0.2
-      + smoothstep(0.62, 0.7, diffuse) * 0.24;
+    // The lighting ramp decides what a surface looks like at this light level, rather than how much
+    // grey to scale it by.
+    //
+    // What this replaced: `0.54 + smoothstep(...) * 0.2 + smoothstep(...) * 0.24` — three bands
+    // spanning 0.54 to 0.98. A 1.81:1 range with no hue movement at all, so shadow and light
+    // differed only in brightness. The ramp is 14.8:1 and shifts 185 degrees from a cool deep
+    // shadow through a chromatic midtone to a warm pale highlight, which is the move a painter
+    // makes and the reason stylised games read as lit rather than as tinted.
+    //
+    // A 3D sampler for a 1D lookup because `createTexture3D` is BroMetal's only raw-buffer upload.
+    // Height and depth are 1, so both are sampled at their middle.
+    const rampLight = texture(uRamp, vec3(diffuse, 0.5, 0.5)).xyz;
     // Always-on rim.
     //
     // A surface turning away from the camera catches light from everything behind it, and without
@@ -150,7 +161,7 @@ export default shader({
     const graded = mix(texel, uGradeColor, uGradeMix);
     // Tinted toward the sky rather than the surface colour, so the edge reads as light coming from
     // the world behind the object instead of the object glowing.
-    const base = graded.scale(band * vWash).add(vec3(0.55, 0.65, 0.66).scale(rim * 0.3 * vWash));
+    const base = graded.mul(rampLight).scale(vWash).add(vec3(0.55, 0.65, 0.66).scale(rim * 0.3 * vWash));
     const distanceFog = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
     return vec4(mix(base, vec3(0.55, 0.65, 0.66), distanceFog * 0.42), 1);
   },
