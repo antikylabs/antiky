@@ -23,7 +23,14 @@ settle the one that measured worse.
    11.3% of the frame — the shadowed faces, which is exactly the set it should touch. `kloofendal`
    is bright midday, so its raw band-0 is about eleven times the ramp's shadow end; dropping it in
    unscaled would have washed the shadows out completely. See `src/ambient.ts`.
-2. **`antiky-town` — baked and validated, not yet wired.** `venice-sunset` is committed at
+2. ~~**`antiky-town`**~~ **Done, and the answer was yes.** Local contrast **8.06 to 8.46**, the
+   largest single move this demo has had. Nine coefficients do earn their bake over two colours that
+   were already right — the gain is the second band, light varying around the horizon rather than
+   only up-against-down, which is exactly what two colours cannot express. `town-voxel` and the
+   actor edge pass both read it; the ground term is left as it was, since a bounce colour is a
+   property of what is underfoot rather than of the sky. Original note kept below.
+
+   ~~Baked and validated, not yet wired.~~ `venice-sunset` is committed at
    `src/sh9-irradiance.gen.ts`: zero negative irradiance across 3,000 directions, up-to-down
    luminance ratio 5.05:1.
 

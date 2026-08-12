@@ -105,6 +105,15 @@ export default shader({
     uLightDir: 'vec3',
     uSunColor: 'vec3',
     uSunIntensity: 'float',
+    uSh0: 'vec3',
+    uSh1: 'vec3',
+    uSh2: 'vec3',
+    uSh3: 'vec3',
+    uSh4: 'vec3',
+    uSh5: 'vec3',
+    uSh6: 'vec3',
+    uSh7: 'vec3',
+    uSh8: 'vec3',
     uSkyColor: 'vec3',
     uSkyIntensity: 'float',
     uGroundColor: 'vec3',
@@ -175,6 +184,15 @@ export default shader({
       uLightDir,
       uSunColor,
       uSunIntensity,
+      uSh0,
+      uSh1,
+      uSh2,
+      uSh3,
+      uSh4,
+      uSh5,
+      uSh6,
+      uSh7,
+      uSh8,
       uSkyColor,
       uSkyIntensity,
       uGroundColor,
@@ -356,7 +374,29 @@ export default shader({
     const roughness = clamp(vMaterial.x, 0.12, 1);
     const specularLevel = clamp(vMaterial.y, 0, 1);
     const up = surfaceNormal.y * 0.5 + 0.5;
-    const sky = uSkyColor.scale(uSkyIntensity * (0.28 + up * 0.72));
+    // Measured sky in place of two hand-picked colours.
+    //
+    // Worth saying what this did and did not fix, because the honest answer is unusual: the two
+    // colours it replaces were already right. `SKY_COLOR` was a cool blue and `GROUND_COLOR` a warm
+    // brown, and a real sunset HDRI bakes to cool blue looking up and warm brown looking down —
+    // independently the same decision, from a photograph rather than by eye.
+    //
+    // What nine coefficients add over two is the *second band*: light varying around the horizon
+    // rather than only up-against-down. On a town of axis-aligned faces that is the difference
+    // between every north wall matching every south wall and them differing the way they do outdoors.
+    //
+    // Scaled in `src/town/ambient.ts` so its spherical average matches what the split averaged, so
+    // this changes where the light comes from and not how much there is.
+    const skyIrradiance = uSh0
+      .add(uSh1.scale(normal.y))
+      .add(uSh2.scale(normal.z))
+      .add(uSh3.scale(normal.x))
+      .add(uSh4.scale(normal.x * normal.y))
+      .add(uSh5.scale(normal.y * normal.z))
+      .add(uSh6.scale(3 * normal.z * normal.z - 1))
+      .add(uSh7.scale(normal.x * normal.z))
+      .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
+    const sky = skyIrradiance.scale(uSkyIntensity * (0.28 + up * 0.72));
     const ground = uGroundColor.scale(uGroundIntensity * (0.22 + (1 - up) * 0.78));
     // Preserve a cool, readable floor in shadow while retaining the authored
     // corner AO. Splitting AO between ambient and direct visibility prevents a

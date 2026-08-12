@@ -33,6 +33,7 @@ import {
   buildTownFoliageRenderData,
   uploadTownFoliageInstances,
 } from './art/town-foliage';
+import { TOWN_SKY } from './ambient.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { buildTownWaterFeatures } from './art/town-water-features';
 import {
@@ -316,6 +317,15 @@ async function createTownRuntime(
   worldProgram.uniforms.uGroundIntensity.set(0.12);
   worldProgram.uniforms.uEmissiveIntensity.set(mode === 'ambient' ? 2.7 : 2);
   worldProgram.uniforms.uMaterialAtlasTexel.set(MATERIAL_ATLAS_TEXEL);
+  worldProgram.uniforms.uSh0.set(TOWN_SKY[0]!);
+  worldProgram.uniforms.uSh1.set(TOWN_SKY[1]!);
+  worldProgram.uniforms.uSh2.set(TOWN_SKY[2]!);
+  worldProgram.uniforms.uSh3.set(TOWN_SKY[3]!);
+  worldProgram.uniforms.uSh4.set(TOWN_SKY[4]!);
+  worldProgram.uniforms.uSh5.set(TOWN_SKY[5]!);
+  worldProgram.uniforms.uSh6.set(TOWN_SKY[6]!);
+  worldProgram.uniforms.uSh7.set(TOWN_SKY[7]!);
+  worldProgram.uniforms.uSh8.set(TOWN_SKY[8]!);
   worldProgram.uniforms.uFogColor.set(FOG_COLOR);
   worldProgram.uniforms.uFogStart.set(45);
   worldProgram.uniforms.uFogEnd.set(110);
@@ -578,6 +588,15 @@ async function createTownRuntime(
   actorEdgeProgram.uniforms.uSunColor.set(SUN_COLOR);
   actorEdgeProgram.uniforms.uSunIntensity.set(2.65);
   actorEdgeProgram.uniforms.uSkyColor.set(SKY_COLOR);
+  actorEdgeProgram.uniforms.uSh0.set(TOWN_SKY[0]!);
+  actorEdgeProgram.uniforms.uSh1.set(TOWN_SKY[1]!);
+  actorEdgeProgram.uniforms.uSh2.set(TOWN_SKY[2]!);
+  actorEdgeProgram.uniforms.uSh3.set(TOWN_SKY[3]!);
+  actorEdgeProgram.uniforms.uSh4.set(TOWN_SKY[4]!);
+  actorEdgeProgram.uniforms.uSh5.set(TOWN_SKY[5]!);
+  actorEdgeProgram.uniforms.uSh6.set(TOWN_SKY[6]!);
+  actorEdgeProgram.uniforms.uSh7.set(TOWN_SKY[7]!);
+  actorEdgeProgram.uniforms.uSh8.set(TOWN_SKY[8]!);
   actorEdgeProgram.uniforms.uSkyIntensity.set(0.46);
   actorEdgeProgram.uniforms.uGroundColor.set(GROUND_COLOR);
   actorEdgeProgram.uniforms.uGroundIntensity.set(0.12);
