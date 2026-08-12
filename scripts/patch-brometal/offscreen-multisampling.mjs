@@ -8,8 +8,13 @@
  * This mirrors what the on-screen pass already does — draw into a multisampled colour texture,
  * resolve into the single-sampled one, and give the depth attachment the same sample count. The
  * target texture stays single-sampled, so sampling it afterwards is unchanged.
-
- * Upstream draft: docs/objectives/scratch/demo-refining/upstream/pr-2-offscreen-multisampling.md
+ *
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/4**
+ * render target: allow an off-screen pass to keep multisampling
+ *
+ * Retire this file when #4 is merged or released. Nothing else needs changing —
+ * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
+ * scripts/ allowlist in ../repository-policy.test.mjs.
  */
 export const name = 'offscreen-multisampling';
 

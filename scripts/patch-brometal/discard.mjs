@@ -5,6 +5,13 @@
  * material need one. This threads discard() through the builtins, the public surface, the
  * analyzer, the WGSL emitter and the optimizer, and makes calling it as an expression an error
  * rather than silently producing a value.
+ *
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/5**
+ * shader dsl: add discard() for cut-out fragments
+ *
+ * Retire this file when #5 is merged or released. Nothing else needs changing —
+ * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
+ * scripts/ allowlist in ../repository-policy.test.mjs.
  */
 export const name = 'discard';
 

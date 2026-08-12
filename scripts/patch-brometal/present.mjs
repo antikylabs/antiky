@@ -4,6 +4,13 @@
  * The runtime only exposes loop(), which owns requestAnimationFrame. A host that already has its
  * own frame loop cannot use it, and capture needs to draw exactly one frame on demand. present()
  * is loop()'s body without the scheduling.
+ *
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/6**
+ * renderer: add present() for a single explicit frame
+ *
+ * Retire this file when #6 is merged or released. Nothing else needs changing —
+ * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
+ * scripts/ allowlist in ../repository-policy.test.mjs.
  */
 export const name = 'present';
 

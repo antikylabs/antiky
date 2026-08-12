@@ -8,8 +8,13 @@
  * interpolate, because averaging two particles' positions is meaningless. So filtering becomes a
  * per-target choice that still defaults to nearest, and only an image target such as a bloom
  * downsample chain opts into linear.
-
- * Upstream draft: docs/objectives/scratch/demo-refining/upstream/pr-1-render-target-filtering.md
+ *
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/3**
+ * render target: allow linear filtering, keep nearest as the default
+ *
+ * Retire this file when #3 is merged or released. Nothing else needs changing —
+ * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
+ * scripts/ allowlist in ../repository-policy.test.mjs.
  */
 export const name = 'render-target-filtering';
 

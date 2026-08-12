@@ -13,7 +13,12 @@
  *
  * Both are reachable from one program that uploads more than once per frame.
  *
- * Upstream: https://github.com/ericdrowell/brometal/pull/7
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/7**
+ * webgpu: correct two defects in per-frame attribute buffer handling
+ *
+ * Retire this file when #7 is merged or released. Nothing else needs changing —
+ * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
+ * scripts/ allowlist in ../repository-policy.test.mjs.
  */
 export const name = 'attribute-buffer-defects';
 

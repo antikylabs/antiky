@@ -14,3 +14,4 @@ planning document as its basis, and these are less than plans.
 | Idea | One line | Status |
 | --- | --- | --- |
 | [Executable requirement contracts](executable-requirement-contracts.md) | Let an owner state an intended requirement and have it bind to a test an agent must satisfy | Too early — revisit after the demo-refining goals land |
+| [Skill text: patching a dependency and upstreaming the fix](skill-text.md) | Raw material for a reusable skill, written from doing it across BroMetal PRs #3–#7 | Ready to turn into a skill |
