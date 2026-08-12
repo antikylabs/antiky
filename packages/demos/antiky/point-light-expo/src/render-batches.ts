@@ -160,16 +160,6 @@ export function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capac
     program,
     clear: data.clear,
     setValues: data.setValues,
-    set(index: number, offset: Vec3, scale: Vec3, color: Vec3, material: Vec3, yaw = 0): void {
-      data.setValues(
-        index,
-        offset[0], offset[1], offset[2],
-        scale[0], scale[1], scale[2],
-        color[0], color[1], color[2],
-        material[0], material[1], material[2],
-        yaw,
-      );
-    },
     upload(): void {
       program.instanceAttributes.iOffset.set(data.offsets);
       program.instanceAttributes.iScale.set(data.scales);
@@ -238,23 +228,6 @@ export function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity
     program,
     clear: data.clear,
     setValues: data.setValues,
-    set(
-      index: number,
-      offset: Vec3,
-      scale: number,
-      color: Vec3,
-      power: number,
-      phase = 0,
-      motion = 0,
-    ): void {
-      data.setValues(
-        index,
-        offset[0], offset[1], offset[2],
-        scale,
-        color[0], color[1], color[2],
-        power, phase, motion,
-      );
-    },
     upload(): void {
       program.instanceAttributes.iOffset.set(data.offsets);
       program.instanceAttributes.iScale.set(data.scales);

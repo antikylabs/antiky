@@ -35,7 +35,7 @@ const RELAY_IDENTITY_MARKER_COUNT = EXPO_LIGHT_DEFINITIONS.reduce(
   0,
 );
 
-export const RELAY_VISUAL_COUNTS = Object.freeze({
+const RELAY_VISUAL_COUNTS = Object.freeze({
   relay: RELAY_COUNT,
   shade: SHADE_COUNT,
   particle: RELAY_PARTICLE_CAPACITY,
@@ -117,7 +117,7 @@ const capacities = Object.freeze(Object.fromEntries(
   Object.entries(RELAY_RENDER_SLOTS).map(([name, ranges]) => [name, endOf(ranges)]),
 )) as Readonly<Record<keyof typeof RELAY_RENDER_SLOTS, number>>;
 
-export const RELAY_RENDER_PASSES = Object.freeze({
+const RELAY_RENDER_PASSES = Object.freeze({
   nonInstanced: Object.freeze({ floor: 1, onboarding: 1, status: 1 }),
   instanced: Object.freeze(Object.keys(RELAY_RENDER_SLOTS)),
 });

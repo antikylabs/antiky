@@ -30,7 +30,6 @@ const SHIP_URLS = Object.freeze({
 
 export const SHIP_CATALOG_ASSET_COUNT = Object.keys(SHIP_URLS).length;
 export const SHIP_INSTANCE_CAPACITY = 6;
-export { SHIP_PRESENTATION_SPANS };
 
 type ShipBatch = Readonly<{
   program: BroMetalProgram;

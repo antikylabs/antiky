@@ -5,10 +5,13 @@ import { createCombatCameraProjector } from '../src/presentation.ts';
 import { combatSignalMode } from '../src/arena-signals.ts';
 import { ARENA_ROOM_PROFILE } from '../src/arena-composition.ts';
 import { COMBAT_READABILITY_PROFILE } from '../src/combat-projection.ts';
-import { ENEMY_HULL_CONTRACTS, PLAYER_HURT_RADIUS } from '../src/combat-hulls.ts';
+import {
+  ENEMY_HULL_CONTRACTS,
+  PLAYER_HURT_RADIUS,
+  SHIP_PRESENTATION_SPANS,
+} from '../src/combat-hulls.ts';
 import { combatEscalationProfile, enemyVisualProfile } from '../src/combat-visuals.ts';
 import { COMBAT_RENDERER_OPTIONS, deriveCombatRendererMeasurements } from '../src/renderer.ts';
-import { SHIP_PRESENTATION_SPANS } from '../src/ship-assets.ts';
 import { createCombatSimulation } from '../src/simulation.ts';
 
 const projectOnce = (...parameters: Parameters<ReturnType<typeof createCombatCameraProjector>['project']>) => (

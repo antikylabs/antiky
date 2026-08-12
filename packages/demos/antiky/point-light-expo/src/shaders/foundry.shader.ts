@@ -52,7 +52,6 @@ export default shader({
   },
   uniforms: {
     uViewProj: 'mat4',
-    uModel: 'mat4',
     uCameraPosition: 'vec3',
     uTime: 'float',
     uAmbientColor: 'vec3',
@@ -85,7 +84,7 @@ export default shader({
 
   vertex(
     { aPosition, aNormal, iOffset, iScale, iBaseColor, iMaterial, iYaw },
-    { uViewProj, uModel },
+    { uViewProj },
     v,
   ) {
     const local = aPosition.mul(iScale);
@@ -96,7 +95,7 @@ export default shader({
       local.y,
       local.x * yawSin + local.z * yawCos,
     );
-    const world = uModel.mul(vec4(rotated, 1)).xyz.add(iOffset);
+    const world = rotated.add(iOffset);
     const inverseScaledNormal = normalize(vec3(
       aNormal.x / max(iScale.x, 0.001),
       aNormal.y / max(iScale.y, 0.001),
@@ -108,7 +107,7 @@ export default shader({
       inverseScaledNormal.x * yawSin + inverseScaledNormal.z * yawCos,
     );
     v.vWorld = world;
-    v.vNormal = normalize(uModel.mul(vec4(rotatedNormal, 0)).xyz);
+    v.vNormal = normalize(rotatedNormal);
     v.vBaseColor = iBaseColor;
     v.vMaterial = iMaterial;
     return uViewProj.mul(vec4(world, 1));

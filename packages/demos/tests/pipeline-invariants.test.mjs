@@ -207,3 +207,46 @@ test('every shader in a demo agrees on its fog range', async () => {
     + 'and far objects disagree about how far away they are.',
   );
 });
+
+/**
+ * Names the complexity audit proved dead and this objective deleted.
+ *
+ * A deletion without a guard comes back: the next agent to touch the file sees a uniform its
+ * neighbours have and adds it "for consistency". Each entry below records what it was and why it
+ * went, so a future reader can tell a real need from an accident.
+ */
+const DELETED_NAMES = Object.freeze([
+  { name: 'ARENA_ENERGY_INSTANCES', why: 'declared in combat-arena and never read anywhere' },
+  { name: 'DEFAULT_OFFSETS', why: 'a default nobody used, and wrong: the real gauge offset is 60, not 28' },
+  { name: 'catalogParts', why: 'described the ship models; nothing rendered from it' },
+  { name: 'uTint', why: 'all thirteen traversal-study batches passed [1, 1, 1], so it multiplied by one' },
+  { name: 'uModel', why: 'point-light-expo only ever set the identity matrix, so both muls were no-ops' },
+]);
+
+test('the dead code this objective deleted has not come back', async () => {
+  const offenders = [];
+  for (const slug of ANTIKY_DEMOS) {
+    for (const source of await demoSources(slug)) {
+      for (const { name, why } of DELETED_NAMES) {
+        if (new RegExp(`\\b${name}\\b`).test(source.text)) {
+          offenders.push(`${source.relative}: ${name} — removed because ${why}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+
+test('the batch factories expose one instance writer, not two', async () => {
+  // Every caller used `setValues`; the tuple-taking `set` twin was dead weight on both demos and
+  // on every reader deciding which one to reach for.
+  const offenders = [];
+  for (const slug of ['combat-arena', 'point-light-expo']) {
+    for (const source of await demoSources(slug)) {
+      if (!source.relative.endsWith('render-batches.ts')) continue;
+      const twins = source.text.match(/^\s{4}set\(/gm) ?? [];
+      if (twins.length > 0) offenders.push(`${source.relative}: ${twins.length} tuple writer(s)`);
+    }
+  }
+  assert.deepEqual(offenders, []);
+});

@@ -173,7 +173,6 @@ export async function createRelayRenderer(
   floorProgram.uniforms.uFogStart.set(RELAY_PRESENTATION.fog.start);
   floorProgram.uniforms.uFogEnd.set(RELAY_PRESENTATION.fog.end);
   floorProgram.uniforms.uFogMaximumMix.set(RELAY_PRESENTATION.fog.maximumMix);
-  const identity = mat4.identity();
   const frameScratch = createRelayFrameScratch();
   const cameraPosition = frameScratch.cameraPosition;
   const camera = createCamera({
@@ -253,7 +252,6 @@ export async function createRelayRenderer(
     for (let index = 0; index < surfaceBatches.length; index += 1) {
       const batch = surfaceBatches[index]!;
       batch.program.uniforms.uViewProj.set(viewProjection);
-      batch.program.uniforms.uModel.set(identity);
       batch.program.uniforms.uCameraPosition.set(cameraPosition);
       batch.program.uniforms.uTime.set(state.time);
       setLights(powers, batch.program);

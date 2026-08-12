@@ -127,12 +127,6 @@ export function createSurfaceBatch(
       colors.fill(0);
       params.fill(0);
     },
-    set(index: number, offset: Vec3, scale: Vec3, color: Vec3, material: Vec3): void {
-      offsets.set(offset, index * 3);
-      scales.set(scale, index * 3);
-      colors.set(color, index * 3);
-      params.set(material, index * 3);
-    },
     setValues(
       index: number,
       offsetX: number, offsetY: number, offsetZ: number,
@@ -198,22 +192,6 @@ export function createGlowBatch(
     clear(): void {
       scales.fill(0);
       alphas.fill(0);
-    },
-    set(
-      index: number,
-      offset: Vec3,
-      scale: Vec3,
-      color: Vec3,
-      alpha: number,
-      rotation: number,
-      phase: number,
-    ): void {
-      offsets.set(offset, index * 3);
-      scales.set(scale, index * 3);
-      colors.set(color, index * 3);
-      alphas[index] = alpha;
-      rotations[index] = rotation;
-      phases[index] = phase;
     },
     setValues(
       index: number,

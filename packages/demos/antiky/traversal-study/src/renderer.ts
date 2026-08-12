@@ -68,7 +68,6 @@ type CatalogProgram = BroMetalProgram<
     uViewProj: 'mat4';
     uCameraPosition: 'vec3';
     uTime: 'float';
-    uTint: 'vec3';
     uGradeColor: 'vec3';
     uGradeMix: 'float';
     uTex: 'sampler2D';
@@ -197,7 +196,6 @@ async function createCatalogBatch(
   renderer: Renderer,
   assetId: TraversalAssetId,
   capacity: number,
-  tint: Vec3 = [1, 1, 1],
   gradeColor: Vec3 = [1, 1, 1],
   gradeMix = 0,
 ) {
@@ -236,7 +234,6 @@ async function createCatalogBatch(
       program.attributes.aUv.set(mesh.uvs ?? new Float32Array(mesh.positions.length / 3 * 2));
       program.setIndices(mesh.indices);
       program.uniforms.uTex.set(textures[mesh.imageIndex]!);
-      program.uniforms.uTint.set(tint);
       program.uniforms.uGradeColor.set(gradeColor);
       program.uniforms.uGradeMix.set(gradeMix);
     }
@@ -314,14 +311,14 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       () => createCatalogBatch(renderer, 'moving', TRAVERSAL_BATCH_CAPACITIES.moving),
       () => createCatalogBatch(renderer, 'flag', TRAVERSAL_BATCH_CAPACITIES.flag),
       () => createCatalogBatch(renderer, 'coin', TRAVERSAL_BATCH_CAPACITIES.coin),
-      () => createCatalogBatch(renderer, 'spikes', TRAVERSAL_BATCH_CAPACITIES.spikes, [1, 1, 1], [0.92, 0.22, 0.09], 0.62),
+      () => createCatalogBatch(renderer, 'spikes', TRAVERSAL_BATCH_CAPACITIES.spikes, [0.92, 0.22, 0.09], 0.62),
       () => createCatalogBatch(renderer, 'tree', TRAVERSAL_BATCH_CAPACITIES.tree),
       () => createCatalogBatch(renderer, 'courier', TRAVERSAL_BATCH_CAPACITIES.courier),
-      () => createCatalogBatch(renderer, 'cloud-small', TRAVERSAL_BATCH_CAPACITIES['cloud-small'], [1, 1, 1], [0.96, 0.98, 1], 0.9),
-      () => createCatalogBatch(renderer, 'cloud-large', TRAVERSAL_BATCH_CAPACITIES['cloud-large'], [1, 1, 1], [0.96, 0.98, 1], 0.9),
-      () => createCatalogBatch(renderer, 'coastal-cliff', TRAVERSAL_BATCH_CAPACITIES['coastal-cliff'], [1, 1, 1], [0.3, 0.45, 0.55], 0.78),
-      () => createCatalogBatch(renderer, 'coastal-tree', TRAVERSAL_BATCH_CAPACITIES['coastal-tree'], [1, 1, 1], [0.18, 0.38, 0.24], 0.28),
-      () => createCatalogBatch(renderer, 'relay-tower', TRAVERSAL_BATCH_CAPACITIES['relay-tower'], [1, 1, 1], [0.64, 0.71, 0.74], 0.38),
+      () => createCatalogBatch(renderer, 'cloud-small', TRAVERSAL_BATCH_CAPACITIES['cloud-small'], [0.96, 0.98, 1], 0.9),
+      () => createCatalogBatch(renderer, 'cloud-large', TRAVERSAL_BATCH_CAPACITIES['cloud-large'], [0.96, 0.98, 1], 0.9),
+      () => createCatalogBatch(renderer, 'coastal-cliff', TRAVERSAL_BATCH_CAPACITIES['coastal-cliff'], [0.3, 0.45, 0.55], 0.78),
+      () => createCatalogBatch(renderer, 'coastal-tree', TRAVERSAL_BATCH_CAPACITIES['coastal-tree'], [0.18, 0.38, 0.24], 0.28),
+      () => createCatalogBatch(renderer, 'relay-tower', TRAVERSAL_BATCH_CAPACITIES['relay-tower'], [0.64, 0.71, 0.74], 0.38),
     ]);
     owned.adopt(catalogTransaction);
     const catalogEntries = catalogTransaction.resources;
