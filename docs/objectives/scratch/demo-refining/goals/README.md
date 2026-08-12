@@ -46,14 +46,14 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **00** | [Settle the architecture record and the public claims](_completed/execute-goal-00.md) | **Done** `288cd76` — [summary](_completed/summary-goal-00.md) | — | 01, 02, 10 | ~half a day |
 | **01** | [Build the verification loop (Track 0)](_completed/execute-goal-01.md) | **Done** `e1ebf4e` — [summary](_completed/summary-goal-01.md) | — | 00, 02 | ~2 days |
 | **02** | [Unblock the render pipeline in BroMetal (Track A)](_completed/execute-goal-02.md) | **Done** `57166ea` — [summary](_completed/summary-goal-02.md) | — | 00, 01, 04, 05, 10 | ~1 day |
-| **03** | Quick wins, motion feel, safe dead-code removal (Track D) | Not started | 01 | 04, 05, 10 | ~2 days |
+| **03** | [Quick wins, motion feel, safe dead-code removal (Track D)](_completed/execute-goal-03.md) | **Done** `4b6ecaa` — [summary](_completed/summary-goal-03.md) | 01 | 04, 05, 10 | ~2 days |
 | **04** | Stop the asset pipeline destroying the assets (Track C) | Not started | 01 | 02, 03, 05, 10 | ~3 days |
 | **05** | Give the existing assets real materials — triplanar PBR | Not started | 01, 04 | 02, 03, 06, 07, 10 | ~14 days |
 | **06** | The reference render slice in `point-light-expo` (Track B) | Not started | 00, 01, 02 | 05, 10 | ~5 days |
 | **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | Not started | 06 | 05, 10 | ~10 days |
 | **08** | Art direction and VFX per demo, `antiky-town` included | Not started | 05, 07 | 10 | ~16 days |
 | **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 | ~5 days |
-| **10** | Fix how the work is presented (Track F) | Not started | 01 | everything | ~3 days |
+| **10** | [Fix how the work is presented](_completed/execute-goal-10.md) | **Done** `079c325` — [summary](_completed/summary-goal-10.md) | 01 | everything | ~3 days |
 | **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 | ~4 days |
 | **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
 | **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything | ~4 days |
