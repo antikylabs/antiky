@@ -1,19 +1,16 @@
 # Summary — goal 02: unblock the render pipeline inside BroMetal
 
 **Completed:** 2026-08-11
-**Commits:** `1e5ce13`, `3203a82`, `9118e47`, `2217721`, `a9adbc3`, `57166ea`
+**Commits:** `1e5ce13`, `3203a82`, `9118e47`, `2217721`, `a9adbc3`, `57166ea`, `4633785`,
+`f092acd`, `1ca4750`
 **Goal file:** [`execute-goal-02.md`](execute-goal-02.md)
 
 ## Action needed from the owner
 
-**None.** Both decisions this goal needed were made during it and are recorded below.
+**None.**
 
-The upstream pull requests are drafted and committed at `../../upstream/` but deliberately not
-opened, on the owner's instruction. That matches ADR 0021's stated sequence — patch locally, send a
-focused pull request later so the patch can be retired — so it is a deferral within the accepted
-direction rather than an open obligation.
-
-No bug found in this goal is outstanding. Every one was fixed here.
+Both decisions this goal needed were made during it, and the one deferred item was later reversed
+by the owner and completed — see *After the goal closed* below. No bug found here is outstanding.
 
 ## What changed
 
@@ -109,3 +106,77 @@ demonstrate either patch working in a demo — that happens in goal 06, the firs
 2. **The drafts diff against `dist/`, not source.** A maintainer will reasonably want the change
    against BroMetal's TypeScript source, which is not in this repository. `HANDOFF.md` records the
    recommended sequence for doing it properly if the pull requests are opened later.
+
+
+---
+
+# After the goal closed
+
+Three things happened after this summary was first written. They belong to goal 02's subject
+matter, so they are recorded here rather than left in commit messages.
+
+## 1. BroMetal upgraded 0.15.0 → 0.17.2 (`57166ea`)
+
+The owner asked whether the repository was on the latest BroMetal. It was four releases behind.
+Checked before upgrading: both defects still exist in 0.17.2, so the patches stayed necessary;
+0.16 and 0.17 are almost entirely `--js13k` work with 0.17.1 and 0.17.2 explicitly "no library
+changes"; and all 19 patch targets existed unchanged, so only the version guard moved. All four
+antiky demos reported identical metrics afterwards.
+
+**Two problems the upgrade exposed, both fixed:**
+
+- npm stopped hoisting BroMetal and nested a copy into each of the 8 demo workspaces, which broke
+  `packages/demos/tests/shader-output-parity.test.mjs` — it imports `brometal` from a directory
+  that is not a package and had always relied on hoisting. `npm dedupe` restored a single hoisted
+  copy.
+- **The patch script only ever patched the first copy it found.** Its two-candidate lookup assumed
+  hoisting. With a nested layout it patched nothing; with a mixed layout it would have patched one
+  copy and left seven unpatched, which fails **silently** — the demo just renders with an unpatched
+  runtime. It now discovers every installed copy, and a test asserts it. This was a latent
+  fragility predating the goal, surfaced only because the dependency graph moved.
+
+## 2. The patch script split into one file per contribution (`f092acd`)
+
+`scripts/patch-brometal.mjs` became a runner over `scripts/patch-brometal/*.mjs`, split **by
+contribution rather than by file touched** — `discard` spans eight replacements across five files
+and is one module, because it is one upstream PR. Each file now maps 1:1 to a pull request, so an
+accepted PR deletes exactly one file.
+
+Two things worth remembering from that work:
+
+- The first split produced a **syntax error**, and the idempotency check reported success anyway
+  because both runs failed identically so the checksums matched. **A before/after checksum cannot
+  tell "unchanged because correct" from "unchanged because it crashed before writing."** It was
+  caught only by also grepping for the patch content.
+- A modular split creates a failure mode the single file could not have: a patch that exists, reads
+  correctly, and is never applied because nobody imported it. A test now asserts every `.mjs` on
+  disk is registered in `PATCHES`.
+
+## 3. The upstream pull requests were opened after all, and a fifth patch added (`1ca4750`)
+
+The owner reversed the earlier decision and supplied a fork, which resolved the objection recorded
+above — the drafts diffed against `dist/`, and a maintainer wants source. All five are written
+against BroMetal's TypeScript source with a GPU check each:
+
+| PR | Subject |
+|---|---|
+| [#3](https://github.com/ericdrowell/brometal/pull/3) | render target: linear filtering, nearest still the default |
+| [#4](https://github.com/ericdrowell/brometal/pull/4) | render target: keep multisampling in an off-screen pass |
+| [#5](https://github.com/ericdrowell/brometal/pull/5) | shader dsl: `discard()` |
+| [#6](https://github.com/ericdrowell/brometal/pull/6) | renderer: `present()` |
+| [#7](https://github.com/ericdrowell/brometal/pull/7) | webgpu: two per-frame attribute buffer defects |
+
+`#5` and `#7` are **extracted from the owner's existing PR #2**, which bundles eight library
+changes with four demos and is being closed in favour of these. `#5` needed porting rather than
+cherry-picking, since #2 predates the WebGL2 removal. `#7` deliberately excludes #2's
+`draw({ instanceCount })` (a convenience, not a defect) and its WebGL2 `blendFuncSeparate` fix
+(no longer applicable).
+
+**A fifth local patch** — `attribute-buffer-defects.mjs` — carries #7's fixes over the published
+package, so the repository is covered whether or not upstream merges.
+
+Every PR asks the maintainer to say if it is not applicable, whether a better approach exists given
+design context we lack, and what he wants changed.
+
+**Still inert.** All five patches remain unused by any demo until Track B renders off-screen. They
+are correct now rather than discovered later, but goal 06 is the first consumer.
