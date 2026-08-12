@@ -320,6 +320,29 @@ doubled the worst floor probe (0.0072 → 0.0126) and moved the demo's local con
 
 Items 1 and 4 are coupled. Anywhere light is ambient-dominated, item 1 is inert until item 4 lands.
 
+### SH-9 is not automatically better than a hand-tuned ambient — measured
+
+`combat-arena` was wired for SH-9 and then **reverted**, because it measured worse both ways round:
+
+| ambient | localContrast | p95 |
+|---|---|---|
+| existing hand-tuned (`0.16 + normal.y * 0.1`) | **5.99** | 0.081 |
+| SH-9 from `blue-photo-studio` | 5.87 | 0.072 |
+| SH-9 from `neon-photostudio` | 5.68 | 0.071 |
+
+The reason is not a bug in the bake. A studio HDRI is *designed* to be even, so its directional
+variation is genuinely lower than the crude `normal.y` lean it would replace. This goal assumed
+SH-9 beats a flat constant everywhere; against a studio environment on a demo whose ambient was
+already hand-leaned, it does not.
+
+Both HDRIs the goal names for this demo are studio captures, so changing the slug does not fix it.
+What would: an environment with real directional structure, which is an art decision about what the
+arena is lit *by*, not an implementation choice. Left for the owner rather than guessed at.
+
+The first attempt also normalised against the old ambient's constant term instead of its hemisphere
+average, which quietly removed a quarter of the fill — worth knowing, since the same mistake is
+available in the two demos still to be wired.
+
 ### Corrections to this goal's premises
 
 - **"`fresnel()` ships and zero demos call it"** — the BroMetal *helper* is uncalled, but 13 of 29
@@ -338,8 +361,11 @@ Items 1 and 4 are coupled. Anywhere light is ambient-dominated, item 1 is inert 
 
 ### Next, in order of value
 
-1. **Finish item 4** — `combat-arena` and `traversal-study` have coefficients baked but not wired;
-   `antiky-town` should upgrade its existing `uSkyColor`/`uGroundColor` split.
+1. **Finish item 4** — `traversal-study` has coefficients baked but not wired, and its
+   `kloofendal` sky has real directional structure so it should behave like `point-light-expo`
+   rather than like `combat-arena`. `antiky-town` should upgrade its existing
+   `uSkyColor`/`uGroundColor` split. **`combat-arena` is done and deliberately not wired** — see
+   the measurement above; it needs an owner decision about what the arena is lit by.
 2. **Item 5** — the ramp LUT. `traversal-study` is the flattest demo in the set and its ramp is three
    `smoothstep` bands spanning 0.54→0.98 with no view-dependent term at all.
 3. **Item 7**, then **item 6** (largest — needs the Poly Haven intake), then items 2, 8, 9, 10.
