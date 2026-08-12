@@ -16,7 +16,6 @@ import {
   type Vec3,
 } from 'brometal';
 import { rotate2, tonemapACES } from 'brometal/shader-functions';
-import { decodeSrgb } from './color.ts';
 
 /**
  * sRGB to linear, applied when an albedo texture is sampled.

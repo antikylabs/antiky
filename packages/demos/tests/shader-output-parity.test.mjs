@@ -55,6 +55,17 @@ test('BroMetal version and cut-out shader support match the repository contract'
   assert.match(webgpuRuntime, /present\(callback\) \{/);
 });
 
+/** Every hand-written shader source under a package, for checks about authoring rather than output. */
+async function sourceFiles(directory) {
+  const paths = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const url = new URL(entry.name, directory);
+    if (entry.isDirectory()) paths.push(...await sourceFiles(new URL(`${entry.name}/`, directory)));
+    else if (entry.isFile() && entry.name.endsWith('.shader.ts')) paths.push(url);
+  }
+  return paths;
+}
+
 async function generatedFiles(directory) {
   const paths = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -68,6 +79,50 @@ async function generatedFiles(directory) {
 async function readOutputs(paths) {
   return new Map(await Promise.all(paths.map(async (path) => [path.href, await readFile(path)])));
 }
+
+test('every relative import in a shader source resolves to a file that exists', async () => {
+  /**
+   * A shader importing a module that is not there.
+   *
+   * The BroMetal compiler reads the shader body and ignores the import list, so a stale import
+   * compiles and ships without complaint. `tsc` does mind, which is how this surfaced: two
+   * `combat-arena` shaders had been importing `decodeSrgb` from a `./color.ts` that exists nowhere
+   * in the repository, while also declaring `decodeSrgb` themselves a few lines below. The local
+   * declaration shadowed the phantom, so the shaders ran correctly and the typecheck stayed red.
+   *
+   * The reason it was ever written: an attempt to share the helper across shaders, reverted when the
+   * DSL turned out to resolve only same-module helpers. The revert took the usage and left the
+   * import.
+   */
+  const broken = [];
+  let checked = 0;
+  for (const shaderPackage of await discoverShaderPackages()) {
+    const sources = await sourceFiles(shaderPackage.sourceDirectory);
+    for (const source of sources) {
+      const text = await readFile(source, 'utf8');
+      checked += 1;
+      for (const [, specifier] of text.matchAll(/from\s+'(\.[^']*)'/g)) {
+        const resolved = path.resolve(path.dirname(fileURLToPath(source)), specifier);
+        const candidates = specifier.endsWith('.ts')
+          ? [resolved]
+          : [`${resolved}.ts`, `${resolved}.gen.ts`, path.join(resolved, 'index.ts')];
+        let found = false;
+        for (const candidate of candidates) {
+          try {
+            await readFile(candidate);
+            found = true;
+            break;
+          } catch { /* try the next spelling */ }
+        }
+        if (!found) {
+          broken.push(`${path.relative(shaderPackage.packageDirectory, fileURLToPath(source))} imports '${specifier}', which does not exist`);
+        }
+      }
+    }
+  }
+  assert.ok(checked >= 25, `expected to scan every shader source, scanned ${checked}`);
+  assert.deepEqual(broken, [], `shader sources importing modules that are not there:\n  ${broken.join('\n  ')}`);
+});
 
 test('the committed shader output is what the compiler actually produces', async () => {
   /**
