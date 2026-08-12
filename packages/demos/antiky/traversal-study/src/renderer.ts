@@ -35,6 +35,7 @@ import {
   type DisposalStack,
 } from './resource-scope.ts';
 import { summarizeTraversalMeasurements } from './measurements.ts';
+import { COURSE_SKY } from './ambient.ts';
 import { createLightingRamp } from './lighting-ramp.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import traversalGlowShader from './shaders/traversal-glow.shader.gen';
@@ -263,6 +264,15 @@ async function createCatalogBatch(
       program.uniforms.uTex.set(textures[mesh.imageIndex]!);
       program.uniforms.uDetailNormal.set(detailNormal);
       program.uniforms.uRamp.set(ramp);
+      program.uniforms.uSh0.set(COURSE_SKY[0]!);
+      program.uniforms.uSh1.set(COURSE_SKY[1]!);
+      program.uniforms.uSh2.set(COURSE_SKY[2]!);
+      program.uniforms.uSh3.set(COURSE_SKY[3]!);
+      program.uniforms.uSh4.set(COURSE_SKY[4]!);
+      program.uniforms.uSh5.set(COURSE_SKY[5]!);
+      program.uniforms.uSh6.set(COURSE_SKY[6]!);
+      program.uniforms.uSh7.set(COURSE_SKY[7]!);
+      program.uniforms.uSh8.set(COURSE_SKY[8]!);
       program.uniforms.uGradeColor.set(gradeColor);
       program.uniforms.uGradeMix.set(gradeMix);
       program.uniforms.uWrap.set(wrap);

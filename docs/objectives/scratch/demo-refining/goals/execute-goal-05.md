@@ -5,7 +5,7 @@
 >
 > | Step | What is left | Items |
 > | --- | --- | --- |
-> | [05-01](execute-goal-05-01.md) | Finish the ambient work | rest of 4 |
+> | [05-01](execute-goal-05-01.md) | Finish the ambient work — `traversal-study` done, `antiky-town` left, `combat-arena` needs the owner | rest of 4 |
 > | [05-02](execute-goal-05-02.md) | Material identity for the palette kits | 7 |
 > | [05-03](execute-goal-05-03.md) | Real materials from the catalog — **largest by far** | 6, intake |
 > | [05-04](execute-goal-05-04.md) | The VFX pass | 2, 8, rest of 9 |

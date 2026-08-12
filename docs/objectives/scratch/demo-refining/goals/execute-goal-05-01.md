@@ -16,10 +16,13 @@ settle the one that measured worse.
 
 ## Required outcome
 
-1. **`traversal-study`.** Its ramp now supplies light colour, so the question is narrower than it
-   was: do the `kloofendal` coefficients tint the ramp's shadow end, or replace the flat term the
-   ramp multiplies? Coefficients are already baked at `src/sh9-irradiance.gen.ts`. Decide by
-   measuring both, and record the numbers.
+1. ~~**`traversal-study`.**~~ **Done.** The ramp decides level, the sky decides colour: the
+   coefficients are scaled until their spherical average matches the ramp's darkest step, and the
+   shader adds them in proportion to how *un*lit a surface is. A face in full sun sees the ramp
+   alone; a face turned away picks up real sky direction instead of one hand-picked blue. Changed
+   11.3% of the frame — the shadowed faces, which is exactly the set it should touch. `kloofendal`
+   is bright midday, so its raw band-0 is about eleven times the ramp's shadow end; dropping it in
+   unscaled would have washed the shadows out completely. See `src/ambient.ts`.
 2. **`antiky-town`.** It already has a two-term `uSkyColor`/`uGroundColor` split, so this is an
    upgrade to something real rather than a replacement for a constant. **It is the fairest test in
    the repository of whether nine coefficients earn their bake step over two hand-picked colours.**

@@ -60,6 +60,15 @@ export default shader({
     uWrap: 'float',
     uTex: 'sampler2D',
     uRamp: 'sampler3D',
+    uSh0: 'vec3',
+    uSh1: 'vec3',
+    uSh2: 'vec3',
+    uSh3: 'vec3',
+    uSh4: 'vec3',
+    uSh5: 'vec3',
+    uSh6: 'vec3',
+    uSh7: 'vec3',
+    uSh8: 'vec3',
     uDetailNormal: 'sampler2D',
   },
   varyings: { vWorld: 'vec3', vNormal: 'vec3', vUv: 'vec2', vWash: 'float' },
@@ -81,7 +90,7 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uDetailNormal },
+    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
     { vWorld, vNormal, vUv, vWash },
   ) {
     const texel = decodeSrgb(texture(uTex, vUv).xyz);
@@ -161,7 +170,25 @@ export default shader({
     const graded = mix(texel, uGradeColor, uGradeMix);
     // Tinted toward the sky rather than the surface colour, so the edge reads as light coming from
     // the world behind the object instead of the object glowing.
-    const base = graded.mul(rampLight).scale(vWash).add(vec3(0.55, 0.65, 0.66).scale(rim * 0.3 * vWash));
+    // Real sky in the shadows, the authored ramp everywhere else.
+    //
+    // Added in proportion to how *un*lit a surface is, so a face in full sun sees the ramp alone and
+    // a face turned away picks up the sky's actual direction and hue. That is what makes the shadow
+    // side of a rock differ from the shadow side of an overhang, which one hand-picked blue cannot.
+    //
+    // Scaled to the ramp's darkest step in `src/ambient.ts` — the ramp decides level, the sky
+    // decides colour. Reversing that would trade the demo's whole visual identity for physical
+    // correctness nobody asked for.
+    const skyAmbient = uSh0
+      .add(uSh1.scale(normal.y))
+      .add(uSh2.scale(normal.z))
+      .add(uSh3.scale(normal.x))
+      .add(uSh4.scale(normal.x * normal.y))
+      .add(uSh5.scale(normal.y * normal.z))
+      .add(uSh6.scale(3 * normal.z * normal.z - 1))
+      .add(uSh7.scale(normal.x * normal.z))
+      .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
+    const base = graded.mul(rampLight.add(skyAmbient.scale(1 - diffuse))).scale(vWash).add(vec3(0.55, 0.65, 0.66).scale(rim * 0.3 * vWash));
     const distanceFog = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
     return vec4(mix(base, vec3(0.55, 0.65, 0.66), distanceFog * 0.42), 1);
   },
