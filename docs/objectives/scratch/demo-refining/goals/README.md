@@ -30,6 +30,10 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 3. Repoint any links to the moved file. Later goals reference earlier ones in their Prerequisites,
    so a move breaks links: `grep -rn "execute-goal-<num>"` and fix every hit.
 4. Mark the row Done in the sequence table below.
+5. **If the goal deferred anything, add a row to [`execute-goal-99.md`](execute-goal-99.md)** with
+   its trigger. A row costs a line; a forgotten deferral costs a rewrite. Goal 99 runs last and is
+   numbered 99 so new goals can be 14, 15, … without ever renumbering the one that must stay at
+   the end.
 
 `_completed/` mirrors the convention already used at `docs/objectives/antiky-town/_completed/`.
 
@@ -53,6 +57,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 | ~4 days |
 | **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 | ~5 days |
 | **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything | ~4 days |
+| **99** | [The revisit register — check what we deliberately deferred](execute-goal-99.md) | Not started | all | — | ~1 day |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
 **Next up, in parallel:** 03, 04, 10 (00, 01, 02 and 13 are done). Then 05, then 06.

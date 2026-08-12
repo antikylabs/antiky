@@ -40,6 +40,37 @@ change someone squints at.
 | `scripts/frame-stats.mjs` + test | P3. `readSequenceStats` with ITU-T P.910 Temporal Information. |
 | `package.json`, `scripts/repository-policy.test.mjs` | Registration and allowlists. |
 
+## Why this landed in `scripts/` and not in the CLI inspection library
+
+Worth stating, because the file list reads oddly against an AI-native framework: measurement lives
+in `scripts/`, while inspection lives in `packages/cli/src/development/` and reaches agents through
+twenty MCP tools.
+
+**`scripts/` is a staging area here, not the destination.** Three different things landed and they
+do not share an answer:
+
+| Artifact | Where it belongs |
+|---|---|
+| `frame-stats.mjs`, `motion-stats.mjs` — pure functions, no I/O | **Eventually the CLI.** Staged in `scripts/` until the measurement is proven. |
+| `shoot-demos.mjs` — knows demo slugs, spawns servers, writes sidecars | **`scripts/`, permanently.** Repository orchestration, not a framework capability. |
+| Budgets and the camera regression | **Beside their demos.** Already correct. |
+
+The reason to wait on the first row is specific rather than general: **the headline metric has
+already been replaced once.** `luminanceSpread` measured peak brightness rather than contrast
+(r = 0.99 against p95 across ten captures), and `localContrastMedian` replaced it after the
+critique in `../../12-VISUAL-METRICS-CRITIQUE.md`. Behind an MCP tool with a strict contract, that
+mistake would have been versioned and needed a migration. The thresholds are still unvalidated.
+
+Note also that the CLI's inspection library currently *acquires* and never *interprets* — every
+module there fetches captures, observations, evidence or sessions, and `get_render_stats` returns
+numbers the game reports about itself. These two modules are the first interpretation in the
+repository, which is part of why they had no obvious home.
+
+The trigger to promote them, the cost, and the import-boundary caveat are recorded in
+[`../../../../ideas/executable-requirement-contracts.md`](../../../../ideas/executable-requirement-contracts.md)
+and carried on the revisit register in
+[`../execute-goal-99.md`](../execute-goal-99.md) so it cannot be forgotten.
+
 ## Design decisions worth keeping
 
 **Motion is computed from the simulation, not from video.** Every visible camera value in

@@ -46,6 +46,51 @@ structure") bound to an assertion that fails until it is true.
 - **There should be several genuinely different contract kinds in use.** One kind is not a pattern.
   Visual budgets, motion assertions and simulation invariants are three, and only the first exists.
 
+## Precursor: the measurement primitives are staged in `scripts/`, not housed there
+
+`scripts/frame-stats.mjs` and `scripts/motion-stats.mjs` are pure functions with no I/O, no
+browser and no repository knowledge. They measure a frame and a motion series. **They are in the
+wrong place for the long term, deliberately.**
+
+The right home is the CLI's inspection library, `packages/cli/src/development/`. That library is
+where inspection lives and where twenty MCP tools already expose it to agents. Note what is
+currently missing from it: every module there *acquires* something — captures, observations,
+evidence, sessions, point lights — and **nothing interprets anything**. `get_render_stats` returns
+numbers the game reports about itself. Nothing computes a value from pixels or from a series. These
+two modules are the first interpretation this repository has, which is part of why they had no
+obvious home.
+
+**The case for moving them** is `docs/adr/framework/0003`, *"one engine API for humans and
+agents"*. Today an agent working on any other Antiky project cannot measure a frame at all — the
+capability exists only in this repository, as a script. That is a real inconsistency with an
+AI-native framework.
+
+**The case for waiting** is that the measurement is not proven. The headline metric has already
+been replaced once: `luminanceSpread` turned out to track peak brightness rather than contrast
+(r = 0.99 against p95 across ten real captures), and `localContrastMedian` replaced it. Had that
+lived behind an MCP tool with a strict contract, the mistake would have been versioned and would
+have needed a migration. The thresholds are still unvalidated by the owner.
+
+**Trigger to move them.** Any one of:
+
+- a second consumer outside this repository — another Antiky project, or Studio;
+- an agent needing them through MCP rather than as a script, which is `get_motion_report`, ranked
+  **last** in `../scratch/demo-refining/11-MOTION-INSPECTION-RESEARCH.md` and explicitly "only
+  after P1–P5";
+- the visual budgets surviving a full render slice (goals 06 and 07) without their thresholds
+  needing another rewrite.
+
+**Cost of waiting is low.** They are pure functions with one dependency (`sharp`). Moving means a
+TypeScript port, a tool surface, and a validated contract in the style of `capture-sequence.ts`.
+Nothing about living in `scripts/` first makes that harder.
+
+**What stays in `scripts/` permanently:** `shoot-demos.mjs`. It knows ten demo slugs, spawns dev
+servers and writes sidecars beside demos. That is repository orchestration, not a framework
+capability, and it belongs where it is.
+
+Check `packages/cli/tests/development-import-boundary.test.mjs` before moving anything — it
+constrains what the development library may depend on, and `sharp` is a native module.
+
 ## Why not now
 
 `GOOD_ENGINEERING_H.md` is direct about this: do not abstract early, wait for a natural cut-point,
