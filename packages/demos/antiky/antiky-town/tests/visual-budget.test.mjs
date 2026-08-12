@@ -41,7 +41,18 @@ async function readMetrics() {
   // `sourceDigest` hashes the demo's whole `src` tree and the capture records it. A mismatch means
   // the numbers below describe code that no longer exists, which is not a pass — it is an unanswered
   // question.
-  const { sourceDigest } = await import('../../../../../scripts/shoot-demos.mjs');
+  const { sealMetrics, sourceDigest } = await import('../../../../../scripts/shoot-demos.mjs');
+
+  // The numbers below are read from a committed file, so the cheapest way to pass a budget is to
+  // open it and type a bigger one. That was demonstrated and it worked. The seal makes editing a
+  // measurement a deliberate act rather than something that looks like a result.
+  assert.equal(
+    metrics.seal,
+    sealMetrics(metrics),
+    'visual-metrics.json does not match its own seal — a measured value was edited by hand. '
+    + 'Re-run `npm run demos:shoot -- --demo antiky-town` rather than changing the number.',
+  );
+
   const current = await sourceDigest(path.join(import.meta.dirname, '..'));
   assert.equal(
     metrics.source?.digest,

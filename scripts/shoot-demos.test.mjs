@@ -14,6 +14,7 @@ import {
   buildMetricsSidecar,
   evidencePngPath,
   resolveDemo,
+  sealMetrics,
   sourceDigest,
 } from './shoot-demos.mjs';
 
@@ -139,6 +140,16 @@ test('the metrics sidecar records the numbers the budgets assert against', async
   assert.equal(sidecar.schemaVersion, 2);
   // The digest is what stops a budget judging a capture taken from different code.
   assert.deepEqual(sidecar.source, { digest: 'abc123', fileCount: 7 });
+  // Sealed, so a hand-edited measurement stops matching.
+  assert.equal(typeof sidecar.seal, 'string');
+  assert.equal(sidecar.seal, sealMetrics(sidecar));
+  assert.notEqual(
+    sealMetrics({ ...sidecar, localContrast: { ...sidecar.localContrast, median: 99 } }),
+    sidecar.seal,
+    'changing a measured value must change the seal',
+  );
+  // The timestamp is outside the seal: re-capturing an unchanged demo should not look like tampering.
+  assert.equal(sealMetrics({ ...sidecar, capturedAt: '2030-01-01T00:00:00.000Z' }), sidecar.seal);
   assert.equal(sidecar.demo, 'combat-arena');
   assert.equal(sidecar.warmUpFrames, 60);
   assert.deepEqual(sidecar.frame, { width: 64, height: 16 });
@@ -157,10 +168,13 @@ test('the source digest changes when the demo changes and not otherwise', async 
   const source = path.join(directory, 'src');
   await mkdir(source, { recursive: true });
   await writeFile(path.join(source, 'game.ts'), 'export const speed = 1;');
-  await writeFile(path.join(source, 'notes.md'), 'not code');
+  // Art counts too. A digest that ignored textures let an atlas be repainted with no change at all,
+  // which is the wrong boundary for a repository whose defects have been about texture data.
+  await mkdir(path.join(directory, 'assets'), { recursive: true });
+  await writeFile(path.join(directory, 'assets', 'atlas.png'), Buffer.from([1, 2, 3]));
 
   const first = await sourceDigest(directory);
-  assert.equal(first.fileCount, 1, 'only source files count towards the digest');
+  assert.ok(first.fileCount >= 1, 'source files count towards the digest');
 
   // Re-reading unchanged files must give the same answer, or every budget goes stale immediately.
   assert.deepEqual(await sourceDigest(directory), first);
@@ -174,5 +188,14 @@ test('the source digest changes when the demo changes and not otherwise', async 
   await writeFile(path.join(source, 'shaders', 'sky.shader.ts'), 'export default {};');
   const third = await sourceDigest(directory);
   assert.notEqual(third.digest, second.digest);
-  assert.equal(third.fileCount, 2);
+
+  // Repainting art must move the digest.
+  await writeFile(path.join(directory, 'assets', 'atlas.png'), Buffer.from([9, 9, 9]));
+  const fourth = await sourceDigest(directory);
+  assert.notEqual(fourth.digest, third.digest, 'a repainted texture must produce a different digest');
+
+  // The metrics file is the output of measuring, not an input to it, so it must not be included —
+  // otherwise every capture would invalidate the digest it just recorded.
+  await writeFile(path.join(directory, 'visual-metrics.json'), '{"anything":true}');
+  assert.equal((await sourceDigest(directory)).digest, fourth.digest);
 });

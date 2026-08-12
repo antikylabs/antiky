@@ -102,9 +102,14 @@ export function evidencePngPath({ demoDirectory, developmentSessionId, evidenceI
 /**
  * A digest of everything that decides what a demo renders.
  *
- * Without this a `visual-metrics.json` is just a number with a timestamp nobody reads, so one good
- * capture keeps a budget green forever no matter what the demo does afterwards. The budget tests
- * recompute this and refuse to judge a sidecar that measured different code.
+ * Without this a `visual-metrics.json` is a number with a timestamp nobody reads, so one good
+ * capture keeps a budget green forever no matter what the demo does afterwards.
+ *
+ * **It covers art, not just code.** The first version walked `src` and accepted only `.ts`, `.mjs`
+ * and `.json`, which left every texture atlas, GLB and sprite sheet outside it — repainting an atlas
+ * left the digest unchanged. For a repository whose recent work is *about* texture decoding and
+ * atlas bleeding, that was the wrong boundary. It now covers `src`, `assets` and the `.antiky`
+ * manifest, and hashes by content rather than by extension.
  */
 export async function sourceDigest(directory) {
   const hash = createHash('sha256');
@@ -117,12 +122,22 @@ export async function sourceDigest(directory) {
       return;
     }
     for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
+      // `.antiky` holds capture evidence, which is an output of measuring, not an input to it.
+      if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === '.antiky') continue;
       const full = path.join(current, entry.name);
       if (entry.isDirectory()) await walk(full);
-      else if (entry.isFile() && /\.(ts|mjs|json)$/.test(entry.name)) files.push(full);
+      else if (entry.isFile() && entry.name !== 'visual-metrics.json') files.push(full);
     }
   };
   await walk(path.join(directory, 'src'));
+  await walk(path.join(directory, 'assets'));
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (!entry.isFile()) continue;
+    if (entry.name.endsWith('.antiky') || entry.name === 'vite.config.ts' || entry.name === 'package.json') {
+      files.push(path.join(directory, entry.name));
+    }
+  }
+
   for (const file of files.sort()) {
     hash.update(path.relative(directory, file));
     hash.update(await readFile(file));
@@ -132,7 +147,7 @@ export async function sourceDigest(directory) {
 
 /** The committed record of what a demo looked like on a given run. */
 export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, source }) {
-  return {
+  const sidecar = {
     schemaVersion: 2,
     demo: slug,
     capturedAt,
@@ -159,6 +174,19 @@ export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, sou
     },
     saturation: { mean: Number(stats.meanSaturation.toFixed(6)) },
   };
+  // Sealed against editing. The budgets are read from this file, so without a seal the way to pass
+  // one is to open it and type a bigger number — which was demonstrated, and passed.
+  //
+  // This is not security, and it is not trying to be: anyone can recompute the seal. It is there so
+  // that changing a measurement is a deliberate act rather than a two-second edit that looks like a
+  // result.
+  return { ...sidecar, seal: sealMetrics(sidecar) };
+}
+
+/** A digest of the measured values, so a hand-edited number stops matching. */
+export function sealMetrics(sidecar) {
+  const { seal, capturedAt, ...measured } = sidecar;
+  return createHash('sha256').update(JSON.stringify(measured)).digest('hex').slice(0, 16);
 }
 
 /**
