@@ -112,6 +112,7 @@ export async function createRelayRenderer(
   const contacts = resources.register(createContactShadowBatch(
     renderer,
     RELAY_RENDER_PROFILE.capacities.contacts,
+    vfxBillboard,
   ));
   const orbs = resources.register(createSurfaceBatch(
     renderer,

@@ -96,9 +96,11 @@ export function groundQuad(): Geometry {
 export function createContactShadowBatch(
   renderer: Renderer,
   capacity: number,
+  billboard: BroMetalTexture,
   createShadowProgram = () => createProgram(renderer, contactShadowShader, { blend: 'alpha' }),
 ) {
   const program = createShadowProgram();
+  program.uniforms.uBillboard.set(billboard);
   const geometry = groundQuad();
   try {
     program.attributes.aPosition.set(geometry.positions);

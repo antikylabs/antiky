@@ -1,4 +1,4 @@
-import { length, shader, smoothstep, vec3, vec4 } from 'brometal';
+import { length, shader, smoothstep, texture, vec2, vec3, vec4 } from 'brometal';
 import { rotate2 } from 'brometal/shader-functions';
 
 /**
@@ -15,7 +15,7 @@ import { rotate2 } from 'brometal/shader-functions';
 export default shader({
   attributes: { aPosition: 'vec3' },
   instanceAttributes: { iOffset: 'vec3', iScale: 'vec3', iColor: 'vec3' },
-  uniforms: { uViewProj: 'mat4' },
+  uniforms: { uViewProj: 'mat4', uBillboard: 'sampler2D' },
   varyings: { vLocal: 'vec2', vColor: 'vec3', vRadius: 'float' },
 
   vertex({ aPosition, iOffset, iScale, iColor }, { uViewProj }, v) {
@@ -28,11 +28,20 @@ export default shader({
     return uViewProj.mul(vec4(world, 1));
   },
 
-  fragment({}, { vLocal, vColor, vRadius }) {
+  fragment({ uBillboard }, { vLocal, vColor, vRadius }) {
     // 1 at the centre, 0 at the inscribed circle, so the quad's corners fall outside the shape.
     const falloff = smoothstep(1, 0.12, length(vLocal));
     // A cleared slot has radius 0; without this gate its collapsed quad still paints a dot.
     const present = smoothstep(0, 0.02, vRadius);
-    return vec4(vColor, falloff * 0.6 * present);
+    // Texture over the analytic falloff, not instead of it.
+    //
+    // The smoothstep above is already softer than any 256-pixel sprite and it stays, because it is
+    // what guarantees the edge reaches zero exactly at the inscribed circle. What the sprite adds is
+    // *variation*: without it every contact shadow in the frame is the same perfect ellipse, which
+    // is what makes a crowd of them read as decals rather than as shadows.
+    //
+    // `vLocal` runs -1..1 across the quad, so it is already the texture coordinate.
+    const structure = texture(uBillboard, vLocal.mul(0.5).add(vec2(0.5, 0.5))).w;
+    return vec4(vColor, falloff * 0.6 * present * (0.62 + structure * 0.38));
   },
 });

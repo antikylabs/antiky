@@ -252,8 +252,12 @@ test('contact shadows are unlit, soft, and blended without writing depth', async
   for (const banned of ['uEmberPosition', 'uAmbientColor', 'tonemap', 'uExposure', 'uFogColor']) {
     assert.ok(!shader.wgslSrc.includes(banned), `contact shadow shader must not reference ${banned}`);
   }
-  assert.equal(Object.keys(shader.uniforms).length, 1);
+  // Named rather than counted. The count was standing in for "unlit", and it did that job until a
+  // texture arrived that carries no light — so the check now says which two uniforms belong here,
+  // which keeps a third from slipping in while letting the sprite through.
+  assert.deepEqual(Object.keys(shader.uniforms).sort(), ['uBillboard', 'uViewProj']);
   assert.equal(shader.uniforms.uViewProj, 'mat4');
+  assert.equal(shader.uniforms.uBillboard, 'sampler2D');
   assert.match(shader.wgslSrc, /smoothstep/);
 });
 
