@@ -62,6 +62,9 @@ const SAMPLER_ROLES = Object.freeze({
   // The lighting ramp is authored in linear RGB by its generator, not sampled from an image, so it
   // is already in the space the shader works in. Decoding it would darken every shadow twice.
   uRamp: 'data',
+  // A white sprite whose information is all in the alpha. There is no colour in it to decode, and
+  // the shader tints it with whatever the effect already carries.
+  uBillboard: 'data',
   uRoughness: 'data',
   uAo: 'data',
   uShadowMap: 'data',
