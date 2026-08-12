@@ -148,3 +148,18 @@ test('a moved patch target is an error, never a silent no-op', async (t) => {
     },
   );
 });
+
+test('every patch module on disk is registered in the runner', async () => {
+  // A modular split introduces a failure mode a single file could not have: a patch that exists,
+  // reads correctly, and is never applied because nobody imported it.
+  const { PATCHES } = await import('./patch-brometal.mjs');
+  const directory = path.join(repositoryRoot, 'scripts', 'patch-brometal');
+  const onDisk = (await readdir(directory))
+    .filter((entry) => entry.endsWith('.mjs'))
+    .map((entry) => entry.replace(/\.mjs$/, ''))
+    .sort();
+
+  assert.deepEqual(PATCHES.map((patch) => patch.name).sort(), onDisk);
+  assert.equal(new Set(PATCHES.map((patch) => patch.name)).size, PATCHES.length, 'duplicate name');
+  for (const patch of PATCHES) assert.equal(typeof patch.apply, 'function', patch.name);
+});
