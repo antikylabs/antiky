@@ -289,7 +289,9 @@ test('every visual batch that gets drawn also gets its instance data uploaded', 
   // upload once at construction in `reliquary-models.ts`.
   const declaration = visuals.match(/export type RelayVisualBatches = Readonly<\{([\s\S]*?)\}>;/);
   assert.ok(declaration, 'failed to locate the RelayVisualBatches declaration');
-  const names = [...declaration[1].matchAll(/^\s*(\w+):/gm)].map((match) => match[1]);
+  const body = declaration[1];
+  assert.ok(body, 'the RelayVisualBatches declaration matched but captured no body');
+  const names = [...body.matchAll(/^\s*(\w+):/gm)].map((match) => match[1]);
   assert.ok(names.length >= 5, `expected the full batch set, found ${names.join(', ')}`);
 
   // `.draw(` with any arguments, not `.draw()` exactly. Requiring empty parentheses meant

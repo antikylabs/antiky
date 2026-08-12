@@ -1,5 +1,6 @@
 import {
   createProgram,
+  type BroMetalTexture,
   type Geometry,
   type Renderer,
 } from 'brometal';
@@ -144,12 +145,18 @@ export function createContactShadowBatch(
   });
 }
 
-export function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
+export function createSurfaceBatch(
+  renderer: Renderer,
+  geometry: Geometry,
+  capacity: number,
+  detailNormal: BroMetalTexture,
+) {
   const program = createProgram(renderer, foundryShader);
   try {
     program.attributes.aPosition.set(geometry.positions);
     program.attributes.aNormal.set(geometry.normals);
     program.setIndices(geometry.indices);
+    program.uniforms.uDetailNormal.set(detailNormal);
   } catch (cause: unknown) {
     program.dispose();
     throw cause;

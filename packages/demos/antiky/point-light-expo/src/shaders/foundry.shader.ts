@@ -1,4 +1,5 @@
 import {
+  abs,
   clamp,
   cos,
   dot,
@@ -10,6 +11,8 @@ import {
   sin,
   shader,
   smoothstep,
+  texture,
+  vec2,
   vec3,
   vec4,
   type Vec3,
@@ -58,6 +61,7 @@ export default shader({
     uAmbientStrength: 'float',
     uExposure: 'float',
     uRelayLightStrength: 'float',
+    uDetailNormal: 'sampler2D',
     uFogColor: 'vec3',
     uFogStart: 'float',
     uFogEnd: 'float',
@@ -120,6 +124,7 @@ export default shader({
     uAmbientStrength,
     uExposure,
     uRelayLightStrength,
+    uDetailNormal,
     uFogColor,
     uFogStart,
     uFogEnd,
@@ -137,7 +142,40 @@ export default shader({
     uVioletPower,
     uVioletRadius,
   }, { vWorld, vNormal, vBaseColor, vMaterial }) {
-    const normal = normalize(vNormal);
+const baseNormal = normalize(vNormal);
+    // Triplanar detail normal, written out here rather than called through a helper.
+    //
+    // A `texture()` call inside a DSL helper compiles to `textureSampleLevel(..., 0.0)`, pinning the
+    // sample to the base mip. On a texture tiled this often that reads as crawling static the moment
+    // the camera moves. Inlining the sample in the fragment body is what keeps the mip chain.
+    //
+    // These are the reliquary's props - forms, creatures, orbs and rings - drawn as untextured
+    // instanced primitives tinted per instance. Cones and spheres with no surface variation at all
+    // are the clearest case in the demo for projected tooth.
+    //
+    // Rate and strength are local consts rather than uniforms. Nothing varies them at run time, and
+    // a uniform would mean binding plumbing at every call site for a number that never moves.
+    const detailRate = 0.55;
+    const detailStrength = 0.6;
+    const weightX = abs(baseNormal.x);
+    const weightY = abs(baseNormal.y);
+    const weightZ = abs(baseNormal.z);
+    const weightSum = weightX + weightY + weightZ;
+    const detailX = texture(uDetailNormal, vec2(vWorld.z, vWorld.y).scale(detailRate)).xyz;
+    const detailY = texture(uDetailNormal, vWorld.xz.scale(detailRate)).xyz;
+    const detailZ = texture(uDetailNormal, vWorld.xy.scale(detailRate)).xyz;
+    const tiltX = detailX.scale(2).sub(vec3(1, 1, 1));
+    const tiltY = detailY.scale(2).sub(vec3(1, 1, 1));
+    const tiltZ = detailZ.scale(2).sub(vec3(1, 1, 1));
+    // Each projection's tangent X/Y is a tilt within that projection's own plane, so it lands in
+    // world space by dropping the axis it was projected along. Summing the three by their weights
+    // needs no tangent basis - which is why this projects instead of unwrapping, since no source
+    // mesh here carries TANGENT and the DSL has no derivatives to rebuild one from.
+    const tilt = vec3(0, tiltX.y, tiltX.x).scale(weightX)
+      .add(vec3(tiltY.x, 0, tiltY.y).scale(weightY))
+      .add(vec3(tiltZ.x, tiltZ.y, 0).scale(weightZ))
+      .scale(detailStrength / weightSum);
+    const normal = normalize(baseNormal.add(tilt));
     const view = normalize(uCameraPosition.sub(vWorld));
     const roughness = clamp(vMaterial.x, 0.08, 1);
     const metalness = clamp(vMaterial.y, 0, 1);

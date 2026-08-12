@@ -78,6 +78,7 @@ export default shader({
     uDiffuse: 'sampler2D',
     uAo: 'sampler2D',
     uRoughness: 'sampler2D',
+    uDetailNormal: 'sampler2D',
     uDiffuseTint: 'vec3',
     uTextureContrast: 'float',
     uAmbientColor: 'vec3',
@@ -118,6 +119,7 @@ export default shader({
     uDiffuse,
     uAo,
     uRoughness,
+    uDetailNormal,
     uDiffuseTint,
     uTextureContrast,
     uAmbientColor,
@@ -145,7 +147,35 @@ export default shader({
     const diffuseSample = mix(vec3(0.38, 0.36, 0.31), sourceDiffuse, uTextureContrast);
     const ao = mix(0.64, 1, texture(uAo, vUv).x);
     const roughness = clamp(texture(uRoughness, vUv).x, 0.2, 0.98);
-    const normal = vec3(0, 1, 0);
+    // The floor's normal was the constant `vec3(0, 1, 0)`, which is the literal reason AC-M1
+    // measures this surface's luminance standard deviation below 0.004: every pixel of an
+    // eighteen-by-thirteen plane received exactly the same amount of light from every relay.
+    //
+    // The detail normal is projected in world space rather than read through `vUv`, so the tooth
+    // stays a constant size on the ground no matter how the plane's UVs are scaled. Only the Y
+    // projection can contribute on a plane whose normal is constant up - weighting three
+    // projections here would be two samples spent to multiply by zero, so this writes the one that
+    // matters. The model shaders next door do the full three because their normals vary.
+    //
+    // Sampled in the fragment body, not through a helper: `texture()` inside a DSL helper compiles
+    // to `textureSampleLevel(..., 0.0)` and would pin this to the base mip.
+    // Measured, because the obvious assumption was wrong: with this in and out, 20,041 pixels of the
+    // frame change — but the floor probes do not move at all (standard deviation 0.0271 either way).
+    //
+    // The reason is two lines below. The floor's light is `dampEarth * (ambient + irradiance)`, and
+    // `ambient` does not consult the normal at all — it is a flat colour times an AO scalar. Only
+    // `irradiance` sees the normal, and that is three point lights that are weak across most of an
+    // eighteen-by-thirteen plane. So a perturbed normal has almost nothing to modulate here.
+    //
+    // This is not a reason to remove it or to push the strength up until something happens. It is
+    // wired correctly and it already pays off on the props next door, which are lit by the same
+    // relays at much closer range. What unlocks it here is item 4 — SH-9 irradiance replacing the
+    // flat ambient with one that varies by surface direction. Until then this term is nearly inert
+    // on the floor, and that is worth knowing before someone tunes it looking for an effect.
+    const detailRate = 0.32;
+    const detailStrength = 0.75;
+    const detailTilt = texture(uDetailNormal, vWorld.xz.scale(detailRate)).xyz.scale(2).sub(vec3(1, 1, 1));
+    const normal = normalize(vec3(detailTilt.x * detailStrength, 1, detailTilt.y * detailStrength));
     const view = normalize(uCameraPosition.sub(vWorld));
     const amber = materialPresentationFloorLight(vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness);
     const blue = materialPresentationFloorLight(vWorld, normal, view, uIonPosition, uIonColor, uIonPower, uIonRadius, roughness);

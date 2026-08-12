@@ -18,7 +18,7 @@
  */
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -317,7 +317,7 @@ async function captureWithFence({ manifest, warmUpFrames, idempotencyKey }) {
   throw new Error('capture_frame did not settle within the retry budget.');
 }
 
-async function shootDemo(slug, { warmUpFrames, runs }) {
+async function shootDemo(slug, { warmUpFrames, runs, keep }) {
   const { manifest, directory } = resolveDemo(slug);
   const demoDirectory = path.join(repositoryRoot, directory);
   const server = spawn('npm', ['run', 'antiky', '--', 'dev', '--project', manifest], {
@@ -348,6 +348,15 @@ async function shootDemo(slug, { warmUpFrames, runs }) {
       if (await isUniformFrame(pngPath)) {
         throw new Error('The captured frame is a single flat colour, which means nothing rendered.');
       }
+      // Evidence is session-scoped and the store clears it on teardown, so a frame nobody copies
+      // out cannot be looked at afterwards. `--keep` writes it somewhere durable, which is what
+      // makes "the frames were actually looked at" a thing a person can do rather than a claim.
+      // Deliberately opt-in and deliberately outside the repository by convention: `.antiky/` is
+      // gitignored and `*.png` is LFS here, so captures are not committed.
+      if (keep !== undefined) {
+        await mkdir(keep, { recursive: true });
+        await copyFile(pngPath, path.join(keep, `${slug}-run-${run}.png`));
+      }
       const stats = await readFrameStats(pngPath);
       sidecar = buildMetricsSidecar({
         slug,
@@ -377,12 +386,13 @@ async function shootDemo(slug, { warmUpFrames, runs }) {
 }
 
 function parseArguments(argv) {
-  const options = { demo: undefined, runs: 1, warmUpFrames: 60 };
+  const options = { demo: undefined, runs: 1, warmUpFrames: 60, keep: undefined };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === '--demo') options.demo = argv[index += 1];
     else if (argument === '--runs') options.runs = Number(argv[index += 1]);
     else if (argument === '--warm-up') options.warmUpFrames = Number(argv[index += 1]);
+    else if (argument === '--keep') options.keep = argv[index += 1];
     else throw new Error(`Unknown argument "${argument}".`);
   }
   if (!Number.isSafeInteger(options.runs) || options.runs < 1) {

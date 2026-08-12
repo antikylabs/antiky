@@ -13,6 +13,7 @@ import type { GamePointerInput } from '@antiky/framework/game';
 
 import { createRelayFrameScratch, setCameraPosition } from './frame-scratch.ts';
 import { relayOnboardingOpacity } from './onboarding-cues.ts';
+import { loadDetailNormal } from './detail-normal.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
 import {
@@ -79,6 +80,9 @@ export async function createRelayRenderer(
     widthSegments: 24,
     heightSegments: 18,
   });
+  // Loaded once and shared by the floor and every prop batch. The reliquary has five programs that
+  // want it, and five uploads of the same 512x512 image is four wasted.
+  const detailNormal = resources.register(await loadDetailNormal(renderer));
   const floorProgram = resources.register(createProgram(renderer, floorShader));
   floorProgram.attributes.aPosition.set(floorGeometry.positions);
   floorProgram.attributes.aUv.set(floorGeometry.uvs);
@@ -86,17 +90,20 @@ export async function createRelayRenderer(
   floorProgram.uniforms.uDiffuse.set(diffuseTexture);
   floorProgram.uniforms.uAo.set(aoTexture);
   floorProgram.uniforms.uRoughness.set(roughnessTexture);
+  floorProgram.uniforms.uDetailNormal.set(detailNormal);
   const onboarding = resources.register(createRelayOnboardingOverlay(renderer));
 
   const forms = resources.register(createSurfaceBatch(
     renderer,
     createCone({ radius: 1, height: 2, radialSegments: 5 }),
     RELAY_RENDER_PROFILE.capacities.forms,
+    detailNormal,
   ));
   const creatures = resources.register(createSurfaceBatch(
     renderer,
     createShadeGeometry(),
     RELAY_RENDER_PROFILE.capacities.creatures,
+    detailNormal,
   ));
   const contacts = resources.register(createContactShadowBatch(
     renderer,
@@ -106,6 +113,7 @@ export async function createRelayRenderer(
     renderer,
     createSphere({ radius: 1, widthSegments: 24, heightSegments: 16 }),
     RELAY_RENDER_PROFILE.capacities.orbs,
+    detailNormal,
   ));
   const rings = resources.register(createSurfaceBatch(
     renderer,
@@ -116,6 +124,7 @@ export async function createRelayRenderer(
       tubularSegments: 72,
     })),
     RELAY_RENDER_PROFILE.capacities.rings,
+    detailNormal,
   ));
   const glows = resources.register(createGlowBatch(
     renderer,
