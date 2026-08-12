@@ -560,86 +560,60 @@ test('the fidelity policy rejects the two defects that motivated it', async () =
   );
 });
 
-test('the antiky-town material atlas does not bleed between tiles under mipping', async () => {
-  // The hazard: the three world atlases load with `filter: 'smooth'` and `anisotropy: 8`, and the
-  // shader addresses tiles as `(column + uv) / 4` with no inset, so a mipped sample near a tile edge
-  // averages across the seam into the neighbouring tile.
+test('every mipped atlas declares a gutter and is sampled inside it', async () => {
+  // What bleeding actually is: an atlas packs many textures into one image, the GPU averages
+  // neighbouring pixels to build mip levels, and near a tile's edge that average reaches into the
+  // tile next door. Stone picks up the grass beside it in the file.
   //
-  // The first version of this test never sampled the seam. The atlas is 1254 wide over 4 columns, so
-  // the boundary sits at 313.5 — between texels 313 and 314 — and the 4-pixel sample boxes landed at
-  // 306-309, 310-313, 314-317 and 318-321. Every one of them lay entirely inside a single tile, so
-  // it averaged same-tile pixels and asked whether that average was in that tile's own gamut, which
-  // it always is. Painting a neighbouring tile solid magenta passed.
+  // This is a structural check, and that is a deliberate change from what was here before. The
+  // previous version compared the average of two neighbouring tiles against the colours it had
+  // already seen in them, which measures *palette overlap*, not bleeding: extruding each tile's edge
+  // — the actual fix — made the number WORSE, 25.3% to 31.8%, and the only thing that reached zero
+  // was flattening every tile to a single colour. A metric whose best score is achieved by
+  // destroying the art is measuring the wrong thing.
   //
-  // Boxes are now centred ON the seam, so each one genuinely straddles it.
-  const sharp = (await import('sharp')).default;
-  const file = path.join(demosRoot, 'antiky/antiky-town/assets/textures/town-material-atlas-v1.png');
-  const { data, info } = await sharp(file).raw().toBuffer({ resolveWithObject: true });
-  const columns = 4;
-  const rows = 3;
-  const tileWidth = info.width / columns;
-  const tileHeight = info.height / rows;
-  const at = (x, y) => {
-    const index = (Math.min(info.height - 1, y) * info.width + Math.min(info.width - 1, x)) * info.channels;
-    return [data[index], data[index + 1], data[index + 2]];
-  };
-  const quantise = ([r, g, b]) => `${r >> 2},${g >> 2},${b >> 2}`;
-
-  const gamut = [];
-  for (let row = 0; row < rows; row += 1) {
-    for (let column = 0; column < columns; column += 1) {
-      const colours = new Set();
-      for (let y = Math.ceil(row * tileHeight) + 6; y < Math.floor((row + 1) * tileHeight) - 6; y += 2) {
-        for (let x = Math.ceil(column * tileWidth) + 6; x < Math.floor((column + 1) * tileWidth) - 6; x += 2) {
-          colours.add(quantise(at(x, y)));
-        }
-      }
-      gamut.push(colours);
+  // Two properties prevent bleeding, and both are checkable without guessing at a filter kernel:
+  // the atlas carries a gutter wide enough for the mip levels it reaches, and the shader samples
+  // inside it. Goal 14 delivers both; goal 15 removes the need for either by giving each tile its
+  // own array layer.
+  const failures = [];
+  let atlases = 0;
+  for (const demo of demos) {
+    let entries;
+    try {
+      entries = await readdir(path.join(demo.directory, 'assets', 'textures'), { withFileTypes: true });
+    } catch {
+      continue;
     }
-  }
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
+      const descriptorPath = path.join(demo.directory, 'assets', 'textures', entry.name);
+      const descriptor = JSON.parse(await readFile(descriptorPath, 'utf8'));
+      if (descriptor.grid === undefined) continue;
+      atlases += 1;
 
-  const offenders = [];
-  let straddling = 0;
-  // Every vertical seam, at the mip levels a distant surface actually selects.
-  for (const level of [2, 3, 4]) {
-    const box = 1 << level;
-    for (let column = 1; column < columns; column += 1) {
-      const seam = column * tileWidth;
-      const left = gamut[column - 1];
-      const right = gamut[column];
-      // Centred on the seam so the box covers texels from both sides.
-      const x0 = Math.round(seam - box / 2);
-      assert.ok(x0 < seam && x0 + box > seam, `mip ${level} box does not straddle the seam at ${seam}`);
-      for (let y = 40; y < tileHeight - 40; y += box) {
-        let r = 0;
-        let g = 0;
-        let b = 0;
-        for (let dy = 0; dy < box; dy += 1) {
-          for (let dx = 0; dx < box; dx += 1) {
-            const [pr, pg, pb] = at(x0 + dx, y + dy);
-            r += pr; g += pg; b += pb;
-          }
-        }
-        const samples = box * box;
-        const key = quantise([Math.round(r / samples), Math.round(g / samples), Math.round(b / samples)]);
-        straddling += 1;
-        if (!left.has(key) && !right.has(key)) {
-          offenders.push(`mip ${level}, seam at column ${column}, y ${y}: averaged to ${key}`);
-        }
+      const relative = path.relative(demosRoot, descriptorPath);
+      if (descriptor.gutter === undefined) {
+        failures.push(
+          `${relative}: no gutter declared. Its ${descriptor.grid.columns}x${descriptor.grid.rows} `
+          + `grid over ${descriptor.size.width}px gives ${descriptor.size.width / descriptor.grid.columns}px `
+          + 'tiles, and a mip average at a tile edge reads the tile beside it.',
+        );
+      }
+      if (descriptor.tiles !== undefined && descriptor.tileRects === undefined) {
+        failures.push(
+          `${relative}: tiles are addressed by grid position, so a shader must recompute the layout `
+          + 'and cannot inset. Publish per-tile rectangles instead.',
+        );
       }
     }
   }
-
-  assert.ok(straddling > 200, `expected many straddling samples, took ${straddling}`);
-  // Measured: the atlas carries no padding and 1254/4 = 313.5 does not even land on a texel
-  // boundary, yet it passes — the twelve tiles are natural materials whose gamuts overlap, so an
-  // average of two neighbours lands inside one of them. That is weaker than padding would give,
-  // which is why this is a test and not a note.
-  const rate = offenders.length / straddling;
-  assert.ok(
-    rate < 0.02,
-    `${(rate * 100).toFixed(1)}% of seam-straddling samples take a colour absent from both `
-    + `adjacent tiles:\n${offenders.slice(0, 5).map((line) => `  ${line}`).join('\n')}`,
+  assert.ok(atlases >= 3, `expected to find the demo atlases, found ${atlases}`);
+  assert.deepEqual(
+    failures,
+    [],
+    'Build these with `build-texture-atlas.mjs` so each tile carries an extruded gutter and the '
+    + 'layout publishes the inner rectangle a shader should sample.',
   );
 });
 

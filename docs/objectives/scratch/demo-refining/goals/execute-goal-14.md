@@ -37,12 +37,27 @@ receipts and the frame measurements, so this is where it goes.
 
 ## The measured state today
 
-Not a suspicion. `pipeline-invariants.test.mjs` samples across a tile boundary at mip levels 2, 3 and
-4 and reports **25.3% of samples taken across a boundary come out a colour that is in neither of the
-two tiles**. Painting one neighbouring tile solid magenta drives that to 73.3%, so the measurement
-discriminates rather than just reporting noise.
+**A correction first, because this goal was originally written around a number that was wrong.**
+The measurement said "25.3% of samples taken across a tile boundary come out a colour in neither
+tile". That is a statement about *palette overlap*, not about bleeding, and an audit showed it
+inverted: extruding each tile's edge — the fix this goal proposes — moved it from 25.3% to **31.8%**,
+and the only thing that reached zero was flattening every tile to one colour. It also excluded a
+6-pixel border from the colours it compared against, which inflated it roughly threefold, and
+sampled only one tile row of three.
 
-Three facts make it structural rather than a tuning problem:
+That test has been replaced by a structural one, and the honest measurement is this: mip a tile
+inside the atlas, mip the same tile in isolation, and compare their borders. The isolated tile is
+ground truth because it has no neighbour to bleed from.
+
+| atlas | mean border error | worst |
+| --- | --- | --- |
+| as shipped | **15.1 / 255** | 124 |
+| with a crude extruded gutter | 14.4 / 255 | 129 |
+
+Padding now moves the number the right way, which is the minimum a measurement of bleeding must do.
+A worst-case border error of 124 out of 255 is half the range on some tile edge.
+
+The three facts that make it structural rather than a tuning problem:
 
 - **There is no padding.** `town-material-atlas-v1.json` declares no gutter and the shader addresses
   tiles as `(column + uv) / 4` with no inset, so a sample at a tile's edge sits exactly on the
@@ -76,8 +91,9 @@ Three facts make it structural rather than a tuning problem:
 6. **The four town shaders addressing the inner rectangle.** `town-voxel`, `town-awning`,
    `town-prop` and `town-foliage` compute `(column + uv) / 4` today. They must read the tile rect
    from the layout instead, so a change to the atlas cannot silently desynchronise from the shader.
-7. **The tile-boundary measurement generalised** from one hard-coded file to every atlas a demo
-   ships, and green on all three.
+7. **The structural invariant green on all three atlases** — each declaring a gutter and publishing
+   per-tile rectangles. `pipeline-invariants.test.mjs` already reports exactly what each atlas is
+   missing, with its grid arithmetic, so the work is enumerated before it starts.
 8. **A rule in `asset-fidelity-policy.mjs`** so a future atlas cannot arrive without a declared
    gutter, in the same shape as the existing attribute and material-map rules.
 9. **The actor sprite atlas measured and left alone.** It loads `filter: 'nearest'` with no
@@ -92,8 +108,11 @@ Three facts make it structural rather than a tuning problem:
 
 ## Required tests and evidence
 
-- **The tile-boundary test, generalised**, over every atlas in `assets/textures/`, at mip levels 2
-  through 5. Prove it can fail: rebuild one atlas with a zero gutter and watch it go red.
+- **The structural invariant green**, and proven able to fail: rebuild one atlas with a zero gutter
+  and watch it go red.
+- **The border-error measurement reported before and after**, using the isolated-tile comparison
+  above. It must go **down**. A measurement of bleeding that does not improve when you add padding
+  is measuring something else, which is exactly how the first version of this goal went wrong.
 - **A slicer test on a synthetic atlas** of two deliberately distant colours. Assert the gutter holds
   the extruded edge colour rather than black or transparent, that the inner rectangle addresses only
   original pixels, and that a mip-4 average taken across the boundary stays inside one tile's gamut.
