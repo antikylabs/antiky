@@ -17,27 +17,22 @@ Bind real Poly Haven material sets — albedo, normal, ARM — to the surfaces n
 `../03-ART-DIRECTION-AND-VFX.md:356-362`, sampled triplanar where the geometry has no UVs worth
 keeping and through UVs where it does.
 
-## Read this before planning: the intake path does not work as described
+## The catalog is a reference, not a source
 
-Goal 05 says to "install the material slugs ... hash-verified through the installer's existing MD5
-path (`packages/asset-catalog/src/node/install.ts:45-63`)". That installer reads a `downloads` array
-off each catalog entry — per-file URL, size and hash — and refuses anything that does not match.
+Settled by the owner, and worth stating plainly because this goal's wording implies otherwise and an
+earlier pass at it got this wrong.
 
-**No catalog entry has one.** Measured across `packages/asset-catalog/data/poly-haven.generated.json`:
+`poly-haven.generated.json` is an **index of what exists** — slugs, licences, upstream ids, tags,
+provenance. It is not a delivery mechanism. Every entry carries a `downloads` key and every one is an
+empty array, and that is by design: 995 sets of per-file URLs and hashes would be a large, constantly
+stale mirror of someone else's file listing.
 
-| kind | entries | with a non-empty `downloads` |
-| --- | --- | --- |
-| texture | 332 | **0** |
-| hdri | 332 | **0** |
-| model | 331 | **0** |
+**Retrieval is the consumer's job.** You look the asset up in the catalog, then go and fetch it.
 
-Every entry carries the key and every one is an empty array. So `installCatalogAsset` cannot fetch a
-single asset in the catalog as it stands: there is nothing for it to fetch, and the size and hash
-checks it exists to perform have no inputs.
-
-`point-light-expo`'s `forest-floor` receipt predates this and its slug is not in the generated
-catalog at all, so it is not a counter-example — it is evidence the generator's output changed shape
-at some point and nothing noticed.
+So goal 05's instruction to install "hash-verified through the installer's existing MD5 path" reads
+as if `installCatalogAsset` will do the fetching, and it will not — not because it is broken, but
+because it expects descriptors the catalog deliberately does not carry. Anything that needs bytes
+brings its own retrieval and its own verification, which is what the tool below does.
 
 ### Unblocked — `packages/demos/scripts/install-poly-haven-material.mjs`
 
@@ -54,8 +49,8 @@ list against a fixed array of model IDs; the other read a `derivedPath` and geom
 file. A texture receipt has neither. If you add material sets to the other demos, expect the same two
 assumptions there.
 
-**The catalog generator is still wrong** and should still be fixed — 995 entries that cannot be
-installed is a defect in its own right, and it belongs in its own goal rather than here.
+This is not a workaround for a broken catalog — it is the shape the catalog expects. The lookup and
+the retrieval are separate on purpose, and the verification lives with whoever fetches.
 
 ### An attempt at binding it, reverted — read this before trying again
 
@@ -108,18 +103,18 @@ Two things follow, and both matter more than the pass:
   `visual-metrics.json` so a budget test can assert on them without a live capture. That plumbing is
   the last piece of making AC-M1 a gate rather than a measurement someone takes by hand.
 
-### The original finding
+### Why this goal's wording misleads
 
-**This was the first task of this step, and it is not a material task.** Either the catalog generator
-needs to populate `downloads` from Poly Haven's file API, or the intake needs its own fetch path with
-its own verification. Until one of those exists, AC-M4 — "at least one Poly Haven texture receipt
-with all four maps present and hash-verified" — cannot be satisfied for any demo by any amount of
-shader work.
+Goal 05 says to install the material slugs "hash-verified through the installer's existing MD5 path
+(`packages/asset-catalog/src/node/install.ts:45-63`)", which reads as though `installCatalogAsset`
+will fetch them. It will not: it consumes per-file descriptors from the entry's `downloads` array,
+and the catalog does not carry those. Not a bug — see above. The sentence just names the wrong half
+of the split.
 
-Worth noting what *did* work while this was being established: `bake-sh9-irradiance.mjs` fetches
-HDRIs directly from `dl.polyhaven.org` using the upstream id, verifies nothing, and is fine for a
-bake whose output is 27 committed floats. That is not a template for shipping texture assets, but it
-does prove the URLs are predictable and reachable.
+One thing established on the way that is worth keeping: `bake-sh9-irradiance.mjs` fetches HDRIs from
+`dl.polyhaven.org` by upstream id and verifies nothing, which is acceptable only because its output
+is 27 committed floats and a wrong download would produce visibly wrong light. Anything whose bytes
+ship needs the size and hash checks the installer script does.
 
 ## Required outcome
 
