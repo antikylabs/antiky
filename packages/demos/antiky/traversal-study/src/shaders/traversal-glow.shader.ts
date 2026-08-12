@@ -5,6 +5,8 @@ import {
   pow,
   shader,
   sin,
+  texture,
+  vec2,
   vec3,
   vec4,
 } from 'brometal';
@@ -24,6 +26,7 @@ export default shader({
     iPhase: 'float',
   },
   uniforms: {
+    uBillboard: 'sampler2D',
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTime: 'float',
@@ -57,10 +60,19 @@ export default shader({
     return uViewProj.mul(vec4(world, 1));
   },
 
-  fragment({ uCameraPosition }, { vWorld, vNormal, vColor, vAlpha }) {
+  fragment({ uCameraPosition, uBillboard }, { vWorld, vNormal, vColor, vAlpha }) {
     const facing = max(dot(normalize(vNormal), normalize(uCameraPosition.sub(vWorld))), 0);
     const core = pow(facing, 2.5);
     const rim = pow(1 - facing, 1.45);
-    return vec4(vColor.scale(0.45 + core * 1.2 + rim * 0.45), vAlpha * (0.4 + core * 0.5 + rim * 0.24));
+    // Structure, so a trail of these reads as a trail rather than as a row of identical circles.
+    // These are spheres and tori with no `vUv`, so the view-facing normal is the texture coordinate:
+    // it reaches the sprite's rim, where alpha is already zero, exactly at the silhouette.
+    const surfaceNormal = normalize(vNormal);
+    const structure = texture(uBillboard, vec2(surfaceNormal.x * 0.5 + 0.5, surfaceNormal.y * 0.5 + 0.5)).w;
+    const textured = 0.55 + structure * 0.45;
+    return vec4(
+      vColor.scale((0.45 + core * 1.2 + rim * 0.45) * textured),
+      vAlpha * (0.4 + core * 0.5 + rim * 0.24) * textured,
+    );
   },
 });

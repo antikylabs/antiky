@@ -37,6 +37,7 @@ import {
 import { summarizeTraversalMeasurements } from './measurements.ts';
 import { COURSE_SKY } from './ambient.ts';
 import { createLightingRamp } from './lighting-ramp.ts';
+import { loadVfxBillboard } from './vfx-billboard.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import traversalGlowShader from './shaders/traversal-glow.shader.gen';
 import traversalModelShader from './shaders/traversal-model.shader.gen';
@@ -147,9 +148,15 @@ function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capacity: nu
   });
 }
 
-function createGlowBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
+function createGlowBatch(
+  renderer: Renderer,
+  geometry: Geometry,
+  capacity: number,
+  billboard: BroMetalTexture,
+) {
   const disposal = createDisposalStack();
   const program = disposal.adopt(createProgram(renderer, traversalGlowShader, { blend: 'alpha' }));
+  program.uniforms.uBillboard.set(billboard);
   try {
     program.attributes.aPosition.set(geometry.positions);
     program.attributes.aNormal.set(geometry.normals);
@@ -351,6 +358,8 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     // One ramp for every catalog batch: it is the demo's lighting model, not a per-object
     // material, so there is exactly one of it.
     const ramp = owned.adopt(createLightingRamp(renderer));
+    // One sprite for every effect: it is the demo's effect texture, not a per-effect material.
+    const vfxBillboard = owned.adopt(await loadVfxBillboard(renderer));
     const catalogTransaction = await acquireTransactional([
       () => createCatalogBatch(renderer, 'grass', TRAVERSAL_BATCH_CAPACITIES.grass, detailNormal, ramp),
       () => createCatalogBatch(renderer, 'overhang', TRAVERSAL_BATCH_CAPACITIES.overhang, detailNormal, ramp),
@@ -383,8 +392,8 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     const relayTowers = catalogEntries[12]!;
     const contactShadow = owned.adopt(createSurfaceBatch(renderer, createSphere({ radius: 1, widthSegments: 18, heightSegments: 10 }), TRAVERSAL_BATCH_CAPACITIES.contactShadow));
     const hud = owned.adopt(createSurfaceBatch(renderer, createCube(), TRAVERSAL_BATCH_CAPACITIES.hud));
-    const trail = owned.adopt(createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 8, heightSegments: 6 }), TRAVERSAL_BATCH_CAPACITIES.trail));
-    const effects = owned.adopt(createGlowBatch(renderer, createTorus({ radius: 1, tube: 0.055, radialSegments: 8, tubularSegments: 48 }), TRAVERSAL_BATCH_CAPACITIES.effects));
+    const trail = owned.adopt(createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 8, heightSegments: 6 }), TRAVERSAL_BATCH_CAPACITIES.trail, vfxBillboard));
+    const effects = owned.adopt(createGlowBatch(renderer, createTorus({ radius: 1, tube: 0.055, radialSegments: 8, tubularSegments: 48 }), TRAVERSAL_BATCH_CAPACITIES.effects, vfxBillboard));
     const procedural = [contactShadow, hud, trail, effects];
     const cameraRig = createTraversalCameraRig();
     // near 0.5 against far 240 is a 480:1 depth ratio, inside the 500:1 budget. The old 0.1 gave
