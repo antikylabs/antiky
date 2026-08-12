@@ -31,6 +31,11 @@ function bundledFloorAssets(): Plugin {
 }
 
 export default defineConfig({
+  // Assets resolve against this module's own URL, not the site root. Vite's default base of '/'
+  // emits `new URL("/assets/x.glb", import.meta.url)`, and a root-absolute path discards the base
+  // URL's directory — which 404s wherever the demo is served from a subpath, as it is on the
+  // website under /demo-builds/<slug>/.
+  base: './',
   plugins: [bundledFloorAssets()],
   publicDir: false,
   build: {

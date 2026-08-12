@@ -6,14 +6,11 @@
 
 ## Action needed from the owner
 
-**One decision, and it is not urgent.**
+**None.**
 
-| # | What | Why it needs you |
-|---|---|---|
-| 1 | **`antiky-town`'s foliage is lit 2.5x darker than everything else** (`src/town/index.ts:455`). Goal 03 documented it and deliberately did **not** change it. | The goal file called this "an art decision on alpha-cut cards" and told me to leave the values alone, so I did. But it arrived in the original demo commit with no stated reason, and the foliage shader already models leaf transmission properly. A canopy 2.5x darker than the buildings behind it is a strong suspect for the trees you called horrid. **Is it deliberate?** If not, the foliage goal should raise it. |
-
-Nothing else is waiting on you. No bug found during this goal is outstanding — everything is either
-landed or assigned below.
+The one open question — whether `antiky-town`'s foliage sun was deliberate — was answered and
+settled. See "The foliage sun turned out to be load-bearing" below. No bug found during this goal
+is outstanding.
 
 ## What landed
 
@@ -75,6 +72,24 @@ goals 06–08, and it is exactly the "blocky" complaint stated as a number.
 | A per-step hook on `EngineSession` so interpolation can be exact | **Register.** Framework easy-win; goal 11 owns `packages/framework/**`. |
 | A shared sun/fog uniform | **Register.** Trigger is a demo wanting a runtime-varying sun. |
 | `antiky-town` foliage sun | **Owner decision above**, then the foliage goal. |
+
+## The foliage sun turned out to be load-bearing
+
+The owner confirmed nobody authored the divergence deliberately, so it was unified onto `SUN_COLOR`
+at 2.65 and captured. **The canopy turned yellow.** `SUN_COLOR` is a strongly orange golden-hour
+key; green leaves under it at full strength clip the red channel before the green, so every tree
+stops reading as a tree. 8.3% of the frame changed. `SUN_COLOR` at 1.05 avoids the clip but drains
+the greens instead.
+
+The original values are restored, and the comment beside them now carries the measurement rather
+than a suspicion. This is the useful outcome: the divergence was undocumented, not wrong, and it is
+now documented with the evidence that justifies it.
+
+**Two things this exposed.** First, the "horrid trees" are a geometry and texture problem — flat
+alpha cards — not a lighting one, so they belong to the foliage and art-direction goals. Second,
+**the yellow version measured higher local contrast (9.25 against 8.63) while looking clearly
+worse.** A budget number moving up is not on its own evidence that a change helped, which is now a
+row on the register against M1.
 
 ## Town work, reported separately
 

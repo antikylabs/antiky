@@ -81,3 +81,39 @@ test('rebuilding the same source produces the same artifact manifest and bytes',
   assert.deepEqual(await readFile(path.join(dist, 'antiky-artifact.json')), firstManifest);
   assert.deepEqual(await readFile(path.join(dist, 'antiky.game.js')), firstEntry);
 });
+
+test('a published demo resolves its assets relative to itself, not to the site root', async () => {
+  // Reported by the owner: every model-loading demo failed on the website with
+  //   BroMetal: could not load model 'http://127.0.0.1:3020/assets/room-small-CB95YPvN.glb' (HTTP 404)
+  //
+  // Vite rewrites `new URL('../assets/x.glb', import.meta.url)` using its `base`, which defaults to
+  // '/'. That emits `new URL("/assets/x.glb", import.meta.url)`, and a root-absolute path discards
+  // the base URL's directory entirely — so the lookup lands on the site root. The CLI dev host
+  // serves a demo at its own root, so it never saw this; the website serves demos under
+  // `/demo-builds/<slug>/`, where it is always a 404.
+  const offenders = [];
+  for (const { slug } of demos) {
+    const bundle = await readFile(
+      new URL(`../public/demo-builds/${slug}/antiky.game.js`, import.meta.url),
+      'utf8',
+    );
+    const absolute = bundle.match(/new URL\("\/[^"]*"/g) ?? [];
+    if (absolute.length > 0) offenders.push(`${slug}: ${absolute.length} root-absolute asset URL(s)`);
+  }
+  assert.deepEqual(offenders, [], 'Set `base: "./"` in the demo\'s vite config.');
+});
+
+test('every demo vite config pins a relative base', async () => {
+  // The guard above only catches a demo that already ships assets. This one catches the next demo
+  // to add its first `new URL(...)` asset, which is when the defect would otherwise reappear.
+  const offenders = [];
+  for (const { slug, renderer } of demos) {
+    const family = renderer === 'antiky' ? 'antiky' : renderer;
+    const config = await readFile(
+      new URL(`../../demos/${family}/${slug}/vite.config.ts`, import.meta.url),
+      'utf8',
+    );
+    if (!/base:\s*'\.\/'/.test(config)) offenders.push(`${slug}`);
+  }
+  assert.deepEqual(offenders, []);
+});

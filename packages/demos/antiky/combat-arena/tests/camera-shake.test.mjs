@@ -155,3 +155,71 @@ test('the camera is not shaking for most of the fight', () => {
     + 'Let it settle between impacts.',
   );
 });
+
+/**
+ * Reported by the owner after the shake rebuild: "it still shakes uncomfortably on a regular
+ * interval (reacting to something in the game)."
+ *
+ * That is not the trauma shake — measured against the real simulation, the shake fires on 1.4% of
+ * frames. It is the camera's *follow*, which had no smoothing at all. Every term was read straight
+ * from the current snapshot, including `threatLead`, which tracks the highest-priority enemy and is
+ * clamped to +/-0.82. When that enemy dies or another starts telegraphing, the priority flips and
+ * the look-at target teleports by up to 1.64 units in a single frame.
+ *
+ * These tests drive the real simulation rather than a synthetic impact function, because the defect
+ * only appears when enemies are actually dying and telegraphing.
+ */
+
+async function realCameraPath(seconds = 30) {
+  const { createCombatSimulation } = await import('../src/simulation.ts');
+  const simulation = createCombatSimulation(() => {});
+  const view = simulation.view();
+  const projector = createCombatCameraProjector();
+  const step = (over = {}) => ({
+    movement: { x: 0, z: 0, active: false }, aim: { x: 0, z: 1 }, attack: false, ...over,
+  });
+  while (view.phase !== 'combat') simulation.update(DT, step());
+
+  const targetX = [];
+  const positionX = [];
+  for (let frame = 0; frame < seconds * HZ; frame += 1) {
+    simulation.update(DT, step({
+      attack: true,
+      movement: { x: Math.sin(frame / 90), z: Math.cos(frame / 130), active: true },
+    }));
+    const camera = projector.project(1.78, view, { x: 0.5, y: 0.5 });
+    targetX.push(camera.target[0]);
+    positionX.push(camera.position[0]);
+  }
+  return { targetX, positionX };
+}
+
+/** A step this large at 60 Hz is 3 units per second of instantaneous travel: a snap, not motion. */
+const SNAP_PER_FRAME = 0.05;
+
+test('the camera never teleports when it changes which enemy it is watching', async () => {
+  const { targetX } = await realCameraPath();
+  const steps = [];
+  for (let index = 1; index < targetX.length; index += 1) {
+    steps.push(Math.abs(targetX[index] - targetX[index - 1]));
+  }
+  const worst = Math.max(...steps);
+  const snaps = steps.filter((value) => value > SNAP_PER_FRAME).length;
+
+  assert.ok(
+    worst <= SNAP_PER_FRAME,
+    `the look-at target jumps ${worst.toFixed(4)} in one frame (${(worst * HZ).toFixed(1)} units per `
+    + `second), and ${snaps} of ${steps.length} frames jump more than ${SNAP_PER_FRAME}. Ease the `
+    + 'camera towards its desired pose instead of assigning it, so a threat switch is a move rather '
+    + 'than a cut.',
+  );
+});
+
+test('easing the camera does not flatten it into a static shot', async () => {
+  const { targetX, positionX } = await realCameraPath();
+  // The opposite failure: smoothing hard enough to remove the snap can also remove the follow.
+  // The camera must still travel with the fight.
+  const spread = Math.max(...targetX) - Math.min(...targetX);
+  assert.ok(spread > 0.5, `the look-at target only spans ${spread.toFixed(3)}; the camera stopped following`);
+  assert.ok(Math.max(...positionX) - Math.min(...positionX) > 0.2, 'the camera position stopped moving');
+});

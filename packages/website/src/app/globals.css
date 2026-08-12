@@ -191,7 +191,6 @@ a.editorial-row:hover .row-arrow { transform: translate(3px, -3px); }
 .page-hero { min-height: 610px; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 110px; padding-bottom: 96px; border-bottom: 1px solid var(--line); }
 .page-hero h1 { max-width: 14ch; font-size: clamp(3.5rem, 7.7vw, 7rem); line-height: 0.93; }
 .page-lead { max-width: 64ch; margin-top: 28px; color: var(--text-muted); font-size: clamp(1.08rem, 1.6vw, 1.3rem); line-height: 1.52; }
-.page-note { max-width: 64ch; margin-top: 16px; color: var(--text-muted); font-family: var(--mono); font-size: 12px; line-height: 1.6; }
 .status-line { display: flex; align-items: center; gap: 9px; margin-bottom: 24px; color: var(--text-muted); font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
 .page-hero h1 + .status-line, .demo-detail-head h1 + .status-line { margin: 24px 0 0; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); }

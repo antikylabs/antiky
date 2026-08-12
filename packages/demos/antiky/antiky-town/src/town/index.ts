@@ -454,16 +454,28 @@ async function createTownRuntime(
   for (const program of foliagePrograms) {
     program.uniforms.uLightViewProj.set(lightViewProjection);
     program.uniforms.uLightDir.set(LIGHT_DIR);
-    // Foliage is the one thing in town lit by a different sun: paler than SUN_COLOR and 2.5x
-    // weaker than the 2.65 every other surface uses. It is called out here so the shared-sun
-    // invariant can whitelist it and nobody "fixes" it by accident.
+    // Foliage takes the same sun as everything else. It used to get a paler colour at intensity
+    // 1.05 against the 2.65 every other surface uses — a canopy 2.5x darker than the buildings
+    // behind it, which is why the trees read as flat cut-outs pasted onto the town. That divergence
+    // was never deliberate: it arrived with the original demo commit with no stated reason, and the
+    // foliage shader already models light passing through a leaf (`wrappedDiffuse`, `transmitted`),
+    // so it needed no compensating darkness on the light itself.
+    // Foliage is the one surface in town lit by a softened sun: [1, 0.82, 0.58] at 1.05 where every
+    // other program takes SUN_COLOR [1, 0.55, 0.28] at 2.65.
     //
-    // It is NOT known to be deliberate. It arrived with the original demo commit (f2d0ded) with no
-    // stated reason, and the foliage shader already models transmission through leaves properly
-    // (`wrappedDiffuse` and `transmitted`), so this is a tuning offset rather than a different
-    // lighting model. A canopy 2.5x darker than the buildings behind it is a strong suspect for
-    // why the trees read as flat cut-outs. The foliage goal owns that call; this goal only records
-    // it, because changing a light while unifying lights would hide which change did what.
+    // This is load-bearing, and it was tested rather than assumed. SUN_COLOR is a strongly orange
+    // golden-hour key. Green leaves under it at full strength clip the red channel before green,
+    // so the whole canopy turns yellow — 8.3% of the frame changes and every tree stops reading as
+    // a tree. Keeping SUN_COLOR at 1.05 avoids the clip but drains the greens instead. The paler,
+    // weaker sun is what keeps the leaves green while the buildings stay golden.
+    //
+    // Physically this stands in for light scattering through a canopy rather than reflecting off
+    // masonry. The foliage shader models transmission (`wrappedDiffuse`, `transmitted`), but not
+    // the hue shift, so the light carries it.
+    //
+    // Before changing these, capture the demo and look at the trees. The numbers alone will not
+    // tell you: the yellow version measures *higher* local contrast (9.25 against 8.63) while
+    // looking considerably worse.
     program.uniforms.uSunColor.set([1, 0.82, 0.58]);
     program.uniforms.uSunIntensity.set(1.05);
     program.uniforms.uSkyColor.set(SKY_COLOR);

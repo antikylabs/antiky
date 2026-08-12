@@ -100,6 +100,43 @@ function shakeOffset(time: number, trauma: number): readonly [number, number] {
   ];
 }
 
+/**
+ * How fast the camera closes the gap to where it wants to be, per second.
+ *
+ * The camera used to be assigned its pose every frame, which is fine while everything it follows
+ * moves smoothly and wrong the moment something switches. `threatLead` tracks the highest-priority
+ * enemy and is clamped to +/-0.82, so when that enemy dies or another starts telegraphing, the
+ * look-at target used to teleport by up to 1.64 units in a single frame — measured at 0.4046, or
+ * 24 units per second of instantaneous travel. That reads as the camera flinching at the fight on a
+ * regular beat, which is what the owner reported.
+ *
+ * The value is set from a stated feel rather than tuned against a threshold: the camera closes half
+ * the distance to where it wants to be in about a tenth of a second, which is `ln(2) / 0.1`. Fast
+ * enough to stay attached to the action, slow enough that the largest forced switch — an enemy
+ * dying while the camera watches it — lands under a twentieth of a unit in any one frame.
+ *
+ * The exponential form makes it frame-rate independent, so a 144 Hz display and a 60 Hz display
+ * settle at the same speed rather than the faster one following twice as tightly.
+ */
+const CAMERA_FOLLOW_RATE = 7;
+
+/** Longer than any real frame. A gap this size means a pause, a tab switch, or a fresh run. */
+const CAMERA_RESET_SECONDS = 0.25;
+
+/**
+ * How much better a rival has to be before the camera changes who it is watching.
+ *
+ * Easing alone smooths each switch, but it does not stop the camera switching. Two enemies at
+ * similar priority — the usual case, since priority is dominated by a 3-point telegraph bonus and a
+ * distance term worth 0.02 per unit — used to trade the lead back and forth, so the camera drifted
+ * one way and then the other on the beat of whatever was telegraphing. That is the regular
+ * flinching the owner reported.
+ *
+ * 1.2 is above the distance term's practical range and below the telegraph bonus, so a genuinely
+ * more dangerous enemy still takes the camera while a marginally closer one does not.
+ */
+const THREAT_SWITCH_MARGIN = 1.2;
+
 function threatPriority(state: CameraState, enemyIndex: number): number {
   const enemy = state.enemies[enemyIndex]!;
   return (enemy.mark > 0 ? 4 : 0)
@@ -111,6 +148,13 @@ export function createCombatCameraProjector(): CombatCameraProjector {
   const position: [number, number, number] = [0, 0, 0];
   const target: [number, number, number] = [0, 0, 0];
   const frame: CombatCameraFrame = { position, target };
+  // Where the camera has actually eased to, before shake is added. Kept separately from `position`
+  // and `target` so the shake never feeds back into the smoothing and get smeared into a wobble.
+  const easedPosition: [number, number, number] = [0, 0, 0];
+  const easedTarget: [number, number, number] = [0, 0, 0];
+  let previousTime: number | null = null;
+  /** Which enemy the camera is currently watching, so the choice can be sticky. */
+  let heldThreatIndex = -1;
 
   return Object.freeze({
     project(aspect, state, pointer): CombatCameraFrame {
@@ -136,29 +180,57 @@ export function createCombatCameraProjector(): CombatCameraProjector {
           threatIndex = enemyIndex;
         }
       }
+      // Stay on the enemy already being watched unless the new one is clearly more dangerous. The
+      // held enemy has to still be alive, or the camera would keep watching a corpse.
+      const held = heldThreatIndex >= 0 ? state.enemies[heldThreatIndex] : undefined;
+      if (held?.active === true && heldThreatIndex !== threatIndex) {
+        if (bestPriority - threatPriority(state, heldThreatIndex) < THREAT_SWITCH_MARGIN) {
+          threatIndex = heldThreatIndex;
+        }
+      }
+      heldThreatIndex = threatIndex;
       const threat = threatIndex < 0 ? undefined : state.enemies[threatIndex];
       const threatLeadX = threat === undefined || terminal ? 0 : Math.max(-0.82, Math.min(0.82, (threat.x - state.player.x) * 0.14));
       const threatLeadZ = threat === undefined || terminal ? 0 : Math.max(-0.68, Math.min(0.68, (threat.z - state.player.z) * 0.12));
       const dashPush = Math.max(0, Math.min(1, state.player.dash / 0.2));
 
-      if (terminal) {
-        position[0] = shakeX;
-        position[1] = mobile ? 17.4 : 13.6;
-        position[2] = (mobile ? 18.6 : 14.9) + shakeZ;
-        target[0] = shakeX;
-        target[1] = 0.28;
-        target[2] = shakeZ;
-        return frame;
+      // The pose the camera wants, with no shake in it. Shake is added after easing, below.
+      const desiredPosition: readonly [number, number, number] = terminal
+        ? [0, mobile ? 17.4 : 13.6, mobile ? 18.6 : 14.9]
+        : [
+          state.player.x * 0.08 + driftX + velocityLeadX + threatLeadX * 0.18,
+          (mobile ? 17 : 13.4) + driftY - dashPush * (mobile ? 0.32 : 0.48),
+          (mobile ? 18.2 : 14.8) + state.player.z * 0.05 + velocityLeadZ + threatLeadZ * 0.12,
+        ];
+      const desiredTarget: readonly [number, number, number] = terminal
+        ? [0, 0.28, 0]
+        : [
+          state.player.x * 0.12 + velocityLeadX + aimLeadX + threatLeadX,
+          0.3,
+          state.player.z * 0.1 + (mobile ? 1.55 : 1.15) + velocityLeadZ + aimLeadZ + threatLeadZ,
+        ];
+
+      // Ease towards it, so a threat switch is a move rather than a cut. Exponential so the result
+      // does not depend on frame rate.
+      const elapsed = previousTime === null ? Number.POSITIVE_INFINITY : state.time - previousTime;
+      previousTime = state.time;
+      const settling = elapsed <= 0 || elapsed > CAMERA_RESET_SECONDS
+        ? 1
+        : 1 - Math.exp(-CAMERA_FOLLOW_RATE * elapsed);
+      for (let axis = 0; axis < 3; axis += 1) {
+        easedPosition[axis] = easedPosition[axis]! + (desiredPosition[axis]! - easedPosition[axis]!) * settling;
+        easedTarget[axis] = easedTarget[axis]! + (desiredTarget[axis]! - easedTarget[axis]!) * settling;
       }
 
-      position[0] = state.player.x * 0.08 + driftX + velocityLeadX + threatLeadX * 0.18 + shakeX;
-      position[1] = (mobile ? 17 : 13.4) + driftY - dashPush * (mobile ? 0.32 : 0.48);
-      position[2] = (mobile ? 18.2 : 14.8) + state.player.z * 0.05 + velocityLeadZ + threatLeadZ * 0.12 + shakeZ;
+      // Shake goes on last, at full strength. Easing it would turn a punch into a wobble, which is
+      // the opposite of what shake is for.
+      position[0] = easedPosition[0]! + shakeX;
+      position[1] = easedPosition[1]!;
+      position[2] = easedPosition[2]! + shakeZ;
       // The same offset as `position`, so the shake translates the frame instead of swivelling it.
-      target[0] = state.player.x * 0.12 + velocityLeadX + aimLeadX + threatLeadX + shakeX;
-      target[1] = 0.3;
-      target[2] = state.player.z * 0.1 + (mobile ? 1.55 : 1.15) + velocityLeadZ + aimLeadZ
-        + threatLeadZ + shakeZ;
+      target[0] = easedTarget[0]! + shakeX;
+      target[1] = easedTarget[1]!;
+      target[2] = easedTarget[2]! + shakeZ;
       return frame;
     },
   });

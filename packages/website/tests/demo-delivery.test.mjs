@@ -285,12 +285,13 @@ test('a browser without WebGPU is shown posters, not error cards', async () => {
   assert.match(styles, /\.stage-badge \{/);
 });
 
-test('the WebGPU requirement is stated once at page level', async () => {
+test('the WebGPU requirement is not announced to visitors who never hit it', async () => {
   const page = await readFile(new URL('../src/app/demos/page.tsx', import.meta.url), 'utf8');
-  const mentions = page.match(/WebGPU/g) ?? [];
-  // Once, deliberately, in the page lead — not repeated on eight separate cards.
-  assert.equal(mentions.length, 1, `expected one page-level WebGPU statement, found ${mentions.length}`);
-  assert.match(page, /className="page-note"/);
+
+  // Most visitors are on a browser that runs everything, so a page-level paragraph about WebGPU is
+  // a limitation notice aimed at the wrong audience. The gated card carries its own caption, which
+  // is the only place the requirement is worth mentioning — and only to the people it affects.
+  assert.equal((page.match(/WebGPU/g) ?? []).length, 0);
 });
 
 test('a thumb renders an activation control that does not depend on hovering', async () => {

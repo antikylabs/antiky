@@ -21,11 +21,6 @@ export default function DemosPage() {
           studies, and two Three.js scenes in the same portable host. Each shows a bounded result;
           none is a production game or proof of the complete Antiky architecture.
         </p>
-        <p className="page-note">
-          Eight of the ten studies render through WebGPU, so they run live in Chrome and Edge today.
-          In Safari and Firefox those eight show a still frame captured from the running study
-          instead. The two Three.js scenes run everywhere.
-        </p>
       </section>
 
       <section className="demo-index wrap">
