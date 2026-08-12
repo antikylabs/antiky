@@ -81,7 +81,15 @@ export default shader({
     uDetailNormal: 'sampler2D',
     uDiffuseTint: 'vec3',
     uTextureContrast: 'float',
-    uAmbientColor: 'vec3',
+    uSh0: 'vec3',
+    uSh1: 'vec3',
+    uSh2: 'vec3',
+    uSh3: 'vec3',
+    uSh4: 'vec3',
+    uSh5: 'vec3',
+    uSh6: 'vec3',
+    uSh7: 'vec3',
+    uSh8: 'vec3',
     uAmbientStrength: 'float',
     uExposure: 'float',
     uRelayLightStrength: 'float',
@@ -122,7 +130,15 @@ export default shader({
     uDetailNormal,
     uDiffuseTint,
     uTextureContrast,
-    uAmbientColor,
+    uSh0,
+    uSh1,
+    uSh2,
+    uSh3,
+    uSh4,
+    uSh5,
+    uSh6,
+    uSh7,
+    uSh8,
     uAmbientStrength,
     uExposure,
     uRelayLightStrength,
@@ -159,19 +175,15 @@ export default shader({
     //
     // Sampled in the fragment body, not through a helper: `texture()` inside a DSL helper compiles
     // to `textureSampleLevel(..., 0.0)` and would pin this to the base mip.
-    // Measured, because the obvious assumption was wrong: with this in and out, 20,041 pixels of the
-    // frame change — but the floor probes do not move at all (standard deviation 0.0271 either way).
+    // Worth knowing before anyone tunes this looking for an effect: on its own it did almost
+    // nothing here. Measured with it in and out, 20,041 pixels of the frame changed but the floor
+    // probes did not move at all — standard deviation 0.0271 either way.
     //
-    // The reason is two lines below. The floor's light is `dampEarth * (ambient + irradiance)`, and
-    // `ambient` does not consult the normal at all — it is a flat colour times an AO scalar. Only
-    // `irradiance` sees the normal, and that is three point lights that are weak across most of an
-    // eighteen-by-thirteen plane. So a perturbed normal has almost nothing to modulate here.
-    //
-    // This is not a reason to remove it or to push the strength up until something happens. It is
-    // wired correctly and it already pays off on the props next door, which are lit by the same
-    // relays at much closer range. What unlocks it here is item 4 — SH-9 irradiance replacing the
-    // flat ambient with one that varies by surface direction. Until then this term is nearly inert
-    // on the floor, and that is worth knowing before someone tunes it looking for an effect.
+    // The reason was the ambient term below, which used to be a flat colour times an AO scalar and
+    // never consulted the normal. Only the three relays saw the normal, and they are weak across
+    // most of an eighteen-by-thirteen plane, so a perturbed normal had almost nothing to modulate.
+    // The SH-9 ambient that replaced it does consult the normal, which is what gives this term
+    // something to bite on.
     const detailRate = 0.32;
     const detailStrength = 0.75;
     const detailTilt = texture(uDetailNormal, vWorld.xz.scale(detailRate)).xyz.scale(2).sub(vec3(1, 1, 1));
@@ -182,7 +194,31 @@ export default shader({
     const plum = materialPresentationFloorLight(vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness);
     const irradiance = amber.add(blue).add(plum).scale(uRelayLightStrength);
     const dampEarth = diffuseSample.mul(uDiffuseTint);
-    const ambient = uAmbientColor.scale(uAmbientStrength * ao);
+    // Ambient that knows which way the surface faces.
+    //
+    // This replaced a single flat colour, which said a floor, a ceiling and the underside of a rock
+    // all receive the same light. That is false everywhere, and it was the reason the detail normal
+    // above measured as doing nothing here: a perturbed normal that changes nothing about how much
+    // light arrives is a perturbed normal nobody can see.
+    //
+    // The nine coefficients come from a real sky, baked offline by
+    // `packages/demos/scripts/bake-sh9-irradiance.mjs`. Nine multiply-adds, no texture fetch.
+    //
+    // What the bake decides and what it does not: it decides *direction* — which way is brighter,
+    // and what colour the sky is against the ground bounce. It does not decide overall level. The
+    // coefficients are normalised on the runtime side so their spherical average matches the flat
+    // ambient this replaced, because changing the demo's exposure and its ambient direction in one
+    // step would leave no way to tell which of the two moved the picture.
+    const shIrradiance = uSh0
+      .add(uSh1.scale(normal.y))
+      .add(uSh2.scale(normal.z))
+      .add(uSh3.scale(normal.x))
+      .add(uSh4.scale(normal.x * normal.y))
+      .add(uSh5.scale(normal.y * normal.z))
+      .add(uSh6.scale(3 * normal.z * normal.z - 1))
+      .add(uSh7.scale(normal.x * normal.z))
+      .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
+    const ambient = shIrradiance.scale(uAmbientStrength * ao);
     const lit = dampEarth.mul(ambient.add(irradiance));
     const stonePath = smoothstep(0.44, 0.5, max(0.6 - abs(vWorld.x) * 0.12, 0.6 - abs(vWorld.z) * 0.12));
     const pathTint = mix(vec3(1, 1, 1), vec3(0.74, 0.78, 0.72), stonePath * 0.18);

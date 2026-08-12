@@ -13,6 +13,7 @@ import type { GamePointerInput } from '@antiky/framework/game';
 
 import { createRelayFrameScratch, setCameraPosition } from './frame-scratch.ts';
 import { relayOnboardingOpacity } from './onboarding-cues.ts';
+import { normalisedSkyIrradiance } from './ambient.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
@@ -174,7 +175,22 @@ export async function createRelayRenderer(
   }
   floorProgram.uniforms.uDiffuseTint.set(RELAY_PRESENTATION.floorDiffuseTint);
   floorProgram.uniforms.uTextureContrast.set(RELAY_PRESENTATION.floorTextureContrast);
-  floorProgram.uniforms.uAmbientColor.set(RELAY_PRESENTATION.floorAmbient.color);
+  // Nine coefficients instead of one colour. BroMetal's DSL has no array uniform type, so they are
+  // nine separate bindings rather than one — verbose at the call site, but the shader side is a
+  // straight nine multiply-adds with no indexing.
+  // Written out rather than looped: the uniform record is a typed literal, so an index built from a
+  // template string is not a key TypeScript can check. Nine lines that the compiler verifies beat a
+  // loop that needs a cast to compile.
+  const sky = normalisedSkyIrradiance();
+  floorProgram.uniforms.uSh0.set(sky[0]!);
+  floorProgram.uniforms.uSh1.set(sky[1]!);
+  floorProgram.uniforms.uSh2.set(sky[2]!);
+  floorProgram.uniforms.uSh3.set(sky[3]!);
+  floorProgram.uniforms.uSh4.set(sky[4]!);
+  floorProgram.uniforms.uSh5.set(sky[5]!);
+  floorProgram.uniforms.uSh6.set(sky[6]!);
+  floorProgram.uniforms.uSh7.set(sky[7]!);
+  floorProgram.uniforms.uSh8.set(sky[8]!);
   floorProgram.uniforms.uAmbientStrength.set(RELAY_PRESENTATION.floorAmbient.strength);
   floorProgram.uniforms.uExposure.set(RELAY_PRESENTATION.exposure);
   floorProgram.uniforms.uRelayLightStrength.set(RELAY_PRESENTATION.relayLightStrength);

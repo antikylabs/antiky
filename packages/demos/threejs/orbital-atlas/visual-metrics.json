@@ -1,18 +1,22 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "demo": "orbital-atlas",
-  "capturedAt": "2026-08-12T02:34:55.341Z",
+  "capturedAt": "2026-08-12T17:53:56.831Z",
   "warmUpFrames": 60,
+  "source": {
+    "digest": "486fef6460e93b7f",
+    "fileCount": 39
+  },
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.02397,
+    "mean": 0.024063,
     "p05": 0.000981,
     "p50": 0.000981,
-    "p95": 0.056649,
-    "spread": 0.055668
+    "p95": 0.066523,
+    "spread": 0.065541
   },
   "localContrast": {
     "median": 0,
@@ -23,6 +27,7 @@
     "low": 0
   },
   "saturation": {
-    "mean": 0.439638
-  }
+    "mean": 0.439003
+  },
+  "seal": "7516313ffdc66dce"
 }

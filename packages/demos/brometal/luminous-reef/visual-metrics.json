@@ -1,24 +1,33 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "demo": "luminous-reef",
-  "capturedAt": "2026-08-11T19:12:26.116Z",
+  "capturedAt": "2026-08-12T17:53:11.206Z",
   "warmUpFrames": 60,
+  "source": {
+    "digest": "35ae9508721453bd",
+    "fileCount": 39
+  },
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.037747,
+    "mean": 0.037461,
     "p05": 0.002461,
-    "p50": 0.017048,
-    "p95": 0.16008,
-    "spread": 0.157619
+    "p50": 0.016933,
+    "p95": 0.159867,
+    "spread": 0.157407
+  },
+  "localContrast": {
+    "median": 1.754,
+    "p10": 0.3393
   },
   "clipping": {
     "high": 0,
     "low": 0
   },
   "saturation": {
-    "mean": 0.964443
-  }
+    "mean": 0.902668
+  },
+  "seal": "90b112d1340cb6c9"
 }
