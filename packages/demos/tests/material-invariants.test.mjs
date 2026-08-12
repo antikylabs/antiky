@@ -127,3 +127,52 @@ test('AC-M3: every shader that draws GLB geometry samples a normal map that surv
   );
   assert.deepEqual(missing, [], `shaders drawing GLB geometry with no live normal map:\n  ${missing.join('\n  ')}`);
 });
+
+test('AC-V3: a time-driven pulse varies its rate per instance, not just its phase', async () => {
+  /**
+   * The metronome problem.
+   *
+   * `sin(uTime * K + iPhase)` with one shared `K` looks varied for a second and then is not: the
+   * instances are offset but they run at the same rate, so they drift into alignment and pulse
+   * together for the rest of the session. A crowd of effects breathing in unison reads as one
+   * mechanism, which is the opposite of what a crowd of effects is for.
+   *
+   * The fix is to vary the rate as well, so they never re-synchronise. This asserts the shape: any
+   * `sin`/`cos` whose argument multiplies `uTime` must multiply it by something carrying a
+   * per-instance attribute, not by a bare constant.
+   *
+   * Scoped to values that reach an **alpha**, which is what the criterion says and what matters. A
+   * global rate is correct for a field: wind blows across the whole town at one speed and water
+   * waves travel at one speed, and making those per-instance would be wrong, not varied. It is
+   * per-object opacity that must not march in step. An earlier version of this test flagged the
+   * foliage wind and the fountain waves and would have pushed someone into breaking both.
+   *
+   * Read from compiled WGSL, where per-instance attributes are unambiguously `bm_in.i*` — the source
+   * spelling varies by demo and a comment could claim anything.
+   */
+  const offenders = [];
+  let checked = 0;
+  for (const demo of await discoverDemos(['antiky'])) {
+    for (const shader of await discoverShaders(demo)) {
+      // `(uTime * <rate>` inside a trig call, with the rate captured.
+      // Assignments into anything alpha-shaped, whether a varying or the fragment's output.
+      for (const [, target, value] of shader.wgsl.matchAll(
+        /(?:let|var)?\s*\b(\w*[Aa]lpha\w*)\s*=\s*([^;]*);/g,
+      )) {
+        if (!/\b(?:sin|cos)\s*\(/.test(value) || !/\bbm_u\.uTime\b/.test(value)) continue;
+        checked += 1;
+        // Either a parenthesised factor or a bare one. Stopping at the first `)` or `+` cut
+        // `(4.1 + bm_in.iPhase * 1.9)` down to `(4.1` and reported a correct shader as broken.
+        const rate = value.match(/\bbm_u\.uTime\s*\*\s*(\([^)]*\)|[\w.]+)/);
+        if (rate === null || !/\bbm_in\.i\w+/.test(rate[1])) {
+          offenders.push(
+            `${shader.relative}: ${target} pulses on uTime * ${(rate?.[1] ?? '?').trim().slice(0, 32)}`
+            + ' — one rate for every instance, so they drift into unison',
+          );
+        }
+      }
+    }
+  }
+  assert.ok(checked >= 2, `expected to find time-driven pulses to check, found ${checked}`);
+  assert.deepEqual(offenders, [], `pulses that will drift into unison:\n  ${offenders.join('\n  ')}`);
+});

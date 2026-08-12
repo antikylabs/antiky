@@ -46,7 +46,14 @@ export default shader({
     v.vWorld = world;
     v.vNormal = normalize(vec3(rotatedNormal.x, rotatedNormal.y, aNormal.z));
     v.vColor = iColor;
-    v.vAlpha = iAlpha * (0.8 + sin(uTime * 4.8 + iPhase) * 0.2);
+      // Per-instance frequency, not just per-instance phase.
+      //
+      // This used to be `sin(uTime * K + iPhase * n)` with one shared K. Offsetting the phase makes
+      // instances start apart, but identical frequencies mean they drift back into alignment and
+      // then pulse as one — a crowd of independent effects breathing in unison, which reads as a
+      // metronome rather than as many things happening. Varying the rate per instance means they
+      // never re-synchronise.
+    v.vAlpha = iAlpha * (0.8 + sin(uTime * (3.9 + iPhase * 1.8) + iPhase) * 0.2);
     return uViewProj.mul(vec4(world, 1));
   },
 

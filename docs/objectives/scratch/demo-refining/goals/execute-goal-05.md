@@ -296,6 +296,8 @@ below left `npm test` green and `npm run demos:verify` at its six known targets.
 | **3** — rim/Fresnel, wrapped diffuse | **Done bar cloth sheen.** Rim added to the four model shaders that lacked one; wrapped diffuse for traversal's clouds behind an explicit per-batch `uWrap`. Cloth sheen needs fabric materials, so it waits on item 6. |
 | **4** — SH-9 irradiance | **Script done; point-light-expo fully wired.** `bake-sh9-irradiance.mjs` fetches an HDRI, decodes Radiance RGBE by hand, projects onto nine harmonics, emits 27 floats. Coefficients baked for all three named HDRIs. |
 | **10** — antiky-town surface record | **Done.** `packages/demos/antiky/antiky-town/MATERIALS.md`, colocated with the demo it describes. Records all thirteen shaders including the four rejections, and corrects the goal's table on `town-water`. |
+| **9** — VFX timing (part) | **AC-V3 closed.** `arena-glow` and `traversal-glow` pulsed their alpha on one shared frequency with only a per-instance phase, so instances drifted into unison. Both now vary the rate per instance, with a test that catches a regression. The rest of item 9 — curves, snap, secondary elements — is not done. |
+| AC-V3 | **Green**, scoped to values reaching an alpha. A global rate is correct for a *field*: wind crosses the town at one speed and water waves travel at one speed. An earlier version flagged both and would have pushed someone into breaking them. |
 | AC-M3 | **Green**, and it discovers GLB-drawing shaders from source rather than a list. |
 
 ### Measured, before → after

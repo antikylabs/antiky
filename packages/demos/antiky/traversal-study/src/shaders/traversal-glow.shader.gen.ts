@@ -39,7 +39,7 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   bm_out.vWorld = world;
   bm_out.vNormal = normalize(vec3f(rotatedNormal.x, rotatedNormal.y, bm_in.aNormal.z));
   bm_out.vColor = bm_in.iColor;
-  bm_out.vAlpha = bm_in.iAlpha * (0.8 + sin(bm_u.uTime * 4.8 + bm_in.iPhase) * 0.2);
+  bm_out.vAlpha = bm_in.iAlpha * (0.8 + sin(bm_u.uTime * (3.9 + bm_in.iPhase * 1.8) + bm_in.iPhase) * 0.2);
   bm_out.bm_position = bm_u.uViewProj * vec4f(world, 1.0);
   bm_out.bm_position.z = (bm_out.bm_position.z + bm_out.bm_position.w) * 0.5;
   return bm_out;
