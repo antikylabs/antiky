@@ -225,6 +225,8 @@ async function createCatalogBatch(
   detailNormal: BroMetalTexture,
   gradeColor: Vec3 = [1, 1, 1],
   gradeMix = 0,
+  /** How far light wraps past the terminator. Clouds are volumes; everything else here is solid. */
+  wrap = 0,
 ) {
   const asset = TRAVERSAL_ASSETS.find((entry) => entry.id === assetId)!;
   const model = await loadGlb(asset.url);
@@ -260,6 +262,7 @@ async function createCatalogBatch(
       program.uniforms.uDetailNormal.set(detailNormal);
       program.uniforms.uGradeColor.set(gradeColor);
       program.uniforms.uGradeMix.set(gradeMix);
+      program.uniforms.uWrap.set(wrap);
     }
   } catch (cause: unknown) {
     rollbackAndRethrow(disposal, cause);
@@ -341,8 +344,8 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       () => createCatalogBatch(renderer, 'spikes', TRAVERSAL_BATCH_CAPACITIES.spikes, detailNormal, [0.92, 0.22, 0.09], 0.62),
       () => createCatalogBatch(renderer, 'tree', TRAVERSAL_BATCH_CAPACITIES.tree, detailNormal),
       () => createCatalogBatch(renderer, 'courier', TRAVERSAL_BATCH_CAPACITIES.courier, detailNormal),
-      () => createCatalogBatch(renderer, 'cloud-small', TRAVERSAL_BATCH_CAPACITIES['cloud-small'], detailNormal, [0.96, 0.98, 1], 0.9),
-      () => createCatalogBatch(renderer, 'cloud-large', TRAVERSAL_BATCH_CAPACITIES['cloud-large'], detailNormal, [0.96, 0.98, 1], 0.9),
+      () => createCatalogBatch(renderer, 'cloud-small', TRAVERSAL_BATCH_CAPACITIES['cloud-small'], detailNormal, [0.96, 0.98, 1], 0.9, 0.65),
+      () => createCatalogBatch(renderer, 'cloud-large', TRAVERSAL_BATCH_CAPACITIES['cloud-large'], detailNormal, [0.96, 0.98, 1], 0.9, 0.65),
       () => createCatalogBatch(renderer, 'coastal-cliff', TRAVERSAL_BATCH_CAPACITIES['coastal-cliff'], detailNormal, [0.3, 0.45, 0.55], 0.78),
       () => createCatalogBatch(renderer, 'coastal-tree', TRAVERSAL_BATCH_CAPACITIES['coastal-tree'], detailNormal, [0.18, 0.38, 0.24], 0.28),
       () => createCatalogBatch(renderer, 'relay-tower', TRAVERSAL_BATCH_CAPACITIES['relay-tower'], detailNormal, [0.64, 0.71, 0.74], 0.38),

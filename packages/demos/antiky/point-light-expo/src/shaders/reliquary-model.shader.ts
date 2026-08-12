@@ -260,7 +260,19 @@ export default shader({
       vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness,
     )).scale(uRelayLightStrength);
     const ambient = uAmbientColor.scale(uAmbientStrength * (0.72 + normal.y * 0.2));
-    const lit = base.mul(ambient.add(relay)).scale(occlusion);
+    // Always-on rim.
+    //
+    // A surface turning away from the camera catches light from everything behind it, and without
+    // that term every object in the frame ends at a hard edge against whatever is behind it. It is
+    // the cheapest thing that separates a subject from its background, which is what AC-L6 measures
+    // when it asks for a silhouette band brighter than the interior.
+    //
+    // Hand-rolled rather than calling BroMetal's `fresnel()`. The helper takes its power as a
+    // parameter and compiles the sample-free maths inline anyway, so the only difference is that
+    // this spelling matches the twelve other places in this repository that already do it.
+    const rim = pow(1 - max(dot(normal, view), 0), 2.4);
+    const lit = base.mul(ambient.add(relay)).scale(occlusion)
+      .add(uAmbientColor.scale(rim * 0.22 * occlusion));
     const pulse = 0.94 + sin(uTime * 2.1 + vWorld.y) * 0.06;
     const emissive = base.scale(vMaterial.y * pulse);
     const fog = smoothstep(uFogStart, uFogEnd, length(uCameraPosition.sub(vWorld)));

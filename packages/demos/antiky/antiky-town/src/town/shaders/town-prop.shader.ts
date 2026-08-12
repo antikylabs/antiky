@@ -220,6 +220,12 @@ export default shader({
     const normal = normalize(baseNormal.add(tilt));
     const light = normalize(uLightDir);
     const view = normalize(uCamPos.sub(vWorld));
+    // Always-on rim, tinted by the sky the town already lights itself with.
+    //
+    // A surface turning away from the camera catches light from everything behind it. Without it
+    // every prop ends at a hard edge against the plaza, which is the difference between a thing
+    // standing in a scene and a decal pasted onto it.
+    const rimFacing = pow(1 - max(dot(normal, view), 0), 2.5);
     const ndotl = max(dot(normal, light), 0);
     const lightClip = uLightViewProj.mul(vec4(vWorld, 1));
     const shadowUv = targetUv(lightClip);
@@ -246,7 +252,8 @@ export default shader({
       .add(vec3(0.042, 0.054, 0.08));
     const warmKey = mix(vec3(1, 0.94, 0.84), uSunColor, 0.46);
     const direct = warmKey.scale(uSunIntensity * 0.52 * ndotl * shadow * shadow);
-    let color = albedo.mul(indirect.add(direct));
+    let color = albedo.mul(indirect.add(direct))
+      .add(uSkyColor.scale(rimFacing * uSkyIntensity * 0.32));
     const specular = min(specGGX(normal, light, view, roughness), 1.4) *
       specularLevel * uSunIntensity * 0.5 * shadow * shadow;
     color = color.add(warmKey.scale(specular));

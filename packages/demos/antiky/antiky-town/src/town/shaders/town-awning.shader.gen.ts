@@ -130,6 +130,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let normal = normalize(baseNormal + tilt);
   let light = normalize(bm_u.uLightDir);
   let view = normalize(bm_u.uCamPos - bm_in.vWorld);
+  let rimFacing = pow(1.0 - max(dot(normal, view), 0.0), 2.5);
   let ndotl = max(dot(normal, light), 0.0);
   let lightClip = bm_u.uLightViewProj * vec4f(bm_in.vWorld, 1.0);
   let shadowUv = ((lightClip).xy / (lightClip).w * vec2f(0.5, -0.5) + vec2f(0.5));
@@ -151,7 +152,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let warmKey = mix(vec3f(1.0, 0.94, 0.84), bm_u.uSunColor, 0.46);
   let direct = warmKey * (bm_u.uSunIntensity * 0.5 * ndotl * shadow * shadow);
   let transmission = pow(max(0.0 - dot(normal, light), 0.0), 2.0) * shadow * 0.07;
-  var color = albedo * (indirect + direct) + albedo * warmKey * transmission;
+  var color = albedo * (indirect + direct) + bm_u.uSkyColor * (rimFacing * bm_u.uSkyIntensity * 0.28) + albedo * warmKey * transmission;
   let clothEdge = pow(1.0 - abs(dot(normal, view)), 3.0) * 0.025;
   color = color + bm_u.uSkyColor * clothEdge;
   let fog = smoothstep(bm_u.uFogStart, bm_u.uFogEnd, bm_in.vDepth) * clamp(bm_u.uFogStrength, 0.0, 1.0);

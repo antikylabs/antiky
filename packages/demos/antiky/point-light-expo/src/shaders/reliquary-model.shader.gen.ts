@@ -153,7 +153,8 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let base = clamp(lifted, vec3f(0.0), vec3f(1.0)) * bm_in.vTint;
   let relay = (pointRadiance(bm_in.vWorld, normal, view, bm_u.uEmberPosition, bm_u.uEmberColor, bm_u.uEmberPower, bm_u.uEmberRadius, roughness) + pointRadiance(bm_in.vWorld, normal, view, bm_u.uIonPosition, bm_u.uIonColor, bm_u.uIonPower, bm_u.uIonRadius, roughness) + pointRadiance(bm_in.vWorld, normal, view, bm_u.uVioletPosition, bm_u.uVioletColor, bm_u.uVioletPower, bm_u.uVioletRadius, roughness)) * bm_u.uRelayLightStrength;
   let ambient = bm_u.uAmbientColor * (bm_u.uAmbientStrength * (0.72 + normal.y * 0.2));
-  let lit = base * (ambient + relay) * occlusion;
+  let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.4);
+  let lit = base * (ambient + relay) * occlusion + bm_u.uAmbientColor * (rim * 0.22 * occlusion);
   let pulse = 0.94 + sin(bm_u.uTime * 2.1 + bm_in.vWorld.y) * 0.06;
   let emissive = base * (bm_in.vMaterial.y * pulse);
   let fog = smoothstep(bm_u.uFogStart, bm_u.uFogEnd, length(bm_u.uCameraPosition - bm_in.vWorld));

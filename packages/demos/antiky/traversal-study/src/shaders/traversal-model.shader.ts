@@ -57,6 +57,7 @@ export default shader({
     uTime: 'float',
     uGradeColor: 'vec3',
     uGradeMix: 'float',
+    uWrap: 'float',
     uTex: 'sampler2D',
     uDetailNormal: 'sampler2D',
   },
@@ -79,7 +80,7 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uGradeColor, uGradeMix, uTex, uDetailNormal },
+    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uDetailNormal },
     { vWorld, vNormal, vUv, vWash },
   ) {
     const texel = decodeSrgb(texture(uTex, vUv).xyz);
@@ -120,11 +121,36 @@ export default shader({
       .scale(detailStrength / weightSum);
     const normal = normalize(baseNormal.add(tilt));
     const light = normalize(vec3(-0.38, 0.84, 0.48));
-    const diffuse = max(dot(normal, light), 0);
+    // Wrapped diffuse, for surfaces light passes through rather than bounces off.
+    //
+    // A cloud lit by `max(dot(n, l), 0)` has a hard terminator and a black underside, because that
+    // term says every surface facing away from the sun receives nothing. Light entering a diffuse
+    // volume does not stop at the terminator, so wrapping the dot product forward before clamping
+    // carries some of it around the back.
+    //
+    // `uWrap` is set per batch and is 0 for everything solid, so this costs a multiply and an add on
+    // the geometry that does not want it. Explicit rather than inferred: the alternative was to key
+    // off `uGradeMix`, which happens to be high on clouds today and is really about colour grading,
+    // so anything that later graded a rock heavily would start lighting like a cloud.
+    const diffuse = max((dot(normal, light) + uWrap) / (1 + uWrap), 0);
     const band = 0.54 + smoothstep(0.18, 0.25, diffuse) * 0.2
       + smoothstep(0.62, 0.7, diffuse) * 0.24;
+    // Always-on rim.
+    //
+    // A surface turning away from the camera catches light from everything behind it, and without
+    // that term every object in the frame ends at a hard edge against whatever is behind it. It is
+    // the cheapest thing that separates a subject from its background, which is what AC-L6 measures
+    // when it asks for a silhouette band brighter than the interior.
+    //
+    // Hand-rolled rather than calling BroMetal's `fresnel()`. The helper takes its power as a
+    // parameter and compiles the sample-free maths inline anyway, so the only difference is that
+    // this spelling matches the twelve other places in this repository that already do it.
+    const view = normalize(uCameraPosition.sub(vWorld));
+    const rim = pow(1 - max(dot(normal, view), 0), 2.6);
     const graded = mix(texel, uGradeColor, uGradeMix);
-    const base = graded.scale(band * vWash);
+    // Tinted toward the sky rather than the surface colour, so the edge reads as light coming from
+    // the world behind the object instead of the object glowing.
+    const base = graded.scale(band * vWash).add(vec3(0.55, 0.65, 0.66).scale(rim * 0.3 * vWash));
     const distanceFog = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
     return vec4(mix(base, vec3(0.55, 0.65, 0.66), distanceFog * 0.42), 1);
   },

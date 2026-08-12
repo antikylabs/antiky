@@ -132,6 +132,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let normal = normalize(baseNormal + tilt);
   let light = normalize(bm_u.uLightDir);
   let view = normalize(bm_u.uCamPos - bm_in.vWorld);
+  let rimFacing = pow(1.0 - max(dot(normal, view), 0.0), 2.5);
   let ndotl = max(dot(normal, light), 0.0);
   let lightClip = bm_u.uLightViewProj * vec4f(bm_in.vWorld, 1.0);
   let shadowUv = ((lightClip).xy / (lightClip).w * vec2f(0.5, -0.5) + vec2f(0.5));
@@ -152,7 +153,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let indirect = bm_u.uSkyColor * (bm_u.uSkyIntensity * (0.3 + up * 0.7)) + bm_u.uGroundColor * (bm_u.uGroundIntensity * (0.26 + (1.0 - up) * 0.74)) + vec3f(0.042, 0.054, 0.08);
   let warmKey = mix(vec3f(1.0, 0.94, 0.84), bm_u.uSunColor, 0.46);
   let direct = warmKey * (bm_u.uSunIntensity * 0.52 * ndotl * shadow * shadow);
-  var color = albedo * (indirect + direct);
+  var color = albedo * (indirect + direct) + bm_u.uSkyColor * (rimFacing * bm_u.uSkyIntensity * 0.32);
   let specular = min(specGGX(normal, light, view, roughness), 1.4) * specularLevel * bm_u.uSunIntensity * 0.5 * shadow * shadow;
   color = color + warmKey * specular;
   let fog = smoothstep(bm_u.uFogStart, bm_u.uFogEnd, bm_in.vDepth) * clamp(bm_u.uFogStrength, 0.0, 1.0);
