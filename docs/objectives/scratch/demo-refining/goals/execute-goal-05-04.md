@@ -28,7 +28,13 @@ centre as well as the rim, because angle changes fastest per pixel at the middle
 angular variation there measured 0.153 per pixel — steeper than anything at the boundary, and over
 the ceiling. That is a trap worth knowing about before authoring any radial effect texture.
 
-**Not yet wired**, and the reason matters for how you wire it: the three glow programs draw
+**Wired in `point-light-expo` and `traversal-study`** — both build their effect batches inside
+already-async factories, so the billboard loads beside the detail normal and threads through as an
+argument. The view-facing-normal trick works: `normal.xy` maps the visible hemisphere onto the sprite
+and reaches its rim, where alpha is already zero, exactly at the silhouette, so the edge softens
+instead of ending.
+
+**`combat-arena` is not wired**, and the reason matters: the three glow programs draw
 *spheres*, not screen-facing quads. They carry `vNormal` and no `vUv`, so there is no texture
 coordinate to sample with. The cheapest honest option is to sample by the view-facing normal —
 `vec2(normal.x, normal.y) * 0.5 + 0.5` — which maps the texture across the visible hemisphere and
@@ -58,8 +64,9 @@ touching `combat-arena`'s lifetime code.
 
 ## Required outcome
 
-1. **Textured soft billboards for every VFX program** (item 8). Today zero of the three glow shaders
-   sample a texture.
+1. **Textured soft billboards for every VFX program** (item 8). **Two of three done** —
+   `foundry-glow` and `traversal-glow` sample it; `arena-glow` is blocked on the lifetime problem
+   below.
 2. **Contact shadows and ring decals textured** (item 2). `antiky-town` is exempt — it casts real
    shadows through five depth-from-light passes and has no decal blobs to replace.
 3. **Timing rebuilt on curves, snap and secondary elements** (the rest of item 9).
