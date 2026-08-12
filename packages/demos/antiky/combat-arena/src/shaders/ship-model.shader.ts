@@ -143,8 +143,11 @@ export default shader({
     const rim = pow(1 - max(dot(normal, view), 0), 2.25);
     const authored = decodeSrgb(texture(uTex, vUv).xyz);
     const pulse = 0.76 + sin(uTime * 5.4 + vWorld.x * 0.75 - vWorld.z * 0.52) * 0.24;
-    const lit = authored.scale(0.25 + keyLight * 1.02 + fillLight * 0.28)
-      .add(vec3(0.025, 0.045, 0.075).scale(0.4 + max(normal.y, 0) * 0.34));
+    // Same earthshine as the arena beneath them, tinted the same way, so hulls and deck agree about
+    // where the light in this scene comes from.
+    const earthshine = vec3(0.34, 0.42, 0.55).scale(0.56 + max(normal.y, 0) * 0.4);
+    const lit = authored.mul(earthshine)
+      .add(authored.scale(keyLight * 1.15 + fillLight * 0.32));
     const energy = vTint.scale(clamp(vParams.x, 0, 1.2) * pulse * (0.12 + rim * 0.44));
     const hit = clamp(vParams.y, 0, 1);
     const confirmed = mix(lit.add(energy), vec3(3, 3.15, 3.3), hit * hit);

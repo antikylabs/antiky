@@ -87,9 +87,9 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let kitRoughness = textureSample(uKitMaterials, uKitMaterials_sampler, vec3f(bm_in.vUv.x, bm_in.vUv.y, 0.5)).x;
   let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.2) * (1.25 - kitRoughness);
   let sampled = decodeSrgb(textureSample(uTex, uTex_sampler, bm_in.vUv).xyz) * bm_in.vTint;
-  let fill = max(normal.y, 0.0) * 0.1;
+  let fill = max(normal.y, 0.0) * 0.34;
   let pulse = 0.72 + sin(bm_u.uTime * 5.2 + bm_in.vWorld.x * 0.8 - bm_in.vWorld.z * 0.55) * 0.28;
-  let lit = sampled * (0.16 + diffuse * 0.74 + fill) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));
+  let lit = sampled * (vec3f(0.34, 0.42, 0.55) * (0.62 + fill)) + sampled * (diffuse * 0.92) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));
   let confirmed = mix(lit, vec3f(1.7, 1.8, 1.9), clamp(bm_in.vParams.y, 0.0, 1.0));
   let fog = smoothstep(17.0, 34.0, length(bm_u.uCameraPosition - bm_in.vWorld));
   return vec4f(tonemapACES(mix(confirmed, vec3f(0.006, 0.01, 0.018), fog * 0.72)), 1.0);

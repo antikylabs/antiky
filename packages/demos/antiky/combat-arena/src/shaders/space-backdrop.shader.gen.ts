@@ -34,16 +34,22 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let starSeed = fract(sin(dot(coordinates, vec2f(12.9898, 78.233))) * 43758.5453);
   let sparseStars = pow(max(starSeed, 0.0), 72.0) * (0.66 + sin(bm_u.uTime * 0.45 + starSeed * 16.0) * 0.12);
   let nebula = clamp(sin(coordinates.x * 0.105 + coordinates.y * 0.062) * sin(coordinates.y * 0.086 - coordinates.x * 0.034) * 0.5 + 0.5, 0.0, 1.0);
-  let planetVector = coordinates - vec2f(-16.5, -12.5);
+  let planetVector = coordinates - vec2f(-14.0, -14.0);
   let planetDistance = length(planetVector);
-  let planetDisc = 1.0 - smoothstep(7.35, 7.85, planetDistance);
-  let atmosphere = clamp(1.0 - smoothstep(7.8, 10.25, planetDistance) - planetDisc, 0.0, 1.0);
-  let limb = pow(clamp(1.0 - planetDistance / 7.85, 0.0, 1.0), 0.34);
-  let cloudBands = 0.5 + sin(planetVector.y * 1.28 + sin(planetVector.x * 0.42) * 1.6) * 0.5;
-  let planet = mix(vec3f(0.018, 0.045, 0.09), vec3f(0.075, 0.18, 0.27), limb) + vec3f(0.08, 0.12, 0.14) * (cloudBands * 0.18);
+  let planetRadius = 12.0;
+  let planetDisc = 1.0 - smoothstep(planetRadius - 0.5, planetRadius, planetDistance);
+  let atmosphere = clamp(1.0 - smoothstep(planetRadius - 0.1, planetRadius + 4.6, planetDistance) - planetDisc, 0.0, 1.0);
+  let limb = pow(clamp(1.0 - planetDistance / planetRadius, 0.0, 1.0), 0.34);
+  let cloudBands = clamp(0.5 + sin(planetVector.y * 0.42 + sin(planetVector.x * 0.23) * 2.1) * 0.5 + sin(planetVector.x * 0.31 - planetVector.y * 0.17) * 0.22 + sin(planetVector.y * 0.83 + planetVector.x * 0.29) * 0.16, 0.0, 1.0);
+  let landField = 0.5 + sin(planetVector.x * 0.19 + 1.7) * sin(planetVector.y * 0.24 - 0.6) * 0.36 + sin(planetVector.x * 0.47 - 0.9) * sin(planetVector.y * 0.39 + 2.2) * 0.2;
+  let land = smoothstep(0.62, 0.78, landField) * planetDisc;
+  let dayside = clamp(0.46 + (0.0 - planetVector.x) * 0.038 + planetVector.y * 0.022, 0.0, 1.2);
+  let ocean = mix(vec3f(0.035, 0.16, 0.42), vec3f(0.12, 0.36, 0.72), limb);
+  let continents = mix(vec3f(0.16, 0.26, 0.13), vec3f(0.42, 0.36, 0.22), landField);
+  let planet = (mix(ocean, continents, land * 0.85) + vec3f(0.86, 0.9, 0.95) * (cloudBands * 0.34)) * dayside;
   let space = vec3f(0.0015, 0.004, 0.012) + vec3f(0.008, 0.016, 0.032) * (nebula * 0.7) + vec3f(0.68, 0.78, 0.94) * (sparseStars * (1.0 - planetDisc));
   let withPlanet = mix(space, planet, planetDisc);
-  let withAtmosphere = withPlanet + vec3f(0.04, 0.22, 0.34) * (atmosphere * atmosphere * 1.25);
+  let withAtmosphere = withPlanet + vec3f(0.16, 0.44, 0.86) * (atmosphere * atmosphere * 1.9 * dayside);
   return vec4f(tonemapACES(withAtmosphere), 1.0);
 }
 `,

@@ -154,9 +154,13 @@ export default shader({
     // Rough scatters wide and weak; smooth keeps a tight bright edge.
     const rim = pow(1 - max(dot(normal, view), 0), 2.2) * (1.25 - kitRoughness);
     const sampled = decodeSrgb(texture(uTex, vUv).xyz).mul(vTint);
-    const fill = max(normal.y, 0) * 0.1;
+    // Earthshine. In orbit the planet fills a large part of the sky and bounces a lot of blue light
+    // onto everything facing it — that fill is the difference between "in space" and "in orbit", and
+    // it is why the arena was reading as a deck in a void.
+    const fill = max(normal.y, 0) * 0.34;
     const pulse = 0.72 + sin(uTime * 5.2 + vWorld.x * 0.8 - vWorld.z * 0.55) * 0.28;
-    const lit = sampled.scale(0.16 + diffuse * 0.74 + fill)
+    const lit = sampled.mul(vec3(0.34, 0.42, 0.55).scale(0.62 + fill))
+      .add(sampled.scale(diffuse * 0.92))
       .add(vTint.scale(clamp(vParams.x, 0, 1) * pulse * (0.12 + rim * 0.34)));
     const confirmed = mix(lit, vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the

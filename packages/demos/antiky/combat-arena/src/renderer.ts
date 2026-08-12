@@ -50,7 +50,7 @@ export type CombatRenderer = Readonly<{
 }>;
 
 export const COMBAT_RENDERER_OPTIONS = Object.freeze({
-  clearColor: [0.005, 0.007, 0.011, 1] as const,
+  clearColor: [0.012, 0.02, 0.038, 1] as const,
   cull: 'none' as const,
 }) satisfies RendererOptions;
 
