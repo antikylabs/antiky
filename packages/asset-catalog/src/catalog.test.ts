@@ -7,6 +7,7 @@ import { createPolyHavenAsset } from './providers/poly-haven.ts';
 import { parseKenneyAssetPage } from './providers/kenney-client.ts';
 import { fetchPolyHavenMetadataCatalog, fetchPolyHavenStarterCatalog } from './providers/poly-haven-client.ts';
 import { fetchQuaterniusCatalog, parseQuaterniusPackPage } from './providers/quaternius-client.ts';
+import { metaContent } from './providers/source-html.ts';
 
 const assets: CatalogAsset[] = [
   {
@@ -56,6 +57,11 @@ test('searches normalized asset metadata', () => {
   assert.deepEqual(searchAssets(assets, { text: 'KENNEY' }), assets);
   assert.deepEqual(searchAssets(assets, { text: 'prototype', kind: 'model' }), assets);
   assert.deepEqual(searchAssets(assets, { kind: 'audio' }), []);
+});
+
+test('reads meta content when content appears before the identifying attribute', () => {
+  const html = '<meta content="#191919" name="theme-color"><meta content="Assets for a top-down game" property="og:description">';
+  assert.equal(metaContent(html, 'og:description'), 'Assets for a top-down game');
 });
 
 test('can require install-verified catalog entries', () => {

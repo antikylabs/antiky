@@ -13,12 +13,16 @@ export function decodeHtml(value: string): string {
 }
 
 export function metaContent(html: string, key: string): string {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const patterns = [
-    new RegExp(`<meta[^>]+(?:name|property)=["']${escaped}["'][^>]+content=(["'])(.*?)\\1[^>]*>`, 'i'),
-    new RegExp(`<meta[^>]+content=(["'])(.*?)\\1[^>]+(?:name|property)=["']${escaped}["'][^>]*>`, 'i'),
-  ];
-  return decodeHtml(patterns.map((pattern) => pattern.exec(html)?.[2]).find(Boolean) ?? '');
+  const normalizedKey = key.toLocaleLowerCase();
+  for (const meta of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const attributes = new Map<string, string>();
+    for (const attribute of meta[0].matchAll(/([:\w-]+)\s*=\s*(["'])(.*?)\2/gi)) {
+      attributes.set(attribute[1]!.toLocaleLowerCase(), attribute[3] ?? '');
+    }
+    const identity = attributes.get('name') ?? attributes.get('property');
+    if (identity?.toLocaleLowerCase() === normalizedKey) return decodeHtml(attributes.get('content') ?? '');
+  }
+  return '';
 }
 
 export function unique(values: readonly string[]): string[] {
