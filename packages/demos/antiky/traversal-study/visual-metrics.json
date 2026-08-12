@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "demo": "traversal-study",
-  "capturedAt": "2026-08-12T04:28:16.049Z",
+  "capturedAt": "2026-08-12T04:36:38.077Z",
   "warmUpFrames": 60,
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.239871,
+    "mean": 0.239782,
     "p05": 0.058497,
     "p50": 0.258093,
     "p95": 0.258093,
@@ -23,6 +23,6 @@
     "low": 0.000003
   },
   "saturation": {
-    "mean": 0.438476
+    "mean": 0.438418
   }
 }
