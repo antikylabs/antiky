@@ -1,0 +1,64 @@
+{
+  "assets": [
+    {
+      "catalogId": "poly-haven:rock-boulder-dry",
+      "kind": "texture",
+      "installedAt": "2026-08-13T01:48:09.700Z",
+      "provider": {
+        "id": "poly-haven",
+        "name": "Poly Haven",
+        "url": "https://polyhaven.com"
+      },
+      "upstream": {
+        "id": "rock_boulder_dry",
+        "url": "https://polyhaven.com/a/rock_boulder_dry",
+        "filesHash": "d0ca2468d0a2b2453c93e504016641249b400e4d",
+        "retrievedAt": "2026-08-09T22:15:47.937Z"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "resolution": "1k",
+      "format": "jpg",
+      "files": [
+        {
+          "map": "diff",
+          "file": "assets/poly-haven/rock-boulder-dry/rock-boulder-dry_diff_1k.jpg",
+          "bytes": 859211,
+          "md5": "da794cd9be3db91e3160cf081109f322",
+          "sha256": "20f653a42fb24f42aa40641663070d578678da49af18cc1049dbdd4ed8679f3c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_boulder_dry/rock_boulder_dry_diff_1k.jpg"
+        },
+        {
+          "map": "nor",
+          "file": "assets/poly-haven/rock-boulder-dry/rock-boulder-dry_nor_1k.jpg",
+          "bytes": 802497,
+          "md5": "6f1c575ceed560ae253f65518cf748e2",
+          "sha256": "5915fea28a97357c78a04fb31c2516f1f7ed1b3a9cef4ae25aa93e4655e6c595",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_boulder_dry/rock_boulder_dry_nor_gl_1k.jpg"
+        },
+        {
+          "map": "rough",
+          "file": "assets/poly-haven/rock-boulder-dry/rock-boulder-dry_rough_1k.jpg",
+          "bytes": 668127,
+          "md5": "0c8b15df3e31c15256da5f8e1b0d0759",
+          "sha256": "cc5229dd6bbdc4e817cb647e60242224b8e4f0237473ac018861ea243f2e8130",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_boulder_dry/rock_boulder_dry_rough_1k.jpg"
+        },
+        {
+          "map": "ao",
+          "file": "assets/poly-haven/rock-boulder-dry/rock-boulder-dry_ao_1k.jpg",
+          "bytes": 532861,
+          "md5": "2feb57a8cbb3ee0c5d82df9476c5718c",
+          "sha256": "179abc99b80cbe3727386c7efc8f042191aeaac05319d5b43dd9374bd12e5524",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_boulder_dry/rock_boulder_dry_ao_1k.jpg"
+        }
+      ]
+    }
+  ]
+}

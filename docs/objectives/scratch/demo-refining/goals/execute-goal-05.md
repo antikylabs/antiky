@@ -363,6 +363,27 @@ The first attempt also normalised against the old ambient's constant term instea
 average, which quietly removed a quarter of the fill — worth knowing, since the same mistake is
 available in the two demos still to be wired.
 
+### The capture instrument has a noise floor, and some budgets sit inside it
+
+Three captures of **identical** code give `antiky-town` local contrast of **8.50, 8.50, 8.46**. Its
+W0.3 floor is **8.5**, so the demo passes or fails that budget depending on the run, with nothing
+changing in between.
+
+Two consequences, and both matter beyond this goal:
+
+- **Do not attribute a difference under about 0.05 to a code change.** A roughness map was added,
+  measured at 8.49 against 8.52, and removed on that basis — a conclusion the instrument cannot
+  support. Differences that small need repeated captures, and mostly they need a different question.
+- **`antiky-town`'s budget needs an owner decision.** A floor sitting inside the noise is a test that
+  fails a third of the time for no reason, which trains everyone to ignore it. Either the floor drops
+  a little, or the capture becomes deterministic enough to resolve it. The demo genuinely improved
+  from 7.997 to about 8.49 this goal; that is not in doubt.
+
+The likely source is the simulation: townspeople walk and water moves, and `demos:shoot` warms up for
+sixty frames rather than stepping a paused simulation to a fixed count. Goal 06's capture protocol
+already specifies `pause_simulation` → `step_simulation` for exactly this reason, and `demos:shoot`
+does not do it.
+
 ### Corrections to this goal's premises
 
 - **"`fresnel()` ships and zero demos call it"** — the BroMetal *helper* is uncalled, but 13 of 29

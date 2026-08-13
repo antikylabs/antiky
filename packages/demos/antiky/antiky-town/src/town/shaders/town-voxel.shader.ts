@@ -371,6 +371,20 @@ export default shader({
 
     const ao = clamp(vLocalAo, 0, 1);
     const cavity = 1 - ao;
+    // No projected roughness map here, and the reason is complexity rather than measurement.
+    //
+    // A `rock-boulder-dry` roughness scan was installed, projected and tried at two spreads. It
+    // measured 8.49 against 8.52 without — but three captures of *identical* code give 8.50, 8.50,
+    // 8.46, so that difference is inside the noise and proves nothing either way. The honest
+    // statement is that its effect is too small for this instrument to see.
+    //
+    // So the decision rests on what is left: these faces already carry authored per-face roughness,
+    // a projected detail normal, and five depth-from-light shadow passes. A fourth source of
+    // variation that no measurement can detect is a sample, a download and a uniform for something
+    // nobody can point at.
+    //
+    // The material stays installed and receipted at `assets/poly-haven/rock-boulder-dry/` so the
+    // next person can try it against a sharper instrument rather than re-fetching it.
     const roughness = clamp(vMaterial.x, 0.12, 1);
     const specularLevel = clamp(vMaterial.y, 0, 1);
     const up = surfaceNormal.y * 0.5 + 0.5;

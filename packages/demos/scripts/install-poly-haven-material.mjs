@@ -18,6 +18,7 @@
  *   node install-poly-haven-material.mjs --slug plywood --demo traversal-study [--resolution 1k]
  */
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -89,8 +90,17 @@ async function main() {
     });
   }
 
-  const receiptPath = path.join(demosRoot, 'antiky', options.demo, 'assets', 'antiky-assets.json');
-  const receipts = JSON.parse(await readFile(receiptPath, 'utf8'));
+  // Two receipt conventions live in this repository: most demos keep one `antiky-assets.json`
+  // manifest, and `antiky-town` keeps a JSON file beside each asset. Write whichever the demo
+  // already uses rather than imposing one — a receipt nobody reads is worse than no receipt.
+  const manifestPath = path.join(demosRoot, 'antiky', options.demo, 'assets', 'antiky-assets.json');
+  const hasManifest = existsSync(manifestPath);
+  const receiptPath = hasManifest
+    ? manifestPath
+    : path.join(directory, `${options.slug}.json`);
+  const receipts = hasManifest
+    ? JSON.parse(await readFile(manifestPath, 'utf8'))
+    : { assets: [] };
   receipts.assets = receipts.assets.filter((asset) => asset.catalogId !== entry.id);
   receipts.assets.push({
     catalogId: entry.id,

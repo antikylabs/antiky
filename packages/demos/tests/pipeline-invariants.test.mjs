@@ -82,6 +82,8 @@ const SAMPLER_ROLES = Object.freeze({
   uStarMap: 'data',
   // Roughness. Numbers, not colour — decoding would bend every value toward the shallow end.
   uMaterialRoughness: 'data',
+  // A stone roughness scan. Numbers, not colour.
+  uStoneRough: 'data',
   uRoughness: 'data',
   uAo: 'data',
   uShadowMap: 'data',
