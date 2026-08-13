@@ -1,5 +1,6 @@
 import {
-  shader,
+  type Vec2,
+  type Vec3,
   abs,
   clamp,
   cos,
@@ -7,21 +8,21 @@ import {
   length,
   max,
   mix,
+  pow,
+  shader,
   sin,
   smoothstep,
   sqrt,
+  step,
   targetUv,
   texture,
   vec2,
   vec3,
   vec4,
-  type Vec2,
-  type Vec3,
 } from 'brometal';
 import {
   adjustSaturation,
   brightnessContrast,
-  gammaCorrect,
   luminance,
   tonemapACES,
 } from 'brometal/shader-functions';
@@ -67,6 +68,36 @@ function townSky(
  * depth-rejected at silhouettes; there is no motion blur, dust noise, or broad
  * screen blur. Exposure is fixed/manual, followed by ACES and explicit gamma.
  */
+/**
+ * Linear to sRGB, replacing `gammaCorrect(…, 2.2)`.
+ *
+ * Copied by hand from `point-light-expo`, which goal 07 names as the reference implementation.
+ * `pipeline-invariants.test.mjs` asserts every copy compiles to an identical body.
+ *
+ * **This demo was already encoding — with the approximation.** A 2.2 power curve and the real sRGB
+ * transfer function agree closely in the upper range and diverge most below 0.04, which is exactly
+ * where a town at golden hour keeps its shadowed alley walls and its awning undersides. The other
+ * half of colour management, the decode on albedo sample, has used the piecewise curve since goal
+ * 04; encoding with a different curve than you decoded with is a round trip that does not close.
+ *
+ * `max` guards the toe: `pow` of a negative is undefined and a tone-mapped value can land
+ * fractionally below zero.
+ */
+function channelToDisplay(channel: number): number {
+  const safe = max(channel, 0);
+  const low = safe * 12.92;
+  // 1 / 2.4, written out rather than divided. `brometal prod` constant-folds the division and
+  // `brometal dev` does not, so a division here makes the committed `.gen.ts` depend on which mode
+  // last ran — which `shader-output-parity` correctly refuses.
+  const high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
+  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
+  return mix(low, high, step(0.0031308, safe));
+}
+
+function encodeSrgb(color: Vec3): Vec3 {
+  return vec3(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+}
+
 export default shader({
   attributes: { aPosition: 'vec3' },
   uniforms: {
@@ -265,7 +296,7 @@ export default shader({
     const toeLift = 1 - smoothstep(0.02, 0.22, preToneLuma);
     graded = graded.add(vec3(0.006, 0.009, 0.015).scale(toeLift));
     const positiveGrade = vec3(max(graded.x, 0), max(graded.y, 0), max(graded.z, 0));
-    graded = gammaCorrect(tonemapACES(positiveGrade), 2.2);
+    graded = encodeSrgb(tonemapACES(positiveGrade));
     graded = brightnessContrast(graded, 0, uContrast);
 
     const centered = vScreenUv.sub(vec2(0.5, 0.5)).mul(vec2(1, 0.86));

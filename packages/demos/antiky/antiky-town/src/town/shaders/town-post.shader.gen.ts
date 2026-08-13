@@ -55,10 +55,6 @@ fn adjustSaturation(color : vec3f, amount : f32) -> vec3f {
 fn brightnessContrast(color : vec3f, brightness : f32, contrast : f32) -> vec3f {
   return (color - vec3f(0.5, 0.5, 0.5)) * contrast + vec3f(0.5, 0.5, 0.5) + vec3f(brightness, brightness, brightness);
 }
-fn gammaCorrect(color : vec3f, gamma : f32) -> vec3f {
-  let inv = 1.0 / gamma;
-  return vec3f(pow(color.x, inv), pow(color.y, inv), pow(color.z, inv));
-}
 fn tonemapACES(color : vec3f) -> vec3f {
   let num = color * (color * 2.51 + vec3f(0.03, 0.03, 0.03));
   let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
@@ -80,6 +76,15 @@ fn townSky(uv : vec2f, zenith : vec3f, horizon : vec3f, sunColor : vec3f, sunPos
   let halo = 1.0 - smoothstep(sunRadius, sunRadius * 5.5, sunDistance);
   color = color + balancedSun * (disc * 0.72 + halo * 0.16);
   return color;
+}
+fn channelToDisplay(channel : f32) -> f32 {
+  let safe = max(channel, 0.0);
+  let low = safe * 12.92;
+  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
+  return mix(low, high, step(0.0031308, safe));
+}
+fn encodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
 }
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
@@ -149,7 +154,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let toeLift = 1.0 - smoothstep(0.02, 0.22, preToneLuma);
   graded = graded + vec3f(0.006, 0.009, 0.015) * toeLift;
   let positiveGrade = vec3f(max(graded.x, 0.0), max(graded.y, 0.0), max(graded.z, 0.0));
-  graded = gammaCorrect(tonemapACES(positiveGrade), 2.2);
+  graded = encodeSrgb(tonemapACES(positiveGrade));
   graded = brightnessContrast(graded, 0.0, bm_u.uContrast);
   let centered = (bm_in.vScreenUv - vec2f(0.5, 0.5)) * vec2f(1.0, 0.86);
   let radial = length(centered) * 1.41421;
