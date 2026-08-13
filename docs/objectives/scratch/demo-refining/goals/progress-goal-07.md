@@ -10,7 +10,7 @@ without reading the commit log.
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
 | traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `cfa9e7b` | **done** `a8f41d2` |
-| antiky-town | — | — | — | — | — |
+| antiky-town | — | *contract guarded* `b6b453d` | — | — | — |
 
 ## combat-arena
 
@@ -542,6 +542,38 @@ these thresholds are the agent's proposal rather than stated art direction. Two 
 
 Neither is a loosening to make a packet pass: the packet's own measurements — bloom, grade, vignette,
 clipping — all pass. This is one bound that does not apply to this shape of frame.
+
+## antiky-town
+
+### The water depth contract, guarded before anything is touched (`b6b453d`)
+
+Goal 07 calls the format change the single highest-risk edit in the goal and requires this test to
+exist **before** W B.2 moves the scene target to RGBA16F. It does now, and nothing else in this demo
+has been changed yet.
+
+**The convention.** BroMetal depth attachments are never sampleable, so nothing downstream can read
+the depth buffer. This demo works around that by having every opaque shader write
+`length(world - camera)` into the scene target's **alpha**, which the post pass reads for its sky
+mask, its depth of field and its fog. The water features participate by *deliberately not alpha
+blending* — a blended fragment would overwrite the payload with an opacity.
+
+**What breaks silently if it is lost.** The sky mask keys off alpha approaching `FAR_DEPTH`, so a
+water surface writing 1.0 is classified as sky and disappears into the horizon; depth of field reads
+the same channel and would focus on nothing. Neither looks like a bug in the water.
+
+**Four assertions**, about the contract rather than about pixels, because the failure is a convention
+breaking rather than a value drifting:
+
+1. The water shader computes `vDepth` as camera distance and writes it to alpha unmodified.
+2. **Every opaque town shader agrees** — a literal in the alpha slot fails. The `-shadow` variants
+   are exempt by pattern, because they draw into the shadow map where alpha is free.
+3. The post pass still reads alpha as a distance against `uFarDepth`, for both the sky mask and the
+   depth of field.
+4. The far plane is the same number in all three places it appears — the camera's far, the scene
+   clear, and the post uniform — and is under 2048, so fp16 represents it exactly. That last point is
+   the one W B.2 actually puts at risk.
+
+Proven able to fail: replacing `vDepth` with `1` in the water shader turns tests 1 and 2 red.
 
 ## Notes carried forward
 
