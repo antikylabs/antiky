@@ -45,6 +45,7 @@ import { createKitMaterialLookup } from './kit-materials.ts';
 import { createLightingRamp } from './lighting-ramp.ts';
 import { loadVfxBillboard } from './vfx-billboard.ts';
 import { loadDetailNormal } from './detail-normal.ts';
+import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
 import traversalGlowShader from './shaders/traversal-glow.shader.gen';
 import traversalModelShader from './shaders/traversal-model.shader.gen';
@@ -111,18 +112,32 @@ function rollbackAndRethrow(disposal: DisposalStack, cause: unknown): never {
   throw cause;
 }
 
+/** A unit quad lying flat on the ground, for the contact shadow. */
+const GROUND_QUAD: Geometry = Object.freeze({
+  positions: new Float32Array([-1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1]),
+  normals: new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]),
+  uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+  indices: new Uint16Array([0, 2, 1, 0, 3, 2]),
+}) as Geometry;
+
 function createSurfaceBatch(
   renderer: Renderer,
   geometry: Geometry,
   capacity: number,
   billboard: BroMetalTexture,
+  /** The contact shadow passes the unlit shader, so no light, fog or tone-map acts on it. */
+  shader: typeof traversalSurfaceShader | typeof contactShadowShader = traversalSurfaceShader,
 ) {
   const disposal = createDisposalStack();
-  const program = disposal.adopt(createProgram(renderer, traversalSurfaceShader));
+  const program = disposal.adopt(createProgram(renderer, shader as typeof traversalSurfaceShader, {
+    // The blob depth-tests without writing depth; the lit surface is opaque and must keep writing.
+    blend: shader === traversalSurfaceShader ? 'none' : 'alpha',
+  }));
   program.uniforms.uBillboard.set(billboard);
   try {
     program.attributes.aPosition.set(geometry.positions);
-    program.attributes.aNormal.set(geometry.normals);
+    // The unlit shader has no normal: its shape is a radial falloff, not geometry.
+    program.attributes.aNormal?.set(geometry.normals);
     program.setIndices(geometry.indices);
   } catch (cause: unknown) {
     rollbackAndRethrow(disposal, cause);
@@ -146,12 +161,14 @@ function createSurfaceBatch(
       program.instanceAttributes.iOffset.set(offsets);
       program.instanceAttributes.iScale.set(scales);
       program.instanceAttributes.iColor.set(colors);
-      program.instanceAttributes.iMaterial.set(materials);
+      // The unlit contact shader declares no material channel.
+      program.instanceAttributes.iMaterial?.set(materials);
     },
     setFrame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
       program.uniforms.uViewProj.set(viewProjection);
-      program.uniforms.uCameraPosition.set(cameraPosition);
-      program.uniforms.uTime.set(time);
+      // The unlit shader declares neither: no view-dependent term and no clock.
+      program.uniforms.uCameraPosition?.set(cameraPosition);
+      program.uniforms.uTime?.set(time);
     },
     draw(): void { program.draw(); },
     dispose(): void { disposal.dispose(); },
@@ -204,8 +221,9 @@ function createGlowBatch(
     },
     setFrame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
       program.uniforms.uViewProj.set(viewProjection);
-      program.uniforms.uCameraPosition.set(cameraPosition);
-      program.uniforms.uTime.set(time);
+      // The unlit shader declares neither: no view-dependent term and no clock.
+      program.uniforms.uCameraPosition?.set(cameraPosition);
+      program.uniforms.uTime?.set(time);
     },
     draw(): void { program.draw(); },
     dispose(): void { disposal.dispose(); },
@@ -412,7 +430,7 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     const coastalCliffs = catalogEntries[10]!;
     const coastalTrees = catalogEntries[11]!;
     const relayTowers = catalogEntries[12]!;
-    const contactShadow = owned.adopt(createSurfaceBatch(renderer, createSphere({ radius: 1, widthSegments: 18, heightSegments: 10 }), TRAVERSAL_BATCH_CAPACITIES.contactShadow, vfxBillboard));
+    const contactShadow = owned.adopt(createSurfaceBatch(renderer, GROUND_QUAD, TRAVERSAL_BATCH_CAPACITIES.contactShadow, vfxBillboard, contactShadowShader));
     const hud = owned.adopt(createHudBatch(renderer));
     const trail = owned.adopt(createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 8, heightSegments: 6 }), TRAVERSAL_BATCH_CAPACITIES.trail, vfxBillboard));
     const effects = owned.adopt(createGlowBatch(renderer, createTorus({ radius: 1, tube: 0.055, radialSegments: 8, tubularSegments: 48 }), TRAVERSAL_BATCH_CAPACITIES.effects, vfxBillboard));
@@ -560,7 +578,15 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       const supportTop = courseTopAt(state.player.x, state.time);
       const shadowDistance = Math.max(0, state.player.y - RUNNER_RADIUS - supportTop);
       contactShadow.clear();
-      contactShadow.set(0, state.player.x, supportTop + 0.025, -0.02, 0.75 - Math.min(0.42, shadowDistance * 0.18), 0.035, 0.42, INK, 0, 0, 0);
+      // Footprint widened from the squashed-sphere numbers. The dome was opaque and replaced the
+      // platform pixels outright; this is a soft alpha wash, so the same extents read far lighter —
+      // measured against a control capture, the old blob darkened its deepest pixel by ~50% and this
+      // one by 19%. A platformer's contact shadow is gameplay feedback about where you will land, so
+      // it has to stay legible.
+      //
+      // `iScale.y` is a rotation in this shader, not a height: the quad is flat, so the vertical
+      // scale the sphere needed is free.
+      contactShadow.set(0, state.player.x, supportTop + 0.025, -0.02, 1.15 - Math.min(0.6, shadowDistance * 0.26), 0, 0.66, INK, 0, 0, 0);
       contactShadow.upload();
 
       trail.clear();
