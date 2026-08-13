@@ -114,7 +114,9 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let authored = decodeSrgb(textureSample(uTex, uTex_sampler, bm_in.vUv).xyz);
   let pulse = 0.76 + sin(bm_u.uTime * 5.4 + bm_in.vWorld.x * 0.75 - bm_in.vWorld.z * 0.52) * 0.24;
   let earthward = normalize(vec3f(-0.78, -0.42, -0.46));
-  let earthshine = vec3f(0.4, 0.5, 0.66) * (0.44 + max(dot(normal, earthward), 0.0) * 0.72 + max(normal.y, 0.0) * 0.22);
+  let planetFacing = dot(normal, earthward) * 0.5 + 0.5;
+  let ambient = mix(vec3f(0.18, 0.18, 0.18), vec3f(1.55, 1.55, 1.55), planetFacing);
+  let earthshine = vec3f(0.4, 0.5, 0.66) * ambient;
   let lit = authored * earthshine + authored * (keyLight * 1.15 + fillLight * 0.32);
   let energy = bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.2) * pulse * (0.12 + rim * 0.44));
   let hit = clamp(bm_in.vParams.y, 0.0, 1.0);

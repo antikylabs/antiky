@@ -190,8 +190,22 @@ export default shader({
     // where the light in this scene comes from.
     // Same planet, same direction as the deck below, so hulls and arena agree about the light.
     const earthward = normalize(vec3(-0.78, -0.42, -0.46));
-    const earthshine = vec3(0.40, 0.50, 0.66)
-      .scale(0.44 + max(dot(normal, earthward), 0) * 0.72 + max(normal.y, 0) * 0.22);
+    // Hemispheric ambient: the planet below, and empty space everywhere else.
+    //
+    // W B.4. What this replaces is the `0.72 +` that used to sit in front of the directional term —
+    // a flat constant that was **73% of the value a down-facing surface received**, so the direction
+    // only ever modulated the last quarter of it. Measured, the old term differed by **6.2%** between
+    // an up-facing and a down-facing normal, against the goal's 30% bar.
+    //
+    // The two lobes are this scene's actual sky: an arena in orbit is lit from below by a planet and
+    // from everywhere else by almost nothing. **Down-facing surfaces are the bright ones here**, and
+    // that is not a mistake to be corrected — it is where the light is.
+    //
+    // 0.18 and 1.55 are chosen so the spherical average lands at 0.865 against the old term's 0.925,
+    // which keeps the overall level while separating the two ends by 50%.
+    const planetFacing = dot(normal, earthward) * 0.5 + 0.5;
+    const ambient = mix(vec3(0.18, 0.18, 0.18), vec3(1.55, 1.55, 1.55), planetFacing);
+    const earthshine = vec3(0.40, 0.50, 0.66).mul(ambient);
     const lit = authored.mul(earthshine)
       .add(authored.scale(keyLight * 1.15 + fillLight * 0.32));
     const energy = vTint.scale(clamp(vParams.x, 0, 1.2) * pulse * (0.12 + rim * 0.44));

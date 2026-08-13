@@ -148,7 +148,9 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let earthward = normalize(vec3f(-0.78, -0.42, -0.46));
   let fill = max(dot(normal, earthward), 0.0) * 0.62 + max(normal.y, 0.0) * 0.2;
   let pulse = 0.72 + sin(bm_u.uTime * 5.2 + bm_in.vWorld.x * 0.8 - bm_in.vWorld.z * 0.55) * 0.28;
-  let lit = sampled * (vec3f(0.46, 0.57, 0.74) * (0.72 + fill)) + sampled * (diffuse * 1.15) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));
+  let planetFacing = dot(normal, earthward) * 0.5 + 0.5;
+  let ambient = mix(vec3f(0.18, 0.18, 0.18), vec3f(1.55, 1.55, 1.55), planetFacing);
+  let lit = sampled * (vec3f(0.46, 0.57, 0.74) * ambient) + sampled * (diffuse * 1.15) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));
   let floodlit = lit + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition0, bm_u.uLightColor0, bm_u.uLightFalloff0) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition1, bm_u.uLightColor1, bm_u.uLightFalloff1) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition2, bm_u.uLightColor2, bm_u.uLightFalloff2) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition3, bm_u.uLightColor3, bm_u.uLightFalloff3) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition4, bm_u.uLightColor4, bm_u.uLightFalloff4) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition5, bm_u.uLightColor5, bm_u.uLightFalloff5);
   let confirmed = mix(floodlit, vec3f(1.7, 1.8, 1.9), clamp(bm_in.vParams.y, 0.0, 1.0));
   let fog = smoothstep(17.0, 34.0, length(bm_u.uCameraPosition - bm_in.vWorld));
