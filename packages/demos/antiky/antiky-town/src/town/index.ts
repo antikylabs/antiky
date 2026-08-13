@@ -815,7 +815,24 @@ async function createTownRuntime(
     const height = Math.max(1, renderer.canvas.height);
     if (!sceneTarget || sceneTarget.width !== width || sceneTarget.height !== height) {
       sceneTarget?.dispose();
-      sceneTarget = createRenderTarget(renderer, { width, height, depth: true });
+      sceneTarget = createRenderTarget(renderer, {
+        width,
+        height,
+        depth: true,
+        // W B.2. **Not** a format change: goal 07 states the gap is that this target "requests no
+        // HDR format", and that is not so — BroMetal fixes every offscreen target to
+        // `rgba16float` (`dist/runtime/webgpu.js:15`), so it has always had headroom. The real gap
+        // is the one the same section names second: everything this demo draws goes through an
+        // offscreen pass, and a render target is single-sampled by default, so it has been throwing
+        // away the 4x MSAA an on-screen pass keeps. Goal 02's W A.2 patch is what makes asking for
+        // it possible.
+        //
+        // The risk this carries is specific to this demo: the resolve averages **alpha** too, and
+        // alpha here is linear camera distance rather than opacity. Averaging two distances across
+        // a silhouette yields one belonging to neither surface, which the post pass would read as a
+        // depth between the two. Measured below.
+        samples: 4,
+      });
     }
     return sceneTarget;
   };
