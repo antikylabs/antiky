@@ -27,15 +27,6 @@ struct BmVSOut {
   @location(2) vColor : vec3f,
   @location(3) vPower : f32,
 }
-fn channelToDisplay(channel : f32) -> f32 {
-  let safe = max(channel, 0.0);
-  let low = safe * 12.92;
-  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  return mix(low, high, step(0.0031308, safe));
-}
-fn encodeSrgb(color : vec3f) -> vec3f {
-  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
-}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -57,7 +48,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let surfaceNormal = normalize(bm_in.vNormal);
   let structure = textureSample(uBillboard, uBillboard_sampler, vec2f(surfaceNormal.x * 0.5 + 0.5, surfaceNormal.y * 0.5 + 0.5)).w;
   let textured = 0.55 + structure * 0.45;
-  return vec4f(encodeSrgb(bm_in.vColor * (strength * textured)), (0.32 + rim * 0.55) * textured);
+  return vec4f(bm_in.vColor * (strength * textured), (0.32 + rim * 0.55) * textured);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3' },

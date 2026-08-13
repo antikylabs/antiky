@@ -3,10 +3,12 @@ import {
   createCone,
   createPlane,
   createProgram,
+  createRenderTarget,
   createSphere,
   createTorus,
   loadTexture,
   mat4,
+  type RenderTarget,
   type Renderer,
 } from 'brometal';
 import type { GamePointerInput } from '@antiky/framework/game';
@@ -18,6 +20,36 @@ import { loadDetailNormal } from './detail-normal.ts';
 import { loadVfxBillboard } from './vfx-billboard.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
+import postShader from './shaders/post.shader.gen.ts';
+
+/**
+ * `RELAY_PRESENTATION.clearColor` expressed in linear light.
+ *
+ * The authored value is a display colour: before 06-02 it was written straight to the screen and
+ * never passed through a shader. Now it enters an RGBA16F target and leaves through exposure, ACES
+ * and the sRGB encode, so it has to be the linear value that comes back out as the authored one.
+ * Solved numerically against that exact chain at the demo's exposure, which is why these are not
+ * simply `decodeSrgb(clearColor)`.
+ */
+const LINEAR_CLEAR = Object.freeze([0.006355, 0.009128, 0.008313, 1] as const);
+
+/**
+ * `RELAY_PRESENTATION.fog.color` expressed in pre-exposure scene light.
+ *
+ * The same boundary problem as the clear colour. Before 06-02 each material mixed fog in *after*
+ * applying exposure, so the authored value was a post-exposure quantity. Now materials write linear
+ * light into the target and the post pass exposes all of it at once, so mixing the authored value
+ * unchanged would expose the fog too — brightening it by the exposure factor.
+ *
+ * That matters far more than it sounds. Fog dominates the darks, and the sRGB encode has an enormous
+ * slope there: a 0.005 linear shift near black is about 20/255 on screen. Left unconverted it moved
+ * dark pixels from 25 to 89.
+ */
+const LINEAR_FOG_COLOR: readonly [number, number, number] = Object.freeze([
+  RELAY_PRESENTATION.fog.color[0] / RELAY_PRESENTATION.exposure,
+  RELAY_PRESENTATION.fog.color[1] / RELAY_PRESENTATION.exposure,
+  RELAY_PRESENTATION.fog.color[2] / RELAY_PRESENTATION.exposure,
+]);
 import {
   createContactShadowBatch,
   createGlowBatch,
@@ -169,9 +201,8 @@ export async function createRelayRenderer(
     batch.program.uniforms.uSh7.set(SURFACE_SKY[7]!);
     batch.program.uniforms.uSh8.set(SURFACE_SKY[8]!);
     batch.program.uniforms.uAmbientStrength.set(RELAY_PRESENTATION.surfaceAmbient.strength);
-    batch.program.uniforms.uExposure.set(RELAY_PRESENTATION.exposure);
     batch.program.uniforms.uRelayLightStrength.set(RELAY_PRESENTATION.relayLightStrength);
-    batch.program.uniforms.uFogColor.set(RELAY_PRESENTATION.fog.color);
+    batch.program.uniforms.uFogColor.set(LINEAR_FOG_COLOR);
     batch.program.uniforms.uFogStart.set(RELAY_PRESENTATION.fog.start);
     batch.program.uniforms.uFogEnd.set(RELAY_PRESENTATION.fog.end);
     batch.program.uniforms.uFogMaximumMix.set(RELAY_PRESENTATION.fog.maximumMix);
@@ -189,9 +220,8 @@ export async function createRelayRenderer(
     batch.program.uniforms.uSh7!.set(SURFACE_SKY[7]!);
     batch.program.uniforms.uSh8!.set(SURFACE_SKY[8]!);
     batch.program.uniforms.uAmbientStrength!.set(RELAY_PRESENTATION.catalogMaterial.ambientStrength);
-    batch.program.uniforms.uExposure!.set(RELAY_PRESENTATION.exposure);
     batch.program.uniforms.uRelayLightStrength!.set(RELAY_PRESENTATION.relayLightStrength);
-    batch.program.uniforms.uFogColor!.set(RELAY_PRESENTATION.fog.color);
+    batch.program.uniforms.uFogColor!.set(LINEAR_FOG_COLOR);
     batch.program.uniforms.uFogStart!.set(RELAY_PRESENTATION.fog.start);
     batch.program.uniforms.uFogEnd!.set(RELAY_PRESENTATION.fog.end);
     batch.program.uniforms.uFogMaximumMix!.set(RELAY_PRESENTATION.fog.maximumMix);
@@ -214,9 +244,8 @@ export async function createRelayRenderer(
   floorProgram.uniforms.uSh7.set(FLOOR_SKY[7]!);
   floorProgram.uniforms.uSh8.set(FLOOR_SKY[8]!);
   floorProgram.uniforms.uAmbientStrength.set(RELAY_PRESENTATION.floorAmbient.strength);
-  floorProgram.uniforms.uExposure.set(RELAY_PRESENTATION.exposure);
   floorProgram.uniforms.uRelayLightStrength.set(RELAY_PRESENTATION.relayLightStrength);
-  floorProgram.uniforms.uFogColor.set(RELAY_PRESENTATION.fog.color);
+  floorProgram.uniforms.uFogColor.set(LINEAR_FOG_COLOR);
   floorProgram.uniforms.uFogStart.set(RELAY_PRESENTATION.fog.start);
   floorProgram.uniforms.uFogEnd.set(RELAY_PRESENTATION.fog.end);
   floorProgram.uniforms.uFogMaximumMix.set(RELAY_PRESENTATION.fog.maximumMix);
@@ -255,7 +284,47 @@ export async function createRelayRenderer(
     }
     return false;
   };
-  const drawFrame = (): void => {
+  // One RGBA16F target for the whole scene, and one pass that turns it into an image.
+  //
+  // BroMetal fixes every offscreen target to `rgba16float`, so there is no format to choose — a
+  // `drawTo` target is already 16-bit float. `depth: true` because the scene is depth-sorted
+  // geometry, not a single quad.
+  //
+  // The target is rebuilt only when the canvas size changes; reallocating every frame would throw
+  // away the drawing buffer sixty times a second for nothing.
+  let sceneTarget: RenderTarget | undefined;
+  const ensureSceneTarget = (): RenderTarget => {
+    const width = Math.max(1, renderer.canvas.width);
+    const height = Math.max(1, renderer.canvas.height);
+    if (!sceneTarget || sceneTarget.width !== width || sceneTarget.height !== height) {
+      sceneTarget?.dispose();
+      // `samples: 4` because the canvas is 4x multisampled and the target is not by default.
+      // Moving the scene off the screen and into a target silently took its anti-aliasing away:
+      // hard luminance steps went from 6,356 to 9,449 before this was set. The target texture
+      // stays single-sampled and receives the resolve, so the post pass samples it unchanged.
+      //
+      // The resolve now happens in linear light, before the tone-map, rather than in display space
+      // after it. That is the order an HDR target exists to provide, and it is why a few thousand
+      // pixels on the highest-contrast edges still differ from the pre-06-02 frame.
+      sceneTarget = createRenderTarget(renderer, { width, height, depth: true, samples: 4 });
+    }
+    return sceneTarget;
+  };
+  // `blend: 'alpha'` on a pass that is not blending anything, because in BroMetal that is the only
+  // way to ask for "do not write depth": the pipeline sets `depthWriteEnabled: blend === 'none'`
+  // and `depthCompare: 'less'` with no separate knob. The post quad sits at clip z = 0 and covers
+  // the canvas, so with depth writing on it stamps 0 into every depth texel — and the onboarding
+  // overlay, also at z = 0, then fails `0 < 0` and vanishes. That is what happened: the panel was
+  // missing from the first 06-02 capture and accounted for 2.74 of the 3.26/255 drift.
+  //
+  // The blend is a true no-op here: the fragment writes alpha 1, so `src * srcAlpha + dst * (1 -
+  // srcAlpha)` is exactly `src`. Nothing has drawn to the canvas before it, and the canvas depth
+  // clears to 1 each frame, so both this quad and the overlay pass the test.
+  const postProgram = resources.register(createProgram(renderer, postShader, { blend: 'alpha' }));
+  postProgram.attributes.aPosition.set(createPlane({ width: 2, height: 2 }).positions);
+  postProgram.setIndices(createPlane({ width: 2, height: 2 }).indices);
+
+  const drawScene = (): void => {
     floorProgram.draw();
     organic.draw();
     rocks.draw();
@@ -268,6 +337,28 @@ export async function createRelayRenderer(
     // reads as sitting on top of the shadow rather than under it.
     contacts.draw();
     glows.draw();
+  };
+
+  const drawFrame = (): void => {
+    const scene = ensureSceneTarget();
+    // The target must be cleared to the scene's background, not to `drawTo`'s default of
+    // transparent black. Missing this turned 34% of the frame — everything outside the floor — from
+    // the authored void colour to pure black, which was most of this step's measured drift.
+    //
+    // The value is linear because the target is: the post pass exposes, tone-maps and encodes it
+    // along with everything else, so it has to enter the pipeline in the same space as the geometry.
+    renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
+
+    postProgram.uniforms.uScene.set(scene.texture);
+    postProgram.uniforms.uExposure.set(RELAY_PRESENTATION.exposure);
+    postProgram.draw();
+
+    // Drawn after the post pass, on purpose, and this is the ambiguity goal 06-02 asks to settle.
+    //
+    // The overlay is authored display-space UI. Inside the target it would be exposed and
+    // tone-mapped along with the scene, which would change text that was picked to be legible
+    // exactly as authored. Outside it, the identity holds — which is what UI wants and what it
+    // already did before this step.
     onboarding.draw();
     onboarding.drawStatus();
   };

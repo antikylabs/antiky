@@ -71,28 +71,47 @@ test('the piecewise toe is used, not the 2.2 approximation', () => {
   );
 });
 
-test('every shader that writes a final pixel encodes exactly once', async () => {
-  // `onboarding` is deliberately absent: it is authored display-space UI composited onto a
-  // display-space buffer, so the identity is correct and encoding would darken it. The reasoning is
-  // written at its sample site, and `pipeline-invariants.test.mjs` classifies its atlas `authored`.
-  const FINAL_PIXEL_SHADERS = [
-    'reliquary-model', 'reliquary-floor', 'foundry', 'contact-shadow', 'foundry-glow',
-  ];
-  for (const name of FINAL_PIXEL_SHADERS) {
-    const source = await readFile(new URL(`../src/shaders/${name}.shader.ts`, import.meta.url), 'utf8');
-    assert.match(source, /function encodeSrgb/, `${name} has no encode helper`);
-
-    const returns = [...source.matchAll(/return vec4\(/g)];
-    const fragmentReturn = source.slice(source.indexOf('fragment('));
-    assert.match(
-      fragmentReturn,
-      /return vec4\(\s*encodeSrgb\(/,
-      `${name} writes a final pixel without encoding it`,
-    );
-    assert.ok(returns.length >= 1, `${name} has no vec4 return at all`);
-
-    // Twice would darken the image as badly as not at all, in the other direction.
-    const encodeCalls = [...fragmentReturn.matchAll(/encodeSrgb\(/g)].length;
-    assert.equal(encodeCalls, 1, `${name} calls encodeSrgb ${encodeCalls} times in its fragment`);
+test('exactly one shader encodes, and it is the post pass', async () => {
+  // 06-01 needed a copy of the encode in every shader that wrote a final pixel. 06-02 gave the scene
+  // one RGBA16F target and one pass that reads it, so those copies collapse into this single one —
+  // which is the whole reason for the target. A material shader that still encodes is writing
+  // display data into a linear buffer, and the post pass would then encode it a second time.
+  const { readdir } = await import('node:fs/promises');
+  const directory = new URL('../src/shaders/', import.meta.url);
+  const encoders = [];
+  for (const entry of await readdir(directory)) {
+    if (!entry.endsWith('.shader.ts') || entry.endsWith('.gen.ts')) continue;
+    const source = await readFile(new URL(entry, directory), 'utf8');
+    if (/function encodeSrgb/.test(source)) encoders.push(entry);
   }
+  assert.deepEqual(encoders, ['post.shader.ts'], 'only the post pass may encode');
+
+  const post = await readFile(new URL('post.shader.ts', directory), 'utf8');
+  // The return expression, not the whole fragment: `uExposure` also appears in the parameter
+  // destructuring, which would make it look like it came first.
+  const fragment = post.slice(post.indexOf('return vec4(', post.indexOf('fragment(')));
+  // Order matters and is not interchangeable: exposure scales linear light, ACES maps that range
+  // into 0..1, and only then is it display data.
+  const exposureAt = fragment.indexOf('uExposure');
+  const toneMapAt = fragment.indexOf('tonemapACES');
+  const encodeAt = fragment.indexOf('encodeSrgb');
+  assert.ok(exposureAt >= 0 && toneMapAt >= 0 && encodeAt >= 0, 'the post pass is missing a stage');
+  assert.ok(encodeAt < toneMapAt, 'the encode must wrap the tone-map, not precede it');
+  assert.ok(toneMapAt < exposureAt, 'the tone-map must wrap the exposed value');
+});
+
+test('no material shader tone-maps or applies exposure', async () => {
+  const { readdir } = await import('node:fs/promises');
+  const directory = new URL('../src/shaders/', import.meta.url);
+  const offenders = [];
+  let scanned = 0;
+  for (const entry of await readdir(directory)) {
+    if (!entry.endsWith('.shader.ts') || entry.endsWith('.gen.ts') || entry === 'post.shader.ts') continue;
+    scanned += 1;
+    const source = await readFile(new URL(entry, directory), 'utf8');
+    if (/tonemapACES/.test(source)) offenders.push(`${entry}: tone-maps`);
+    if (/uExposure/.test(source)) offenders.push(`${entry}: applies its own exposure`);
+  }
+  assert.ok(scanned >= 5, `expected the material shaders, scanned ${scanned}`);
+  assert.deepEqual(offenders, [], 'these belong to the post pass now, once, for the whole frame');
 });

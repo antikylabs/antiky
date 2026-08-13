@@ -10,6 +10,7 @@ import sharp from 'sharp';
 import { readFrameStats } from './frame-stats.mjs';
 import {
   DEMOS,
+  DEMO_PROBES,
   buildCaptureInput,
   buildMetricsSidecar,
   evidencePngPath,
@@ -137,7 +138,7 @@ test('the metrics sidecar records the numbers the budgets assert against', async
     source: { digest: 'abc123', fileCount: 7 },
   });
 
-  assert.equal(sidecar.schemaVersion, 2);
+  assert.equal(sidecar.schemaVersion, 3);
   // The digest is what stops a budget judging a capture taken from different code.
   assert.deepEqual(sidecar.source, { digest: 'abc123', fileCount: 7 });
   // Sealed, so a hand-edited measurement stops matching.
@@ -158,6 +159,9 @@ test('the metrics sidecar records the numbers the budgets assert against', async
   assert.equal(sidecar.luminance.spread, 1);
   assert.equal(sidecar.clipping.high, 0.5);
   assert.equal(sidecar.clipping.low, 0.5);
+  assert.equal(typeof sidecar.edges.hard, 'number');
+  // No probes were requested, so the map is present and empty rather than missing.
+  assert.deepEqual(sidecar.probes, {});
   // The sidecar is committed, so it must serialise cleanly and stay diff-friendly.
   assert.equal(typeof JSON.parse(JSON.stringify(sidecar)).luminance.mean, 'number');
 });
@@ -198,4 +202,64 @@ test('the source digest changes when the demo changes and not otherwise', async 
   // otherwise every capture would invalidate the digest it just recorded.
   await writeFile(path.join(directory, 'visual-metrics.json'), '{"anything":true}');
   assert.equal((await sourceDigest(directory)).digest, fourth.digest);
+});
+
+test('a declared probe reaches the sidecar and lands on its own rectangle', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-probe-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // Black everywhere except one bright band inside the probe. A whole-frame number barely notices
+  // a band this size, which is the reason probes exist: point-light-expo lost its entire onboarding
+  // panel while every frame-wide metric stayed inside budget.
+  const width = 128;
+  const height = 64;
+  const probe = { x: 16, y: 16, width: 32, height: 32 };
+  const data = Buffer.alloc(width * height * 3);
+  for (let y = 20; y < 28; y += 1) {
+    for (let x = 20; x < 44; x += 1) {
+      const offset = (y * width + x) * 3;
+      data[offset] = 255;
+      data[offset + 1] = 255;
+      data[offset + 2] = 255;
+    }
+  }
+  const file = path.join(directory, 'frame.png');
+  await sharp(data, { raw: { width, height, channels: 3 } }).png().toFile(file);
+
+  const stats = await readFrameStats(file, { probes: { panel: probe } });
+  const sidecar = buildMetricsSidecar({
+    slug: 'point-light-expo',
+    stats,
+    capturedAt: '2026-08-12T00:00:00.000Z',
+    warmUpFrames: 60,
+    source: { digest: 'abc123', fileCount: 7 },
+  });
+
+  assert.equal(sidecar.probes.panel.pixels, probe.width * probe.height);
+  assert.ok(
+    sidecar.probes.panel.standardDeviation > 0.2,
+    'a bright band inside the probe should spread it',
+  );
+  // The same frame measured whole barely moves, so the probe is reading its rectangle and not
+  // inheriting the frame.
+  assert.ok(
+    sidecar.probes.panel.meanLuminance > stats.meanLuminance * 3,
+    `probe ${sidecar.probes.panel.meanLuminance} should far exceed frame ${stats.meanLuminance}`,
+  );
+  // A measured probe is part of what the seal covers, so it cannot be edited afterwards either.
+  assert.notEqual(
+    sealMetrics({
+      ...sidecar,
+      probes: { panel: { ...sidecar.probes.panel, standardDeviation: 0 } },
+    }),
+    sidecar.seal,
+  );
+});
+
+test('every demo with declared probes is a demo that exists', () => {
+  for (const slug of Object.keys(DEMO_PROBES)) {
+    assert.ok(DEMOS[slug] !== undefined, `DEMO_PROBES names "${slug}", which is not a demo`);
+  }
+  // A guard against the map quietly emptying and the probe assertions passing on nothing.
+  assert.ok(Object.keys(DEMO_PROBES).length >= 1);
 });

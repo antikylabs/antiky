@@ -333,3 +333,78 @@ test('a sequence of mismatched sizes is an error rather than a silent comparison
 
   await assert.rejects(readSequenceStats([small, large]), /differ in size/);
 });
+
+test('hard edges separate an aliased silhouette from an anti-aliased one', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // The same disc twice: once point-sampled, once averaged from a 4x4 grid per pixel. That is
+  // what a 4x multisampled pass approximates, so the two frames differ in exactly the way losing
+  // multisampling makes a real frame differ, and in nothing else.
+  //
+  // **What this test is honest about.** The separation on one silhouette is small — around 1.2x.
+  // A single high-contrast edge stays hard however it is sampled, because even the midpoint of a
+  // big jump is a big jump. The measure earns its keep across a whole frame, where thousands of
+  // edges sit at many contrasts and averaging pushes the middle of that population under the
+  // threshold: point-light-expo measured 0.68% multisampled against 1.03% not, on the same scene.
+  //
+  // So this is a directional indicator, not a classifier, and it is used the way the other budgets
+  // are used — against a demo's own recorded number. Asserting a large ratio here would mean
+  // choosing a synthetic image that flatters the instrument.
+  const DARK = 20;
+  const LIGHT = 140;
+  const RADIUS = 40;
+  const isInside = (x, y) => Math.hypot(x - 64, y - 64) <= RADIUS;
+  const aliased = await writePng(directory, 'aliased.png', {
+    width: 128,
+    height: 128,
+    fill: (x, y) => {
+      const value = isInside(x + 0.5, y + 0.5) ? LIGHT : DARK;
+      return [value, value, value];
+    },
+  });
+  const smooth = await writePng(directory, 'smooth.png', {
+    width: 128,
+    height: 128,
+    fill: (x, y) => {
+      let covered = 0;
+      for (let sampleY = 0; sampleY < 4; sampleY += 1) {
+        for (let sampleX = 0; sampleX < 4; sampleX += 1) {
+          if (isInside(x + (sampleX + 0.5) / 4, y + (sampleY + 0.5) / 4)) covered += 1;
+        }
+      }
+      const value = Math.round(DARK + (covered / 16) * (LIGHT - DARK));
+      return [value, value, value];
+    },
+  });
+
+  const aliasedStats = await readFrameStats(aliased);
+  const smoothStats = await readFrameStats(smooth);
+  assert.ok(
+    aliasedStats.hardEdgeFraction > smoothStats.hardEdgeFraction,
+    `point-sampled ${aliasedStats.hardEdgeFraction} should exceed multisampled `
+    + `${smoothStats.hardEdgeFraction}`,
+  );
+  // Both frames carry the same silhouette at the same size, so the difference has to come from the
+  // edge treatment. Bounding it from above says the metric is not merely counting edge pixels,
+  // which would score the two identically.
+  assert.ok(
+    smoothStats.hardEdgeFraction > aliasedStats.hardEdgeFraction * 0.5,
+    'the two frames share a silhouette, so the gap should be a shift and not a collapse',
+  );
+});
+
+test('a gradient is not counted as a hard edge however far it travels', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // Black to white across the full width. The total range is maximal and the local step is one
+  // byte, which is the distinction the metric exists to make.
+  const file = await writePng(directory, 'ramp.png', {
+    width: 256,
+    height: 64,
+    fill: (x) => [x, x, x],
+  });
+  const stats = await readFrameStats(file);
+  assert.equal(stats.hardEdgeFraction, 0);
+});

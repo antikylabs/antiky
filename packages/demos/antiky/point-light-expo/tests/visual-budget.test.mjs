@@ -29,6 +29,26 @@ import test from 'node:test';
 const LOCAL_CONTRAST_FLOOR = 8.5;
 const CLIPPING_CEILING = 0.02;
 
+/**
+ * Anti-aliasing ceiling, against a measured 0.68% with the scene multisampled.
+ *
+ * Set from the failure rather than from taste: 06-02 moved the scene onto a render target, which
+ * defaults to one sample, and that read 1.03% on the same frame. The ceiling sits between the two
+ * with room for content to change, because this number is content-dependent and the scene will keep
+ * gaining geometry.
+ */
+const HARD_EDGE_CEILING = 0.0085;
+
+/**
+ * How far the onboarding panel must spread the light inside its own rectangle.
+ *
+ * The panel is a near-black plate carrying bright text, so it measures 0.143 while the lit floor it
+ * covers measures 0.081. The floor is the number this sees when the panel does not draw, which is
+ * what happened: the post pass wrote depth across the canvas and everything drawn after it failed
+ * the depth test. No whole-frame metric noticed.
+ */
+const ONBOARDING_SPREAD_FLOOR = 0.11;
+
 const metricsPath = path.join(import.meta.dirname, '..', 'visual-metrics.json');
 
 async function readMetrics() {
@@ -88,5 +108,27 @@ test('point-light-expo keeps recoverable detail in its darks', async () => {
     metrics.clipping.low <= CLIPPING_CEILING,
     `${(metrics.clipping.low * 100).toFixed(2)}% of pixels are crushed to pure black, `
     + `ceiling is ${CLIPPING_CEILING * 100}%. A void background is the usual cause.`,
+  );
+});
+
+test('point-light-expo still anti-aliases its scene', async () => {
+  const metrics = await readMetrics();
+  assert.ok(
+    metrics.edges.hard <= HARD_EDGE_CEILING,
+    `${(metrics.edges.hard * 100).toFixed(3)}% of pixels sit on an unsampled edge, ceiling is `
+    + `${(HARD_EDGE_CEILING * 100).toFixed(3)}%. Drawing the scene into a render target without `
+    + '`samples: 4` is the cause worth checking first — targets default to one sample.',
+  );
+});
+
+test('point-light-expo still draws its onboarding panel', async () => {
+  const metrics = await readMetrics();
+  const panel = metrics.probes?.onboarding;
+  assert.ok(panel !== undefined, 'the capture recorded no onboarding probe');
+  assert.ok(
+    panel.standardDeviation >= ONBOARDING_SPREAD_FLOOR,
+    `the onboarding rectangle spreads ${panel.standardDeviation}, floor is `
+    + `${ONBOARDING_SPREAD_FLOOR}. At around 0.08 the panel is not drawing and this is measuring `
+    + 'the floor behind it.',
   );
 });

@@ -729,9 +729,21 @@ test('a shader that encodes does it once, at the end', async () => {
     // One definition site plus one call. More than that is a second application.
     if (calls > 2) offenders.push(`${shader.relative}: encodeSrgb appears ${calls} times`);
   }
-  // Five, not six: `onboarding` is authored display-space UI composited onto a display-space
-  // buffer, so passing it through unchanged is the identity. Its atlas is classified `authored`.
-  assert.ok(encoders >= 5, `expected point-light-expo's five encoding shaders, found ${encoders}`);
+  // Exactly one per demo that has a post pass. 06-01 needed a copy in every shader that wrote a
+  // final pixel; 06-02 gave point-light-expo one RGBA16F target and one pass that reads it, so those
+  // copies collapsed into a single post-pass encode. A material shader that still encodes would be
+  // writing display data into a linear buffer for the post pass to encode a second time.
+  assert.ok(encoders >= 1, `no shader encodes at all`);
+  const postPasses = (await allShaders())
+    .filter((shader) => shader.calls('encodeSrgb'))
+    .map((shader) => shader.relative);
+  for (const relative of postPasses) {
+    assert.match(
+      relative,
+      /post\.shader\.gen\.ts$/,
+      `${relative} encodes, but the encode belongs to the post pass alone`,
+    );
+  }
   assert.deepEqual(offenders, []);
 });
 

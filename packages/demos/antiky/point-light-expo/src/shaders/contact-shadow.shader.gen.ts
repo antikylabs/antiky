@@ -25,15 +25,6 @@ fn rotate2(p : vec2f, angle : f32) -> vec2f {
   let s = sin(angle);
   return vec2f(p.x * c - p.y * s, p.x * s + p.y * c);
 }
-fn channelToDisplay(channel : f32) -> f32 {
-  let safe = max(channel, 0.0);
-  let low = safe * 12.92;
-  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  return mix(low, high, step(0.0031308, safe));
-}
-fn encodeSrgb(color : vec3f) -> vec3f {
-  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
-}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -51,7 +42,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let falloff = smoothstep(1.0, 0.12, length(bm_in.vLocal));
   let present = smoothstep(0.0, 0.02, bm_in.vRadius);
   let structure = textureSample(uBillboard, uBillboard_sampler, bm_in.vLocal * 0.5 + vec2f(0.5, 0.5)).w;
-  return vec4f(encodeSrgb(bm_in.vColor), falloff * 0.6 * present * (0.62 + structure * 0.38));
+  return vec4f(bm_in.vColor, falloff * 0.6 * present * (0.62 + structure * 0.38));
 }
 `,
   attributes: { aPosition: 'vec3' },

@@ -45,6 +45,32 @@ export const DEMOS = Object.freeze({
   'orbital-atlas': 'packages/demos/threejs/orbital-atlas/orbital-atlas.antiky',
 });
 
+/**
+ * Named rectangles a demo wants measured on top of the whole-frame numbers.
+ *
+ * A whole-frame statistic cannot answer "is this particular thing still in the picture", and a demo
+ * can lose an entire element while every frame-wide number stays inside its budget. That happened:
+ * point-light-expo's onboarding panel stopped drawing and the capture still measured p95 0.256,
+ * local contrast 6.66 and saturation 0.422 — all normal.
+ *
+ * Most demos need none of this, so the map is sparse and lives beside `DEMOS` rather than inside
+ * it. A probe that falls outside the frame is an error, not a clamp, so these are real coordinates
+ * against a real capture size.
+ */
+export const DEMO_PROBES = Object.freeze({
+  'point-light-expo': Object.freeze({
+    /**
+     * The onboarding panel, bottom-left of a 1280x720 capture.
+     *
+     * Judged by standard deviation rather than brightness. The panel is a near-black plate carrying
+     * bright text, so it spreads much wider than the lit floor it covers: 0.143 with the panel
+     * present against 0.081 without. Mean luminance separates too, but in the direction that makes
+     * "darker" look like "passing", and this demo is already dark on purpose.
+     */
+    onboarding: Object.freeze({ x: 16, y: 648, width: 608, height: 60 }),
+  }),
+});
+
 /** Capture errors that mean "reality moved, read it again" rather than "this failed". */
 const RETRYABLE_CAPTURE_CODES = new Set([
   'CAPTURE_BUILD_STALE',
@@ -163,7 +189,7 @@ export async function sourceDigest(rawDirectory) {
 /** The committed record of what a demo looked like on a given run. */
 export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, source }) {
   const sidecar = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     demo: slug,
     capturedAt,
     warmUpFrames,
@@ -188,6 +214,17 @@ export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, sou
       low: Number(stats.clippedLow.toFixed(6)),
     },
     saturation: { mean: Number(stats.meanSaturation.toFixed(6)) },
+    /**
+     * Anti-aliasing. `hard` is the fraction of pixels on an unsampled edge; it rises when a scene
+     * stops being multisampled, which is a change nothing else here notices.
+     */
+    edges: { hard: Number(stats.hardEdgeFraction.toFixed(6)) },
+    // Only the demos in `DEMO_PROBES` have any, so this is usually `{}`.
+    probes: Object.fromEntries(Object.entries(stats.probes).map(([name, probe]) => [name, {
+      meanLuminance: Number(probe.meanLuminance.toFixed(6)),
+      standardDeviation: Number(probe.luminanceStandardDeviation.toFixed(6)),
+      pixels: probe.pixels,
+    }])),
   };
   // Sealed against editing. The budgets are read from this file, so without a seal the way to pass
   // one is to open it and type a bigger number — which was demonstrated, and passed.
@@ -357,7 +394,7 @@ async function shootDemo(slug, { warmUpFrames, runs, keep }) {
         await mkdir(keep, { recursive: true });
         await copyFile(pngPath, path.join(keep, `${slug}-run-${run}.png`));
       }
-      const stats = await readFrameStats(pngPath);
+      const stats = await readFrameStats(pngPath, { probes: DEMO_PROBES[slug] ?? {} });
       sidecar = buildMetricsSidecar({
         slug,
         stats,

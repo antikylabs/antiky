@@ -19,7 +19,7 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import { specGGX, tonemapACES } from 'brometal/shader-functions';
+import {specGGX } from 'brometal/shader-functions';
 
 function materialPresentationPointRadiance(
   world: Vec3,
@@ -41,40 +41,6 @@ function materialPresentationPointRadiance(
   const specular = min(specGGX(normal, light, view, roughness), 2.4)
     * (0.16 + metalness * 0.84);
   return lightColor.scale(lightPower * attenuation * (diffuse + specular));
-}
-
-/**
- * Linear to sRGB, applied once when a final pixel is written.
- *
- * The exact inverse of `decodeSrgb`. BroMetal never configures an sRGB canvas format —
- * `context.configure` takes `gpu.getPreferredCanvasFormat()`, which returns `bgra8unorm` or
- * `rgba8unorm` and never an `-srgb` variant — so nothing encodes for us and the encode has to live
- * in the shader, for the same reason the decode does.
- *
- * Goal 04 added the decode without this, which left every lit surface computed on correct numbers
- * and then written to the screen as though it were already display-encoded. That is why this demo's
- * luminance p95 fell from 0.090 to 0.050.
- *
- * The piecewise curve, not the 2.2 approximation: the two differ most below 0.0031308, and a scene
- * this dark spends its time there. `max` guards the toe because `pow` of a negative is undefined and
- * a tone-mapped value can land fractionally below zero.
- *
- * Declared here rather than imported: the BroMetal MVP resolves only module-level helpers declared
- * above their first use. `pipeline-invariants.test.mjs` asserts every copy is identical.
- */
-function channelToDisplay(channel: number): number {
-  const safe = max(channel, 0);
-  const low = safe * 12.92;
-  // 1 / 2.4, written out rather than divided. `brometal prod` constant-folds the division and
-  // `brometal dev` does not, so a division here makes the committed `.gen.ts` depend on which mode
-  // last ran — which `shader-output-parity` correctly refuses.
-  const high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
-  return mix(low, high, step(0.0031308, safe));
-}
-
-function encodeSrgb(color: Vec3): Vec3 {
-  return vec3(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
 }
 
 export default shader({
@@ -103,7 +69,6 @@ export default shader({
     uSh7: 'vec3',
     uSh8: 'vec3',
     uAmbientStrength: 'float',
-    uExposure: 'float',
     uRelayLightStrength: 'float',
     uDetailNormal: 'sampler2D',
     uFogColor: 'vec3',
@@ -174,7 +139,6 @@ export default shader({
     uSh7,
     uSh8,
     uAmbientStrength,
-    uExposure,
     uRelayLightStrength,
     uDetailNormal,
     uFogColor,
@@ -291,10 +255,11 @@ const baseNormal = normalize(vNormal);
     const emissive = vBaseColor.scale(vMaterial.z * pulse);
     const fog = smoothstep(uFogStart, uFogEnd, length(uCameraPosition.sub(vWorld)));
     const color = mix(
-      lit.add(emissive).scale(uExposure),
+      lit.add(emissive),
       uFogColor,
       fog * uFogMaximumMix,
     );
-    return vec4(encodeSrgb(tonemapACES(color)), 1);
+    // Linear HDR. See `post.shader.ts` for where this becomes an image.
+    return vec4(color, 1);
   },
 });

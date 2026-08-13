@@ -129,6 +129,53 @@ function probeStats(data, width, height, channels, rectangle) {
 }
 
 /**
+ * How far display luminance may jump between neighbouring pixels before the step counts as hard.
+ *
+ * A quarter of the range. Below this, real shading gradients and texture detail start being
+ * counted; above it, only genuine silhouettes qualify.
+ */
+const HARD_EDGE_STEP = 64;
+
+/**
+ * Fraction of pixels that jump more than `HARD_EDGE_STEP` to their right or lower neighbour.
+ *
+ * This is the anti-aliasing measure. A multisampled silhouette lands intermediate values between
+ * the two surfaces it separates, so it reads as a run of small steps; an unsampled one is a single
+ * large jump with nothing in between. The number rises when anti-aliasing is lost.
+ *
+ * It exists because that happened and nothing caught it. Moving point-light-expo's scene off the
+ * multisampled canvas and into a render target — which defaults to one sample — took the frame
+ * from 0.69% to 1.03% here while every other metric stayed put and the capture looked fine at a
+ * glance.
+ *
+ * **This is a directional indicator, not a classifier.** On a single high-contrast silhouette it
+ * separates sampled from unsampled by only about 1.2x, because the midpoint of a big jump is still
+ * a big jump. It works across a whole frame, where thousands of edges sit at many contrasts and
+ * averaging pushes the middle of that population under the threshold. So compare a demo against
+ * its own recorded number and never against another demo's: the absolute value is content, and
+ * pixel art and UI text are hard-edged on purpose.
+ *
+ * Measured on display bytes rather than linear light, deliberately: the question is whether a
+ * viewer sees a staircase, which is about the delivered image.
+ */
+function hardEdgeFraction(data, width, height, channels) {
+  const displayLuminance = (x, y) => {
+    const offset = (y * width + x) * channels;
+    return LUMA_R * data[offset] + LUMA_G * data[offset + 1] + LUMA_B * data[offset + 2];
+  };
+  let hard = 0;
+  for (let y = 0; y < height - 1; y += 1) {
+    for (let x = 0; x < width - 1; x += 1) {
+      const here = displayLuminance(x, y);
+      const rightStep = Math.abs(displayLuminance(x + 1, y) - here);
+      const downStep = Math.abs(displayLuminance(x, y + 1) - here);
+      if (rightStep > HARD_EDGE_STEP || downStep > HARD_EDGE_STEP) hard += 1;
+    }
+  }
+  return hard / ((width - 1) * (height - 1));
+}
+
+/**
  * Compute frame statistics for a captured PNG.
  *
  * `probes` maps a name to a `{ x, y, width, height }` rectangle in pixels. Probes are addressed
@@ -223,6 +270,8 @@ export async function readFrameStats(pngPath, options = {}) {
      * measures the colourfulness of the part of the image a viewer can actually see.
      */
     meanSaturation: luminanceTotal > 0 ? saturationTotal / luminanceTotal : 0,
+    /** Fraction of pixels sitting on an unsampled edge. Rises when anti-aliasing is lost. */
+    hardEdgeFraction: hardEdgeFraction(data, width, height, channels),
     probes: Object.freeze(probeResults),
   });
 }
