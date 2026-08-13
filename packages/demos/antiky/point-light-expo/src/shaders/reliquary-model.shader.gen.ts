@@ -192,7 +192,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let sunDiffuse = max(dot(normal, bm_u.uSunDirection), 0.0);
   let sunSpecular = specularGGX(normal, bm_u.uSunDirection, view, roughness, vec3f(0.04, 0.04, 0.04));
   let sunRadiance = bm_u.uSunColor * sunVisibility * (base * sunDiffuse + sunSpecular);
-  let lit = (base * ambient + relay + sunRadiance) * occlusion + bm_u.uSh0 * (rim * 0.22 * occlusion);
+  let lit = base * (ambient * occlusion) + relay + sunRadiance + bm_u.uSh0 * (rim * 0.22 * occlusion);
   let pulse = 0.94 + sin(bm_u.uTime * 2.1 + bm_in.vWorld.y) * 0.06;
   let emissive = base * (bm_in.vMaterial.y * pulse);
   let fog = smoothstep(bm_u.uFogStart, bm_u.uFogEnd, length(bm_u.uCameraPosition - bm_in.vWorld));

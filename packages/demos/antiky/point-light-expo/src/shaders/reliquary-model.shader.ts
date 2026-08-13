@@ -320,6 +320,12 @@ export default shader({
 
     const materialMap = texture(uArm, vUv).xyz;
     const roughness = clamp(mix(materialMap.y, materialMap.x, uMaterialLayout) + vMaterial.x, 0.18, 1);
+    // `rock-moss` (layout 1) gets no occlusion, and that is a gap rather than a choice: its
+    // `catalog_material` image is one greyscale channel replicated across RGB, which is roughness
+    // with no occlusion anywhere in it. Reading `materialMap.x` for it would read roughness as
+    // occlusion. `packages/demos/scripts/bake-vertex-occlusion.mjs` exists to fill this and is
+    // tested, but wiring it in blanked the scene and the rock measured only 3.9% occluded at p10 —
+    // it is a set of convex boulders with very little to occlude. See goal 99 row A13.
     const occlusion = mix(0.58 + materialMap.x * 0.42, 1, uMaterialLayout);
     // Albedo is the decoded texture and the instance tint, and nothing else.
     //
@@ -398,7 +404,16 @@ export default shader({
     const sunRadiance = uSunColor
       .scale(sunVisibility)
       .mul(base.scale(sunDiffuse).add(sunSpecular));
-    const lit = base.mul(ambient).add(relay).add(sunRadiance).scale(occlusion)
+    // Occlusion multiplies the ambient term and nothing else.
+    //
+    // It used to scale the whole sum, which meant a crevice was darkened once for receiving less
+    // sky and again for receiving less sun — and the sun does not care what the sky can see. That
+    // is the classic ambient-occlusion mistake, and its signature is exactly what this demo had:
+    // shadowed areas that go flat and grey instead of dark and shaped.
+    //
+    // The rim term keeps its occlusion because it is ambient: `uSh0` is the sky's average over the
+    // whole sphere, which is what a surface turning away from the camera is catching.
+    const lit = base.mul(ambient.scale(occlusion)).add(relay).add(sunRadiance)
       // Band 0 is the sky's average over the whole sphere, which is exactly what a surface
       // turning away from the camera is catching.
       .add(uSh0.scale(rim * 0.22 * occlusion));
