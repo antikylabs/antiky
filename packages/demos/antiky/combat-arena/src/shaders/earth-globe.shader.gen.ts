@@ -31,6 +31,15 @@ fn channelToLinear(channel : f32) -> f32 {
 fn decodeSrgb(color : vec3f) -> vec3f {
   return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
 }
+fn channelToDisplay(channel : f32) -> f32 {
+  let safe = max(channel, 0.0);
+  let low = safe * 12.92;
+  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
+  return mix(low, high, step(0.0031308, safe));
+}
+fn encodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -69,7 +78,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let withNight = mix(night, daySide, clamp(lambert * 2.4 + 0.08, 0.0, 1.0));
   let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.6);
   let haze = vec3f(0.24, 0.52, 0.95) * (rim * (0.45 + max(dot(normal, sun), 0.0) * 2.4));
-  return vec4f(withNight + haze, 1.0);
+  return vec4f(encodeSrgb(withNight + haze), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3' },

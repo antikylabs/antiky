@@ -738,21 +738,38 @@ test('a shader that encodes does it once, at the end', async () => {
     // One definition site plus one call. More than that is a second application.
     if (calls > 2) offenders.push(`${shader.relative}: encodeSrgb appears ${calls} times`);
   }
-  // Exactly one per demo that has a post pass. 06-01 needed a copy in every shader that wrote a
-  // final pixel; 06-02 gave point-light-expo one RGBA16F target and one pass that reads it, so those
-  // copies collapsed into a single post-pass encode. A material shader that still encodes would be
-  // writing display data into a linear buffer for the post pass to encode a second time.
-  assert.ok(encoders >= 1, `no shader encodes at all`);
-  const postPasses = (await allShaders())
-    .filter((shader) => shader.calls('encodeSrgb'))
-    .map((shader) => shader.relative);
-  for (const relative of postPasses) {
-    assert.match(
-      relative,
-      /post\.shader\.gen\.ts$/,
-      `${relative} encodes, but the encode belongs to the post pass alone`,
+  // **Once a demo has a post pass, the post pass is the only thing allowed to encode.** Before it
+  // has one, every shader writing a final pixel needs its own copy.
+  //
+  // That is not a loophole, it is the migration. Goal 06 walked point-light-expo through exactly
+  // these two states — 06-01 put a copy in every final-pixel shader, 06-02 gave the demo one RGBA16F
+  // target and one pass reading it, and the copies collapsed. Goal 07 walks the other three demos
+  // through the same two states, so the rule has to be asked per demo rather than globally, or the
+  // first half of every demo's migration is a failure by definition.
+  //
+  // What it still catches is the thing that matters: a material shader encoding *alongside* a post
+  // pass, which writes display data into a linear buffer for the post pass to encode a second time.
+  assert.ok(encoders >= 1, 'no shader encodes at all');
+  const byDemo = new Map();
+  for (const shader of await allShaders()) {
+    if (!shader.calls('encodeSrgb')) continue;
+    const demo = shader.relative.split('/src/')[0];
+    if (!byDemo.has(demo)) byDemo.set(demo, []);
+    byDemo.get(demo).push(shader.relative);
+  }
+  let collapsed = 0;
+  for (const [demo, relatives] of byDemo) {
+    const hasPostPass = relatives.some((relative) => /post\.shader\.gen\.ts$/.test(relative));
+    if (!hasPostPass) continue;
+    collapsed += 1;
+    assert.deepEqual(
+      relatives.filter((relative) => !/post\.shader\.gen\.ts$/.test(relative)),
+      [],
+      `${demo} has a post pass, so nothing else in it may encode`,
     );
   }
+  // At least one demo must have finished the collapse, or this is asserting nothing.
+  assert.ok(collapsed >= 1, 'no demo has collapsed its encode into a post pass');
   assert.deepEqual(offenders, []);
 });
 
