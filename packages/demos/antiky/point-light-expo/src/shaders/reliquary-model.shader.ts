@@ -95,6 +95,40 @@ function decodeSrgb(color: Vec3): Vec3 {
   return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
 }
 
+/**
+ * Linear to sRGB, applied once when a final pixel is written.
+ *
+ * The exact inverse of `decodeSrgb`. BroMetal never configures an sRGB canvas format —
+ * `context.configure` takes `gpu.getPreferredCanvasFormat()`, which returns `bgra8unorm` or
+ * `rgba8unorm` and never an `-srgb` variant — so nothing encodes for us and the encode has to live
+ * in the shader, for the same reason the decode does.
+ *
+ * Goal 04 added the decode without this, which left every lit surface computed on correct numbers
+ * and then written to the screen as though it were already display-encoded. That is why this demo's
+ * luminance p95 fell from 0.090 to 0.050.
+ *
+ * The piecewise curve, not the 2.2 approximation: the two differ most below 0.0031308, and a scene
+ * this dark spends its time there. `max` guards the toe because `pow` of a negative is undefined and
+ * a tone-mapped value can land fractionally below zero.
+ *
+ * Declared here rather than imported: the BroMetal MVP resolves only module-level helpers declared
+ * above their first use. `pipeline-invariants.test.mjs` asserts every copy is identical.
+ */
+function channelToDisplay(channel: number): number {
+  const safe = max(channel, 0);
+  const low = safe * 12.92;
+  // 1 / 2.4, written out rather than divided. `brometal prod` constant-folds the division and
+  // `brometal dev` does not, so a division here makes the committed `.gen.ts` depend on which mode
+  // last ran — which `shader-output-parity` correctly refuses.
+  const high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
+  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
+  return mix(low, high, step(0.0031308, safe));
+}
+
+function encodeSrgb(color: Vec3): Vec3 {
+  return vec3(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+}
+
 export default shader({
   attributes: {
     aPosition: 'vec3',
@@ -117,9 +151,6 @@ export default shader({
     uNormalMap: 'sampler2D',
     uNormalStrength: 'float',
     uMaterialLayout: 'float',
-    uDiffuseLift: 'float',
-    uTextureContrast: 'float',
-    uSaturation: 'float',
     uSh0: 'vec3',
     uSh1: 'vec3',
     uSh2: 'vec3',
@@ -184,9 +215,6 @@ export default shader({
     uMaterialLayout,
     uNormalMap,
     uNormalStrength,
-    uDiffuseLift,
-    uTextureContrast,
-    uSaturation,
     uSh0,
     uSh1,
     uSh2,
@@ -262,12 +290,13 @@ export default shader({
     const materialMap = texture(uArm, vUv).xyz;
     const roughness = clamp(mix(materialMap.y, materialMap.x, uMaterialLayout) + vMaterial.x, 0.18, 1);
     const occlusion = mix(0.58 + materialMap.x * 0.42, 1, uMaterialLayout);
-    const sourceBase = decodeSrgb(texture(uDiffuse, vUv).xyz);
-    const sourceLuminance = dot(sourceBase, vec3(0.2126, 0.7152, 0.0722));
-    const saturated = mix(vec3(sourceLuminance, sourceLuminance, sourceLuminance), sourceBase, uSaturation);
-    const lifted = mix(vec3(0.48, 0.48, 0.48), saturated, uTextureContrast)
-      .add(vec3(uDiffuseLift, uDiffuseLift, uDiffuseLift));
-    const base = clamp(lifted, 0, 1).mul(vTint);
+    // Albedo is the decoded texture and the instance tint, and nothing else.
+    //
+    // A grey wash, a lift and a saturation control used to sit between them. All three existed to
+    // fight a scene that was lit in display space, and with the encode in place there is nothing
+    // left for them to fight. Deleted rather than re-tuned: a knob that compensates for a bug
+    // outlives the bug and then nobody can tell which is which.
+    const base = clamp(decodeSrgb(texture(uDiffuse, vUv).xyz), 0, 1).mul(vTint);
     const relay = pointRadiance(
       vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness,
     ).add(pointRadiance(
@@ -312,10 +341,10 @@ export default shader({
     const pulse = 0.94 + sin(uTime * 2.1 + vWorld.y) * 0.06;
     const emissive = base.scale(vMaterial.y * pulse);
     const fog = smoothstep(uFogStart, uFogEnd, length(uCameraPosition.sub(vWorld)));
-    return vec4(tonemapACES(mix(
+    return vec4(encodeSrgb(tonemapACES(mix(
       lit.add(emissive).scale(uExposure),
       uFogColor,
       fog * uFogMaximumMix,
-    )), 1);
+    ))), 1);
   },
 });

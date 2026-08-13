@@ -194,16 +194,23 @@ test('shade geometry is a substantial three-dimensional predator silhouette', ()
   assert.ok(geometry.indices.length >= 180, 'the shade must have volumetric body and limb planes');
 });
 
-test('catalog materials lift dark source albedo while the floor yields hierarchy', () => {
-  const material = (RELAY_PRESENTATION as typeof RELAY_PRESENTATION & {
-    catalogMaterial?: Readonly<{ diffuseLift: number; textureContrast: number; ambientStrength: number }>;
+test('the wash knobs that fought display-space lighting are gone', () => {
+  // These asserted the opposite until goal 06-01: a diffuse lift of at least 0.12, a texture
+  // contrast at most 0.82, a floor contrast at most 0.68. Every one of them existed to drag a scene
+  // back up that was being lit in display space, which is the bug the sRGB encode fixed. A knob that
+  // compensates for a bug outlives the bug, and then nobody can tell which is which.
+  const presentation = RELAY_PRESENTATION as typeof RELAY_PRESENTATION & {
+    catalogMaterial?: Readonly<Record<string, number>>;
     floorTextureContrast?: number;
-  }).catalogMaterial;
-  assert.ok(material);
-  assert.ok(material.diffuseLift >= 0.12);
-  assert.ok(material.textureContrast <= 0.82);
-  assert.ok(material.ambientStrength >= RELAY_PRESENTATION.surfaceAmbient.strength);
-  assert.ok((RELAY_PRESENTATION as { floorTextureContrast?: number }).floorTextureContrast! <= 0.68);
+  };
+  assert.equal(presentation.floorTextureContrast, undefined);
+  assert.equal(presentation.catalogMaterial?.diffuseLift, undefined);
+  assert.equal(presentation.catalogMaterial?.textureContrast, undefined);
+  assert.equal(presentation.catalogMaterial?.saturation, undefined);
+
+  // `ambientStrength` is not a wash knob — it is a real ambient term and it stays.
+  assert.ok(presentation.catalogMaterial);
+  assert.ok(presentation.catalogMaterial.ambientStrength >= RELAY_PRESENTATION.surfaceAmbient.strength);
 });
 
 test('render slots are contiguous, bounded, and derived from simulation counts', () => {

@@ -17,11 +17,7 @@ export const RELAY_PRESENTATION = Object.freeze({
     strength: 1.08,
   }),
   floorDiffuseTint: color(0.78, 0.82, 0.74),
-  floorTextureContrast: 0.56,
   catalogMaterial: Object.freeze({
-    diffuseLift: 0.14,
-    textureContrast: 0.78,
-    saturation: 0.9,
     ambientStrength: 1.14,
   }),
   fog: Object.freeze({

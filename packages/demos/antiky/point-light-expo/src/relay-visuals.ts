@@ -58,6 +58,29 @@ function setSurface(
   );
 }
 
+/**
+ * sRGB to linear, for colours authored as display values in the palette.
+ *
+ * `contact-shadow` and `foundry-glow` write their instance colour straight to the screen with no
+ * lighting, and every shader now encodes on output. Handing them a display-authored colour would
+ * encode it a second time and wash it out, so it is converted here, where it enters the pipeline.
+ * Encode(linear(c)) returns exactly c, which is the point.
+ *
+ * The lit shaders are deliberately not routed through this: their palette entries are albedo
+ * multiplied by light, and changing those changes the lighting rather than the transfer function.
+ * That gap is real and belongs to a later step, not to this one.
+ *
+ * Same piecewise curve as `decodeSrgb` in the shaders, and `packages/demos/tests` asserts they
+ * agree.
+ */
+function channelToLinear(channel: number): number {
+  return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+}
+
+export function srgbToLinear(color: Vec3): Vec3 {
+  return [channelToLinear(color[0]), channelToLinear(color[1]), channelToLinear(color[2])];
+}
+
 function setGlow(
   batch: GlowBatch,
   index: number,
@@ -68,8 +91,12 @@ function setGlow(
   phase = 0,
   motion = 0,
 ): void {
-  batch.setValues(index, x, y, z, scale, color[0], color[1], color[2], power, phase, motion);
+  const linear = srgbToLinear(color);
+  batch.setValues(index, x, y, z, scale, linear[0], linear[1], linear[2], power, phase, motion);
 }
+
+/** The contact-shadow colour, converted once. See `srgbToLinear`. */
+const LINEAR_CONTACT_SHADOW = srgbToLinear(CONTACT_SHADOW);
 
 function populateFormsAndOrbs(
   batches: RelayVisualBatches,
@@ -121,7 +148,7 @@ function populateFormsAndOrbs(
     renderSlot(RELAY_RENDER_SLOTS.contacts.player, 0),
     state.player.x, -0.375, state.player.z,
     0.52, 0, 0.38,
-    CONTACT_SHADOW[0], CONTACT_SHADOW[1], CONTACT_SHADOW[2],
+    LINEAR_CONTACT_SHADOW[0], LINEAR_CONTACT_SHADOW[1], LINEAR_CONTACT_SHADOW[2],
   );
   for (let index = 0; index < state.shades.length; index += 1) {
     const shade = state.shades[index]!;
@@ -129,7 +156,7 @@ function populateFormsAndOrbs(
       renderSlot(RELAY_RENDER_SLOTS.contacts.shades, index),
       shade.x, -0.375, shade.z,
       0.72, 0, 0.54,
-      CONTACT_SHADOW[0], CONTACT_SHADOW[1], CONTACT_SHADOW[2],
+      LINEAR_CONTACT_SHADOW[0], LINEAR_CONTACT_SHADOW[1], LINEAR_CONTACT_SHADOW[2],
     );
   }
   setSurface(

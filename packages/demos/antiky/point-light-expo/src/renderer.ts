@@ -195,12 +195,8 @@ export async function createRelayRenderer(
     batch.program.uniforms.uFogStart!.set(RELAY_PRESENTATION.fog.start);
     batch.program.uniforms.uFogEnd!.set(RELAY_PRESENTATION.fog.end);
     batch.program.uniforms.uFogMaximumMix!.set(RELAY_PRESENTATION.fog.maximumMix);
-    batch.program.uniforms.uDiffuseLift!.set(RELAY_PRESENTATION.catalogMaterial.diffuseLift);
-    batch.program.uniforms.uTextureContrast!.set(RELAY_PRESENTATION.catalogMaterial.textureContrast);
-    batch.program.uniforms.uSaturation!.set(RELAY_PRESENTATION.catalogMaterial.saturation);
   }
   floorProgram.uniforms.uDiffuseTint.set(RELAY_PRESENTATION.floorDiffuseTint);
-  floorProgram.uniforms.uTextureContrast.set(RELAY_PRESENTATION.floorTextureContrast);
   // Nine coefficients instead of one colour. BroMetal's DSL has no array uniform type, so they are
   // nine separate bindings rather than one — verbose at the call site, but the shader side is a
   // straight nine multiply-adds with no indexing.

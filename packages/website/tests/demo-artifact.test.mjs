@@ -117,3 +117,28 @@ test('every demo vite config pins a relative base', async () => {
   }
   assert.deepEqual(offenders, []);
 });
+
+test('a build output is validated by its file set, not by two different sort orders', async () => {
+  const script = await readFile(
+    new URL('../scripts/stage-demo-artifacts.mjs', import.meta.url),
+    'utf8',
+  );
+
+  // `filesBelow` walks with `localeCompare(name, 'en')` and the expected list uses the default
+  // code-unit `.sort()`. Those two orderings disagree whenever case or punctuation is involved, and
+  // the check compares the lists element by element — so an identical set of files was reported as
+  // "missing or extra files" with nothing missing and nothing extra. Goal 05's wall panels were the
+  // first filenames to expose it: `template-wall-Dzn8tX6E.glb` sorts before
+  // `template-wall-detail-a-Dmly8Er6.glb` by code unit and after it by locale.
+  assert.match(
+    script,
+    /const actualFiles = \(await filesBelow\([^)]*\)\)\.sort\(\)/,
+    'the actual file list must be sorted the same way as the expected one before comparison',
+  );
+
+  // The orderings really do differ, or the assertion above is guarding nothing.
+  const pair = ['template-wall-detail-a-Dmly8Er6.glb', 'template-wall-Dzn8tX6E.glb'];
+  const byCodeUnit = [...pair].sort();
+  const byLocale = [...pair].sort((left, right) => left.localeCompare(right, 'en'));
+  assert.notDeepEqual(byCodeUnit, byLocale, 'these two names no longer distinguish the sort orders');
+});

@@ -687,6 +687,54 @@ test('the sRGB decode in every shipped shader is the real curve', async () => {
     [...bodies.values()].map((files) => `  - ${files.join(', ')}`).join('\n')}`);
 });
 
+test('the sRGB encode in every shipped shader is the decode run backwards', async () => {
+  // The other half of colour management, and the same duplication constraint: the BroMetal MVP
+  // resolves only helpers declared in the same module, so `encodeSrgb` is copied per shader.
+  //
+  // Goal 04 shipped the decode without this. Lighting then ran on correct numbers and wrote them out
+  // as though they were already display-encoded, and point-light-expo's luminance p95 fell from
+  // 0.090 to 0.050. That is what a missing encode costs.
+  const bodies = new Map();
+  for (const shader of await allShaders()) {
+    if (!shader.calls('encodeSrgb')) continue;
+    const match = shader.wgsl.match(/fn channelToDisplay\s*\([^)]*\)[^{]*\{([\s\S]*?)\n\}/);
+    assert.ok(match, `${shader.relative}: declares encodeSrgb with no channelToDisplay body`);
+    const body = match[1].replace(/\s+/g, ' ').trim();
+    // The inverse curve's own constants. 2.2 anywhere here means the approximation crept back in,
+    // and it is wrong by about 7/255 in the darks this scene lives in.
+    for (const constant of ['0.0031308', '12.92', '1.055', '0.055']) {
+      assert.ok(body.includes(constant), `${shader.relative}: the encode is missing ${constant}`);
+    }
+    assert.ok(
+      !/\b2\.2\b/.test(body),
+      `${shader.relative}: the encode uses a 2.2 gamma rather than the piecewise sRGB curve`,
+    );
+    if (!bodies.has(body)) bodies.set(body, []);
+    bodies.get(body).push(shader.relative);
+  }
+  assert.ok(bodies.size > 0, 'no shader ships the encode at all');
+  assert.equal(bodies.size, 1, `the encode has diverged into ${bodies.size} versions:\n${
+    [...bodies.values()].map((files) => `  - ${files.join(', ')}`).join('\n')}`);
+});
+
+test('a shader that encodes does it once, at the end', async () => {
+  // Encoding twice darkens the frame as badly as not encoding brightens it, and neither looks like
+  // an obvious mistake on screen — both just look like a grading choice somebody made.
+  const offenders = [];
+  let encoders = 0;
+  for (const shader of await allShaders()) {
+    if (!shader.calls('encodeSrgb')) continue;
+    encoders += 1;
+    const calls = [...shader.wgsl.matchAll(/encodeSrgb\(/g)].length;
+    // One definition site plus one call. More than that is a second application.
+    if (calls > 2) offenders.push(`${shader.relative}: encodeSrgb appears ${calls} times`);
+  }
+  // Five, not six: `onboarding` is authored display-space UI composited onto a display-space
+  // buffer, so passing it through unchanged is the identity. Its atlas is classified `authored`.
+  assert.ok(encoders >= 5, `expected point-light-expo's five encoding shaders, found ${encoders}`);
+  assert.deepEqual(offenders, []);
+});
+
 test('no material shader tone-maps, because tone-mapping belongs in one post pass', async () => {
   // A material that tone-maps itself crushes the value range before anything can composite onto it,
   // which is why the demo VFX read as flat stickers. One post pass per demo is allowed to.

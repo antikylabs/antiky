@@ -82,12 +82,21 @@ test('Three.js showcase frames remain available to the host capture tool', async
   }
 });
 
+/** Code only: a block or line comment cannot import anything. */
+function stripComments(text) {
+  return text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+}
+
 test('game projects contain no delivery host or sibling-demo source imports', async () => {
   for (const demo of showcase) {
     const directory = demoDirectory(demo);
-    const source = (await Promise.all((await sourceFiles(new URL('src/', directory))).map(
+    // Comments are stripped before matching. These files carry provenance notes naming the script
+    // that generated them — `packages/demos/scripts/build-detail-normal.mjs` and friends — and a
+    // sentence about where bytes came from is not an import. Matching raw text turned every one of
+    // those notes into a boundary violation.
+    const source = stripComments((await Promise.all((await sourceFiles(new URL('src/', directory))).map(
       (path) => readFile(path, 'utf8'),
-    ))).join('\n');
+    ))).join('\n'));
     assert.doesNotMatch(source, /@antiky\/(?:cli|studio|website)/);
     assert.doesNotMatch(source, /(?:node:http|node:net|createServer\s*\()/);
     assert.doesNotMatch(source, /packages\/demos|\.\.\/\.\.\/(?:antiky|brometal|threejs)\//);

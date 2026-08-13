@@ -80,6 +80,15 @@ fn materialPresentationPointRadiance(world : vec3f, normal : vec3f, view : vec3f
   let specular = min(specGGX(normal, light, view, roughness), 2.4) * (0.16 + metalness * 0.84);
   return lightColor * (lightPower * attenuation * (diffuse + specular));
 }
+fn channelToDisplay(channel : f32) -> f32 {
+  let safe = max(channel, 0.0);
+  let low = safe * 12.92;
+  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
+  return mix(low, high, step(0.0031308, safe));
+}
+fn encodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -130,7 +139,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let emissive = bm_in.vBaseColor * (bm_in.vMaterial.z * pulse);
   let fog = smoothstep(bm_u.uFogStart, bm_u.uFogEnd, length(bm_u.uCameraPosition - bm_in.vWorld));
   let color = mix((lit + emissive) * bm_u.uExposure, bm_u.uFogColor, fog * bm_u.uFogMaximumMix);
-  return vec4f(tonemapACES(color), 1.0);
+  return vec4f(encodeSrgb(tonemapACES(color)), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3' },

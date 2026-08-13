@@ -234,7 +234,13 @@ async function verifyOneArtifact(repositoryRoot, approved) {
     fail('ANTIKY_ARTIFACT_STALE', approved.slug, 'Source revision does not match the current source');
   }
 
-  const actualFiles = await filesBelow(dist, '', approved.slug);
+  // Both lists sorted the same way before they are compared element by element. `filesBelow` walks
+  // with `localeCompare(name, 'en')`, which is locale collation, while the expected list uses the
+  // default code-unit `.sort()`. The two disagree whenever case or punctuation is involved:
+  // `template-wall-Dzn8tX6E.glb` sorts before `template-wall-detail-a-Dmly8Er6.glb` by code unit and
+  // after it by locale, so an identical set of files compared as two differently-ordered lists
+  // reported "missing or extra files" with nothing missing and nothing extra.
+  const actualFiles = (await filesBelow(dist, '', approved.slug)).sort();
   const expectedFiles = [...manifest.files.map((file) => file.path), MANIFEST_NAME].sort();
   if (actualFiles.length !== expectedFiles.length || actualFiles.some((file, index) => file !== expectedFiles[index])) {
     fail('ANTIKY_ARTIFACT_FILE_SET_INVALID', approved.slug, 'Build output has missing or extra files');
