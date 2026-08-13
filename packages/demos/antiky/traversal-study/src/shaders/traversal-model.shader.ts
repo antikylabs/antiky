@@ -16,7 +16,7 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import { rotate2 } from 'brometal/shader-functions';
+import { rotate2, shadowFactor } from 'brometal/shader-functions';
 
 /**
  * sRGB to linear, applied when an albedo texture is sampled.
@@ -52,6 +52,11 @@ export default shader({
   attributes: { aPosition: 'vec3', aNormal: 'vec3', aUv: 'vec2' },
   instanceAttributes: { iOffset: 'vec3', iScale: 'vec3', iParams: 'vec3' },
   uniforms: {
+    uSunDirection: 'vec3',
+    uShadowMap: 'sampler2D',
+    uLightViewProj: 'mat4',
+    uLightPosition: 'vec3',
+    uShadowRange: 'float',
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTime: 'float',
@@ -94,7 +99,12 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uKitMaterials, uMaterialDiffuse, uMaterialRoughness, uMaterialStrength, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
+    {
+    uSunDirection,
+    uShadowMap,
+    uLightViewProj,
+    uLightPosition,
+    uShadowRange, uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uKitMaterials, uMaterialDiffuse, uMaterialRoughness, uMaterialStrength, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
     { vWorld, vNormal, vUv, vWash },
   ) {
     const texel = decodeSrgb(texture(uTex, vUv).xyz);
@@ -135,6 +145,27 @@ export default shader({
       .scale(detailStrength / weightSum);
     const normal = normalize(baseNormal.add(tilt));
     const light = normalize(vec3(-0.38, 0.84, 0.48));
+    // The sun's shadow, and the only cast shadow on the course.
+    //
+    // Softness, bias and the shadow texel are literals rather than uniforms, agreed across both
+    // material shaders. 0.00048828125 is 1 / 2048, which is `SHADOW_MAP_SIZE` in `src/sun.ts` — a
+    // texel size that does not match the map silently resizes the penumbra rather than failing.
+    //
+    // The bias is larger than the reference's 0.03 because this map covers a moving 28-unit slice
+    // rather than a fixed room, so one depth step is 0.028 world units rather than 0.016.
+    const shadowSoftness = 2.5;
+    const shadowBias = 0.05;
+    const sunVisibility = shadowFactor(
+      uShadowMap,
+      uLightViewProj,
+      vWorld,
+      normal,
+      uLightPosition,
+      uShadowRange,
+      0.00048828125,
+      shadowSoftness,
+      shadowBias,
+    );
     // Wrapped diffuse, for surfaces light passes through rather than bounces off.
     //
     // A cloud lit by `max(dot(n, l), 0)` has a hard terminator and a black underside, because that
@@ -146,7 +177,10 @@ export default shader({
     // the geometry that does not want it. Explicit rather than inferred: the alternative was to key
     // off `uGradeMix`, which happens to be high on clouds today and is really about colour grading,
     // so anything that later graded a rock heavily would start lighting like a cloud.
-    const diffuse = max((dot(normal, light) + uWrap) / (1 + uWrap), 0);
+    // The shadow attenuates the key term and nothing else: the ambient and the rim are what a
+    // surface receives from everything that is *not* the key, and dimming those too is what makes a
+    // shadowed area read as flat grey instead of dark and shaped.
+    const diffuse = max((dot(normal, light) + uWrap) / (1 + uWrap), 0) * sunVisibility;
     // The lighting ramp decides what a surface looks like at this light level, rather than how much
     // grey to scale it by.
     //

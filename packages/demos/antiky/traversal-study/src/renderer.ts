@@ -45,6 +45,9 @@ import { createKitMaterialLookup } from './kit-materials.ts';
 import { createLightingRamp } from './lighting-ramp.ts';
 import { loadVfxBillboard } from './vfx-billboard.ts';
 import { loadDetailNormal } from './detail-normal.ts';
+import { SHADOW_MAP_SIZE, SUN_DIRECTION, createCourseSunShadow } from './sun.ts';
+import modelDepthShader from './shaders/model-depth.shader.gen.ts';
+import surfaceDepthShader from './shaders/surface-depth.shader.gen.ts';
 import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
 import traversalGlowShader from './shaders/traversal-glow.shader.gen';
@@ -127,8 +130,18 @@ function createSurfaceBatch(
   billboard: BroMetalTexture,
   /** The contact shadow passes the unlit shader, so no light, fog or tone-map acts on it. */
   shader: typeof traversalSurfaceShader | typeof contactShadowShader = traversalSurfaceShader,
+  /**
+   * The same instances drawn from the sun, writing distance instead of colour.
+   *
+   * Optional: the contact shadow casts nothing, and neither does anything drawn with the unlit
+   * shader. A blob of darkness that casts its own shadow is not a thing.
+   */
+  castsShadows = false,
 ) {
   const disposal = createDisposalStack();
+  const depthProgram = castsShadows
+    ? disposal.adopt(createProgram(renderer, surfaceDepthShader))
+    : undefined;
   const program = disposal.adopt(createProgram(renderer, shader as typeof traversalSurfaceShader, {
     // The blob depth-tests without writing depth; the lit surface is opaque and must keep writing.
     blend: shader === traversalSurfaceShader ? 'none' : 'alpha',
@@ -138,6 +151,8 @@ function createSurfaceBatch(
     program.attributes.aPosition.set(geometry.positions);
     // The unlit shader has no normal: its shape is a radial falloff, not geometry.
     program.attributes.aNormal?.set(geometry.normals);
+    depthProgram?.attributes.aPosition!.set(geometry.positions);
+    depthProgram?.setIndices(geometry.indices);
     program.setIndices(geometry.indices);
   } catch (cause: unknown) {
     rollbackAndRethrow(disposal, cause);
@@ -163,6 +178,11 @@ function createSurfaceBatch(
       program.instanceAttributes.iColor.set(colors);
       // The unlit contact shader declares no material channel.
       program.instanceAttributes.iMaterial?.set(materials);
+      // Position, scale and the rotation the surface shader keeps in `iMaterial.z`. Colour has no
+      // bearing on where a shadow falls.
+      depthProgram?.instanceAttributes.iOffset!.set(offsets);
+      depthProgram?.instanceAttributes.iScale!.set(scales);
+      depthProgram?.instanceAttributes.iMaterial!.set(materials);
     },
     setFrame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
       program.uniforms.uViewProj.set(viewProjection);
@@ -171,6 +191,8 @@ function createSurfaceBatch(
       program.uniforms.uTime?.set(time);
     },
     draw(): void { program.draw(); },
+    /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
+    drawDepth(): void { depthProgram?.draw(); },
     dispose(): void { disposal.dispose(); },
   });
 }
@@ -276,6 +298,7 @@ async function createCatalogBatch(
   const disposal = createDisposalStack();
   const textures: BroMetalTexture[] = [];
   const programs: CatalogProgram[] = [];
+  const depthPrograms: BroMetalProgram[] = [];
   try {
     for (const image of model.images) {
       const ownedImageBuffer = new ArrayBuffer(image.data.byteLength);
@@ -295,6 +318,12 @@ async function createCatalogBatch(
         throw new Error(`${asset.fileName} needs indexed, embedded-image geometry.`);
       }
       const program = disposal.adopt(createProgram(renderer, traversalModelShader));
+      // The same mesh drawn from the sun. One depth program per catalog mesh, because each has its
+      // own geometry; they share one set of instance arrays with the lit program below.
+      const depthProgram = disposal.adopt(createProgram(renderer, modelDepthShader));
+      depthProgram.attributes.aPosition!.set(mesh.positions);
+      depthProgram.setIndices(mesh.indices);
+      depthPrograms.push(depthProgram);
       programs.push(program);
       program.attributes.aPosition.set(mesh.positions);
       program.attributes.aNormal.set(mesh.normals ?? new Float32Array(mesh.positions.length));
@@ -339,6 +368,9 @@ async function createCatalogBatch(
     upload(): void {
       for (let index = 0; index < programs.length; index += 1) {
         const program = programs[index]!;
+        depthPrograms[index]!.instanceAttributes.iOffset!.set(offsets);
+        depthPrograms[index]!.instanceAttributes.iScale!.set(scales);
+        depthPrograms[index]!.instanceAttributes.iParams!.set(params);
         program.instanceAttributes.iOffset.set(offsets);
         program.instanceAttributes.iScale.set(scales);
         program.instanceAttributes.iParams.set(params);
@@ -350,8 +382,15 @@ async function createCatalogBatch(
         program.uniforms.uViewProj.set(viewProjection);
         program.uniforms.uCameraPosition.set(cameraPosition);
         program.uniforms.uTime.set(time);
+        // The depth pass sways on the same clock, or a swaying caster's shadow stands still.
+        depthPrograms[index]!.uniforms.uTime!.set(time);
       }
     },
+    drawDepth(): void {
+      for (let index = 0; index < depthPrograms.length; index += 1) depthPrograms[index]!.draw();
+    },
+    depthPrograms,
+    programs,
     draw(): void {
       for (let index = 0; index < programs.length; index += 1) programs[index]!.draw();
     },
@@ -444,6 +483,16 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     const cameraPosition = new Float32Array(3);
 
     const measurements = summarizeTraversalMeasurements([...catalogEntries, ...procedural]);
+    // Everything solid enough to block the sun. The clouds are absent — they sit far behind the
+    // course and would shadow the whole slice — and so are the blended passes: contact shadows,
+    // trails and glows stand in for light, and a sprite of a glow casting a hard shadow is wrong.
+    const drawCasters = (): void => {
+      coastalCliffs.drawDepth(); relayTowers.drawDepth(); coastalTrees.drawDepth(); trees.drawDepth();
+      grass.drawDepth(); overhang.drawDepth(); moving.drawDepth();
+      spikes.drawDepth(); flags.drawDepth(); coins.drawDepth();
+      courier.drawDepth();
+    };
+
     const drawScene = (): void => {
       cloudLarge.draw(); cloudSmall.draw();
       coastalCliffs.draw(); relayTowers.draw(); coastalTrees.draw(); trees.draw();
@@ -489,6 +538,41 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     // `depthWriteEnabled: blend === 'none'`. The post quad covers the canvas at clip z = 0, so with
     // depth writing on it stamps 0 everywhere and anything drawn after fails `0 < 0`. The blend is a
     // no-op — the fragment writes alpha 1.
+    /**
+     * The sun's shadow map, aimed at the visible slice.
+     *
+     * Rebuilt every frame rather than bound once, which is where this demo departs from the
+     * reference: a 190-unit course under one fixed map gives nine centimetres per texel, so the map
+     * follows the camera and covers about 28 units instead. See `src/sun.ts`.
+     *
+     * `samples: 1` deliberately, unlike the scene target. Averaging distance across a silhouette
+     * produces a value belonging to neither the caster nor what is behind it, and that in-between
+     * distance reads as a bright halo tracing every shadow edge. Softness comes from the nine-tap
+     * lookup.
+     */
+    const shadowTarget = owned.adopt(createRenderTarget(renderer, {
+      width: SHADOW_MAP_SIZE,
+      height: SHADOW_MAP_SIZE,
+      // The map records the *nearest* caster to the light; without a depth test that is whichever
+      // triangle was submitted last.
+      depth: true,
+      // Goal 02's render-target-filtering patch. On a point sampler the nine taps land on the same
+      // texel and the softness parameter does nothing.
+      filter: 'linear',
+      samples: 1,
+    }));
+
+    // Bound after `shadowTarget` exists, not beside the draw functions: `const` is in its temporal
+    // dead zone until its declaration runs, and binding earlier threw during construction — which
+    // surfaces as a capture timeout rather than as an error anyone would recognise.
+    for (const entry of catalogEntries) {
+      for (const program of entry.programs) {
+        const uniforms = program.uniforms as unknown as Record<string, { set(v: unknown): void }>;
+        uniforms.uSunDirection?.set(SUN_DIRECTION);
+        uniforms.uShadowMap?.set(shadowTarget.texture);
+      }
+    }
+
     const postProgram = owned.adopt(createProgram(renderer, postShader, { blend: 'alpha' }));
     const fullscreenQuad = createPlane({ width: 2, height: 2 });
     postProgram.attributes.aPosition!.set(fullscreenQuad.positions);
@@ -496,6 +580,14 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     owned.adopt({ dispose: () => sceneTarget?.dispose() });
 
     const drawFrame = (): void => {
+      // The shadow pass first, because the scene reads what it writes. `drawTo` finishes and submits
+      // its own encoder, so the two are ordered by the queue rather than by hope.
+      //
+      // `NOTHING_OCCLUDING` is 1, the far end of the normalised range: a caster nearer than that
+      // then reads as nearer and shadows what is behind it. `drawTo`'s default of transparent black
+      // would say every texel holds something at the light's own eye and drop the course into
+      // shadow entirely.
+      renderer.drawTo(shadowTarget, drawCasters, { clear: [1, 1, 1, 1] });
       const scene = ensureSceneTarget();
       renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
       postProgram.uniforms.uScene!.set(scene.texture);
@@ -630,6 +722,22 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       cameraPosition.set(cameraFrame.position);
       camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
       camera.lookAt(cameraFrame.target[0], cameraFrame.target[1], cameraFrame.target[2]);
+      // Re-aim the shadow map at the slice the camera is showing. This is the per-frame half of the
+      // camera-following design in `src/sun.ts`; everything else about the pass is fixed.
+      const sun = createCourseSunShadow(cameraFrame.target[0]);
+      for (const entry of catalogEntries) {
+        for (const program of entry.depthPrograms) {
+          program.uniforms.uLightViewProj!.set(sun.viewProjection);
+          program.uniforms.uLightPosition!.set(sun.position);
+          program.uniforms.uShadowRange!.set(sun.range);
+        }
+        for (const program of entry.programs) {
+          const uniforms = program.uniforms as unknown as Record<string, { set(v: unknown): void }>;
+          uniforms.uLightViewProj?.set(sun.viewProjection);
+          uniforms.uLightPosition?.set(sun.position);
+          uniforms.uShadowRange?.set(sun.range);
+        }
+      }
       const viewProjection = camera.viewProjection(renderer.aspect);
 
       // The HUD, in screen space.

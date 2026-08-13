@@ -16,7 +16,7 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import { rotate2 } from 'brometal/shader-functions';
+import { rotate2, shadowFactor } from 'brometal/shader-functions';
 
 export default shader({
   attributes: {
@@ -30,6 +30,11 @@ export default shader({
     iMaterial: 'vec3',
   },
   uniforms: {
+    uSunDirection: 'vec3',
+    uShadowMap: 'sampler2D',
+    uLightViewProj: 'mat4',
+    uLightPosition: 'vec3',
+    uShadowRange: 'float',
     uBillboard: 'sampler2D',
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
@@ -59,15 +64,42 @@ export default shader({
     return uViewProj.mul(vec4(world, 1));
   },
 
-  fragment({ uCameraPosition, uBillboard }, { vWorld, vNormal, vColor, vMaterial, vPulse }) {
+  fragment({
+    uSunDirection,
+    uShadowMap,
+    uLightViewProj,
+    uLightPosition,
+    uShadowRange, uCameraPosition, uBillboard }, { vWorld, vNormal, vColor, vMaterial, vPulse }) {
     const normal = normalize(vNormal);
     // Same key light as traversal-model, which is where the value comes from: the model shader
     // lights what the player watches, and this surface is what its shadows land on. Repeated
     // rather than shared because the BroMetal MVP cannot read a module-level constant from a
     // shader body; `pipeline-invariants.test.mjs` fails if the two copies drift apart.
     const light = normalize(vec3(-0.38, 0.84, 0.48));
+    // The sun's shadow, and the only cast shadow on the course.
+    //
+    // Softness, bias and the shadow texel are literals rather than uniforms, agreed across both
+    // material shaders. 0.00048828125 is 1 / 2048, which is `SHADOW_MAP_SIZE` in `src/sun.ts` — a
+    // texel size that does not match the map silently resizes the penumbra rather than failing.
+    //
+    // The bias is larger than the reference's 0.03 because this map covers a moving 28-unit slice
+    // rather than a fixed room, so one depth step is 0.028 world units rather than 0.016.
+    const shadowSoftness = 2.5;
+    const shadowBias = 0.05;
+    const sunVisibility = shadowFactor(
+      uShadowMap,
+      uLightViewProj,
+      vWorld,
+      normal,
+      uLightPosition,
+      uShadowRange,
+      0.00048828125,
+      shadowSoftness,
+      shadowBias,
+    );
     const view = normalize(uCameraPosition.sub(vWorld));
-    const rawLight = max(dot(normal, light), 0);
+    // Key term only — see the note in `traversal-model.shader.ts`.
+    const rawLight = max(dot(normal, light), 0) * sunVisibility;
     const litBand = smoothstep(0.18, 0.24, rawLight) * 0.28
       + smoothstep(0.58, 0.64, rawLight) * 0.48;
     const rim = pow(1 - max(dot(normal, view), 0), 2.2);
