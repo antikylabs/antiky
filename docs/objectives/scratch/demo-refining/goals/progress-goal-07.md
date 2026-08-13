@@ -306,9 +306,35 @@ Two lessons, both worth more than the bug:
   compare it against the same rectangle with the blob disabled, the way every other measurement in
   goals 06 and 07 does. The one shortcut taken here is the one measurement that lied.
 
-**The real next step**, still unrun: get the diagnostic to compile (drop the `void` statements —
-reference the varyings inside the returned expression instead), then measure a rectangle under the
-character rather than counting reddish pixels anywhere in the frame.
+**The diagnostic was then run properly, and it settled the question.** Compile verified first, and
+measured as a rectangle under the character rather than by counting reddish pixels:
+
+| rectangle under the character | mean rgb |
+| --- | --- |
+| old lit sphere blob | 136, 152, 128 |
+| new unlit quad, alpha forced to 1 (diagnostic) | 182, 116, 97 — **red, so it draws** |
+| new unlit quad, real fragment | 163, 179, 144 |
+
+**The quad draws.** Geometry, winding, blend mode and draw order were all fine the whole time — four
+of my five hypotheses were wrong, and the fifth (the instance-scale convention) was wrong too. With
+alpha forced to 1 the rectangle turns red; with the real fragment it is barely darker than bare
+platform, and widening the footprint changed nothing.
+
+So the alpha is collapsing, and the leading suspect is now specific and checkable:
+
+```
+const falloff = smoothstep(1, 0.12, length(vLocal));
+```
+
+**`edge0` is greater than `edge1`.** WGSL does not define `smoothstep` for reversed edges. It may be
+returning 0 on this driver, which would make the blob exactly as invisible as observed while leaving
+`combat-arena` — whose blobs sit against a dark deck and are easy to miss — looking plausible.
+
+**Next step, and it is one line:** replace with `1 - smoothstep(0.12, 1, length(vLocal))` in both
+demos' copies, then re-run the rectangle probe. If the blob appears, the same bug is live in
+`combat-arena` and `point-light-expo` and should be fixed in all three.
+
+Reverted again; the demo is at committed W B.2 and `npm test` is green.
 
 The demo is reverted to its committed W B.2 state and `npm test` is green. The wrong contact shadow
 is still there, and that is the right place to leave it — the hole at least tells the viewer where
