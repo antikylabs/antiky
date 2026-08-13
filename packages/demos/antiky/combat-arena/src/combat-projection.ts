@@ -206,8 +206,24 @@ function setCombatGlows(glows: GlowBatch, state: CombatSnapshot): void {
     if (particle.life <= 0) continue;
     const color = particle.color === 0 ? COMBAT_PALETTE.cyan : particle.color === 5 ? COMBAT_PALETTE.warm : particle.color === 4 ? COMBAT_PALETTE.white : COMBAT_PALETTE.amber;
     const speed = Math.hypot(particle.vx, particle.vz);
-    const size = (0.035 + particle.life * 0.1) * Math.min(1, particle.life * 5);
-    index = pushGlow(glows, index, particle.x, particle.y, particle.z, size, size, size + Math.min(0.34, speed * 0.014), color, Math.min(0.72, particle.life * 2), -Math.atan2(particle.vx, particle.vz), particleIndex * 0.19);
+    // Impact timing: a snap, then a settle, with alpha on its own curve.
+    //
+    // Size and opacity were both linear in `life`, so they rose and fell as one — a puff that shrank
+    // and faded in lockstep, which reads as one thing dimming rather than as something happening.
+    // AC-V2 measures exactly that as a correlation between the two curves.
+    //
+    // Now: scale snaps to its peak within the first few frames and eases back, while alpha holds
+    // briefly and then drops away faster. They share a cause and not a shape.
+    const age = 1 - Math.min(1, particle.life / Math.max(particle.maxLife, 0.0001));
+    // Peak at about 8% of the lifetime — two or three frames at 60Hz for the shortest particles.
+    const snap = Math.min(1, age / 0.08);
+    const settle = 1 - Math.min(1, Math.max(0, age - 0.08) / 0.92) * 0.55;
+    const size = (0.035 + particle.maxLife * 0.1) * snap * settle;
+    // Held while the shape reads, then a cubic fall — at ten frames of a short particle this is
+    // comfortably under a quarter of peak, which is the criterion.
+    const fade = 1 - age;
+    const opacity = Math.min(0.72, fade * fade * fade * 1.9);
+    index = pushGlow(glows, index, particle.x, particle.y, particle.z, size, size, size + Math.min(0.34, speed * 0.014), color, opacity, -Math.atan2(particle.vx, particle.vz), particleIndex * 0.19);
   }
   glows.upload();
 }

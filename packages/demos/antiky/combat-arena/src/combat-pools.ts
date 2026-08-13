@@ -70,6 +70,10 @@ export function createParticlePool(particles: CombatParticle[]): ParticlePool {
         particle.vy = 0.9 + seeded(revision + burstIndex, color + 11) * force;
         particle.vz = Math.sin(angle) * speed;
         particle.life = 0.3 + seeded(revision + burstIndex, color + 13) * 0.48;
+        // Recorded so the projection can build a curve on age rather than on remaining time. It
+        // cannot derive this: lifetimes vary 0.3 to 0.78 seconds per particle by design, and a
+        // curve keyed on `life` alone cannot tell a fresh short-lived spark from a dying long one.
+        particle.maxLife = particle.life;
         particle.color = color;
       }
     },

@@ -115,6 +115,8 @@ export type CombatParticle = {
   vy: number;
   vz: number;
   life: number;
+  /** What `life` started at, so presentation can compute age rather than guess it. */
+  maxLife: number;
   color: number;
 };
 
@@ -282,6 +284,7 @@ export function createCombatStatePools(): Readonly<{
     vy: 0,
     vz: 0,
     life: 0,
+    maxLife: 0,
     color: 0,
   }));
   return Object.freeze({ player, enemies, projectiles, particles });

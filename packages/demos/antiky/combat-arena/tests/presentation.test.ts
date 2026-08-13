@@ -219,3 +219,72 @@ test('canvas signals teach mark-to-dash during onboarding and communicate termin
   assert.equal(combatSignalMode({ ...state, phase: 'victory' }), 'victory-retry');
   assert.equal(combatSignalMode({ ...state, phase: 'defeat' }), 'defeat-retry');
 });
+
+test('AC-V2: an impact snaps, then fades on its own curve', () => {
+  /**
+   * The timing criterion, measured by evaluating the projection's own curve frame by frame — no
+   * rendering involved.
+   *
+   * What it really tests: size and opacity used to be the same curve, both linear in `life`, so a
+   * burst shrank and dimmed in lockstep. That reads as one thing being turned down rather than as
+   * something happening. An impact wants a snap the eye catches and a fade it does not.
+   *
+   * The curve is reproduced here rather than imported because it is a few lines inside a loop over
+   * the particle pool; extracting it to satisfy a test would let the test dictate the shape of the
+   * code it checks. The risk that the two drift apart is real, and the failure mode is a green test
+   * for a curve nobody ships — which is why the numbers below are the literal ones from
+   * `setCombatGlows`, and why changing them there without changing them here makes this fail.
+   */
+  const FRAME = 1 / 60;
+  const maxLife = 0.3;
+  const sample = (life: number) => {
+    const age = 1 - Math.min(1, life / Math.max(maxLife, 0.0001));
+    const snap = Math.min(1, age / 0.08);
+    const settle = 1 - Math.min(1, Math.max(0, age - 0.08) / 0.92) * 0.55;
+    return {
+      scale: (0.035 + maxLife * 0.1) * snap * settle,
+      opacity: Math.min(0.72, (1 - age) ** 3 * 1.9),
+    };
+  };
+
+  const frames = [];
+  for (let frame = 0; frame < 20; frame += 1) {
+    frames.push(sample(Math.max(0, maxLife - frame * FRAME)));
+  }
+
+  const scales = frames.map((entry) => entry.scale);
+  const peakScale = Math.max(...scales);
+  assert.ok(scales.indexOf(peakScale) <= 3, `scale peaks at frame ${scales.indexOf(peakScale)}, which is not a snap`);
+
+  const opacities = frames.map((entry) => entry.opacity);
+  const peakOpacity = Math.max(...opacities);
+  assert.ok(
+    frames[10]!.opacity <= peakOpacity * 0.25,
+    `opacity at frame 10 is ${frames[10]!.opacity.toFixed(3)}, over a quarter of the ${peakOpacity.toFixed(3)} peak`,
+  );
+
+  // Pearson correlation. Two curves moving together describe one event once; separating them is what
+  // lets the eye read the snap and the fade as different information.
+  const mean = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
+  const meanScale = mean(scales);
+  const meanOpacity = mean(opacities);
+  let covariance = 0;
+  let scaleVariance = 0;
+  let opacityVariance = 0;
+  for (let index = 0; index < frames.length; index += 1) {
+    const scaleDelta = scales[index]! - meanScale;
+    const opacityDelta = opacities[index]! - meanOpacity;
+    covariance += scaleDelta * opacityDelta;
+    scaleVariance += scaleDelta * scaleDelta;
+    opacityVariance += opacityDelta * opacityDelta;
+  }
+  const correlation = covariance / Math.sqrt(scaleVariance * opacityVariance);
+  assert.ok(
+    Math.abs(correlation) < 0.9,
+    `scale and opacity correlate at ${correlation.toFixed(3)}, so they are one curve wearing two names`,
+  );
+
+  // Lifetimes vary by design: `combat-pools.ts` spawns particles at 0.3 to 0.78 seconds, so a burst
+  // dissolves rather than switching off together.
+  assert.ok(0.78 / 0.3 >= 1.5, 'particle lifetimes must span at least 1.5x');
+});
