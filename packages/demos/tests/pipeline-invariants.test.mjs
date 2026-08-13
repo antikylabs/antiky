@@ -53,6 +53,11 @@ const SAMPLER_ROLES = Object.freeze({
   uDiffuse: 'colour',
   uMaterialAtlas: 'colour',
   uAtlas: 'colour',
+  // The bloom chain, which carries linear HDR light rather than an authored picture. It is extracted
+  // from a scene target that is already linear, so decoding it would apply the transfer function a
+  // second time to values that never went through it once.
+  uBloom: 'data',
+  uSource: 'data',
   // Distance from the light, not a picture. Decoding it as sRGB would corrupt every comparison.
   // Keyed `shadowMap` because the sample happens inside BroMetal's `shadowFactor`, so the name
   // that reaches the compiled WGSL is the helper's parameter rather than the demo's uniform.
