@@ -229,8 +229,28 @@ of the frame actually is. A test asserts the other two cannot come back.
 **Back-face culling was already on** — `cull: 'back'`, fixed by an earlier goal. Another premise in
 the goal file that has since been overtaken.
 
+### Required outcome 7 — the shading response (`771c720`)
+
+**Already met, and the goal file's premise is stale.** It records the ramp as
+`0.54 + smoothstep(0.18, 0.25, d) * 0.2 + smoothstep(0.62, 0.7, d) * 0.24` — three bands spanning
+0.54 to 0.98, **1.81:1** with no hue movement — and asks for ≥ 6:1. An earlier goal replaced it with
+a 64-stop sampled ramp.
+
+Measured against the committed stops: **6.69:1**, shifting **186 degrees** of hue from a cool deep
+shadow to a warm pale highlight. Clears the bar.
+
+**The shader's own comment claimed 14.8:1, and that was wrong.** Corrected to the measured figure,
+with `tests/lighting-ramp.test.ts` now reading the data instead of describing it. The test also
+guards the two ways a contrast ratio can be gamed: the darkest stop must stay above 0.05, or a ramp
+reaching black would clear any ratio by dividing by almost nothing, and the ramp must rise
+monotonically so more light never means a darker surface.
+
 ## Notes carried forward
 
+- **Four premises in the goal file have been overtaken by earlier goals**, and each was verified
+  before being skipped rather than assumed: `combat-arena`'s three disagreeing sun directions, its
+  cube contact shadows, `traversal-study`'s `cull: 'none'`, and its 1.81:1 toon ramp. The goal file
+  predates that work. What remains of its analysis still holds.
 - The three `brometal/` demos still tone-map in their materials. They are **outside this goal's
   scope**, which covers the three antiky demos, so `pipeline-invariants`' tone-map assertion will
   still report them when goal 07 finishes.
