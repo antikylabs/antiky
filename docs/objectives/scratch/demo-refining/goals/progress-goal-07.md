@@ -263,9 +263,30 @@ Moving it to `combat-arena`'s unlit radial-falloff shader took three attempts an
    Guarded with optional chaining, one at a time.
 2. `createPlane` builds its quad in **XY**, so the blob stood on its edge and vanished. It needs a
    quad lying flat in XZ, wound to face up because this demo culls back faces.
-3. With a ground quad it still does not draw, and the cause is unidentified. The likely candidate is
-   **draw order**: the blob is alpha-blended now, and `contactShadow.draw()` runs early in the scene
-   function. A blended pass drawn before the opaque geometry it sits on is depth-rejected.
+3. With a ground quad it still does not draw. **Draw order was checked and is not the cause** —
+   `contactShadow.draw()` already runs after `grass`, `overhang` and `moving`, so the platform is in
+   the depth buffer first.
+
+   The actual mismatch is the **instance convention**, found by reading `combat-arena`'s vertex:
+
+   ```
+   const rotated = rotate2(aPosition.xz.mul(iScale.xz), iScale.y);
+   v.vRadius = iScale.x;
+   ```
+
+   That shader reads **`iScale.y` as a rotation angle, not a height** — the quad is flat, so the
+   vertical scale a box needed is free — and it compares `vRadius` against `vLocal`, which is
+   `aPosition.xz` in **local** quad units of ±1.
+
+   `traversal-study` calls it with a squashed-sphere convention: `set(…, scaleX 0.33–0.75,
+   scaleY 0.035, scaleZ 0.42, …)`. So `iScale.y = 0.035` is silently reinterpreted as a rotation,
+   and `vRadius` arrives as a world half-extent being compared against local coordinates. The blob
+   is drawn and then discarded by its own falloff.
+
+   **The fix is at the call site, not in the shader**: pass `iScale.x` as the radius in the units the
+   falloff expects, `iScale.y` as the rotation, and `iScale.z` as the second footprint axis. Roughly
+   `set(0, x, supportTop + 0.025, z, 1, 0, 1, INK, …)` with the footprint carried by the quad's own
+   scale, matching how `combat-arena` calls it.
 
 **Reverted rather than left in**, because a missing contact shadow is worse than the wrong one: the
 hole at least tells the viewer where the character is. The next attempt should start by moving
