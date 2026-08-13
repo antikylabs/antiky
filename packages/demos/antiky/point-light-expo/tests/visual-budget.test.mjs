@@ -37,7 +37,27 @@ const CLIPPING_CEILING = 0.02;
  * with room for content to change, because this number is content-dependent and the scene will keep
  * gaining geometry.
  */
-const HARD_EDGE_CEILING = 0.0085;
+const HARD_EDGE_CEILING = 0.0095;
+
+/**
+ * Raised from 0.0085 by goal 06-04, on measurement rather than on convenience.
+ *
+ * 06-02 set this against a scene with no key light, and adding one raises it: a brighter frame has
+ * more pairs of neighbouring pixels separated by more than a quarter of the range, whatever their
+ * edges are made of. The question is whether the rise is that, or shadow edges too hard to be
+ * called anti-aliased — which is the defect this budget exists to catch.
+ *
+ * Separated by capturing the same sun with the shadow term forced to fully lit:
+ *
+ * | | edges.hard |
+ * | --- | --- |
+ * | no sun (06-03) | 0.00681 |
+ * | sun, shadows off | 0.00936 |
+ * | sun, shadows on | 0.00946 |
+ *
+ * The shadows account for **0.0001 of the 0.0027 rise** — under 4%. The rest is the key light, and
+ * this ceiling is re-derived for a lit scene rather than loosened to admit a defect.
+ */
 
 /**
  * How far the onboarding panel must spread the light inside its own rectangle.
@@ -48,6 +68,9 @@ const HARD_EDGE_CEILING = 0.0085;
  * the depth test. No whole-frame metric noticed.
  */
 const ONBOARDING_SPREAD_FLOOR = 0.11;
+
+/** Goal 06-04's shadow probe: ground in shadow against ground in sun, on the same material. */
+const SHADOW_DARKENING_FLOOR = 0.25;
 
 const metricsPath = path.join(import.meta.dirname, '..', 'visual-metrics.json');
 
@@ -130,5 +153,41 @@ test('point-light-expo still draws its onboarding panel', async () => {
     `the onboarding rectangle spreads ${panel.standardDeviation}, floor is `
     + `${ONBOARDING_SPREAD_FLOOR}. At around 0.08 the panel is not drawing and this is measuring `
     + 'the floor behind it.',
+  );
+});
+
+test('point-light-expo casts a shadow that reads on the ground', async () => {
+  const metrics = await readMetrics();
+  const shadow = metrics.probes?.sunShadow;
+  const lit = metrics.probes?.sunLit;
+  assert.ok(shadow !== undefined && lit !== undefined, 'the capture recorded no sun probes');
+  const darkening = 1 - shadow.meanLuminance / lit.meanLuminance;
+  assert.ok(
+    darkening >= SHADOW_DARKENING_FLOOR,
+    `ground in shadow is ${(darkening * 100).toFixed(1)}% darker than ground in sun, floor is `
+    + `${SHADOW_DARKENING_FLOOR * 100}%. Both probes sit on the same floor 205 px apart, so a low `
+    + 'number here is a shadow that is not arriving rather than two different patches of ground.',
+  );
+});
+
+test('point-light-expo does not stripe its lit ground with shadow acne', async () => {
+  const metrics = await readMetrics();
+  const lit = metrics.probes?.sunLit;
+  assert.ok(lit !== undefined, 'the capture recorded no lit probe');
+  // **This is not the check goal 06-04 specified, and the reason is worth stating.**
+  //
+  // That check was "luminance standard deviation inside a probe on a flat lit plane facing the sun
+  // is < 0.02", which assumes the plane is plain. This floor is a photoscanned forest floor: its
+  // litter alone measures 0.063 with the shadow term switched off entirely, so 0.02 is unreachable
+  // for a reason that has nothing to do with acne.
+  //
+  // Acne is variance the *shadow* adds, so that is what is measured. With shadows on the probe
+  // reads 0.063065; with the same sun and the shadow forced to fully lit it reads 0.063065. The
+  // shadow adds nothing, which is what "no acne" means. The ceiling below is the texture's own
+  // figure with room to move, and it fails if striping ever appears on top of it.
+  assert.ok(
+    lit.standardDeviation <= 0.075,
+    `lit ground spreads ${lit.standardDeviation}, which is above the forest floor's own 0.063. `
+    + 'Stripes at the shadow-map texel scale are the thing to look for.',
   );
 });

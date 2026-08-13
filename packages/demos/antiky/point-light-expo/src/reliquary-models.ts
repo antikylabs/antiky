@@ -10,6 +10,7 @@ import {
 } from 'brometal';
 
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
+import modelDepthShader from './shaders/model-depth.shader.gen.ts';
 import reliquaryModelShader from './shaders/reliquary-model.shader.gen.ts';
 
 export const DEAD_TREE_RUNTIME_URL = new URL(
@@ -29,6 +30,15 @@ export type ReliquaryModelDependencies = Readonly<{
   createBitmap(image: ModelImage): Promise<ImageBitmap>;
   createTexture(renderer: Renderer, bitmap: ImageBitmap, role: TextureRole): BroMetalTexture;
   createProgram(renderer: Renderer): BroMetalProgram;
+  /**
+   * The same geometry drawn from the sun's point of view, writing distance instead of colour.
+   *
+   * A second program rather than a second batch, because the instance arrays below are the single
+   * source of where these props are. Two batches would mean writing every position twice and hoping
+   * the two copies stayed equal — and a caster that disagrees with its own lit geometry is exactly
+   * the bug that makes a shadow land beside the thing casting it.
+   */
+  createDepthProgram(renderer: Renderer): BroMetalProgram;
 }>;
 
 const MODEL_DEPENDENCIES: ReliquaryModelDependencies = Object.freeze({
@@ -42,6 +52,7 @@ const MODEL_DEPENDENCIES: ReliquaryModelDependencies = Object.freeze({
     anisotropy: 8,
   }),
   createProgram: (renderer) => createProgram(renderer, reliquaryModelShader),
+  createDepthProgram: (renderer) => createProgram(renderer, modelDepthShader),
 });
 
 type ModelBatchDescriptor = Readonly<{
@@ -86,6 +97,8 @@ function modelImage(model: Model, name: string, label: string): ModelImage {
 
 export type ReliquaryModelBatch = Readonly<{
   program: BroMetalProgram;
+  /** The same geometry drawn from the sun. Bound once by `shadow-pass.ts`, drawn every frame. */
+  depthProgram: BroMetalProgram;
   clear(): void;
   setValues(
     index: number,
@@ -97,6 +110,8 @@ export type ReliquaryModelBatch = Readonly<{
   ): void;
   upload(): void;
   draw(): void;
+  /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
+  drawDepth(): void;
   dispose(): void;
 }>;
 
@@ -130,6 +145,9 @@ async function createCatalogModelBatch(
     const material = await loadTexture(descriptor.materialImage, 'material');
     const normalMap = await loadTexture(descriptor.normalImage, 'normal');
     const program = registerResource(owned, dependencies.createProgram(renderer));
+    const depthProgram = registerResource(owned, dependencies.createDepthProgram(renderer));
+    depthProgram.attributes.aPosition!.set(mesh.positions);
+    depthProgram.setIndices(mesh.indices);
     program.attributes.aPosition!.set(mesh.positions);
     program.attributes.aNormal!.set(mesh.normals);
     program.attributes.aUv!.set(mesh.uvs);
@@ -188,8 +206,14 @@ async function createCatalogModelBatch(
         program.instanceAttributes.iRotation!.set(rotations);
         program.instanceAttributes.iTint!.set(tints);
         program.instanceAttributes.iMaterial!.set(materials);
+        // The same three arrays the lit program gets, so the caster cannot drift from the caster.
+        depthProgram.instanceAttributes.iOffset!.set(offsets);
+        depthProgram.instanceAttributes.iScale!.set(scales);
+        depthProgram.instanceAttributes.iRotation!.set(rotations);
       },
       draw(): void { program.draw(); },
+      drawDepth(): void { depthProgram.draw(); },
+      depthProgram,
       dispose(): void { disposeResources(owned); },
     });
   } catch (cause: unknown) {

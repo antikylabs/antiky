@@ -18,6 +18,7 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
+import { shadowFactor } from 'brometal/shader-functions';
 /**
  * Cook-Torrance GGX specular: the light that leaves this surface toward the viewer.
  *
@@ -149,6 +150,12 @@ export default shader({
     uSh8: 'vec3',
     uAmbientStrength: 'float',
     uRelayLightStrength: 'float',
+    uSunDirection: 'vec3',
+    uSunColor: 'vec3',
+    uShadowMap: 'sampler2D',
+    uLightViewProj: 'mat4',
+    uLightPosition: 'vec3',
+    uShadowRange: 'float',
     uFogColor: 'vec3',
     uFogStart: 'float',
     uFogEnd: 'float',
@@ -197,6 +204,12 @@ export default shader({
     uSh8,
     uAmbientStrength,
     uRelayLightStrength,
+    uSunDirection,
+    uSunColor,
+    uShadowMap,
+    uLightViewProj,
+    uLightPosition,
+    uShadowRange,
     uFogColor,
     uFogStart,
     uFogEnd,
@@ -296,7 +309,40 @@ export default shader({
       .add(uSh7.scale(normal.x * normal.z))
       .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
     const ambient = shIrradiance.scale(uAmbientStrength * ao);
-    const lit = dampEarth.mul(ambient).add(irradiance);
+    // The sun, and the only shadow in this demo.
+    //
+    // Softness, bias and the shadow texel are literals rather than uniforms, in the same spirit as
+    // the triplanar detail rate: nothing varies them at run time, and a uniform would mean binding
+    // plumbing at every call site for a number that never moves. All three are agreed across the
+    // three material shaders, and `pipeline-invariants.test.mjs` holds them equal.
+    //
+    // 2.5 spreads the nine taps over five shadow texels, about 5 cm here — a visible penumbra that
+    // still lets a rock meet its own shadow. The bias is in world units and has to clear both the
+    // depth quantum (0.016) and one texel's world footprint (0.010); below that a surface shadows
+    // itself in stripes, and far above it the shadow walks away from its caster.
+    //
+    // 0.00048828125 is 1 / 2048, which is `SHADOW_MAP_SIZE` in `src/sun.ts`. `sun.test.ts` asserts
+    // the two agree, because a texel size that does not match the map silently resizes the penumbra.
+    const shadowSoftness = 2.5;
+    const shadowBias = 0.03;
+    const sunVisibility = shadowFactor(
+      uShadowMap,
+      uLightViewProj,
+      vWorld,
+      normal,
+      uLightPosition,
+      uShadowRange,
+      0.00048828125,
+      shadowSoftness,
+      shadowBias,
+    );
+    const sunDiffuse = max(dot(normal, uSunDirection), 0);
+    const sunSpecular = specularGGX(normal, uSunDirection, view, roughness, vec3(0.04, 0.04, 0.04));
+    // Albedo tints the diffuse, `f0` tints the specular — the same split the relay lights use.
+    const sunRadiance = uSunColor
+      .scale(sunVisibility)
+      .mul(dampEarth.scale(sunDiffuse).add(sunSpecular));
+    const lit = dampEarth.mul(ambient).add(irradiance).add(sunRadiance);
     const stonePath = smoothstep(0.44, 0.5, max(0.6 - abs(vWorld.x) * 0.12, 0.6 - abs(vWorld.z) * 0.12));
     const pathTint = mix(vec3(1, 1, 1), vec3(0.74, 0.78, 0.72), stonePath * 0.18);
     const materialColor = lit.mul(pathTint).add(irradiance.scale(0.035));

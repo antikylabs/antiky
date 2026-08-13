@@ -58,6 +58,7 @@ import {
 } from './render-batches.ts';
 import { RELAY_RENDER_PROFILE } from './render-profile.ts';
 import { createResourceScope } from './resource-lifetime.ts';
+import { bindDepthProgram, createShadowPass } from './shadow-pass.ts';
 import { populateRelayVisuals } from './relay-visuals.ts';
 import { setupReliquaryModels } from './reliquary-model-layout.ts';
 import {
@@ -188,6 +189,9 @@ export async function createRelayRenderer(
   ));
   setupReliquaryModels(organic, rocks, stumps);
 
+  // Created before the uniform binding below, because every material program is pointed at its map
+  // once at setup rather than rebound each frame.
+  const shadows = resources.register(createShadowPass(renderer));
   const surfaceBatches = [forms, creatures, orbs, rings] as const;
   for (let index = 0; index < surfaceBatches.length; index += 1) {
     const batch = surfaceBatches[index]!;
@@ -206,6 +210,8 @@ export async function createRelayRenderer(
     batch.program.uniforms.uFogStart.set(RELAY_PRESENTATION.fog.start);
     batch.program.uniforms.uFogEnd.set(RELAY_PRESENTATION.fog.end);
     batch.program.uniforms.uFogMaximumMix.set(RELAY_PRESENTATION.fog.maximumMix);
+    shadows.bind(batch.program as never);
+    bindDepthProgram(batch.depthProgram as never);
   }
   const modelBatches = [organic, rocks, stumps] as const;
   for (let index = 0; index < modelBatches.length; index += 1) {
@@ -225,6 +231,8 @@ export async function createRelayRenderer(
     batch.program.uniforms.uFogStart!.set(RELAY_PRESENTATION.fog.start);
     batch.program.uniforms.uFogEnd!.set(RELAY_PRESENTATION.fog.end);
     batch.program.uniforms.uFogMaximumMix!.set(RELAY_PRESENTATION.fog.maximumMix);
+    shadows.bind(batch.program as never);
+    bindDepthProgram(batch.depthProgram as never);
   }
   floorProgram.uniforms.uDiffuseTint.set(RELAY_PRESENTATION.floorDiffuseTint);
   // Nine coefficients instead of one colour. BroMetal's DSL has no array uniform type, so they are
@@ -249,6 +257,8 @@ export async function createRelayRenderer(
   floorProgram.uniforms.uFogStart.set(RELAY_PRESENTATION.fog.start);
   floorProgram.uniforms.uFogEnd.set(RELAY_PRESENTATION.fog.end);
   floorProgram.uniforms.uFogMaximumMix.set(RELAY_PRESENTATION.fog.maximumMix);
+  // The floor is the demo's largest shadow receiver and casts nothing itself.
+  shadows.bind(floorProgram as never);
   const frameScratch = createRelayFrameScratch();
   const cameraPosition = frameScratch.cameraPosition;
   const camera = createCamera({
@@ -324,6 +334,21 @@ export async function createRelayRenderer(
   postProgram.attributes.aPosition.set(createPlane({ width: 2, height: 2 }).positions);
   postProgram.setIndices(createPlane({ width: 2, height: 2 }).indices);
 
+  // Everything that blocks the sun. The floor is absent on purpose — it is the receiver, and a flat
+  // plane facing the light writes a depth its own lookup then has to bias its way back out of.
+  //
+  // The blended passes are absent too. `contacts` and `glows` are billboards standing in for light,
+  // not solid geometry, and a sprite of a glow casting a hard shadow is exactly wrong.
+  const drawCasters = (): void => {
+    organic.drawDepth();
+    rocks.drawDepth();
+    stumps.drawDepth();
+    forms.drawDepth();
+    creatures.drawDepth();
+    orbs.drawDepth();
+    rings.drawDepth();
+  };
+
   const drawScene = (): void => {
     floorProgram.draw();
     organic.draw();
@@ -340,6 +365,9 @@ export async function createRelayRenderer(
   };
 
   const drawFrame = (): void => {
+    // Before the scene, because the scene reads what this writes. `drawTo` finishes and submits its
+    // own encoder, so the two passes are ordered by the queue rather than by hope.
+    shadows.render(drawCasters);
     const scene = ensureSceneTarget();
     // The target must be cleared to the scene's background, not to `drawTo`'s default of
     // transparent black. Missing this turned 34% of the frame — everything outside the floor — from

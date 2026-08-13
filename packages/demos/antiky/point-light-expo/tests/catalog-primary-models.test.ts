@@ -157,6 +157,7 @@ test('both primary model factories upload and draw their parsed catalog geometry
   for (let index = 0; index < factories.length; index += 1) {
     const disposed: string[] = [];
     const program = fakeProgram(disposed);
+    const depthProgram = fakeProgram(disposed);
     const batch = await factories[index]!({} as never, 1, {
       loadModel: async () => models[index]!,
       createBitmap: async () => ({ close() {} }) as never,
@@ -164,13 +165,18 @@ test('both primary model factories upload and draw their parsed catalog geometry
         dispose() { disposed.push(role); },
       }) as never,
       createProgram: () => program as never,
+      createDepthProgram: () => depthProgram as never,
     });
     batch.setValues(0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0);
     batch.upload();
     batch.draw();
+    batch.drawDepth();
     assert.equal(program.retained.get('draws'), 1);
+    // The shadow pass has to see the same props the lit pass does. A batch that uploads instances
+    // to one program and not the other casts shadows from geometry that is no longer there.
+    assert.equal(depthProgram.retained.get('draws'), 1);
     batch.dispose();
-    assert.deepEqual(disposed, ['program', 'normal', 'material', 'diffuse']);
+    assert.deepEqual(disposed, ['program', 'program', 'normal', 'material', 'diffuse']);
   }
 });
 

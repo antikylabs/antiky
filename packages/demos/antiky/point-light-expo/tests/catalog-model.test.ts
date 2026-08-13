@@ -161,20 +161,24 @@ test('catalog model construction rolls back textures, bitmaps, and the in-flight
     createBitmap: async (image) => ({ close() { closed.push(image.name); } }) as never,
     createTexture: (_renderer, _bitmap, role) => ({ dispose() { disposed.push(role); } }) as never,
     createProgram: () => fakeProgram(disposed, true) as never,
+    createDepthProgram: () => fakeProgram(disposed) as never,
   }), /injected model attribute failure/);
   assert.deepEqual(closed, ['dead_tree_trunk_diff', 'dead_tree_trunk_arm', 'dead_tree_trunk_nor']);
-  assert.deepEqual(disposed, ['program', 'normal', 'material', 'diffuse']);
+  // Two programs now: the lit one and the shadow-pass one, both rolled back in reverse order.
+  assert.deepEqual(disposed, ['program', 'program', 'normal', 'material', 'diffuse']);
 });
 
 test('catalog model uploads reuse retained instance storage and draw the parsed mesh', async () => {
   const { createReliquaryModelBatch } = await import('../src/reliquary-models.ts');
   const disposed: string[] = [];
   const program = fakeProgram(disposed);
+  const depthProgram = fakeProgram(disposed);
   const batch = await createReliquaryModelBatch({} as never, 2, {
     loadModel: async () => fakeModel,
     createBitmap: async () => ({ close() {} }) as never,
     createTexture: (_renderer, _bitmap, role) => ({ role, dispose() { disposed.push(role); } }) as never,
     createProgram: () => program as never,
+    createDepthProgram: () => depthProgram as never,
   });
   batch.setValues(0, 1, 2, 3, 4, 5, 6, 0.7, 0.8, 0.9, 0.2, 0.3, 0.4);
   batch.upload();
@@ -186,5 +190,6 @@ test('catalog model uploads reuse retained instance storage and draw the parsed 
   batch.draw();
   assert.equal(program.retained.get('draws'), 1);
   batch.dispose();
-  assert.deepEqual(disposed, ['program', 'normal', 'material', 'diffuse']);
+  // Two programs now: the lit one and the shadow-pass one, both rolled back in reverse order.
+  assert.deepEqual(disposed, ['program', 'program', 'normal', 'material', 'diffuse']);
 });

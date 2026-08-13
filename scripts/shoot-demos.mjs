@@ -68,6 +68,16 @@ export const DEMO_PROBES = Object.freeze({
      * "darker" look like "passing", and this demo is already dark on purpose.
      */
     onboarding: Object.freeze({ x: 16, y: 648, width: 608, height: 60 }),
+    /**
+     * Floor in the shadow of a rock, and floor in full sun 205 px away on the same material.
+     *
+     * The pair is what makes the measurement mean something. One probe on its own only says how
+     * bright a patch of ground is, which depends on the litter under it as much as on the light.
+     * With shadows disabled these two swap places — the shadowed probe measures 34% *brighter*
+     * than its reference — so the darkness is the shadow and not a difference between two patches.
+     */
+    sunShadow: Object.freeze({ x: 1082, y: 438, width: 32, height: 32 }),
+    sunLit: Object.freeze({ x: 898, y: 348, width: 32, height: 32 }),
   }),
 });
 

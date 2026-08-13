@@ -53,6 +53,10 @@ const SAMPLER_ROLES = Object.freeze({
   uDiffuse: 'colour',
   uMaterialAtlas: 'colour',
   uAtlas: 'colour',
+  // Distance from the light, not a picture. Decoding it as sRGB would corrupt every comparison.
+  // Keyed `shadowMap` because the sample happens inside BroMetal's `shadowFactor`, so the name
+  // that reaches the compiled WGSL is the helper's parameter rather than the demo's uniform.
+  shadowMap: 'data',
   uArm: 'data',
   uNormalMap: 'data',
   // Surface direction, not colour. Decoding it would bend every perturbed normal toward the shallow
@@ -764,13 +768,26 @@ test('no material shader tone-maps, because tone-mapping belongs in one post pas
 test('no material sample silently loses its mip chain', async () => {
   // A `texture()` call inside a DSL helper compiles to `textureSampleLevel(..., 0.0)` and drops the
   // mip chain without warning, which is why every material sample is inlined in `fragment()`.
+  //
+  // The shadow map is the one sample that *should* be pinned to level 0, and it is exempt by name
+  // rather than by widening the rule. It carries no mip chain — `shadow-pass.ts` creates it with no
+  // mips at all — and averaging two distances across a silhouette produces a number belonging to
+  // neither surface. It is also read through BroMetal's own `shadowFactor`, so inlining it in
+  // `fragment()` is not available even if it were wanted.
+  const PINNED_ON_PURPOSE = new Set(['shadowMap']);
   const offenders = [];
+  let exempted = 0;
   for (const shader of await allShaders()) {
     for (const sample of shader.samples) {
-      if (sample.level === 'explicit') offenders.push(`${shader.relative}: ${sample.texture}`);
+      if (sample.level !== 'explicit') continue;
+      if (PINNED_ON_PURPOSE.has(sample.texture)) { exempted += 1; continue; }
+      offenders.push(`${shader.relative}: ${sample.texture}`);
     }
   }
   assert.deepEqual(offenders, [], 'Inline the texture() call in fragment() rather than wrapping it.');
+  // The exemption is only safe while something uses it; if the shadow map stops being sampled this
+  // says so rather than sitting here forever protecting nothing.
+  assert.ok(exempted >= 3, `expected the three material shaders to sample the shadow map, saw ${exempted}`);
 });
 
 test('every demo agrees with itself about where its light comes from', async () => {
@@ -877,4 +894,39 @@ test('no point-light-expo shader still uses the distribution-only specular term'
     .filter((shader) => shader.calls('specGGX'))
     .map((shader) => shader.relative);
   assert.deepEqual(offenders, []);
+});
+
+test('every shader that reads the shadow map agrees about how to read it', async () => {
+  // Softness, bias and texel size are literals in each material shader rather than uniforms,
+  // because nothing varies them at run time. Duplication is the price of that, and this is what
+  // stops the copies drifting: a floor whose penumbra is wider than the rock standing on it reads
+  // as two different lights, and the cause is invisible in a capture.
+  //
+  // The texel is the one most worth guarding. It has to equal 1 / SHADOW_MAP_SIZE from `sun.ts`,
+  // and nothing in the shader can check that — a wrong value silently resizes the penumbra rather
+  // than failing.
+  const constants = new Map();
+  for (const shader of await allShaders()) {
+    if (!shader.calls('shadowFactor')) continue;
+    // `[^;{]*` so this cannot run from the `fn shadowFactor(` declaration down to the first
+    // call site and swallow the whole body, which is what the first version of this did.
+    const call = shader.wgsl.match(/shadowFactor\s*\(([^;{]*)\)\s*;/);
+    assert.ok(call, `${shader.relative}: calls shadowFactor but the call could not be read`);
+    const numbers = call[1].split(',').map((argument) => argument.trim()).filter(
+      (argument) => /^[0-9.]+$/.test(argument),
+    );
+    const key = numbers.join('|');
+    if (!constants.has(key)) constants.set(key, []);
+    constants.get(key).push(shader.relative);
+  }
+  assert.ok(constants.size > 0, 'no shader reads a shadow map at all');
+  assert.equal(constants.size, 1, `shadow lookups disagree:\n${
+    [...constants.entries()].map(([key, files]) => `  ${key} — ${files.join(', ')}`).join('\n')}`);
+  // 1 / 2048, the shadow map's own size. Stated here so a change to `SHADOW_MAP_SIZE` that misses
+  // the shaders fails rather than quietly rescaling every penumbra.
+  const [only] = [...constants.keys()];
+  assert.ok(
+    only.split('|').includes('0.00048828125'),
+    `the shadow texel is not 1 / 2048: ${only}`,
+  );
 });

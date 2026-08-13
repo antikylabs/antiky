@@ -8,6 +8,7 @@ import {
 import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
 import foundryGlowShader from './shaders/foundry-glow.shader.gen.ts';
 import foundryShader from './shaders/foundry.shader.gen.ts';
+import surfaceDepthShader from './shaders/surface-depth.shader.gen.ts';
 
 export type Vec3 = readonly [number, number, number];
 
@@ -154,12 +155,18 @@ export function createSurfaceBatch(
   detailNormal: BroMetalTexture,
 ) {
   const program = createProgram(renderer, foundryShader);
+  // The same geometry seen from the sun, writing distance instead of colour. One batch owning both
+  // programs, so the instance arrays below stay the single answer to where these surfaces are.
+  const depthProgram = createProgram(renderer, surfaceDepthShader);
   try {
     program.attributes.aPosition.set(geometry.positions);
     program.attributes.aNormal.set(geometry.normals);
     program.setIndices(geometry.indices);
     program.uniforms.uDetailNormal.set(detailNormal);
+    depthProgram.attributes.aPosition.set(geometry.positions);
+    depthProgram.setIndices(geometry.indices);
   } catch (cause: unknown) {
+    depthProgram.dispose();
     program.dispose();
     throw cause;
   }
@@ -167,6 +174,7 @@ export function createSurfaceBatch(
 
   return Object.freeze({
     program,
+    depthProgram,
     clear: data.clear,
     setValues: data.setValues,
     upload(): void {
@@ -175,9 +183,15 @@ export function createSurfaceBatch(
       program.instanceAttributes.iBaseColor.set(data.colors);
       program.instanceAttributes.iMaterial.set(data.materials);
       program.instanceAttributes.iYaw.set(data.yaws);
+      // Only what moves a vertex. Colour and material have no bearing on where a shadow falls.
+      depthProgram.instanceAttributes.iOffset.set(data.offsets);
+      depthProgram.instanceAttributes.iScale.set(data.scales);
+      depthProgram.instanceAttributes.iYaw.set(data.yaws);
     },
     draw(): void { program.draw(); },
-    dispose(): void { program.dispose(); },
+    /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
+    drawDepth(): void { depthProgram.draw(); },
+    dispose(): void { depthProgram.dispose(); program.dispose(); },
   });
 }
 
