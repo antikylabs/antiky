@@ -1,11 +1,14 @@
 import {
+  length,
   max,
   mix,
   pow,
   shader,
+  smoothstep,
   step,
   targetUv,
   texture,
+  vec2,
   vec3,
   vec4,
   type Vec3,
@@ -50,6 +53,23 @@ function channelToDisplay(channel: number): number {
   return mix(low, high, step(0.0031308, safe));
 }
 
+/**
+ * Contrast about a pivot, as a power rather than a straight line.
+ *
+ * 0.18 is mid grey in linear light — not 0.5, which is mid grey only after the display curve.
+ *
+ * **The straight-line form is wrong and it looks like a pass.** `pivot + (v - pivot) * gain` sends
+ * everything below `pivot / gain` negative, and clamping at zero turns a gradient into a plateau of
+ * pure black. In the reference it cleared the local-contrast floor while taking `clippedLow` from 0
+ * to 33.5%. This form has the same slope at the pivot and maps zero to zero.
+ *
+ * Written into the expression rather than named as module constants: the BroMetal MVP resolves only
+ * shader parameters and local consts.
+ */
+function shapeContrast(channel: number): number {
+  return 0.18 * pow(max(channel, 0) / 0.18, 1.16);
+}
+
 function encodeSrgb(color: Vec3): Vec3 {
   return vec3(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
 }
@@ -58,6 +78,8 @@ export default shader({
   attributes: { aPosition: 'vec3' },
   uniforms: {
     uScene: 'sampler2D',
+    uBloom: 'sampler2D',
+    uBloomStrength: 'float',
     uExposure: 'float',
   },
   varyings: { vUv: 'vec2' },
@@ -69,8 +91,28 @@ export default shader({
     return vec4(aPosition.x, aPosition.y, 0, 1);
   },
 
-  fragment({ uScene, uExposure }, { vUv }) {
+  fragment({ uScene, uBloom, uBloomStrength, uExposure }, { vUv }) {
     const scene = texture(uScene, vUv).xyz;
-    return vec4(encodeSrgb(tonemapACES(scene.scale(uExposure))), 1);
+    // Added in linear light, before exposure, because that is the space it was extracted in.
+    const withBloom = scene.add(texture(uBloom, vUv).xyz.scale(uBloomStrength));
+    const exposed = withBloom.scale(uExposure);
+
+    // The grade, in linear light and before the tone-map. A grade after ACES operates on values the
+    // curve has already compressed, so lifting a shadow there also lifts everything folded into it.
+    const grey = exposed.x * 0.2126 + exposed.y * 0.7152 + exposed.z * 0.0722;
+    const saturated = mix(vec3(grey, grey, grey), exposed, 1.1);
+    const graded = vec3(
+      shapeContrast(saturated.x),
+      shapeContrast(saturated.y),
+      shapeContrast(saturated.z),
+    );
+
+    // The vignette, on linear light for the same reason. `vUv` runs 0..1 across the frame, so this
+    // is distance from centre; the corner sits at 0.707 and lands 10-25% down, which is the band the
+    // goal calls restrained.
+    const centred = vUv.sub(vec2(0.5, 0.5));
+    const vignette = 1 - smoothstep(0.28, 0.78, length(centred)) * 0.2;
+
+    return vec4(encodeSrgb(tonemapACES(graded.scale(vignette))), 1);
   },
 });

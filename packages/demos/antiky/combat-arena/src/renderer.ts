@@ -11,6 +11,8 @@ import {
   type Renderer,
   type RendererOptions,
 } from 'brometal';
+import bloomBlurShader from './shaders/bloom-blur.shader.gen.ts';
+import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
 import { bindDepthProgram, createShadowPass } from './shadow-pass.ts';
 
@@ -69,6 +71,14 @@ export const COMBAT_RENDERER_OPTIONS = Object.freeze({
  * because the reference keeps exposure here rather than as a per-material uniform.
  */
 const COMBAT_EXPOSURE = 1;
+
+/**
+ * Bloom, in pre-exposure linear units.
+ *
+ * The threshold sits above what a lit hull reaches and below the energy rings and the ship trails,
+ * so the glow picks out things that emit rather than everything the key caught.
+ */
+const COMBAT_BLOOM = Object.freeze({ threshold: 1, radius: 5, strength: 1 });
 
 /**
  * `COMBAT_RENDERER_OPTIONS.clearColor` expressed in linear light.
@@ -216,6 +226,31 @@ export async function createCombatRendererWith(
 
     const postProgram = registerResource(disposables, dependencies.createPostProgram(renderer));
     const fullscreenQuad = createPlane({ width: 2, height: 2 });
+    // Two quarter-resolution targets, ping-ponged by the blur. Quarter because a blur's output is
+    // low-frequency by definition, and two because a separable blur cannot read and write the same
+    // texture. `filter: 'linear'` is goal 02's render-target-filtering patch, and is hard-blocking:
+    // on a point sampler the taps between texels snap back onto texel centres and the chain produces
+    // blocky glow that crawls with the camera.
+    let bloomTargets: readonly [RenderTarget, RenderTarget] | undefined;
+    const ensureBloomTargets = (): readonly [RenderTarget, RenderTarget] => {
+      const width = Math.max(1, Math.floor(renderer.canvas.width / 4));
+      const height = Math.max(1, Math.floor(renderer.canvas.height / 4));
+      if (!bloomTargets || bloomTargets[0].width !== width || bloomTargets[0].height !== height) {
+        bloomTargets?.[0].dispose();
+        bloomTargets?.[1].dispose();
+        bloomTargets = [
+          createRenderTarget(renderer, { width, height, filter: 'linear' }),
+          createRenderTarget(renderer, { width, height, filter: 'linear' }),
+        ];
+      }
+      return bloomTargets;
+    };
+    const bloomExtract = registerResource(disposables, createProgram(renderer, bloomExtractShader));
+    bloomExtract.attributes.aPosition!.set(fullscreenQuad.positions);
+    bloomExtract.setIndices(fullscreenQuad.indices);
+    const bloomBlur = registerResource(disposables, createProgram(renderer, bloomBlurShader));
+    bloomBlur.attributes.aPosition!.set(fullscreenQuad.positions);
+    bloomBlur.setIndices(fullscreenQuad.indices);
     postProgram.attributes.aPosition!.set(fullscreenQuad.positions);
     postProgram.setIndices(fullscreenQuad.indices);
 
@@ -252,7 +287,22 @@ export async function createCombatRendererWith(
       shadows.render(drawCasters);
       const scene = ensureSceneTarget();
       renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
+      // Extract, blur across, blur down. Three quarter-resolution passes over an already-drawn
+      // scene, so nothing here touches the geometry again.
+      const [bloomA, bloomB] = ensureBloomTargets();
+      bloomExtract.uniforms.uScene!.set(scene.texture);
+      bloomExtract.uniforms.uThreshold!.set(COMBAT_BLOOM.threshold);
+      renderer.drawTo(bloomA, () => bloomExtract.draw());
+      bloomBlur.uniforms.uSource!.set(bloomA.texture);
+      bloomBlur.uniforms.uDirection!.set([COMBAT_BLOOM.radius / bloomA.width, 0]);
+      renderer.drawTo(bloomB, () => bloomBlur.draw());
+      bloomBlur.uniforms.uSource!.set(bloomB.texture);
+      bloomBlur.uniforms.uDirection!.set([0, COMBAT_BLOOM.radius / bloomA.height]);
+      renderer.drawTo(bloomA, () => bloomBlur.draw());
+
       postProgram.uniforms.uScene!.set(scene.texture);
+      postProgram.uniforms.uBloom!.set(bloomA.texture);
+      postProgram.uniforms.uBloomStrength!.set(COMBAT_BLOOM.strength);
       postProgram.uniforms.uExposure!.set(COMBAT_EXPOSURE);
       postProgram.draw();
     };
@@ -286,6 +336,8 @@ export async function createCombatRendererWith(
           // Not registered with the scope: it is rebuilt on canvas resize, so the scope would hold
           // whichever one happened to exist at construction.
           sceneTarget?.dispose();
+          bloomTargets?.[0].dispose();
+          bloomTargets?.[1].dispose();
           disposeResources(disposables);
         } finally {
           renderer.destroy();
