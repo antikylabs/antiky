@@ -9,7 +9,7 @@ without reading the commit log.
 | Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
-| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | — | — |
+| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `f3c2a91` | — |
 | antiky-town | — | — | — | — | — |
 
 ## combat-arena
@@ -489,6 +489,24 @@ the character is.
 hole at least tells the viewer where the character is. The next attempt should start by moving
 `contactShadow.draw()` after every opaque draw, which is where `combat-arena` and `point-light-expo`
 both put their blended passes.
+
+### W B.4 — hemispheric ambient and the deletions
+
+**The hemispheric half was already done.** `traversal-model` carries the same SH-9 bake the reference
+uses — a full directional reconstruction, of which hemispheric ambient is a special case. As in
+`combat-arena`, the packet's real content here was what the goal lists under *delete rather than
+port*:
+
+- **`uGradeColor` / `uGradeMix`** — at their runtime values these replaced about **90% of the cloud
+  texture and 78% of the cliff texture with flat colour**. A grade that strong is not a grade; it is
+  lighting the demo did not have, painted over art it did. The clouds now show their own shading.
+- **`vWash`** — a per-vertex sine wobble standing in for ambient variation, which the SH-9 term does
+  properly and directionally.
+
+Both were threaded through the renderer as parameters and call-site arguments across thirteen catalog
+batches; all of that is gone too, so the dead knobs cannot be reintroduced by a caller.
+
+Saturation 0.375 → **0.399**, p95 0.547 → 0.535.
 
 ## Notes carried forward
 
