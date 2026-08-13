@@ -361,9 +361,31 @@ against bare platform. It is entirely possible the unlit blob has been working t
 weight the crop simply does not show against a bright green surface — the old blob read as a hole
 precisely because it was an opaque dome, and a correct soft contact shadow *should* be far subtler.
 
-**Do this first, before touching any shader:** comment out `contactShadow.draw()`, capture, and read
-the same rectangle. That single number decides whether there is a bug at all. Eight hypotheses were
-generated and tested without it.
+**The control was captured, and it makes every earlier number interpretable for the first time:**
+
+| rectangle under the character | mean rgb | darkening vs control |
+| --- | --- | --- |
+| **control — contact shadow disabled** | 165, 181, 145 | — |
+| new unlit quad | 163, 179, 144 | **1.2%** |
+| old lit sphere blob | 136, 152, 128 | 18% |
+
+**The blob draws, at roughly one percent of the strength it needs.** Not invisible — feeble. Every
+earlier "it does not draw" reading was that 1.2% being indistinguishable from noise without a
+control to measure it against.
+
+That converts the problem to arithmetic. The alpha is
+`falloff * 0.55 * present * (0.62 + structure * 0.38)`, which must be landing near **0.01**. With
+`falloff` and `structure` at their plausible values, that requires **`present ≈ 0.03`** — and
+`present = smoothstep(0, 0.02, vRadius)`, so `vRadius` is arriving at about **0.003**, not the
+0.33–0.75 the call site passes as `iScale.x`.
+
+**Next step: prove what `iScale.x` actually reaches the shader as.** Return `vec4(vRadius, 0, 0, 1)`
+and read the red channel of the rectangle — that reports the value directly instead of inferring it.
+The likely culprits are the surface batch writing `scales` at a different stride than the contact
+shader reads, or `clear()` zeroing them after `set()`.
+
+This is the first lead in the investigation derived from arithmetic rather than from reading source,
+and it is the only one that has not already been disproved.
 
 **A note on process, because it is the more useful finding.** Eight failed attempts at one blob,
 several of them "obvious" one-line fixes reasoned from source. The cycles that produced information
