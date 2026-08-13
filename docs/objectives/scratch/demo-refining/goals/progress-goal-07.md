@@ -10,7 +10,7 @@ without reading the commit log.
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
 | traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `cfa9e7b` | **done** `a8f41d2` |
-| antiky-town | **done** `b3d81c7` | *contract guarded* `b6b453d` | — | — | — |
+| antiky-town | **done** `aee43b4` | **done** `a2e8df0` | — | — | — |
 
 ## combat-arena
 
@@ -599,6 +599,40 @@ and `pipeline-invariants` holds the copies identical.
 not aliasing — and it is worth stating now because **W B.2's acceptance for this demo is that the
 count must go *down***, which is the proof that goal 02's MSAA patch restored what this demo's
 offscreen pass was already discarding. 22,403 is the number that has to fall.
+
+### W B.2 — the stated gap was not the gap
+
+Goal 07 says the W B.2 work here is the **format**: that
+`createRenderTarget(renderer, { width, height, depth: true })` "requests no HDR format, so the scene
+target has no headroom, nothing can exceed 1.0, and bloom has nothing to bloom."
+
+**That is not so.** BroMetal fixes every offscreen target to `rgba16float`
+(`dist/runtime/webgpu.js:15`); there is no format option to pass and never was. This demo's scene
+target has had full HDR headroom since the day it was written.
+
+The real gap is the one the same section of the goal names second, and it is the whole packet:
+**everything this demo draws goes through an offscreen pass, and a render target is single-sampled by
+default**, so it has been discarding the 4x MSAA an on-screen pass keeps. Goal 02's W A.2 patch is
+what makes `samples: 4` available.
+
+| | value | requirement |
+| --- | --- | --- |
+| mean per-channel difference | **1.571 / 255** | under 3 |
+| **hard edges** | **22,403 → 15,541** | must **decrease** for this demo |
+| local contrast | 9.05 → 8.90 | — |
+
+The edge count falling by 31% is the direct evidence the goal asks for: proof that W A.2 restored
+what the offscreen pass was throwing away.
+
+**The risk this carried was real and specific**, and is why the contract test was written first: the
+resolve averages **alpha**, and alpha here is linear camera distance rather than opacity. Averaging
+two distances across a silhouette yields one belonging to neither surface, which the post pass would
+read as a depth between the two — a halo tracing every edge in the sky mask and the depth of field.
+
+It did not happen. The contract test stays green, and the changed pixels sit on edges **4.9x
+stronger** than the frame average, which is where anti-aliasing changes things. A depth halo would
+appear as a fringe *beside* edges rather than on them. The water channels, the fountain jets and the
+canal all read correctly in the capture.
 
 ## Notes carried forward
 
