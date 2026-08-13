@@ -60,8 +60,6 @@ export default shader({
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTime: 'float',
-    uGradeColor: 'vec3',
-    uGradeMix: 'float',
     uWrap: 'float',
     uTex: 'sampler2D',
     uRamp: 'sampler3D',
@@ -80,7 +78,7 @@ export default shader({
     uSh8: 'vec3',
     uDetailNormal: 'sampler2D',
   },
-  varyings: { vWorld: 'vec3', vNormal: 'vec3', vUv: 'vec2', vWash: 'float' },
+  varyings: { vWorld: 'vec3', vNormal: 'vec3', vUv: 'vec2' },
 
   vertex({ aPosition, aNormal, aUv, iOffset, iScale, iParams }, { uViewProj, uTime }, v) {
     const animatedYaw = iParams.x + sin(uTime * 3.1 + iParams.z) * iParams.y;
@@ -94,7 +92,6 @@ export default shader({
     v.vWorld = world;
     v.vNormal = normalize(vec3(rotatedNormal.x, aNormal.y, rotatedNormal.y));
     v.vUv = aUv;
-    v.vWash = 0.96 + sin(world.x * 1.7 + world.y * 2.3) * 0.04;
     return uViewProj.mul(vec4(world, 1));
   },
 
@@ -104,8 +101,8 @@ export default shader({
     uShadowMap,
     uLightViewProj,
     uLightPosition,
-    uShadowRange, uCameraPosition, uGradeColor, uGradeMix, uWrap, uTex, uRamp, uKitMaterials, uMaterialDiffuse, uMaterialRoughness, uMaterialStrength, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
-    { vWorld, vNormal, vUv, vWash },
+    uShadowRange, uCameraPosition, uWrap, uTex, uRamp, uKitMaterials, uMaterialDiffuse, uMaterialRoughness, uMaterialStrength, uSh0, uSh1, uSh2, uSh3, uSh4, uSh5, uSh6, uSh7, uSh8, uDetailNormal },
+    { vWorld, vNormal, vUv },
   ) {
     const texel = decodeSrgb(texture(uTex, vUv).xyz);
     const baseNormal = normalize(vNormal);
@@ -267,7 +264,11 @@ export default shader({
     // course read as plastic blocks rather than as made of anything. Pulling it well toward
     // toward its own luminance keeps the colour language the kit was designed around while letting
     // the material underneath carry the surface.
-    const palette = mix(texel, uGradeColor, uGradeMix);
+    // `uGradeColor` / `uGradeMix` deleted here, which goal 07 asks for by name. At their runtime
+    // values they replaced about **90% of the cloud texture and 78% of the cliff texture with flat
+    // colour** — a grade strong enough that the art underneath it was barely visible, standing in
+    // for lighting the demo did not have. The ramp and the SH-9 ambient do that job now.
+    const palette = texel;
     const paletteLuminance = palette.x * 0.2126 + palette.y * 0.7152 + palette.z * 0.0722;
     const graded = mix(
       palette,
@@ -294,7 +295,7 @@ export default shader({
       .add(uSh6.scale(3 * normal.z * normal.z - 1))
       .add(uSh7.scale(normal.x * normal.z))
       .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
-    const base = graded.mul(rampLight.add(skyAmbient.scale(1 - diffuse))).scale(vWash).add(vec3(0.62, 0.72, 0.78).scale(rim * 0.55 * vWash));
+    const base = graded.mul(rampLight.add(skyAmbient.scale(1 - diffuse))).add(vec3(0.62, 0.72, 0.78).scale(rim * 0.55));
     const distanceFog = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
     // Linear HDR, and nothing else. Exposure, the tone-map and the encode all happen once in
     // `post.shader.ts`.

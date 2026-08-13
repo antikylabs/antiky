@@ -80,8 +80,6 @@ type CatalogProgram = BroMetalProgram<
     uViewProj: 'mat4';
     uCameraPosition: 'vec3';
     uTime: 'float';
-    uGradeColor: 'vec3';
-    uGradeMix: 'float';
     uTex: 'sampler2D';
   }
 >;
@@ -285,8 +283,6 @@ async function createCatalogBatch(
   ramp: BroMetalTexture,
   kitMaterials: BroMetalTexture,
   materialMaps: Readonly<{ diffuse: BroMetalTexture; roughness: BroMetalTexture }>,
-  gradeColor: Vec3 = [1, 1, 1],
-  gradeMix = 0,
   /** How much of the plywood material this batch is made of. A cloud is made of none. */
   materialStrength = 0,
   /** How far light wraps past the terminator. Clouds are volumes; everything else here is solid. */
@@ -345,8 +341,6 @@ async function createCatalogBatch(
       program.uniforms.uSh6.set(COURSE_SKY[6]!);
       program.uniforms.uSh7.set(COURSE_SKY[7]!);
       program.uniforms.uSh8.set(COURSE_SKY[8]!);
-      program.uniforms.uGradeColor.set(gradeColor);
-      program.uniforms.uGradeMix.set(gradeMix);
       program.uniforms.uWrap.set(wrap);
     }
   } catch (cause: unknown) {
@@ -440,19 +434,19 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     // One sprite for every effect: it is the demo's effect texture, not a per-effect material.
     const vfxBillboard = owned.adopt(await loadVfxBillboard(renderer));
     const catalogTransaction = await acquireTransactional([
-      () => createCatalogBatch(renderer, 'grass', TRAVERSAL_BATCH_CAPACITIES.grass, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 1),
-      () => createCatalogBatch(renderer, 'overhang', TRAVERSAL_BATCH_CAPACITIES.overhang, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 1),
-      () => createCatalogBatch(renderer, 'moving', TRAVERSAL_BATCH_CAPACITIES.moving, detailNormal, ramp, kitMaterials, materialMaps, [1, 1, 1], 0, 1),
+      () => createCatalogBatch(renderer, 'grass', TRAVERSAL_BATCH_CAPACITIES.grass, detailNormal, ramp, kitMaterials, materialMaps, 1),
+      () => createCatalogBatch(renderer, 'overhang', TRAVERSAL_BATCH_CAPACITIES.overhang, detailNormal, ramp, kitMaterials, materialMaps, 1),
+      () => createCatalogBatch(renderer, 'moving', TRAVERSAL_BATCH_CAPACITIES.moving, detailNormal, ramp, kitMaterials, materialMaps, 1),
       () => createCatalogBatch(renderer, 'flag', TRAVERSAL_BATCH_CAPACITIES.flag, detailNormal, ramp, kitMaterials, materialMaps),
       () => createCatalogBatch(renderer, 'coin', TRAVERSAL_BATCH_CAPACITIES.coin, detailNormal, ramp, kitMaterials, materialMaps),
-      () => createCatalogBatch(renderer, 'spikes', TRAVERSAL_BATCH_CAPACITIES.spikes, detailNormal, ramp, kitMaterials, materialMaps, [0.92, 0.22, 0.09], 0.62),
+      () => createCatalogBatch(renderer, 'spikes', TRAVERSAL_BATCH_CAPACITIES.spikes, detailNormal, ramp, kitMaterials, materialMaps),
       () => createCatalogBatch(renderer, 'tree', TRAVERSAL_BATCH_CAPACITIES.tree, detailNormal, ramp, kitMaterials, materialMaps),
       () => createCatalogBatch(renderer, 'courier', TRAVERSAL_BATCH_CAPACITIES.courier, detailNormal, ramp, kitMaterials, materialMaps),
-      () => createCatalogBatch(renderer, 'cloud-small', TRAVERSAL_BATCH_CAPACITIES['cloud-small'], detailNormal, ramp, kitMaterials, materialMaps, [0.96, 0.98, 1], 0.9, 0, 0.65),
-      () => createCatalogBatch(renderer, 'cloud-large', TRAVERSAL_BATCH_CAPACITIES['cloud-large'], detailNormal, ramp, kitMaterials, materialMaps, [0.96, 0.98, 1], 0.9, 0, 0.65),
-      () => createCatalogBatch(renderer, 'coastal-cliff', TRAVERSAL_BATCH_CAPACITIES['coastal-cliff'], detailNormal, ramp, kitMaterials, materialMaps, [0.3, 0.45, 0.55], 0.78),
-      () => createCatalogBatch(renderer, 'coastal-tree', TRAVERSAL_BATCH_CAPACITIES['coastal-tree'], detailNormal, ramp, kitMaterials, materialMaps, [0.18, 0.38, 0.24], 0.28),
-      () => createCatalogBatch(renderer, 'relay-tower', TRAVERSAL_BATCH_CAPACITIES['relay-tower'], detailNormal, ramp, kitMaterials, materialMaps, [0.64, 0.71, 0.74], 0.38),
+      () => createCatalogBatch(renderer, 'cloud-small', TRAVERSAL_BATCH_CAPACITIES['cloud-small'], detailNormal, ramp, kitMaterials, materialMaps, 0, 0.65),
+      () => createCatalogBatch(renderer, 'cloud-large', TRAVERSAL_BATCH_CAPACITIES['cloud-large'], detailNormal, ramp, kitMaterials, materialMaps, 0, 0.65),
+      () => createCatalogBatch(renderer, 'coastal-cliff', TRAVERSAL_BATCH_CAPACITIES['coastal-cliff'], detailNormal, ramp, kitMaterials, materialMaps),
+      () => createCatalogBatch(renderer, 'coastal-tree', TRAVERSAL_BATCH_CAPACITIES['coastal-tree'], detailNormal, ramp, kitMaterials, materialMaps),
+      () => createCatalogBatch(renderer, 'relay-tower', TRAVERSAL_BATCH_CAPACITIES['relay-tower'], detailNormal, ramp, kitMaterials, materialMaps),
     ]);
     owned.adopt(catalogTransaction);
     const catalogEntries = catalogTransaction.resources;
