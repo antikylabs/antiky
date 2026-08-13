@@ -429,6 +429,31 @@ than opaque. It reads as contact instead of as a hole punched in the platform.
 
 **Still outstanding in W B.3:** the sun and its shadow map. Only the contact-shadow half landed.
 
+### A design constraint W B.3 hits here that it does not hit in the other two demos
+
+`combat-arena` and `point-light-expo` are both **single-room** scenes: one shadow map covering fixed
+bounds serves the whole demo, which is why the reference's `createSunShadow(minimum, maximum)` works
+unchanged in both.
+
+`traversal-study` is a **190-unit scrolling course** (`src/course.ts:1`). A single map over those
+bounds at 2048² gives roughly **0.09 world units per texel** — nine centimetres — against the
+0.01 the reference achieves. Contact shadows would be a texel wide and would crawl as the camera
+moves. The demo also only ever *sees* a slice of the course at once, so most of that map is spent on
+geometry off-screen.
+
+The goal file lists cascades under explicit non-goals, and rightly — but the answer here is not
+cascades. It is **one map that follows the camera**: recompute the light's bounds each frame from the
+visible slice rather than from the course, so the same 2048² covers perhaps 30 units instead of 190
+and lands back near the reference's texel density.
+
+That is a real divergence from the reference and belongs in the code with a comment saying so, which
+is what the goal asks for whenever a demo must differ. It also means this demo's `sun.ts` cannot be a
+copy of the reference's: `createSunShadow` has to take the camera's centre as an argument, and the
+shadow pass has to rebuild its matrix per frame instead of once at construction.
+
+**Do this before writing the depth shader**, because it changes the shape of `sun.ts` and of the
+uniform the materials read.
+
 **A note on process, because it is the more useful finding.** Eight failed attempts at one blob,
 several of them "obvious" one-line fixes reasoned from source. The cycles that produced information
 were the ones that measured; the rest was cost.
