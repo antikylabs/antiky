@@ -10,7 +10,7 @@ without reading the commit log.
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
 | traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `cfa9e7b` | **done** `a8f41d2` |
-| antiky-town | **done** `aee43b4` | **done** `a2e8df0` | — | — | — |
+| antiky-town | **done** `aee43b4` | **done** `a2e8df0` | **audited, kept** | — | — |
 
 ## combat-arena
 
@@ -633,6 +633,41 @@ It did not happen. The contract test stays green, and the changed pixels sit on 
 stronger** than the frame average, which is where anti-aliasing changes things. A depth halo would
 appear as a fringe *beside* edges rather than on them. The water channels, the fountain jets and the
 canal all read correctly in the capture.
+
+### W B.3 — audited, and the existing pass is the better one
+
+The goal is explicit that this demo's shadow pass must be **reconciled, not replaced**: "keep the one
+that measures better, and say which". Measured and read, the existing one wins on four counts, and
+three of them are places where the *reference* is carrying a workaround:
+
+| | `antiky-town` | the reference |
+| --- | --- | --- |
+| projection | **orthographic**, which is what a directional light is | perspective from a virtual point |
+| depth precision | **two channels**, `stored.x + stored.y / 255` — 16 bits | one float in an fp16 target |
+| bias | constant **plus slope-scaled**, `bias + slopeBias * slope²` | normal-offset with a slope term |
+| resolution | **1024 or 2048 on canvas width** | fixed 2048 |
+| filtering | 9-tap PCF | 9-tap PCF |
+
+The reference uses a perspective frustum from a stand-in light because BroMetal ships no orthographic
+helper and its `shadowFactor` measures *radial* distance — both workarounds, documented as such in
+`point-light-expo/src/sun.ts`. This demo wrote its own orthographic projection and its own lookup and
+avoided both. **Replacing it with the reference would be a downgrade**, which is exactly the outcome
+the goal's "Chesterton's Fence applies hard here" is guarding against.
+
+**Measured against a control with the shadow term switched off:**
+
+| | result |
+| --- | --- |
+| town darkened by ≥ 25% | **22.6%** |
+| p90 darkening | 38.0% |
+| deepest | 90.9% |
+| variance the shadow adds to a lit plaza | **none** — 0.194 without, 0.178 with |
+
+The lit-surface variance *falls* with shadows on, because the shadow darkens part of the probe
+uniformly. Acne would raise it. That is a stronger result than either of the other two demos managed.
+
+**No code changed in this packet.** The finding is that none should, and the evidence for it is
+above.
 
 ## Notes carried forward
 
