@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "demo": "traversal-study",
-  "capturedAt": "2026-08-13T06:35:47.540Z",
+  "capturedAt": "2026-08-13T06:41:53.162Z",
   "warmUpFrames": 60,
   "source": {
     "digest": "2db731300acc147d",
@@ -12,11 +12,11 @@
     "height": 720
   },
   "luminance": {
-    "mean": 0.288026,
-    "p05": 0.207357,
+    "mean": 0.288025,
+    "p05": 0.207397,
     "p50": 0.258093,
     "p95": 0.547951,
-    "spread": 0.340594
+    "spread": 0.340554
   },
   "localContrast": {
     "median": 0,
@@ -24,14 +24,14 @@
   },
   "clipping": {
     "high": 0,
-    "low": 0.000004
+    "low": 0.000005
   },
   "saturation": {
-    "mean": 0.375549
+    "mean": 0.375552
   },
   "edges": {
-    "hard": 0.00266
+    "hard": 0.00267
   },
   "probes": {},
-  "seal": "bbdefa29314582a6"
+  "seal": "b0c35671d1b0d617"
 }

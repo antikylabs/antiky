@@ -283,10 +283,23 @@ Moving it to `combat-arena`'s unlit radial-falloff shader took three attempts an
    and `vRadius` arrives as a world half-extent being compared against local coordinates. The blob
    is drawn and then discarded by its own falloff.
 
-   **The fix is at the call site, not in the shader**: pass `iScale.x` as the radius in the units the
-   falloff expects, `iScale.y` as the rotation, and `iScale.z` as the second footprint axis. Roughly
-   `set(0, x, supportTop + 0.025, z, 1, 0, 1, INK, …)` with the footprint carried by the quad's own
-   scale, matching how `combat-arena` calls it.
+4. **A fourth attempt with the quad winding reversed also failed.** `combat-arena` runs
+   `cull: 'none'`, so its winding was never exercised, and this demo culls back faces — that looked
+   like a strong explanation. It was not: flipping the indices changed nothing.
+
+**Two wrong hypotheses in a row on the same bug, and the instance convention above is a third
+unverified guess.** Reading the fragment afterwards shows `vRadius` is only used as a
+zero-size gate (`smoothstep(0, 0.02, vRadius)`) and the falloff runs off `vLocal`, which is local
+±1 — so traversal-study's scale values would have been *fine*. That guess was wrong too.
+
+**Stop guessing and get evidence.** The next attempt should make the blob output solid opaque red
+with no falloff and no texture, and capture. That separates "not drawn" from "drawn and discarded by
+its own alpha" in one step, which four rounds of reasoning from the source did not. Everything after
+that is cheap; everything before it was not.
+
+The demo is reverted to its committed W B.2 state and `npm test` is green. The wrong contact shadow
+is still there, and that is the right place to leave it — the hole at least tells the viewer where
+the character is.
 
 **Reverted rather than left in**, because a missing contact shadow is worse than the wrong one: the
 hole at least tells the viewer where the character is. The next attempt should start by moving
