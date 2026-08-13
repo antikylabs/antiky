@@ -48,11 +48,11 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **02** | [Unblock the render pipeline in BroMetal (Track A)](_completed/execute-goal-02.md) | **Done** `57166ea` — [summary](_completed/summary-goal-02.md) | — | 00, 01, 04, 05, 10 |
 | **03** | [Quick wins, motion feel, safe dead-code removal (Track D)](_completed/execute-goal-03.md) | **Done** `4b6ecaa` — [summary](_completed/summary-goal-03.md) | 01 | 04, 05, 10 |
 | **04** | [Stop the asset pipeline destroying the assets (Track C)](_completed/execute-goal-04.md) | **Done** `bf56f6c` — [summary](_completed/summary-goal-04.md) | 01 | 02, 03, 05, 10 |
-| **05** | [Give the existing assets real materials — triplanar PBR](execute-goal-05.md) — items 1, 3, 5, 10 done; **four steps remain** | In progress | 01, 04 | 02, 03, 06, 07, 10 |
-| 05-01 | [Finish the ambient work](execute-goal-05-01.md) | Not started | 05 landed work | — |
-| 05-02 | [Material identity for the palette kits](execute-goal-05-02.md) | Not started | 05 landed work | — |
-| 05-03 | [Real materials from the catalog](execute-goal-05-03.md) | Not started | 05-02 | — |
-| 05-04 | [The VFX pass](execute-goal-05-04.md) | Not started | 05 landed work | — |
+| **05** | [Give the existing assets real materials — triplanar PBR](execute-goal-05.md) — items 1–5, 7, 8, 10 done; 6 and 9 partial | In progress | 01, 04 | 02, 03, 06, 07, 10 |
+| 05-01 | [Finish the ambient work](execute-goal-05-01.md) | **Done** — traversal + antiky-town on SH-9; combat-arena lit by directional earthshine instead, on the owner's brief | 05 landed work | — |
+| 05-02 | [Material identity for the palette kits](execute-goal-05-02.md) | **Done** — AC-M2 green, both kits read their table | 05 landed work | — |
+| 05-03 | [Real materials from the catalog](execute-goal-05-03.md) | In progress — AC-M4 green, three demos have materials; `antiky-town` and the normal/ARM halves left | 05-02 | — |
+| 05-04 | [The VFX pass](execute-goal-05-04.md) | In progress — item 8 done (AC-V4), item 2 on two demos; rest of item 9 left | 05 landed work | — |
 | **06** | [The reference render slice in `point-light-expo` (Track B)](execute-goal-06.md) — **six steps, run individually** | Not started | 00, 01, 02 | 05, 10 |
 | 06-01 | [Finish colour management — the encode on output](execute-goal-06-01.md) | Not started | 06 prereqs | — |
 | 06-02 | [One HDR target and exactly one tone-map](execute-goal-06-02.md) | Not started | 06-01 | — |
