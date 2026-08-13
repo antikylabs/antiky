@@ -1,6 +1,28 @@
 # Summary — goal 06-03: a specular model that does not need a ceiling
 
+**Complete on its stated outcomes; the visible result it predicted did not happen.** The model,
+the deleted ceilings and every required test landed. The image did not move, for a measured reason.
+
 **Commit:** `40cad33` — Give point-light-expo a specular model that conserves energy
+
+## Action needed from the owner
+
+**One decision, not blocking 06-04.**
+
+**The capture harness cannot pin an animated frame, and no bug was introduced by it.**
+`scripts/shoot-demos.mjs` waits `warmUpFrames` but never calls `pause_simulation` /
+`step_simulation`, which this goal's own capture protocol asks for. Animated objects therefore land
+at a different phase on every run, and about 2.2% of the frame moves between two captures of
+identical code. **Not fixed here** — it is a change to the shared capture path and this goal is
+scoped to one demo.
+
+Why an agent should not just decide it: fixing it re-shoots every demo and rewrites every committed
+sidecar, which is a repository-wide change of evidence. Whole-frame comparisons are still sound
+without it. It matters for **06-04**, which will want per-object evidence for a shadow map, so the
+question is whether to spend a step on the harness before 06-04 or accept whole-frame evidence there
+too.
+
+Everything else in `Outstanding` below is *handled by 06-04 through 06-06*.
 
 ## The headline, first
 

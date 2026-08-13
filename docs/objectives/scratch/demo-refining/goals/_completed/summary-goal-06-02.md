@@ -1,6 +1,19 @@
 # Summary — goal 06-02: one HDR target and exactly one tone-map
 
+**Complete.** Every required outcome met; the invariance test passes at 0.477/255 against a 3/255
+budget.
+
 **Commit:** `886ff11` — Collapse point-light-expo onto one HDR target and one post pass
+
+## Action needed from the owner
+
+**None.** Two bugs were found during this step and **both were fixed** — the onboarding panel not
+drawing, and the scene losing anti-aliasing. Both now have budgets that were proven to fail against
+the broken code.
+
+One thing to be aware of rather than act on: the local-contrast floor of 8.5 is still unmet at 6.73.
+That is pre-existing, this step was forbidden from touching materials or lights, and 06-03 through
+06-06 are what have to move it. It is *handled by 06-06*, not open.
 
 ## What the step was for
 
