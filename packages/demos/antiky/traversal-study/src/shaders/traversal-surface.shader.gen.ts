@@ -31,20 +31,6 @@ fn rotate2(p : vec2f, angle : f32) -> vec2f {
   let s = sin(angle);
   return vec2f(p.x * c - p.y * s, p.x * s + p.y * c);
 }
-fn tonemapACES(color : vec3f) -> vec3f {
-  let num = color * (color * 2.51 + vec3f(0.03, 0.03, 0.03));
-  let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
-  return clamp(num / den, vec3f(0.0), vec3f(1.0));
-}
-fn channelToDisplay(channel : f32) -> f32 {
-  let safe = max(channel, 0.0);
-  let low = safe * 12.92;
-  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  return mix(low, high, step(0.0031308, safe));
-}
-fn encodeSrgb(color : vec3f) -> vec3f {
-  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
-}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -72,13 +58,11 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let emissive = bm_in.vColor * (bm_in.vMaterial.x * (0.16 + bm_in.vPulse * 0.24));
   let highlight = vec3f(1.05, 0.83, 0.48) * (clamp(bm_in.vMaterial.y, 0.0, 1.0) * (0.16 + rim * 0.3));
   let depth = smoothstep(22.0, 58.0, length(bm_u.uCameraPosition - bm_in.vWorld));
-  let heightHaze = (1.0 - smoothstep(-5.0, 6.0, bm_in.vWorld.y)) * 0.08;
-  let sky = vec3f(0.52, 0.63, 0.65) + vec3f(0.08, 0.06, 0.02) * heightHaze;
   let surfaceNormal = normalize(bm_in.vNormal);
   let structure = textureSample(uBillboard, uBillboard_sampler, vec2f(surfaceNormal.x * 0.5 + 0.5, surfaceNormal.z * 0.5 + 0.5)).w;
   let textured = 0.6 + structure * 0.4;
   let composed = (base + emissive + highlight) * textured;
-  return vec4f(encodeSrgb(tonemapACES(mix(composed, sky, depth * 0.5))), 1.0);
+  return vec4f(mix(composed, vec3f(0.096296, 0.190755, 0.284863), depth * 0.5), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3' },

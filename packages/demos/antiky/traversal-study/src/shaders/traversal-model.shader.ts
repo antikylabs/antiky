@@ -48,38 +48,6 @@ function decodeSrgb(color: Vec3): Vec3 {
   return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
 }
 
-/**
- * Linear to sRGB, applied once to the pixel this shader writes.
- *
- * Copied by hand from `point-light-expo`, which goal 07 names as the reference implementation. The
- * duplication is the slice process, not an oversight: `pipeline-invariants.test.mjs` asserts every
- * copy compiles to an identical body, and goal 12 extracts the shared driver from the result.
- *
- * BroMetal never configures an sRGB canvas — `getPreferredCanvasFormat()` with no `viewFormats` —
- * so nothing applies the display curve unless a shader does. Goal 04 added the decode on albedo
- * sample without this half, which left this demo doing lighting on correct numbers and then writing
- * them out as though they were already display-encoded. That is why its p95 fell from 0.400 to
- * 0.258.
- *
- * The piecewise curve rather than the 2.2 approximation, because the two differ most in the darks
- * and this scene lives there. `max` guards the toe: `pow` of a negative is undefined and a
- * tone-mapped value can land fractionally below zero.
- */
-function channelToDisplay(channel: number): number {
-  const safe = max(channel, 0);
-  const low = safe * 12.92;
-  // 1 / 2.4, written out rather than divided. `brometal prod` constant-folds the division and
-  // `brometal dev` does not, so a division here makes the committed `.gen.ts` depend on which mode
-  // last ran — which `shader-output-parity` correctly refuses.
-  const high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
-  return mix(low, high, step(0.0031308, safe));
-}
-
-function encodeSrgb(color: Vec3): Vec3 {
-  return vec3(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
-}
-
 export default shader({
   attributes: { aPosition: 'vec3', aNormal: 'vec3', aUv: 'vec2' },
   instanceAttributes: { iOffset: 'vec3', iScale: 'vec3', iParams: 'vec3' },
@@ -289,6 +257,17 @@ export default shader({
       .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
     const base = graded.mul(rampLight.add(skyAmbient.scale(1 - diffuse))).scale(vWash).add(vec3(0.62, 0.72, 0.78).scale(rim * 0.55 * vWash));
     const distanceFog = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
-    return vec4(encodeSrgb(mix(base, vec3(0.55, 0.65, 0.66), distanceFog * 0.42)), 1);
+    // Linear HDR, and nothing else. Exposure, the tone-map and the encode all happen once in
+    // `post.shader.ts`.
+    //
+    // **One sky.** This demo used to render three in a single frame: this shader faded to
+    // (0.55, 0.65, 0.66), `traversal-surface` to (0.52, 0.63, 0.65), and the canvas cleared to
+    // (0.38, 0.57, 0.68). A platform receding into a colour the sky behind it is not is the kind of
+    // thing nobody sees and everybody feels. The clear colour won because it is what most of the
+    // frame actually is.
+    //
+    // The value is linear because the target is: the post pass exposes, tone-maps and encodes it
+    // along with the geometry, so it has to enter in the same space.
+    return vec4(mix(base, vec3(0.096296, 0.190755, 0.284863), distanceFog * 0.42), 1);
   },
 });

@@ -79,23 +79,41 @@ test('the piecewise curve is not the 2.2 approximation, and the difference lives
   assert.ok(Math.abs(decode(0.9) - gamma22(0.9)) < 0.01);
 });
 
-test('every shader that writes a final pixel encodes, and does it last', async () => {
+test('exactly one shader encodes, and it is the post pass', async () => {
+  // W B.1 put a copy of the encode in each shader that wrote a final pixel. W B.2 gave the demo one
+  // RGBA16F target and one pass that reads it, so those copies collapsed into a single encode there.
+  // A material that still encoded would be writing display data into a linear buffer for the post
+  // pass to encode a second time.
   const directory = new URL('../src/shaders/', import.meta.url);
-  // The blended passes are excluded and named, so adding one cannot quietly opt out of colour
-  // management. W B.2 collapses these copies into a single post-pass encode; until then each shader
-  // that writes a pixel the viewer sees directly needs its own.
-  const blended = new Set(['traversal-glow.shader.ts', 'traversal-hud.shader.ts']);
-  const missing: string[] = [];
-  let checked = 0;
+  const encoders: string[] = [];
+  let scanned = 0;
   for (const entry of await readdir(directory)) {
     if (!entry.endsWith('.shader.ts') || entry.endsWith('.gen.ts')) continue;
-    if (blended.has(entry)) continue;
+    scanned += 1;
     const source = await readFile(new URL(entry, directory), 'utf8');
-    checked += 1;
-    if (!source.includes('encodeSrgb(')) { missing.push(entry); continue; }
-    const returned = source.slice(source.lastIndexOf('return vec4('));
-    if (!returned.includes('vec4(encodeSrgb(')) missing.push(`${entry} (encodes, but not last)`);
+    if (source.includes('encodeSrgb(')) encoders.push(entry);
   }
-  assert.deepEqual(missing, []);
-  assert.equal(checked, 2, `expected the two final-pixel shaders, checked ${checked}`);
+  assert.deepEqual(encoders, ['post.shader.ts'], 'only the post pass may encode');
+  assert.ok(scanned >= 4, `expected the demo's shaders, scanned ${scanned}`);
+});
+
+test('no material shader tone-maps, and the demo agrees on one sky', async () => {
+  const directory = new URL('../src/shaders/', import.meta.url);
+  const offenders: string[] = [];
+  for (const entry of await readdir(directory)) {
+    if (!entry.endsWith('.shader.ts') || entry.endsWith('.gen.ts') || entry === 'post.shader.ts') continue;
+    const source = await readFile(new URL(entry, directory), 'utf8');
+    if (source.includes('tonemapACES')) offenders.push(entry);
+  }
+  assert.deepEqual(offenders, [], 'tone-mapping belongs to the post pass alone');
+
+  // The demo used to render three skies in one frame: two shader fog colours and a clear colour.
+  // One value now, and the old ones must not come back.
+  for (const gone of ['0.55, 0.65, 0.66', '0.52, 0.63, 0.65']) {
+    for (const entry of ['traversal-model', 'traversal-surface']) {
+      const source = await readFile(new URL(`${entry}.shader.ts`, directory), 'utf8');
+      const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+      assert.ok(!code.includes(gone), `${entry} still fades to the old sky ${gone}`);
+    }
+  }
 });

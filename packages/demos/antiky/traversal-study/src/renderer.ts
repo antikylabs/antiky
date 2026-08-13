@@ -1,4 +1,7 @@
 import {
+  type RenderTarget,
+  createRenderTarget,
+  createPlane,
   createCamera,
   createCube,
   createProgram,
@@ -42,6 +45,7 @@ import { createKitMaterialLookup } from './kit-materials.ts';
 import { createLightingRamp } from './lighting-ramp.ts';
 import { loadVfxBillboard } from './vfx-billboard.ts';
 import { loadDetailNormal } from './detail-normal.ts';
+import postShader from './shaders/post.shader.gen.ts';
 import traversalGlowShader from './shaders/traversal-glow.shader.gen';
 import traversalModelShader from './shaders/traversal-model.shader.gen';
 import traversalSurfaceShader from './shaders/traversal-surface.shader.gen';
@@ -422,13 +426,63 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     const cameraPosition = new Float32Array(3);
 
     const measurements = summarizeTraversalMeasurements([...catalogEntries, ...procedural]);
-    const drawFrame = (): void => {
+    const drawScene = (): void => {
       cloudLarge.draw(); cloudSmall.draw();
       coastalCliffs.draw(); relayTowers.draw(); coastalTrees.draw(); trees.draw();
       grass.draw(); overhang.draw(); moving.draw();
       contactShadow.draw();
       spikes.draw(); flags.draw(); coins.draw();
       effects.draw(); courier.draw(); trail.draw(); hud.draw();
+    };
+
+    /**
+     * Exposure, in one place. 1 for now: W B.2's only real check is that the image did not move.
+     */
+    const TRAVERSAL_EXPOSURE = 1;
+
+    /**
+     * The clear colour expressed in linear light.
+     *
+     * The authored value is a display colour: it used to be written straight to the screen. Now it
+     * enters an RGBA16F target and leaves through exposure, ACES and the sRGB encode, so it has to
+     * be the linear value that comes back out as the authored one. Solved numerically against that
+     * chain, which is why it is not simply the decode.
+     *
+     * `drawTo` clears to transparent black by default, and in a demo whose frame is mostly sky that
+     * would replace the sky with a black rectangle.
+     */
+    const LINEAR_CLEAR = Object.freeze([0.096296, 0.190755, 0.284863, 1] as const);
+
+    // One RGBA16F target and one pass that turns it into an image. Copied by hand from
+    // `point-light-expo`, the reference implementation goal 07 names.
+    //
+    // `samples: 4` because the canvas is 4x multisampled and a render target is not by default.
+    let sceneTarget: RenderTarget | undefined;
+    const ensureSceneTarget = (): RenderTarget => {
+      const width = Math.max(1, renderer.canvas.width);
+      const height = Math.max(1, renderer.canvas.height);
+      if (!sceneTarget || sceneTarget.width !== width || sceneTarget.height !== height) {
+        sceneTarget?.dispose();
+        sceneTarget = createRenderTarget(renderer, { width, height, depth: true, samples: 4 });
+      }
+      return sceneTarget;
+    };
+    // `blend: 'alpha'` is how BroMetal is asked not to write depth: the pipeline sets
+    // `depthWriteEnabled: blend === 'none'`. The post quad covers the canvas at clip z = 0, so with
+    // depth writing on it stamps 0 everywhere and anything drawn after fails `0 < 0`. The blend is a
+    // no-op — the fragment writes alpha 1.
+    const postProgram = owned.adopt(createProgram(renderer, postShader, { blend: 'alpha' }));
+    const fullscreenQuad = createPlane({ width: 2, height: 2 });
+    postProgram.attributes.aPosition!.set(fullscreenQuad.positions);
+    postProgram.setIndices(fullscreenQuad.indices);
+    owned.adopt({ dispose: () => sceneTarget?.dispose() });
+
+    const drawFrame = (): void => {
+      const scene = ensureSceneTarget();
+      renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
+      postProgram.uniforms.uScene!.set(scene.texture);
+      postProgram.uniforms.uExposure!.set(TRAVERSAL_EXPOSURE);
+      postProgram.draw();
     };
 
     const render = (state: TraversalSnapshot, pointer: PointerState, deltaSeconds: number): void => {
