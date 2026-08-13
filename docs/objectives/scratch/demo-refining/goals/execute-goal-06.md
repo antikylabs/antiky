@@ -5,7 +5,7 @@ commit and its own capture, and has its own file. Run them with `/goal` in order
 
 | Step | What it does | Packet |
 | --- | --- | --- |
-| [06-01](execute-goal-06-01.md) | Finish colour management — the encode on output, wash knobs deleted | W B.1(D) |
+| [06-01](_completed/execute-goal-06-01.md) | Finish colour management — the encode on output, wash knobs deleted | W B.1(D) |
 | [06-02](execute-goal-06-02.md) | One HDR target and exactly one tone-map | W B.2(D) |
 | [06-03](execute-goal-06-03.md) | A specular model that does not need a ceiling | outcome 6 |
 | [06-04](execute-goal-06-04.md) | One sun and a shadow map | W B.3(D) |

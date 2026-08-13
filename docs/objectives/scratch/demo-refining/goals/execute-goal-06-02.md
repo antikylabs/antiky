@@ -4,7 +4,7 @@ Part 2 of 6 of [goal 06](execute-goal-06.md). Work packet **W B.2(D)**.
 
 ## Prerequisites
 
-- **[06-01](execute-goal-06-01.md)** landed and captured. This step's whole test is "the image did
+- **[06-01](_completed/execute-goal-06-01.md)** landed and captured. This step's whole test is "the image did
   not move", which means nothing unless the image was already right.
 - **Goal 02's W A.2** — the `offscreen-multisampling` patch, which keeps 4× MSAA alive through
   `drawTo`. Present at `scripts/patch-brometal/offscreen-multisampling.mjs`. This is hard-blocking:
