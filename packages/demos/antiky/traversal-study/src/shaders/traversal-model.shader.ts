@@ -152,9 +152,14 @@ export default shader({
     //
     // What this replaced: `0.54 + smoothstep(...) * 0.2 + smoothstep(...) * 0.24` — three bands
     // spanning 0.54 to 0.98. A 1.81:1 range with no hue movement at all, so shadow and light
-    // differed only in brightness. The ramp is 14.8:1 and shifts 185 degrees from a cool deep
-    // shadow through a chromatic midtone to a warm pale highlight, which is the move a painter
-    // makes and the reason stylised games read as lit rather than as tinted.
+    // differed only in brightness. The ramp measures **6.69:1** by luminance across its committed
+    // stops and shifts 186 degrees, from a cool deep shadow through a chromatic midtone to a warm
+    // pale highlight — the move a painter makes, and the reason stylised games read as lit rather
+    // than as tinted.
+    //
+    // This comment said 14.8:1 until goal 07 measured it. That is not what the stops contain, and
+    // `tests/lighting-ramp.test.ts` now reads the data rather than describing it. 6.69 still clears
+    // the goal-07 bar of 6:1 comfortably.
     //
     // A 3D sampler for a 1D lookup because `createTexture3D` is BroMetal's only raw-buffer upload.
     // Height and depth are 1, so both are sampled at their middle.
