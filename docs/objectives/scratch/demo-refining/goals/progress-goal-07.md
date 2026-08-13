@@ -9,7 +9,7 @@ without reading the commit log.
 | Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
-| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `f3c2a91` | — |
+| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `cfa9e7b` | **done** `a8f41d2` |
 | antiky-town | — | — | — | — | — |
 
 ## combat-arena
@@ -507,6 +507,41 @@ Both were threaded through the renderer as parameters and call-site arguments ac
 batches; all of that is gone too, so the dead knobs cannot be reintroduced by a caller.
 
 Saturation 0.375 → **0.399**, p95 0.547 → 0.535.
+
+### W B.5 — bloom, grade and vignette
+
+The reference's chain, with three values this demo needs different and each carrying its reason in
+the code: a higher bloom threshold (1.6 against 1.0) because the whole scene is bright, a gentler
+contrast gain (1.08 against 1.22) because a strong curve posterises a large flat sky, and a lighter
+vignette (0.16 against 0.20) because heavy corner falloff on open sky reads as a lens artefact.
+
+Saturation 0.399 → **0.459**. p95 0.535 → 0.552. Clipping stayed at zero.
+
+### `traversal-study` cannot meet the local-contrast floor, and the reason is structural
+
+Its budget asks for a median tile contrast of **8.5**; it measures **0.17**, and no amount of
+lighting work will move it.
+
+**64.4% of the frame's 32-pixel tiles are flat sky.** The metric is the *median* tile's contrast, so
+once more than half the tiles are empty the median is a sky tile by construction and reads zero
+whatever the subject looks like. `point-light-expo` and `combat-arena` clear the bar because their
+frames are filled edge to edge; this is a side-scroller with an open horizon.
+
+This is the same class of problem as the acne bar and the W B.2 invariance budget, and the third time
+in this goal a bound has turned out to measure something other than what it names. The metric's own
+documentation says it exists because a full-frame percentile "tracks peak brightness almost exactly,
+so a frame that is half black void and half flat subject scores well". It solved that case and
+introduced the inverse: a frame that is mostly *anything* uniform scores zero.
+
+**What to do about it is the owner's call**, and it belongs with goal 99 row **M1** — the note that
+these thresholds are the agent's proposal rather than stated art direction. Two defensible options:
+
+- Measure the median over tiles that **contain subject**, discarding those whose dynamic range is
+  under a threshold. That keeps the metric's intent and makes it framing-independent.
+- Give this demo its own floor, derived from its own captures rather than from the other three.
+
+Neither is a loosening to make a packet pass: the packet's own measurements — bloom, grade, vignette,
+clipping — all pass. This is one bound that does not apply to this shape of frame.
 
 ## Notes carried forward
 
