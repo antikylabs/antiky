@@ -379,13 +379,32 @@ That converts the problem to arithmetic. The alpha is
 `present = smoothstep(0, 0.02, vRadius)`, so `vRadius` is arriving at about **0.003**, not the
 0.33–0.75 the call site passes as `iScale.x`.
 
-**Next step: prove what `iScale.x` actually reaches the shader as.** Return `vec4(vRadius, 0, 0, 1)`
-and read the red channel of the rectangle — that reports the value directly instead of inferring it.
-The likely culprits are the surface batch writing `scales` at a different stride than the contact
-shader reads, or `clear()` zeroing them after `set()`.
+**That was measured too, and the inference was wrong.** Painting `vRadius` into the red channel and
+reading the brightest opaque-red pixel under the character returns **223/255 ≈ 0.87** — order one,
+not 0.003. `present = smoothstep(0, 0.02, vRadius)` is therefore **1**, and the instance scale is
+arriving intact.
 
-This is the first lead in the investigation derived from arithmetic rather than from reading source,
-and it is the only one that has not already been disproved.
+That is nine wrong explanations, and the arithmetic one was no better than the source-reading ones.
+
+**What is now established by measurement, not inference:**
+
+| | |
+| --- | --- |
+| the quad draws | yes — forcing alpha to 1 turns the rectangle red |
+| its geometry, winding, blend mode and draw order | all correct |
+| `iScale.x` reaching the shader | ~0.87, so `present` = 1 |
+| the alpha expression | irrelevant — `structure` alone and the full expression measure identically |
+| net effect vs control | **1.2% darkening**, against 18% for the old dome |
+
+Every input to the alpha looks right and the output is still a hundredth of what it should be. The
+remaining suspects are things nothing here has probed: how `blend: 'alpha'` composites **into an
+RGBA16F target** rather than onto the canvas, and whether `INK` — authored as a display colour and
+written unconverted into a linear buffer — is simply far closer to the platform's linear value than
+it looks. The second is cheap to check and fits the evidence: a near-black *display* colour is not a
+near-black *linear* one, and W B.2 moved this demo's compositing into linear space.
+
+**Do not add a tenth hypothesis without first capturing what the blob composites against.** Read the
+platform's linear value at the contact point and compare it to `INK` in the same space.
 
 **A note on process, because it is the more useful finding.** Eight failed attempts at one blob,
 several of them "obvious" one-line fixes reasoned from source. The cycles that produced information
