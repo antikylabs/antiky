@@ -51,7 +51,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **05** | [Give the existing assets real materials — triplanar PBR](_completed/execute-goal-05.md) | **Done** `41b40a0` — [summary](_completed/summary-goal-05.md) | 01, 04 | 02, 03, 06, 07, 10 |
 | **06** | [The reference render slice in `point-light-expo` (Track B)](execute-goal-06.md) — **six steps, run individually** | Not started | 00, 01, 02 | 05, 10 |
 | 06-01 | [Finish colour management — the encode on output](_completed/execute-goal-06-01.md) | **Done** `887c950` — [summary](_completed/summary-goal-06-01.md) | 06 prereqs | — |
-| 06-02 | [One HDR target and exactly one tone-map](execute-goal-06-02.md) | Not started | 06-01 | — |
+| 06-02 | [One HDR target and exactly one tone-map](_completed/execute-goal-06-02.md) | **Done** `886ff11` — [summary](_completed/summary-goal-06-02.md) | 06-01 | — |
 | 06-03 | [A specular model that does not need a ceiling](execute-goal-06-03.md) | Not started | 06-02 | — |
 | 06-04 | [One sun and a shadow map](execute-goal-06-04.md) | Not started | 06-03 | — |
 | 06-05 | [Ambient that knows which way is up](execute-goal-06-05.md) | Not started | 06-04 | — |
