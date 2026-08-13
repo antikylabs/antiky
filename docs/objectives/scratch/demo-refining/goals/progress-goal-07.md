@@ -330,11 +330,38 @@ const falloff = smoothstep(1, 0.12, length(vLocal));
 returning 0 on this driver, which would make the blob exactly as invisible as observed while leaving
 `combat-arena` — whose blobs sit against a dark deck and are easy to miss — looking plausible.
 
-**Next step, and it is one line:** replace with `1 - smoothstep(0.12, 1, length(vLocal))` in both
-demos' copies, then re-run the rectangle probe. If the blob appears, the same bug is live in
-`combat-arena` and `point-light-expo` and should be fixed in all three.
+**That one-line fix was applied, compile-verified, and measured. It changed nothing:**
 
-Reverted again; the demo is at committed W B.2 and `npm test` is green.
+| rectangle under the character | mean rgb |
+| --- | --- |
+| old lit sphere blob | 136, 152, 128 |
+| unlit quad, reversed smoothstep | 163, 179, 144 |
+| unlit quad, corrected falloff | 163, **180**, 144 |
+
+Seven hypotheses, seven wrong: draw order, quad winding, the instance-scale convention, the
+footprint extents, the reversed-edge smoothstep, and two variations along the way.
+
+**What is actually established, and it is not nothing:**
+
+- The quad **draws**. Forcing alpha to 1 turns the rectangle red.
+- Its alpha collapses to near-zero in the real fragment, and neither the falloff form nor the
+  instance scales are responsible.
+- The one term never isolated is `structure = texture(uBillboard, …).w` — the **alpha channel of
+  this demo's `vfxBillboard`**, which is a different texture from the one `combat-arena` hands the
+  same shader. If that alpha is zero the multiplier collapses, and that is the only input left.
+
+**Do this next, and nothing else first:** return `vec4(vColor, structure)` alone, capture, and read
+the rectangle. That isolates the single remaining term in one cycle. If the billboard's alpha is the
+cause, this shader cannot be shared between the two demos unchanged — it silently depends on a
+texture convention neither one states.
+
+**A note on process, because it is the more useful finding.** Seven failed attempts at one invisible
+blob, four of them "obvious" one-line fixes reasoned from source. The two cycles that produced real
+information were the two that *measured a rectangle before and after* rather than reasoning about
+what the code should do. Everything else was cost. A future attempt should spend its first cycle on a
+probe, not its sixth.
+
+Reverted; the demo is at committed W B.2 and `npm test` is green.
 
 The demo is reverted to its committed W B.2 state and `npm test` is green. The wrong contact shadow
 is still there, and that is the right place to leave it — the hole at least tells the viewer where
