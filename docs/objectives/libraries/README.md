@@ -7,9 +7,11 @@ for the asset catalog and a reusable BroMetal shader library that humans and age
 use correctly.
 
 Research found that both foundations already exist in partial form: Antiky has a substantial static
-asset catalog, and BroMetal already ships typed shader functions and complete shaders. The strongest
-directions are therefore pack-level semantic enrichment and an Antiky semantic recipe/evidence layer
-over correctly owned BroMetal and game artifacts—not replacement libraries.
+asset catalog, and BroMetal already ships typed shader functions and 30 complete shaders. The owner
+clarified that the shader goal is a catalog with hundreds or thousands of entries. The strongest
+directions are therefore pack-level semantic enrichment, a large renderer-general BroMetal catalog
+with a smaller supported core, and an Antiky semantic integration/evidence layer over correctly
+owned catalog and game artifacts.
 
 Read the [`research summary`](research/README.md) for the conclusions, evidence map, unresolved
 questions, and decisions needed before `create-plan`.
@@ -25,6 +27,8 @@ questions, and decisions needed before `create-plan`.
 | [`research/02-asset-semantic-enrichment.md`](research/02-asset-semantic-enrichment.md) | Asset-library direction |
 | [`research/03-shader-library-and-ownership.md`](research/03-shader-library-and-ownership.md) | Shader-library direction |
 | [`research/04-discovery-delivery-and-provenance.md`](research/04-discovery-delivery-and-provenance.md) | Shared retrieval, evidence, and rights direction |
+| [`research/05-shader-ecosystem-scale-research-plan.md`](research/05-shader-ecosystem-scale-research-plan.md) | Focused cross-platform shader-scale research plan |
+| [`research/06-shader-ecosystem-scale.md`](research/06-shader-ecosystem-scale.md) | Cross-platform counts and corrected large-catalog direction |
 
 No implementation plan or executable goal exists yet. The next lifecycle phase is `create-plan`
 after the owner responds to the decisions in the research summary.

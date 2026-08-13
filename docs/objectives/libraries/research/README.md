@@ -17,20 +17,24 @@ owner's [`idea.md`](../idea.md). It does not choose an implementation plan.
    provider claims, validate, and generate canonical evidence first. Models can then propose
    descriptions, vocabulary, synonyms, likely uses, and grouping corrections. Their output remains
    a sourced suggestion until evaluation and review policy promote it.
-4. **Do not duplicate BroMetal's existing shader library.** BroMetal 0.17.2 already supplies 30
-   complete shaders, typed shader functions, generated reflection, and examples. Antiky's missing
-   layer is a semantic material/effect recipe with dependencies, compatibility, rights, and proof.
-5. **Use a promotion path, not a universal abstraction.** Renderer-general math and effects belong
+4. **Treat BroMetal's 30 shaders as a seed, not the intended scale.** Mature engines usually ship
+   tens of broad built-in models, then reach hundreds or thousands through functions, examples,
+   packages, and community catalogs. Build the large renderer-general catalog in BroMetal while
+   keeping its supported core and bulk catalog content separate.
+5. **Give Antiky the semantic integration layer, not a duplicate shader-code library.** Antiky's
+   role is bounded discovery, material/effect meaning, dependencies, adaptation, compatibility,
+   rights, and proof over correctly owned BroMetal catalog entries.
+6. **Use a promotion path, not a universal abstraction.** Renderer-general math and effects belong
    in BroMetal. Repeated game render capabilities belong in the Antiky driver. Semantic recipes
    belong in Antiky. Art-directed implementations remain game-local until a genuine second consumer
    exposes a stable interface.
-6. **Share discovery, not one record schema.** Media and shader records can use the same bounded
+7. **Share discovery, not one record schema.** Media and shader records can use the same bounded
    search envelope. Code, materials, multipass recipes, examples, and media need distinct detail,
    rights, adaptation, compatibility, and evidence contracts.
-7. **Stay static-first.** Public exact records remain static JSON. A typed local service should own
+8. **Stay static-first.** Public exact records remain static JSON. A typed local service should own
    bounded queries and installation/adaptation planning. Studio and optional local MCP project the
    same behavior. Current evidence does not justify a hosted catalog MCP service.
-8. **Track provenance per claim, component, and action.** Metadata indexing, remote display,
+9. **Track provenance per claim, component, and action.** Metadata indexing, remote display,
    preview mirroring, redistribution, adaptation, and notice fulfillment are distinct permissions.
    Generated descriptions do not clear underlying code or media.
 
@@ -43,6 +47,8 @@ owner's [`idea.md`](../idea.md). It does not choose an implementation plan.
 | [`02-asset-semantic-enrichment.md`](02-asset-semantic-enrichment.md) | Pack/member/group model, deterministic extraction, model role, evidence, and evaluation |
 | [`03-shader-library-and-ownership.md`](03-shader-library-and-ownership.md) | Artifact classes, ownership, external precedents, promotion, agent use, and proof |
 | [`04-discovery-delivery-and-provenance.md`](04-discovery-delivery-and-provenance.md) | Bounded retrieval, delivery surfaces, proof ladder, rights, contribution, and failure cases |
+| [`05-shader-ecosystem-scale-research-plan.md`](05-shader-ecosystem-scale-research-plan.md) | Corrected scale question, comparison layers, and focused inquiry plan |
+| [`06-shader-ecosystem-scale.md`](06-shader-ecosystem-scale.md) | Current Three.js, Unreal, Unity, Godot, and Phaser counts and corrected BroMetal direction |
 | [`subagent_outputs/`](subagent_outputs/) | Raw read-only research reports retained as evidence |
 
 ## Research-question status
@@ -56,6 +62,7 @@ owner's [`idea.md`](../idea.md). It does not choose an implementation plan.
 | Agent-usable shader metadata and evidence | Answered in principle | Shader library; discovery and proof |
 | Delivery surfaces | Answered in principle | Discovery, delivery, and provenance |
 | External practices to reuse or avoid | Answered | Asset enrichment, shader precedents, and raw reports |
+| Mature-platform shader ecosystem scale | Answered | Shader ecosystem scale supplement and raw platform reports |
 | Owner decisions before planning | Open by design | Listed below |
 
 ## Decisions needed from the owner
@@ -68,16 +75,19 @@ Planning should not silently choose these product and policy decisions:
    semantic groups, or all three?
 3. **Model publication:** Which generated fields can publish automatically, which need sampled
    review, and which need per-item approval? What measured error threshold is acceptable?
-4. **Shader outcome:** Is the first result an improvement to BroMetal's existing library, an Antiky
-   reference-only semantic recipe, a driver-backed material/effect, or two separate deliverables?
-5. **First proving case:** Which asset packs and which genuinely independent shader consumers should
+4. **Shader scale unit:** Which complete implementations, recipes, presets, functions, examples,
+   and packs count toward the hundreds-to-thousands public goal?
+5. **Shader outcome:** Should the first result prove the large BroMetal catalog system, add a large
+   first-party content seed, create an Antiky reference-only recipe, add a driver-backed effect, or
+   separate these into deliberate deliverables?
+6. **First proving case:** Which asset packs and which genuinely independent shader consumers should
    prove the contracts?
-6. **Distribution rights:** Is distributable shader code limited to permissive,
+7. **Distribution rights:** Is distributable shader code limited to permissive,
    commercial-compatible licenses? Can reciprocal or NonCommercial items appear in discovery-only
    or isolated lanes?
-7. **Agent surface:** Is bounded package/CLI search sufficient initially, or is an optional local
+8. **Agent surface:** Is bounded package/CLI search sufficient initially, or is an optional local
    MCP adapter already a real need?
-8. **Architecture records:** Should planning first record catalog-to-UUID asset identity,
+9. **Architecture records:** Should planning first record catalog-to-UUID asset identity,
    source-to-derived provenance, and the material/render-recipe contract as ADRs?
 
 ## Important unresolved evidence

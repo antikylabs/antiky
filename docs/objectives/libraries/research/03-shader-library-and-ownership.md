@@ -4,8 +4,13 @@ Research date: 2026-08-12
 
 ## Recommended direction
 
-Do not start a second BroMetal shader collection inside Antiky. Treat the shader “library” as a
-layered promotion and discovery system:
+The owner clarified that “shader library” means an ecosystem-scale catalog with hundreds or
+thousands of entries, not only a semantic wrapper around BroMetal's current 30 complete shaders.
+The focused platform comparison is in
+[`06-shader-ecosystem-scale.md`](06-shader-ecosystem-scale.md).
+
+Build that large renderer-general catalog for BroMetal, but do not start a second copy of its shader
+code inside Antiky. Treat the library as a layered content, promotion, and discovery system:
 
 ```text
 game-proven art implementation
@@ -22,23 +27,27 @@ game-proven art implementation
               compatibility, provenance, and evidence
 ```
 
-This direction answers the question in [`idea.md`](../idea.md): the shader code is BroMetal code,
-but the meaning of using it in an Antiky game is not. BroMetal should own reusable rendering
-mechanics. Antiky should own game-facing semantics, dependency inspection, integration policy,
-project identity, and evidence. A game should keep tuned implementations until reuse is actually
-proven.
+This direction answers the question in [`idea.md`](../idea.md): the shader code and broad catalog are
+BroMetal concerns, but the meaning of using an entry in an Antiky game is not. BroMetal should own
+reusable rendering mechanics, catalog source, and renderer-level examples. Antiky should own
+game-facing semantics, dependency inspection, integration policy, project identity, and evidence. A
+game should keep tuned implementations until reuse is actually proven.
+
+The catalog should separate a small supported core from a much larger verified, community, and
+experimental discovery surface. That permits ecosystem scale without making every BroMetal install
+carry every source file, media asset, and compatibility promise.
 
 ## Design alternatives
 
-### A. Copy a large external shader corpus
+### A. Copy a large external shader corpus without a catalog contract
 
 Port or mirror ShaderToy, Three, Godot, and other examples into BroMetal.
 
 **Strength:** Lots of visible examples can increase discovery and training familiarity.
 
 **Weakness:** Source often depends on an implicit host ABI, assets, coordinate/color conventions,
-passes, and mixed rights. A large corpus creates review and maintenance cost before Antiky knows
-which effects its games need. It also duplicates a BroMetal library that already exists.
+passes, and mixed rights. Copying it without explicit entry classes, evidence, and maturity lanes
+creates misleading volume and long-term maintenance risk.
 
 ### B. Build an Antiky universal material graph
 
@@ -51,20 +60,22 @@ material inspection.
 would be a broad abstraction before real Antiky slices establish stable cut points. MaterialX is a
 strong semantic reference, but reproducing it is not an 80/20 solution.
 
-### C. Layer BroMetal primitives, Antiky recipes, and project examples
+### C. Layer a BroMetal core and large catalog with Antiky recipes and project examples
 
-Use existing BroMetal functions and programs; add semantic catalog records and small runnable
-recipes; promote only mechanics proven by real game work.
+Use existing BroMetal functions and programs as the supported seed; add a large catalog of explicit
+implementations, recipes, presets, functions, packs, and runnable examples; promote the most stable
+mechanics toward core through real use.
 
-**Strength:** Aligns with accepted ownership, avoids duplication, and lets natural interfaces
-emerge. It gives agents context without pretending code alone is reusable.
+**Strength:** Matches the requested ecosystem scale, aligns with accepted ownership, and gives
+agents both breadth and integration context without pretending code alone is reusable.
 
-**Cost:** Some project code remains duplicated temporarily, and the semantic recipe needs a future
-driver/material contract before it becomes directly installable.
+**Cost:** Catalog entries need validation, compatibility, rights, previews, runnable scenes, search,
+and lifecycle policy. Some project code remains duplicated temporarily, and directly installable
+recipes need a future driver/material contract.
 
 **Inference:** C is the appropriate near direction. B remains a possible future authoring decision
-if repeated recipes reveal a stable graph. A is useful for inspiration and focused ports only after
-item-level rights and host assumptions are established.
+if repeated recipes reveal a stable graph. A is useful as a content-source strategy only after
+item-level rights, host assumptions, and catalog admission rules are established.
 
 ## Artifact classes must stay explicit
 
@@ -294,8 +305,12 @@ GitHub visibility, or training-data availability.
 
 ## Decisions needed before planning
 
-- Should the first outcome enrich BroMetal's existing generic library, create Antiky semantic
-  recipe records, or deliberately do both as separate deliverables?
+- Which complete implementations, recipes, presets, functions, examples, and packs count toward the
+  owner's hundreds-to-thousands scale goal?
+- Should the first outcome prove the catalog system, contribute a large first-party BroMetal content
+  seed, create Antiky semantic recipe records, or deliberately separate these deliverables?
+- Which supported-core, verified, community, experimental, and discovery-only maturity lanes are
+  required?
 - Which artifact classes must be searchable in the first version?
 - Is the first Antiky recipe reference-only, installable source, or a driver-backed material?
 - Which Town effect is the best independent proving case, and what second consumer would count as
