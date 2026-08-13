@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Complete [execute goal 06](execute-goal-06.md) first. `point-light-expo` is the **reference
+Complete [execute goal 06](_completed/execute-goal-06.md) first. `point-light-expo` is the **reference
 implementation** for this goal: its colour pipeline, HDR target, shadow pass, ambient model, post
 chain and BRDF are the shape to follow. Read that demo's `src/renderer.ts` and `src/shaders/` before
 writing a line here.

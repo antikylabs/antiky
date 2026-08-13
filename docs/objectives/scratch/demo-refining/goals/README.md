@@ -49,13 +49,13 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **03** | [Quick wins, motion feel, safe dead-code removal (Track D)](_completed/execute-goal-03.md) | **Done** `4b6ecaa` — [summary](_completed/summary-goal-03.md) | 01 | 04, 05, 10 |
 | **04** | [Stop the asset pipeline destroying the assets (Track C)](_completed/execute-goal-04.md) | **Done** `bf56f6c` — [summary](_completed/summary-goal-04.md) | 01 | 02, 03, 05, 10 |
 | **05** | [Give the existing assets real materials — triplanar PBR](_completed/execute-goal-05.md) | **Done** `41b40a0` — [summary](_completed/summary-goal-05.md) | 01, 04 | 02, 03, 06, 07, 10 |
-| **06** | [The reference render slice in `point-light-expo` (Track B)](execute-goal-06.md) — **six steps, run individually** | Not started | 00, 01, 02 | 05, 10 |
+| **06** | [The reference render slice in `point-light-expo` (Track B)](_completed/execute-goal-06.md) — **six steps, run individually** | **Done** — all six steps closed; the demo's visual budget is green on every bound | 00, 01, 02 | 05, 10 |
 | 06-01 | [Finish colour management — the encode on output](_completed/execute-goal-06-01.md) | **Done** `887c950` — [summary](_completed/summary-goal-06-01.md) | 06 prereqs | — |
 | 06-02 | [One HDR target and exactly one tone-map](_completed/execute-goal-06-02.md) | **Done** `886ff11` — [summary](_completed/summary-goal-06-02.md) | 06-01 | — |
 | 06-03 | [A specular model that does not need a ceiling](_completed/execute-goal-06-03.md) | **Done** `40cad33` — [summary](_completed/summary-goal-06-03.md) | 06-02 | — |
 | 06-04 | [One sun and a shadow map](_completed/execute-goal-06-04.md) | **Done** `c676ff8` — [summary](_completed/summary-goal-06-04.md) | 06-03 | — |
 | 06-05 | [Ambient that knows which way is up](_completed/execute-goal-06-05.md) | **Done** `a80f67f` — [summary](_completed/summary-goal-06-05.md) | 06-04 | — |
-| 06-06 | [Bloom, grade and vignette, and the budget green](execute-goal-06-06.md) | **Partly done** `501f744` — grade, vignette and the full budget green; bloom outstanding — [progress](progress-goal-06-06.md) | 06-05 | — |
+| 06-06 | [Bloom, grade and vignette, and the budget green](_completed/execute-goal-06-06.md) | **Done** `f17382d` — [summary](_completed/summary-goal-06-06.md) | 06-05 | — |
 | **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | Not started | 06 | 05, 10 |
 | **08** | Art direction and VFX per demo, `antiky-town` included | Not started | 05, 07 | 10 |
 | **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 |
@@ -68,7 +68,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **99** | [The revisit register — check what we deliberately deferred](execute-goal-99.md) | Not started | all | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up:** 06 (six steps, run individually). 00–05, 10 and 13 are done.
+**Next up:** 07 — carry the render slice to `combat-arena`, `traversal-study` and `antiky-town`. 00–06, 10 and 13 are done.
 
 **Goal 03 now has an instrument.** Goal 13 landed `scripts/motion-stats.mjs` and a camera-shake
 regression that fails against the current code with three named defects. Goal 03's job is to turn
