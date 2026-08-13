@@ -9,7 +9,7 @@ without reading the commit log.
 | Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
-| traversal-study | — | — | — | — | — |
+| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | — | — | — |
 | antiky-town | — | — | — | — | — |
 
 ## combat-arena
@@ -189,6 +189,45 @@ Local contrast across the demo: **8.30 at baseline → 7.68 after the lower sun 
 A second commit followed because the bloom chain was two more GPU owners created directly, and
 `resources.test.ts` drives construction against a renderer that is not WebGPU-backed. They are now
 injected like everything else there.
+
+## traversal-study
+
+### W B.1 — managed colour (`7f3d6d1`)
+
+The encode on output in the two shaders that write a final pixel. p95 **0.258 → 0.416**.
+
+### W B.2 — one HDR target, one tone-map, one sky (`d45413e`)
+
+**Invariance: 4.27/255 against a 3/255 budget — a miss, with the cause attributed.** 80.1% of pixels
+are byte-identical and hard edges went **down** (2,732 → 2,446). The region breakdown:
+
+| region | drift |
+| --- | --- |
+| open sky — the clear colour alone | **0.008** |
+| platforms — `traversal-surface` | 15.367 |
+| character and props — `traversal-model` | 10.676 |
+| clouds — `traversal-model` | 4.917 |
+
+The sky at **0.008/255** says the linear-clear conversion is essentially exact, so the pipeline
+change itself is sound. The drift is two deliberate changes this packet was asked to make:
+
+- **`traversal-model` had never tone-mapped.** The goal names it: only 1 of the demo's 3 shaders
+  tone-mapped, and that shader draws all thirteen catalog GLBs. Putting it through the one curve is
+  the packet's purpose, and it moves the geometry by construction.
+- **`heightHaze` is deleted**, which the goal also asks for by name — hand-rolled fake aerial
+  perspective. It tinted low geometry toward a warmer blue than the sky behind it, so a platform
+  receded into a colour that was not there. That is most of the 15.4 on the platforms.
+
+**The invariance test cannot be satisfied by a packet that is required to delete a visual term.**
+The measurement is reported rather than contorted; what it does establish is that the colour
+pipeline is neutral where it should be, which is what the sky number shows.
+
+**One sky, replacing three.** The demo rendered `(0.55, 0.65, 0.66)`, `(0.52, 0.63, 0.65)` and a
+clear colour of `(0.38, 0.57, 0.68)` in the same frame. The clear colour won, because it is what most
+of the frame actually is. A test asserts the other two cannot come back.
+
+**Back-face culling was already on** — `cull: 'back'`, fixed by an earlier goal. Another premise in
+the goal file that has since been overtaken.
 
 ## Notes carried forward
 
