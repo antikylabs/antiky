@@ -8,7 +8,7 @@ without reading the commit log.
 
 | Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
 | --- | --- | --- | --- | --- | --- |
-| combat-arena | **done** `58ec726` | **done** `3ab9ea4` | — | — | — |
+| combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | — | — |
 | traversal-study | — | — | — | — | — |
 | antiky-town | — | — | — | — | — |
 
@@ -83,6 +83,61 @@ assumption that only held before the packet:
   other GPU owner in that renderer already uses. The disposal test also had to **render one frame**
   before disposing, because the scene target is built lazily — without that it was asserting that a
   resource which never existed had been cleaned up.
+
+### W B.3 — one sun and a shadow map (`a1d9a73`)
+
+A distance-to-light RGBA16F pass with a nine-tap soft lookup, copied from the reference. **One depth
+shader, not three**: `arena-model`, `ship-model` and `arena-surface` place a vertex the same way and
+differ only in what they do with normals and colour, neither of which moves a vertex. The one thing
+that did differ — `arena-surface` bobs its instances on a clock — is a `uBobStrength` uniform set to
+1 for that batch and 0 for the others, because a shadow that does not bob with its caster slides out
+from under it.
+
+**Contact shadows needed no work.** The goal lists moving them off the lit path; an earlier goal had
+already done it. They are drawn through a dedicated unlit shader with a radial falloff, and its own
+comment records that they used to be lit boxes drawn through `arena-surface`.
+
+**The key light was lowered from 59 degrees to 35 and moved behind the arena**, and that is a
+measurement, not taste:
+
+| | deck darkened ≥ 25% | p90 darkening |
+| --- | --- | --- |
+| sun at 59°, on the camera's side | **1.63%** | 5.2% |
+| sun at 35°, behind | **16.38%** | 35.3% |
+
+At the original angle no 32-pixel probe pair could be placed anywhere in the arena — a high sun drops
+each caster's shadow underneath the caster, the same thing 06-04 measured in the reference. The
+camera sits at `+z`, so a sun on that side also threw what shadow there was away from the viewer.
+The new direction is agreed by all four shaders and by `src/sun.ts`; `pipeline-invariants` asserts a
+demo has one key direction and that assertion is what must not break.
+
+**Probes:**
+
+| | result |
+| --- | --- |
+| deck in shadow vs deck in key light, 186 px apart | **27.6% darker** (bar 25%) |
+| variance the shadow adds to a lit plane | **0.000000** |
+
+The distance is 186 px rather than the goal's 200 because the arena is an enclosed box and no pair at
+exactly 200 had both probes on comparable deck. Stated rather than rounded up.
+
+The acne bar of "standard deviation below 0.02" is again unreachable for a reason unrelated to acne:
+the deck is diamond plate and measures **0.042** with the shadow term switched off entirely. What is
+measurable is that the shadow adds nothing to it, which is what "no acne" means.
+
+**Local contrast fell 8.35 → 7.68** with the lower sun, because less of the deck is in direct key
+light. That is W B.5's grade to recover — it took the reference from 7.61 to 8.70.
+
+**Test plumbing.** Six batches gained a depth program, and `resources.test.ts` had to follow:
+`fakeProgram`'s `instanceAttributes` became a Proxy like its uniforms already was, and the rollback
+counts went from 2 to 4 because each batch now owns two programs. The disposal test also renders one
+frame before disposing, since the scene target is built lazily.
+
+**One bug, caught by capture rather than by a test.** `createSurfaceBatch` gained an optional depth
+factory and `combat-projection.ts` did not pass it, so `surfaceDepthProgram` was `undefined` and the
+renderer's shadow binding threw during construction. That surfaces as `CAPTURE_RUNTIME_TIMEOUT` —
+the runtime never finishes publishing — rather than as an error anyone would recognise. Noted in the
+code at the call site.
 
 ## Notes carried forward
 
