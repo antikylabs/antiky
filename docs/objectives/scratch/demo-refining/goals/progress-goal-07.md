@@ -10,7 +10,7 @@ without reading the commit log.
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
 | traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `cfa9e7b` | **done** `a8f41d2` |
-| antiky-town | **done** `aee43b4` | **done** `a2e8df0` | **audited, kept** | — | — |
+| antiky-town | **done** `aee43b4` | **done** `a2e8df0` | **audited, kept** | **audited** `8d30599` | **audited** |
 
 ## combat-arena
 
@@ -668,6 +668,36 @@ uniformly. Acne would raise it. That is a stronger result than either of the oth
 
 **No code changed in this packet.** The finding is that none should, and the evidence for it is
 above.
+
+### W B.4 — audited; already present, with one deliberate divergence (`8d30599`)
+
+The packet asks for "hemispheric ambient and baked vertex AO replacing each demo's flat ambient
+constant". Both are here, and the ambient is **stronger than the reference's**: an SH-9 sky bake
+*plus* a separate ground-bounce lobe, blended by the normal's vertical component. The reference has
+the SH-9 half and no explicit ground lobe.
+
+Read off the two blends, each lobe alone varies by **72–78%** between an up-facing and a down-facing
+normal, before the two colours differ at all. The bar is 30%.
+
+**One deliberate divergence, and it is the mistake 06-05 exists to prevent.** `ambientVisibility =
+0.62 + ao * 0.38` lets occlusion reach the *direct* term, which the reference forbids. Here it is on
+purpose and the reason is in the source: under a low golden-hour sun a voxel cavity with no direct
+visibility term becomes an unlit black notch rather than a shaded corner. Goal 07 requires a
+divergence to carry its reason on the line above it; this one does, and a test now fails if that
+comment is removed — the comment is what makes the divergence deliberate rather than a repeat of the
+bug.
+
+### W B.5 — audited; bloom, grade and vignette all present
+
+All three exist in `town-post.shader.ts`: thresholded bloom on shared ring taps, a grade chain
+running before the tone-map, and a vignette. Nothing to add.
+
+Worth recording because it contradicts the goal's stated premise a second time: bloom thresholds at
+**1.02**, above white, so it only catches values that exceed the display range. The goal predicted
+"bloom has nothing to bloom" because the target lacked headroom — but the target has been
+`rgba16float` all along, so bloom has been working against real HDR content since it was written.
+
+**Budget green**, and unchanged by the work: local contrast 8.89, and its three bounds pass.
 
 ## Notes carried forward
 
