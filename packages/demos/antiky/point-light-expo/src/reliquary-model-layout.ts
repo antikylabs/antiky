@@ -74,7 +74,7 @@ function setupRocks(batch: ReliquaryModelBatch): void {
         x, y, z,
         scale, 0, rotationY, part === 1 ? 0.04 : -0.02,
         0.94, 1.02, 0.9,
-        -0.06, 0.018,
+        -0.06, 0,
       );
     }
   }
@@ -121,7 +121,7 @@ function setupStumps(batch: ReliquaryModelBatch): void {
       RELAY_SHRINE_PROFILES[index]!.stumpScale,
       index === 2 ? 0.08 : 0, index * 1.37, index === 0 ? -0.04 : 0.03,
       1.04, 1.02, 0.9,
-      -0.05, 0.02,
+      -0.05, 0,
     );
   }
   batch.setValues(
@@ -129,7 +129,7 @@ function setupStumps(batch: ReliquaryModelBatch): void {
     0, 0.08, 0,
     2.18, 0, 0.36, 0,
     1.08, 0.96, 0.78,
-    -0.08, 0.035,
+    -0.08, 0,
   );
 
   const anchorX = [-6.3, 6.4, -6.45, 6.5] as const;

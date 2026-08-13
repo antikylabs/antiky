@@ -8,6 +8,19 @@ export const RELAY_PRESENTATION = Object.freeze({
   clearColor: Object.freeze([0.035, 0.056, 0.05, 1] as const),
   exposure: 1.24,
   relayLightStrength: 0.66,
+  /**
+   * Bloom, in pre-exposure linear units.
+   *
+   * `threshold` sits above what a lit diffuse surface reaches and below the relays and the forge, so
+   * the glow picks out things that are actually emitting rather than everything the sun caught.
+   * `radius` is in quarter-resolution texels; `strength` is how much of the blurred result is added
+   * back.
+   */
+  bloom: Object.freeze({
+    threshold: 1,
+    radius: 5,
+    strength: 1.15,
+  }),
   surfaceAmbient: Object.freeze({
     color: color(0.34, 0.4, 0.36),
     strength: 0.96,

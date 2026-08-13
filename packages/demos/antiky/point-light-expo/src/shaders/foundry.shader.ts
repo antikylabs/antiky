@@ -357,8 +357,13 @@ const baseNormal = normalize(vNormal);
       .scale(sunVisibility)
       .mul(vBaseColor.scale(sunDiffuse).add(sunSpecular));
     const lit = vBaseColor.mul(ambient).add(radiance).add(sunRadiance);
-    const pulse = 0.92 + sin(uTime * 2.4 + vWorld.x * 0.5) * 0.08;
-    const emissive = vBaseColor.scale(vMaterial.z * pulse);
+    // A steady emissive, no sine.
+    //
+    // The pulse was self-illumination standing in for a glow: with no bloom in the frame, a light
+    // source had nothing to bleed onto and was made to breathe instead so it read as one. Bloom
+    // arrived in 06-06 and does that job properly, so the fake is gone and the emission that stays
+    // is the amount the instance actually declares.
+    const emissive = vBaseColor.scale(vMaterial.z);
     const fog = smoothstep(uFogStart, uFogEnd, length(uCameraPosition.sub(vWorld)));
     const color = mix(
       lit.add(emissive),

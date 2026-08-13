@@ -417,8 +417,13 @@ export default shader({
       // Band 0 is the sky's average over the whole sphere, which is exactly what a surface
       // turning away from the camera is catching.
       .add(uSh0.scale(rim * 0.22 * occlusion));
-    const pulse = 0.94 + sin(uTime * 2.1 + vWorld.y) * 0.06;
-    const emissive = base.scale(vMaterial.y * pulse);
+    // A steady emissive, no sine.
+    //
+    // The pulse was self-illumination standing in for a glow: with no bloom in the frame, a light
+    // source had nothing to bleed onto and was made to breathe instead so it read as one. Bloom
+    // arrived in 06-06 and does that job properly, so the fake is gone and the emission that stays
+    // is the amount the instance actually declares.
+    const emissive = base.scale(vMaterial.y);
     const fog = smoothstep(uFogStart, uFogEnd, length(uCameraPosition.sub(vWorld)));
     // Linear HDR, and nothing else. Exposure, the tone-map and the encode all happen once in
     // `post.shader.ts`; this shader's job ends at "how much light leaves this surface".

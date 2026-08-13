@@ -71,6 +71,8 @@ export default shader({
   attributes: { aPosition: 'vec3' },
   uniforms: {
     uScene: 'sampler2D',
+    uBloom: 'sampler2D',
+    uBloomStrength: 'float',
     uExposure: 'float',
   },
   varyings: { vUv: 'vec2' },
@@ -82,9 +84,12 @@ export default shader({
     return vec4(aPosition.x, aPosition.y, 0, 1);
   },
 
-  fragment({ uScene, uExposure }, { vUv }) {
+  fragment({ uScene, uBloom, uBloomStrength, uExposure }, { vUv }) {
     const scene = texture(uScene, vUv).xyz;
-    const exposed = scene.scale(uExposure);
+    // Added in linear light, before exposure, because that is the space it was extracted in. Adding
+    // it after exposure would make the glow's brightness depend on the exposure twice.
+    const withBloom = scene.add(texture(uBloom, vUv).xyz.scale(uBloomStrength));
+    const exposed = withBloom.scale(uExposure);
 
     // The grade, in linear light and before the tone-map.
     //

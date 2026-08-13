@@ -78,6 +78,16 @@ export const DEMO_PROBES = Object.freeze({
      */
     sunShadow: Object.freeze({ x: 1082, y: 438, width: 32, height: 32 }),
     sunLit: Object.freeze({ x: 898, y: 348, width: 32, height: 32 }),
+    /**
+     * Ground 20 px beyond the blue relay's edge, and the same ground 100 px out.
+     *
+     * A pair again, for the same reason as the shadow probes: the near patch is brighter than the
+     * far one with or without bloom, because it is closer to a light. What bloom changes is *how
+     * much* brighter — 1.64 without it against 2.01 with — and a ratio is the thing that separates
+     * "there is a glow" from "there is a lamp over there".
+     */
+    bloomNear: Object.freeze({ x: 700, y: 118, width: 24, height: 24 }),
+    bloomFar: Object.freeze({ x: 772, y: 196, width: 24, height: 24 }),
   }),
 });
 

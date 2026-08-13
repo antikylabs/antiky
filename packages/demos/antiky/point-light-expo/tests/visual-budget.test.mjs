@@ -83,6 +83,15 @@ const ONBOARDING_SPREAD_FLOOR = 0.11;
 /** Goal 06-04's shadow probe: ground in shadow against ground in sun, on the same material. */
 const SHADOW_DARKENING_FLOOR = 0.25;
 
+/**
+ * How much brighter the ground just outside a relay must be than the ground well away from it.
+ *
+ * Without bloom the same pair measures 1.64 — the near patch is closer to a light, and that is true
+ * of any renderer. With bloom it measures 2.01. The floor sits between them, so this fails if the
+ * glow stops arriving and passes only because light is actually spilling off the emissive.
+ */
+const BLOOM_HALO_FLOOR = 1.8;
+
 const metricsPath = path.join(import.meta.dirname, '..', 'visual-metrics.json');
 
 async function readMetrics() {
@@ -200,5 +209,19 @@ test('point-light-expo does not stripe its lit ground with shadow acne', async (
     lit.standardDeviation <= 0.075,
     `lit ground spreads ${lit.standardDeviation}, which is above the forest floor's own 0.063. `
     + 'Stripes at the shadow-map texel scale are the thing to look for.',
+  );
+});
+
+test('point-light-expo spills light off its emissives', async () => {
+  const metrics = await readMetrics();
+  const near = metrics.probes?.bloomNear;
+  const far = metrics.probes?.bloomFar;
+  assert.ok(near !== undefined && far !== undefined, 'the capture recorded no bloom probes');
+  const halo = near.meanLuminance / far.meanLuminance;
+  assert.ok(
+    halo >= BLOOM_HALO_FLOOR,
+    `ground beside the relay is ${halo.toFixed(3)}x the ground away from it, floor is `
+    + `${BLOOM_HALO_FLOOR}. At around 1.64 the bloom chain is not reaching the frame — the same `
+    + 'pair measures that with bloom switched off entirely.',
   );
 });

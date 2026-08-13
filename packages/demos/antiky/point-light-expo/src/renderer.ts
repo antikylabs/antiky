@@ -20,6 +20,8 @@ import { loadDetailNormal } from './detail-normal.ts';
 import { loadVfxBillboard } from './vfx-billboard.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
+import bloomBlurShader from './shaders/bloom-blur.shader.gen.ts';
+import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
 
 /**
@@ -330,6 +332,40 @@ export async function createRelayRenderer(
   // The blend is a true no-op here: the fragment writes alpha 1, so `src * srcAlpha + dst * (1 -
   // srcAlpha)` is exactly `src`. Nothing has drawn to the canvas before it, and the canvas depth
   // clears to 1 each frame, so both this quad and the overlay pass the test.
+  /**
+   * Two quarter-resolution targets, ping-ponged by the blur.
+   *
+   * Quarter resolution because a blur is the one pass where resolution buys nothing: the output is
+   * low-frequency by definition, and a quarter-size chain costs a sixteenth of the samples. Two of
+   * them because a separable blur cannot read and write the same texture — across into one, down
+   * into the other.
+   *
+   * `filter: 'linear'` is goal 02's `render-target-filtering` patch and is hard-blocking here. On a
+   * point sampler the taps between texels snap back onto texel centres, and the chain produces
+   * blocky glow that crawls whenever the camera moves.
+   */
+  let bloomTargets: readonly [RenderTarget, RenderTarget] | undefined;
+  const ensureBloomTargets = (): readonly [RenderTarget, RenderTarget] => {
+    const width = Math.max(1, Math.floor(renderer.canvas.width / 4));
+    const height = Math.max(1, Math.floor(renderer.canvas.height / 4));
+    if (!bloomTargets || bloomTargets[0].width !== width || bloomTargets[0].height !== height) {
+      bloomTargets?.[0].dispose();
+      bloomTargets?.[1].dispose();
+      bloomTargets = [
+        createRenderTarget(renderer, { width, height, filter: 'linear' }),
+        createRenderTarget(renderer, { width, height, filter: 'linear' }),
+      ];
+    }
+    return bloomTargets;
+  };
+  const fullscreenQuad = createPlane({ width: 2, height: 2 });
+  const bloomExtract = resources.register(createProgram(renderer, bloomExtractShader));
+  bloomExtract.attributes.aPosition.set(fullscreenQuad.positions);
+  bloomExtract.setIndices(fullscreenQuad.indices);
+  const bloomBlur = resources.register(createProgram(renderer, bloomBlurShader));
+  bloomBlur.attributes.aPosition.set(fullscreenQuad.positions);
+  bloomBlur.setIndices(fullscreenQuad.indices);
+
   const postProgram = resources.register(createProgram(renderer, postShader, { blend: 'alpha' }));
   postProgram.attributes.aPosition.set(createPlane({ width: 2, height: 2 }).positions);
   postProgram.setIndices(createPlane({ width: 2, height: 2 }).indices);
@@ -377,7 +413,25 @@ export async function createRelayRenderer(
     // along with everything else, so it has to enter the pipeline in the same space as the geometry.
     renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
 
+    // Extract, blur across, blur down. Three quarter-resolution passes over a scene that is already
+    // drawn, so nothing here touches the geometry again.
+    const [bloomA, bloomB] = ensureBloomTargets();
+    bloomExtract.uniforms.uScene.set(scene.texture);
+    bloomExtract.uniforms.uThreshold.set(RELAY_PRESENTATION.bloom.threshold);
+    renderer.drawTo(bloomA, () => bloomExtract.draw());
+    // The step is in uv, so it has to come from the bloom target's size and not the canvas's.
+    const acrossStep = RELAY_PRESENTATION.bloom.radius / bloomA.width;
+    const downStep = RELAY_PRESENTATION.bloom.radius / bloomA.height;
+    bloomBlur.uniforms.uSource.set(bloomA.texture);
+    bloomBlur.uniforms.uDirection.set([acrossStep, 0]);
+    renderer.drawTo(bloomB, () => bloomBlur.draw());
+    bloomBlur.uniforms.uSource.set(bloomB.texture);
+    bloomBlur.uniforms.uDirection.set([0, downStep]);
+    renderer.drawTo(bloomA, () => bloomBlur.draw());
+
     postProgram.uniforms.uScene.set(scene.texture);
+    postProgram.uniforms.uBloom.set(bloomA.texture);
+    postProgram.uniforms.uBloomStrength.set(RELAY_PRESENTATION.bloom.strength);
     postProgram.uniforms.uExposure.set(RELAY_PRESENTATION.exposure);
     postProgram.draw();
 
