@@ -40,6 +40,9 @@ No row may be silently dropped. A register that shrinks without explanation is w
 | A2 | **Executable requirement contracts.** Binding an owner's stated intent to a test an agent must satisfy. | One hand-written contract kind is not a pattern. `GOOD_ENGINEERING_H.md` on premature abstraction. | Three hand-written contract kinds exist — visual budget, motion assertion, simulation invariant — and they converge on a shape. |
 | A4 | **A per-step hook on `EngineSession`.** `advance` runs its whole batch of fixed steps with no way to observe each one, so three demos can only interpolate exactly when a frame ran exactly one step. `antiky-town`'s character motor shows the correct form. | Goal 03 needed it and worked around it; the framework is goal 11's tree, not goal 03's. | Goal 11. Detail in [`_completed/summary-goal-03.md`](_completed/summary-goal-03.md). |
 | A5 | **A shared sun/fog uniform per demo.** BroMetal's MVP cannot read a module-level constant from a shader body, so goal 03 used agreed literals guarded by `pipeline-invariants.test.mjs`. | Three lines of duplication against machinery for a runtime-varying sun nobody asked for. | The first demo that wants a sun that changes at runtime - a day cycle, a lighting transition. Also a candidate upstream BroMetal request. |
+| A6 | `antiky-town`'s local-contrast floor sits inside the capture noise — 8.50/8.50/8.46 on identical code against a 8.5 floor | When `demos:shoot` steps a paused simulation, or when the owner adjusts the floor | goal 05 |
+| A7 | `courier.glb` and its Quaternius siblings are reduced to 91-byte textures by goal 04's pipeline | Before any further material work on `traversal-study`'s characters | goal 05 |
+| A8 | `rock-boulder-dry` is installed and receipted for `antiky-town` but unused — its effect was inside the noise floor | When the capture instrument can resolve better than 0.05 local contrast | goal 05 || S3 | **The skill-library implementation plan** in `../../skill-research/`. | A parallel track, not a dependency of this objective. | Its own schedule. |
 | A3 | **`BroMetalRenderDriver` needs 2.3D evidence.** Goal 12 extracts it from 3D demos. | ADR 0004 gives 2D, 3D and 2.3D equal support; a driver promoted on 3D-only evidence runs against it. | Goal 12. `antiky-town` is the only 2.3D artifact and is now in scope, so this is closeable. |
 
 ### Measurement not yet validated
@@ -82,7 +85,7 @@ No row may be silently dropped. A register that shrinks without explanation is w
 |---|---|---|---|
 | S1 | **`docs/objectives/ideas/skill-text.md` → a real skill.** Patching a dependency and upstreaming the fix. | Written from doing it once, across five PRs. | Owner intends to turn it into a skill. Worth a second run first to see what generalises. |
 | S2 | **Skills teaching agents to use the measurement tooling** — `demos:shoot`, `frame-stats`, `motion-stats`, `demos:verify`, and how to read a budget failure. | The tooling is days old and one metric has already been replaced. A skill teaching a wrong measurement is worse than none. | After goals 06–08, when the budgets have survived a real render slice. See [`../../../ideas/agent-legible-quality-measurement.md`](../../../ideas/agent-legible-quality-measurement.md). |
-| S3 | **The skill-library implementation plan** in `../../skill-research/`. | A parallel track, not a dependency of this objective. | Its own schedule. |
+
 
 ## In scope
 
