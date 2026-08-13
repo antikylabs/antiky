@@ -292,10 +292,23 @@ unverified guess.** Reading the fragment afterwards shows `vRadius` is only used
 zero-size gate (`smoothstep(0, 0.02, vRadius)`) and the falloff runs off `vLocal`, which is local
 ±1 — so traversal-study's scale values would have been *fine*. That guess was wrong too.
 
-**Stop guessing and get evidence.** The next attempt should make the blob output solid opaque red
-with no falloff and no texture, and capture. That separates "not drawn" from "drawn and discarded by
-its own alpha" in one step, which four rounds of reasoning from the source did not. Everything after
-that is cheap; everything before it was not.
+**A fifth attempt tried exactly that and produced a false reading.** The solid-red diagnostic was
+written, the shader **failed to compile** (the BroMetal DSL rejects `void x;` statements — it allows
+only assignments), and the capture that followed therefore did not contain the diagnostic at all.
+The pixel count came back "9,259 strong-red pixels → the blob draws", which was **the platform's own
+orange-red underside** matching a careless `r > 150, g < 90, b < 90` threshold.
+
+Two lessons, both worth more than the bug:
+
+- **A diagnostic that does not compile still produces a capture**, because the build falls back to
+  the last good artifact. Always check the compile succeeded before reading the frame.
+- **A colour threshold is not a probe.** Sample a known rectangle where the blob should be and
+  compare it against the same rectangle with the blob disabled, the way every other measurement in
+  goals 06 and 07 does. The one shortcut taken here is the one measurement that lied.
+
+**The real next step**, still unrun: get the diagnostic to compile (drop the `void` statements —
+reference the varyings inside the returned expression instead), then measure a rectangle under the
+character rather than counting reddish pixels anywhere in the frame.
 
 The demo is reverted to its committed W B.2 state and `npm test` is green. The wrong contact shadow
 is still there, and that is the right place to leave it — the hole at least tells the viewer where
