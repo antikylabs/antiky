@@ -49,6 +49,8 @@ import { SHADOW_MAP_SIZE, SUN_DIRECTION, createCourseSunShadow } from './sun.ts'
 import modelDepthShader from './shaders/model-depth.shader.gen.ts';
 import surfaceDepthShader from './shaders/surface-depth.shader.gen.ts';
 import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
+import bloomBlurShader from './shaders/bloom-blur.shader.gen.ts';
+import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
 import traversalGlowShader from './shaders/traversal-glow.shader.gen';
 import traversalModelShader from './shaders/traversal-model.shader.gen';
@@ -502,6 +504,15 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     const TRAVERSAL_EXPOSURE = 1;
 
     /**
+     * Bloom, in pre-exposure linear units.
+     *
+     * The threshold sits above the lit platform tops and below the coins and the sky's brightest
+     * cloud edges, so the glow picks out what is actually bright rather than everything the sun
+     * caught. It is higher than the other two demos' because this scene is bright throughout.
+     */
+    const TRAVERSAL_BLOOM = Object.freeze({ threshold: 1.6, radius: 5, strength: 0.85 });
+
+    /**
      * The clear colour expressed in linear light.
      *
      * The authored value is a display colour: it used to be written straight to the screen. Now it
@@ -567,10 +578,35 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       }
     }
 
+    // Two quarter-resolution targets, ping-ponged by the blur. `filter: 'linear'` is goal 02's
+    // render-target-filtering patch and is hard-blocking: on a point sampler the taps snap back onto
+    // texel centres and the chain produces blocky glow that crawls with the camera.
+    let bloomTargets: readonly [RenderTarget, RenderTarget] | undefined;
+    const ensureBloomTargets = (): readonly [RenderTarget, RenderTarget] => {
+      const width = Math.max(1, Math.floor(renderer.canvas.width / 4));
+      const height = Math.max(1, Math.floor(renderer.canvas.height / 4));
+      if (!bloomTargets || bloomTargets[0].width !== width || bloomTargets[0].height !== height) {
+        bloomTargets?.[0].dispose();
+        bloomTargets?.[1].dispose();
+        bloomTargets = [
+          createRenderTarget(renderer, { width, height, filter: 'linear' }),
+          createRenderTarget(renderer, { width, height, filter: 'linear' }),
+        ];
+      }
+      return bloomTargets;
+    };
+    owned.adopt({ dispose: () => { bloomTargets?.[0].dispose(); bloomTargets?.[1].dispose(); } });
+    const bloomExtract = owned.adopt(createProgram(renderer, bloomExtractShader));
+    const bloomBlur = owned.adopt(createProgram(renderer, bloomBlurShader));
+
     const postProgram = owned.adopt(createProgram(renderer, postShader, { blend: 'alpha' }));
     const fullscreenQuad = createPlane({ width: 2, height: 2 });
     postProgram.attributes.aPosition!.set(fullscreenQuad.positions);
     postProgram.setIndices(fullscreenQuad.indices);
+    bloomExtract.attributes.aPosition!.set(fullscreenQuad.positions);
+    bloomExtract.setIndices(fullscreenQuad.indices);
+    bloomBlur.attributes.aPosition!.set(fullscreenQuad.positions);
+    bloomBlur.setIndices(fullscreenQuad.indices);
     owned.adopt({ dispose: () => sceneTarget?.dispose() });
 
     const drawFrame = (): void => {
@@ -584,7 +620,21 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       renderer.drawTo(shadowTarget, drawCasters, { clear: [1, 1, 1, 1] });
       const scene = ensureSceneTarget();
       renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
+      // Extract, blur across, blur down — three quarter-resolution passes over a drawn scene.
+      const [bloomA, bloomB] = ensureBloomTargets();
+      bloomExtract.uniforms.uScene!.set(scene.texture);
+      bloomExtract.uniforms.uThreshold!.set(TRAVERSAL_BLOOM.threshold);
+      renderer.drawTo(bloomA, () => bloomExtract.draw());
+      bloomBlur.uniforms.uSource!.set(bloomA.texture);
+      bloomBlur.uniforms.uDirection!.set([TRAVERSAL_BLOOM.radius / bloomA.width, 0]);
+      renderer.drawTo(bloomB, () => bloomBlur.draw());
+      bloomBlur.uniforms.uSource!.set(bloomB.texture);
+      bloomBlur.uniforms.uDirection!.set([0, TRAVERSAL_BLOOM.radius / bloomA.height]);
+      renderer.drawTo(bloomA, () => bloomBlur.draw());
+
       postProgram.uniforms.uScene!.set(scene.texture);
+      postProgram.uniforms.uBloom!.set(bloomA.texture);
+      postProgram.uniforms.uBloomStrength!.set(TRAVERSAL_BLOOM.strength);
       postProgram.uniforms.uExposure!.set(TRAVERSAL_EXPOSURE);
       postProgram.draw();
     };

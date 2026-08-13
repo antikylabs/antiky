@@ -1,11 +1,14 @@
 import {
+  length,
   max,
   mix,
   pow,
   shader,
+  smoothstep,
   step,
   targetUv,
   texture,
+  vec2,
   vec3,
   vec4,
   type Vec3,
@@ -50,6 +53,20 @@ function channelToDisplay(channel: number): number {
   return mix(low, high, step(0.0031308, safe));
 }
 
+/**
+ * Contrast about a pivot, as a power rather than a straight line.
+ *
+ * 0.18 is mid grey in linear light. The straight-line form sends everything below `pivot / gain`
+ * negative, and clamping at zero turns a gradient into a plateau of pure black — in the reference it
+ * cleared the local-contrast floor while taking `clippedLow` to 33.5%.
+ *
+ * The gain is gentler here than in the other two demos: this is a bright outdoor scene whose frame
+ * is more than half sky, and a strong curve on a large flat area posterises it.
+ */
+function shapeContrast(channel: number): number {
+  return 0.18 * pow(max(channel, 0) / 0.18, 1.08);
+}
+
 function encodeSrgb(color: Vec3): Vec3 {
   return vec3(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
 }
@@ -58,6 +75,8 @@ export default shader({
   attributes: { aPosition: 'vec3' },
   uniforms: {
     uScene: 'sampler2D',
+    uBloom: 'sampler2D',
+    uBloomStrength: 'float',
     uExposure: 'float',
   },
   varyings: { vUv: 'vec2' },
@@ -69,8 +88,25 @@ export default shader({
     return vec4(aPosition.x, aPosition.y, 0, 1);
   },
 
-  fragment({ uScene, uExposure }, { vUv }) {
+  fragment({ uScene, uBloom, uBloomStrength, uExposure }, { vUv }) {
     const scene = texture(uScene, vUv).xyz;
-    return vec4(encodeSrgb(tonemapACES(scene.scale(uExposure))), 1);
+    // Added in linear light, before exposure, because that is the space it was extracted in.
+    const withBloom = scene.add(texture(uBloom, vUv).xyz.scale(uBloomStrength));
+    const exposed = withBloom.scale(uExposure);
+
+    const grey = exposed.x * 0.2126 + exposed.y * 0.7152 + exposed.z * 0.0722;
+    const saturated = mix(vec3(grey, grey, grey), exposed, 1.08);
+    const graded = vec3(
+      shapeContrast(saturated.x),
+      shapeContrast(saturated.y),
+      shapeContrast(saturated.z),
+    );
+
+    // The vignette. Restrained at 0.16 rather than the other demos' 0.20-0.22: this frame is mostly
+    // open sky, and a heavier corner falloff reads as a lens artefact rather than as depth.
+    const centred = vUv.sub(vec2(0.5, 0.5));
+    const vignette = 1 - smoothstep(0.30, 0.80, length(centred)) * 0.16;
+
+    return vec4(encodeSrgb(tonemapACES(graded.scale(vignette))), 1);
   },
 });
