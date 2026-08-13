@@ -839,3 +839,42 @@ test('every demo agrees with itself about its fog range', async () => {
     + 'far objects disagree about how far away they are.',
   );
 });
+
+test('the specular model in every shader that ships one is the same model', async () => {
+  // Same forced duplication as the sRGB decode: the BroMetal MVP resolves only helpers declared in
+  // the module that uses them, so `specularGGX` is copied into all three point-light-expo material
+  // shaders. Comparing the compiled body means a rewritten approximation cannot hide behind
+  // identical formatting, and a call site that quietly tunes its own copy shows up here.
+  //
+  // The constants asserted are the three terms that make the model energy-conserving, which is what
+  // let goal 06-03 delete the `min(specGGX(…), 1.5)` ceilings and the `* 0.12` scale factors. A copy
+  // missing any of them is the old distribution-only term wearing the new name.
+  const bodies = new Map();
+  for (const shader of await allShaders()) {
+    if (!shader.calls('specularGGX')) continue;
+    const match = shader.wgsl.match(/fn specularGGX\s*\([^)]*\)[^{]*\{([\s\S]*?)\n\}/);
+    assert.ok(match, `${shader.relative}: calls specularGGX with no body`);
+    const body = match[1].replace(/\s+/g, ' ').trim();
+    // The Smith visibility term, which carries the 1 / (4 · N·L · N·V) the old constant 0.25
+    // stood in for.
+    assert.ok(body.includes('sqrt('), `${shader.relative}: no visibility term`);
+    assert.ok(body.includes('0.5'), `${shader.relative}: no visibility numerator`);
+    // The GGX distribution.
+    assert.ok(body.includes('3.14159265'), `${shader.relative}: no distribution denominator`);
+    if (!bodies.has(body)) bodies.set(body, []);
+    bodies.get(body).push(shader.relative);
+  }
+  assert.ok(bodies.size > 0, 'no shader ships the specular model at all');
+  assert.equal(bodies.size, 1, `the specular model has diverged into ${bodies.size} versions:\n${
+    [...bodies.values()].map((files) => `  - ${files.join(', ')}`).join('\n')}`);
+});
+
+test('no point-light-expo shader still uses the distribution-only specular term', async () => {
+  // `specGGX` is BroMetal's own helper and other demos still call it — that is goal 07's problem,
+  // not this one. Inside this demo it is gone, and this stops it coming back through a copied block.
+  const offenders = (await allShaders())
+    .filter((shader) => shader.relative.startsWith('antiky/point-light-expo/'))
+    .filter((shader) => shader.calls('specGGX'))
+    .map((shader) => shader.relative);
+  assert.deepEqual(offenders, []);
+});

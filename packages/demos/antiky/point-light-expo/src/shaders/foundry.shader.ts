@@ -7,9 +7,9 @@ import {
   dot,
   length,
   max,
-  min,
   mix,
   normalize,
+  sqrt,
   sin,
   shader,
   smoothstep,
@@ -19,7 +19,54 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import {specGGX } from 'brometal/shader-functions';
+/**
+ * Cook-Torrance GGX specular: the light that leaves this surface toward the viewer.
+ *
+ * BroMetal's `specGGX` is the distribution term on its own — no Fresnel, no geometry term, and a
+ * hard-coded `0.25` sitting where `1 / (4 · N·L · N·V)` belongs. Nothing bounds it, so every call
+ * site in this demo used to wrap it in `min(…, 1.5)` or `min(…, 2.4)` and scale the result down by
+ * 0.12 to keep highlights off the ceiling. Those numbers were not tuning, they were a workaround.
+ *
+ * The three terms that make the ceilings unnecessary:
+ *
+ * - **Distribution** (GGX / Trowbridge-Reitz) — how tightly the microfacets line up with the
+ *   halfway vector, which is how wide the highlight is. This is the only part `specGGX` had.
+ * - **Visibility** — height-correlated Smith, which is the geometry term already divided by
+ *   `4 · N·L · N·V`. This is the real denominator the `0.25` stood in for, and it is what makes a
+ *   grazing highlight fall off rather than run away.
+ * - **Fresnel** (Schlick) — how reflective the surface is at this angle. `f0` is its reflectance
+ *   head-on: 0.04 for dielectrics, the albedo itself for metals. This is the term that makes brass
+ *   and stone stop looking like the same material.
+ *
+ * Energy is conserved by construction, so there is nothing left to clamp. `tests/specular.test.ts`
+ * integrates this over the hemisphere and finds it never returns more light than arrives.
+ *
+ * Declared in every shader that needs it rather than imported, for the same reason `decodeSrgb` is:
+ * the BroMetal MVP resolves only module-level helpers declared above their first use, and an
+ * imported one fails to compile. `pipeline-invariants.test.mjs` asserts every copy is identical.
+ */
+function specularGGX(normal: Vec3, light: Vec3, view: Vec3, roughness: number, f0: Vec3): Vec3 {
+  const halfway = normalize(light.add(view));
+  const nDotL = max(dot(normal, light), 0);
+  // Floored rather than clamped to zero. Both of these end up in a denominator, and a surface
+  // exactly edge-on to the viewer should be an unlit pixel, not a division by zero.
+  const nDotV = max(dot(normal, view), 0.0001);
+  const nDotH = max(dot(normal, halfway), 0);
+  const vDotH = max(dot(view, halfway), 0);
+  const alpha = roughness * roughness;
+  const alphaSq = alpha * alpha;
+  const distributionDenominator = nDotH * nDotH * (alphaSq - 1) + 1;
+  const distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  const occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1 - alphaSq) + alphaSq);
+  const occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1 - alphaSq) + alphaSq);
+  const visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  // (1 - V·H)^5 as five multiplies rather than a `pow`: cheaper, and exact at both endpoints.
+  const grazing = 1 - vDotH;
+  const grazingSq = grazing * grazing;
+  const fresnelWeight = grazingSq * grazingSq * grazing;
+  const fresnel = f0.add(vec3(1, 1, 1).sub(f0).scale(fresnelWeight));
+  return fresnel.scale(distribution * visibility * nDotL);
+}
 
 function materialPresentationPointRadiance(
   world: Vec3,
@@ -31,6 +78,7 @@ function materialPresentationPointRadiance(
   lightRadius: number,
   roughness: number,
   metalness: number,
+  albedo: Vec3,
 ): Vec3 {
   const toLight = lightPosition.sub(world);
   const distanceSq = dot(toLight, toLight);
@@ -38,9 +86,16 @@ function materialPresentationPointRadiance(
   const attenuation = range * range;
   const light = normalize(toLight);
   const diffuse = max(dot(normal, light), 0);
-  const specular = min(specGGX(normal, light, view, roughness), 2.4)
-    * (0.16 + metalness * 0.84);
-  return lightColor.scale(lightPower * attenuation * (diffuse + specular));
+  // A metal reflects its own colour and has no diffuse; a dielectric reflects 0.04 white and keeps
+  // all of its diffuse. Blending both ends by metalness is what separates the brass from the stone,
+  // and it replaces a `0.16 + metalness * 0.84` scale that stood in for the same idea by feel.
+  const f0 = mix(vec3(0.04, 0.04, 0.04), albedo, metalness);
+  const specular = specularGGX(normal, light, view, roughness, f0);
+  const arriving = lightColor.scale(lightPower * attenuation);
+  // Albedo tints the diffuse and not the specular, and a metal has no diffuse at all — its colour
+  // reaches the eye through `f0` instead. That is the whole difference between brass and stone.
+  const diffuseEnergy = diffuse * (1 - metalness);
+  return arriving.mul(albedo.scale(diffuseEnergy).add(specular));
 }
 
 export default shader({
@@ -205,6 +260,7 @@ const baseNormal = normalize(vNormal);
       uEmberRadius,
       roughness,
       metalness,
+      vBaseColor,
     );
     const ion = materialPresentationPointRadiance(
       vWorld,
@@ -216,6 +272,7 @@ const baseNormal = normalize(vNormal);
       uIonRadius,
       roughness,
       metalness,
+      vBaseColor,
     );
     const violet = materialPresentationPointRadiance(
       vWorld,
@@ -227,6 +284,7 @@ const baseNormal = normalize(vNormal);
       uVioletRadius,
       roughness,
       metalness,
+      vBaseColor,
     );
     const radiance = ember.add(ion).add(violet).scale(uRelayLightStrength);
     const hemisphere = 0.78 + normal.y * 0.2;
@@ -249,8 +307,10 @@ const baseNormal = normalize(vNormal);
       .add(uSh7.scale(normal.x * normal.z))
       .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
     const ambient = shIrradiance.scale(uAmbientStrength);
-    const lit = vBaseColor.mul(ambient.add(radiance))
-      .add(radiance.scale(metalness * 0.2));
+    // `radiance` already carries the specular, Fresnel-tinted by albedo for metal and left white
+    // for dielectric, so the `+ radiance * metalness * 0.2` that used to fake a metal highlight
+    // here has nothing left to do. Albedo still tints the diffuse and the ambient.
+    const lit = vBaseColor.mul(ambient).add(radiance);
     const pulse = 0.92 + sin(uTime * 2.4 + vWorld.x * 0.5) * 0.08;
     const emissive = vBaseColor.scale(vMaterial.z * pulse);
     const fog = smoothstep(uFogStart, uFogEnd, length(uCameraPosition.sub(vWorld)));

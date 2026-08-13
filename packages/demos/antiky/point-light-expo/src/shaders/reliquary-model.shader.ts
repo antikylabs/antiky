@@ -7,9 +7,9 @@ import {
   dot,
   length,
   max,
-  min,
   mix,
   normalize,
+  sqrt,
   sign,
   sin,
   shader,
@@ -19,7 +19,6 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import {specGGX } from 'brometal/shader-functions';
 
 function rotateModel(value: Vec3, rotation: Vec3): Vec3 {
   const cosZ = cos(rotation.z);
@@ -45,6 +44,55 @@ function rotateModel(value: Vec3, rotation: Vec3): Vec3 {
   );
 }
 
+/**
+ * Cook-Torrance GGX specular: the light that leaves this surface toward the viewer.
+ *
+ * BroMetal's `specGGX` is the distribution term on its own — no Fresnel, no geometry term, and a
+ * hard-coded `0.25` sitting where `1 / (4 · N·L · N·V)` belongs. Nothing bounds it, so every call
+ * site in this demo used to wrap it in `min(…, 1.5)` or `min(…, 2.4)` and scale the result down by
+ * 0.12 to keep highlights off the ceiling. Those numbers were not tuning, they were a workaround.
+ *
+ * The three terms that make the ceilings unnecessary:
+ *
+ * - **Distribution** (GGX / Trowbridge-Reitz) — how tightly the microfacets line up with the
+ *   halfway vector, which is how wide the highlight is. This is the only part `specGGX` had.
+ * - **Visibility** — height-correlated Smith, which is the geometry term already divided by
+ *   `4 · N·L · N·V`. This is the real denominator the `0.25` stood in for, and it is what makes a
+ *   grazing highlight fall off rather than run away.
+ * - **Fresnel** (Schlick) — how reflective the surface is at this angle. `f0` is its reflectance
+ *   head-on: 0.04 for dielectrics, the albedo itself for metals. This is the term that makes brass
+ *   and stone stop looking like the same material.
+ *
+ * Energy is conserved by construction, so there is nothing left to clamp. `tests/specular.test.ts`
+ * integrates this over the hemisphere and finds it never returns more light than arrives.
+ *
+ * Declared in every shader that needs it rather than imported, for the same reason `decodeSrgb` is:
+ * the BroMetal MVP resolves only module-level helpers declared above their first use, and an
+ * imported one fails to compile. `pipeline-invariants.test.mjs` asserts every copy is identical.
+ */
+function specularGGX(normal: Vec3, light: Vec3, view: Vec3, roughness: number, f0: Vec3): Vec3 {
+  const halfway = normalize(light.add(view));
+  const nDotL = max(dot(normal, light), 0);
+  // Floored rather than clamped to zero. Both of these end up in a denominator, and a surface
+  // exactly edge-on to the viewer should be an unlit pixel, not a division by zero.
+  const nDotV = max(dot(normal, view), 0.0001);
+  const nDotH = max(dot(normal, halfway), 0);
+  const vDotH = max(dot(view, halfway), 0);
+  const alpha = roughness * roughness;
+  const alphaSq = alpha * alpha;
+  const distributionDenominator = nDotH * nDotH * (alphaSq - 1) + 1;
+  const distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  const occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1 - alphaSq) + alphaSq);
+  const occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1 - alphaSq) + alphaSq);
+  const visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  // (1 - V·H)^5 as five multiplies rather than a `pow`: cheaper, and exact at both endpoints.
+  const grazing = 1 - vDotH;
+  const grazingSq = grazing * grazing;
+  const fresnelWeight = grazingSq * grazingSq * grazing;
+  const fresnel = f0.add(vec3(1, 1, 1).sub(f0).scale(fresnelWeight));
+  return fresnel.scale(distribution * visibility * nDotL);
+}
+
 function pointRadiance(
   world: Vec3,
   normal: Vec3,
@@ -54,6 +102,7 @@ function pointRadiance(
   lightPower: number,
   lightRadius: number,
   roughness: number,
+  albedo: Vec3,
 ): Vec3 {
   const toLight = lightPosition.sub(world);
   const distanceSq = dot(toLight, toLight);
@@ -61,8 +110,13 @@ function pointRadiance(
   const attenuation = range * range;
   const light = normalize(toLight);
   const diffuse = max(dot(normal, light), 0);
-  const specular = min(specGGX(normal, light, view, roughness), 1.5) * 0.12;
-  return lightColor.scale(lightPower * attenuation * (diffuse + specular));
+  // Dielectric, same as the floor beneath it: 0.04 is a non-metal's head-on reflectance.
+  const specular = specularGGX(normal, light, view, roughness, vec3(0.04, 0.04, 0.04));
+  const arriving = lightColor.scale(lightPower * attenuation);
+  // Albedo tints the diffuse and not the specular. A highlight is the colour of the light; how
+  // reflective the surface is at this angle is `f0`'s job. Summing the two and tinting both, which
+  // is what the caller used to do, gave every highlight the surface's own colour.
+  return arriving.mul(albedo.scale(diffuse).add(specular));
 }
 
 /**
@@ -262,11 +316,11 @@ export default shader({
     // outlives the bug and then nobody can tell which is which.
     const base = clamp(decodeSrgb(texture(uDiffuse, vUv).xyz), 0, 1).mul(vTint);
     const relay = pointRadiance(
-      vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness,
+      vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness, base,
     ).add(pointRadiance(
-      vWorld, normal, view, uIonPosition, uIonColor, uIonPower, uIonRadius, roughness,
+      vWorld, normal, view, uIonPosition, uIonColor, uIonPower, uIonRadius, roughness, base,
     )).add(pointRadiance(
-      vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness,
+      vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness, base,
     )).scale(uRelayLightStrength);
     // Ambient that knows which way the surface faces.
     //
@@ -298,7 +352,7 @@ export default shader({
     // parameter and compiles the sample-free maths inline anyway, so the only difference is that
     // this spelling matches the twelve other places in this repository that already do it.
     const rim = pow(1 - max(dot(normal, view), 0), 2.4);
-    const lit = base.mul(ambient.add(relay)).scale(occlusion)
+    const lit = base.mul(ambient).add(relay).scale(occlusion)
       // Band 0 is the sky's average over the whole sphere, which is exactly what a surface
       // turning away from the camera is catching.
       .add(uSh0.scale(rim * 0.22 * occlusion));

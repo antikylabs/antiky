@@ -54,25 +54,34 @@ struct BmVSOut {
   @location(0) vWorld : vec3f,
   @location(1) vUv : vec2f,
 }
-fn specGGX(normal : vec3f, lightDir : vec3f, viewDir : vec3f, roughness : f32) -> f32 {
-  let n = normalize(normal);
-  let halfway = normalize(normalize(lightDir) + normalize(viewDir));
-  let ndoth = max(dot(n, halfway), 0.0);
-  let a = roughness * roughness;
-  let a2 = a * a;
-  let denom = ndoth * ndoth * (a2 - 1.0) + 1.0;
-  let ndf = a2 / (3.14159265 * denom * denom);
-  let ndotl = max(dot(n, normalize(lightDir)), 0.0);
-  return ndf * ndotl * 0.25;
+fn specularGGX(normal : vec3f, light : vec3f, view : vec3f, roughness : f32, f0 : vec3f) -> vec3f {
+  let halfway = normalize(light + view);
+  let nDotL = max(dot(normal, light), 0.0);
+  let nDotV = max(dot(normal, view), 0.0001);
+  let nDotH = max(dot(normal, halfway), 0.0);
+  let vDotH = max(dot(view, halfway), 0.0);
+  let alpha = roughness * roughness;
+  let alphaSq = alpha * alpha;
+  let distributionDenominator = nDotH * nDotH * (alphaSq - 1.0) + 1.0;
+  let distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  let occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1.0 - alphaSq) + alphaSq);
+  let occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1.0 - alphaSq) + alphaSq);
+  let visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  let grazing = 1.0 - vDotH;
+  let grazingSq = grazing * grazing;
+  let fresnelWeight = grazingSq * grazingSq * grazing;
+  let fresnel = f0 + (vec3f(1.0, 1.0, 1.0) - f0) * fresnelWeight;
+  return fresnel * (distribution * visibility * nDotL);
 }
-fn materialPresentationFloorLight(world : vec3f, normal : vec3f, view : vec3f, lightPosition : vec3f, lightColor : vec3f, lightPower : f32, lightRadius : f32, roughness : f32) -> vec3f {
+fn materialPresentationFloorLight(world : vec3f, normal : vec3f, view : vec3f, lightPosition : vec3f, lightColor : vec3f, lightPower : f32, lightRadius : f32, roughness : f32, albedo : vec3f) -> vec3f {
   let toLight = lightPosition - world;
   let distanceSq = dot(toLight, toLight);
   let range = clamp(1.0 - distanceSq / (lightRadius * lightRadius), 0.0, 1.0);
   let light = normalize(toLight);
   let diffuse = max(dot(normal, light), 0.0);
-  let specular = specGGX(normal, light, view, roughness) * 0.12;
-  return lightColor * (lightPower * range * range * (diffuse + specular));
+  let specular = specularGGX(normal, light, view, roughness, vec3f(0.04, 0.04, 0.04));
+  let arriving = lightColor * (lightPower * range * range);
+  return arriving * (albedo * diffuse + specular);
 }
 fn channelToLinear(channel : f32) -> f32 {
   let low = channel / 12.92;
@@ -106,14 +115,14 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let detailTilt = textureSample(uDetailNormal, uDetailNormal_sampler, bm_in.vWorld.xz * detailRate).xyz * 2.0 - vec3f(1.0, 1.0, 1.0);
   let normal = normalize(vec3f(detailTilt.x * detailStrength, 1.0, detailTilt.y * detailStrength));
   let view = normalize(bm_u.uCameraPosition - bm_in.vWorld);
-  let amber = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uEmberPosition, bm_u.uEmberColor, bm_u.uEmberPower, bm_u.uEmberRadius, roughness);
-  let blue = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uIonPosition, bm_u.uIonColor, bm_u.uIonPower, bm_u.uIonRadius, roughness);
-  let plum = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uVioletPosition, bm_u.uVioletColor, bm_u.uVioletPower, bm_u.uVioletRadius, roughness);
-  let irradiance = (amber + blue + plum) * bm_u.uRelayLightStrength;
   let dampEarth = diffuseSample * bm_u.uDiffuseTint;
+  let amber = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uEmberPosition, bm_u.uEmberColor, bm_u.uEmberPower, bm_u.uEmberRadius, roughness, dampEarth);
+  let blue = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uIonPosition, bm_u.uIonColor, bm_u.uIonPower, bm_u.uIonRadius, roughness, dampEarth);
+  let plum = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uVioletPosition, bm_u.uVioletColor, bm_u.uVioletPower, bm_u.uVioletRadius, roughness, dampEarth);
+  let irradiance = (amber + blue + plum) * bm_u.uRelayLightStrength;
   let shIrradiance = bm_u.uSh0 + bm_u.uSh1 * normal.y + bm_u.uSh2 * normal.z + bm_u.uSh3 * normal.x + bm_u.uSh4 * (normal.x * normal.y) + bm_u.uSh5 * (normal.y * normal.z) + bm_u.uSh6 * (3.0 * normal.z * normal.z - 1.0) + bm_u.uSh7 * (normal.x * normal.z) + bm_u.uSh8 * (normal.x * normal.x - normal.y * normal.y);
   let ambient = shIrradiance * (bm_u.uAmbientStrength * ao);
-  let lit = dampEarth * (ambient + irradiance);
+  let lit = dampEarth * ambient + irradiance;
   let stonePath = smoothstep(0.44, 0.5, max(0.6 - abs(bm_in.vWorld.x) * 0.12, 0.6 - abs(bm_in.vWorld.z) * 0.12));
   let pathTint = mix(vec3f(1.0, 1.0, 1.0), vec3f(0.74, 0.78, 0.72), stonePath * 0.18);
   let materialColor = lit * pathTint + irradiance * 0.035;

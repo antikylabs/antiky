@@ -10,6 +10,7 @@ import {
   normalize,
   shader,
   sin,
+  sqrt,
   smoothstep,
   texture,
   vec2,
@@ -17,7 +18,54 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import {specGGX } from 'brometal/shader-functions';
+/**
+ * Cook-Torrance GGX specular: the light that leaves this surface toward the viewer.
+ *
+ * BroMetal's `specGGX` is the distribution term on its own — no Fresnel, no geometry term, and a
+ * hard-coded `0.25` sitting where `1 / (4 · N·L · N·V)` belongs. Nothing bounds it, so every call
+ * site in this demo used to wrap it in `min(…, 1.5)` or `min(…, 2.4)` and scale the result down by
+ * 0.12 to keep highlights off the ceiling. Those numbers were not tuning, they were a workaround.
+ *
+ * The three terms that make the ceilings unnecessary:
+ *
+ * - **Distribution** (GGX / Trowbridge-Reitz) — how tightly the microfacets line up with the
+ *   halfway vector, which is how wide the highlight is. This is the only part `specGGX` had.
+ * - **Visibility** — height-correlated Smith, which is the geometry term already divided by
+ *   `4 · N·L · N·V`. This is the real denominator the `0.25` stood in for, and it is what makes a
+ *   grazing highlight fall off rather than run away.
+ * - **Fresnel** (Schlick) — how reflective the surface is at this angle. `f0` is its reflectance
+ *   head-on: 0.04 for dielectrics, the albedo itself for metals. This is the term that makes brass
+ *   and stone stop looking like the same material.
+ *
+ * Energy is conserved by construction, so there is nothing left to clamp. `tests/specular.test.ts`
+ * integrates this over the hemisphere and finds it never returns more light than arrives.
+ *
+ * Declared in every shader that needs it rather than imported, for the same reason `decodeSrgb` is:
+ * the BroMetal MVP resolves only module-level helpers declared above their first use, and an
+ * imported one fails to compile. `pipeline-invariants.test.mjs` asserts every copy is identical.
+ */
+function specularGGX(normal: Vec3, light: Vec3, view: Vec3, roughness: number, f0: Vec3): Vec3 {
+  const halfway = normalize(light.add(view));
+  const nDotL = max(dot(normal, light), 0);
+  // Floored rather than clamped to zero. Both of these end up in a denominator, and a surface
+  // exactly edge-on to the viewer should be an unlit pixel, not a division by zero.
+  const nDotV = max(dot(normal, view), 0.0001);
+  const nDotH = max(dot(normal, halfway), 0);
+  const vDotH = max(dot(view, halfway), 0);
+  const alpha = roughness * roughness;
+  const alphaSq = alpha * alpha;
+  const distributionDenominator = nDotH * nDotH * (alphaSq - 1) + 1;
+  const distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  const occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1 - alphaSq) + alphaSq);
+  const occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1 - alphaSq) + alphaSq);
+  const visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  // (1 - V·H)^5 as five multiplies rather than a `pow`: cheaper, and exact at both endpoints.
+  const grazing = 1 - vDotH;
+  const grazingSq = grazing * grazing;
+  const fresnelWeight = grazingSq * grazingSq * grazing;
+  const fresnel = f0.add(vec3(1, 1, 1).sub(f0).scale(fresnelWeight));
+  return fresnel.scale(distribution * visibility * nDotL);
+}
 
 function materialPresentationFloorLight(
   world: Vec3,
@@ -28,14 +76,22 @@ function materialPresentationFloorLight(
   lightPower: number,
   lightRadius: number,
   roughness: number,
+  albedo: Vec3,
 ): Vec3 {
   const toLight = lightPosition.sub(world);
   const distanceSq = dot(toLight, toLight);
   const range = clamp(1 - distanceSq / (lightRadius * lightRadius), 0, 1);
   const light = normalize(toLight);
   const diffuse = max(dot(normal, light), 0);
-  const specular = specGGX(normal, light, view, roughness) * 0.12;
-  return lightColor.scale(lightPower * range * range * (diffuse + specular));
+  // Stone and moss are dielectrics, so 0.04 — the reflectance of a non-metal facing the viewer
+  // head-on. Written here rather than as a module constant: the BroMetal MVP does not resolve
+  // module-level const values.
+  const specular = specularGGX(normal, light, view, roughness, vec3(0.04, 0.04, 0.04));
+  const arriving = lightColor.scale(lightPower * range * range);
+  // Albedo tints the diffuse and not the specular. A highlight on wet stone is the colour of the
+  // light, not the colour of the stone — that is what `f0` above is for. The two used to be summed
+  // and tinted together by the caller, which made every highlight take the surface's colour.
+  return arriving.mul(albedo.scale(diffuse).add(specular));
 }
 
 /**
@@ -210,11 +266,11 @@ export default shader({
     const detailTilt = texture(uDetailNormal, vWorld.xz.scale(detailRate)).xyz.scale(2).sub(vec3(1, 1, 1));
     const normal = normalize(vec3(detailTilt.x * detailStrength, 1, detailTilt.y * detailStrength));
     const view = normalize(uCameraPosition.sub(vWorld));
-    const amber = materialPresentationFloorLight(vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness);
-    const blue = materialPresentationFloorLight(vWorld, normal, view, uIonPosition, uIonColor, uIonPower, uIonRadius, roughness);
-    const plum = materialPresentationFloorLight(vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness);
-    const irradiance = amber.add(blue).add(plum).scale(uRelayLightStrength);
     const dampEarth = diffuseSample.mul(uDiffuseTint);
+    const amber = materialPresentationFloorLight(vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness, dampEarth);
+    const blue = materialPresentationFloorLight(vWorld, normal, view, uIonPosition, uIonColor, uIonPower, uIonRadius, roughness, dampEarth);
+    const plum = materialPresentationFloorLight(vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness, dampEarth);
+    const irradiance = amber.add(blue).add(plum).scale(uRelayLightStrength);
     // Ambient that knows which way the surface faces.
     //
     // This replaced a single flat colour, which said a floor, a ceiling and the underside of a rock
@@ -240,7 +296,7 @@ export default shader({
       .add(uSh7.scale(normal.x * normal.z))
       .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
     const ambient = shIrradiance.scale(uAmbientStrength * ao);
-    const lit = dampEarth.mul(ambient.add(irradiance));
+    const lit = dampEarth.mul(ambient).add(irradiance);
     const stonePath = smoothstep(0.44, 0.5, max(0.6 - abs(vWorld.x) * 0.12, 0.6 - abs(vWorld.z) * 0.12));
     const pathTint = mix(vec3(1, 1, 1), vec3(0.74, 0.78, 0.72), stonePath * 0.18);
     const materialColor = lit.mul(pathTint).add(irradiance.scale(0.035));
