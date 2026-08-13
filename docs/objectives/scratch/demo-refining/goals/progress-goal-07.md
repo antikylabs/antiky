@@ -245,6 +245,33 @@ guards the two ways a contrast ratio can be gamed: the darkest stop must stay ab
 reaching black would clear any ratio by dividing by almost nothing, and the ramp must rise
 monotonically so more light never means a darker surface.
 
+### W B.3 — attempted and reverted
+
+**Not landed.** The contact-shadow half was attempted and backed out; the demo is at its committed
+W B.2 state and `npm test` is green.
+
+The goal's description is accurate and the defect is real: the contact shadow is an **opaque squashed
+sphere drawn through `traversal-surface`**, so the blob is lit, fogged and tone-mapped like scenery
+while its normals stay spherical. It reads as a hole punched in the platform, and the capture
+confirms it.
+
+Moving it to `combat-arena`'s unlit radial-falloff shader took three attempts and did not finish:
+
+1. The shared `createSurfaceBatch` set `aNormal`, `uBillboard`, `uCameraPosition` and `uTime`
+   unconditionally. The unlit shader declares none of them, and each threw during construction —
+   which surfaces as `CAPTURE_RUNTIME_TIMEOUT` rather than as an error anyone would recognise.
+   Guarded with optional chaining, one at a time.
+2. `createPlane` builds its quad in **XY**, so the blob stood on its edge and vanished. It needs a
+   quad lying flat in XZ, wound to face up because this demo culls back faces.
+3. With a ground quad it still does not draw, and the cause is unidentified. The likely candidate is
+   **draw order**: the blob is alpha-blended now, and `contactShadow.draw()` runs early in the scene
+   function. A blended pass drawn before the opaque geometry it sits on is depth-rejected.
+
+**Reverted rather than left in**, because a missing contact shadow is worse than the wrong one: the
+hole at least tells the viewer where the character is. The next attempt should start by moving
+`contactShadow.draw()` after every opaque draw, which is where `combat-arena` and `point-light-expo`
+both put their blended passes.
+
 ## Notes carried forward
 
 - **Four premises in the goal file have been overtaken by earlier goals**, and each was verified
