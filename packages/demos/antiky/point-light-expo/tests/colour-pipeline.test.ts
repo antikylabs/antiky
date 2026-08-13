@@ -87,17 +87,36 @@ test('exactly one shader encodes, and it is the post pass', async () => {
   assert.deepEqual(encoders, ['post.shader.ts'], 'only the post pass may encode');
 
   const post = await readFile(new URL('post.shader.ts', directory), 'utf8');
-  // The return expression, not the whole fragment: `uExposure` also appears in the parameter
-  // destructuring, which would make it look like it came first.
-  const fragment = post.slice(post.indexOf('return vec4(', post.indexOf('fragment(')));
-  // Order matters and is not interchangeable: exposure scales linear light, ACES maps that range
-  // into 0..1, and only then is it display data.
+  // The fragment body, starting after its parameter list.
+  //
+  // This used to slice from `return vec4(`, because `uExposure` appears in the destructuring too and
+  // would otherwise look like it came first. That broke the moment 06-06 added a grade: exposure is
+  // now applied to a named local above the return, which is clearer code and made the test report a
+  // missing stage. Slicing past the parameter list keeps the guard against the destructuring while
+  // letting the stages be named rather than nested.
+  const fragmentAt = post.indexOf('fragment(');
+  const bodyAt = post.indexOf('{', post.indexOf(') {', fragmentAt));
+  const fragment = post.slice(bodyAt);
+  // Order matters and is not interchangeable: exposure scales linear light, the grade works on that
+  // linear range, ACES maps it into 0..1, and only then is it display data.
+  //
+  // Asserted as execution order rather than text position. The first version compared string
+  // indices, which worked only while the whole chain was one nested expression — naming the stages
+  // as separate statements reversed two of the three comparisons without changing the pipeline.
   const exposureAt = fragment.indexOf('uExposure');
   const toneMapAt = fragment.indexOf('tonemapACES');
   const encodeAt = fragment.indexOf('encodeSrgb');
   assert.ok(exposureAt >= 0 && toneMapAt >= 0 && encodeAt >= 0, 'the post pass is missing a stage');
-  assert.ok(encodeAt < toneMapAt, 'the encode must wrap the tone-map, not precede it');
-  assert.ok(toneMapAt < exposureAt, 'the tone-map must wrap the exposed value');
+  // The encode wraps the tone-map, which is the one relationship that must stay nested: there is no
+  // legitimate reason to encode and then tone-map display data.
+  assert.ok(
+    /encodeSrgb\(\s*tonemapACES\(/.test(fragment),
+    'the encode must wrap the tone-map, not precede it',
+  );
+  // Exposure is applied before the tone-map sees anything.
+  assert.ok(exposureAt < toneMapAt, 'the tone-map must run on an already-exposed value');
+  // And exposure happens once. Two applications is the bug that made this demo double-dark before.
+  assert.equal(fragment.split('uExposure').length - 1, 1, 'exposure is applied more than once');
 });
 
 test('no material shader tone-maps or applies exposure', async () => {

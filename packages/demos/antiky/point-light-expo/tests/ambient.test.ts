@@ -32,7 +32,7 @@ function reconstruct(coefficients: Sh9, normal: readonly [number, number, number
   const colour: [number, number, number] = [0, 0, 0];
   for (let band = 0; band < 9; band += 1) {
     for (let channel = 0; channel < 3; channel += 1) {
-      colour[channel] += coefficients[band]![channel]! * basis[band]!;
+      colour[channel] = (colour[channel] ?? 0) + coefficients[band]![channel]! * basis[band]!;
     }
   }
   return colour;

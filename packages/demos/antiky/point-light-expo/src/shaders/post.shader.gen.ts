@@ -26,6 +26,9 @@ fn channelToDisplay(channel : f32) -> f32 {
   let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
   return mix(low, high, step(0.0031308, safe));
 }
+fn shapeContrast(channel : f32) -> f32 {
+  return 0.18 * pow(max(channel, 0.0) / 0.18, 1.22);
+}
 fn encodeSrgb(color : vec3f) -> vec3f {
   return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
 }
@@ -40,7 +43,14 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
 @fragment
 fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let scene = textureSample(uScene, uScene_sampler, bm_in.vUv).xyz;
-  return vec4f(encodeSrgb(tonemapACES(scene * bm_u.uExposure)), 1.0);
+  let exposed = scene * bm_u.uExposure;
+  let grey = exposed.x * 0.2126 + exposed.y * 0.7152 + exposed.z * 0.0722;
+  let saturated = mix(vec3f(grey, grey, grey), exposed, 1.14);
+  let graded = vec3f(shapeContrast(saturated.x), shapeContrast(saturated.y), shapeContrast(saturated.z));
+  let centred = bm_in.vUv - vec2f(0.5, 0.5);
+  let radius = length(centred);
+  let vignette = 1.0 - smoothstep(0.28, 0.78, radius) * 0.22;
+  return vec4f(encodeSrgb(tonemapACES(graded * vignette)), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3' },
