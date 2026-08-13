@@ -9,7 +9,7 @@ without reading the commit log.
 | Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
-| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | *contact shadow only* `031b281` | — | — |
+| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | — | — |
 | antiky-town | — | — | — | — | — |
 
 ## combat-arena
@@ -427,7 +427,23 @@ without checking that assumption held.
 blob covers 751 pixels rather than 241 — comparable footprint to the dome it replaces, soft rather
 than opaque. It reads as contact instead of as a hole punched in the platform.
 
-**Still outstanding in W B.3:** the sun and its shadow map. Only the contact-shadow half landed.
+**W B.3 complete.** The sun and its camera-following shadow map landed alongside the contact shadow.
+
+Measured against a capture with the shadow term absent: **3,346 pixels darkened by more than 10%**,
+678 by more than 25%, deepest 99%. Shadows fall under the trees and along the platform lips.
+
+Two depth shaders rather than one, and that is forced: `traversal-model` rotates in **XZ** about an
+animated yaw, `traversal-surface` rotates in **XY** about `iMaterial.z` and extrudes along z. A depth
+pass has to reproduce its caster's transform exactly, so they cannot share. The model depth shader
+carries the sway on the same clock — a caster that sways while its shadow stands still reads as the
+shadow being detached.
+
+**One construction bug, and the failure mode is worth knowing.** The shadow uniforms were bound to
+the receivers beside the draw functions, which sit *above* `shadowTarget`'s declaration. `const` is
+in its temporal dead zone until its declaration runs, so this threw during construction — and a
+throw there surfaces as `CAPTURE_RUNTIME_TIMEOUT`, because the runtime never finishes publishing,
+rather than as an error naming the variable. That is the second time in this goal a construction
+throw has presented as a capture timeout.
 
 ### A design constraint W B.3 hits here that it does not hit in the other two demos
 
