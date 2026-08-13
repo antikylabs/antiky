@@ -9,7 +9,7 @@ without reading the commit log.
 | Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
-| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `cfa9e7b` | **done** `a8f41d2` |
+| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `061785d`, `031b281` | **done** `cfa9e7b` | **done** `9b1bfa7` |
 | antiky-town | **done** `aee43b4` | **done** `a2e8df0` | **audited, kept** | **audited** `8d30599` | **audited** |
 
 ## combat-arena
@@ -245,10 +245,14 @@ guards the two ways a contrast ratio can be gamed: the darkest stop must stay ab
 reaching black would clear any ratio by dividing by almost nothing, and the ramp must rise
 monotonically so more light never means a darker surface.
 
-### W B.3 — attempted and reverted
+### W B.3 — one sun, a camera-following shadow map and the contact shadow (`6c7918e`, `061785d`, `031b281`)
 
-**Not landed.** The contact-shadow half was attempted and backed out; the demo is at its committed
-W B.2 state and `npm test` is green.
+**Landed.** Read what follows as a running log rather than a verdict: it was written as the work
+went, and its early paragraphs — including one that says "not landed" — are superseded by its own
+later measurements. The short version is that the contact shadow worked from the first attempt, nine
+explanations were generated for what turned out to be a probe artefact, and the sun and its
+camera-following map landed alongside it. The log is kept whole because those lessons cost more than
+the packet did.
 
 The goal's description is accurate and the defect is real: the contact shadow is an **opaque squashed
 sphere drawn through `traversal-surface`**, so the blob is lit, fogged and tone-mapped like scenery
@@ -479,16 +483,10 @@ Every measurement compared a change against another change. A frame with the fea
 the first thing to capture and the cheapest, and its absence made every subsequent number
 uninterpretable — including the ones that looked like evidence. Capture the control first.
 
-Reverted; the demo is at committed W B.2 and `npm test` is green.
-
-The demo is reverted to its committed W B.2 state and `npm test` is green. The wrong contact shadow
-is still there, and that is the right place to leave it — the hole at least tells the viewer where
-the character is.
-
-**Reverted rather than left in**, because a missing contact shadow is worse than the wrong one: the
-hole at least tells the viewer where the character is. The next attempt should start by moving
-`contactShadow.draw()` after every opaque draw, which is where `combat-arena` and `point-light-expo`
-both put their blended passes.
+**Three paragraphs here said the packet had been reverted. It had not.** They were written at the
+low point of the investigation and left standing after the control capture showed the blob had been
+working the whole time. The shipped state is the one recorded above: `031b281` for the contact
+shadow, `6c7918e` and `061785d` for the sun and its camera-following map, `npm test` green.
 
 ### W B.4 — hemispheric ambient and the deletions
 

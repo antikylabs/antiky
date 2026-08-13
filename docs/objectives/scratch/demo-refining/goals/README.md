@@ -56,7 +56,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | 06-04 | [One sun and a shadow map](_completed/execute-goal-06-04.md) | **Done** `c676ff8` — [summary](_completed/summary-goal-06-04.md) | 06-03 | — |
 | 06-05 | [Ambient that knows which way is up](_completed/execute-goal-06-05.md) | **Done** `a80f67f` — [summary](_completed/summary-goal-06-05.md) | 06-04 | — |
 | 06-06 | [Bloom, grade and vignette, and the budget green](_completed/execute-goal-06-06.md) | **Done** `f17382d` — [summary](_completed/summary-goal-06-06.md) | 06-05 | — |
-| **07** | [Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town`](execute-goal-07.md) | **All 15 packets landed** — [progress](progress-goal-07.md) | 06 | 05, 10 |
+| **07** | [Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town`](_completed/execute-goal-07.md) | **Done** `01aa3e9` — [summary](_completed/summary-goal-07.md), [progress](_completed/progress-goal-07.md). All 15 packets landed; **three items are with the owner** — `traversal-study`'s contrast floor, the GGX BRDF, `antiky-town`'s colour test | 06 | 05, 10 |
 | **08** | Art direction and VFX per demo, `antiky-town` included | Not started | 05, 07 | 10 |
 | **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 |
 | **10** | [Fix how the work is presented](_completed/execute-goal-10.md) | **Done** `079c325` — [summary](_completed/summary-goal-10.md) | 01 | everything |
@@ -68,7 +68,9 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **99** | [The revisit register — check what we deliberately deferred](execute-goal-99.md) | Not started | all | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up:** 07 — carry the render slice to `combat-arena`, `traversal-study` and `antiky-town`. 00–06, 10 and 13 are done.
+**Next up:** 11 on the critical path; 08 is unblocked too, because every demo now has the HDR scene
+target it consumes. 00–07, 10 and 13 are done — 07 with three items open with the owner, listed in
+its [summary](_completed/summary-goal-07.md) and none of which blocks 08.
 
 **Goal 03 now has an instrument.** Goal 13 landed `scripts/motion-stats.mjs` and a camera-shake
 regression that fails against the current code with three named defects. Goal 03's job is to turn
