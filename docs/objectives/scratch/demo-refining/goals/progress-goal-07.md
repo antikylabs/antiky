@@ -9,7 +9,7 @@ without reading the commit log.
 | Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
-| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | — | — | — |
+| traversal-study | **done** `7f3d6d1` | **done** `d45413e` | *contact shadow only* `031b281` | — | — |
 | antiky-town | — | — | — | — | — |
 
 ## combat-arena
@@ -403,8 +403,31 @@ written unconverted into a linear buffer — is simply far closer to the platfor
 it looks. The second is cheap to check and fits the evidence: a near-black *display* colour is not a
 near-black *linear* one, and W B.2 moved this demo's compositing into linear space.
 
-**Do not add a tenth hypothesis without first capturing what the blob composites against.** Read the
-platform's linear value at the contact point and compare it to `INK` in the same space.
+**Resolved, and there was never a bug in the code.** Re-reading the captures already taken — no
+rebuild — with a *per-pixel* comparison against the control instead of a box mean:
+
+| | deepest darkening | pixels darkened > 5% |
+| --- | --- | --- |
+| old lit dome | 77.9% | 1,124 |
+| new soft blob, original extents | 19.3% | 241 |
+| new soft blob, widened extents (shipped) | 20.7% | 751 |
+
+**The blob worked from the first attempt.** The probe box was 110 × 40 pixels and the blob covered
+241 of them, so 241 strongly-darkened pixels averaged out to a 1.2% mean — indistinguishable from
+noise. Every "it does not draw" reading was that dilution. Nine hypotheses were generated to explain
+a measurement artefact.
+
+**The mistake that cost the most was the probe's shape.** A box mean is the right instrument for a
+broad effect like a shadow across a deck; it is the wrong one for a small localised effect, where it
+buries the signal in whatever surrounds it. The shadow probes in goal 06 worked because the regions
+they measured were uniformly shadowed by construction. Here the same instrument was reached for
+without checking that assumption held.
+
+**What shipped:** the unlit radial-falloff shader, a flat ground quad, and extents widened so the
+blob covers 751 pixels rather than 241 — comparable footprint to the dome it replaces, soft rather
+than opaque. It reads as contact instead of as a hole punched in the platform.
+
+**Still outstanding in W B.3:** the sun and its shadow map. Only the contact-shadow half landed.
 
 **A note on process, because it is the more useful finding.** Eight failed attempts at one blob,
 several of them "obvious" one-line fixes reasoned from source. The cycles that produced information
