@@ -129,7 +129,7 @@ Independent of everything below. Each is small, safe, and visible.
 
 | Fix | Where | Why | Effort |
 |-----|-------|-----|--------|
-| Palette textures → `filter: 'nearest'` | `traversal-study/src/renderer.ts:216` | The Quaternius models carry 1×1 to 7×1 **palette-strip** textures. Loading them with linear filtering + mipmaps + 4× anisotropy averages adjacent palette entries into mud at every UV seam. | ~5 min |
+| Palette textures → `filter: 'nearest'` | `traversal-study/src/renderer.ts:216` | The Quaternius models carry 1×1 to 7×1 **palette-strip** textures. Loading them with linear filtering + mipmaps + 4× anisotropy averages adjacent palette entries into mud wherever two swatches meet. | ~5 min |
 | Raise camera `near` from 0.1 | all three cameras | `traversal-study` runs a 2400:1 far/near ratio, throwing away depth precision for nothing. Free quality. | ~30 min |
 | One agreed light direction and one fog range per demo | `combat-arena` — three shaders currently disagree on **both** | This is a direct cause of the arena looking incoherent: objects lit by different suns cannot read as one space. | ~1 hr |
 | Turn on back-face culling | `traversal-study/src/renderer.ts:297` runs `cull: 'none'` | Renders every back face for no reason. | ~15 min |

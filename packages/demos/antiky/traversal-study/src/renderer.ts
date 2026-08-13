@@ -216,7 +216,7 @@ function createGlowBatch(
  * **Palette strips** — a row of solid swatches, one per source material. Quaternius' Ultimate
  * Platformer pack is flat-shaded low-poly with no source texture at all, so its colour is baked into
  * a strip this narrow: `cloud-large` is a single pixel because the model is a single colour. Linear
- * filtering and anisotropy average adjacent swatches at every seam, which turns a two-colour model
+ * filtering and anisotropy average adjacent swatches wherever two meet, which turns a two-colour model
  * into a muddy gradient, and mips collapse the strip towards its own average. Nearest, no mips.
  *
  * **Real textures** — Kenney's platformer kit ships an authored 512x512 colormap with a genuine

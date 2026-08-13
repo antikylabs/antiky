@@ -292,7 +292,8 @@ hash-verified and committed.
 **Depends on:** nothing. Supersede with W C.1.
 
 Palette-strip textures are loaded with linear filtering, mipmaps and 4× anisotropy, which
-averages adjacent palette entries into mud at every UV seam.
+averages adjacent palette entries into mud wherever two swatches meet. These are palette strips,
+not unwrapped meshes, so the boundary is between columns of the strip rather than a UV seam.
 
 **Acceptance criteria** — `filter: 'nearest'` on palette textures; no colour appears in the
 capture that is absent from the source palette (within 4/255). Five minutes of work; do it today.
