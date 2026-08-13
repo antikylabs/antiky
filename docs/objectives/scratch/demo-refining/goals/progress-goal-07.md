@@ -10,7 +10,7 @@ without reading the commit log.
 | --- | --- | --- | --- | --- | --- |
 | combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
 | traversal-study | **done** `7f3d6d1` | **done** `d45413e` | **done** `6c7918e`, `031b281` | **done** `cfa9e7b` | **done** `a8f41d2` |
-| antiky-town | — | *contract guarded* `b6b453d` | — | — | — |
+| antiky-town | **done** `b3d81c7` | *contract guarded* `b6b453d` | — | — | — |
 
 ## combat-arena
 
@@ -574,6 +574,31 @@ breaking rather than a value drifting:
    the one W B.2 actually puts at risk.
 
 Proven able to fail: replacing `vDepth` with `1` in the water shader turns tests 1 and 2 red.
+
+### W B.1 — the encode was there, with the wrong curve
+
+The goal describes this demo as "correct end to end" because `town-post.shader.ts` already encoded.
+It did — with **`gammaCorrect(…, 2.2)`**, the approximation, while the decode on albedo sample has
+used the **piecewise** sRGB curve since goal 04.
+
+The two agree closely above 0.04 and diverge most below it, which is exactly where a town at golden
+hour keeps its shadowed alley walls and its awning undersides. Encoding with a different curve than
+you decoded with is a round trip that does not close, and the error lives in the darks where nobody
+looks for it.
+
+Replaced with the reference's `encodeSrgb`, so all four demos now share one curve in both directions
+and `pipeline-invariants` holds the copies identical.
+
+| | before | after |
+| --- | --- | --- |
+| mean per-channel difference | — | **2.588 / 255** (budget 3) |
+| local contrast | 8.50 | **9.05** |
+| p95 | 0.407 | 0.414 |
+
+**Hard edges rose 20,074 → 22,403.** That is the encode giving the darks their real contrast back,
+not aliasing — and it is worth stating now because **W B.2's acceptance for this demo is that the
+count must go *down***, which is the proof that goal 02's MSAA patch restored what this demo's
+offscreen pass was already discarding. 22,403 is the number that has to fall.
 
 ## Notes carried forward
 
