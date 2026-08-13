@@ -19,6 +19,7 @@ Before planning or implementing work, read:
 | Objective | Roadmap | Purpose |
 | --- | --- | --- |
 | [Antiky Town](antiky-town/README.md) | [Town roadmap](antiky-town/slice-list.md) | Develops the Town game and proves reusable Framework paths through player-visible slices. |
+| [Libraries](libraries/README.md) | [Research summary](libraries/research/README.md) | Explores semantic asset-pack enrichment and an owned, agent-usable BroMetal shader recipe library. |
 
 ## Archived objectives
 
