@@ -1,0 +1,91 @@
+# Progress — goal 07: carry the render slice to the other three demos
+
+Fifteen packets: five each for `combat-arena`, `traversal-study` and `antiky-town`, strictly serial
+within a demo. This file tracks which have landed and what each measured, so the state is legible
+without reading the commit log.
+
+## Status
+
+| Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
+| --- | --- | --- | --- | --- | --- |
+| combat-arena | **done** `58ec726` | **done** `3ab9ea4` | — | — | — |
+| traversal-study | — | — | — | — | — |
+| antiky-town | — | — | — | — | — |
+
+## combat-arena
+
+### W B.1 — managed colour (`58ec726`)
+
+The encode on output, in the five shaders that write a final pixel. The decode was already there from
+goal 04; this was the missing half, and its absence is why the demo measured **darker** after goal 04
+than before it.
+
+p95 **0.215 → 0.495**. That is the cancellation coming apart, exactly as the goal predicted.
+
+A colour-pipeline unit test lands a known albedo under a known light within **2/255** of the analytic
+value. It also records something the reference's copy did not: **the sRGB standard does not quite
+close at its own join.** `decode(0.04045)` is 0.0031308049…, a hair above the encode threshold of
+0.0031308, because the two published constants are rounded rather than exactly reciprocal. The gap is
+**0.00001/255**. Asserted, so a future round-trip failure there reads as this known property rather
+than as a new bug.
+
+### W B.2 — one HDR target and one tone-map (`3ab9ea4`)
+
+RGBA16F scene target with `samples: 4`, one post pass applying exposure, ACES and the encode. The
+tone-map and the encode are gone from every material.
+
+**Invariance: 0.876/255 against a 3/255 budget**, 63% of pixels byte-identical.
+
+It did not start there. The first measurement was **3.807**, and the region breakdown is what
+explained it rather than guesswork:
+
+| region | drift |
+| --- | --- |
+| arena interior — already tone-mapped before this packet | **1.488** |
+| left edge — Earth and starfield | 8.317 |
+| right edge — starfield only | 3.005 |
+
+The collapse was neutral everywhere it should have been. All the drift was two shaders that had
+**never** tone-mapped now going through ACES for the first time — and ACES multiplies a dark value by
+roughly 0.21, so the whole background went about five times darker.
+
+The fix is the boundary conversion `point-light-expo` established for its clear colour and fog: a
+value authored as "what the screen should show" has to be converted where it enters a pipeline that
+will tone-map it. `inverseTonemapACES` is the forward curve solved for its lower root, verified to
+round-trip to six decimals. **It is a boundary, not an escape hatch — nothing the renderer lights may
+use it**, and the colour-pipeline test asserts the two remain inverses.
+
+The fog was checked and cleared as a cause before that: reverting the three-into-one fog unification
+moved the number 3.807 → 3.833, so it was not the fog. **One agreed fog colour** now, replacing three
+shaders fading to three different near-blacks — the divergence the goal names by way of example.
+
+**Aliased edges, measured by region:**
+
+| | before | after |
+| --- | --- | --- |
+| arena interior | 9,083 | **9,050** |
+| background | 2,754 | 3,173 |
+
+The geometry's count went **down**, which is what the requirement is actually testing: MSAA survived
+the move offscreen. The background rise is the boundary conversion stretching the starfield's
+contrast, not aliasing.
+
+**Two tests needed reshaping rather than fixing**, and both for the same reason — they encoded an
+assumption that only held before the packet:
+
+- `pipeline-invariants`' "exactly one shader encodes, and it is the post pass" was written when
+  point-light-expo was the only migrated demo, so it asked the question globally. A demo halfway
+  through this goal legitimately encodes per shader until B.2 collapses it. It now asks **per demo**,
+  and still catches the thing that matters: a material encoding *alongside* a post pass. It also
+  asserts at least one demo has finished the collapse, so it cannot pass by everyone being early.
+- `resources.test.ts` drove construction against a renderer that is not WebGPU-backed, so the new
+  target and post program threw. They are now injected through the same `dependencies` object every
+  other GPU owner in that renderer already uses. The disposal test also had to **render one frame**
+  before disposing, because the scene target is built lazily — without that it was asserting that a
+  resource which never existed had been cleaned up.
+
+## Notes carried forward
+
+- The three `brometal/` demos still tone-map in their materials. They are **outside this goal's
+  scope**, which covers the three antiky demos, so `pipeline-invariants`' tone-map assertion will
+  still report them when goal 07 finishes.
