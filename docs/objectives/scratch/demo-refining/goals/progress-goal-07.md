@@ -350,16 +350,29 @@ footprint extents, the reversed-edge smoothstep, and two variations along the wa
   this demo's `vfxBillboard`**, which is a different texture from the one `combat-arena` hands the
   same shader. If that alpha is zero the multiplier collapses, and that is the only input left.
 
-**Do this next, and nothing else first:** return `vec4(vColor, structure)` alone, capture, and read
-the rectangle. That isolates the single remaining term in one cycle. If the billboard's alpha is the
-cause, this shader cannot be shared between the two demos unchanged — it silently depends on a
-texture convention neither one states.
+**That isolation was run. Alpha = `structure` alone and alpha = the full expression measure
+identically — 163, 179, 144 both.** So the alpha expression is not the variable, and hypothesis
+eight is wrong too.
 
-**A note on process, because it is the more useful finding.** Seven failed attempts at one invisible
-blob, four of them "obvious" one-line fixes reasoned from source. The two cycles that produced real
-information were the two that *measured a rectangle before and after* rather than reasoning about
-what the code should do. Everything else was cost. A future attempt should spend its first cycle on a
-probe, not its sixth.
+**The real error is older than any of the hypotheses: there has never been a control.** Every
+comparison in this investigation has been one blob variant against another blob variant. The demo
+was never captured with the contact batch *disabled*, so "163, 179, 144" has never been compared
+against bare platform. It is entirely possible the unlit blob has been working the whole time at a
+weight the crop simply does not show against a bright green surface — the old blob read as a hole
+precisely because it was an opaque dome, and a correct soft contact shadow *should* be far subtler.
+
+**Do this first, before touching any shader:** comment out `contactShadow.draw()`, capture, and read
+the same rectangle. That single number decides whether there is a bug at all. Eight hypotheses were
+generated and tested without it.
+
+**A note on process, because it is the more useful finding.** Eight failed attempts at one blob,
+several of them "obvious" one-line fixes reasoned from source. The cycles that produced information
+were the ones that measured; the rest was cost.
+
+But the deeper mistake was structural and ran through all eight: **no control was ever captured.**
+Every measurement compared a change against another change. A frame with the feature switched off is
+the first thing to capture and the cheapest, and its absence made every subsequent number
+uninterpretable — including the ones that looked like evidence. Capture the control first.
 
 Reverted; the demo is at committed W B.2 and `npm test` is green.
 
