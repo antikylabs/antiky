@@ -61,6 +61,15 @@ fn channelToLinear(channel : f32) -> f32 {
 fn decodeSrgb(color : vec3f) -> vec3f {
   return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
 }
+fn channelToDisplay(channel : f32) -> f32 {
+  let safe = max(channel, 0.0);
+  let low = safe * 12.92;
+  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
+  return mix(low, high, step(0.0031308, safe));
+}
+fn encodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -113,7 +122,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let skyAmbient = bm_u.uSh0 + bm_u.uSh1 * normal.y + bm_u.uSh2 * normal.z + bm_u.uSh3 * normal.x + bm_u.uSh4 * (normal.x * normal.y) + bm_u.uSh5 * (normal.y * normal.z) + bm_u.uSh6 * (3.0 * normal.z * normal.z - 1.0) + bm_u.uSh7 * (normal.x * normal.z) + bm_u.uSh8 * (normal.x * normal.x - normal.y * normal.y);
   let base = graded * (rampLight + skyAmbient * (1.0 - diffuse)) * bm_in.vWash + vec3f(0.62, 0.72, 0.78) * (rim * 0.55 * bm_in.vWash);
   let distanceFog = smoothstep(22.0, 58.0, length(bm_u.uCameraPosition - bm_in.vWorld));
-  return vec4f(mix(base, vec3f(0.55, 0.65, 0.66), distanceFog * 0.42), 1.0);
+  return vec4f(encodeSrgb(mix(base, vec3f(0.55, 0.65, 0.66), distanceFog * 0.42)), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3', aUv: 'vec2' },

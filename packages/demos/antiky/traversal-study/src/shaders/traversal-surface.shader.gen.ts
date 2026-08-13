@@ -36,6 +36,15 @@ fn tonemapACES(color : vec3f) -> vec3f {
   let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
   return clamp(num / den, vec3f(0.0), vec3f(1.0));
 }
+fn channelToDisplay(channel : f32) -> f32 {
+  let safe = max(channel, 0.0);
+  let low = safe * 12.92;
+  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
+  return mix(low, high, step(0.0031308, safe));
+}
+fn encodeSrgb(color : vec3f) -> vec3f {
+  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -69,7 +78,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let structure = textureSample(uBillboard, uBillboard_sampler, vec2f(surfaceNormal.x * 0.5 + 0.5, surfaceNormal.z * 0.5 + 0.5)).w;
   let textured = 0.6 + structure * 0.4;
   let composed = (base + emissive + highlight) * textured;
-  return vec4f(tonemapACES(mix(composed, sky, depth * 0.5)), 1.0);
+  return vec4f(encodeSrgb(tonemapACES(mix(composed, sky, depth * 0.5))), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3' },

@@ -9,12 +9,46 @@ import {
   shader,
   sin,
   smoothstep,
+  step,
   texture,
   vec2,
   vec3,
   vec4,
+  type Vec3,
 } from 'brometal';
 import { rotate2, tonemapACES } from 'brometal/shader-functions';
+
+/**
+ * Linear to sRGB, applied once to the pixel this shader writes.
+ *
+ * Copied by hand from `point-light-expo`, which goal 07 names as the reference implementation. The
+ * duplication is the slice process, not an oversight: `pipeline-invariants.test.mjs` asserts every
+ * copy compiles to an identical body, and goal 12 extracts the shared driver from the result.
+ *
+ * BroMetal never configures an sRGB canvas — `getPreferredCanvasFormat()` with no `viewFormats` —
+ * so nothing applies the display curve unless a shader does. Goal 04 added the decode on albedo
+ * sample without this half, which left this demo doing lighting on correct numbers and then writing
+ * them out as though they were already display-encoded. That is why its p95 fell from 0.400 to
+ * 0.258.
+ *
+ * The piecewise curve rather than the 2.2 approximation, because the two differ most in the darks
+ * and this scene lives there. `max` guards the toe: `pow` of a negative is undefined and a
+ * tone-mapped value can land fractionally below zero.
+ */
+function channelToDisplay(channel: number): number {
+  const safe = max(channel, 0);
+  const low = safe * 12.92;
+  // 1 / 2.4, written out rather than divided. `brometal prod` constant-folds the division and
+  // `brometal dev` does not, so a division here makes the committed `.gen.ts` depend on which mode
+  // last ran — which `shader-output-parity` correctly refuses.
+  const high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
+  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
+  return mix(low, high, step(0.0031308, safe));
+}
+
+function encodeSrgb(color: Vec3): Vec3 {
+  return vec3(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+}
 
 export default shader({
   attributes: {
@@ -88,6 +122,6 @@ export default shader({
     const structure = texture(uBillboard, vec2(surfaceNormal.x * 0.5 + 0.5, surfaceNormal.z * 0.5 + 0.5)).w;
     const textured = 0.6 + structure * 0.4;
     const composed = base.add(emissive).add(highlight).scale(textured);
-    return vec4(tonemapACES(mix(composed, sky, depth * 0.5)), 1);
+    return vec4(encodeSrgb(tonemapACES(mix(composed, sky, depth * 0.5))), 1);
   },
 });
