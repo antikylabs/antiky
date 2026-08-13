@@ -8,7 +8,7 @@ without reading the commit log.
 
 | Demo | B.1 colour | B.2 HDR + tone-map | B.3 sun + shadows | B.4 ambient + AO | B.5 bloom/grade/vignette |
 | --- | --- | --- | --- | --- | --- |
-| combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | — | — |
+| combat-arena | **done** `58ec726` | **done** `3ab9ea4` | **done** `a1d9a73` | **done** `495d353` | **done** `a789fc4` |
 | traversal-study | — | — | — | — | — |
 | antiky-town | — | — | — | — | — |
 
@@ -138,6 +138,57 @@ factory and `combat-projection.ts` did not pass it, so `surfaceDepthProgram` was
 renderer's shadow binding threw during construction. That surfaces as `CAPTURE_RUNTIME_TIMEOUT` —
 the runtime never finishes publishing — rather than as an error anyone would recognise. Noted in the
 code at the call site.
+
+### W B.4 — hemispheric ambient (`495d353`)
+
+The demo's ambient was already *directional* — a bounce keyed to the planet's direction — but a flat
+`0.72` sat in front of it and was **73% of what a down-facing surface received**, so direction only
+modulated the last quarter. Measured, it separated up-facing from down-facing by **6.2%** against the
+goal's 30% bar.
+
+Replaced with two lobes: the planet, and empty space. **Down-facing surfaces are the bright ones**,
+and that is not a bug to correct — an arena in orbit is lit from below. The test says so explicitly,
+because a check that demanded "up is brighter" would be asserting a terrestrial assumption against a
+scene that does not have one.
+
+| | up vs down |
+| --- | --- |
+| old, with the flat constant | 6.2% |
+| two-lobe hemisphere | **50%** |
+
+The two constants are sized so the spherical average lands at 0.865 against the old term's 0.925 —
+a directional ambient that was also a brightness change would make it impossible to say which of the
+two moved the picture.
+
+Side effect worth recording: **the shadow probe went 27.6% → 46.8%**, because ambient no longer
+floods what the shadow removes.
+
+**The baked vertex AO half of W B.4 is not done.** The goal asks for occlusion baked into static
+geometry as well as hemispheric ambient, and the inside-corner probe (≥ 15% darker than a flat
+surface) has no occlusion term to measure. The bake tool exists and is tested
+(`packages/demos/scripts/bake-vertex-occlusion.mjs`, from goal 06-05) but wiring it blanked the scene
+in the reference and was reverted there — see goal 99 row **A13**.
+
+### W B.5 — bloom, grade and vignette (`a789fc4`, `3d83a8d`)
+
+The reference's chain, copied by hand: extract above a threshold from the HDR target before exposure,
+two quarter-resolution separable blur passes, added back in linear light. Then a grade — saturation
+and a **power** contrast curve about a 0.18 pivot, never the straight line that took the reference's
+`clippedLow` to 33.5% — and a restrained vignette.
+
+**Every bound green, the first time for this demo:**
+
+| | value | bound |
+| --- | --- | --- |
+| local contrast | **8.64** | ≥ 8.5 |
+| `clippedHigh` / `clippedLow` | 5e-6 / **0** | ≤ 2% |
+| ground shadow vs lit ground | **47.4%** | ≥ 25% |
+
+Local contrast across the demo: **8.30 at baseline → 7.68 after the lower sun → 8.64**.
+
+A second commit followed because the bloom chain was two more GPU owners created directly, and
+`resources.test.ts` drives construction against a renderer that is not WebGPU-backed. They are now
+injected like everything else there.
 
 ## Notes carried forward
 
