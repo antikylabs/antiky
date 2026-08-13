@@ -55,7 +55,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | 06-03 | [A specular model that does not need a ceiling](_completed/execute-goal-06-03.md) | **Done** `40cad33` — [summary](_completed/summary-goal-06-03.md) | 06-02 | — |
 | 06-04 | [One sun and a shadow map](_completed/execute-goal-06-04.md) | **Done** `c676ff8` — [summary](_completed/summary-goal-06-04.md) | 06-03 | — |
 | 06-05 | [Ambient that knows which way is up](_completed/execute-goal-06-05.md) | **Done** `a80f67f` — [summary](_completed/summary-goal-06-05.md) | 06-04 | — |
-| 06-06 | [Bloom, grade and vignette, and the budget green](execute-goal-06-06.md) | Not started | 06-05 | — |
+| 06-06 | [Bloom, grade and vignette, and the budget green](execute-goal-06-06.md) | **Partly done** `501f744` — grade, vignette and the full budget green; bloom outstanding — [progress](progress-goal-06-06.md) | 06-05 | — |
 | **07** | Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town` | Not started | 06 | 05, 10 |
 | **08** | Art direction and VFX per demo, `antiky-town` included | Not started | 05, 07 | 10 |
 | **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 |
