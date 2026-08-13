@@ -17,7 +17,7 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import { rotate2 } from 'brometal/shader-functions';
+import { rotate2, shadowFactor } from 'brometal/shader-functions';
 
 /**
  * sRGB to linear, applied when an albedo texture is sampled.
@@ -63,6 +63,11 @@ export default shader({
     iParams: 'vec3',
   },
   uniforms: {
+    uSunDirection: 'vec3',
+    uShadowMap: 'sampler2D',
+    uLightViewProj: 'mat4',
+    uLightPosition: 'vec3',
+    uShadowRange: 'float',
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTex: 'sampler2D',
@@ -95,7 +100,12 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uTex, uDetailNormal, uTime },
+    {
+    uSunDirection,
+    uShadowMap,
+    uLightViewProj,
+    uLightPosition,
+    uShadowRange, uCameraPosition, uTex, uDetailNormal, uTime },
     { vWorld, vNormal, vUv, vTint, vParams },
   ) {
     const baseNormal = normalize(vNormal);
@@ -136,9 +146,42 @@ export default shader({
     // This is the arena's key light, and this shader is where the value comes from: the ships are
     // the subject, so the floor was moved to agree with them rather than the other way round. The
     // same vector appears in arena-model and arena-surface, guarded by `pipeline-invariants`.
-    const key = normalize(vec3(-0.44, 0.86, 0.42));
+    // Lowered and moved behind the arena by goal 07's W B.3, and the reason is measured rather than
+    // aesthetic. At its previous 59 degrees of elevation the sun dropped each caster's shadow
+    // underneath the caster: only **1.63%** of the deck came back darkened by 25% or more, and no
+    // 32-pixel probe pair could be placed. Elevation is what decides how much shadow a frame
+    // contains. Moving it to -z also turns the shadows to face a camera that sits at +z.
+    //
+    // One value, agreed by every shader here and by `src/sun.ts`, which is what
+    // `pipeline-invariants.test.mjs` asserts when it says a demo has one key direction.
+    const key = normalize(vec3(-0.52, 0.58, -0.63));
+    // The sun's shadow, and the only shadow this arena casts.
+    //
+    // Softness, bias and the shadow texel are literals rather than uniforms, agreed across the three
+    // material shaders and held equal by `pipeline-invariants.test.mjs`. Nothing varies them at run
+    // time, and a uniform would mean binding plumbing at every call site for a number that never
+    // moves.
+    //
+    // 0.00048828125 is 1 / 2048, which is `SHADOW_MAP_SIZE` in `src/sun.ts`. A texel size that does
+    // not match the map silently resizes the penumbra rather than failing.
+    const shadowSoftness = 2.5;
+    const shadowBias = 0.03;
+    const sunVisibility = shadowFactor(
+      uShadowMap,
+      uLightViewProj,
+      vWorld,
+      normal,
+      uLightPosition,
+      uShadowRange,
+      0.00048828125,
+      shadowSoftness,
+      shadowBias,
+    );
+    // Applied to the key term only. The fill, the rim and the ambient are what a surface receives
+    // from everything that is *not* the key, so a shadow must not touch them — dimming them too is
+    // what makes a shadowed area read as flat grey instead of dark and shaped.
     const fill = normalize(vec3(0.72, 0.3, -0.52));
-    const keyLight = max(dot(normal, key), 0);
+    const keyLight = max(dot(normal, key), 0) * sunVisibility;
     const fillLight = max(dot(normal, fill), 0);
     const rim = pow(1 - max(dot(normal, view), 0), 2.25);
     const authored = decodeSrgb(texture(uTex, vUv).xyz);

@@ -12,6 +12,7 @@ import {
   type RendererOptions,
 } from 'brometal';
 import postShader from './shaders/post.shader.gen.ts';
+import { bindDepthProgram, createShadowPass } from './shadow-pass.ts';
 
 import { CATALOG_ASSET_COUNT, createArenaCatalogResources } from './arena-assets.ts';
 import {
@@ -126,6 +127,7 @@ export type CombatRendererDependencies = Readonly<{
    */
   createSceneTarget(renderer: Renderer, width: number, height: number): RenderTarget;
   createPostProgram(renderer: Renderer): BroMetalProgram;
+  createShadowPass(renderer: Renderer): ReturnType<typeof createShadowPass>;
 }>;
 
 const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
@@ -142,6 +144,7 @@ const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
     samples: 4,
   }),
   createPostProgram: (renderer) => createProgram(renderer, postShader, { blend: 'alpha' }),
+  createShadowPass,
   loadVfxBillboard,
   createBackdrop: createSpaceBackdrop,
 });
@@ -192,6 +195,25 @@ export async function createCombatRendererWith(
     // post quad sits at clip z = 0 and covers the canvas, so with depth writing on it stamps 0 into
     // every depth texel and anything drawn afterwards fails `0 < 0`. The blend is a true no-op — the
     // fragment writes alpha 1, so `src * srcAlpha + dst * (1 - srcAlpha)` is exactly `src`.
+    // The sun's shadow map. Bound once at setup: every material reads the same target and the same
+    // light, which is what makes one sun one sun.
+    const shadows = registerResource(disposables, dependencies.createShadowPass(renderer));
+    const catalogBatches = [
+      catalog.room, catalog.walls, catalog.wallDetails, catalog.floorTiles,
+      catalog.cables, catalog.targets, catalog.grenades,
+    ] as const;
+    for (const batch of catalogBatches) {
+      shadows.bind(batch.program as never);
+      bindDepthProgram(batch.depthProgram as never, 0);
+    }
+    for (const hull of ships.programs) {
+      shadows.bind(hull.program as never);
+      bindDepthProgram(hull.depthProgram as never, 0);
+    }
+    shadows.bind(projection.surfaceProgram as never);
+    // 1: this is the batch drawn through `arena-surface`, which bobs its instances on a clock.
+    bindDepthProgram(projection.surfaceDepthProgram as never, 1);
+
     const postProgram = registerResource(disposables, dependencies.createPostProgram(renderer));
     const fullscreenQuad = createPlane({ width: 2, height: 2 });
     postProgram.attributes.aPosition!.set(fullscreenQuad.positions);
@@ -215,7 +237,19 @@ export async function createCombatRendererWith(
       projection.drawHud();
     };
 
+    // Everything solid enough to block the sun. The blended passes are absent on purpose: contact
+    // shadows and energy rings stand in for light, and a sprite of a glow casting a hard shadow is
+    // exactly wrong.
+    const drawCasters = (): void => {
+      for (const batch of catalogBatches) batch.drawDepth();
+      ships.drawDepth();
+      projection.drawSurfaceDepth();
+    };
+
     const draw = (): void => {
+      // Before the scene, because the scene reads what this writes. `drawTo` finishes and submits
+      // its own encoder, so the two passes are ordered by the queue rather than by hope.
+      shadows.render(drawCasters);
       const scene = ensureSceneTarget();
       renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
       postProgram.uniforms.uScene!.set(scene.texture);

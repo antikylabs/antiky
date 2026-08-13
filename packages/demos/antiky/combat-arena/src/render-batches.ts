@@ -107,13 +107,28 @@ export function createSurfaceBatch(
   geometry: Geometry,
   capacity: number,
   programFactory: BatchProgramFactory = (target) => createProgram(target, arenaSurfaceShader),
+  /**
+   * The same geometry drawn from the sun, writing distance instead of colour.
+   *
+   * A second program owned by the same batch rather than a second batch, because the instance
+   * arrays below are the single answer to where these surfaces are. Two batches would mean writing
+   * every position twice and hoping the copies stayed equal — and a caster that disagrees with its
+   * own lit geometry is exactly the bug that puts a shadow beside the thing casting it.
+   *
+   * Optional so a test can build a batch without a shadow pass; `drawDepth` is then a no-op.
+   */
+  depthFactory?: BatchProgramFactory,
 ) {
   const program = programFactory(renderer);
+  const depthProgram = depthFactory?.(renderer);
   try {
     program.attributes.aPosition!.set(geometry.positions);
     program.attributes.aNormal!.set(geometry.normals);
     program.setIndices(geometry.indices);
+    depthProgram?.attributes.aPosition!.set(geometry.positions);
+    depthProgram?.setIndices(geometry.indices);
   } catch (cause: unknown) {
+    depthProgram?.dispose();
     program.dispose();
     throw cause;
   }
@@ -124,6 +139,7 @@ export function createSurfaceBatch(
 
   return Object.freeze({
     program,
+    depthProgram,
     clear(): void {
       scales.fill(0);
       colors.fill(0);
@@ -155,13 +171,22 @@ export function createSurfaceBatch(
       program.instanceAttributes.iScale!.set(scales);
       program.instanceAttributes.iColor!.set(colors);
       program.instanceAttributes.iParams!.set(params);
+      // The same three arrays the lit program gets. Colour has no bearing on where a shadow falls.
+      depthProgram?.instanceAttributes.iOffset!.set(offsets);
+      depthProgram?.instanceAttributes.iScale!.set(scales);
+      depthProgram?.instanceAttributes.iParams!.set(params);
     },
     frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
       program.uniforms.uViewProj!.set(viewProjection);
       program.uniforms.uCameraPosition!.set(cameraPosition);
       program.uniforms.uTime!.set(time);
+      // The depth pass bobs on the same clock, or a bobbing caster's shadow stays put.
+      depthProgram?.uniforms.uTime!.set(time);
     },
+    /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
+    drawDepth(): void { depthProgram?.draw(); },
     dispose(): void {
+      depthProgram?.dispose();
       program.dispose();
     },
   });

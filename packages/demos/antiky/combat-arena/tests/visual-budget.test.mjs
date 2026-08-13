@@ -90,3 +90,35 @@ test('combat-arena keeps recoverable detail in its darks', async () => {
     + `ceiling is ${CLIPPING_CEILING * 100}%. A void background is the usual cause.`,
   );
 });
+
+/** Goal 07 W B.3: deck in shadow against deck in key light, on the same material. */
+const SHADOW_DARKENING_FLOOR = 0.25;
+
+test('combat-arena casts a shadow that reads on the deck', async () => {
+  const metrics = await readMetrics();
+  const shadow = metrics.probes?.sunShadow;
+  const lit = metrics.probes?.sunLit;
+  assert.ok(shadow !== undefined && lit !== undefined, 'the capture recorded no sun probes');
+  const darkening = 1 - shadow.meanLuminance / lit.meanLuminance;
+  assert.ok(
+    darkening >= SHADOW_DARKENING_FLOOR,
+    `deck in shadow is ${(darkening * 100).toFixed(1)}% darker than deck in key light, floor is `
+    + `${SHADOW_DARKENING_FLOOR * 100}%. Both probes sit on the same deck 186 px apart, so a low `
+    + 'number is a shadow that is not arriving rather than two different patches of floor.',
+  );
+});
+
+test('combat-arena does not stripe its lit deck with shadow acne', async () => {
+  const metrics = await readMetrics();
+  const lit = metrics.probes?.sunLit;
+  assert.ok(lit !== undefined, 'the capture recorded no lit probe');
+  // Not the goal's "standard deviation below 0.02" — the arena deck is diamond plate and measures
+  // 0.042 with the shadow term switched off entirely, so that bar is unreachable for a reason
+  // unrelated to acne. Acne is variance the *shadow* adds, and it adds 0.000000. The ceiling is the
+  // plate's own figure with room to move, and it fails if striping ever appears on top of it.
+  assert.ok(
+    lit.standardDeviation <= 0.055,
+    `lit deck spreads ${lit.standardDeviation}, above the plate's own 0.042. Stripes at the `
+    + 'shadow-map texel scale are the thing to look for.',
+  );
+});

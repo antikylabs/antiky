@@ -17,7 +17,7 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import { rotate2 } from 'brometal/shader-functions';
+import { rotate2, shadowFactor } from 'brometal/shader-functions';
 
 /**
  * sRGB to linear, applied when an albedo texture is sampled.
@@ -86,6 +86,11 @@ export default shader({
     iParams: 'vec3',
   },
   uniforms: {
+    uSunDirection: 'vec3',
+    uShadowMap: 'sampler2D',
+    uLightViewProj: 'mat4',
+    uLightPosition: 'vec3',
+    uShadowRange: 'float',
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTex: 'sampler2D',
@@ -138,7 +143,12 @@ export default shader({
   },
 
   fragment(
-    { uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
+    {
+    uSunDirection,
+    uShadowMap,
+    uLightViewProj,
+    uLightPosition,
+    uShadowRange, uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
     { vWorld, vNormal, vUv, vTint, vParams },
   ) {
     const baseNormal = normalize(vNormal);
@@ -185,9 +195,42 @@ export default shader({
     // It is the ship shader's original value. The ships are the subject, and the contact shadows
     // land on the arena floor, so the floor must agree with what lights the ships rather than the
     // other way round. The floor's old +X sun lit it from the opposite side from the ships.
-    const light = normalize(vec3(-0.44, 0.86, 0.42));
+    // Lowered and moved behind the arena by goal 07's W B.3, and the reason is measured rather than
+    // aesthetic. At its previous 59 degrees of elevation the sun dropped each caster's shadow
+    // underneath the caster: only **1.63%** of the deck came back darkened by 25% or more, and no
+    // 32-pixel probe pair could be placed. Elevation is what decides how much shadow a frame
+    // contains. Moving it to -z also turns the shadows to face a camera that sits at +z.
+    //
+    // One value, agreed by every shader here and by `src/sun.ts`, which is what
+    // `pipeline-invariants.test.mjs` asserts when it says a demo has one key direction.
+    const light = normalize(vec3(-0.52, 0.58, -0.63));
+    // The sun's shadow, and the only shadow this arena casts.
+    //
+    // Softness, bias and the shadow texel are literals rather than uniforms, agreed across the three
+    // material shaders and held equal by `pipeline-invariants.test.mjs`. Nothing varies them at run
+    // time, and a uniform would mean binding plumbing at every call site for a number that never
+    // moves.
+    //
+    // 0.00048828125 is 1 / 2048, which is `SHADOW_MAP_SIZE` in `src/sun.ts`. A texel size that does
+    // not match the map silently resizes the penumbra rather than failing.
+    const shadowSoftness = 2.5;
+    const shadowBias = 0.03;
+    const sunVisibility = shadowFactor(
+      uShadowMap,
+      uLightViewProj,
+      vWorld,
+      normal,
+      uLightPosition,
+      uShadowRange,
+      0.00048828125,
+      shadowSoftness,
+      shadowBias,
+    );
+    // Applied to the key term only. The fill, the rim and the ambient are what a surface receives
+    // from everything that is *not* the key, so a shadow must not touch them — dimming them too is
+    // what makes a shadowed area read as flat grey instead of dark and shaped.
     const view = normalize(uCameraPosition.sub(vWorld));
-    const diffuse = max(dot(normal, light), 0);
+    const diffuse = max(dot(normal, light), 0) * sunVisibility;
     // Roughness from the kit's own palette, addressed by the same UV the albedo uses: V picks the
     // palette row, U picks the swatch. Before this every face of every arena piece took one
     // roughness, so a painted panel and a bare grate scattered light identically.

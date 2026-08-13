@@ -89,6 +89,20 @@ export const DEMO_PROBES = Object.freeze({
     bloomNear: Object.freeze({ x: 700, y: 118, width: 24, height: 24 }),
     bloomFar: Object.freeze({ x: 772, y: 196, width: 24, height: 24 }),
   }),
+  'combat-arena': Object.freeze({
+    /**
+     * Arena deck in the shadow of a wall, and deck in full key light 186 px away.
+     *
+     * A pair, for the same reason as `point-light-expo`'s: one probe alone only says how bright a
+     * patch of deck is. With the shadow term switched off the two measure within 3% of each other,
+     * so the gap below is the shadow arriving rather than two different patches of floor.
+     *
+     * 186 px rather than the goal's 200: the arena is an enclosed box, and no pair at exactly 200
+     * had both probes on comparable deck. Stated rather than rounded up.
+     */
+    sunShadow: Object.freeze({ x: 822, y: 138, width: 32, height: 32 }),
+    sunLit: Object.freeze({ x: 1006, y: 110, width: 32, height: 32 }),
+  }),
 });
 
 /** Capture errors that mean "reality moved, read it again" rather than "this failed". */

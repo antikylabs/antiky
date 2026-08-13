@@ -1,6 +1,14 @@
+import arenaDepthShader from './shaders/arena-depth.shader.gen.ts';
 import { createHudBatch, type HudBatch } from './arena-hud.ts';
 import type { BroMetalTexture } from 'brometal';
-import { createCube, createSphere, createTorus, type Renderer } from 'brometal';
+import {
+  createCube,
+  createProgram,
+  createSphere,
+  createTorus,
+  type BroMetalProgram,
+  type Renderer,
+} from 'brometal';
 
 import { ARENA_STRUCTURE_INSTANCES, setArenaEnergy, setArenaStructure } from './arena-environment.ts';
 import { setCombatSignals } from './arena-signals.ts';
@@ -267,7 +275,12 @@ function setCombatRings(rings: GlowBatch, state: CombatSnapshot): void {
 export type CombatProjection = Readonly<{
   project(state: CombatSnapshot): void;
   frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void;
+  /** The lit program behind the moving props, so the renderer can bind the shadow map to it. */
+  surfaceProgram: BroMetalProgram;
+  /** Its companion drawn from the sun. */
+  surfaceDepthProgram: BroMetalProgram;
   drawSurface(): void;
+  drawSurfaceDepth(): void;
   drawShadows(): void;
   drawEnergy(): void;
   /** Flat, screen-space, and last: the HUD sits over everything the scene drew. */
@@ -309,7 +322,16 @@ export function createCombatProjection(
   let hud: HudBatch;
   let rings: ReturnType<typeof createGlowBatch>;
   try {
-    surfaces = registerResource(resources, dependencies.createSurfaceBatch(renderer, createCube(), SURFACE_CAPACITY));
+    // The depth factory is what makes these props cast. Without it `surfaceDepthProgram` is
+    // undefined and the renderer's shadow binding throws during construction, which surfaces as a
+    // capture timeout rather than as an error — the runtime never finishes publishing.
+    surfaces = registerResource(resources, dependencies.createSurfaceBatch(
+      renderer,
+      createCube(),
+      SURFACE_CAPACITY,
+      undefined,
+      (target) => createProgram(target, arenaDepthShader),
+    ));
     shadows = registerResource(resources, dependencies.createContactShadowBatch(renderer, CONTACT_SHADOW_CAPACITY, billboard));
     hud = registerResource(resources, dependencies.createHudBatch(renderer));
     glows = registerResource(resources, dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY, billboard));
@@ -347,8 +369,14 @@ export function createCombatProjection(
       rings.frame(viewProjection, cameraPosition, time);
       glows.frame(viewProjection, cameraPosition, time);
     },
+    surfaceProgram: surfaces.program,
+    surfaceDepthProgram: surfaces.depthProgram!,
     drawSurface(): void {
       surfaces.program.draw();
+    },
+    /** The moving props seen from the sun. Called inside the shadow pass, before the scene. */
+    drawSurfaceDepth(): void {
+      surfaces.drawDepth();
     },
     /** Alpha-blended, so this must run after every opaque draw in the frame. */
     drawShadows(): void {

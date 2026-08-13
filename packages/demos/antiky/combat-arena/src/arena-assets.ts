@@ -14,6 +14,7 @@ import { arenaLightUniforms } from './arena-lights.ts';
 import { createKitMaterialLookup } from './kit-materials.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
+import arenaDepthShader from './shaders/arena-depth.shader.gen.ts';
 import arenaModelShader from './shaders/arena-model.shader.gen.ts';
 
 type Vec3 = readonly [number, number, number];
@@ -43,7 +44,9 @@ export type ModelBatch = Readonly<{
     tint: Vec3,
     emissive: number, hit: number, rotation: number,
   ): void;
+  depthProgram: BroMetalProgram;
   upload(): void;
+  drawDepth(): void;
   frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void;
   dispose(): void;
 }>;
@@ -66,6 +69,13 @@ export type ArenaAssetDependencies = Readonly<{
   createTexture(renderer: Renderer, bitmap: ImageBitmap): BroMetalTexture;
   createProgram(renderer: Renderer): BroMetalProgram;
   /**
+   * The same geometry drawn from the sun, writing distance instead of colour.
+   *
+   * Injected like every other GPU owner here, so `tests/resources.test.ts` can drive construction
+   * and rollback against a renderer that is not WebGPU-backed.
+   */
+  createDepthProgram(renderer: Renderer): BroMetalProgram;
+  /**
    * Loaded once for the whole catalog rather than per batch. Five models share one detail normal,
    * and five uploads of the same 512² image is four wasted.
    */
@@ -82,6 +92,7 @@ const ARENA_ASSET_DEPENDENCIES: ArenaAssetDependencies = Object.freeze({
   )),
   createTexture: (renderer, bitmap) => createTexture(renderer, bitmap, { flipY: false, anisotropy: 4 }),
   createProgram: (renderer) => createProgram(renderer, arenaModelShader),
+  createDepthProgram: (renderer) => createProgram(renderer, arenaDepthShader),
   loadDetailNormal,
   createKitMaterialLookup,
   loadKitMaterialMaps,
@@ -110,6 +121,7 @@ async function createModelBatch(
   const bitmap = await dependencies.createBitmap(image);
   let texture: BroMetalTexture;
   let program: BroMetalProgram;
+  let depthProgram: BroMetalProgram;
   try {
     try {
       texture = registerResource(owned, dependencies.createTexture(renderer, bitmap));
@@ -117,6 +129,9 @@ async function createModelBatch(
       bitmap.close();
     }
     program = registerResource(owned, dependencies.createProgram(renderer));
+    depthProgram = registerResource(owned, dependencies.createDepthProgram(renderer));
+    depthProgram.attributes.aPosition!.set(mesh.positions);
+    depthProgram.setIndices(mesh.indices);
     program.attributes.aPosition!.set(mesh.positions);
     program.attributes.aNormal!.set(mesh.normals);
     program.attributes.aUv!.set(mesh.uvs);
@@ -142,6 +157,7 @@ async function createModelBatch(
 
   return Object.freeze({
     program,
+    depthProgram,
     clear(): void {
       scales.fill(0);
       tints.fill(0);
@@ -173,12 +189,19 @@ async function createModelBatch(
       program.instanceAttributes.iScale!.set(scales);
       program.instanceAttributes.iTint!.set(tints);
       program.instanceAttributes.iParams!.set(params);
+      // The three arrays that decide position. Tint has no bearing on where a shadow falls.
+      depthProgram.instanceAttributes.iOffset!.set(offsets);
+      depthProgram.instanceAttributes.iScale!.set(scales);
+      depthProgram.instanceAttributes.iParams!.set(params);
     },
     frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
       program.uniforms.uViewProj!.set(viewProjection);
       program.uniforms.uCameraPosition!.set(cameraPosition);
       program.uniforms.uTime!.set(time);
+      depthProgram.uniforms.uTime!.set(time);
     },
+    /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
+    drawDepth(): void { depthProgram.draw(); },
     dispose(): void {
       disposeResources(owned);
     },

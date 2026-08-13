@@ -67,7 +67,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let streaks = textureSample(uClouds, uClouds_sampler, streakUv).x;
   let wisps = textureSample(uClouds, uClouds_sampler, wispUv).x;
   let cloudDensity = clamp(pow(clamp(streaks * wisps * 2.1, 0.0, 1.0), 1.5) * 1.5, 0.0, 1.0);
-  let sun = normalize(vec3f(-0.44, 0.86, 0.42));
+  let sun = normalize(vec3f(-0.52, 0.58, -0.63));
   let lambert = max(dot(normal, sun), 0.0);
   let dayNight = clamp(lambert * 3.4 + 0.18, 0.0, 3.4);
   let night = vec3f(0.02, 0.03, 0.06);

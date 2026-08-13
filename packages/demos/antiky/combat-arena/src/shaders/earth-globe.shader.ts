@@ -155,7 +155,15 @@ export default shader({
 
     // Sunlight. The same key direction every other shader in this demo uses, so the terminator
     // agrees with the light on the arena and the ships.
-    const sun = normalize(vec3(-0.44, 0.86, 0.42));
+    // Lowered and moved behind the arena by goal 07's W B.3, and the reason is measured rather than
+    // aesthetic. At its previous 59 degrees of elevation the sun dropped each caster's shadow
+    // underneath the caster: only **1.63%** of the deck came back darkened by 25% or more, and no
+    // 32-pixel probe pair could be placed. Elevation is what decides how much shadow a frame
+    // contains. Moving it to -z also turns the shadows to face a camera that sits at +z.
+    //
+    // One value, agreed by every shader here and by `src/sun.ts`, which is what
+    // `pipeline-invariants.test.mjs` asserts when it says a demo has one key direction.
+    const sun = normalize(vec3(-0.52, 0.58, -0.63));
     const lambert = max(dot(normal, sun), 0);
     // A soft terminator rather than a hard one: an atmosphere scatters light past the geometric
     // boundary, and a knife-edge day/night line is the giveaway of a planet without air.

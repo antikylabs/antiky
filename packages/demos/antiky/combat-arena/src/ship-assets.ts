@@ -19,6 +19,7 @@ import type { CombatSnapshot } from './combat-state.ts';
 import type { Vec3 } from './render-batches.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
+import arenaDepthShader from './shaders/arena-depth.shader.gen.ts';
 import shipModelShader from './shaders/ship-model.shader.gen.ts';
 
 const SHIP_URLS = Object.freeze({
@@ -42,7 +43,9 @@ type ShipBatch = Readonly<{
     tint: Vec3,
     emissive: number, hit: number, rotation: number,
   ): void;
+  depthProgram: BroMetalProgram;
   upload(): void;
+  drawDepth(): void;
   frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void;
   dispose(): void;
 }>;
@@ -52,6 +55,8 @@ export type ShipAssetDependencies = Readonly<{
   createBitmap(image: ModelImage): Promise<ImageBitmap>;
   createTexture(renderer: Renderer, bitmap: ImageBitmap): BroMetalTexture;
   createProgram(renderer: Renderer): BroMetalProgram;
+  /** The same hulls drawn from the sun, writing distance instead of colour. */
+  createDepthProgram(renderer: Renderer): BroMetalProgram;
   /**
    * Loaded once for the whole fleet rather than per hull. Five ships share one detail normal, and
    * five uploads of the same 512x512 image is four wasted.
@@ -67,6 +72,7 @@ const SHIP_ASSET_DEPENDENCIES: ShipAssetDependencies = Object.freeze({
   )),
   createTexture: (renderer, bitmap) => createTexture(renderer, bitmap, { flipY: false, anisotropy: 4 }),
   createProgram: (renderer) => createProgram(renderer, shipModelShader),
+  createDepthProgram: (renderer) => createProgram(renderer, arenaDepthShader),
   loadDetailNormal,
 });
 
@@ -89,6 +95,7 @@ async function createShipBatch(
   const bitmap = await dependencies.createBitmap(model.images[mesh.imageIndex]!);
   let texture: BroMetalTexture;
   let program: BroMetalProgram;
+  let depthProgram: BroMetalProgram;
   try {
     try {
       texture = registerResource(owned, dependencies.createTexture(renderer, bitmap));
@@ -96,6 +103,9 @@ async function createShipBatch(
       bitmap.close();
     }
     program = registerResource(owned, dependencies.createProgram(renderer));
+    depthProgram = registerResource(owned, dependencies.createDepthProgram(renderer));
+    depthProgram.attributes.aPosition!.set(mesh.positions);
+    depthProgram.setIndices(mesh.indices);
     program.attributes.aPosition!.set(mesh.positions);
     program.attributes.aNormal!.set(mesh.normals);
     program.attributes.aUv!.set(mesh.uvs);
@@ -115,6 +125,7 @@ async function createShipBatch(
 
   return Object.freeze({
     program,
+    depthProgram,
     clear(): void {
       scales.fill(0);
       params.fill(0);
@@ -143,12 +154,20 @@ async function createShipBatch(
       program.instanceAttributes.iNormalScale!.set(normalScales);
       program.instanceAttributes.iTint!.set(tints);
       program.instanceAttributes.iParams!.set(params);
+      // Position only. `iNormalScale` exists to keep normals perpendicular under nonuniform scale,
+      // and a depth pass has no normals.
+      depthProgram.instanceAttributes.iOffset!.set(offsets);
+      depthProgram.instanceAttributes.iScale!.set(scales);
+      depthProgram.instanceAttributes.iParams!.set(params);
     },
     frame(viewProjection, cameraPosition, time): void {
       program.uniforms.uViewProj!.set(viewProjection);
       program.uniforms.uCameraPosition!.set(cameraPosition);
       program.uniforms.uTime!.set(time);
+      depthProgram.uniforms.uTime!.set(time);
     },
+    /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
+    drawDepth(): void { depthProgram.draw(); },
     dispose(): void {
       disposeResources(owned);
     },
@@ -159,6 +178,15 @@ export type ShipFleet = Readonly<{
   project(state: CombatSnapshot): void;
   frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void;
   draw(): void;
+  /** Every hull drawn from the sun. Call inside the shadow pass, before the scene. */
+  drawDepth(): void;
+  /**
+   * The fleet's programs, so the renderer can point them all at one shadow map.
+   *
+   * Exposed as a list rather than by name because the fleet is four hull batches and which one a
+   * ship uses is the fleet's business, not the renderer's.
+   */
+  programs: readonly Readonly<{ program: BroMetalProgram; depthProgram: BroMetalProgram }>[];
   dispose(): void;
 }>;
 
@@ -239,6 +267,10 @@ export async function createShipFleet(
     draw(): void {
       for (let batchIndex = 0; batchIndex < batches.length; batchIndex += 1) batches[batchIndex]!.program.draw();
     },
+    drawDepth(): void {
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex += 1) batches[batchIndex]!.drawDepth();
+    },
+    programs: batches,
     dispose(): void {
       disposeResources(batches);
     },

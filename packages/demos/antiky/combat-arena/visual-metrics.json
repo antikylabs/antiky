@@ -1,37 +1,48 @@
 {
   "schemaVersion": 3,
   "demo": "combat-arena",
-  "capturedAt": "2026-08-13T05:37:10.922Z",
+  "capturedAt": "2026-08-13T06:02:09.213Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "c5adbfff95551d72",
-    "fileCount": 124
+    "digest": "8340b0169799be08",
+    "fileCount": 128
   },
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.192389,
-    "p05": 0.038956,
-    "p50": 0.149589,
-    "p95": 0.49898,
-    "spread": 0.460023
+    "mean": 0.151916,
+    "p05": 0.02856,
+    "p50": 0.098112,
+    "p95": 0.439164,
+    "spread": 0.410604
   },
   "localContrast": {
-    "median": 8.3362,
-    "p10": 3.0593
+    "median": 7.6766,
+    "p10": 2.246
   },
   "clipping": {
-    "high": 0.00001,
+    "high": 0.000005,
     "low": 0
   },
   "saturation": {
-    "mean": 0.216268
+    "mean": 0.25133
   },
   "edges": {
-    "hard": 0.013874
+    "hard": 0.012937
   },
-  "probes": {},
-  "seal": "a0d1b6f1f424a520"
+  "probes": {
+    "sunShadow": {
+      "meanLuminance": 0.034169,
+      "standardDeviation": 0.012948,
+      "pixels": 1024
+    },
+    "sunLit": {
+      "meanLuminance": 0.061273,
+      "standardDeviation": 0.019862,
+      "pixels": 1024
+    }
+  },
+  "seal": "f4e96646ded1397f"
 }

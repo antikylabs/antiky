@@ -30,10 +30,12 @@ function fakeProgram(disposed: number[], failAttribute = false) {
   };
   return {
     attributes: { aPosition: { set }, aNormal: { set }, aUv: { set }, aColor: { set }, aAccent: { set } },
-    instanceAttributes: {},
-    // Any uniform, answered generically. These tests are about disposal order when construction
-    // throws; which uniforms exist is `shader-output-parity.test.mjs`'s job, and hand-listing them
-    // here meant every new uniform broke a test about something else.
+    // Any instance attribute and any uniform, answered generically. These tests are about disposal
+    // order when construction throws; which attributes and uniforms exist is
+    // `shader-output-parity.test.mjs`'s job, and hand-listing them here meant every new one broke a
+    // test about something else. The instance attributes were a plain `{}` until W B.3 gave each
+    // batch a depth program that uploads its own subset.
+    instanceAttributes: new Proxy({}, { get: () => ({ set() {} }) }),
     uniforms: new Proxy({}, { get: () => ({ set() {} }) }),
     setIndices() {},
     draw() {},
@@ -54,13 +56,19 @@ test('arena catalog rolls back completed batches and the in-flight texture on co
     createBitmap: async () => ({ close() { bitmaps.push(1); } }) as never,
     createTexture: () => ({ dispose() { textures.push(1); } }),
     createProgram: () => fakeProgram(programs, ++programCount === 2) as never,
+    // W B.3 gives every catalog batch a second program that draws it from the sun.
+    createDepthProgram: () => fakeProgram(programs) as never,
     loadDetailNormal: async () => ({ dispose() { detailDisposed += 1; } }),
     createKitMaterialLookup: () => ({ dispose() {} }),
     loadKitMaterialMaps: async () => ({ diffuse: { dispose() {} }, roughness: { dispose() {} } }),
   }), /injected attribute failure/);
   assert.equal(bitmaps.length, 2);
   assert.equal(textures.length, 2);
-  assert.equal(programs.length, 2);
+  // Four, not two: W B.3 gives every batch a second program that draws it from the sun, so the
+  // completed batch rolls back two and the failing one rolls back the two it had registered before
+  // it threw. A depth program leaked here would be invisible — it draws into a target nobody looks
+  // at directly — which is exactly why it is counted.
+  assert.equal(programs.length, 4);
   // Same reasoning as the fleet: catalog-owned, created first, easy to leak on the error path.
   assert.equal(detailDisposed, 1);
 });
@@ -87,6 +95,7 @@ test('arena catalog disposes a created texture even if bitmap close fails during
     createBitmap: async () => ({ close() { throw new Error('injected close failure'); } }) as never,
     createTexture: () => ({ dispose() { texturesDisposed += 1; } }),
     createProgram: () => fakeProgram([]) as never,
+    createDepthProgram: () => fakeProgram([]) as never,
     loadDetailNormal: async () => ({ dispose() { detailDisposed += 1; } }),
     createKitMaterialLookup: () => ({ dispose() {} }),
     loadKitMaterialMaps: async () => ({ diffuse: { dispose() {} }, roughness: { dispose() {} } }),
@@ -106,11 +115,14 @@ test('ship fleet rolls back earlier and in-flight programs on batch setup failur
     createBitmap: async () => ({ close() { bitmaps.push(1); } }) as never,
     createTexture: () => ({ dispose() { textures.push(1); } }),
     createProgram: () => fakeProgram(programs, ++programCount === 2) as never,
+    // W B.3 gives every catalog batch a second program that draws it from the sun.
+    createDepthProgram: () => fakeProgram(programs) as never,
     loadDetailNormal: async () => ({ dispose() { detailDisposed += 1; } }),
   }), /injected attribute failure/);
   assert.equal(bitmaps.length, 2);
   assert.equal(textures.length, 2);
-  assert.equal(programs.length, 2);
+  // Four for the same reason as the catalog: a lit program and a depth program per batch.
+  assert.equal(programs.length, 4);
   // The detail normal is created before any batch, so a failure partway through the fleet has to
   // take it down too. It belongs to the fleet rather than to a hull, which is exactly the shape of
   // resource that gets forgotten on the error path.
@@ -127,6 +139,8 @@ test('ship fleet uploads inverse scale for correct nonuniform normal transformat
     createBitmap: async () => ({ close() {} }) as never,
     createTexture: () => ({ dispose() {} }),
     loadDetailNormal: async () => ({ dispose() {} }),
+    // W B.3: every hull batch also draws itself from the sun.
+    createDepthProgram: () => fakeProgram([]) as never,
     createProgram: () => {
       const capture = batchIndex === 0;
       batchIndex += 1;
@@ -301,6 +315,7 @@ test('renderer destroys its context and catalog if the next top-level resource f
     // W B.2's GPU owners. Unreached in this case, but the shape has to satisfy the contract.
     createSceneTarget: () => { throw new Error('must not reach the scene target'); },
     createPostProgram: () => { throw new Error('must not reach the post program'); },
+    createShadowPass: () => { throw new Error('must not reach the shadow pass'); },
   }), /injected fleet failure/);
   assert.deepEqual(disposed, ['catalog', 'renderer']);
 });
@@ -311,7 +326,10 @@ test('renderer rolls back ships and catalog when top-level projection creation f
   const batch = {
     // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
     // renderer reaches the failure these tests inject.
-    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
+    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {},
+    program: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }), draw() {} },
+    depthProgram: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }), draw() {} },
+    drawDepth() {},
   };
   await assert.rejects(createCombatRendererWith({} as HTMLCanvasElement, {
     createRenderer: async () => renderer as never,
@@ -320,7 +338,8 @@ test('renderer rolls back ships and catalog when top-level projection creation f
       frame() {}, dispose() { disposed.push('catalog'); },
     }) as never,
     createShips: async () => ({
-      project() {}, frame() {}, draw() {}, dispose() { disposed.push('ships'); },
+      project() {}, frame() {}, draw() {}, drawDepth() {}, programs: [],
+      dispose() { disposed.push('ships'); },
     }),
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => { throw new Error('injected projection failure'); },
@@ -328,6 +347,7 @@ test('renderer rolls back ships and catalog when top-level projection creation f
     // W B.2's GPU owners. Unreached in this case, but the shape has to satisfy the contract.
     createSceneTarget: () => { throw new Error('must not reach the scene target'); },
     createPostProgram: () => { throw new Error('must not reach the post program'); },
+    createShadowPass: () => { throw new Error('must not reach the shadow pass'); },
   }), /injected projection failure/);
   assert.deepEqual(disposed, ['ships', 'catalog', 'renderer']);
 });
@@ -337,7 +357,10 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
   const batch = {
     // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
     // renderer reaches the failure these tests inject.
-    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
+    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {},
+    program: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }), draw() {} },
+    depthProgram: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }), draw() {} },
+    drawDepth() {},
   };
   await assert.rejects(createCombatRendererWith({} as HTMLCanvasElement, {
     createRenderer: async () => ({ destroy() { disposed.push('renderer'); } }) as never,
@@ -346,17 +369,21 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
       frame() {}, dispose() { disposed.push('catalog'); },
     }) as never,
     createShips: async () => ({
-      project() {}, frame() {}, draw() {}, dispose() { disposed.push('ships'); },
+      project() {}, frame() {}, draw() {}, drawDepth() {}, programs: [],
+      dispose() { disposed.push('ships'); },
     }),
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => ({
-      project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {}, drawHud() {},
+      project() {}, frame() {}, drawSurface() {}, drawSurfaceDepth() {},
+      drawShadows() {}, drawEnergy() {}, drawHud() {},
+      surfaceProgram: {} as never, surfaceDepthProgram: {} as never,
       dispose() { disposed.push('projection'); },
     }),
     createBackdrop: () => { throw new Error('injected backdrop failure'); },
     // W B.2's GPU owners. Unreached in this case, but the shape has to satisfy the contract.
     createSceneTarget: () => { throw new Error('must not reach the scene target'); },
     createPostProgram: () => { throw new Error('must not reach the post program'); },
+    createShadowPass: () => { throw new Error('must not reach the shadow pass'); },
   }), /injected backdrop failure/);
   assert.deepEqual(disposed, ['projection', 'ships', 'catalog', 'renderer']);
 });
@@ -364,11 +391,15 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
 test('renderer disposal is idempotent and destroys every GPU owner once', async () => {
   const disposals = {
     catalog: 0, ships: 0, projection: 0, backdrop: 0, renderer: 0, sceneTarget: 0, postProgram: 0,
+    shadowPass: 0,
   };
   const batch = {
     // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
     // renderer reaches the failure these tests inject.
-    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {}, program: { draw() {} },
+    clear() {}, set() {}, setValues() {}, upload() {}, frame() {}, dispose() {},
+    program: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }), draw() {} },
+    depthProgram: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }), draw() {} },
+    drawDepth() {},
   };
   const renderer = {
     aspect: 16 / 9,
@@ -386,11 +417,15 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
       frame() {}, dispose() { disposals.catalog += 1; },
     }) as never,
     createShips: async () => ({
-      project() {}, frame() {}, draw() {}, dispose() { disposals.ships += 1; },
+      project() {}, frame() {}, draw() {}, drawDepth() {}, programs: [],
+      dispose() { disposals.ships += 1; },
     }),
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => ({
-      project() {}, frame() {}, drawSurface() {}, drawShadows() {}, drawEnergy() {}, drawHud() {},
+      project() {}, frame() {}, drawSurface() {}, drawSurfaceDepth() {},
+      drawShadows() {}, drawEnergy() {}, drawHud() {},
+      surfaceProgram: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }) } as never,
+      surfaceDepthProgram: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }) } as never,
       dispose() { disposals.projection += 1; },
     }),
     createBackdrop: async () => ({
@@ -409,6 +444,11 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
       setIndices() {}, draw() {},
       dispose() { disposals.postProgram += 1; },
     }) as never,
+    // W B.3's shadow map. Another GPU owner, so another thing that must be disposed exactly once.
+    createShadowPass: () => ({
+      bind() {}, render(draw: () => void) { draw(); },
+      dispose() { disposals.shadowPass += 1; },
+    }) as never,
   });
   // One frame first, because the scene target is built lazily on the first draw. Disposing without
   // rendering would leave nothing to dispose and the assertion below would be checking that a
@@ -418,6 +458,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
   combatRenderer.dispose();
   assert.deepEqual(disposals, {
     catalog: 1, ships: 1, projection: 1, backdrop: 1, renderer: 1, sceneTarget: 1, postProgram: 1,
+    shadowPass: 1,
   });
 });
 
