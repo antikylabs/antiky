@@ -298,6 +298,9 @@ test('renderer destroys its context and catalog if the next top-level resource f
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => { throw new Error('must not reach projection'); },
     createBackdrop: () => { throw new Error('must not reach backdrop'); },
+    // W B.2's GPU owners. Unreached in this case, but the shape has to satisfy the contract.
+    createSceneTarget: () => { throw new Error('must not reach the scene target'); },
+    createPostProgram: () => { throw new Error('must not reach the post program'); },
   }), /injected fleet failure/);
   assert.deepEqual(disposed, ['catalog', 'renderer']);
 });
@@ -322,6 +325,9 @@ test('renderer rolls back ships and catalog when top-level projection creation f
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => { throw new Error('injected projection failure'); },
     createBackdrop: () => { throw new Error('must not reach backdrop'); },
+    // W B.2's GPU owners. Unreached in this case, but the shape has to satisfy the contract.
+    createSceneTarget: () => { throw new Error('must not reach the scene target'); },
+    createPostProgram: () => { throw new Error('must not reach the post program'); },
   }), /injected projection failure/);
   assert.deepEqual(disposed, ['ships', 'catalog', 'renderer']);
 });
@@ -348,12 +354,17 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
       dispose() { disposed.push('projection'); },
     }),
     createBackdrop: () => { throw new Error('injected backdrop failure'); },
+    // W B.2's GPU owners. Unreached in this case, but the shape has to satisfy the contract.
+    createSceneTarget: () => { throw new Error('must not reach the scene target'); },
+    createPostProgram: () => { throw new Error('must not reach the post program'); },
   }), /injected backdrop failure/);
   assert.deepEqual(disposed, ['projection', 'ships', 'catalog', 'renderer']);
 });
 
 test('renderer disposal is idempotent and destroys every GPU owner once', async () => {
-  const disposals = { catalog: 0, ships: 0, projection: 0, backdrop: 0, renderer: 0 };
+  const disposals = {
+    catalog: 0, ships: 0, projection: 0, backdrop: 0, renderer: 0, sceneTarget: 0, postProgram: 0,
+  };
   const batch = {
     // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
     // renderer reaches the failure these tests inject.
@@ -361,7 +372,11 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
   };
   const renderer = {
     aspect: 16 / 9,
-    present() {},
+    // The post pass needs a canvas size to build its target from, and `drawTo` is what the frame
+    // calls instead of drawing straight to the screen.
+    canvas: { width: 8, height: 8 },
+    present(draw: () => void) { draw(); },
+    drawTo(_target: unknown, draw: () => void) { draw(); },
     destroy() { disposals.renderer += 1; },
   };
   const combatRenderer = await createCombatRendererWith({} as HTMLCanvasElement, {
@@ -381,10 +396,29 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
     createBackdrop: async () => ({
       frame() {}, draw() {}, dispose() { disposals.backdrop += 1; },
     }),
+    // W B.2's two GPU owners. The scene target is rebuilt on canvas resize so it is not in the
+    // resource scope, which makes "is it disposed exactly once" a real question rather than a
+    // formality — that is what this test is for.
+    createSceneTarget: () => ({
+      width: 1, height: 1, texture: {}, depth: true,
+      dispose() { disposals.sceneTarget += 1; },
+    }) as never,
+    createPostProgram: () => ({
+      attributes: { aPosition: { set() {} } },
+      uniforms: new Proxy({}, { get: () => ({ set() {} }) }),
+      setIndices() {}, draw() {},
+      dispose() { disposals.postProgram += 1; },
+    }) as never,
   });
+  // One frame first, because the scene target is built lazily on the first draw. Disposing without
+  // rendering would leave nothing to dispose and the assertion below would be checking that a
+  // resource which never existed was cleaned up.
+  combatRenderer.render(createCombatSimulation(() => {}).read(), { x: 0, y: 0 });
   combatRenderer.dispose();
   combatRenderer.dispose();
-  assert.deepEqual(disposals, { catalog: 1, ships: 1, projection: 1, backdrop: 1, renderer: 1 });
+  assert.deepEqual(disposals, {
+    catalog: 1, ships: 1, projection: 1, backdrop: 1, renderer: 1, sceneTarget: 1, postProgram: 1,
+  });
 });
 
 test('contact shadows are unlit, soft, and blended without writing depth', async () => {

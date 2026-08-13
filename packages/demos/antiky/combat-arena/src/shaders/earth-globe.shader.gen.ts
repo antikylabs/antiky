@@ -31,14 +31,15 @@ fn channelToLinear(channel : f32) -> f32 {
 fn decodeSrgb(color : vec3f) -> vec3f {
   return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
 }
-fn channelToDisplay(channel : f32) -> f32 {
-  let safe = max(channel, 0.0);
-  let low = safe * 12.92;
-  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  return mix(low, high, step(0.0031308, safe));
+fn channelToScene(channel : f32) -> f32 {
+  let safe = clamp(channel, 0.0, 0.9999);
+  let a = 2.43 * safe - 2.51;
+  let b = 0.59 * safe - 0.03;
+  let c = 0.14 * safe;
+  return (0.0 - b - sqrt(max(b * b - 4.0 * a * c, 0.0))) / (2.0 * a);
 }
-fn encodeSrgb(color : vec3f) -> vec3f {
-  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+fn inverseTonemapACES(color : vec3f) -> vec3f {
+  return vec3f(channelToScene(color.x), channelToScene(color.y), channelToScene(color.z));
 }
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
@@ -78,7 +79,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let withNight = mix(night, daySide, clamp(lambert * 2.4 + 0.08, 0.0, 1.0));
   let rim = pow(1.0 - max(dot(normal, view), 0.0), 2.6);
   let haze = vec3f(0.24, 0.52, 0.95) * (rim * (0.45 + max(dot(normal, sun), 0.0) * 2.4));
-  return vec4f(encodeSrgb(withNight + haze), 1.0);
+  return vec4f(inverseTonemapACES(withNight + haze), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3' },

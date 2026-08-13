@@ -79,23 +79,78 @@ test('the piecewise curve is not the 2.2 approximation, and the difference lives
   assert.ok(Math.abs(decode(0.9) - gamma22(0.9)) < 0.01);
 });
 
-test('every shader that writes a final pixel encodes, and does it last', async () => {
+test('exactly one shader encodes, and it is the post pass', async () => {
+  // W B.1 put a copy of the encode in every shader that wrote a final pixel. W B.2 gave the demo one
+  // RGBA16F target and one pass that reads it, so those copies collapsed into a single encode here.
+  // A material that still encoded would be writing display data into a linear buffer for the post
+  // pass to encode a second time.
   const directory = new URL('../src/shaders/', import.meta.url);
-  // The shaders that write a pixel the viewer sees directly. The blended passes are excluded and
-  // named, so adding one cannot quietly opt out of colour management.
-  const blended = new Set(['arena-glow.shader.ts', 'arena-hud.shader.ts', 'contact-shadow.shader.ts']);
-  const missing: string[] = [];
-  let checked = 0;
+  const encoders: string[] = [];
+  let scanned = 0;
   for (const entry of await readdir(directory)) {
     if (!entry.endsWith('.shader.ts') || entry.endsWith('.gen.ts')) continue;
-    if (blended.has(entry)) continue;
+    scanned += 1;
     const source = await readFile(new URL(entry, directory), 'utf8');
-    checked += 1;
-    if (!source.includes('encodeSrgb(')) { missing.push(entry); continue; }
-    // Last, not merely present: the encode has to wrap everything else the shader returns.
-    const returned = source.slice(source.lastIndexOf('return vec4('));
-    if (!returned.includes('vec4(encodeSrgb(')) missing.push(`${entry} (encodes, but not last)`);
+    if (source.includes('encodeSrgb(')) encoders.push(entry);
   }
-  assert.deepEqual(missing, []);
-  assert.ok(checked >= 5, `expected several final-pixel shaders, checked ${checked}`);
+  assert.deepEqual(encoders, ['post.shader.ts'], 'only the post pass may encode');
+  assert.ok(scanned >= 8, `expected the demo's shaders, scanned ${scanned}`);
+});
+
+test('no material shader tone-maps, and the post pass does it in the right order', async () => {
+  const directory = new URL('../src/shaders/', import.meta.url);
+  const offenders: string[] = [];
+  for (const entry of await readdir(directory)) {
+    if (!entry.endsWith('.shader.ts') || entry.endsWith('.gen.ts') || entry === 'post.shader.ts') continue;
+    const source = await readFile(new URL(entry, directory), 'utf8');
+    // `inverseTonemapACES` is the boundary conversion the starfield and the planet use to enter the
+    // pipeline, and it is the opposite operation — it must not be mistaken for a second tone-map.
+    const stripped = source.split('inverseTonemapACES').join('');
+    if (stripped.includes('tonemapACES')) offenders.push(entry);
+  }
+  assert.deepEqual(offenders, [], 'tone-mapping belongs to the post pass alone');
+
+  const post = await readFile(new URL('post.shader.ts', directory), 'utf8');
+  const fragmentAt = post.indexOf('fragment(');
+  const body = post.slice(post.indexOf('{', post.indexOf(') {', fragmentAt)));
+  // Exposure scales linear light, ACES maps that range into 0..1, and only then is it display data.
+  //
+  // Asserted as nesting rather than as text position. The three stages are one expression here, so
+  // the exposure that runs *first* appears *last* in the source — comparing string indices would
+  // report the correct pipeline as backwards.
+  assert.ok(/encodeSrgb\(\s*tonemapACES\(/.test(body), 'the encode must wrap the tone-map');
+  assert.ok(
+    /tonemapACES\([^)]*uExposure/.test(body),
+    'the tone-map must run on an already-exposed value',
+  );
+  assert.equal(body.split('uExposure').length - 1, 1, 'exposure is applied more than once');
+});
+
+test('the background boundary conversion round-trips through the tone-map', () => {
+  // The starfield and the planet are painted, not lit: their values were authored against a path
+  // with no tone-map in it. ACES multiplies a dark value by roughly 0.21, so entering the HDR target
+  // unconverted took the whole background about five times darker and moved this packet's invariance
+  // measurement from 1.49 to 8.32 in the region they cover.
+  //
+  // `inverseTonemapACES` is the boundary conversion that fixes it, mirrored here. If the two ever
+  // stop being inverses the background silently changes brightness, which reads as an art choice.
+  const aces = (x: number) => {
+    const numerator = x * (2.51 * x + 0.03);
+    const denominator = x * (2.43 * x + 0.59) + 0.14;
+    return numerator / denominator;
+  };
+  const inverse = (y: number) => {
+    const a = 2.43 * y - 2.51;
+    const b = 0.59 * y - 0.03;
+    const c = 0.14 * y;
+    return (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+  };
+  for (const authored of [0.004, 0.02, 0.1, 0.3, 0.6, 0.9]) {
+    assert.ok(
+      Math.abs(aces(inverse(authored)) - authored) < 1e-6,
+      `${authored} did not survive the boundary conversion`,
+    );
+  }
+  // And it really is undoing something: a dark authored value has to be lifted substantially.
+  assert.ok(inverse(0.02) > 0.02 * 1.4, 'the inverse should lift the darks, not pass them through');
 });

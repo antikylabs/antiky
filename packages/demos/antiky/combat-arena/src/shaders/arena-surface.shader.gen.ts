@@ -29,20 +29,6 @@ fn rotate2(p : vec2f, angle : f32) -> vec2f {
   let s = sin(angle);
   return vec2f(p.x * c - p.y * s, p.x * s + p.y * c);
 }
-fn tonemapACES(color : vec3f) -> vec3f {
-  let num = color * (color * 2.51 + vec3f(0.03, 0.03, 0.03));
-  let den = color * (color * 2.43 + vec3f(0.59, 0.59, 0.59)) + vec3f(0.14, 0.14, 0.14);
-  return clamp(num / den, vec3f(0.0), vec3f(1.0));
-}
-fn channelToDisplay(channel : f32) -> f32 {
-  let safe = max(channel, 0.0);
-  let low = safe * 12.92;
-  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  return mix(low, high, step(0.0031308, safe));
-}
-fn encodeSrgb(color : vec3f) -> vec3f {
-  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
-}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -73,7 +59,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let hit = clamp(bm_in.vParams.y, 0.0, 1.0);
   let flashed = mix(base + energy, vec3f(2.6, 2.8, 3.2), hit * hit);
   let fog = smoothstep(17.0, 34.0, length(bm_u.uCameraPosition - bm_in.vWorld));
-  return vec4f(encodeSrgb(tonemapACES(mix(flashed, vec3f(0.008, 0.012, 0.03), fog * 0.8))), 1.0);
+  return vec4f(mix(flashed, vec3f(0.001887, 0.002936, 0.004748), fog * 0.8), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3', aNormal: 'vec3' },

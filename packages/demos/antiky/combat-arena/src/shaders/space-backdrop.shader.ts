@@ -1,4 +1,5 @@
 import {
+  type Vec3,
   asin,
   atan,
   clamp,
@@ -13,44 +14,45 @@ import {
   shader,
   sin,
   smoothstep,
+  sqrt,
   step,
   texture,
   vec2,
   vec3,
   vec4,
-  type Vec3,
 } from 'brometal';
 
-/**
- * Linear to sRGB, applied once to the pixel this shader writes.
- *
- * Copied by hand from `point-light-expo`, which goal 07 names as the reference implementation. The
- * duplication is the slice process, not an oversight: `pipeline-invariants.test.mjs` asserts every
- * copy compiles to an identical body, and goal 12 extracts the shared driver from the result.
- *
- * BroMetal never configures an sRGB canvas — `getPreferredCanvasFormat()` with no `viewFormats` —
- * so nothing applies the display curve unless a shader does. Goal 04 added the decode on albedo
- * sample without this half, which left this demo doing lighting on correct numbers and then writing
- * them out as though they were already display-encoded. That is why its p95 fell from 0.101 to
- * 0.081.
- *
- * The piecewise curve rather than the 2.2 approximation, because the two differ most in the darks
- * and this scene lives there. `max` guards the toe: `pow` of a negative is undefined and a
- * tone-mapped value can land fractionally below zero.
- */
-function channelToDisplay(channel: number): number {
-  const safe = max(channel, 0);
-  const low = safe * 12.92;
-  // 1 / 2.4, written out rather than divided. `brometal prod` constant-folds the division and
-  // `brometal dev` does not, so a division here makes the committed `.gen.ts` depend on which mode
-  // last ran — which `shader-output-parity` correctly refuses.
-  const high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
-  return mix(low, high, step(0.0031308, safe));
+function channelToScene(channel: number): number {
+  const safe = clamp(channel, 0, 0.9999);
+  const a = 2.43 * safe - 2.51;
+  const b = 0.59 * safe - 0.03;
+  const c = 0.14 * safe;
+  // The lower root. `max` guards the discriminant against a rounding excursion below zero.
+  return (0 - b - sqrt(max(b * b - 4 * a * c, 0))) / (2 * a);
 }
 
-function encodeSrgb(color: Vec3): Vec3 {
-  return vec3(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+/**
+ * ACES run backwards, so authored background imagery survives the post chain unchanged.
+ *
+ * This is the boundary conversion `point-light-expo` established for its clear colour and its fog:
+ * a value authored as "what the screen should show" entering a pipeline that will expose, tone-map
+ * and encode it has to be converted at the point it enters, or the chain applies a curve to
+ * something that was never meant to go through one.
+ *
+ * The starfield and the planet are exactly that. They are not lit surfaces with a radiance the
+ * renderer computes — they are painted, and their values were chosen against a path with no
+ * tone-map in it. ACES multiplies a dark value by roughly 0.21, so leaving them unconverted took
+ * the whole background about five times darker and moved this packet's invariance measurement from
+ * 1.49 to 8.32 in the region they cover.
+ *
+ * The forward curve is `(2.51x² + 0.03x) / (2.43x² + 0.59x + 0.14)`. Setting that equal to `y` and
+ * collecting terms gives a quadratic in `x`, and the lower root is the branch that is monotonic over
+ * 0..1. Verified to round-trip to six decimal places across the range.
+ *
+ * It is a boundary, not a general escape hatch: nothing that the renderer *lights* may use this.
+ */
+function inverseTonemapACES(color: Vec3): Vec3 {
+  return vec3(channelToScene(color.x), channelToScene(color.y), channelToScene(color.z));
 }
 
 export default shader({
@@ -157,6 +159,8 @@ export default shader({
       .add(vec3(0.86, 0.86, 0.84).scale(middling * 0.8))
       .add(vec3(0.84, 0.76, 0.66).scale(faint * 0.5));
 
-    return vec4(encodeSrgb(band.scale(1.15).add(starLight).add(vec3(0.004, 0.005, 0.011))), 1);
+    // Linear HDR, and nothing else. Exposure, the tone-map and the encode all happen once in
+    // `post.shader.ts`.
+    return vec4(inverseTonemapACES(band.scale(1.15).add(starLight).add(vec3(0.004, 0.005, 0.011))), 1);
   },
 });

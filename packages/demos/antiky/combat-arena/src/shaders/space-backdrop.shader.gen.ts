@@ -17,14 +17,15 @@ struct BmVSOut {
   @builtin(position) bm_position : vec4f,
   @location(0) vWorld : vec3f,
 }
-fn channelToDisplay(channel : f32) -> f32 {
-  let safe = max(channel, 0.0);
-  let low = safe * 12.92;
-  let high = pow(safe, 0.4166666666666667) * 1.055 - 0.055;
-  return mix(low, high, step(0.0031308, safe));
+fn channelToScene(channel : f32) -> f32 {
+  let safe = clamp(channel, 0.0, 0.9999);
+  let a = 2.43 * safe - 2.51;
+  let b = 0.59 * safe - 0.03;
+  let c = 0.14 * safe;
+  return (0.0 - b - sqrt(max(b * b - 4.0 * a * c, 0.0))) / (2.0 * a);
 }
-fn encodeSrgb(color : vec3f) -> vec3f {
-  return vec3f(channelToDisplay(color.x), channelToDisplay(color.y), channelToDisplay(color.z));
+fn inverseTonemapACES(color : vec3f) -> vec3f {
+  return vec3f(channelToScene(color.x), channelToScene(color.y), channelToScene(color.z));
 }
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
@@ -60,7 +61,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let middling = step(0.976, cellB) * (1.0 - smoothstep(0.0, 0.05, length(offsetB))) * twinkleB;
   let bright = step(0.972, cellC) * (1.0 - smoothstep(0.0, 0.045, length(offsetC))) * twinkleC;
   let starLight = vec3f(0.78, 0.84, 1.0) * (bright * 1.15) + vec3f(0.86, 0.86, 0.84) * (middling * 0.8) + vec3f(0.84, 0.76, 0.66) * (faint * 0.5);
-  return vec4f(encodeSrgb(band * 1.15 + starLight + vec3f(0.004, 0.005, 0.011)), 1.0);
+  return vec4f(inverseTonemapACES(band * 1.15 + starLight + vec3f(0.004, 0.005, 0.011)), 1.0);
 }
 `,
   attributes: { aPosition: 'vec3' },
