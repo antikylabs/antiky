@@ -37,6 +37,7 @@ import {
 import { summarizeTraversalMeasurements } from './measurements.ts';
 import { COURSE_SKY } from './ambient.ts';
 import { loadKitMaterialMaps } from './kit-material-maps.ts';
+import { createHudBatch } from './traversal-hud.ts';
 import { createKitMaterialLookup } from './kit-materials.ts';
 import { createLightingRamp } from './lighting-ramp.ts';
 import { loadVfxBillboard } from './vfx-billboard.ts';
@@ -53,7 +54,6 @@ import {
   HUD_BAR_GAP,
   HUD_BAR_HALF_HEIGHT,
   HUD_BAR_HALF_WIDTH,
-  HUD_DEPTH,
   HUD_LABEL_CELLS,
   HUD_LABEL_CELL_HALF_HEIGHT,
   HUD_LABEL_CELL_HALF_WIDTH,
@@ -61,8 +61,6 @@ import {
   HUD_METER_CENTER_X_OFFSET,
   HUD_METER_HALF_WIDTH,
   hazardTelegraphHalfWidth,
-  hudAnchorX,
-  hudAnchorY,
 } from './visual-layout.ts';
 
 type Vec3 = readonly [number, number, number];
@@ -109,9 +107,15 @@ function rollbackAndRethrow(disposal: DisposalStack, cause: unknown): never {
   throw cause;
 }
 
-function createSurfaceBatch(renderer: Renderer, geometry: Geometry, capacity: number) {
+function createSurfaceBatch(
+  renderer: Renderer,
+  geometry: Geometry,
+  capacity: number,
+  billboard: BroMetalTexture,
+) {
   const disposal = createDisposalStack();
   const program = disposal.adopt(createProgram(renderer, traversalSurfaceShader));
+  program.uniforms.uBillboard.set(billboard);
   try {
     program.attributes.aPosition.set(geometry.positions);
     program.attributes.aNormal.set(geometry.normals);
@@ -404,8 +408,8 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     const coastalCliffs = catalogEntries[10]!;
     const coastalTrees = catalogEntries[11]!;
     const relayTowers = catalogEntries[12]!;
-    const contactShadow = owned.adopt(createSurfaceBatch(renderer, createSphere({ radius: 1, widthSegments: 18, heightSegments: 10 }), TRAVERSAL_BATCH_CAPACITIES.contactShadow));
-    const hud = owned.adopt(createSurfaceBatch(renderer, createCube(), TRAVERSAL_BATCH_CAPACITIES.hud));
+    const contactShadow = owned.adopt(createSurfaceBatch(renderer, createSphere({ radius: 1, widthSegments: 18, heightSegments: 10 }), TRAVERSAL_BATCH_CAPACITIES.contactShadow, vfxBillboard));
+    const hud = owned.adopt(createHudBatch(renderer));
     const trail = owned.adopt(createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 8, heightSegments: 6 }), TRAVERSAL_BATCH_CAPACITIES.trail, vfxBillboard));
     const effects = owned.adopt(createGlowBatch(renderer, createTorus({ radius: 1, tube: 0.055, radialSegments: 8, tubularSegments: 48 }), TRAVERSAL_BATCH_CAPACITIES.effects, vfxBillboard));
     const procedural = [contactShadow, hud, trail, effects];
@@ -548,41 +552,94 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       camera.lookAt(cameraFrame.target[0], cameraFrame.target[1], cameraFrame.target[2]);
       const viewProjection = camera.viewProjection(renderer.aspect);
 
+      // The HUD, in screen space.
+      //
+      // It used to be world-space cubes positioned against the camera target, so the whole readout
+      // chased the camera through the level — the project's audit called it "a cluster of coloured
+      // 3D boxes floating in the sky" that "reads as broken geometry". The layout below is the same
+      // layout; only the space changed.
+      //
+      // World offsets map to normalised device coordinates through one scale, so every relative
+      // position the design already had is preserved. Y is scaled harder than X because NDC is
+      // square while the frame is 16:9, and a bar that looks right wide looks squat tall.
       hud.clear();
-      const hudX = hudAnchorX(cameraFrame.target[0], renderer.aspect);
-      const hudY = hudAnchorY(cameraFrame.target[1], renderer.aspect);
+      const HUD_SCALE_X = 0.155;
+      const HUD_SCALE_Y = 0.275;
+      const HUD_ORIGIN_X = -0.6;
+      const HUD_ORIGIN_Y = 0.83;
       let hudIndex = 0;
-      hud.set(hudIndex++, hudX, hudY, HUD_DEPTH, HUD_BAR_HALF_WIDTH, HUD_BAR_HALF_HEIGHT, 0.06, INK, 0, 0, 0);
+      const place = (
+        offsetX: number, offsetY: number,
+        halfWidth: number, halfHeight: number,
+        color: readonly [number, number, number],
+        opacity: number, rotation = 0,
+      ): void => {
+        hud.set(
+          hudIndex++,
+          HUD_ORIGIN_X + offsetX * HUD_SCALE_X,
+          HUD_ORIGIN_Y + offsetY * HUD_SCALE_Y,
+          halfWidth * HUD_SCALE_X,
+          halfHeight * HUD_SCALE_Y,
+          color, 1, opacity, rotation,
+        );
+      };
+
+      place(0, 0, HUD_BAR_HALF_WIDTH, HUD_BAR_HALF_HEIGHT, INK, 0.72);
       const progressWidth = HUD_METER_HALF_WIDTH * state.progress;
-      hud.set(hudIndex++, hudX + HUD_METER_CENTER_X_OFFSET - HUD_METER_HALF_WIDTH + progressWidth, hudY, HUD_DEPTH + 0.04, progressWidth, HUD_BAR_HALF_HEIGHT * 0.52, 0.075, ULTRAMARINE, 0, 0.1, 0);
-      hud.set(hudIndex++, hudX, hudY - HUD_BAR_GAP, HUD_DEPTH, HUD_BAR_HALF_WIDTH, HUD_BAR_HALF_HEIGHT, 0.06, INK, 0, 0, 0);
+      place(
+        HUD_METER_CENTER_X_OFFSET - HUD_METER_HALF_WIDTH + progressWidth, 0,
+        progressWidth, HUD_BAR_HALF_HEIGHT * 0.52, ULTRAMARINE, 0.95,
+      );
+      place(0, -HUD_BAR_GAP, HUD_BAR_HALF_WIDTH, HUD_BAR_HALF_HEIGHT, INK, 0.72);
       const stormWidth = HUD_METER_HALF_WIDTH * (1 - state.storm);
-      hud.set(hudIndex++, hudX + HUD_METER_CENTER_X_OFFSET - HUD_METER_HALF_WIDTH + stormWidth, hudY - HUD_BAR_GAP, HUD_DEPTH + 0.04, stormWidth, HUD_BAR_HALF_HEIGHT * 0.52, 0.075, state.remainingTime < 15 ? VERMILION : OCHRE, 0, 0.06, 0);
-      for (let index = 0; index < HUD_LABEL_CELLS.progress.length; index += 1) {
-        const cell = HUD_LABEL_CELLS.progress[index]!;
-        hud.set(hudIndex++, hudX + HUD_LABEL_CENTER_X_OFFSET + cell[0], hudY + cell[1], HUD_DEPTH + 0.05, HUD_LABEL_CELL_HALF_WIDTH, HUD_LABEL_CELL_HALF_HEIGHT, 0.076, CREAM, 0, 0.05, 0);
+      place(
+        HUD_METER_CENTER_X_OFFSET - HUD_METER_HALF_WIDTH + stormWidth, -HUD_BAR_GAP,
+        stormWidth, HUD_BAR_HALF_HEIGHT * 0.52,
+        state.remainingTime < 15 ? VERMILION : OCHRE, 0.95,
+      );
+      for (const cell of HUD_LABEL_CELLS.progress) {
+        place(
+          HUD_LABEL_CENTER_X_OFFSET + cell[0], cell[1],
+          HUD_LABEL_CELL_HALF_WIDTH, HUD_LABEL_CELL_HALF_HEIGHT, CREAM, 0.9,
+        );
       }
-      for (let index = 0; index < HUD_LABEL_CELLS.storm.length; index += 1) {
-        const cell = HUD_LABEL_CELLS.storm[index]!;
-        hud.set(hudIndex++, hudX + HUD_LABEL_CENTER_X_OFFSET + cell[0], hudY - HUD_BAR_GAP + cell[1], HUD_DEPTH + 0.05, HUD_LABEL_CELL_HALF_WIDTH, HUD_LABEL_CELL_HALF_HEIGHT, 0.076, CREAM, 0, 0.05, 0);
+      for (const cell of HUD_LABEL_CELLS.storm) {
+        place(
+          HUD_LABEL_CENTER_X_OFFSET + cell[0], -HUD_BAR_GAP + cell[1],
+          HUD_LABEL_CELL_HALF_WIDTH, HUD_LABEL_CELL_HALF_HEIGHT, CREAM, 0.9,
+        );
       }
-      const parcelY = hudY - HUD_BAR_GAP * 2.05;
-      hud.set(hudIndex++, hudX - 0.88, parcelY, HUD_DEPTH + 0.02, 0.31, 0.19, 0.09, CLAY, 0, 0.08, 0);
-      hud.set(hudIndex++, hudX - 0.88, parcelY, HUD_DEPTH + 0.04, 0.045, 0.2, 0.1, VERMILION, 0, 0.08, 0);
-      hud.set(hudIndex++, hudX - 0.88, parcelY, HUD_DEPTH + 0.045, 0.32, 0.04, 0.105, VERMILION, 0, 0.08, 0);
+      const parcelY = -HUD_BAR_GAP * 2.05;
+      // The parcel icon: a clay box with a vermilion cross taped over it.
+      place(-0.88, parcelY, 0.31, 0.19, CLAY, 0.85);
+      hud.set(hudIndex++, HUD_ORIGIN_X + -0.88 * HUD_SCALE_X, HUD_ORIGIN_Y + parcelY * HUD_SCALE_Y, 0.007, 0.05, VERMILION, 1, 0.9);
+      hud.set(hudIndex++, HUD_ORIGIN_X + -0.88 * HUD_SCALE_X, HUD_ORIGIN_Y + parcelY * HUD_SCALE_Y, 0.05, 0.007, VERMILION, 1, 0.9);
+      // Diamonds, so they need equal extents *in NDC* — not equal in the layout's own units, which
+      // X and Y scale differently. Rotating an unequal rectangle by 45 degrees shears it into a
+      // zigzag, which is what the first pass drew.
       for (let index = 0; index < 3; index += 1) {
-        hud.set(hudIndex++, hudX - 0.31 + index * 0.36, parcelY, HUD_DEPTH + 0.02, 0.16, 0.16, 0.09, index < state.parcelSeals ? VERMILION : SEA_GREY, 0, 0.08, Math.PI * 0.25);
+        hud.set(
+          hudIndex++,
+          HUD_ORIGIN_X + (-0.31 + index * 0.36) * HUD_SCALE_X,
+          HUD_ORIGIN_Y + parcelY * HUD_SCALE_Y,
+          0.019, 0.019,
+          index < state.parcelSeals ? VERMILION : SEA_GREY, 1, 0.9, Math.PI * 0.25,
+        );
       }
-      hud.set(hudIndex++, hudX + 0.87, parcelY, HUD_DEPTH + 0.02, 0.15, 0.27, 0.09, state.controlMode === 'attract' ? OCHRE : state.controlMode === 'manual' ? ULTRAMARINE : SEA_GREY, 0, 0.08, 0);
+      place(
+        0.87, parcelY, 0.15, 0.27,
+        state.controlMode === 'attract' ? OCHRE : state.controlMode === 'manual' ? ULTRAMARINE : SEA_GREY,
+        0.9,
+      );
       if (state.outcome !== 'running') {
+        // Centred, not anchored to the HUD corner: an outcome is the frame's subject for the moment
+        // it is up.
         const outcomeColor = state.outcome === 'delivered' ? OCHRE : VERMILION;
-        hud.set(hudIndex++, cameraFrame.target[0], cameraFrame.target[1] + 1.75, 1.4, 2.35, 0.16, 0.1, outcomeColor, 0, 0.12, 0);
-        hud.set(hudIndex++, cameraFrame.target[0], cameraFrame.target[1] + 1.75, 1.42, 0.16, 0.72, 0.11, outcomeColor, 0, 0.12, state.outcome === 'delivered' ? 0 : Math.PI * 0.25);
-      }
-      hud.set(hudIndex++, state.player.x - state.player.facing * 0.23, state.player.y + 0.12, 0.34, 0.28, 0.23, 0.18, VERMILION, 0, 0.1, state.player.facing * 0.08);
-      for (let index = 0; index < COURSE_HAZARDS.length; index += 1) {
-        const hazard = COURSE_HAZARDS[index]!;
-        hud.set(hudIndex++, hazard.x, hazardTop(hazard, state.time) + 0.055, HAZARD_TELEGRAPH_DEPTH, hazardTelegraphHalfWidth(hazard.width), HAZARD_TELEGRAPH_HALF_HEIGHT, HAZARD_TELEGRAPH_HALF_DEPTH, OCHRE, 0, 0.06, 0);
+        hud.set(hudIndex++, 0, 0.12, 0.36, 0.028, outcomeColor, 1, 0.95);
+        hud.set(
+          hudIndex++, 0, 0.12, 0.028, 0.2, outcomeColor, 1, 0.95,
+          state.outcome === 'delivered' ? 0 : Math.PI * 0.25,
+        );
       }
       hud.upload();
 

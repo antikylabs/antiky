@@ -225,7 +225,7 @@ export default shader({
     // second albedo fighting the first.
     const surface = mix(vec3(1, 1, 1), mix(vec3(1, 1, 1), materialAlbedo, 0.55), uMaterialStrength);
     // The Kenney palette is poster paint — fully saturated flat colour, which is what made the
-    // course read as plastic blocks rather than as made of anything. Pulling it a fifth of the way
+    // course read as plastic blocks rather than as made of anything. Pulling it well toward
     // toward its own luminance keeps the colour language the kit was designed around while letting
     // the material underneath carry the surface.
     const palette = mix(texel, uGradeColor, uGradeMix);
@@ -233,7 +233,7 @@ export default shader({
     const graded = mix(
       palette,
       vec3(paletteLuminance, paletteLuminance, paletteLuminance),
-      0.22,
+      0.38,
     ).mul(surface);
     // Tinted toward the sky rather than the surface colour, so the edge reads as light coming from
     // the world behind the object instead of the object glowing.

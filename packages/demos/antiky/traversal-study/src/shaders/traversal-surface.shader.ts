@@ -9,6 +9,8 @@ import {
   shader,
   sin,
   smoothstep,
+  texture,
+  vec2,
   vec3,
   vec4,
 } from 'brometal';
@@ -26,6 +28,7 @@ export default shader({
     iMaterial: 'vec3',
   },
   uniforms: {
+    uBillboard: 'sampler2D',
     uViewProj: 'mat4',
     uCameraPosition: 'vec3',
     uTime: 'float',
@@ -54,7 +57,7 @@ export default shader({
     return uViewProj.mul(vec4(world, 1));
   },
 
-  fragment({ uCameraPosition }, { vWorld, vNormal, vColor, vMaterial, vPulse }) {
+  fragment({ uCameraPosition, uBillboard }, { vWorld, vNormal, vColor, vMaterial, vPulse }) {
     const normal = normalize(vNormal);
     // Same key light as traversal-model, which is where the value comes from: the model shader
     // lights what the player watches, and this surface is what its shadows land on. Repeated
@@ -75,6 +78,16 @@ export default shader({
     const depth = smoothstep(22, 58, length(uCameraPosition.sub(vWorld)));
     const heightHaze = (1 - smoothstep(-5, 6, vWorld.y)) * 0.08;
     const sky = vec3(0.52, 0.63, 0.65).add(vec3(0.08, 0.06, 0.02).scale(heightHaze));
-    return vec4(tonemapACES(mix(base.add(emissive).add(highlight), sky, depth * 0.5)), 1);
+    // Structure on the contact shadow, which is the only thing this shader still draws — the HUD
+    // moved to a flat screen-space batch, which is what freed this shader to be textured at all.
+    //
+    // The blob is a sphere with no UVs, so the view-facing normal is the coordinate: it reaches the
+    // sprite's rim, where alpha is already zero, exactly at the silhouette. Without it every contact
+    // shadow in the frame is the same perfect ellipse.
+    const surfaceNormal = normalize(vNormal);
+    const structure = texture(uBillboard, vec2(surfaceNormal.x * 0.5 + 0.5, surfaceNormal.z * 0.5 + 0.5)).w;
+    const textured = 0.6 + structure * 0.4;
+    const composed = base.add(emissive).add(highlight).scale(textured);
+    return vec4(tonemapACES(mix(composed, sky, depth * 0.5)), 1);
   },
 });
