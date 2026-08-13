@@ -119,8 +119,13 @@ test('no material shader tone-maps, and the post pass does it in the right order
   // the exposure that runs *first* appears *last* in the source — comparing string indices would
   // report the correct pipeline as backwards.
   assert.ok(/encodeSrgb\(\s*tonemapACES\(/.test(body), 'the encode must wrap the tone-map');
+  // Either nesting or ordering is fine, and W B.5 changed which one this is: the stages were one
+  // expression until the grade arrived, and are named statements now. What must hold is that
+  // exposure reaches the value before the tone-map does.
+  const exposureInsideToneMap = /tonemapACES\([^)]*uExposure/.test(body);
+  const exposureBeforeToneMap = body.indexOf('uExposure') < body.indexOf('tonemapACES');
   assert.ok(
-    /tonemapACES\([^)]*uExposure/.test(body),
+    exposureInsideToneMap || exposureBeforeToneMap,
     'the tone-map must run on an already-exposed value',
   );
   assert.equal(body.split('uExposure').length - 1, 1, 'exposure is applied more than once');

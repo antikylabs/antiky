@@ -138,6 +138,9 @@ export type CombatRendererDependencies = Readonly<{
   createSceneTarget(renderer: Renderer, width: number, height: number): RenderTarget;
   createPostProgram(renderer: Renderer): BroMetalProgram;
   createShadowPass(renderer: Renderer): ReturnType<typeof createShadowPass>;
+  /** The bloom chain's targets and programs, injected for the same reason as everything else here. */
+  createBloomTarget(renderer: Renderer, width: number, height: number): RenderTarget;
+  createBloomProgram(renderer: Renderer, pass: 'extract' | 'blur'): BroMetalProgram;
 }>;
 
 const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
@@ -155,6 +158,18 @@ const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
   }),
   createPostProgram: (renderer) => createProgram(renderer, postShader, { blend: 'alpha' }),
   createShadowPass,
+  createBloomTarget: (renderer, width, height) => createRenderTarget(renderer, {
+    width,
+    height,
+    // Goal 02's render-target-filtering patch. On a point sampler the blur's taps snap back onto
+    // texel centres and the chain produces blocky glow that crawls with the camera.
+    filter: 'linear',
+  }),
+  // Branching on the pass rather than taking a shader, so the dependency stays a plain factory the
+  // tests can fake without importing either compiled shader.
+  createBloomProgram: (renderer, pass) => (pass === 'extract'
+    ? createProgram(renderer, bloomExtractShader)
+    : createProgram(renderer, bloomBlurShader)),
   loadVfxBillboard,
   createBackdrop: createSpaceBackdrop,
 });
@@ -239,16 +254,16 @@ export async function createCombatRendererWith(
         bloomTargets?.[0].dispose();
         bloomTargets?.[1].dispose();
         bloomTargets = [
-          createRenderTarget(renderer, { width, height, filter: 'linear' }),
-          createRenderTarget(renderer, { width, height, filter: 'linear' }),
+          dependencies.createBloomTarget(renderer, width, height),
+          dependencies.createBloomTarget(renderer, width, height),
         ];
       }
       return bloomTargets;
     };
-    const bloomExtract = registerResource(disposables, createProgram(renderer, bloomExtractShader));
+    const bloomExtract = registerResource(disposables, dependencies.createBloomProgram(renderer, 'extract'));
     bloomExtract.attributes.aPosition!.set(fullscreenQuad.positions);
     bloomExtract.setIndices(fullscreenQuad.indices);
-    const bloomBlur = registerResource(disposables, createProgram(renderer, bloomBlurShader));
+    const bloomBlur = registerResource(disposables, dependencies.createBloomProgram(renderer, 'blur'));
     bloomBlur.attributes.aPosition!.set(fullscreenQuad.positions);
     bloomBlur.setIndices(fullscreenQuad.indices);
     postProgram.attributes.aPosition!.set(fullscreenQuad.positions);

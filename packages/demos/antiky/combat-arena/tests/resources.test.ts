@@ -316,6 +316,8 @@ test('renderer destroys its context and catalog if the next top-level resource f
     createSceneTarget: () => { throw new Error('must not reach the scene target'); },
     createPostProgram: () => { throw new Error('must not reach the post program'); },
     createShadowPass: () => { throw new Error('must not reach the shadow pass'); },
+    createBloomTarget: () => { throw new Error('must not reach the bloom chain'); },
+    createBloomProgram: () => { throw new Error('must not reach the bloom chain'); },
   }), /injected fleet failure/);
   assert.deepEqual(disposed, ['catalog', 'renderer']);
 });
@@ -348,6 +350,8 @@ test('renderer rolls back ships and catalog when top-level projection creation f
     createSceneTarget: () => { throw new Error('must not reach the scene target'); },
     createPostProgram: () => { throw new Error('must not reach the post program'); },
     createShadowPass: () => { throw new Error('must not reach the shadow pass'); },
+    createBloomTarget: () => { throw new Error('must not reach the bloom chain'); },
+    createBloomProgram: () => { throw new Error('must not reach the bloom chain'); },
   }), /injected projection failure/);
   assert.deepEqual(disposed, ['ships', 'catalog', 'renderer']);
 });
@@ -384,6 +388,8 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
     createSceneTarget: () => { throw new Error('must not reach the scene target'); },
     createPostProgram: () => { throw new Error('must not reach the post program'); },
     createShadowPass: () => { throw new Error('must not reach the shadow pass'); },
+    createBloomTarget: () => { throw new Error('must not reach the bloom chain'); },
+    createBloomProgram: () => { throw new Error('must not reach the bloom chain'); },
   }), /injected backdrop failure/);
   assert.deepEqual(disposed, ['projection', 'ships', 'catalog', 'renderer']);
 });
@@ -391,7 +397,7 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
 test('renderer disposal is idempotent and destroys every GPU owner once', async () => {
   const disposals = {
     catalog: 0, ships: 0, projection: 0, backdrop: 0, renderer: 0, sceneTarget: 0, postProgram: 0,
-    shadowPass: 0,
+    shadowPass: 0, bloomTarget: 0, bloomProgram: 0,
   };
   const batch = {
     // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
@@ -449,6 +455,17 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
       bind() {}, render(draw: () => void) { draw(); },
       dispose() { disposals.shadowPass += 1; },
     }) as never,
+    // W B.5's bloom chain: two targets and two programs, all four GPU owners.
+    createBloomTarget: () => ({
+      width: 1, height: 1, texture: {}, depth: false,
+      dispose() { disposals.bloomTarget += 1; },
+    }) as never,
+    createBloomProgram: () => ({
+      attributes: { aPosition: { set() {} } },
+      uniforms: new Proxy({}, { get: () => ({ set() {} }) }),
+      setIndices() {}, draw() {},
+      dispose() { disposals.bloomProgram += 1; },
+    }) as never,
   });
   // One frame first, because the scene target is built lazily on the first draw. Disposing without
   // rendering would leave nothing to dispose and the assertion below would be checking that a
@@ -458,7 +475,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
   combatRenderer.dispose();
   assert.deepEqual(disposals, {
     catalog: 1, ships: 1, projection: 1, backdrop: 1, renderer: 1, sceneTarget: 1, postProgram: 1,
-    shadowPass: 1,
+    shadowPass: 1, bloomTarget: 2, bloomProgram: 2,
   });
 });
 
