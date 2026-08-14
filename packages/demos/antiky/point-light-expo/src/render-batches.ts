@@ -293,7 +293,9 @@ export function createRingGeometry(segments = 64, bandHalfWidth = 0.16): Geometr
   }
   for (let segment = 0; segment < segments; segment += 1) {
     const base = segment * 2;
-    indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
+    // Wound to face +y: this demo culls back faces, and a ring the camera looks down on has to
+    // present its front upward or the whole batch silently disappears.
+    indices.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
   }
   return {
     positions: new Float32Array(positions),

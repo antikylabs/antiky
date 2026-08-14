@@ -1,10 +1,10 @@
 {
   "schemaVersion": 4,
   "demo": "point-light-expo",
-  "capturedAt": "2026-08-14T01:45:07.103Z",
+  "capturedAt": "2026-08-14T01:46:28.862Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "1e88508c70ac2b52",
+    "digest": "34531a9220aa4d21",
     "fileCount": 132
   },
   "frame": {
@@ -12,14 +12,14 @@
     "height": 720
   },
   "luminance": {
-    "mean": 0.086431,
+    "mean": 0.087013,
     "p05": 0.001389,
-    "p50": 0.057744,
-    "p95": 0.283709,
-    "spread": 0.282321
+    "p50": 0.058395,
+    "p95": 0.285726,
+    "spread": 0.284337
   },
   "localContrast": {
-    "median": 7.6395,
+    "median": 7.7331,
     "p10": 0
   },
   "clipping": {
@@ -27,27 +27,27 @@
     "low": 0
   },
   "saturation": {
-    "mean": 0.276548
+    "mean": 0.278451
   },
   "encodedLuma": {
     "p05": 0.01794,
-    "p50": 0.263593,
-    "p95": 0.56559,
-    "spread": 0.54765,
+    "p50": 0.265101,
+    "p95": 0.567236,
+    "spread": 0.549296,
     "clipped": 0.000003
   },
   "hue": {
     "clusters": 4,
-    "dominantShare": 0.732352,
-    "chromaticFraction": 0.596042
+    "dominantShare": 0.732189,
+    "chromaticFraction": 0.595736
   },
   "edges": {
-    "hard": 0.008023
+    "hard": 0.008048
   },
   "probes": {
     "onboarding": {
-      "meanLuminance": 0.06493,
-      "standardDeviation": 0.143071,
+      "meanLuminance": 0.064901,
+      "standardDeviation": 0.143073,
       "pixels": 36480
     },
     "sunShadow": {
@@ -56,20 +56,20 @@
       "pixels": 1024
     },
     "sunLit": {
-      "meanLuminance": 0.12737,
-      "standardDeviation": 0.0286,
+      "meanLuminance": 0.127374,
+      "standardDeviation": 0.028607,
       "pixels": 1024
     },
     "bloomNear": {
-      "meanLuminance": 0.166405,
-      "standardDeviation": 0.08014,
+      "meanLuminance": 0.168181,
+      "standardDeviation": 0.080881,
       "pixels": 576
     },
     "bloomFar": {
-      "meanLuminance": 0.07902,
-      "standardDeviation": 0.018892,
+      "meanLuminance": 0.079185,
+      "standardDeviation": 0.018786,
       "pixels": 576
     }
   },
-  "seal": "7b6eac147e62afc7"
+  "seal": "880aa917992c72d3"
 }
