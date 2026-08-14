@@ -289,7 +289,7 @@ export default shader({
     // tones, so it is pulled most of the way to its own grey before the cool tint — the practicals
     // repaint their own pools through the falloff, which is where the goal says the colour goes.
     const litterGrey = dot(diffuseSample, vec3(0.2126, 0.7152, 0.0722));
-    const dampEarth = mix(diffuseSample, vec3(litterGrey, litterGrey, litterGrey), 0.85).mul(uDiffuseTint);
+    const dampEarth = mix(diffuseSample, vec3(litterGrey, litterGrey, litterGrey), 0.93).mul(uDiffuseTint);
     const amber = materialPresentationFloorLight(vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness, dampEarth);
     const blue = materialPresentationFloorLight(vWorld, normal, view, uIonPosition, uIonColor, uIonPower, uIonRadius, roughness, dampEarth);
     const plum = materialPresentationFloorLight(vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness, dampEarth);
