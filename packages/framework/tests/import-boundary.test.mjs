@@ -56,3 +56,14 @@ test('framework runtime source does not reference browser globals', async () => 
     assert.doesNotMatch(source, /\b(?:window|document|navigator)\b/, `${name} uses a browser global`);
   }
 });
+
+test('the game contract module imports nothing at all', async () => {
+  // The reason six demos hand-copied the contract instead of importing it: `host.ts` reaches the
+  // inspection snapshot and the whole point-light type graph, so the shape of a game module could
+  // not be obtained without them. This module is the shape on its own, and it stays that way only
+  // while this passes.
+  const source = await readFile(new URL('../src/game/contract.ts', import.meta.url), 'utf8');
+  const imports = source.match(/^\s*import[\s{*]/gm) ?? [];
+  assert.deepEqual(imports, [], 'src/game/contract.ts must have zero import statements');
+  assert.doesNotMatch(source, /\brequire\(/, 'and no require() either');
+});

@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:b1ec3f69031eb52a
+frameworkSource: sha256:e470edccf0f7aab5
 ---
 
 # Game host API
@@ -31,9 +31,9 @@ const mountGame: GameModuleEntry = ({ canvas, movement, pointer }) => ({
 export default mountGame;
 ```
 
-## Game module and host contract
+## Game contract, import-free
 
-Keep platform work in the host and expose only semantic game input, measurements, inspection, presentation, and cleanup.
+Re-exported here so the game entry stays one import. `@antiky/framework/contract` is the same types with nothing behind them.
 
 ### `GamePointerInput`
 
@@ -83,6 +83,25 @@ type GameMeasurements = Readonly<{
     note?: string;
 }>;
 ```
+
+### `GameHostContext`
+
+Canvas, runtime identity, semantic input, mode, and measurement callback supplied when a host mounts a game.
+
+```ts
+type GameHostContext = Readonly<{
+    canvas: HTMLCanvasElement;
+    runtimeInstanceId: string;
+    pointer: GamePointerInput;
+    movement: GameMovementInput;
+    mode: GameHostMode;
+    report(measurements: GameMeasurements): void;
+}>;
+```
+
+## Game module and host contract
+
+Keep platform work in the host and expose only semantic game input, measurements, inspection, presentation, and cleanup.
 
 ### `GameHostInspectionState`
 
@@ -149,31 +168,12 @@ Combines validated host state with optional game state in one Framework inspecti
 function createGameInspectionSnapshot(state: GameHostInspectionState, details: GameInspectionDetails = {}): InspectionSnapshot;
 ```
 
-### `GameHostContext`
-
-Canvas, runtime identity, semantic input, mode, and measurement callback supplied when a host mounts a game.
-
-```ts
-type GameHostContext = Readonly<{
-    canvas: HTMLCanvasElement;
-    runtimeInstanceId: string;
-    pointer: GamePointerInput;
-    movement: GameMovementInput;
-    mode: GameHostMode;
-    report(measurements: GameMeasurements): void;
-}>;
-```
-
 ### `GameInstance`
 
 One mounted game with presentation, cleanup, and optional inspection operations.
 
 ```ts
-type GameInstance = Readonly<{
-    frame(platformTimeSeconds: number): void;
-    dispose(): void;
-    inspection?: GameInspectionPort;
-}>;
+type GameInstance = GameInstanceCore<GameInspectionPort>;
 ```
 
 ### `GameModuleEntry`

@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:b1ec3f69031eb52a
+frameworkSource: sha256:e470edccf0f7aab5
 ---
 
 # Framework API reference
 
-This is the complete public API exported by the Antiky Framework package. It covers all 206 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
+This is the complete public API exported by the Antiky Framework package. It covers all 213 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
 
 Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.
 
@@ -31,6 +31,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 | [Resource disposal API](resources.md) | Own a set of resources and release them in reverse order, reporting every failure rather than the first. | [Run a fixed-step game session](../framework/engine-sessions.md) |
 | [Seeded randomness API](random.md) | Draw reproducible pseudo-random values from an explicit seed, with forks that do not depend on draw order. | [Run a fixed-step game session](../framework/engine-sessions.md) |
 | [Latched input API](input.md) | Hold a one-shot action from the frame it was pressed until a fixed step consumes it, counting a held button once. | [Build a game module](../framework/game-modules.md) |
+| [Game contract API](game-contract.md) | The shape of a game module and the context a host supplies it, with nothing imported behind it. | [Build a game module](../framework/game-modules.md) |
 
 ## Shared rules
 
@@ -69,7 +70,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 
 ### Game host API
 
-[`GamePointerInput`](game-host.md#gamepointerinput) · [`GameMovementInput`](game-host.md#gamemovementinput) · [`GameHostMode`](game-host.md#gamehostmode) · [`GameMeasurements`](game-host.md#gamemeasurements) · [`GameHostInspectionState`](game-host.md#gamehostinspectionstate) · [`GameInspectionDetails`](game-host.md#gameinspectiondetails) · [`GameSessionControlResult`](game-host.md#gamesessioncontrolresult) · [`GameInspectionPort`](game-host.md#gameinspectionport) · [`createGameInspectionSnapshot`](game-host.md#creategameinspectionsnapshot) · [`GameHostContext`](game-host.md#gamehostcontext) · [`GameInstance`](game-host.md#gameinstance) · [`GameModuleEntry`](game-host.md#gamemoduleentry)
+[`GamePointerInput`](game-host.md#gamepointerinput) · [`GameMovementInput`](game-host.md#gamemovementinput) · [`GameHostMode`](game-host.md#gamehostmode) · [`GameMeasurements`](game-host.md#gamemeasurements) · [`GameHostContext`](game-host.md#gamehostcontext) · [`GameHostInspectionState`](game-host.md#gamehostinspectionstate) · [`GameInspectionDetails`](game-host.md#gameinspectiondetails) · [`GameSessionControlResult`](game-host.md#gamesessioncontrolresult) · [`GameInspectionPort`](game-host.md#gameinspectionport) · [`createGameInspectionSnapshot`](game-host.md#creategameinspectionsnapshot) · [`GameInstance`](game-host.md#gameinstance) · [`GameModuleEntry`](game-host.md#gamemoduleentry)
 
 ### Resource disposal API
 
@@ -82,6 +83,10 @@ Start with a task guide when you are building a feature. Use the pages below whe
 ### Latched input API
 
 [`LatchedAction`](input.md#latchedaction) · [`createLatchedAction`](input.md#createlatchedaction)
+
+### Game contract API
+
+[`GamePointerInput`](game-contract.md#gamepointerinput) · [`GameMovementInput`](game-contract.md#gamemovementinput) · [`GameHostMode`](game-contract.md#gamehostmode) · [`GameMeasurements`](game-contract.md#gamemeasurements) · [`GameHostContext`](game-contract.md#gamehostcontext) · [`GameInstance`](game-contract.md#gameinstance) · [`GameModuleEntry`](game-contract.md#gamemoduleentry)
 
 ## Keeping the reference current
 

@@ -216,6 +216,11 @@ const mountGame: GameModuleEntry = ({ canvas, movement, pointer }) => ({
 export default mountGame;`,
     modules: [
       {
+        source: 'game/contract.ts',
+        title: 'Game contract, import-free',
+        description: 'Re-exported here so the game entry stays one import. `@antiky/framework/contract` is the same types with nothing behind them.',
+      },
+      {
         source: 'game/host.ts',
         title: 'Game module and host contract',
         description: 'Keep platform work in the host and expose only semantic game input, measurements, inspection, presentation, and cleanup.',
@@ -288,6 +293,35 @@ jump.consume(advance.completedSteps);`,
         source: 'input/latched-action.ts',
         title: 'Latched action buffer',
         description: 'Capture a press once per edge, keep it across frames that complete no step, and clear it when one does.',
+      },
+    ],
+  },
+  {
+    slug: 'game-contract',
+    title: 'Game contract API',
+    packageEntry: '@antiky/framework/contract',
+    summary: 'The shape of a game module and the context a host supplies it, with nothing imported behind it.',
+    useWhen: 'Use this entry when a module needs only the contract, so it does not pull in the inspection snapshot or the point-light type graph to learn what a game looks like.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'The same contract as the game host entry, obtainable on its own. `mode` lets a game degrade for a thumbnail; the seven-field pointer carries press and drag state, not just a position.',
+    example: `import type { GameModuleEntry } from '@antiky/framework/contract';
+
+const mountGame: GameModuleEntry = ({ canvas, pointer, mode }) => ({
+  frame(platformTimeSeconds) {
+    if (mode !== 'thumbnail') updateGame({ pointer, platformTimeSeconds });
+    drawGame(canvas);
+  },
+  dispose() {
+    disposeGame();
+  },
+});
+
+export default mountGame;`,
+    modules: [
+      {
+        source: 'game/contract.ts',
+        title: 'Game contract, import-free',
+        description: 'The shape of a game module and the context a host supplies it, with zero imports so it can be taken on its own.',
       },
     ],
   },
