@@ -177,10 +177,12 @@ function setCombatGlows(glows: GlowBatch, state: CombatSnapshot): void {
     const fixture = ARENA_LIGHTS[post]!;
     index = pushGlow(
       glows, index,
-      fixture.position[0] * 0.965, fixture.position[1] + 0.12, fixture.position[2] * 0.965,
-      0.16, 0.16, 0.3,
+      // Seated on item 14's trim rail (y 1.62) rather than floating over the wall top, so the
+      // fixture reads as mounted on the rail it lights.
+      fixture.position[0] * 0.955, 1.62, fixture.position[2] * 0.955,
+      0.11, 0.11, 0.3,
       fixture.color,
-      1.35, 0, post * 1.7,
+      1.1, 0, post * 1.7,
     );
   }
 
