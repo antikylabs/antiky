@@ -38,7 +38,7 @@ export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4,
     // failure the hue budget exists to catch. Warm-neutral keeps the luminance without the wash.
     color: Object.freeze(teamEnd === 'red' ? [1, 0.3, 0.24] as const
       : teamEnd === 'cyan' ? [0.3, 0.85, 1] as const
-        : warm ? [1, 0.86, 0.7] as const : [0.7, 0.84, 0.95] as const),
+        : warm ? [1, 0.88, 0.74] as const : [0.8, 0.88, 0.96] as const),
     // Six lights sum. At 2.6 each the deck blew to white — the arena is roughly 16 across and every
     // point on it is inside two or three of these, so the useful figure is roughly a sixth of what a
     // single light would want.
