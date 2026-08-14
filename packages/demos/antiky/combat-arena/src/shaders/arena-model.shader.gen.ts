@@ -170,7 +170,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let skirtBand = 1.0 - smoothstep(0.045, 0.075, abs(bm_in.vWorld.y - 0.34));
   let inwardFacing = step(normal.x * bm_in.vWorld.x + normal.z * bm_in.vWorld.z, 0.0);
   let capBand = smoothstep(1.94, 1.99, bm_in.vWorld.y) * (1.0 - smoothstep(2.03, 2.09, bm_in.vWorld.y));
-  let trim = vec3f(3.4, 4.0, 4.3) * ((railBand + skirtBand * 0.55) * bm_u.uTrimStrength * inwardFacing) + vec3f(1.5, 1.7, 1.85) * (capBand * bm_u.uTrimStrength);
+  let trim = vec3f(4.0, 4.6, 4.9) * ((railBand + skirtBand * 0.55) * bm_u.uTrimStrength * inwardFacing) + vec3f(1.5, 1.7, 1.85) * (capBand * bm_u.uTrimStrength);
   let confirmed = mix(floodlit + mirrored + trim, vec3f(1.7, 1.8, 1.9), clamp(bm_in.vParams.y, 0.0, 1.0));
   let fog = smoothstep(17.0, 34.0, length(bm_u.uCameraPosition - bm_in.vWorld));
   return vec4f(mix(confirmed, vec3f(0.001887, 0.002936, 0.004748), fog * 0.72), 1.0);
