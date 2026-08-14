@@ -1,26 +1,6 @@
-export type CombatActionBuffer = Readonly<{
-  capture(clicked: boolean): void;
-  read(): boolean;
-  consume(completedSteps: number): void;
-}>;
+import { createLatchedAction, type LatchedAction } from '@antiky/framework';
 
-export function createCombatActionBuffer(): CombatActionBuffer {
-  let pending = false;
-  let armed = true;
-  return Object.freeze({
-    capture(clicked: boolean): void {
-      if (!clicked) {
-        armed = true;
-      } else if (armed) {
-        pending = true;
-        armed = false;
-      }
-    },
-    read(): boolean {
-      return pending;
-    },
-    consume(completedSteps: number): void {
-      if (completedSteps > 0) pending = false;
-    },
-  });
-}
+/** The combat action: one dash or one mark per press, not one per frame held. */
+export type CombatActionBuffer = LatchedAction;
+
+export const createCombatActionBuffer = createLatchedAction;

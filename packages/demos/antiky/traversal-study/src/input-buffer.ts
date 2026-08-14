@@ -1,3 +1,5 @@
+import { createLatchedAction } from '@antiky/framework';
+
 import type { TraversalInput } from './simulation.ts';
 
 export type TraversalInputBuffer = Readonly<{
@@ -34,26 +36,27 @@ export function createTraversalInputBuffer(): TraversalInputBuffer {
     brake: false,
     retry: false,
   };
-  let pendingJump = false;
-  let pendingRetry = false;
+  // Two latches rather than two `||=` flags: a held jump is one jump, which the raw flags did not
+  // guarantee. The continuous fields below are level-sampled and want no latching at all.
+  const jump = createLatchedAction();
+  const retry = createLatchedAction();
 
   return Object.freeze({
     capture(input): void {
       semanticInput.horizontal = input.horizontal;
       semanticInput.active = input.active;
       semanticInput.brake = input.brake === true;
-      pendingJump ||= input.jump === true;
-      pendingRetry ||= input.retry === true;
+      jump.capture(input.jump === true);
+      retry.capture(input.retry === true);
     },
     read(): TraversalInput {
-      semanticInput.jump = pendingJump;
-      semanticInput.retry = pendingRetry;
+      semanticInput.jump = jump.read();
+      semanticInput.retry = retry.read();
       return semanticInput;
     },
     consume(completedSteps): void {
-      if (completedSteps <= 0) return;
-      pendingJump = false;
-      pendingRetry = false;
+      jump.consume(completedSteps);
+      retry.consume(completedSteps);
     },
   });
 }

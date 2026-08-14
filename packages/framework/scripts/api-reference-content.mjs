@@ -264,9 +264,35 @@ const offset = scatter.unit();`,
       },
     ],
   },
+  {
+    slug: 'input',
+    title: 'Latched input API',
+    summary: 'Hold a one-shot action from the frame it was pressed until a fixed step consumes it, counting a held button once.',
+    useWhen: 'Use one latch per discrete action whenever input is sampled per rendered frame but consumed per fixed step.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'The host samples every frame; the session may complete no steps in a frame, so the press has to survive until one runs.',
+    example: `import { createLatchedAction } from '@antiky/framework';
+
+const jump = createLatchedAction();
+
+jump.capture(pointer.down);
+const advance = session.advance({ elapsedSeconds, input: { jump: jump.read() } });
+jump.consume(advance.completedSteps);`,
+    modules: [
+      {
+        source: 'input/latched-action.ts',
+        title: 'Latched action buffer',
+        description: 'Capture a press once per edge, keep it across frames that complete no step, and clear it when one does.',
+      },
+    ],
+  },
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
+  // Latched input
+  LatchedAction: 'A one-shot action captured at display rate and consumed at simulation rate.',
+  createLatchedAction: 'Create an edge-triggered action buffer that survives frames completing no step.',
+
   // Seeded randomness
   hash32: 'A reproducible 32-bit hash of one or two integers, using integer operations only.',
   hashUnit: 'The same hash mapped onto `[0, 1)`.',

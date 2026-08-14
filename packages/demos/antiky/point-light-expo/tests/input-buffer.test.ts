@@ -169,3 +169,26 @@ test('one buffered click cannot both enter and retry a terminal state during cat
   assert.equal(simulation.read().run, 2);
   session.dispose();
 });
+
+test('a held pointer arms exactly one relay interaction', () => {
+  // The divergence goal 11 found: combat-arena added rising-edge detection to its copy of this
+  // module and the fix never reached the other two. Holding the button down here re-arms the
+  // interaction on every frame, so the relay re-triggers for as long as the pointer is held.
+  const buffer = createRelayInteractionBuffer();
+  let triggers = 0;
+  for (let frame = 0; frame < 10; frame += 1) {
+    buffer.capture(true);
+    if (buffer.read()) triggers += 1;
+    buffer.consume(1);
+  }
+  assert.equal(triggers, 1, 'a held press is one action, not one per frame');
+});
+
+test('a frame that completes no step keeps the pending interaction', () => {
+  const buffer = createRelayInteractionBuffer();
+  buffer.capture(true);
+  buffer.consume(0);
+  assert.equal(buffer.read(), true, 'a render-only frame must not swallow the action');
+  buffer.consume(1);
+  assert.equal(buffer.read(), false);
+});
