@@ -352,14 +352,14 @@ export default shader({
     // Two ruled lines: a bright rail at 1.62 and a low skirting line at 0.34, each a few
     // centimetres wide with a soft edge. World-space `vWorld.y` is what makes this item 14's
     // "procedural trim" — no UVs are consulted, so the kit's atlas never fights it.
-    const railBand = 1 - smoothstep(0.055, 0.09, abs(vWorld.y - 1.62));
-    const skirtBand = 1 - smoothstep(0.035, 0.06, abs(vWorld.y - 0.34));
+    const railBand = 1 - smoothstep(0.07, 0.115, abs(vWorld.y - 1.62));
+    const skirtBand = 1 - smoothstep(0.045, 0.075, abs(vWorld.y - 0.34));
     // Inward faces only. The outer skirt is a rounded apron that crosses each band height several
     // times, and ruling lines across it stacked four and five bright stripes down the near wall —
     // a venetian blind, not architecture. A fragment whose horizontal normal points away from the
     // arena's axis is an outside face and takes no trim.
     const inwardFacing = step(normal.x * vWorld.x + normal.z * vWorld.z, 0);
-    const trim = vec3(2.5, 2.95, 3.2).scale((railBand + skirtBand * 0.55) * uTrimStrength * inwardFacing);
+    const trim = vec3(3.4, 4.0, 4.3).scale((railBand + skirtBand * 0.55) * uTrimStrength * inwardFacing);
     const confirmed = mix(floodlit.add(mirrored).add(trim), vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the
     // ship shader's original range. The tighter floor ranges faded the ground while ships at the

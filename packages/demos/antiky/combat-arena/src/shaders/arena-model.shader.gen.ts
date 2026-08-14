@@ -166,10 +166,10 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let reflected = textureSample(uReflection, uReflection_sampler, vec2f(reflectionUv.x + (tilt.x + tilt.z) * 0.018, reflectionUv.y + tilt.y * 0.018)).xyz;
   let grazingReflection = pow(1.0 - max(dot(normal, view), 0.0), 2.0);
   let mirrored = reflected * (bm_u.uReflectionStrength * (0.34 + grazingReflection * 0.66) * (1.2 - kitRoughness));
-  let railBand = 1.0 - smoothstep(0.055, 0.09, abs(bm_in.vWorld.y - 1.62));
-  let skirtBand = 1.0 - smoothstep(0.035, 0.06, abs(bm_in.vWorld.y - 0.34));
+  let railBand = 1.0 - smoothstep(0.07, 0.115, abs(bm_in.vWorld.y - 1.62));
+  let skirtBand = 1.0 - smoothstep(0.045, 0.075, abs(bm_in.vWorld.y - 0.34));
   let inwardFacing = step(normal.x * bm_in.vWorld.x + normal.z * bm_in.vWorld.z, 0.0);
-  let trim = vec3f(2.5, 2.95, 3.2) * ((railBand + skirtBand * 0.55) * bm_u.uTrimStrength * inwardFacing);
+  let trim = vec3f(3.4, 4.0, 4.3) * ((railBand + skirtBand * 0.55) * bm_u.uTrimStrength * inwardFacing);
   let confirmed = mix(floodlit + mirrored + trim, vec3f(1.7, 1.8, 1.9), clamp(bm_in.vParams.y, 0.0, 1.0));
   let fog = smoothstep(17.0, 34.0, length(bm_u.uCameraPosition - bm_in.vWorld));
   return vec4f(mix(confirmed, vec3f(0.001887, 0.002936, 0.004748), fog * 0.72), 1.0);
