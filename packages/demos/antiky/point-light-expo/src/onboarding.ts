@@ -70,7 +70,7 @@ export function createRelayOnboardingOverlay(
     context.font = '600 26px ui-monospace, SFMono-Regular, Menlo, monospace';
     RELAY_ONBOARDING_ROWS.forEach((row, index) => {
       context.fillStyle = index === 0 ? '#d5d4bd' : '#c8d4b2';
-      context.fillText(row.map((cue) => cue.label).join('   '), 512, 35 + index * 58);
+      context.fillText(row.join('   '), 512, 35 + index * 58);
     });
 
     const geometry = createPlane({ width: 2, height: 2 });

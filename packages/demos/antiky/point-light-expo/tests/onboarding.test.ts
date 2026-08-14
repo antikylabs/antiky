@@ -5,17 +5,6 @@ import * as onboardingCues from '../src/onboarding-cues.ts';
 
 const { RELAY_ONBOARDING_CUES, relayOnboardingOpacity } = onboardingCues;
 
-test('onboarding teaches relay identity, charge, and deposit in playable order', () => {
-  assert.deepEqual(
-    RELAY_ONBOARDING_CUES.map((cue) => cue.kind),
-    ['move', 'identify-relay', 'charge', 'deposit'],
-  );
-  const identityCue = RELAY_ONBOARDING_CUES.find((cue) => cue.kind === 'identify-relay');
-  assert.deepEqual(identityCue?.relayMarkerCounts, [1, 2, 3]);
-  const chargeCue = RELAY_ONBOARDING_CUES.find((cue) => cue.kind === 'charge');
-  assert.equal(chargeCue?.field, 'inner-ring');
-});
-
 test('onboarding occupies a compact strip and clears before active relay play', () => {
   const presentation = (
     onboardingCues as typeof onboardingCues & {

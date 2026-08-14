@@ -1,35 +1,16 @@
-export type RelayOnboardingCue = Readonly<{
-  kind: 'move' | 'identify-relay' | 'charge' | 'deposit';
-  label: string;
-  relayMarkerCounts: readonly number[] | null;
-  field: 'inner-ring' | null;
-}>;
-
-export const RELAY_ONBOARDING_CUES: readonly RelayOnboardingCue[] = Object.freeze([
-  Object.freeze({
-    kind: 'move',
-    label: 'WASD / ARROWS — MOVE',
-    relayMarkerCounts: null,
-    field: null,
-  }),
-  Object.freeze({
-    kind: 'identify-relay',
-    label: '1 / 2 / 3 BEADS — RELAY ID',
-    relayMarkerCounts: Object.freeze([1, 2, 3]),
-    field: null,
-  }),
-  Object.freeze({
-    kind: 'charge',
-    label: 'STAND IN INNER RING — BUILD CHARGE',
-    relayMarkerCounts: null,
-    field: 'inner-ring',
-  }),
-  Object.freeze({
-    kind: 'deposit',
-    label: 'CLICK AT FORGE — DEPOSIT',
-    relayMarkerCounts: null,
-    field: null,
-  }),
+/**
+ * The overlay draws these strings and nothing else.
+ *
+ * They used to be four-field descriptors carrying a `kind`, a `field` and a `relayMarkerCounts`.
+ * Only the label was ever drawn. The relay identity markers derive their own 1/2/3 counts from the
+ * light index at `relay-visuals.ts:237-239`, so the counts here were a second copy that happened to
+ * agree rather than the source anything read.
+ */
+export const RELAY_ONBOARDING_CUES: readonly string[] = Object.freeze([
+  'WASD / ARROWS — MOVE',
+  '1 / 2 / 3 BEADS — RELAY ID',
+  'STAND IN INNER RING — BUILD CHARGE',
+  'CLICK AT FORGE — DEPOSIT',
 ]);
 
 export const RELAY_ONBOARDING_ROWS = Object.freeze([
