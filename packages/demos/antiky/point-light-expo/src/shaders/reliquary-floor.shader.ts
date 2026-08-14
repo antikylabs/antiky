@@ -93,7 +93,7 @@ function materialPresentationFloorLight(
   // lights. The 0.35 floors the divisor so the core clips to near-white instead of to infinity,
   // which is what the HDR target and the bloom pass exist to receive; the window keeps the finite
   // radius the gameplay fields are authored against.
-  const arriving = lightColor.scale(lightPower * range * range / (0.35 + distanceSq * 0.55));
+  const arriving = lightColor.scale(lightPower * range * range / (0.4 + distanceSq * 0.28));
   // Albedo tints the diffuse and not the specular. A highlight on wet stone is the colour of the
   // light, not the colour of the stone — that is what `f0` above is for. The two used to be summed
   // and tinted together by the caller, which made every highlight take the surface's colour.

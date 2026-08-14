@@ -107,7 +107,7 @@ fn materialPresentationFloorLight(world : vec3f, normal : vec3f, view : vec3f, l
   let light = normalize(toLight);
   let diffuse = max(dot(normal, light), 0.0);
   let specular = specularGGX(normal, light, view, roughness, vec3f(0.04, 0.04, 0.04));
-  let arriving = lightColor * (lightPower * range * range / (0.35 + distanceSq * 0.55));
+  let arriving = lightColor * (lightPower * range * range / (0.4 + distanceSq * 0.28));
   return arriving * (albedo * diffuse + specular);
 }
 fn channelToLinear(channel : f32) -> f32 {

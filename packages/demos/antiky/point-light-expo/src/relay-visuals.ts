@@ -288,14 +288,14 @@ function populateRings(
     const relayColor = colorForRelay(index);
     rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.relaySafe, index),
-      light.transform.position[0], -0.31, light.transform.position[2],
+      light.transform.position[0], -0.28, light.transform.position[2],
       field.safe,
       relayColor[0], relayColor[1], relayColor[2],
       0.9,
     );
     rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.relayCharge, index),
-      light.transform.position[0], -0.27, light.transform.position[2],
+      light.transform.position[0], -0.26, light.transform.position[2],
       field.charge,
       relayColor[0], relayColor[1], relayColor[2],
       state.deposits[index] ? 0.4 : 1.6,
@@ -341,7 +341,7 @@ function populateRings(
     const shadeColor = shade.mode === 'threaten' ? DANGER : SHADE;
     rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.shades, index),
-      shade.x, -0.3, shade.z,
+      shade.x, -0.27, shade.z,
       scale,
       shadeColor[0], shadeColor[1], shadeColor[2],
       shade.mode === 'threaten' ? 2.0 : 0.6,
@@ -367,7 +367,7 @@ function populateRings(
     const ambienceColor = index % 2 === 0 ? VERDIGRIS : OLD_BRASS;
     rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.ambience, index),
-      Math.cos(angle) * 4.7, -0.33, Math.sin(angle) * 3.5,
+      Math.cos(angle) * 4.7, -0.29, Math.sin(angle) * 3.5,
       scale,
       ambienceColor[0], ambienceColor[1], ambienceColor[2],
       0.2,
