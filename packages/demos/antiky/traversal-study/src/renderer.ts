@@ -26,6 +26,7 @@ import {
   hazardTop,
   platformTop,
 } from './course.ts';
+import { groundTopAt } from './course-query.ts';
 import {
   backgroundCompositionAt,
 } from './environment.ts';
@@ -405,14 +406,6 @@ function stableNoise(index: number, salt: number): number {
   return value - Math.floor(value);
 }
 
-function courseTopAt(x: number, time: number): number {
-  for (let index = 0; index < COURSE_PLATFORMS.length; index += 1) {
-    const platform = COURSE_PLATFORMS[index]!;
-    if (Math.abs(x - platform.x) <= platform.width * 0.5) return platformTop(platform, time);
-  }
-  return 0;
-}
-
 export type TraversalRenderer = Readonly<{
   measurements: Readonly<{ instances: number; drawCalls: number; uploadBytesPerFrame: number; note: string }>;
   render(state: TraversalSnapshot, pointer: PointerState, deltaSeconds: number): void;
@@ -714,9 +707,9 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       flags.clear();
       for (let index = 0; index < COURSE_CHECKPOINTS.length; index += 1) {
         const checkpoint = COURSE_CHECKPOINTS[index]!;
-        flags.set(index, checkpoint.x, courseTopAt(checkpoint.x, state.time) + 0.03, -1.32, 1.5, 1.85, 1.5, 0, 0.08 + state.effects.checkpoint * 0.04, index * 1.7);
+        flags.set(index, checkpoint.x, groundTopAt(checkpoint.x, state.time) + 0.03, -1.32, 1.5, 1.85, 1.5, 0, 0.08 + state.effects.checkpoint * 0.04, index * 1.7);
       }
-      flags.set(3, DELIVERY_X - 1.5, courseTopAt(DELIVERY_X, state.time) + 0.03, -1.5, 2.2, 3.2, 2.2, 0, 0.11, 4.2);
+      flags.set(3, DELIVERY_X - 1.5, groundTopAt(DELIVERY_X, state.time) + 0.03, -1.5, 2.2, 3.2, 2.2, 0, 0.11, 4.2);
       flags.upload();
 
       coins.clear();
@@ -725,7 +718,7 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
         coins.set(0, collectible.x, collectible.y + Math.sin(state.time * 3) * 0.12, 0.05, 1.65, 1.65, 1.65, state.time * 2.6, 0, 0);
       }
       if (state.outcome === 'delivered') {
-        coins.set(1, DELIVERY_X, courseTopAt(DELIVERY_X, state.time) + 1.7, 0, 2.6, 2.6, 2.6, state.time * 1.8, 0, 1);
+        coins.set(1, DELIVERY_X, groundTopAt(DELIVERY_X, state.time) + 1.7, 0, 2.6, 2.6, 2.6, state.time * 1.8, 0, 1);
       }
       coins.upload();
 
@@ -743,7 +736,7 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       courier.set(0, state.player.x, state.player.y - RUNNER_RADIUS + 0.002, 0.02, courierScaleX, courierScaleY, 0.305, gait * 0.018, 0.012, state.time * 1.7);
       courier.upload();
 
-      const supportTop = courseTopAt(state.player.x, state.time);
+      const supportTop = groundTopAt(state.player.x, state.time);
       const shadowDistance = Math.max(0, state.player.y - RUNNER_RADIUS - supportTop);
       contactShadow.clear();
       // Footprint widened from the squashed-sphere numbers. The dome was opaque and replaced the
@@ -782,11 +775,11 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
         // Colour gain 2.6: additive into HDR, so an active checkpoint's ring runs over 1.0 in
         // linear light and the bloom pass picks it up — the whole reason this batch exists.
         const glyphColor = index <= state.checkpointIndex ? OCHRE : SEA_GREY;
-        emissives.set(index, checkpoint.x, courseTopAt(checkpoint.x, state.time) + 1.05, 0.1, checkpointScale, checkpointScale, 1, [glyphColor[0] * 2.6, glyphColor[1] * 2.6, glyphColor[2] * 2.6], 0.18 + state.effects.checkpoint * 0.22, state.time * 0.16, index);
+        emissives.set(index, checkpoint.x, groundTopAt(checkpoint.x, state.time) + 1.05, 0.1, checkpointScale, checkpointScale, 1, [glyphColor[0] * 2.6, glyphColor[1] * 2.6, glyphColor[2] * 2.6], 0.18 + state.effects.checkpoint * 0.22, state.time * 0.16, index);
       }
       const deliveryScale = 1.45 + state.effects.delivery * 0.45;
       const deliveryColor = state.outcome === 'failed' ? VERMILION : OCHRE;
-      emissives.set(3, DELIVERY_X, courseTopAt(DELIVERY_X, state.time) + 1.35, 0.1, deliveryScale, deliveryScale, 1, [deliveryColor[0] * 2.6, deliveryColor[1] * 2.6, deliveryColor[2] * 2.6], state.outcome === 'delivered' ? 0.68 : 0.2, state.time * 0.12, 4);
+      emissives.set(3, DELIVERY_X, groundTopAt(DELIVERY_X, state.time) + 1.35, 0.1, deliveryScale, deliveryScale, 1, [deliveryColor[0] * 2.6, deliveryColor[1] * 2.6, deliveryColor[2] * 2.6], state.outcome === 'delivered' ? 0.68 : 0.2, state.time * 0.12, 4);
       const landScale = 0.55 + state.effects.land * 0.9;
       effects.set(4, state.player.x, supportTop + 0.08, 0.12, landScale, landScale, 1, CREAM, state.effects.land * 0.52, 0, 5);
       const jumpScale = 0.5 + state.effects.jump * 0.55;

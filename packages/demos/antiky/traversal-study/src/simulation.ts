@@ -4,16 +4,16 @@ import {
   COURSE_COLLECTIBLES,
   COURSE_HAZARDS,
   COURSE_LENGTH,
-  COURSE_PLATFORMS,
   DELIVERY_X,
   actAt,
   hazardTop,
-  platformTop,
-  type PlatformDefinition,
   type TraversalAct,
 } from './course.ts';
 
+import { platformInstancesNear, supportAt, type PlatformInstance } from './course-query.ts';
+
 export { COURSE_LENGTH, COURSE_HAZARDS, COURSE_PLATFORMS, platformTop } from './course.ts';
+export { platformInstancesNear, type PlatformInstance } from './course-query.ts';
 
 export const RUNNER_RADIUS = 0.43;
 export const TRAIL_CAPACITY = 72;
@@ -68,17 +68,6 @@ export type TraversalEvent = Readonly<{
   reason?: Exclude<TraversalFailureReason, null>;
   controlMode?: TraversalControlMode;
 }>;
-
-export type PlatformInstance = Readonly<{
-  definition: PlatformDefinition;
-  definitionIndex: number;
-  x: number;
-  top: number;
-}>;
-
-type MutablePlatformInstance = {
-  -readonly [Key in keyof PlatformInstance]: PlatformInstance[Key];
-};
 
 export type TrailParticle = {
   x: number;
@@ -140,33 +129,6 @@ export type TraversalSimulation = Readonly<{
 type MutableTraversalSnapshot = {
   -readonly [Key in keyof TraversalSnapshot]: TraversalSnapshot[Key];
 };
-
-const platformInstances: MutablePlatformInstance[] = COURSE_PLATFORMS.map((definition, definitionIndex) => ({
-    definition,
-    definitionIndex,
-    x: definition.x,
-    top: definition.top,
-}));
-
-export function platformInstancesNear(_x: number, time: number): readonly PlatformInstance[] {
-  for (let index = 0; index < platformInstances.length; index += 1) {
-    const platform = platformInstances[index]!;
-    platform.top = platformTop(platform.definition, time);
-  }
-  return platformInstances;
-}
-
-function supportAt(x: number, y: number, time: number): PlatformInstance | null {
-  let support: PlatformInstance | null = null;
-  const instances = platformInstancesNear(x, time);
-  for (let index = 0; index < instances.length; index += 1) {
-    const platform = instances[index]!;
-    const within = Math.abs(x - platform.x) <= platform.definition.width * 0.5 - 0.05;
-    if (!within || platform.top > y + 0.14) continue;
-    if (support === null || platform.top > support.top) support = platform;
-  }
-  return support;
-}
 
 function seeded(index: number, salt: number): number {
   const value = Math.sin(index * 73.91 + salt * 19.37) * 41758.31;

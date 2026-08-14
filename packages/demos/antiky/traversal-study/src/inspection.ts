@@ -22,6 +22,7 @@ import {
   hazardTop,
   platformTop,
 } from './course.ts';
+import { groundTopAt } from './course-query.ts';
 import {
   COYOTE_SECONDS,
   GROUND_ACCELERATION,
@@ -196,7 +197,7 @@ export function createTraversalInspectionModel(runtimeInstanceId: string): Trave
         revision: snapshot.revision,
         components: [
           { typeId: 'antiky.relay-checkpoint', schemaVersion: 1, summary: index === snapshot.checkpointIndex ? 'Active respawn checkpoint' : index < snapshot.checkpointIndex ? 'Reached checkpoint' : 'Pending checkpoint', data: { id: checkpoint.id, act: checkpoint.act, index, active: index === snapshot.checkpointIndex, reached: index <= snapshot.checkpointIndex } },
-          { typeId: 'antiky.transform', schemaVersion: 1, summary: 'Checkpoint transform', data: { position: [checkpoint.x, courseTop(checkpoint.x, snapshot.time), 0] } },
+          { typeId: 'antiky.transform', schemaVersion: 1, summary: 'Checkpoint transform', data: { position: [checkpoint.x, groundTopAt(checkpoint.x, snapshot.time), 0] } },
         ],
       })),
       ...COURSE_COLLECTIBLES.map((collectible, index) => ({
@@ -325,11 +326,6 @@ export function createTraversalInspectionModel(runtimeInstanceId: string): Trave
   });
 
   return Object.freeze({ record, world, events });
-}
-
-function courseTop(x: number, time: number): number {
-  const platform = COURSE_PLATFORMS.find((entry) => Math.abs(x - entry.x) <= entry.width * 0.5);
-  return platform === undefined ? 0 : platformTop(platform, time);
 }
 
 function eventEntityIds(event: TraversalEvent): string[] {
