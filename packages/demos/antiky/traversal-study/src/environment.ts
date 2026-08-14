@@ -48,7 +48,7 @@ for (let index = 0; index < anchors.length; index += 1) {
     x,
     // Lowered by goal 08's composition pass: the camera rides 2 units higher now and tilts down,
     // so the cliffs drop with the horizon to keep anchoring the frame's lower third.
-    y: far ? -12.3 : -7.6,
+    y: far ? -13.6 : -8.7,
     z: depth,
     scale: [scaleX, scaleY, far ? 1.2 : 1] as const,
     yaw: index % 2 === 0 ? 0.12 : -0.16,

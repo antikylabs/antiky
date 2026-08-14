@@ -29,12 +29,12 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let height = clamp(direction.y, -0.35, 1.0);
   let above = clamp(height, 0.0, 1.0);
   let horizonBand = pow(1.0 - above, 9.0) * smoothstep(-0.1, 0.005, height);
-  let zenith = vec3f(0.1, 0.24, 0.46);
-  let mid = vec3f(0.24, 0.42, 0.6);
+  let zenith = vec3f(0.075, 0.19, 0.4);
+  let mid = vec3f(0.19, 0.35, 0.53);
   let horizon = vec3f(0.66, 0.52, 0.34);
   let base = zenith + (mid - zenith) * clamp(1.0 - above * 3.2, 0.0, 1.0);
   let below = clamp(0.0 - height, 0.0, 1.0);
-  let sea = vec3f(0.16, 0.24, 0.3);
+  let sea = vec3f(0.085, 0.14, 0.19);
   let skyAbove = base + (horizon - base) * horizonBand;
   let sky = skyAbove * (1.0 - smoothstep(0.0, 0.18, below)) + sea * smoothstep(0.0, 0.18, below);
   let toSun = normalize(vec3f(0.55, 0.16, -0.8));

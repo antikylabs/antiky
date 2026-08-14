@@ -47,12 +47,12 @@ export default shader({
     // horizon a cool sea-haze deepens instead of staying cream.
     const above = clamp(height, 0, 1);
     const horizonBand = pow(1 - above, 9) * smoothstep(-0.1, 0.005, height);
-    const zenith = vec3(0.1, 0.24, 0.46);
-    const mid = vec3(0.24, 0.42, 0.6);
+    const zenith = vec3(0.075, 0.19, 0.4);
+    const mid = vec3(0.19, 0.35, 0.53);
     const horizon = vec3(0.66, 0.52, 0.34);
     const base = zenith.add(mid.sub(zenith).scale(clamp(1 - above * 3.2, 0, 1)));
     const below = clamp(0 - height, 0, 1);
-    const sea = vec3(0.16, 0.24, 0.3);
+    const sea = vec3(0.085, 0.14, 0.19);
     const skyAbove = base.add(horizon.sub(base).scale(horizonBand));
     const sky = skyAbove.scale(1 - smoothstep(0, 0.18, below))
       .add(sea.scale(smoothstep(0, 0.18, below)));
