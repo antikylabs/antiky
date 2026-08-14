@@ -58,7 +58,7 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | 06-06 | [Bloom, grade and vignette, and the budget green](_completed/execute-goal-06-06.md) | **Done** `f17382d` — [summary](_completed/summary-goal-06-06.md) | 06-05 | — |
 | **07** | [Carry the render slice to `combat-arena`, `traversal-study` and `antiky-town`](_completed/execute-goal-07.md) | **Done** `01aa3e9` — [summary](_completed/summary-goal-07.md), [progress](_completed/progress-goal-07.md). All 15 packets landed; **three items are with the owner** — `traversal-study`'s contrast floor, the GGX BRDF, `antiky-town`'s colour test | 06 | 05, 10 |
 | **08** | [Art direction and VFX per demo, `antiky-town` included](_completed/execute-goal-08.md) | **Done** — [summary](_completed/summary-goal-08.md). **Four items with the owner**: town contrast-floor vs tilt-shift, traversal's §7.1 row, the 420 instance budget, and the capture-harness gaps | 05, 07 | 10 |
-| **09** | Remove scar tissue and within-demo divergence | Not started | 06, 07 | 10, 11 |
+| **09** | [Remove scar tissue and within-demo divergence](_completed/execute-goal-09.md) | **Done** `19280ab` — [summary](_completed/summary-goal-09.md). Landed the [`antiky-town` complexity inventory](../13-ANTIKY-TOWN-COMPLEXITY.md). **Eight items with the owner**: the five reserved questions, plus town's pre-existing contrast floor, two never-run town test files, and a shared invariant whose scope argument is silently ignored | 06, 07 | 10, 11 |
 | **10** | [Fix how the work is presented](_completed/execute-goal-10.md) | **Done** `079c325` — [summary](_completed/summary-goal-10.md) | 01 | everything |
 | **11** | Promote what has earned it into the framework | Not started | 03, 06, 07 | 09, 10 |
 | **12** | Extract the `BroMetalRenderDriver` | Not started | 06, 07, 11 | 10 |
@@ -68,8 +68,14 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 | **99** | [The revisit register — check what we deliberately deferred](execute-goal-99.md) | Not started | all | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up:** 11 on the critical path (09 is also unblocked). 00–08, 10 and 13 are done — 07 and 08
-each carry owner items, listed first in their summaries, none blocking the next goal.
+**Next up:** 11 on the critical path. 00–10 and 13 are done — 07, 08 and 09 each carry owner items,
+listed first in their summaries, none blocking the next goal.
+
+**Goal 09 changed what is known about `antiky-town`.** Its inventory
+([`13-ANTIKY-TOWN-COMPLEXITY.md`](../13-ANTIKY-TOWN-COMPLEXITY.md)) is the first audit that demo has
+ever had, and it found work larger than goal 09 could land: three bridge-height rules disagreeing by
+up to 1.03 m, a sprite prop floating over the canal, and two test files that never run. Its ranked
+worklist is ready to cut goals from.
 
 **Goal 03 now has an instrument.** Goal 13 landed `scripts/motion-stats.mjs` and a camera-shake
 regression that fails against the current code with three named defects. Goal 03's job is to turn
@@ -161,7 +167,10 @@ If a finding is not in this table, it is not being fixed, and that is a gap to r
 | `antiky-town` water: flat opaque, no flow/foam/reflection; fountains are solid geometry | owner report + capture | 08 |
 | `antiky-town` shadows are hard-edged with no penumbra | capture | 07 |
 | `antiky-town` DOF and vignette implemented but tuned to invisibility | owner request + capture | 08 |
-| `antiky-town` never audited (~12,500 LOC) | scope change 2026-08-10 | 09 (inventory first) |
+| ~~`antiky-town` never audited (~12,500 LOC)~~ **Audited** — [`13-ANTIKY-TOWN-COMPLEXITY.md`](../13-ANTIKY-TOWN-COMPLEXITY.md) | scope change 2026-08-10 | 09 ✅ |
+| `antiky-town` bridge height: three rules, up to 1.03 m apart | `13-ANTIKY-TOWN-COMPLEXITY.md` §5.1 | unassigned |
+| `antiky-town` sprite prop floats 1.56 m over the canal | `13-ANTIKY-TOWN-COMPLEXITY.md` §5.2 | unassigned |
+| Two `antiky-town` test files are wired to no runner | `13-ANTIKY-TOWN-COMPLEXITY.md` §6 | unassigned |
 
 ## Deliberately not in these goals
 
@@ -183,8 +192,11 @@ If a finding is not in this table, it is not being fixed, and that is a gap to r
    serves both. Note the consequence: goals 09, 11 and 12 each gained a fourth Antiky demo — the
    largest one, at ~12,500 lines of `src/` — that **no audit in `../` ever read**. Their sizes in
    the table above are pre-scope-change estimates and are now low.
-2. **Five open questions** in `04-COMPLEXITY-REDUCTION.md` need answers before parts of goal 09
-   proceed. They were left unanswered rather than guessed.
+2. **Five open questions** in `04-COMPLEXITY-REDUCTION.md` were left unanswered rather than guessed.
+   Goal 09 ran around them and is now done; they survive as items 1–5 of
+   [`summary-goal-09.md`](_completed/summary-goal-09.md), together with three more that goal found.
+   Question 2 (per-instance `iTint`) is now retrospective — goals 06–08 deleted the tints before
+   goal 09 reached them.
 3. **Goal 05 is the largest single goal (~12 days).** If it needs splitting, split by demo, not by
    technique — the technique is shared and the demos are not.
 4. **Effort totals roughly 8–10 engineer-weeks** across all thirteen goals. Goals 00, 01, 02, 03

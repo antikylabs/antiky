@@ -26,6 +26,7 @@ on scope. antiky-town gets the same treatment as the other demos, plus a facelif
 | [`09-RENDER-DRIVER-DECISION.md`](09-RENDER-DRIVER-DECISION.md) | The owner's `BroMetalRenderDriver` decision and the reasoning. The draft ADR it carried is now **placed** as `docs/adr/framework/0021`. |
 | [`10-ADR-0013-SEED-GAP.md`](10-ADR-0013-SEED-GAP.md) | Recorded compliance gap: ADR 0013 requires explicit random seeds and none exist. Recorded by goal 00, implemented by goal 11. |
 | [`11-MOTION-INSPECTION-RESEARCH.md`](11-MOTION-INSPECTION-RESEARCH.md) | How to judge motion — shake, judder, VFX timing, traversal feel — with a model that cannot watch video. Ranked proposals, prior art, and bounded acceptance criteria. **Read before W D.5 or W D.6.** |
+| [`13-ANTIKY-TOWN-COMPLEXITY.md`](13-ANTIKY-TOWN-COMPLEXITY.md) | The first complexity audit `antiky-town` has ever had, written by goal 09 against the same rubric the other three demos got. Labels every finding sprite-related or voxel-related, because it is the only 2.3D artifact here. **Read before deleting anything in that demo.** |
 
 ## Before you start: the architecture record and the code disagree
 
