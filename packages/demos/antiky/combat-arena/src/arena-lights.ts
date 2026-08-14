@@ -24,10 +24,17 @@ export type ArenaLight = Readonly<{
 export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4, 5].map((index) => {
   const angle = index / 6 * Math.PI * 2 + Math.PI / 6;
   const warm = index % 2 === 1;
+  // §6.2's "two coloured practicals at the goal ends, for spatial orientation": the posts nearest
+  // the two z extremes carry the team colours — hot red at one end, team cyan at the other — so a
+  // player reads which way the arena runs from the light alone. The other four keep the amber/cyan
+  // rig alternation.
+  const teamEnd = index === 1 ? 'red' : index === 4 ? 'cyan' : undefined;
   return Object.freeze({
     position: Object.freeze([Math.cos(angle) * 8.6, 1.85, Math.sin(angle) * 8.6] as const),
     // The demo's own cyan and amber, at the strength they read as light rather than as paint.
-    color: Object.freeze(warm ? [1, 0.62, 0.24] as const : [0.36, 0.78, 1] as const),
+    color: Object.freeze(teamEnd === 'red' ? [1, 0.3, 0.24] as const
+      : teamEnd === 'cyan' ? [0.3, 0.85, 1] as const
+        : warm ? [1, 0.62, 0.24] as const : [0.36, 0.78, 1] as const),
     // Six lights sum. At 2.6 each the deck blew to white — the arena is roughly 16 across and every
     // point on it is inside two or three of these, so the useful figure is roughly a sixth of what a
     // single light would want.
@@ -37,7 +44,7 @@ export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4,
     // wall faces, so this is the lever that actually moves that number. The warm posts lead the
     // cool ones on purpose: the frame's chromatic mass was 82% one blue cluster, and amber is the
     // counterweight that pulls the deck's mids warm without touching the team signals.
-    power: warm ? 0.95 : 0.62,
+    power: teamEnd !== undefined ? 1.05 : warm ? 1.25 : 0.78,
     // Tight enough that each stays near its own post. A radius spanning the whole deck turns six
     // lights into one flat fill, which is the opposite of what posting lights around a space does.
     radius: 7.0,

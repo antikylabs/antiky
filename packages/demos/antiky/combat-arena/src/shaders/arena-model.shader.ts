@@ -297,7 +297,11 @@ export default shader({
     // which keeps the overall level while separating the two ends by 50%.
     const planetFacing = dot(normal, earthward) * 0.5 + 0.5;
     const ambient = mix(vec3(0.18, 0.18, 0.18), vec3(1.55, 1.55, 1.55), planetFacing);
-    const lit = sampled.mul(vec3(0.46, 0.57, 0.74).mul(ambient))
+    // Desaturated by goal 08 from (0.46, 0.57, 0.74): the structural blue was the frame's dominant
+    // hue cluster at 82% of the chromatic pixels, and §6.2 wants the blues doing structural duty
+    // pulled toward neutral steel so the team signals own the saturation. The ships keep their
+    // bluer bounce — they are the subject.
+    const lit = sampled.mul(vec3(0.53, 0.57, 0.65).mul(ambient))
       .add(sampled.scale(diffuse * 1.15))
       .add(vTint.scale(clamp(vParams.x, 0, 1) * pulse * (0.12 + rim * 0.34)));
     // The six floodlights posted around the rim, in `src/arena-lights.ts`.

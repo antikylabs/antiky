@@ -167,6 +167,6 @@ export default shader({
     // at 0.34 the background still measured brighter than the arena's own shadows. The §7.1 target
     // wants the darkest 5% of the frame at or under 0.04 encoded, and space is where that darkness
     // lives. The generated stars keep their own gain so they stay crisp over the darker band.
-    return vec4(inverseTonemapACES(band.scale(0.14).add(starLight).add(vec3(0.004, 0.005, 0.011))), 1);
+    return vec4(inverseTonemapACES(band.scale(0.14).add(starLight).add(vec3(0.003, 0.004, 0.009))), 1);
   },
 });

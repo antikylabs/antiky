@@ -156,7 +156,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let pulse = 0.72 + sin(bm_u.uTime * 5.2 + bm_in.vWorld.x * 0.8 - bm_in.vWorld.z * 0.55) * 0.28;
   let planetFacing = dot(normal, earthward) * 0.5 + 0.5;
   let ambient = mix(vec3f(0.18, 0.18, 0.18), vec3f(1.55, 1.55, 1.55), planetFacing);
-  let lit = sampled * (vec3f(0.46, 0.57, 0.74) * ambient) + sampled * (diffuse * 1.15) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));
+  let lit = sampled * (vec3f(0.53, 0.57, 0.65) * ambient) + sampled * (diffuse * 1.15) + bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.0) * pulse * (0.12 + rim * 0.34));
   let floodlit = lit + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition0, bm_u.uLightColor0, bm_u.uLightFalloff0) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition1, bm_u.uLightColor1, bm_u.uLightFalloff1) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition2, bm_u.uLightColor2, bm_u.uLightFalloff2) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition3, bm_u.uLightColor3, bm_u.uLightFalloff3) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition4, bm_u.uLightColor4, bm_u.uLightFalloff4) + arenaFloodlight(bm_in.vWorld, normal, bm_u.uLightPosition5, bm_u.uLightColor5, bm_u.uLightFalloff5);
   let reflectionUv = ((bm_in.vClip).xy / (bm_in.vClip).w * vec2f(0.5, -0.5) + vec2f(0.5));
   let reflected = textureSample(uReflection, uReflection_sampler, vec2f(reflectionUv.x + (tilt.x + tilt.z) * 0.018, reflectionUv.y + tilt.y * 0.018)).xyz;
