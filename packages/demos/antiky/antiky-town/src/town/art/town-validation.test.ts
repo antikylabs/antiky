@@ -3,6 +3,8 @@ import {
   TOWN_DETAIL_RESOLUTION,
   VOXEL_SIZE,
   buildTownWorld,
+  townGroundHeightAt,
+  townGroundKindAt,
 } from './town';
 import { validateTownDeterminism, validateTownWorld } from './town-validation';
 
@@ -64,3 +66,42 @@ test('the town stays valid and deterministic', () => {
   assert(maxBridgeRise <= VOXEL_SIZE / TOWN_DETAIL_RESOLUTION + 1e-6, 'bridge rise exceeds one detail cell');
   assert(maxBridgeRise < 0.3, 'bridge rise exceeds the character-motor step gate');
 }, BUILD_TWICE_TIMEOUT_MS);
+
+test('no prop is left standing on the canal', () => {
+  // `groundHeightGrid` has no canal case: over open water it falls through to 0, which reads as
+  // "ground at height zero" rather than "there is no ground here". A prop placed through it over
+  // the canal therefore hovers above the water instead of failing loudly.
+  // "Over the canal and not on the bridge". `canWalk` alone is too strict — it is also false
+  // wherever a collider sits, and a barrel resting against a market stall is exactly right.
+  const world = buildTownWorld();
+  const floating = world.spriteProps.filter((prop) => (
+    townGroundKindAt(prop.x / VOXEL_SIZE, prop.z / VOXEL_SIZE) === 'canal'
+    && !world.canWalk(prop.x, prop.z)
+  ));
+  assert(
+    floating.length === 0,
+    floating.map((prop) => (
+      `${prop.type} at grid (${(prop.x / VOXEL_SIZE).toFixed(1)}, ${(prop.z / VOXEL_SIZE).toFixed(1)})`
+      + ` stands on nothing, at y=${prop.y.toFixed(2)}`
+    )).join('\n'),
+  );
+});
+
+test('every prop rests on the surface the courier walks on', () => {
+  // The bug this replaces: object placement read the macro voxel column height and added half a
+  // cell, which is the surface everywhere the ground is one cell tall and wrong on the bridge,
+  // where the walking surface is the finer tread lattice — up to 1.03 m out. Nothing was standing
+  // on the bridge yet, so it was a landmine rather than a visible fault. This asserts the outcome
+  // instead of the arithmetic: wherever a prop is, it touches the ground the character motor uses.
+  const world = buildTownWorld();
+  const tolerance = VOXEL_SIZE / TOWN_DETAIL_RESOLUTION + 1e-6;
+  const floating = world.spriteProps
+    .map((prop) => ({ prop, walk: world.walkSurfaceHeight(prop.x, prop.z) }))
+    .filter(({ prop, walk }) => Math.abs(prop.y - walk) > tolerance);
+  assert(
+    floating.length === 0,
+    floating.map(({ prop, walk }) => (
+      `${prop.type} sits at y=${prop.y.toFixed(3)} but the ground there is ${walk.toFixed(3)}`
+    )).join('\n'),
+  );
+});

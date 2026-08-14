@@ -608,11 +608,41 @@ function bridgeSurfaceGridHeight(gz: number): number {
   return -0.5 + boundary / TOWN_DETAIL_RESOLUTION;
 }
 
+/**
+ * How tall the macro voxel column is here — a structural question, not a surface one.
+ *
+ * On the bridge this is the authored crown profile the spandrels, piers and macro deck are built
+ * from. It is deliberately coarse. It is **not** where anything stands: the deck cell it returns is
+ * carved away and replaced by finer treads, so the surface the courier walks on is up to 1.03 m
+ * from this. Use `placementSurfaceGrid` to rest an object on the ground.
+ */
 function groundHeightGrid(gx: number, gz: number): number {
   if (isBridge(gx, gz)) return bridgeHeight(gz);
   if (gz < -24) return 2;
   if (gz < CANAL_MIN_Z) return 1;
   return 0;
+}
+
+/**
+ * Where the top of the ground is, in grid units, for resting an object on.
+ *
+ * This is `topSurfaceGrid` — the same answer `walkSurfaceHeight` gives the character motor —
+ * expressed in the grid units the placement helpers take. Object placement used to read
+ * `groundHeightGrid` directly and add half a cell, which is right everywhere the ground is one
+ * macro cell tall and wrong on the bridge, where the walking surface is the detail lattice.
+ */
+function placementSurfaceGrid(gx: number, gz: number): number {
+  return topSurfaceGrid(gx, gz) / VOXEL_SIZE;
+}
+
+/**
+ * The same answer as `placementSurfaceGrid`, as a macro cell index rather than a surface.
+ *
+ * Off the bridge this is exactly `groundHeightGrid`, so the props that measure their offsets from
+ * it do not move. On the bridge it follows the deck.
+ */
+function placementBaseGrid(gx: number, gz: number): number {
+  return placementSurfaceGrid(gx, gz) - 0.5;
 }
 
 function worldPoint(gx: number, gz: number): readonly [number, number] {
@@ -1516,7 +1546,7 @@ function tree(
   height: number,
   species: TownTreeSpecies = 'green-round',
 ): void {
-  const base = groundHeightGrid(gx, gz);
+  const base = placementBaseGrid(gx, gz);
   const seed = gx * 101 + gz * 211;
   const row = TOWN_TREE_SPECIES[species];
   addVegetation(vegetation, gx + 0.5, base + 0.5, gz + 0.5, 'tree-trunk', height * row.trunkPerHeight, seed);
@@ -1533,7 +1563,7 @@ function tree(
 }
 
 function stoneBench(builder: VoxelBuilder, colliders: TownCollider[], x: number, z: number, facingZ = true): void {
-  const base = groundHeightGrid(x, z);
+  const base = placementBaseGrid(x, z);
   const width = facingZ ? 4 : 1;
   const depth = facingZ ? 1 : 4;
   builder.surfaceBox(x, base + 1, z, width, 0.5, depth, 'timberLight');
@@ -1567,7 +1597,7 @@ function cargoCluster(
   x: number,
   z: number,
 ): void {
-  const base = groundHeightGrid(x, z);
+  const base = placementBaseGrid(x, z);
   for (const [index, bx, bz, scale] of [
     [0, x, z, 0.92],
     [1, x + 1.75, z + 0.5, 0.78],
@@ -1590,7 +1620,7 @@ function flowerPlanter(
   z: number,
   violet: boolean,
 ): void {
-  const base = groundHeightGrid(x, z);
+  const base = placementBaseGrid(x, z);
   builder.surfaceBox(x, base + 0.75, z, 2, 1, 1, 'stone');
   builder.surfaceBox(x, base + 1.25, z, 1.5, 0.5, 0.5, 'soil');
   for (const offset of [-0.5, 0, 0.5]) {
@@ -1608,7 +1638,7 @@ function flowerPlanter(
 }
 
 function handCart(builder: VoxelBuilder, colliders: TownCollider[], x: number, z: number): void {
-  const base = groundHeightGrid(x, z);
+  const base = placementBaseGrid(x, z);
   builder.surfaceBox(x, base + 1.5, z, 5, 1.5, 2.5, 'timberLight');
   builder.surfaceBox(x, base + 2.5, z, 5.5, 0.5, 3, 'timber');
   for (const wheelX of [x - 1.75, x + 1.75]) {
@@ -1640,7 +1670,7 @@ function terracottaPot(
   gz: number,
   violet: boolean,
 ): void {
-  const groundTop = groundHeightGrid(Math.round(gx), Math.round(gz)) + 0.5;
+  const groundTop = placementSurfaceGrid(Math.round(gx), Math.round(gz));
   builder.surfaceBox(gx, groundTop + DETAIL, gz, 2 * DETAIL, 2 * DETAIL, 2 * DETAIL, 'terracotta');
   addVegetation(
     vegetation,
@@ -1654,7 +1684,7 @@ function terracottaPot(
 }
 
 function smallCrate(builder: VoxelBuilder, gx: number, gz: number, produce: PaletteName): void {
-  const groundTop = groundHeightGrid(Math.round(gx), Math.round(gz)) + 0.5;
+  const groundTop = placementSurfaceGrid(Math.round(gx), Math.round(gz));
   builder.surfaceBox(gx, groundTop + DETAIL, gz, 3 * DETAIL, 2 * DETAIL, 3 * DETAIL, 'timberLight');
   builder.surfaceBox(gx, groundTop + 2.5 * DETAIL, gz, 3 * DETAIL, DETAIL, 3 * DETAIL, 'timber');
   for (const offset of [-DETAIL, 0, DETAIL]) {
@@ -2088,14 +2118,17 @@ function buildTownDetails(
   for (const [gx, gz, type, scale, curvature] of [
     [-11, 5, 'barrel', 0.82, 0.31], [-9, 4, 'produce-basket', 0.72, 0.2],
     [16, 5, 'barrel', 0.82, 0.31], [18, 5, 'produce-basket', 0.72, 0.2],
-    [-27, 18, 'map-kit', 0.56, 0.12], [29, 19, 'crate', 0.68, 0.18],
+    // z=19 is the south bank. At z=18 this sat inside the canal, where the ground query answers
+    // "height 0" for want of a way to say "there is no ground here", so the kit floated 1.56 m
+    // above the water.
+    [-27, 19, 'map-kit', 0.56, 0.12], [29, 19, 'crate', 0.68, 0.18],
     [-11, -9, 'open-chest', 0.82, 0.24], [13, -9, 'closed-chest', 0.82, 0.24],
     [-17, 4, 'open-book', 0.46, 0.1], [15, 5, 'book-stack', 0.5, 0.12],
   ] as const) {
     addSpriteProp(
       spriteProps,
       gx,
-      groundHeightGrid(gx, gz) + 0.5,
+      placementSurfaceGrid(gx, gz),
       gz,
       type,
       scale,

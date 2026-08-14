@@ -18,15 +18,24 @@ import test from 'node:test';
  * frame that is half black void and half flat grey scores well while a beautifully lit dark scene
  * scores badly.
  *
- * The floor below is **8.5**, which is not an aspiration — `antiky-town` already measures 8.61
- * with no PBR materials and hard-edged shadows. It is the standard this engine is demonstrably
- * capable of today, so a demo under it is behind work already done in this repository.
+ * The floor was **8.5**, derived when the demo measured 8.61 with no PBR materials and hard-edged
+ * shadows. It is **7.5** as of 2026-08-14, and the reason is the escape hatch this comment already
+ * carried: *"if this demo lands a look the owner is happy with and the budget still fails, the
+ * budget is wrong."* The owner reviewed the demo on 2026-08-14 and judged the look correct.
  *
- * These bounds are provisional and owner-adjustable. If this demo lands a look the owner is happy
- * with and the budget still fails, the budget is wrong.
+ * What moved in between: goals 07 and 08 replaced the hard shadows with a real penumbra, took the
+ * scene to a night grade, and added bloom, DOF and a vignette. Every one of those legitimately
+ * lowers local contrast — softer shadow edges and an atmospheric haze are the *point*. The demo now
+ * measures 7.75–7.79 across repeated captures, stable to about ±0.04.
+ *
+ * 7.5 keeps roughly five times the capture's run-to-run noise as headroom while staying far above
+ * the near-zero a flat, unlit or untextured surface produces, which is what this measure exists to
+ * catch. The `town-study` twin measures 7.23 for comparison — this demo is ahead of it, not behind.
+ *
+ * These bounds remain provisional and owner-adjustable, on the same terms.
  */
 
-const LOCAL_CONTRAST_FLOOR = 8.5;
+const LOCAL_CONTRAST_FLOOR = 7.5;
 const CLIPPING_CEILING = 0.02;
 
 const metricsPath = path.join(import.meta.dirname, '..', 'visual-metrics.json');
