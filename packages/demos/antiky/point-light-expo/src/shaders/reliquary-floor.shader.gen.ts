@@ -143,7 +143,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let normal = normalize(vec3f(detailTilt.x * detailStrength, 1.0, detailTilt.y * detailStrength));
   let view = normalize(bm_u.uCameraPosition - bm_in.vWorld);
   let litterGrey = dot(diffuseSample, vec3f(0.2126, 0.7152, 0.0722));
-  let dampEarth = mix(diffuseSample, vec3f(litterGrey, litterGrey, litterGrey), 0.62) * bm_u.uDiffuseTint;
+  let dampEarth = mix(diffuseSample, vec3f(litterGrey, litterGrey, litterGrey), 0.72) * bm_u.uDiffuseTint;
   let amber = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uEmberPosition, bm_u.uEmberColor, bm_u.uEmberPower, bm_u.uEmberRadius, roughness, dampEarth);
   let blue = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uIonPosition, bm_u.uIonColor, bm_u.uIonPower, bm_u.uIonRadius, roughness, dampEarth);
   let plum = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uVioletPosition, bm_u.uVioletColor, bm_u.uVioletPower, bm_u.uVioletRadius, roughness, dampEarth);

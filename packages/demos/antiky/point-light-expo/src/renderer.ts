@@ -192,7 +192,8 @@ export async function createRelayRenderer(
   // into haze instead of cutting against void. Same at-infinity construction as the arena's sky.
   const backdropProgram = resources.register(createProgram(renderer, nightBackdropShader));
   {
-    const dome = createSphere({ radius: 60, widthSegments: 24, heightSegments: 16 });
+    // Inside the camera's 45-unit far plane — at 60 the whole dome clipped and the void stayed black.
+    const dome = createSphere({ radius: 40, widthSegments: 24, heightSegments: 16 });
     backdropProgram.attributes.aPosition.set(dome.positions);
     backdropProgram.setIndices(dome.indices);
   }

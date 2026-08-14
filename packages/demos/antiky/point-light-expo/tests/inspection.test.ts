@@ -30,7 +30,7 @@ test('relay inspection exposes gameplay hierarchy, live stores, and bounded even
     initialPlayer: [-5.2, -2.7],
     initialShades: [],
   });
-  const lightPowers = [2.5, 2.7, 2.35] as const;
+  const lightPowers = [3.4, 3.6, 3.2] as const;
   const idle = Object.freeze({
     movement: Object.freeze({ x: 0, z: 0, active: false }),
     interact: false,
@@ -130,7 +130,7 @@ test('gameplay regions link to authored lights without publishing a conflicting 
     light.entityId === EMBER_LIGHT_ID
   ));
   assert.equal(restoredLight?.revision, 3);
-  assert.equal(restoredLight?.pointLight.power, 2.5);
+  assert.equal(restoredLight?.pointLight.power, 3.4);
   service.dispose();
 });
 

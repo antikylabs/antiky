@@ -291,14 +291,14 @@ function populateRings(
       light.transform.position[0], -0.31, light.transform.position[2],
       field.safe,
       relayColor[0], relayColor[1], relayColor[2],
-      0.5,
+      0.9,
     );
     rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.relayCharge, index),
       light.transform.position[0], -0.27, light.transform.position[2],
       field.charge,
       relayColor[0], relayColor[1], relayColor[2],
-      state.deposits[index] ? 0.22 : 0.95,
+      state.deposits[index] ? 0.4 : 1.6,
     );
   }
   for (let index = 0; index < RELAY_PRESENTATION.forgeRingScales.length; index += 1) {
@@ -313,7 +313,7 @@ function populateRings(
       0, -0.17 + index * 0.035, 0,
       expandedScale,
       ringColor[0], ringColor[1], ringColor[2],
-      0.35 + state.forgePulse * 1.2 + state.rejectPulse * 2.4,
+      0.6 + state.forgePulse * 1.6 + state.rejectPulse * 2.8,
     );
   }
   for (let index = 0; index < RELAY_RENDER_SLOTS.rings.forgeSockets.count; index += 1) {
@@ -324,7 +324,7 @@ function populateRings(
       Math.cos(angle) * 0.72, 0.48, Math.sin(angle) * 0.72,
       0.24,
       socketColor[0], socketColor[1], socketColor[2],
-      state.deposits[index] ? 2.6 : 0.3,
+      state.deposits[index] ? 2.6 : 0.5,
     );
   }
   const playerScale = 0.5 + state.player.charge.value * 0.2;
@@ -333,7 +333,7 @@ function populateRings(
     state.player.x, -0.3, state.player.z,
     playerScale,
     chargeColor[0], chargeColor[1], chargeColor[2],
-    0.6 + state.player.charge.value * 2.2 + state.dangerPulse * 0.9,
+    1.0 + state.player.charge.value * 2.4 + state.dangerPulse * 1.1,
   );
   for (let index = 0; index < state.shades.length; index += 1) {
     const shade = state.shades[index]!;
@@ -344,7 +344,7 @@ function populateRings(
       shade.x, -0.3, shade.z,
       scale,
       shadeColor[0], shadeColor[1], shadeColor[2],
-      shade.mode === 'threaten' ? 1.4 : 0.35,
+      shade.mode === 'threaten' ? 2.0 : 0.6,
     );
   }
   const terminalX = state.status === 'lost' ? state.player.x : 0;
@@ -370,7 +370,7 @@ function populateRings(
       Math.cos(angle) * 4.7, -0.33, Math.sin(angle) * 3.5,
       scale,
       ambienceColor[0], ambienceColor[1], ambienceColor[2],
-      0.12,
+      0.2,
     );
   }
   rings.upload();

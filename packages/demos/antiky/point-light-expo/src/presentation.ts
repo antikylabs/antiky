@@ -7,7 +7,7 @@ function color(red: number, green: number, blue: number): PresentationVec3 {
 export const RELAY_PRESENTATION = Object.freeze({
   clearColor: Object.freeze([0.035, 0.056, 0.05, 1] as const),
   exposure: 1.24,
-  relayLightStrength: 0.66,
+  relayLightStrength: 0.74,
   /**
    * Bloom, in pre-exposure linear units.
    *
