@@ -55,8 +55,11 @@ test('default presentation retains readable value hierarchy without relay light'
     * RELAY_PRESENTATION.exposure;
 
   assert.ok(clearLuminance >= 0.045);
-  assert.ok(surfaceFill >= 0.38);
-  assert.ok(floorFill >= 0.36);
+  // Re-based by goal 08's night grade. The old floors (0.38 / 0.36) described a daylight ambient
+  // that §6.1 calls wrong for this demo — it is a night scene whose practicals are the key. What
+  // the hierarchy still guarantees is that an unlit frame reads as night, not as a void.
+  assert.ok(surfaceFill >= 0.17);
+  assert.ok(floorFill >= 0.17);
   assert.ok(luminance(RELAY_PRESENTATION.palette.stone) >= 0.3);
   assert.ok(luminance(RELAY_PRESENTATION.palette.shade) >= 0.12);
   assert.ok(
@@ -64,7 +67,12 @@ test('default presentation retains readable value hierarchy without relay light'
       - luminance(RELAY_PRESENTATION.palette.shade)
       >= 0.5,
   );
-  assert.ok(RELAY_PRESENTATION.fog.maximumMix <= 0.38);
+  // Inverted by goal 08. The old ceiling (0.38) kept fog from ever finishing, which is why the
+  // ground plane's edge stayed visible against the void whatever the fog did. The mix must now
+  // complete so the plane boundary dissolves into the horizon; play-area readability is guarded by
+  // the fog *starting* beyond the relays instead.
+  assert.ok(RELAY_PRESENTATION.fog.maximumMix >= 0.9);
+  assert.ok(RELAY_PRESENTATION.fog.start >= 9);
   assert.ok(contrast(
     RELAY_PRESENTATION.palette.player,
     RELAY_PRESENTATION.palette.shade,

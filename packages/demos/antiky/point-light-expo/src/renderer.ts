@@ -5,7 +5,6 @@ import {
   createProgram,
   createRenderTarget,
   createSphere,
-  createTorus,
   loadTexture,
   mat4,
   type RenderTarget,
@@ -23,6 +22,7 @@ import { RELAY_PRESENTATION } from './presentation.ts';
 import bloomBlurShader from './shaders/bloom-blur.shader.gen.ts';
 import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
+import nightBackdropShader from './shaders/night-backdrop.shader.gen.ts';
 
 /**
  * `RELAY_PRESENTATION.clearColor` expressed in linear light.
@@ -55,8 +55,8 @@ const LINEAR_FOG_COLOR: readonly [number, number, number] = Object.freeze([
 import {
   createContactShadowBatch,
   createGlowBatch,
+  createRingBatch,
   createSurfaceBatch,
-  horizontalGeometry,
 } from './render-batches.ts';
 import { RELAY_RENDER_PROFILE } from './render-profile.ts';
 import { createResourceScope } from './resource-lifetime.ts';
@@ -160,16 +160,13 @@ export async function createRelayRenderer(
     RELAY_RENDER_PROFILE.capacities.orbs,
     detailNormal,
   ));
-  const rings = resources.register(createSurfaceBatch(
+  // Goal 08: the rings left the lit path. They were `tube: 0.035` tori with eight radial
+  // segments — countable polygons in the capture — drawn through the surface shader, so the key
+  // light and fog acted on what is really a gameplay glyph. Each is now a soft additive band.
+  const rings = resources.register(createRingBatch(
     renderer,
-    horizontalGeometry(createTorus({
-      radius: 1,
-      tube: 0.035,
-      radialSegments: 8,
-      tubularSegments: 72,
-    })),
     RELAY_RENDER_PROFILE.capacities.rings,
-    detailNormal,
+    vfxBillboard,
   ));
   const glows = resources.register(createGlowBatch(
     renderer,
@@ -191,10 +188,19 @@ export async function createRelayRenderer(
   ));
   setupReliquaryModels(organic, rocks, stumps);
 
+  // The night horizon: a dome at infinity behind everything, so the ground plane's edge fades
+  // into haze instead of cutting against void. Same at-infinity construction as the arena's sky.
+  const backdropProgram = resources.register(createProgram(renderer, nightBackdropShader));
+  {
+    const dome = createSphere({ radius: 60, widthSegments: 24, heightSegments: 16 });
+    backdropProgram.attributes.aPosition.set(dome.positions);
+    backdropProgram.setIndices(dome.indices);
+  }
+
   // Created before the uniform binding below, because every material program is pointed at its map
   // once at setup rather than rebound each frame.
   const shadows = resources.register(createShadowPass(renderer));
-  const surfaceBatches = [forms, creatures, orbs, rings] as const;
+  const surfaceBatches = [forms, creatures, orbs] as const;
   for (let index = 0; index < surfaceBatches.length; index += 1) {
     const batch = surfaceBatches[index]!;
     batch.program.uniforms.uSh0.set(SURFACE_SKY[0]!);
@@ -382,21 +388,22 @@ export async function createRelayRenderer(
     forms.drawDepth();
     creatures.drawDepth();
     orbs.drawDepth();
-    rings.drawDepth();
   };
 
   const drawScene = (): void => {
+    backdropProgram.draw();
     floorProgram.draw();
     organic.draw();
     rocks.draw();
     stumps.draw();
-    rings.draw();
     forms.draw();
     creatures.draw();
     orbs.draw();
     // Blended, so it runs once every opaque surface has written depth. Before glows, so a light
-    // reads as sitting on top of the shadow rather than under it.
+    // reads as sitting on top of the shadow rather than under it. The rings are additive glyphs
+    // and sit between: under the contact shadows would dim them, over the glows would double them.
     contacts.draw();
+    rings.draw();
     glows.draw();
   };
 
@@ -498,6 +505,10 @@ export async function createRelayRenderer(
     floorProgram.uniforms.uVioletPower.set(powers[2]);
     floorProgram.uniforms.uVioletRadius.set(lights[2]!.pointLight.radius);
     contacts.program.uniforms.uViewProj.set(viewProjection);
+    rings.frame(viewProjection, state.time);
+    backdropProgram.uniforms.uViewProj.set(viewProjection);
+    backdropProgram.uniforms.uCameraPosition.set(cameraPosition);
+    backdropProgram.uniforms.uTime.set(state.time);
     glows.program.uniforms.uViewProj.set(viewProjection);
     glows.program.uniforms.uCameraPosition.set(cameraPosition);
     glows.program.uniforms.uTime.set(state.time);

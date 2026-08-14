@@ -125,7 +125,7 @@ fn pointRadiance(world : vec3f, normal : vec3f, view : vec3f, lightPosition : ve
   let toLight = lightPosition - world;
   let distanceSq = dot(toLight, toLight);
   let range = clamp(1.0 - distanceSq / (lightRadius * lightRadius), 0.0, 1.0);
-  let attenuation = range * range;
+  let attenuation = range * range / (0.35 + distanceSq * 0.55);
   let light = normalize(toLight);
   let diffuse = max(dot(normal, light), 0.0);
   let specular = specularGGX(normal, light, view, roughness, vec3f(0.04, 0.04, 0.04));

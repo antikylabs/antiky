@@ -88,7 +88,12 @@ function materialPresentationFloorLight(
   // head-on. Written here rather than as a module constant: the BroMetal MVP does not resolve
   // module-level const values.
   const specular = specularGGX(normal, light, view, roughness, vec3(0.04, 0.04, 0.04));
-  const arriving = lightColor.scale(lightPower * range * range);
+  // Item 11's falloff: inverse-square with a windowed radius, replacing `power * range²` — a
+  // parabola with no bright core, which is why the audit read these as coloured balls rather than
+  // lights. The 0.35 floors the divisor so the core clips to near-white instead of to infinity,
+  // which is what the HDR target and the bloom pass exist to receive; the window keeps the finite
+  // radius the gameplay fields are authored against.
+  const arriving = lightColor.scale(lightPower * range * range / (0.35 + distanceSq * 0.55));
   // Albedo tints the diffuse and not the specular. A highlight on wet stone is the colour of the
   // light, not the colour of the stone — that is what `f0` above is for. The two used to be summed
   // and tinted together by the caller, which made every highlight take the surface's colour.
@@ -279,7 +284,12 @@ export default shader({
     const detailTilt = texture(uDetailNormal, vWorld.xz.scale(detailRate)).xyz.scale(2).sub(vec3(1, 1, 1));
     const normal = normalize(vec3(detailTilt.x * detailStrength, 1, detailTilt.y * detailStrength));
     const view = normalize(uCameraPosition.sub(vWorld));
-    const dampEarth = diffuseSample.mul(uDiffuseTint);
+    // §6.1's palette strategy: the ground holds a narrow desaturated blue-green band so every
+    // saturated colour in frame belongs to a light. The litter texture is authored in warm autumn
+    // tones, so it is pulled most of the way to its own grey before the cool tint — the practicals
+    // repaint their own pools through the falloff, which is where the goal says the colour goes.
+    const litterGrey = dot(diffuseSample, vec3(0.2126, 0.7152, 0.0722));
+    const dampEarth = mix(diffuseSample, vec3(litterGrey, litterGrey, litterGrey), 0.62).mul(uDiffuseTint);
     const amber = materialPresentationFloorLight(vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness, dampEarth);
     const blue = materialPresentationFloorLight(vWorld, normal, view, uIonPosition, uIonColor, uIonPower, uIonRadius, roughness, dampEarth);
     const plum = materialPresentationFloorLight(vWorld, normal, view, uVioletPosition, uVioletColor, uVioletPower, uVioletRadius, roughness, dampEarth);
@@ -308,7 +318,13 @@ export default shader({
       .add(uSh6.scale(3 * normal.z * normal.z - 1))
       .add(uSh7.scale(normal.x * normal.z))
       .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
-    const ambient = shIrradiance.scale(uAmbientStrength * ao);
+    // Item 11's bounce: the ground's ambient warms toward whichever practical is nearest, on a
+    // window wider than the direct pool. This is what makes the floor under the amber relay feel
+    // warm rather than merely lit — one wide, weak tint per light, added to the hemisphere term.
+    const emberBounce = uEmberColor.scale(clamp(1 - dot(vWorld.sub(uEmberPosition), vWorld.sub(uEmberPosition)) / 30, 0, 1) * 0.16 * uEmberPower);
+    const ionBounce = uIonColor.scale(clamp(1 - dot(vWorld.sub(uIonPosition), vWorld.sub(uIonPosition)) / 30, 0, 1) * 0.16 * uIonPower);
+    const violetBounce = uVioletColor.scale(clamp(1 - dot(vWorld.sub(uVioletPosition), vWorld.sub(uVioletPosition)) / 30, 0, 1) * 0.16 * uVioletPower);
+    const ambient = shIrradiance.add(emberBounce).add(ionBounce).add(violetBounce).scale(uAmbientStrength * ao);
     // The sun, and the only shadow in this demo.
     //
     // Softness, bias and the shadow texel are literals rather than uniforms, in the same spirit as

@@ -108,7 +108,9 @@ function pointRadiance(
   const toLight = lightPosition.sub(world);
   const distanceSq = dot(toLight, toLight);
   const range = clamp(1 - distanceSq / (lightRadius * lightRadius), 0, 1);
-  const attenuation = range * range;
+  // Item 11's falloff, agreed with the floor shader's copy: inverse-square with a windowed radius
+  // and a floored divisor, so the core clips instead of the profile plateauing.
+  const attenuation = range * range / (0.35 + distanceSq * 0.55);
   const light = normalize(toLight);
   const diffuse = max(dot(normal, light), 0);
   // Dielectric, same as the floor beneath it: 0.04 is a non-metal's head-on reflectance.

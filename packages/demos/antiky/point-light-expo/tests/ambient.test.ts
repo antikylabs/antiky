@@ -101,8 +101,11 @@ test('occlusion multiplies ambient and nothing else', async () => {
 test('the floor applies its occlusion map to ambient only too', async () => {
   const source = await readFile(new URL('src/shaders/reliquary-floor.shader.ts', PACKAGE_ROOT), 'utf8');
   const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  // Goal 08 added the practicals' bounce lobes into the ambient sum before the scale — bounce is
+  // ambient-class light and belongs under the same occlusion. What must hold is that `ao` scales
+  // the whole ambient term and nothing else.
   assert.ok(
-    /const ambient = shIrradiance\.scale\(uAmbientStrength \* ao\)/.test(code),
+    /const ambient = shIrradiance[\s\S]{0,600}?\.scale\(uAmbientStrength \* ao\)/.test(code),
     'the floor no longer folds its ambient occlusion into the ambient term',
   );
   // And the occlusion sample must not reach the direct terms.

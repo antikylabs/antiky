@@ -7,6 +7,7 @@ import {
 
 import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
 import foundryGlowShader from './shaders/foundry-glow.shader.gen.ts';
+import relayRingShader from './shaders/relay-ring.shader.gen.ts';
 import foundryShader from './shaders/foundry.shader.gen.ts';
 import surfaceDepthShader from './shaders/surface-depth.shader.gen.ts';
 
@@ -267,5 +268,105 @@ export function createGlowBatch(
     },
     draw(): void { program.draw(); },
     dispose(): void { program.dispose(); },
+  });
+}
+
+/**
+ * A flat annulus in XZ for the relay rings: radius 1 at the band's centre, `bandHalfWidth` to
+ * either side, `v` running 0 at the inner edge to 1 at the outer so the shader's soft profile
+ * spans the band.
+ */
+export function createRingGeometry(segments = 64, bandHalfWidth = 0.16): Geometry {
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+  for (let segment = 0; segment <= segments; segment += 1) {
+    const angle = segment / segments * Math.PI * 2;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    for (const [radius, v] of [[1 - bandHalfWidth, 0], [1 + bandHalfWidth, 1]] as const) {
+      positions.push(cos * radius, 0, sin * radius);
+      normals.push(0, 1, 0);
+      uvs.push(segment / segments, v);
+    }
+  }
+  for (let segment = 0; segment < segments; segment += 1) {
+    const base = segment * 2;
+    indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
+  }
+  return {
+    positions: new Float32Array(positions),
+    normals: new Float32Array(normals),
+    uvs: new Float32Array(uvs),
+    indices: new Uint16Array(indices),
+  } as unknown as Geometry;
+}
+
+/**
+ * Relay rings — additive, unlit, soft-banded. Replaces the lit eight-segment torus batch goal 08
+ * found in the capture. The band half-width matches `createRingGeometry`'s, handed to the shader
+ * per instance so a future ring can widen without new geometry.
+ */
+export function createRingBatch(
+  renderer: Renderer,
+  capacity: number,
+  billboard: BroMetalTexture,
+) {
+  const program = createProgram(renderer, relayRingShader, { blend: 'additive' });
+  program.uniforms.uBillboard.set(billboard);
+  const geometry = createRingGeometry();
+  try {
+    program.attributes.aPosition.set(geometry.positions);
+    program.attributes.aUv.set(geometry.uvs);
+    program.setIndices(geometry.indices);
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
+  const offsets = new Float32Array(capacity * 3);
+  const shapes = new Float32Array(capacity * 2);
+  const colors = new Float32Array(capacity * 3);
+  const intensities = new Float32Array(capacity);
+
+  return Object.freeze({
+    program,
+    clear(): void {
+      intensities.fill(0);
+    },
+    setValues(
+      index: number,
+      x: number, y: number, z: number,
+      radius: number,
+      colorR: number, colorG: number, colorB: number,
+      intensity: number,
+    ): void {
+      const at = index * 3;
+      offsets[at] = x;
+      offsets[at + 1] = y;
+      offsets[at + 2] = z;
+      shapes[index * 2] = radius;
+      shapes[index * 2 + 1] = 0.16;
+      colors[at] = colorR;
+      colors[at + 1] = colorG;
+      colors[at + 2] = colorB;
+      intensities[index] = intensity;
+    },
+    upload(): void {
+      program.instanceAttributes.iOffset.set(offsets);
+      program.instanceAttributes.iShape.set(shapes);
+      program.instanceAttributes.iColor.set(colors);
+      program.instanceAttributes.iIntensity.set(intensities);
+    },
+    frame(viewProjection: Float32Array, time: number): void {
+      program.uniforms.uViewProj.set(viewProjection);
+      program.uniforms.uTime.set(time);
+    },
+    draw(): void {
+      program.draw();
+    },
+    dispose(): void {
+      program.dispose();
+    },
   });
 }

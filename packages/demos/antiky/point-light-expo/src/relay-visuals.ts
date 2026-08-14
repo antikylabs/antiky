@@ -1,6 +1,7 @@
 import { EXPO_LIGHT_DEFINITIONS } from './lights.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
 import {
+  createRingBatch,
   createContactShadowBatch,
   createGlowBatch,
   createSurfaceBatch,
@@ -23,6 +24,7 @@ const {
 } = RELAY_PRESENTATION.palette;
 
 type SurfaceBatch = ReturnType<typeof createSurfaceBatch>;
+type RingBatch = ReturnType<typeof createRingBatch>;
 type GlowBatch = ReturnType<typeof createGlowBatch>;
 type ContactShadowBatch = ReturnType<typeof createContactShadowBatch>;
 
@@ -31,7 +33,7 @@ export type RelayVisualBatches = Readonly<{
   creatures: SurfaceBatch;
   contacts: ContactShadowBatch;
   orbs: SurfaceBatch;
-  rings: SurfaceBatch;
+  rings: RingBatch;
   glows: GlowBatch;
 }>;
 
@@ -271,31 +273,32 @@ function populateFormsAndOrbs(
 }
 
 function populateRings(
-  rings: SurfaceBatch,
+  rings: RingBatch,
   state: RelaySnapshot,
   powers: readonly [number, number, number],
   chargeColor: Vec3,
 ): void {
   rings.clear();
+  // Goal 08: the rings are light now, not pipe — an additive soft band per instance. Intensity
+  // replaces the old surface material triple; the radii and their animations are unchanged,
+  // because the radius is the message.
   for (let index = 0; index < EXPO_LIGHT_DEFINITIONS.length; index += 1) {
     const light = EXPO_LIGHT_DEFINITIONS[index]!;
     const field = authoritativeRelayRegionRadii(index, powers[index]!);
     const relayColor = colorForRelay(index);
-    setSurface(
-      rings,
+    rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.relaySafe, index),
       light.transform.position[0], -0.31, light.transform.position[2],
-      field.safe, field.safe, field.safe,
-      relayColor,
-      0.48, 0.56, 0.035,
+      field.safe,
+      relayColor[0], relayColor[1], relayColor[2],
+      0.5,
     );
-    setSurface(
-      rings,
+    rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.relayCharge, index),
       light.transform.position[0], -0.27, light.transform.position[2],
-      field.charge, field.charge, field.charge,
-      relayColor,
-      0.28, 0.7, state.deposits[index] ? 0.03 : 0.18,
+      field.charge,
+      relayColor[0], relayColor[1], relayColor[2],
+      state.deposits[index] ? 0.22 : 0.95,
     );
   }
   for (let index = 0; index < RELAY_PRESENTATION.forgeRingScales.length; index += 1) {
@@ -305,45 +308,43 @@ function populateRings(
     const ringColor = state.rejectPulse > 0
       ? DANGER
       : index === 0 ? OLD_BRASS : index === 1 ? VERDIGRIS : DARK_STONE;
-    setSurface(
-      rings,
+    rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.forge, index),
       0, -0.17 + index * 0.035, 0,
-      expandedScale, expandedScale, expandedScale,
-      ringColor,
-      0.48 + index * 0.12, 0.72, 0.02 + state.forgePulse * 0.1 + state.rejectPulse * 0.32,
+      expandedScale,
+      ringColor[0], ringColor[1], ringColor[2],
+      0.35 + state.forgePulse * 1.2 + state.rejectPulse * 2.4,
     );
   }
   for (let index = 0; index < RELAY_RENDER_SLOTS.rings.forgeSockets.count; index += 1) {
     const angle = index / RELAY_RENDER_SLOTS.rings.forgeSockets.count * Math.PI * 2 - Math.PI / 2;
-    setSurface(
-      rings,
+    const socketColor = state.deposits[index] ? colorForRelay(index) : DARK_STONE;
+    rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.forgeSockets, index),
       Math.cos(angle) * 0.72, 0.48, Math.sin(angle) * 0.72,
-      0.24, 0.24, 0.24,
-      state.deposits[index] ? colorForRelay(index) : DARK_STONE,
-      0.25, 0.64, state.deposits[index] ? 0.86 : 0,
+      0.24,
+      socketColor[0], socketColor[1], socketColor[2],
+      state.deposits[index] ? 2.6 : 0.3,
     );
   }
   const playerScale = 0.5 + state.player.charge.value * 0.2;
-  setSurface(
-    rings,
+  rings.setValues(
     renderSlot(RELAY_RENDER_SLOTS.rings.player, 0),
     state.player.x, -0.3, state.player.z,
-    playerScale, playerScale, playerScale,
-    chargeColor,
-    0.2, 0.42, 0.16 + state.player.charge.value * 0.74 + state.dangerPulse * 0.24,
+    playerScale,
+    chargeColor[0], chargeColor[1], chargeColor[2],
+    0.6 + state.player.charge.value * 2.2 + state.dangerPulse * 0.9,
   );
   for (let index = 0; index < state.shades.length; index += 1) {
     const shade = state.shades[index]!;
     const scale = shade.mode === 'threaten' ? 0.58 : 0.32;
-    setSurface(
-      rings,
+    const shadeColor = shade.mode === 'threaten' ? DANGER : SHADE;
+    rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.shades, index),
       shade.x, -0.3, shade.z,
-      scale, scale, scale,
-      shade.mode === 'threaten' ? DANGER : SHADE,
-      0.3, 0.25, shade.mode === 'threaten' ? 0.34 : 0.09,
+      scale,
+      shadeColor[0], shadeColor[1], shadeColor[2],
+      shade.mode === 'threaten' ? 1.4 : 0.35,
     );
   }
   const terminalX = state.status === 'lost' ? state.player.x : 0;
@@ -351,25 +352,25 @@ function populateRings(
   for (let index = 0; index < RELAY_RENDER_SLOTS.rings.terminal.count; index += 1) {
     const visible = state.status === 'playing' ? 0 : 1;
     const scale = visible * (0.75 + index * 0.52 + Math.sin(state.time * 2 + index) * 0.08);
-    setSurface(
-      rings,
+    const terminalColor = state.status === 'won' ? colorForRelay(index) : DANGER;
+    rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.terminal, index),
       terminalX, 0.12 + index * 0.22, terminalZ,
-      scale, scale, scale,
-      state.status === 'won' ? colorForRelay(index) : DANGER,
-      0.16, 0.5, visible * 0.9,
+      scale,
+      terminalColor[0], terminalColor[1], terminalColor[2],
+      visible * 2.4,
     );
   }
   for (let index = 0; index < RELAY_RENDER_SLOTS.rings.ambience.count; index += 1) {
     const angle = index / RELAY_RENDER_SLOTS.rings.ambience.count * Math.PI * 2 + 0.28;
     const scale = 0.34 + (index % 3) * 0.16;
-    setSurface(
-      rings,
+    const ambienceColor = index % 2 === 0 ? VERDIGRIS : OLD_BRASS;
+    rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.ambience, index),
       Math.cos(angle) * 4.7, -0.33, Math.sin(angle) * 3.5,
-      scale, scale, scale,
-      index % 2 === 0 ? VERDIGRIS : OLD_BRASS,
-      0.82, 0.44, 0.008,
+      scale,
+      ambienceColor[0], ambienceColor[1], ambienceColor[2],
+      0.12,
     );
   }
   rings.upload();

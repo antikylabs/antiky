@@ -107,7 +107,7 @@ fn materialPresentationFloorLight(world : vec3f, normal : vec3f, view : vec3f, l
   let light = normalize(toLight);
   let diffuse = max(dot(normal, light), 0.0);
   let specular = specularGGX(normal, light, view, roughness, vec3f(0.04, 0.04, 0.04));
-  let arriving = lightColor * (lightPower * range * range);
+  let arriving = lightColor * (lightPower * range * range / (0.35 + distanceSq * 0.55));
   return arriving * (albedo * diffuse + specular);
 }
 fn channelToLinear(channel : f32) -> f32 {
@@ -142,13 +142,17 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let detailTilt = textureSample(uDetailNormal, uDetailNormal_sampler, bm_in.vWorld.xz * detailRate).xyz * 2.0 - vec3f(1.0, 1.0, 1.0);
   let normal = normalize(vec3f(detailTilt.x * detailStrength, 1.0, detailTilt.y * detailStrength));
   let view = normalize(bm_u.uCameraPosition - bm_in.vWorld);
-  let dampEarth = diffuseSample * bm_u.uDiffuseTint;
+  let litterGrey = dot(diffuseSample, vec3f(0.2126, 0.7152, 0.0722));
+  let dampEarth = mix(diffuseSample, vec3f(litterGrey, litterGrey, litterGrey), 0.62) * bm_u.uDiffuseTint;
   let amber = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uEmberPosition, bm_u.uEmberColor, bm_u.uEmberPower, bm_u.uEmberRadius, roughness, dampEarth);
   let blue = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uIonPosition, bm_u.uIonColor, bm_u.uIonPower, bm_u.uIonRadius, roughness, dampEarth);
   let plum = materialPresentationFloorLight(bm_in.vWorld, normal, view, bm_u.uVioletPosition, bm_u.uVioletColor, bm_u.uVioletPower, bm_u.uVioletRadius, roughness, dampEarth);
   let irradiance = (amber + blue + plum) * bm_u.uRelayLightStrength;
   let shIrradiance = bm_u.uSh0 + bm_u.uSh1 * normal.y + bm_u.uSh2 * normal.z + bm_u.uSh3 * normal.x + bm_u.uSh4 * (normal.x * normal.y) + bm_u.uSh5 * (normal.y * normal.z) + bm_u.uSh6 * (3.0 * normal.z * normal.z - 1.0) + bm_u.uSh7 * (normal.x * normal.z) + bm_u.uSh8 * (normal.x * normal.x - normal.y * normal.y);
-  let ambient = shIrradiance * (bm_u.uAmbientStrength * ao);
+  let emberBounce = bm_u.uEmberColor * (clamp(1.0 - dot(bm_in.vWorld - bm_u.uEmberPosition, bm_in.vWorld - bm_u.uEmberPosition) / 30.0, 0.0, 1.0) * 0.16 * bm_u.uEmberPower);
+  let ionBounce = bm_u.uIonColor * (clamp(1.0 - dot(bm_in.vWorld - bm_u.uIonPosition, bm_in.vWorld - bm_u.uIonPosition) / 30.0, 0.0, 1.0) * 0.16 * bm_u.uIonPower);
+  let violetBounce = bm_u.uVioletColor * (clamp(1.0 - dot(bm_in.vWorld - bm_u.uVioletPosition, bm_in.vWorld - bm_u.uVioletPosition) / 30.0, 0.0, 1.0) * 0.16 * bm_u.uVioletPower);
+  let ambient = (shIrradiance + emberBounce + ionBounce + violetBounce) * (bm_u.uAmbientStrength * ao);
   let shadowSoftness = 2.5;
   let shadowBias = 0.03;
   let sunVisibility = shadowFactor(uShadowMap, uShadowMap_sampler, bm_u.uLightViewProj, bm_in.vWorld, normal, bm_u.uLightPosition, bm_u.uShadowRange, 0.00048828125, shadowSoftness, shadowBias);

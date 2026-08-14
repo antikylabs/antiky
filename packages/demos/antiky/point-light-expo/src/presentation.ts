@@ -21,23 +21,35 @@ export const RELAY_PRESENTATION = Object.freeze({
     radius: 5,
     strength: 1.15,
   }),
+  /**
+   * Goal 08's night grade. §6.1 calls this a night scene whose practicals are the key, and the
+   * capture measured a mid-bright frame (encoded p50 0.356 against a 0.18-0.32 band) whose ground
+   * texture held 95% of the chromatic pixels in one warm cluster. The ambients drop to true night
+   * levels so the practicals' pools read as light arriving, and the floor tint cools into the
+   * narrow blue-green band the brief reserves for the environment.
+   */
   surfaceAmbient: Object.freeze({
     color: color(0.34, 0.4, 0.36),
-    strength: 0.96,
+    strength: 0.5,
   }),
   floorAmbient: Object.freeze({
     color: color(0.3, 0.36, 0.3),
-    strength: 1.08,
+    strength: 0.55,
   }),
-  floorDiffuseTint: color(0.78, 0.82, 0.74),
+  floorDiffuseTint: color(0.5, 0.62, 0.6),
   catalogMaterial: Object.freeze({
-    ambientStrength: 1.14,
+    ambientStrength: 0.62,
   }),
   fog: Object.freeze({
     color: color(0.06, 0.085, 0.075),
     start: 10,
     end: 21,
-    maximumMix: 0.34,
+    /**
+     * 1 at the far end, up from 0.34: the fog is finally allowed to finish its job and dissolve
+     * the ground plane's boundary into the horizon haze, which is goal 08's fix for the hard-edged
+     * quad floating in a void.
+     */
+    maximumMix: 1,
   }),
   camera: Object.freeze({
     position: Object.freeze([0, 18, 10.5] as const),
