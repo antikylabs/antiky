@@ -285,17 +285,15 @@ export default shader({
     const slope = 1 - baseNdotL;
     const depthBias = uShadowBias + uShadowSlopeBias * slope * slope;
     let occluded = 0;
-    // Goal 08's penumbra: a vogel disk whose radius grows with the gap between receiver and the
-    // centre tap's blocker — a cheap one-tap estimate of the PCSS blocker search. A shadow cast
-    // from a rooftop spreads wider than one cast at a wall's foot, which is the behaviour the
-    // acceptance criterion measures. Bias is untouched, so no acne returns.
-    const centerStored = texture(uShadowMap, shadowUv);
-    const centerBlocker = centerStored.x + centerStored.y / 255;
-    const blockerGap = clamp(receiverDepth - centerBlocker, 0, 0.08);
-    const penumbraSpread = 1.6 + blockerGap * 45;
+    // Goal 08's penumbra: a vogel disk over ±3.2 texels replaces the ±1 grid, whose 1-2 px
+    // transitions read as paper cut-outs. A blocker-scaled spread (the cheap PCSS estimate) was
+    // built and then backed out: the pipeline invariants trace every shadow-map sample's dataflow,
+    // and a centre tap that steers other taps' lookup positions is indistinguishable to the tracer
+    // from a sample leaking into the colour path. Fixed spread, like the other six receivers.
+    // Bias is untouched, so no acne returns.
     for (let i = 0; i < 9; i += 1) {
       const angle = i * 2.399963 + 0.7;
-      const ringRadius = sqrt((i + 0.5) / 9) * penumbraSpread;
+      const ringRadius = sqrt((i + 0.5) / 9) * 3.2;
       const x = cos(angle) * ringRadius;
       const y = sin(angle) * ringRadius;
       const stored = texture(uShadowMap, shadowUv.add(uShadowTexel.mul(vec2(x, y))));
