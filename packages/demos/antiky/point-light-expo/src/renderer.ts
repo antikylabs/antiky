@@ -194,6 +194,11 @@ export async function createRelayRenderer(
   {
     // Inside the camera's 45-unit far plane — at 60 the whole dome clipped and the void stayed black.
     const dome = createSphere({ radius: 40, widthSegments: 24, heightSegments: 16 });
+      // Seen from inside, and this renderer culls back faces: reversing the index order flips
+      // every triangle's winding so the sphere's inside is its front. Without this the whole dome
+      // is silently culled and the sky stays the flat clear colour — which is exactly what the
+      // first capture showed.
+      dome.indices.reverse();
     backdropProgram.attributes.aPosition.set(dome.positions);
     backdropProgram.setIndices(dome.indices);
   }

@@ -500,6 +500,11 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     {
       // Inside the camera's 240-unit far plane, following the camera like the arena's sky.
       const dome = createSphere({ radius: 170, widthSegments: 24, heightSegments: 16 });
+      // Seen from inside, and this renderer culls back faces: reversing the index order flips
+      // every triangle's winding so the sphere's inside is its front. Without this the whole dome
+      // is silently culled and the sky stays the flat clear colour — which is exactly what the
+      // first capture showed.
+      dome.indices.reverse();
       skyProgram.attributes.aPosition.set(dome.positions);
       skyProgram.setIndices(dome.indices);
     }
