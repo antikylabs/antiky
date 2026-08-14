@@ -1640,7 +1640,7 @@ function scatterTownClutter(
   //
   // Everything stays deterministic — same hash, same seeds — so `buildTownWorld` remains a pure
   // function of nothing, which the validation suite depends on.
-  const PATCH_COUNT = 58;
+  const PATCH_COUNT = 74;
   const PLAZA_X = 0;
   const PLAZA_Z = 4;
   for (let patch = 0; patch < PATCH_COUNT; patch += 1) {
@@ -1648,7 +1648,7 @@ function scatterTownClutter(
     const patchX = WORLD_MIN_X + 3 + hash(patchSeed) * (WORLD_MAX_X - WORLD_MIN_X - 6);
     const patchZ = WORLD_MIN_Z + 3 + hash(patchSeed * 3 + 1) * (WORLD_MAX_Z - WORLD_MIN_Z - 6);
     const patchRadius = 2.0 + hash(patchSeed * 7 + 2) * 2.8;
-    const bladeCount = Math.floor(22 + hash(patchSeed * 11 + 3) * 34);
+    const bladeCount = Math.floor(26 + hash(patchSeed * 11 + 3) * 38);
     for (let blade = 0; blade < bladeCount; blade += 1) {
       const bladeSeed = patchSeed + blade * 517 + 5;
       const angle = hash(bladeSeed) * Math.PI * 2;
