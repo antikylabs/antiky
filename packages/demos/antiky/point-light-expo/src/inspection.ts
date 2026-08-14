@@ -1,7 +1,7 @@
 import {
-  EVENT_HISTORY_SCHEMA_VERSION,
+  completeCounts,
+  createBoundedEventRecorder,
   WORLD_INSPECTION_SCHEMA_VERSION,
-  createEventHistory,
   createWorldInspection,
   type EventHistory,
   type WorldInspection,
@@ -32,21 +32,11 @@ export const RELAY_SHADE_IDS = Object.freeze(Array.from(
 ));
 const EVENT_CAPACITY = 40;
 
-type RetainedEvent = Readonly<{
-  event: RelayEvent;
-  sequence: number;
-  occurredAt: string;
-}>;
-
 export type RelayInspectionModel = Readonly<{
   record(event: RelayEvent): void;
   world(snapshot: RelaySnapshot): WorldInspection;
   events(): EventHistory;
 }>;
-
-function count(value: number): { available: number; retained: number } {
-  return { available: value, retained: value };
-}
 
 function eventEntityIds(event: RelayEvent): string[] {
   const ids = [RELAY_PLAYER_ID];
@@ -65,13 +55,10 @@ function eventEntityIds(event: RelayEvent): string[] {
 }
 
 export function createRelayInspectionModel(runtimeInstanceId: string): RelayInspectionModel {
-  const retained: RetainedEvent[] = [];
-  let available = 0;
+  const recorder = createBoundedEventRecorder<RelayEvent>(EVENT_CAPACITY);
 
   const record = (event: RelayEvent): void => {
-    available += 1;
-    retained.push(Object.freeze({ event, sequence: available, occurredAt: new Date().toISOString() }));
-    if (retained.length > EVENT_CAPACITY) retained.shift();
+    recorder.record(event, new Date().toISOString());
   };
 
   const world = (snapshot: RelaySnapshot): WorldInspection => {
@@ -248,10 +235,10 @@ export function createRelayInspectionModel(runtimeInstanceId: string): RelayInsp
       revision: snapshot.revision,
       incomplete: false,
       counts: {
-        entities: count(entities.length),
-        components: count(componentCount),
-        relationships: count(relationships.length),
-        stores: count(2),
+        entities: completeCounts(entities.length),
+        components: completeCounts(componentCount),
+        relationships: completeCounts(relationships.length),
+        stores: completeCounts(2),
       },
       entities,
       relationships,
@@ -261,7 +248,7 @@ export function createRelayInspectionModel(runtimeInstanceId: string): RelayInsp
           label: 'Blackout Relay runtime',
           kind: 'runtime',
           incomplete: false,
-          counts: count(runtimeEntries.length),
+          counts: completeCounts(runtimeEntries.length),
           entries: runtimeEntries,
         },
         {
@@ -269,29 +256,19 @@ export function createRelayInspectionModel(runtimeInstanceId: string): RelayInsp
           label: 'Blackout Relay render projection',
           kind: 'render',
           incomplete: false,
-          counts: count(renderEntries.length),
+          counts: completeCounts(renderEntries.length),
           entries: renderEntries,
         },
       ],
     });
   };
 
-  const events = (): EventHistory => createEventHistory({
-    schemaVersion: EVENT_HISTORY_SCHEMA_VERSION,
+  const events = (): EventHistory => recorder.history({
     owner: 'framework',
     sourceId: 'antiky.blackout-relay-simulation',
     worldId: EXPO_WORLD_ID,
     runtimeInstanceId,
-    incomplete: available > retained.length,
-    counts: { available, retained: retained.length },
-    retention: {
-      lifetime: 'runtime-instance',
-      storage: 'memory',
-      overflow: 'drop-oldest',
-      capacity: EVENT_CAPACITY,
-      droppedCount: available - retained.length,
-    },
-    events: retained.map(({ event, sequence, occurredAt }) => ({
+    describe: ({ event, sequence, occurredAt }) => ({
       eventSchemaVersion: 1,
       type: event.type,
       sequence,
@@ -305,7 +282,7 @@ export function createRelayInspectionModel(runtimeInstanceId: string): RelayInsp
         ...(event.relayIndex === undefined ? {} : { relayIndex: event.relayIndex }),
         ...(event.shadeIndex === undefined ? {} : { shadeIndex: event.shadeIndex }),
       },
-    })),
+    }),
   });
 
   return Object.freeze({ record, world, events });

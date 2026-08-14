@@ -88,6 +88,11 @@ const store = createInspectionStore(createInspectionSnapshot({
         description: 'Describe bounded entity, relationship, component, and store data without exposing mutable engine state.',
       },
       {
+        source: 'inspection/event-recorder.ts',
+        title: 'Bounded event recorder',
+        description: 'Retain the newest events within a capacity, number them without reuse, and build the history envelope with its counts and drop accounting derived rather than hand-assembled.',
+      },
+      {
         source: 'inspection/events.ts',
         title: 'Event history',
         description: 'Describe accepted domain facts together with their ordering and retention policy.',
@@ -289,6 +294,13 @@ jump.consume(advance.completedSteps);`,
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
+  // Bounded event recording
+  completeCounts: 'The counts block for a set whose every available item is also retained.',
+  RecordedEvent: 'One retained event with its sequence number and timestamp.',
+  EventHistoryDescriptor: 'What a caller must supply to turn retained events into a history envelope.',
+  BoundedEventRecorder: 'A capped ring of simulation events that owns its own drop accounting.',
+  createBoundedEventRecorder: 'Create a bounded recorder that keeps the newest events and reports what it dropped.',
+
   // Latched input
   LatchedAction: 'A one-shot action captured at display rate and consumed at simulation rate.',
   createLatchedAction: 'Create an edge-triggered action buffer that survives frames completing no step.',

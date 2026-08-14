@@ -1,7 +1,7 @@
 import {
-  EVENT_HISTORY_SCHEMA_VERSION,
+  completeCounts,
+  createBoundedEventRecorder,
   WORLD_INSPECTION_SCHEMA_VERSION,
-  createEventHistory,
   createWorldInspection,
   type EventHistory,
   type WorldInspection,
@@ -52,26 +52,17 @@ export const TRAVERSAL_CHECKPOINT_IDS = Object.freeze(COURSE_CHECKPOINTS.map((_,
 export const TRAVERSAL_COLLECTIBLE_IDS = Object.freeze(COURSE_COLLECTIBLES.map((_, index) => id(0x401 + index)));
 const EVENT_CAPACITY = 64;
 
-type RetainedEvent = Readonly<{ event: TraversalEvent; sequence: number; occurredAt: string }>;
-
 export type TraversalInspectionModel = Readonly<{
   record(event: TraversalEvent): void;
   world(snapshot: TraversalSnapshot): WorldInspection;
   events(): EventHistory;
 }>;
 
-function count(value: number): { available: number; retained: number } {
-  return { available: value, retained: value };
-}
-
 export function createTraversalInspectionModel(runtimeInstanceId: string): TraversalInspectionModel {
-  const retained: RetainedEvent[] = [];
-  let available = 0;
+  const recorder = createBoundedEventRecorder<TraversalEvent>(EVENT_CAPACITY);
 
   const record = (event: TraversalEvent): void => {
-    available += 1;
-    retained.push(Object.freeze({ event, sequence: available, occurredAt: new Date().toISOString() }));
-    if (retained.length > EVENT_CAPACITY) retained.shift();
+    recorder.record(event, new Date().toISOString());
   };
 
   const world = (snapshot: TraversalSnapshot): WorldInspection => {
@@ -293,26 +284,22 @@ export function createTraversalInspectionModel(runtimeInstanceId: string): Trave
       runtimeInstanceId,
       revision: snapshot.revision,
       incomplete: false,
-      counts: { entities: count(entities.length), components: count(componentCount), relationships: count(relationships.length), stores: count(2) },
+      counts: { entities: completeCounts(entities.length), components: completeCounts(componentCount), relationships: completeCounts(relationships.length), stores: completeCounts(2) },
       entities,
       relationships,
       stores: [
-        { storeId: 'antiky.traversal.render', label: 'BroMetal presentation projection', kind: 'render', incomplete: false, counts: count(renderEntries.length), entries: renderEntries },
-        { storeId: 'antiky.traversal.runtime', label: 'Authoritative traversal runtime', kind: 'runtime', incomplete: false, counts: count(runtimeEntries.length), entries: runtimeEntries },
+        { storeId: 'antiky.traversal.render', label: 'BroMetal presentation projection', kind: 'render', incomplete: false, counts: completeCounts(renderEntries.length), entries: renderEntries },
+        { storeId: 'antiky.traversal.runtime', label: 'Authoritative traversal runtime', kind: 'runtime', incomplete: false, counts: completeCounts(runtimeEntries.length), entries: runtimeEntries },
       ],
     });
   };
 
-  const events = (): EventHistory => createEventHistory({
-    schemaVersion: EVENT_HISTORY_SCHEMA_VERSION,
+  const events = (): EventHistory => recorder.history({
     owner: 'framework',
     sourceId: 'antiky.traversal-simulation',
     worldId: TRAVERSAL_WORLD_ID,
     runtimeInstanceId,
-    incomplete: available > retained.length,
-    counts: { available, retained: retained.length },
-    retention: { lifetime: 'runtime-instance', storage: 'memory', overflow: 'drop-oldest', capacity: EVENT_CAPACITY, droppedCount: available - retained.length },
-    events: retained.map(({ event, sequence, occurredAt }) => ({
+    describe: ({ event, sequence, occurredAt }) => ({
       eventSchemaVersion: 1,
       type: event.type,
       sequence,
@@ -322,7 +309,7 @@ export function createTraversalInspectionModel(runtimeInstanceId: string): Trave
       revision: sequence,
       occurredAt,
       data: eventData(event),
-    })),
+    }),
   });
 
   return Object.freeze({ record, world, events });

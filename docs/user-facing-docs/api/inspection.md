@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:310cd7bfd5129d99
+frameworkSource: sha256:b1ec3f69031eb52a
 ---
 
 # Inspection API
@@ -553,6 +553,68 @@ Validates, bounds, copies, and freezes a generic world view.
 
 ```ts
 function createWorldInspection(input: unknown, path = '$'): WorldInspection;
+```
+
+## Bounded event recorder
+
+Retain the newest events within a capacity, number them without reuse, and build the history envelope with its counts and drop accounting derived rather than hand-assembled.
+
+### `completeCounts`
+
+The counts block for a set whose every available item is also retained.
+
+```ts
+function completeCounts(value: number): {
+    available: number;
+    retained: number;
+};
+```
+
+### `RecordedEvent`
+
+One retained event with its sequence number and timestamp.
+
+```ts
+type RecordedEvent<TEvent> = Readonly<{
+    event: TEvent;
+    sequence: number;
+    occurredAt: string;
+}>;
+```
+
+### `EventHistoryDescriptor`
+
+What a caller must supply to turn retained events into a history envelope.
+
+```ts
+type EventHistoryDescriptor<TEvent> = Readonly<{
+    owner: string;
+    sourceId: string;
+    worldId: string;
+    runtimeInstanceId: string;
+    describe(recorded: RecordedEvent<TEvent>): Record<string, unknown>;
+}>;
+```
+
+### `BoundedEventRecorder`
+
+A capped ring of simulation events that owns its own drop accounting.
+
+```ts
+type BoundedEventRecorder<TEvent> = Readonly<{
+    record(event: TEvent, occurredAt: string): void;
+    retained(): readonly RecordedEvent<TEvent>[];
+    available(): number;
+    history(descriptor: EventHistoryDescriptor<TEvent>): EventHistory;
+}>;
+```
+
+### `createBoundedEventRecorder`
+
+Create a bounded recorder that keeps the newest events and reports what it dropped.
+
+```ts
+function createBoundedEventRecorder<TEvent>(capacity: number): BoundedEventRecorder<TEvent>;
 ```
 
 ## Event history

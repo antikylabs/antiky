@@ -1,5 +1,6 @@
 /** Public Antiky Framework entry point. */
 export * from './identity/ids.ts';
+export * from './inspection/event-recorder.ts';
 export * from './inspection/events.ts';
 export * from './inspection/snapshot.ts';
 export * from './inspection/world.ts';

@@ -1,7 +1,7 @@
 import {
-  EVENT_HISTORY_SCHEMA_VERSION,
   WORLD_INSPECTION_SCHEMA_VERSION,
-  createEventHistory,
+  completeCounts,
+  createBoundedEventRecorder,
   createWorldInspection,
   type EventHistory,
   type WorldInspection,
@@ -20,20 +20,11 @@ export const COMBAT_ENEMY_IDS = Object.freeze(Array.from(
 ));
 const EVENT_CAPACITY = 32;
 
-type RetainedEvent = Readonly<{
-  event: CombatEvent;
-  sequence: number;
-}>;
-
 export type CombatInspectionModel = Readonly<{
   record(event: CombatEvent): void;
   world(snapshot: CombatSnapshot): WorldInspection;
   events(): EventHistory;
 }>;
-
-function count(value: number): { available: number; retained: number } {
-  return { available: value, retained: value };
-}
 
 function entityIdsFor(event: CombatEvent): string[] {
   if (event.enemyIndex === undefined) return [COMBAT_PLAYER_ID];
@@ -41,13 +32,12 @@ function entityIdsFor(event: CombatEvent): string[] {
 }
 
 export function createCombatInspectionModel(runtimeInstanceId: string): CombatInspectionModel {
-  const retained: RetainedEvent[] = [];
-  let available = 0;
+  const recorder = createBoundedEventRecorder<CombatEvent>(EVENT_CAPACITY);
 
   const record = (event: CombatEvent): void => {
-    available += 1;
-    retained.push(Object.freeze({ event, sequence: available }));
-    if (retained.length > EVENT_CAPACITY) retained.shift();
+    // Simulation seconds encoded from the Unix epoch, not wall-clock time — the same mapping the
+    // envelope's `occurredAtMapping` note describes, now applied where the event is retained.
+    recorder.record(event, new Date(Math.max(0, Math.round(event.simulationTime * 1_000))).toISOString());
   };
 
   const world = (snapshot: CombatSnapshot): WorldInspection => {
@@ -252,10 +242,10 @@ export function createCombatInspectionModel(runtimeInstanceId: string): CombatIn
       revision: snapshot.revision,
       incomplete: false,
       counts: {
-        entities: count(entities.length),
-        components: count(componentCount),
-        relationships: count(relationships.length),
-        stores: count(2),
+        entities: completeCounts(entities.length),
+        components: completeCounts(componentCount),
+        relationships: completeCounts(relationships.length),
+        stores: completeCounts(2),
       },
       entities,
       relationships,
@@ -265,7 +255,7 @@ export function createCombatInspectionModel(runtimeInstanceId: string): CombatIn
           label: 'Combat runtime',
           kind: 'runtime',
           incomplete: false,
-          counts: count(runtimeEntries.length),
+          counts: completeCounts(runtimeEntries.length),
           entries: runtimeEntries,
         },
         {
@@ -273,29 +263,19 @@ export function createCombatInspectionModel(runtimeInstanceId: string): CombatIn
           label: 'Combat render projection',
           kind: 'render',
           incomplete: false,
-          counts: count(renderEntries.length),
+          counts: completeCounts(renderEntries.length),
           entries: renderEntries,
         },
       ],
     });
   };
 
-  const events = (): EventHistory => createEventHistory({
-    schemaVersion: EVENT_HISTORY_SCHEMA_VERSION,
+  const events = (): EventHistory => recorder.history({
     owner: 'framework',
     sourceId: 'antiky.combat-simulation-facts',
     worldId: COMBAT_WORLD_ID,
     runtimeInstanceId,
-    incomplete: available > retained.length,
-    counts: { available, retained: retained.length },
-    retention: {
-      lifetime: 'runtime-instance',
-      storage: 'memory',
-      overflow: 'drop-oldest',
-      capacity: EVENT_CAPACITY,
-      droppedCount: available - retained.length,
-    },
-    events: retained.map(({ event, sequence }) => ({
+    describe: ({ event, sequence, occurredAt }) => ({
       eventSchemaVersion: 2,
       type: event.type,
       sequence,
@@ -303,7 +283,7 @@ export function createCombatInspectionModel(runtimeInstanceId: string): CombatIn
       worldId: COMBAT_WORLD_ID,
       entityIds: entityIdsFor(event),
       revision: event.simulationRevision,
-      occurredAt: new Date(Math.max(0, Math.round(event.simulationTime * 1_000))).toISOString(),
+      occurredAt,
       data: {
         factKind: 'deterministic-simulation',
         simulationTimeSeconds: event.simulationTime,
@@ -317,7 +297,7 @@ export function createCombatInspectionModel(runtimeInstanceId: string): CombatIn
         ...(event.source === undefined ? {} : { source: event.source }),
         ...(event.enemyIndex === undefined ? {} : { enemyIndex: event.enemyIndex }),
       },
-    })),
+    }),
   });
 
   return Object.freeze({ record, world, events });
