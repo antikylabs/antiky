@@ -843,6 +843,9 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
         );
       };
 
+      // Goal 08: one plate behind the whole cluster, so the readouts sit on UI instead of
+      // floating in the sky as coloured geometry — which is exactly how the capture read them.
+      place(-0.05, -HUD_BAR_GAP * 1.1, HUD_BAR_HALF_WIDTH * 1.5, HUD_BAR_GAP * 2.4, INK, 0.38);
       place(0, 0, HUD_BAR_HALF_WIDTH, HUD_BAR_HALF_HEIGHT, INK, 0.72);
       const progressWidth = HUD_METER_HALF_WIDTH * state.progress;
       place(

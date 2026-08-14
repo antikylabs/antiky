@@ -34,7 +34,7 @@ export const TRAVERSAL_BATCH_CAPACITIES = Object.freeze({
   'coastal-tree': backgroundCount('coastal-tree'),
   'relay-tower': backgroundCount('relay-tower'),
   contactShadow: 1,
-  hud: 20 + HUD_LABEL_CELL_COUNT,
+  hud: 21 + HUD_LABEL_CELL_COUNT,
   trail: 102,
   effects: 8,
 });
