@@ -90,3 +90,51 @@ test('antiky-town keeps recoverable detail in its darks', async () => {
     + `ceiling is ${CLIPPING_CEILING * 100}%. A void background is the usual cause.`,
   );
 });
+
+/**
+ * The §7.1 row for this demo (goal 08), which is different in kind from the other three demos'
+ * rows: measured from the 2026-08-13 baseline capture and locked as a **regression floor**, not a
+ * target to chase. This frame already has the value structure and hue spread the others are
+ * chasing — p05 0.145, p50 0.317, p95 0.669, spread 0.523, clipped 0%, five hue clusters with the
+ * largest at 42.1% — so the job of these bounds is to make sure goal 08's targeted repairs cannot
+ * quietly cost it what it already does right. Margins are for capture noise (the simulation is not
+ * stepped to a fixed count), not headroom to spend.
+ */
+const LOCKED_P50_RANGE = [0.25, 0.38];
+const LOCKED_SPREAD_FLOOR = 0.48;
+const LOCKED_CLIPPED_CEILING = 0.01;
+const LOCKED_CLUSTER_FLOOR = 4;
+const LOCKED_DOMINANT_CEILING = 0.5;
+
+test('antiky-town holds the value structure it was locked at', async () => {
+  const metrics = await readMetrics();
+  const luma = metrics.encodedLuma;
+  assert.ok(luma !== undefined, 'the sidecar predates the encoded-luma measurement; re-shoot');
+  assert.ok(
+    luma.p50 >= LOCKED_P50_RANGE[0] && luma.p50 <= LOCKED_P50_RANGE[1],
+    `p50 ${luma.p50} left the locked ${LOCKED_P50_RANGE.join('-')} band.`,
+  );
+  assert.ok(
+    luma.spread >= LOCKED_SPREAD_FLOOR,
+    `spread ${luma.spread} fell under the locked ${LOCKED_SPREAD_FLOOR}.`,
+  );
+  assert.ok(
+    luma.clipped <= LOCKED_CLIPPED_CEILING,
+    `${(luma.clipped * 100).toFixed(2)}% of pixels are blown; the locked frame had none.`,
+  );
+});
+
+test('antiky-town keeps the hue spread it was locked at', async () => {
+  const metrics = await readMetrics();
+  const hue = metrics.hue;
+  assert.ok(hue !== undefined, 'the sidecar predates the hue measurement; re-shoot');
+  assert.ok(
+    hue.clusters >= LOCKED_CLUSTER_FLOOR,
+    `${hue.clusters} hue cluster(s) against a locked floor of ${LOCKED_CLUSTER_FLOOR}.`,
+  );
+  assert.ok(
+    hue.dominantShare <= LOCKED_DOMINANT_CEILING,
+    `one hue cluster holds ${(hue.dominantShare * 100).toFixed(1)}%, locked ceiling `
+    + `${LOCKED_DOMINANT_CEILING * 100}%.`,
+  );
+});

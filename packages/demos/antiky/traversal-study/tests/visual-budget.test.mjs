@@ -90,3 +90,56 @@ test('traversal-study keeps recoverable detail in its darks', async () => {
     + `ceiling is ${CLIPPING_CEILING * 100}%. A void background is the usual cause.`,
   );
 });
+
+/**
+ * The §7.1 frame-level value targets (goal 08), in the space that table is written in: Rec. 709
+ * luma of the delivered sRGB bytes. The linear percentiles above answer a light-transport
+ * question; these answer "what does the delivered frame's value structure look like".
+ */
+const ENCODED_P05_CEILING = 0.12;
+const ENCODED_P50_RANGE = [0.38, 0.52];
+const ENCODED_P95_FLOOR = 0.9;
+const ENCODED_SPREAD_FLOOR = 0.72;
+const ENCODED_CLIPPED_CEILING = 0.015;
+
+test('traversal-study hits its 7.1 value structure', async () => {
+  const metrics = await readMetrics();
+  const luma = metrics.encodedLuma;
+  assert.ok(luma !== undefined, 'the sidecar predates the encoded-luma measurement; re-shoot');
+  assert.ok(
+    luma.p05 <= ENCODED_P05_CEILING,
+    `p05 ${luma.p05} is above ${ENCODED_P05_CEILING} — the frame has no real darks.`,
+  );
+  assert.ok(
+    luma.p50 >= ENCODED_P50_RANGE[0] && luma.p50 <= ENCODED_P50_RANGE[1],
+    `p50 ${luma.p50} sits outside ${ENCODED_P50_RANGE.join('-')}.`,
+  );
+  assert.ok(
+    luma.p95 >= ENCODED_P95_FLOOR,
+    `p95 ${luma.p95} is under ${ENCODED_P95_FLOOR} — the frame has no real highlights.`,
+  );
+  assert.ok(
+    luma.spread >= ENCODED_SPREAD_FLOOR,
+    `spread ${luma.spread} is under ${ENCODED_SPREAD_FLOOR}.`,
+  );
+  assert.ok(
+    luma.clipped <= ENCODED_CLIPPED_CEILING,
+    `${(luma.clipped * 100).toFixed(2)}% of pixels are blown, ceiling `
+    + `${ENCODED_CLIPPED_CEILING * 100}%.`,
+  );
+});
+
+test('traversal-study carries at least three distinguishable hues, none dominant', async () => {
+  const metrics = await readMetrics();
+  const hue = metrics.hue;
+  assert.ok(hue !== undefined, 'the sidecar predates the hue measurement; re-shoot');
+  assert.ok(
+    hue.clusters >= 3,
+    `${hue.clusters} hue cluster(s) — the frame reads as monochrome mud below 3.`,
+  );
+  assert.ok(
+    hue.dominantShare <= 0.55,
+    `one hue cluster holds ${(hue.dominantShare * 100).toFixed(1)}% of the chromatic pixels, `
+    + 'ceiling 55% — the "everything is one colour" failure.',
+  );
+});
