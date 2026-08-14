@@ -161,6 +161,11 @@ export default shader({
 
     // Linear HDR, and nothing else. Exposure, the tone-map and the encode all happen once in
     // `post.shader.ts`.
-    return vec4(inverseTonemapACES(band.scale(1.15).add(starLight).add(vec3(0.004, 0.005, 0.011))), 1);
+    //
+    // The band gain is 0.34, down from 1.15. At 1.15 the Milky Way read as a bright grey wash over
+    // a quarter of the frame and the demo's darkest 5% of pixels sat at 0.125 encoded luma against
+    // the §7.1 target of <= 0.04 — space was the brightest "dark" in the frame. Night sky is
+    // near-black with crisp stars; the stars keep their own gain so they survive the darker band.
+    return vec4(inverseTonemapACES(band.scale(0.34).add(starLight).add(vec3(0.004, 0.005, 0.011))), 1);
   },
 });
