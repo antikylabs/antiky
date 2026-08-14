@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Complete [execute goal 07](_completed/execute-goal-07.md) first — every item here consumes the HDR scene target,
+Complete [execute goal 07](execute-goal-07.md) first — every item here consumes the HDR scene target,
 the shadow map, the single tone-map or the bloom stage that goals 06 and 07 built. Complete goal 05
 too: it owns items 1–9 of `03-ART-DIRECTION-AND-VFX.md` §7 (triplanar projection, material-ID
 routing, detail normals, SH-9 irradiance, ramp LUT, rim and sheen, catalog material intake, textured
