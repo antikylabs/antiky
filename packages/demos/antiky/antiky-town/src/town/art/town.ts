@@ -1474,25 +1474,60 @@ function bridge(builder: VoxelBuilder): void {
   }
 }
 
+/**
+ * The town's tree species, in one committed table — goal 08's species coherence. The capture
+ * showed "tall thin ones at left" and "a lollipop on the right ridge" reading as different
+ * plants by accident; now every placement resolves to a row here and the distribution test
+ * counts exactly these.
+ */
+export const TOWN_TREE_SPECIES = Object.freeze({
+  /** The town broadleaf in summer dress: round crown on a stout trunk. */
+  'green-round': Object.freeze({ crownScale: 1.75, crownPerHeight: 0.09, trunkPerHeight: 0.62, autumn: false }),
+  /** The same broadleaf turned: identical silhouette, autumn palette. */
+  'autumn-round': Object.freeze({ crownScale: 1.75, crownPerHeight: 0.09, trunkPerHeight: 0.62, autumn: true }),
+  /** The ridge sentinel behind the skyline: taller, sparser crown, only ever on the far hills. */
+  'ridge-sentinel': Object.freeze({ crownScale: 1.5, crownPerHeight: 0.08, trunkPerHeight: 0.56, autumn: false }),
+});
+
+export type TownTreeSpecies = keyof typeof TOWN_TREE_SPECIES;
+
+/**
+ * Every near tree the town plants, authored here so the placement is data the tests can read.
+ * Goal 08 added the grove pairs: trees were sparse singles, and the same clustering logic the
+ * grass follows says company reads as landscape while singles read as markers.
+ */
+export const TOWN_TREE_PLACEMENTS: readonly (readonly [number, number, number, TownTreeSpecies])[] = Object.freeze([
+  [-34, 22, 8, 'green-round'], [-24, 26, 7, 'autumn-round'], [39, 22, 8, 'autumn-round'],
+  [-24, 8, 8, 'green-round'], [24, 8, 7, 'green-round'], [-17, -22, 9, 'autumn-round'],
+  [23, -23, 8, 'green-round'], [-3, -29, 7, 'green-round'], [44, -19, 8, 'autumn-round'],
+  [-45, -23, 9, 'green-round'],
+  // The goal-08 groves: partners beside the existing singles, and two new stands.
+  [-30, 19, 7, 'green-round'], [-28, 25, 6, 'autumn-round'],
+  [36, 25, 7, 'green-round'], [42, 17, 6, 'autumn-round'],
+  [-21, -18, 7, 'green-round'], [27, -19, 6, 'autumn-round'],
+  [-40, -20, 7, 'autumn-round'], [40, 6, 6, 'autumn-round'],
+]);
+
 function tree(
   colliders: TownCollider[],
   vegetation: TownVegetation[],
   gx: number,
   gz: number,
   height: number,
-  autumn = false,
+  species: TownTreeSpecies = 'green-round',
 ): void {
   const base = groundHeightGrid(gx, gz);
   const seed = gx * 101 + gz * 211;
-  addVegetation(vegetation, gx + 0.5, base + 0.5, gz + 0.5, 'tree-trunk', height * 0.62, seed);
+  const row = TOWN_TREE_SPECIES[species];
+  addVegetation(vegetation, gx + 0.5, base + 0.5, gz + 0.5, 'tree-trunk', height * row.trunkPerHeight, seed);
   addVegetation(
     vegetation,
     gx + 0.5,
     base + height,
     gz + 0.5,
     'tree-crown',
-    1.75 + height * 0.09,
-    seed + (autumn ? 991 : 0),
+    row.crownScale + height * row.crownPerHeight,
+    seed + (row.autumn ? 991 : 0),
   );
   addCollider(colliders, gx, gz, 2, 2, 0.08, `town.tree.${gx}.${gz}`);
 }
@@ -2024,11 +2059,7 @@ function buildTownDetails(
   flowerPlanter(builder, colliders, vegetation, 6, -13, true);
   handCart(builder, colliders, 21, -7);
 
-  for (const [x, z, height, autumn] of [
-    [-34, 22, 8, false], [-24, 26, 7, true], [39, 22, 8, true],
-    [-24, 8, 8, false], [24, 8, 7, false], [-17, -22, 9, true], [23, -23, 8, false],
-    [-3, -29, 7, false], [44, -19, 8, true], [-45, -23, 9, false],
-  ] as const) tree(colliders, vegetation, x, z, height, autumn);
+  for (const [x, z, height, species] of TOWN_TREE_PLACEMENTS) tree(colliders, vegetation, x, z, height, species);
 
   scatterTownClutter(builder, colliders, vegetation);
 

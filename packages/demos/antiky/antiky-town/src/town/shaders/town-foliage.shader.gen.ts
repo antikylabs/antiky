@@ -78,8 +78,9 @@ fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   let windDirection = bm_u.uWindDirection * (1.0 / windLength);
   let anchorWeight = mix(1.0 - clamp(aWindWeight, 0.0, 1.0), clamp(aWindWeight, 0.0, 1.0), clamp(iWind.y, 0.0, 1.0));
   let phase = bm_in.iShape.w * 6.2831853 + bm_in.iCenter.x * 0.19 + bm_in.iCenter.z * 0.27;
-  let primary = sin(bm_u.uTime * bm_u.uWindSpeed + phase + aWindWeight * 0.8);
-  let flutter = sin(bm_u.uTime * bm_u.uWindSpeed * 2.73 + phase * 1.71) * 0.34;
+  let rate = bm_u.uWindSpeed * (0.72 + bm_in.iShape.w * 0.66);
+  let primary = sin(bm_u.uTime * rate + phase + aWindWeight * 0.8);
+  let flutter = sin(bm_u.uTime * rate * 2.73 + phase * 1.71) * 0.34;
   let sway = (primary + flutter) * iWind.x * bm_u.uWindStrength * anchorWeight * anchorWeight;
   let world = bm_in.iCenter + rotated + vec3f(windDirection.x * sway, 0.0, windDirection.y * sway);
   let inverseScaledNormal = normalize(vec3f(aNormal.x / width, aNormal.y / height, aNormal.z / width));
@@ -140,10 +141,13 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let direct = bm_u.uSunColor * (bm_u.uSunIntensity * wrappedDiffuse * shadow);
   let cardWeight = 1.0 - clamp(bm_in.vKind, 0.0, 1.0);
   let transmission = max(0.0 - dot(normal, light), 0.0) * cardWeight;
-  let transmitted = bm_u.uSunColor * (bm_u.uSunIntensity * transmission * 0.22 * shadow);
+  let backScatter = pow(max(0.0 - dot(view, light), 0.0), 5.0) * cardWeight;
+  let transmitted = bm_u.uSunColor * (bm_u.uSunIntensity * (transmission * 0.45 + backScatter * 0.85) * shadow);
+  let canopyRim = pow(1.0 - max(dot(normal, view), 0.0), 3.0) * cardWeight * (0.25 + backScatter * 1.4);
   let halfVector = normalize(light + view);
   let specular = pow(max(dot(normal, halfVector), 0.0), mix(18.0, 8.0, clamp(bm_in.vKind, 0.0, 1.0)));
   var color = baseColor * (sky + ground + direct + transmitted) * bm_in.vRootAo;
+  color = color + bm_u.uSunColor * (canopyRim * 0.5 * shadow);
   color = color + bm_u.uSunColor * (specular * mix(0.06, 0.025, clamp(bm_in.vKind, 0.0, 1.0)) * shadow);
   let fog = smoothstep(bm_u.uFogStart, bm_u.uFogEnd, bm_in.vDepth) * clamp(bm_u.uFogStrength, 0.0, 1.0);
   color = mix(color, bm_u.uFogColor, fog);

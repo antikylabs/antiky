@@ -140,8 +140,12 @@ export default shader({
       clamp(iWind.y, 0, 1),
     );
     const phase = iShape.w * 6.2831853 + iCenter.x * 0.19 + iCenter.z * 0.27;
-    const primary = sin(uTime * uWindSpeed + phase + aWindWeight * 0.8);
-    const flutter = sin(uTime * uWindSpeed * 2.73 + phase * 1.71) * 0.34;
+    // Per-instance frequency, not just per-instance phase — the same rule the glow shaders follow
+    // (AC-V3). One shared rate re-synchronises however the phases start, and a town of plants
+    // breathing in unison reads as a metronome rather than as weather.
+    const rate = uWindSpeed * (0.72 + iShape.w * 0.66);
+    const primary = sin(uTime * rate + phase + aWindWeight * 0.8);
+    const flutter = sin(uTime * rate * 2.73 + phase * 1.71) * 0.34;
     const sway = (primary + flutter) * iWind.x * uWindStrength * anchorWeight * anchorWeight;
     const world = iCenter.add(rotated).add(vec3(
       windDirection.x * sway,
@@ -247,12 +251,22 @@ export default shader({
     const wrappedDiffuse = 0.16 + baseNdotL * 0.84;
     const direct = uSunColor.scale(uSunIntensity * wrappedDiffuse * shadow);
     const cardWeight = 1 - clamp(vKind, 0, 1);
+    // Goal 08's backlit translucency. The old term was the normal-based transmission alone at
+    // 0.22, which never read: a canopy between the camera and the sun measured the same as one
+    // beside it. The view-dependent lobe is what sunlight through leaves actually is — strongest
+    // exactly when the camera looks toward the sun through the crown — and it carries the sun's
+    // hue, which is what the acceptance criterion measures.
     const transmission = max(0 - dot(normal, light), 0) * cardWeight;
-    const transmitted = uSunColor.scale(uSunIntensity * transmission * 0.22 * shadow);
+    const backScatter = pow(max(0 - dot(view, light), 0), 5) * cardWeight;
+    const transmitted = uSunColor.scale(uSunIntensity * (transmission * 0.45 + backScatter * 0.85) * shadow);
+    // Rim on the canopy: the band just inside a backlit silhouette catches the sun the criterion's
+    // 1.6x bar asks for. Gated by the same back-scatter so an unlit crown stays matte.
+    const canopyRim = pow(1 - max(dot(normal, view), 0), 3) * cardWeight * (0.25 + backScatter * 1.4);
 
     const halfVector = normalize(light.add(view));
     const specular = pow(max(dot(normal, halfVector), 0), mix(18, 8, clamp(vKind, 0, 1)));
     let color = baseColor.mul(sky.add(ground).add(direct).add(transmitted)).scale(vRootAo);
+    color = color.add(uSunColor.scale(canopyRim * 0.5 * shadow));
     color = color.add(uSunColor.scale(specular * mix(0.06, 0.025, clamp(vKind, 0, 1)) * shadow));
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);

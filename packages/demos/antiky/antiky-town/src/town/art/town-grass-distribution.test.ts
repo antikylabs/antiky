@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 
-import { VOXEL_SIZE, buildTownWorld, townGroundKindAt, townGroundHeightAt } from './town.ts';
+import { TOWN_TREE_PLACEMENTS, TOWN_TREE_SPECIES, VOXEL_SIZE, buildTownWorld, townGroundKindAt, townGroundHeightAt } from './town.ts';
 
 /**
  * Goal 08's grass placement contract, measured over the generated instance list — no rendering.
@@ -121,8 +121,8 @@ test('the field feathers toward pavement instead of stopping at it', () => {
       const ring = (pavedAt(1, 0) || pavedAt(-1, 0) || pavedAt(0, 1) || pavedAt(0, -1)) ? 0
         : (pavedAt(2, 0) || pavedAt(-2, 0) || pavedAt(0, 2) || pavedAt(0, -2)) ? 1
           : 2;
-      ringCells[ring] += 1;
-      rings[ring] += cellBlades.get(`${gx}|${gz}`) ?? 0;
+      ringCells[ring] = ringCells[ring]! + 1;
+      rings[ring] = rings[ring]! + (cellBlades.get(`${gx}|${gz}`) ?? 0);
     }
   }
   const density = rings.map((count, ring) => count / Math.max(1, ringCells[ring]!));
@@ -146,4 +146,18 @@ test('every paved, canal and collider exclusion still holds', () => {
       `a blade stands on ${townGroundKindAt(gx, gz)} ground at grid (${gx}, ${gz})`,
     );
   }
+});
+
+test('every tree resolves to a declared species, and the species set is the table', () => {
+  const declared = new Set(Object.keys(TOWN_TREE_SPECIES));
+  const used = new Set<string>();
+  for (const [, , , species] of TOWN_TREE_PLACEMENTS) {
+    assert.ok(declared.has(species), `undeclared species ${species}`);
+    used.add(species);
+  }
+  // The ridge sentinel lives on the skyline, not among the near placements — near trees use the
+  // two broadleaf dresses, and the distant rows are authored separately with the sentinel.
+  assert.ok(used.has('green-round') && used.has('autumn-round'), 'a broadleaf dress went unused');
+  assert.equal(declared.size, 3, 'the species table changed size without this test hearing about it');
+  assert.ok(TOWN_TREE_PLACEMENTS.length >= 16, `only ${TOWN_TREE_PLACEMENTS.length} near trees`);
 });
