@@ -38,6 +38,11 @@ const session = createEngineSession({
 session.advance(elapsedSeconds, currentInput);`,
     modules: [
       {
+        source: 'sessions/session-frame-driver.ts',
+        title: 'Session frame driver',
+        description: 'Derive elapsed time from the host clock once, route a non-advanced frame to a fault channel instead of dropping it, and keep presenting either way.',
+      },
+      {
         source: 'sessions/engine-session/runtime.ts',
         title: 'Create a session',
         description: 'Create the stateful session once, then drive it through the returned `EngineSession` interface.',
@@ -328,6 +333,12 @@ export default mountGame;`,
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
+  // Session frame driver
+  SessionFrameFault: 'A frame whose advance returned something other than ADVANCED.',
+  SessionFrameDriverOptions: 'The host services a frame driver needs: advance, input, present, and where a fault goes.',
+  SessionFrameDriver: 'Derives elapsed time from the host clock, advances the session, and presents the result.',
+  createSessionFrameDriver: 'Create the per-frame loop that turns a presentation clock into session advances.',
+
   // Bounded event recording
   completeCounts: 'The counts block for a set whose every available item is also retained.',
   RecordedEvent: 'One retained event with its sequence number and timestamp.',

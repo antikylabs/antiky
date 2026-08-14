@@ -3,6 +3,7 @@ import {
   createEngineSession,
   createInspectionSnapshot,
   createSessionId,
+  createSessionFrameDriver,
 } from '@antiky/framework';
 import {
   createGameInspectionSnapshot,
@@ -75,7 +76,6 @@ const game: GameModuleEntry = async (context) => {
     context.report(presentation.measurements);
     const inputBuffer = createTraversalInputBuffer();
     const hostInput: MutableTraversalInput = { horizontal: 0, active: false, jump: false, brake: false, retry: false };
-    let previousPlatformTime: number | null = null;
     let disposed = false;
     const semanticInput = (): TraversalInput => {
       captureInput(context, hostInput);
@@ -89,6 +89,28 @@ const game: GameModuleEntry = async (context) => {
       presentation.render(presentedView.present(alpha), context.pointer, deltaSeconds);
     };
 
+    // One place derives elapsed time, routes a failed advance somewhere visible, and presents
+    // either way. The `Math.min(0.1, ...)` clamp that used to sit in `frame` is gone: the session's
+    // own MAX_FRAME_ELAPSED_SECONDS is 0.05, so 0.1 clamped nothing and only read as though it did.
+    let frameElapsedSeconds = 0;
+    const driver = createSessionFrameDriver<TraversalInput>({
+      advance(elapsedSeconds, input) {
+        frameElapsedSeconds = elapsedSeconds;
+        // Captured before the steps run, so the blend has a genuine previous state.
+        presentedView.capture();
+        return session.advance(elapsedSeconds, input);
+      },
+      input: semanticInput,
+      present: (alpha) => { render(frameElapsedSeconds, alpha); },
+      presentationAlpha: (result) => presentationAlpha(result.completedSteps, session.readStatus()),
+      onFault: ({ code }) => {
+        // Previously dropped, in every demo, including SESSION_FAULTED — a faulted session showed
+        // as a frozen picture with no diagnostic anywhere. `report` is what the host and the MCP
+        // already read.
+        context.report({ ...presentation.measurements, note: `traversal session frame: ${code}` });
+      },
+    });
+
     const inspection: GameInspectionPort = Object.freeze({
       snapshot(state) {
         const base = createGameInspectionSnapshot(state, { session: session.readStatus() });
@@ -101,18 +123,19 @@ const game: GameModuleEntry = async (context) => {
       },
       pauseSimulation() {
         const result = session.pause('tool');
-        previousPlatformTime = null;
+        driver.resetClock();
         return Object.freeze({ result, session: session.readStatus() });
       },
       resumeSimulation() {
         const result = session.resume('tool');
-        previousPlatformTime = null;
+        driver.resetClock();
         return Object.freeze({ result, session: session.readStatus() });
       },
       stepSimulation(expectedCompletedStepCount) {
         const result = session.step(expectedCompletedStepCount, semanticInput());
         inputBuffer.consume(result.code === 'STEPPED' ? 1 : 0);
-        if (result.renderRequested) render(1 / 60);
+        if (result.renderRequested) driver.presentStep(result);
+        else driver.resetClock();
         return Object.freeze({ result, session: session.readStatus() });
       },
     });
@@ -121,15 +144,7 @@ const game: GameModuleEntry = async (context) => {
       inspection,
       frame(platformTimeSeconds: number): void {
         if (disposed) return;
-        const elapsed = previousPlatformTime === null || platformTimeSeconds <= previousPlatformTime
-          ? 0
-          : Math.min(0.1, platformTimeSeconds - previousPlatformTime);
-        previousPlatformTime = platformTimeSeconds;
-        // Captured before the steps run, so the blend has a genuine previous state.
-        presentedView.capture();
-        const result = session.advance(elapsed, semanticInput());
-        inputBuffer.consume(result.completedSteps);
-        render(elapsed, presentationAlpha(result.completedSteps, session.readStatus()));
+        inputBuffer.consume(driver.frame(platformTimeSeconds).completedSteps);
       },
       dispose(): void {
         if (disposed) return;

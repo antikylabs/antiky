@@ -3,6 +3,7 @@ import {
   createEngineSession,
   createInspectionSnapshot,
   createSessionId,
+  createSessionFrameDriver,
 } from '@antiky/framework';
 import {
   createGameInspectionSnapshot,
@@ -113,7 +114,6 @@ const game: GameModuleEntry = async (context) => {
       note: 'Antiky-owned fixed-step Starbreaker combat projected through the BroMetal presentation boundary',
     });
 
-    let previousPlatformTime: number | null = null;
     let disposed = false;
     const semanticInput = (): CombatInput => capturedInput(context, simulation.view(), action.read());
     const presentedView = createPresentedView(simulation.view());
@@ -122,6 +122,24 @@ const game: GameModuleEntry = async (context) => {
     const render = (alpha = 1): void => {
       combatRenderer.render(presentedView.present(alpha), context.pointer);
     };
+    // One place derives elapsed time, routes a failed advance somewhere visible, and presents
+    // either way.
+    const driver = createSessionFrameDriver<CombatInput>({
+      advance(elapsedSeconds, input) {
+        // Captured before the steps run, so the blend has a genuine previous state.
+        presentedView.capture();
+        return session.advance(elapsedSeconds, input);
+      },
+      input: semanticInput,
+      present: (alpha) => { render(alpha); },
+      presentationAlpha: (result) => presentationAlpha(result.completedSteps, session.readStatus()),
+      onFault: ({ code }) => {
+        // Previously dropped, in every demo, including SESSION_FAULTED — a faulted session showed
+        // as a frozen picture with no diagnostic anywhere.
+        context.report({ note: `combat session frame: ${code}` });
+      },
+    });
+
     const inspection: GameInspectionPort = Object.freeze({
       snapshot(state) {
         const base = createGameInspectionSnapshot(state, { session: session.readStatus() });
@@ -134,12 +152,12 @@ const game: GameModuleEntry = async (context) => {
       },
       pauseSimulation() {
         const result = session.pause('tool');
-        previousPlatformTime = null;
+        driver.resetClock();
         return Object.freeze({ result, session: session.readStatus() });
       },
       resumeSimulation() {
         const result = session.resume('tool');
-        previousPlatformTime = null;
+        driver.resetClock();
         return Object.freeze({ result, session: session.readStatus() });
       },
       stepSimulation(expectedCompletedStepCount) {
@@ -155,16 +173,7 @@ const game: GameModuleEntry = async (context) => {
       inspection,
       frame(platformTimeSeconds: number): void {
         if (disposed) return;
-        const elapsed = previousPlatformTime === null || platformTimeSeconds <= previousPlatformTime
-          ? 0
-          : platformTimeSeconds - previousPlatformTime;
-        previousPlatformTime = platformTimeSeconds;
-        action.capture(context.pointer.clicked === true);
-        // Captured before the steps run, so the blend has a genuine previous state.
-        presentedView.capture();
-        const result = session.advance(elapsed, semanticInput());
-        action.consume(result.completedSteps);
-        render(presentationAlpha(result.completedSteps, session.readStatus()));
+        action.consume(driver.frame(platformTimeSeconds).completedSteps);
       },
       dispose(): void {
         if (disposed) return;

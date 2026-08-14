@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:e470edccf0f7aab5
+frameworkSource: sha256:e91c4d2f79d1d6e4
 ---
 
 # Engine session API
@@ -27,6 +27,55 @@ const session = createEngineSession({
 });
 
 session.advance(elapsedSeconds, currentInput);
+```
+
+## Session frame driver
+
+Derive elapsed time from the host clock once, route a non-advanced frame to a fault channel instead of dropping it, and keep presenting either way.
+
+### `SessionFrameFault`
+
+A frame whose advance returned something other than ADVANCED.
+
+```ts
+type SessionFrameFault = Readonly<{
+    code: EngineFrameResultCode;
+    result: EngineFrameResult;
+}>;
+```
+
+### `SessionFrameDriverOptions`
+
+The host services a frame driver needs: advance, input, present, and where a fault goes.
+
+```ts
+type SessionFrameDriverOptions<TInput> = Readonly<{
+    advance(elapsedSeconds: number, input: TInput): EngineFrameResult;
+    input(): TInput;
+    present(alpha: number): void;
+    presentationAlpha?(result: EngineFrameResult): number;
+    onFault?(fault: SessionFrameFault): void;
+}>;
+```
+
+### `SessionFrameDriver`
+
+Derives elapsed time from the host clock, advances the session, and presents the result.
+
+```ts
+type SessionFrameDriver = Readonly<{
+    frame(platformTimeSeconds: number): EngineFrameResult;
+    resetClock(): void;
+    presentStep(result: EngineControlResult): EngineControlResult;
+}>;
+```
+
+### `createSessionFrameDriver`
+
+Create the per-frame loop that turns a presentation clock into session advances.
+
+```ts
+function createSessionFrameDriver<TInput>(options: SessionFrameDriverOptions<TInput>): SessionFrameDriver;
 ```
 
 ## Create a session

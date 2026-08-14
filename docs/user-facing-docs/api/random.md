@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:e470edccf0f7aab5
+frameworkSource: sha256:e91c4d2f79d1d6e4
 ---
 
 # Seeded randomness API

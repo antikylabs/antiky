@@ -5,6 +5,7 @@ import {
   createInspectionSnapshot,
   createSessionId,
   inspectPointLightService,
+  createSessionFrameDriver,
 } from '@antiky/framework';
 import {
   createGameInspectionSnapshot,
@@ -112,8 +113,25 @@ const game: GameModuleEntry = async (context) => {
     });
 
     context.report(relayRenderer.measurements);
-    let previousPlatformTime: number | null = null;
     let disposed = false;
+    // One place derives elapsed time, routes a failed advance somewhere visible, and presents
+    // either way.
+    const driver = createSessionFrameDriver<RelayInput>({
+      advance(elapsedSeconds, input) {
+        // Captured before the steps run, so the blend has a genuine previous state.
+        presentedView.capture();
+        return session.advance(elapsedSeconds, input);
+      },
+      input: semanticInput,
+      present: (alpha) => { relayRenderer?.render(presentedView.present(alpha), powers, context.pointer); },
+      presentationAlpha: (result) => presentationAlpha(result.completedSteps, session.readStatus()),
+      onFault: ({ code }) => {
+        // Previously dropped, in every demo, including SESSION_FAULTED — a faulted session showed
+        // as a frozen picture with no diagnostic anywhere.
+        context.report({ note: `relay session frame: ${code}` });
+      },
+    });
+
     const inspection: GameInspectionPort = Object.freeze({
       snapshot(state) {
         const base = createGameInspectionSnapshot(state, {
@@ -134,12 +152,12 @@ const game: GameModuleEntry = async (context) => {
       },
       pauseSimulation() {
         const result = session.pause('tool');
-        previousPlatformTime = null;
+        driver.resetClock();
         return Object.freeze({ result, session: session.readStatus() });
       },
       resumeSimulation() {
         const result = session.resume('tool');
-        previousPlatformTime = null;
+        driver.resetClock();
         return Object.freeze({ result, session: session.readStatus() });
       },
       stepSimulation(expectedCompletedStepCount) {
@@ -157,17 +175,7 @@ const game: GameModuleEntry = async (context) => {
       frame(platformTimeSeconds: number): void {
         if (disposed) return;
         refreshPowers();
-        const elapsed = previousPlatformTime === null || platformTimeSeconds <= previousPlatformTime
-          ? 0
-          : platformTimeSeconds - previousPlatformTime;
-        previousPlatformTime = platformTimeSeconds;
-        interaction.capture(context.pointer.clicked === true);
-        // Captured before the steps run, so the blend has a genuine previous state.
-        presentedView.capture();
-        const result = session.advance(elapsed, semanticInput());
-        interaction.consume(result.completedSteps);
-        const alpha = presentationAlpha(result.completedSteps, session.readStatus());
-        relayRenderer?.render(presentedView.present(alpha), powers, context.pointer);
+        interaction.consume(driver.frame(platformTimeSeconds).completedSteps);
       },
       dispose(): void {
         if (disposed) return;

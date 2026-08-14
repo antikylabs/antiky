@@ -14,3 +14,4 @@ export * from './point-light/records.ts';
 export * from './point-light/service.ts';
 export * from './point-light/world-inspection.ts';
 export * from './sessions/engine-session/index.ts';
+export * from './sessions/session-frame-driver.ts';
