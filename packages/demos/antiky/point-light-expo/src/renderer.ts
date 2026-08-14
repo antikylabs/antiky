@@ -206,6 +206,18 @@ export async function createRelayRenderer(
   // Created before the uniform binding below, because every material program is pointed at its map
   // once at setup rather than rebound each frame.
   const shadows = resources.register(createShadowPass(renderer));
+  /** Where each relay stands, what colour it burns and how far it reaches. None of it varies. */
+  const setStaticLights = (program: {
+    uniforms: Record<string, { set(value: never): void } | undefined>;
+  }): void => {
+    const names = ['uEmber', 'uIon', 'uViolet'] as const;
+    for (let index = 0; index < names.length; index += 1) {
+      const light = lights[index]!;
+      program.uniforms[`${names[index]!}Position`]?.set(light.transform.position as never);
+      program.uniforms[`${names[index]!}Color`]?.set(light.pointLight.color as never);
+      program.uniforms[`${names[index]!}Radius`]?.set(light.pointLight.radius as never);
+    }
+  };
   const surfaceBatches = [forms, creatures, orbs] as const;
   for (let index = 0; index < surfaceBatches.length; index += 1) {
     const batch = surfaceBatches[index]!;
@@ -224,6 +236,7 @@ export async function createRelayRenderer(
     batch.program.uniforms.uFogStart.set(RELAY_PRESENTATION.fog.start);
     batch.program.uniforms.uFogEnd.set(RELAY_PRESENTATION.fog.end);
     batch.program.uniforms.uFogMaximumMix.set(RELAY_PRESENTATION.fog.maximumMix);
+    setStaticLights(batch.program as never);
     shadows.bind(batch.program as never);
     bindDepthProgram(batch.depthProgram as never);
   }
@@ -245,9 +258,11 @@ export async function createRelayRenderer(
     batch.program.uniforms.uFogStart!.set(RELAY_PRESENTATION.fog.start);
     batch.program.uniforms.uFogEnd!.set(RELAY_PRESENTATION.fog.end);
     batch.program.uniforms.uFogMaximumMix!.set(RELAY_PRESENTATION.fog.maximumMix);
+    setStaticLights(batch.program as never);
     shadows.bind(batch.program as never);
     bindDepthProgram(batch.depthProgram as never);
   }
+  setStaticLights(floorProgram as never);
   floorProgram.uniforms.uDiffuseTint.set(RELAY_PRESENTATION.floorDiffuseTint);
   // Nine coefficients instead of one colour. BroMetal's DSL has no array uniform type, so they are
   // nine separate bindings rather than one — verbose at the call site, but the shader side is a
@@ -283,22 +298,22 @@ export async function createRelayRenderer(
     near: 0.15,
     far: 45,
   });
+  /**
+   * The three relay powers, and only those.
+   *
+   * Each relay also has a position, a colour and a radius, and those nine values used to be
+   * re-uploaded beside the powers on every program on every frame. They cannot change: the light
+   * service's only mutators are `submitPointLightPower` and `correctPointLightPower`, and `lights`
+   * is the record set captured once when the renderer was built. They are written at construction
+   * by `setStaticLights` instead.
+   */
   const setLights = (
     powers: readonly [number, number, number],
     program: (typeof surfaceBatches)[number]['program'] | typeof organic.program,
   ): void => {
-    program.uniforms.uEmberPosition!.set(lights[0]!.transform.position);
-    program.uniforms.uEmberColor!.set(lights[0]!.pointLight.color);
     program.uniforms.uEmberPower!.set(powers[0]);
-    program.uniforms.uEmberRadius!.set(lights[0]!.pointLight.radius);
-    program.uniforms.uIonPosition!.set(lights[1]!.transform.position);
-    program.uniforms.uIonColor!.set(lights[1]!.pointLight.color);
     program.uniforms.uIonPower!.set(powers[1]);
-    program.uniforms.uIonRadius!.set(lights[1]!.pointLight.radius);
-    program.uniforms.uVioletPosition!.set(lights[2]!.transform.position);
-    program.uniforms.uVioletColor!.set(lights[2]!.pointLight.color);
     program.uniforms.uVioletPower!.set(powers[2]);
-    program.uniforms.uVioletRadius!.set(lights[2]!.pointLight.radius);
   };
 
   const visualBatches = Object.freeze({ forms, creatures, contacts, orbs, rings, glows });
@@ -503,18 +518,9 @@ export async function createRelayRenderer(
     }
     floorProgram.uniforms.uViewProj.set(viewProjection);
     floorProgram.uniforms.uCameraPosition.set(cameraPosition);
-    floorProgram.uniforms.uEmberPosition.set(lights[0]!.transform.position);
-    floorProgram.uniforms.uEmberColor.set(lights[0]!.pointLight.color);
     floorProgram.uniforms.uEmberPower.set(powers[0]);
-    floorProgram.uniforms.uEmberRadius.set(lights[0]!.pointLight.radius);
-    floorProgram.uniforms.uIonPosition.set(lights[1]!.transform.position);
-    floorProgram.uniforms.uIonColor.set(lights[1]!.pointLight.color);
     floorProgram.uniforms.uIonPower.set(powers[1]);
-    floorProgram.uniforms.uIonRadius.set(lights[1]!.pointLight.radius);
-    floorProgram.uniforms.uVioletPosition.set(lights[2]!.transform.position);
-    floorProgram.uniforms.uVioletColor.set(lights[2]!.pointLight.color);
     floorProgram.uniforms.uVioletPower.set(powers[2]);
-    floorProgram.uniforms.uVioletRadius.set(lights[2]!.pointLight.radius);
     contacts.program.uniforms.uViewProj.set(viewProjection);
     rings.frame(viewProjection, state.time);
     backdropProgram.uniforms.uViewProj.set(viewProjection);
