@@ -57,7 +57,6 @@ import {
   type TownDemoOptions,
 } from './practical-light-input';
 import type {
-  TownGameFactory,
   TownGameSetup,
   TownRuntime,
   TownRuntimeFactory,
@@ -210,8 +209,6 @@ type ActorAtlasMetadata = {
   grid: { columns: number; rows: number };
   pivot: { x: number; y: number };
 };
-
-export type { TownDemoOptions } from './practical-light-input';
 
 function normalize3(value: readonly [number, number, number]): readonly [number, number, number] {
   const length = Math.hypot(value[0], value[1], value[2]) || 1;
@@ -1167,33 +1164,6 @@ export function createTownRuntimeFactory(options: TownDemoOptions = {}): TownRun
   return (setup) => createTownRuntime(setup, options);
 }
 
-export function createTownGameFactory(options: TownDemoOptions = {}): TownGameFactory {
-  const buildRuntime = createTownRuntimeFactory(options);
-  return async (setup) => {
-    const runtime = await buildRuntime(setup);
-    let previousTime: number | null = null;
-    let disposed = false;
-    return Object.freeze({
-      frame(time: number): void {
-        if (disposed) return;
-        const lastTime = previousTime;
-        const resetOrFirst = lastTime === null || time <= lastTime;
-        const deltaSeconds = resetOrFirst ? 1 / 60 : Math.min(time - lastTime, 0.05);
-        previousTime = time;
-        runtime.update(deltaSeconds, setup.movement);
-        setup.renderer.present(() => runtime.render());
-      },
-      dispose(): void {
-        if (disposed) return;
-        disposed = true;
-        runtime.dispose();
-      },
-    });
-  };
-}
-
-const factory = createTownGameFactory();
-
 function buildWaterGrid(
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number },
   segmentsX: number,
@@ -1221,4 +1191,3 @@ function buildWaterGrid(
   return { positions: new Float32Array(positions), indices: new Uint16Array(indices) };
 }
 
-export default factory;

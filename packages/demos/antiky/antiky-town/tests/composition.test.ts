@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
@@ -348,4 +349,29 @@ test('equal Town sessions produce equal state digests for equal input and platfo
   );
   left.dispose();
   right.dispose();
+});
+
+test('the town module exposes one runtime factory and no second game entry', async () => {
+  // `src/game.ts` is the demo's only entry: it wires `createTownRuntimeFactory` into
+  // `createAntikyTownDemoFactory` and exports the result. `src/town/index.ts` used to carry a
+  // second, complete game loop of its own — `createTownGameFactory` plus a module-level
+  // `export default` that ran at load — left behind when the EngineSession host replaced it.
+  // Nothing imported it. This fails if that architecture comes back.
+  //
+  // Read as text rather than imported: `src/town/index.ts` uses extensionless relative imports,
+  // which Vite resolves and the Node strip-types runner does not, so the module cannot be loaded
+  // here at all. That is also why every other test in this suite reaches for `town-runtime.ts`
+  // and `dist/` instead. The live path is covered by the `dist/antiky.game.js` tests above.
+  const townIndex = await readFile(new URL('../src/town/index.ts', import.meta.url), 'utf8');
+  assert.match(townIndex, /export function createTownRuntimeFactory\b/);
+  assert.doesNotMatch(
+    townIndex,
+    /^export default /m,
+    'src/town/index.ts must not export a game factory of its own',
+  );
+  assert.doesNotMatch(
+    townIndex,
+    /createTownGameFactory/,
+    'the pre-EngineSession game loop must not come back',
+  );
 });

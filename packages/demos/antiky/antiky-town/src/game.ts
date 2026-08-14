@@ -3,13 +3,6 @@ import type { GameModuleEntry } from '@antiky/framework/game';
 import { createTownRuntimeFactory } from './town/index.ts';
 import { createAntikyTownDemoFactory } from './composition.ts';
 
-export {
-  ANTIKY_TOWN_WORLD_ID,
-  MARKET_LAMP_WEST_01_ID,
-  PROOF_POINT_LIGHT_ID,
-} from './content/point-lights.ts';
-export { createAntikyTownDemoFactory } from './composition.ts';
-
 const factory = createAntikyTownDemoFactory(createTownRuntimeFactory);
 
 const game: GameModuleEntry = async (context) => {

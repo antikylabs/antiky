@@ -27,6 +27,3 @@ export type TownRuntimeBuilder = (
   options: TownDemoOptions,
 ) => TownRuntimeFactory;
 
-export type TownGameFactory = (
-  setup: TownGameSetup,
-) => GameInstance | Promise<GameInstance>;
