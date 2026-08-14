@@ -7,13 +7,17 @@
 
 ## Action needed from the owner
 
-Four items. Two are decisions the goal reserved by design; two are conflicts this work found between
-the goal's requirements and a demo's existing tests, where the goal says to stop rather than edit the
-test.
+Four items, **one now closed**. Two are decisions the goal reserved by design; two are conflicts this
+work found between the goal's requirements and a demo's existing tests, where the goal says to stop
+rather than edit the test.
+
+> **Item 1 is closed.** The owner retired `town-study` on 2026-08-14 rather than find a shared home
+> for the duplicated code. `antiky-town` is the surviving town and will absorb game-framework
+> responsibilities over time. Items 2, 3 and 4 remain open.
 
 | # | What | Why it needs you | Blocks |
 |---|---|---|---|
-| 1 | **Where the shared town code should live.** `character-motor.ts` and fifteen other files are byte-identical across `antiky-town` and `town-study` — **4,889 lines**, not the 1,286 the goal names. A drift guard is landed and running. The real fix cannot be `@antiky/framework`: `town-study` is framework-free by the fence at `dev-host.test.mjs:72,95`. | Moving that fence is a product decision about whether BroMetal demos must stay standalone. The goal explicitly reserves it. | the real de-duplication; nothing else |
+| ~~1~~ | **RESOLVED 2026-08-14 — the owner retired `town-study`.** `antiky-town` is the town that ships and will grow into the game framework; the duplicate is deleted rather than shared, so there is nothing left to place. 12,931 lines removed in `67d6b37`, the drift guard included. Original question below. **Where the shared town code should live.** `character-motor.ts` and fifteen other files are byte-identical across `antiky-town` and `town-study` — **4,889 lines**, not the 1,286 the goal names. A drift guard is landed and running. The real fix cannot be `@antiky/framework`: `town-study` is framework-free by the fence at `dev-host.test.mjs:72,95`. | Moving that fence is a product decision about whether BroMetal demos must stay standalone. The goal explicitly reserves it. | the real de-duplication; nothing else |
 | 2 | **`antiky-town`'s RNG swap redistributes its grass.** Swapping its `fract(sin(...))` hash for the framework's integer one moves the 74 meadow patch centres, and its own distribution test then reports the feather rings running 0.060 → 0.151 → 0.107 — the open field thinner than the ring beside the pavement. **Reverted**; the other four copies are promoted. | The gate itself got *better* (0.2038 against an authored 0.2, where the sin hash gave 0.1907), so this is not a regression in the rule — it is the ring statistic being confounded by plaza-distance falloff. Deciding whether to re-derive the test or accept a different meadow is art direction. | the fifth and last RNG copy |
 | 3 | **Should a paused or faulted session keep painting?** Item 7 requires a non-`ADVANCED` frame to "still present". Three demos now do. `antiky-town` renders only on `ADVANCED`, and `composition.test.ts:19` asserts exactly that — "renders once per presentation". **Reverted** rather than rewrite the assertion. | The goal wants the new behaviour; the demo's test asserts the old one. Only you can say which is right for a 2.3D demo with a real post pass. | wiring `antiky-town` to the frame driver |
 | 4 | **A shared-test scope defect, still open from goal 09.** `pipeline-invariants.test.mjs:425` calls `demoSources(slug)` where `demoSources()` takes no parameter, so it scans all ten demos twice instead of the two it names. | One line, in a file neither goal owns. | nothing |
