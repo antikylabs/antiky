@@ -11,6 +11,7 @@ import {
   type TraversalEvent,
   type TraversalInput,
 } from '../src/simulation.ts';
+import { groundTopAt, supportAt } from '../src/course-query.ts';
 import { canonicalAttractCommand } from '../src/attract-controller.ts';
 import { COURSE_BEATS, COURSE_CHECKPOINTS, COURSE_HAZARDS, hazardTop } from '../src/course.ts';
 
@@ -253,6 +254,35 @@ test('moving platforms are deterministic members of one finite authored course',
   assert.deepEqual(first, second);
   assert.equal(first.length, COURSE_PLATFORMS.length);
   assert.ok(first.some((platform) => platform.definition.amplitude > 0));
+});
+
+test('the ground the renderer draws against is the ground the simulation lands on', () => {
+  // `groundTopAt` is what places the contact shadow, the checkpoint flags, the delivery flag and
+  // the landing rings. `supportAt` is what the simulation stands the courier on. Where two
+  // platforms overlap in x these used to disagree — the courier stood on one and its shadow was
+  // drawn against another. A large probe height asks "the highest platform here", which is the
+  // question both are answering.
+  const ABOVE_EVERYTHING = 12;
+  for (const time of [0, 0.75, 1.5, 2.25]) {
+    for (const beat of COURSE_BEATS) {
+      const landed = supportAt(beat.x, ABOVE_EVERYTHING, time);
+      assert.equal(
+        groundTopAt(beat.x, time),
+        landed?.top ?? 0,
+        `beat ${beat.id} at x=${beat.x}, t=${time}`,
+      );
+    }
+  }
+});
+
+test('the renderer and the simulation agree on the ground across the whole course', () => {
+  const ABOVE_EVERYTHING = 12;
+  for (const time of [0, 0.75, 1.5, 2.25]) {
+    for (let x = 0; x <= COURSE_LENGTH; x += 0.1) {
+      const landed = supportAt(x, ABOVE_EVERYTHING, time);
+      assert.equal(groundTopAt(x, time), landed?.top ?? 0, `x=${x.toFixed(1)}, t=${time}`);
+    }
+  }
 });
 
 test('Storm Cut spikes preserve their offset from the moving support at every phase', () => {
