@@ -171,8 +171,10 @@ export function projectArenaCatalog(catalog: ArenaCatalogResources, state: Comba
     const tint = index % 4 === 0 ? STEEL : STEEL_DARK;
     catalog.grenades.setValues(
       grenadeIndex,
-      Math.cos(angle) * 8.45, 0.02 + (index % 2) * 0.18, Math.sin(angle) * 8.45,
-      3.8, 3.8, 3.8,
+      // One scale family with the targets and a shallower stagger: goal 08's scale-and-rotation
+      // discipline on the rim. Mixed prop scales read as debris; one family reads as equipment.
+      Math.cos(angle) * 8.45, 0.02 + (index % 2) * 0.12, Math.sin(angle) * 8.45,
+      3.4, 3.4, 3.4,
       tint,
       index % 4 === 0 ? 0.07 : 0.018, 0, angle,
     );
