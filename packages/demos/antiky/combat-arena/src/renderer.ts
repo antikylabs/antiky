@@ -234,9 +234,10 @@ export async function createCombatRendererWith(
 
     const cameraPosition = new Float32Array(3);
     const cameraProjector = createCombatCameraProjector();
-    // near 0.2 against far 60 is 300:1. The camera is a fixed high three-quarter view roughly 20
-    // units from the arena floor, so nothing is ever closer than a few units.
-    const camera = createCamera({ position: [0, 13.4, 14.8], fovY: Math.PI / 3.85, near: 0.3, far: 140 });
+    // Committed by goal 08 alongside the projector's pose: a 30° lens from low and far, which is
+    // the Rocket League read — long-lensed, flat perspective, ships in silhouette. Nothing is ever
+    // closer than a few units, and 140/0.3 stays inside the 500:1 depth-ratio budget.
+    const camera = createCamera({ position: [0, 9.8, 24.0], fovY: Math.PI / 6, near: 0.3, far: 140 });
     const measurements = deriveCombatRendererMeasurements();
     let disposed = false;
 

@@ -23,7 +23,7 @@ test('combat camera keeps the action framed for wide and portrait canvases', () 
   const wide = projectOnce(16 / 9, state, { x: 0.5, y: 0.5 });
   const portrait = projectOnce(9 / 16, state, { x: 0.5, y: 0.5 });
 
-  assert.deepEqual(wide.position, [0, 13.4, 14.875]);
+  assert.deepEqual(wide.position, [0, 9.8, 24.075]);
   assert.ok(Math.abs(wide.target[0]) < 0.000_001);
   assert.ok(Math.abs(wide.target[1] - 0.3) < 0.000_001);
   assert.ok(Math.abs(wide.target[2] - 1.3) < 0.000_001);
@@ -39,7 +39,7 @@ test('combat camera pointer drift is clamped and deterministic', () => {
 
   assert.deepEqual(first, second);
   assert.equal(first.position[0], 0.45);
-  assert.ok(Math.abs(first.position[1] - 13.19) < 0.000_001);
+  assert.ok(Math.abs(first.position[1] - 9.59) < 0.000_001);
 });
 
 test('steady camera projection reuses its frame vectors and never sorts enemy state', () => {

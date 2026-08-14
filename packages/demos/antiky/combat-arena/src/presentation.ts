@@ -219,12 +219,18 @@ export function createCombatCameraProjector(): CombatCameraProjector {
       const dashPush = Math.max(0, Math.min(1, state.player.dash / 0.2)) * reactive;
 
       // The pose the camera wants, with no shake in it. Shake is added after easing, below.
+      // Committed by goal 08: low and long-lensed, the Rocket League read. The old pose — 13.4 up,
+      // 14.8 back, at a 47° lens — was a diagram: high enough to flatten the ships into icons,
+      // wide enough to bow the walls. Dropping the eye to 9.8 and pulling back to 24 under a 30°
+      // lens keeps the whole deck framed (the tactical read this game actually needs) while the
+      // flatter angle gives the ships silhouettes against the deck instead of top plates, and puts
+      // the camera low enough that the deck's planar reflection reads at grazing.
       const desiredPosition: readonly [number, number, number] = terminal
-        ? [0, mobile ? 17.4 : 13.6, mobile ? 18.6 : 14.9]
+        ? [0, mobile ? 12.8 : 10.0, mobile ? 28.7 : 24.1]
         : [
           state.player.x * 0.08 + driftX + velocityLeadX + threatLeadX * 0.18,
-          (mobile ? 17 : 13.4) + driftY - dashPush * (mobile ? 0.32 : 0.48),
-          (mobile ? 18.2 : 14.8) + state.player.z * 0.05 + velocityLeadZ + threatLeadZ * 0.12,
+          (mobile ? 12.6 : 9.8) + driftY - dashPush * (mobile ? 0.32 : 0.48),
+          (mobile ? 28.6 : 24.0) + state.player.z * 0.05 + velocityLeadZ + threatLeadZ * 0.12,
         ];
       const desiredTarget: readonly [number, number, number] = terminal
         ? [0, 0.28, 0]
