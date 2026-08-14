@@ -242,12 +242,12 @@ export async function createArenaCatalogResources(
     const materialMaps = await dependencies.loadKitMaterialMaps(renderer);
     registerResource(resources, materialMaps.diffuse);
     registerResource(resources, materialMaps.roughness);
-    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.7));
-    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 0, 0.7));
+    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
+    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 0, 0.85));
     const targets = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35, 0, 0));
     const grenades = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0, 0, 0));
-    const walls = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.7));
-    const wallDetails = registerResource(resources, await createModelBatch(renderer, models[5]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.7));
+    const walls = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
+    const wallDetails = registerResource(resources, await createModelBatch(renderer, models[5]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
 
     // Disposal covers everything the catalog owns; per-frame work is only the batches. Iterating
     // `resources` here would call `frame` on a texture.

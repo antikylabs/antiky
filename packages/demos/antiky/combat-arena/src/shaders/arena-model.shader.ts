@@ -320,7 +320,7 @@ export default shader({
     // hue cluster at 82% of the chromatic pixels, and §6.2 wants the blues doing structural duty
     // pulled toward neutral steel so the team signals own the saturation. The ships keep their
     // bluer bounce — they are the subject.
-    const lit = sampled.mul(vec3(0.565, 0.578, 0.615).mul(ambient))
+    const lit = sampled.mul(vec3(0.578, 0.582, 0.60).mul(ambient))
       .add(sampled.scale(diffuse * 1.15))
       .add(vTint.scale(clamp(vParams.x, 0, 1) * pulse * (0.12 + rim * 0.34)));
     // The six floodlights posted around the rim, in `src/arena-lights.ts`.

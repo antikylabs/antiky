@@ -38,7 +38,7 @@ export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4,
     // failure the hue budget exists to catch. Warm-neutral keeps the luminance without the wash.
     color: Object.freeze(teamEnd === 'red' ? [1, 0.3, 0.24] as const
       : teamEnd === 'cyan' ? [0.3, 0.85, 1] as const
-        : warm ? [1, 0.88, 0.74] as const : [0.8, 0.88, 0.96] as const),
+        : warm ? [1, 0.84, 0.62] as const : [0.8, 0.88, 0.96] as const),
     // Six lights sum. At 2.6 each the deck blew to white — the arena is roughly 16 across and every
     // point on it is inside two or three of these, so the useful figure is roughly a sixth of what a
     // single light would want.
@@ -48,7 +48,7 @@ export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4,
     // wall faces, so this is the lever that actually moves that number. The warm posts lead the
     // cool ones on purpose: the frame's chromatic mass was 82% one blue cluster, and amber is the
     // counterweight that pulls the deck's mids warm without touching the team signals.
-    power: teamEnd !== undefined ? 0.88 : warm ? 1.12 : 0.92,
+    power: teamEnd !== undefined ? 1.0 : warm ? 1.12 : 0.92,
     // Tight enough that each stays near its own post. A radius spanning the whole deck turns six
     // lights into one flat fill, which is the opposite of what posting lights around a space does.
     radius: 7.0,
