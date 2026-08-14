@@ -165,7 +165,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let mirrored = reflected * (bm_u.uReflectionStrength * (0.34 + grazingReflection * 0.66) * (1.2 - kitRoughness));
   let railBand = 1.0 - smoothstep(0.055, 0.09, abs(bm_in.vWorld.y - 1.62));
   let skirtBand = 1.0 - smoothstep(0.035, 0.06, abs(bm_in.vWorld.y - 0.34));
-  let trim = vec3f(1.3, 2.5, 3.1) * ((railBand + skirtBand * 0.55) * bm_u.uTrimStrength);
+  let trim = vec3f(1.5, 2.8, 3.4) * ((railBand + skirtBand * 0.55) * bm_u.uTrimStrength);
   let confirmed = mix(floodlit + mirrored + trim, vec3f(1.7, 1.8, 1.9), clamp(bm_in.vParams.y, 0.0, 1.0));
   let fog = smoothstep(17.0, 34.0, length(bm_u.uCameraPosition - bm_in.vWorld));
   return vec4f(mix(confirmed, vec3f(0.001887, 0.002936, 0.004748), fog * 0.72), 1.0);

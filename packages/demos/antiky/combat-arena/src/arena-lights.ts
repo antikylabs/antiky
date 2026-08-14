@@ -32,9 +32,13 @@ export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4,
   return Object.freeze({
     position: Object.freeze([Math.cos(angle) * 8.6, 1.85, Math.sin(angle) * 8.6] as const),
     // The demo's own cyan and amber, at the strength they read as light rather than as paint.
+    // §6.2's palette: a cool *neutral* stadium with the saturation owned by the team signals. The
+    // first pass tinted the working posts full amber and the deck's whole mid range joined one
+    // orange hue cluster at 70% of the chromatic frame — the exact "everything is one colour"
+    // failure the hue budget exists to catch. Warm-neutral keeps the luminance without the wash.
     color: Object.freeze(teamEnd === 'red' ? [1, 0.3, 0.24] as const
       : teamEnd === 'cyan' ? [0.3, 0.85, 1] as const
-        : warm ? [1, 0.62, 0.24] as const : [0.36, 0.78, 1] as const),
+        : warm ? [1, 0.86, 0.7] as const : [0.62, 0.82, 0.95] as const),
     // Six lights sum. At 2.6 each the deck blew to white — the arena is roughly 16 across and every
     // point on it is inside two or three of these, so the useful figure is roughly a sixth of what a
     // single light would want.

@@ -79,7 +79,7 @@ const COMBAT_EXPOSURE = 1.2;
  * The threshold sits above what a lit hull reaches and below the energy rings and the ship trails,
  * so the glow picks out things that emit rather than everything the key caught.
  */
-const COMBAT_BLOOM = Object.freeze({ threshold: 1, radius: 5, strength: 1 });
+const COMBAT_BLOOM = Object.freeze({ threshold: 1, radius: 5, strength: 1.2 });
 
 /**
  * `COMBAT_RENDERER_OPTIONS.clearColor` expressed in linear light.

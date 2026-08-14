@@ -344,7 +344,7 @@ export default shader({
     // "procedural trim" — no UVs are consulted, so the kit's atlas never fights it.
     const railBand = 1 - smoothstep(0.055, 0.09, abs(vWorld.y - 1.62));
     const skirtBand = 1 - smoothstep(0.035, 0.06, abs(vWorld.y - 0.34));
-    const trim = vec3(1.3, 2.5, 3.1).scale((railBand + skirtBand * 0.55) * uTrimStrength);
+    const trim = vec3(1.5, 2.8, 3.4).scale((railBand + skirtBand * 0.55) * uTrimStrength);
     const confirmed = mix(floodlit.add(mirrored).add(trim), vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the
     // ship shader's original range. The tighter floor ranges faded the ground while ships at the
