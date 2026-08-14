@@ -1,7 +1,7 @@
 /**
  * The overlay draws these strings and nothing else.
  *
- * They used to be four-field descriptors carrying a `kind`, a `field` and a `relayMarkerCounts`.
+ * They used to be four-field descriptors carrying a kind, a field name and a per-relay bead count.
  * Only the label was ever drawn. The relay identity markers derive their own 1/2/3 counts from the
  * light index at `relay-visuals.ts:237-239`, so the counts here were a second copy that happened to
  * agree rather than the source anything read.

@@ -172,8 +172,8 @@ export default shader({
     //
     // `uWrap` is set per batch and is 0 for everything solid, so this costs a multiply and an add on
     // the geometry that does not want it. Explicit rather than inferred: the alternative was to key
-    // off `uGradeMix`, which happens to be high on clouds today and is really about colour grading,
-    // so anything that later graded a rock heavily would start lighting like a cloud.
+    // off the old colour-grade strength, which happened to be high on clouds, so anything that later
+    // graded a rock heavily would have started lighting like a cloud.
     // The shadow attenuates the key term and nothing else: the ambient and the rim are what a
     // surface receives from everything that is *not* the key, and dimming those too is what makes a
     // shadowed area read as flat grey instead of dark and shaped.
@@ -264,10 +264,11 @@ export default shader({
     // course read as plastic blocks rather than as made of anything. Pulling it well toward
     // toward its own luminance keeps the colour language the kit was designed around while letting
     // the material underneath carry the surface.
-    // `uGradeColor` / `uGradeMix` deleted here, which goal 07 asks for by name. At their runtime
-    // values they replaced about **90% of the cloud texture and 78% of the cliff texture with flat
-    // colour** — a grade strong enough that the art underneath it was barely visible, standing in
-    // for lighting the demo did not have. The ramp and the SH-9 ambient do that job now.
+    // The pair of colour-grade uniforms that used to sit here are gone, which goal 07 asked for by
+    // name. At their runtime values they replaced about **90% of the cloud texture and 78% of the
+    // cliff texture with flat colour** — a grade strong enough that the art underneath it was
+    // barely visible, standing in for lighting the demo did not have. The ramp and the SH-9 ambient
+    // do that job now.
     const palette = texel;
     const paletteLuminance = palette.x * 0.2126 + palette.y * 0.7152 + palette.z * 0.0722;
     const graded = mix(
