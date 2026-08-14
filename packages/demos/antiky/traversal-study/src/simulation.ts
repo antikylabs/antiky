@@ -11,9 +11,11 @@ import {
 } from './course.ts';
 
 import { platformInstancesNear, supportAt, type PlatformInstance } from './course-query.ts';
+import { createTrailParticles, type TrailParticle } from './trail-particles.ts';
 
 export { COURSE_LENGTH, COURSE_HAZARDS, COURSE_PLATFORMS, platformTop } from './course.ts';
 export { platformInstancesNear, type PlatformInstance } from './course-query.ts';
+export { type TrailParticle } from './trail-particles.ts';
 
 export const RUNNER_RADIUS = 0.43;
 export const TRAIL_CAPACITY = 72;
@@ -69,15 +71,6 @@ export type TraversalEvent = Readonly<{
   controlMode?: TraversalControlMode;
 }>;
 
-export type TrailParticle = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  color: number;
-};
-
 export type TraversalSnapshot = Readonly<{
   time: number;
   attemptTime: number;
@@ -130,11 +123,6 @@ type MutableTraversalSnapshot = {
   -readonly [Key in keyof TraversalSnapshot]: TraversalSnapshot[Key];
 };
 
-function seeded(index: number, salt: number): number {
-  const value = Math.sin(index * 73.91 + salt * 19.37) * 41758.31;
-  return value - Math.floor(value);
-}
-
 export function createTraversalSimulation(emit: (event: TraversalEvent) => void): TraversalSimulation {
   const player = {
     x: COURSE_CHECKPOINTS[0]!.x,
@@ -145,10 +133,8 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     facing: 1,
     squash: 0,
   };
-  const trail: TrailParticle[] = Array.from(
-    { length: TRAIL_CAPACITY },
-    () => ({ x: 0, y: -20, vx: 0, vy: 0, life: 0, color: 0 }),
-  );
+  const trailParticles = createTrailParticles(TRAIL_CAPACITY);
+  const trail = trailParticles.particles;
   const effects = { jump: 0, land: 0, checkpoint: 0, collectible: 0, damage: 0, retry: 0, delivery: 0 };
   let time = 0;
   let attemptTime = 0;
@@ -164,7 +150,6 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
   let outcome: TraversalOutcome = 'running';
   let failureReason: TraversalFailureReason = null;
   let idleSeconds = 0;
-  let trailCursor = 0;
   let jumpWasDown = false;
   let retryWasDown = false;
   let jumpBuffer = 0;
@@ -199,16 +184,13 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
   };
 
   const spawnTrail = (count: number, color: number, force: number): void => {
-    for (let index = 0; index < count; index += 1) {
-      const particle = trail[trailCursor]!;
-      trailCursor = (trailCursor + 1) % trail.length;
-      particle.x = player.x - player.facing * 0.28;
-      particle.y = player.y - RUNNER_RADIUS * 0.7;
-      particle.vx = -player.facing * (0.65 + seeded(revision + index, 2) * force);
-      particle.vy = 0.4 + seeded(revision + index, 3) * force;
-      particle.life = 0.28 + seeded(revision + index, 4) * 0.34;
-      particle.color = color;
-    }
+    trailParticles.spawn(
+      count, color, force,
+      player.x - player.facing * 0.28,
+      player.y - RUNNER_RADIUS * 0.7,
+      player.facing,
+      revision,
+    );
   };
 
   const placeAtCheckpoint = (): void => {
@@ -308,7 +290,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     const playerRequestedControl = input.active === true || input.jump === true || input.retry === true;
     if (outcome !== 'running') {
       if (retryPressed) retry();
-      updateParticles(dt);
+      trailParticles.update(dt);
       return;
     }
 
@@ -336,7 +318,7 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
       }
       if (attemptTime >= STORM_DURATION_SECONDS) {
         fail('storm');
-        updateParticles(dt);
+        trailParticles.update(dt);
         return;
       }
     }
@@ -453,20 +435,9 @@ export function createTraversalSimulation(emit: (event: TraversalEvent) => void)
     if (player.grounded && Math.abs(player.vx) > 2.4 && revision % 4 === 0) {
       spawnTrail(1, revision % 12 === 0 ? 1 : 0, 1.2 + Math.abs(player.vx) * 0.08);
     }
-    updateParticles(dt);
+    trailParticles.update(dt);
   };
 
-  const updateParticles = (dt: number): void => {
-    for (let index = 0; index < trail.length; index += 1) {
-      const particle = trail[index]!;
-      if (particle.life <= 0) continue;
-      particle.life -= dt;
-      particle.x += particle.vx * dt;
-      particle.y += particle.vy * dt;
-      particle.vy -= 2.8 * dt;
-      if (particle.life <= 0) particle.y = -20;
-    }
-  };
 
   const syncLiveSnapshot = (): TraversalSnapshot => {
     const remainingTime = Math.max(0, STORM_DURATION_SECONDS - attemptTime);
