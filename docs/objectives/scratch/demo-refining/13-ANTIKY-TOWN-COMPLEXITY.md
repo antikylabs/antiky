@@ -26,21 +26,26 @@ drift (a wrap constant of 0.18 against 0.20). See §5.3.
 
 ## 1. Headline
 
+> **Status 2026-08-14.** Findings 1, 2 and 4 below were fixed or actioned by goal 09 on the owner's
+> instruction, the same day this inventory was written. Finding 3 — the hidden multipliers — is
+> untouched and is now the largest open item here. Each section carries its own status note.
+
 Three findings outrank everything else.
 
-1. **Ground height on the bridge is answered by three incompatible rules, disagreeing by up to
-   1.03 m** — 1.7 macro voxels on a 0.62 m scale. This is `traversal-study`'s three-ground-functions
-   defect, present here at larger scale. §5.1.
-2. **Two test files never run.** `tests/ambient-contract.test.ts` and
-   `tests/water-depth-contract.test.ts` are referenced by no runner anywhere in the repository.
-   One of them describes itself as existing "so the audit's conclusion cannot be quietly undone".
-   It can. §6.
+1. ~~**Ground height on the bridge is answered by three incompatible rules, disagreeing by up to
+   1.03 m**~~ — 1.7 macro voxels on a 0.62 m scale. `traversal-study`'s three-ground-functions defect
+   at larger scale. **Fixed**, §5.1.
+2. ~~**Two test files never run.**~~ `tests/ambient-contract.test.ts` and
+   `tests/water-depth-contract.test.ts` were referenced by no runner anywhere in the repository. One
+   described itself as existing "so the audit's conclusion cannot be quietly undone". **Deleted** on
+   the owner's instruction, §6.
 3. **The demo's authored uniform values are usually not the values the shader uses.** Eleven hidden
    multipliers sit between a `.set()` call site and the arithmetic consuming it. `uExposure` is
-   authored 1.45 and applied as 0.9425. §4.2.
+   authored 1.45 and applied as 0.9425. **Open, and now the headline.** §4.2.
 
-A fourth, smaller but live: **a sprite prop floats 1.56 m above the canal water**, because the
-placement query cannot express "there is no ground here". §5.2.
+A fourth, smaller but live: ~~**a sprite prop floats 1.56 m above the canal water**~~, because the
+placement query cannot express "there is no ground here". **Fixed**, §5.2 — though the query still
+cannot express it.
 
 **This demo is meaningfully better engineered than the three in the original audit.** It has a real
 post pass, a matched sRGB decode/encode pair, a genuinely energy-conserving BRDF in two shaders, and
@@ -273,6 +278,14 @@ Three items should not be classified from code alone, and each has a stated expe
 
 ### 5.1 ★ Ground height on the bridge — three rules, up to 1.03 m apart — **VOXEL**
 
+> **Fixed 2026-08-14** (`bb35904`), on the owner's instruction. `groundHeightGrid` now answers only
+> the structural question — how tall the macro voxel column is — and a new `placementSurfaceGrid`
+> answers where an object rests, delegating to the same `topSurfaceGrid` the character motor walks
+> on. Off the bridge the two are arithmetically identical, so no geometry moved. Guarded by *every
+> prop rests on the surface the courier walks on* in `town-validation.test.ts`, which was written
+> first, watched fail, and re-checked by putting a crate back on the bridge. The analysis below is
+> kept as the record of what was wrong.
+
 This is the highest-value finding in the document and it is `traversal-study`'s defect at scale.
 
 | Rule | Function | `file:line` |
@@ -316,6 +329,10 @@ they agree. A test asserting `topSurfaceGrid(gx,gz) === walkSurfaceHeight(gx·VO
 gz·VOXEL_SIZE)` for every bridge cell **does not exist and would fail today.**
 
 ### 5.2 ★ "Is there ground here at all?" — and a prop standing on the wrong answer
+
+> **Fixed 2026-08-14** (`bb35904`). The `map-kit` prop moved from grid `(-27, 18)` to `(-27, 19)`,
+> the south bank. The underlying design point stands and is unfixed: `groundHeightGrid` still cannot
+> express "there is no ground here", it just no longer has anything standing on that answer.
 
 `groundHeightGrid` (`town.ts:611-616`) has no canal case and falls through to `return 0` for open
 water. `canWalk` (`:2206-2212`) does know the canal is not walkable.
@@ -442,9 +459,9 @@ behaviour-preserving move.
 
 | Rank | Item | § | Gate |
 |---|---|---|---|
-| 1 | Wire up or rewrite the two orphaned test files | 6 | none — do this first, everything else is safer after |
-| 2 | Bridge ground height: three rules, up to 1.03 m apart | 5.1 | write the equality test first; it fails today |
-| 3 | `map-kit` prop floating over the canal | 5.2 | write a "every prop stands on ground" test first |
+| ~~1~~ | ~~Wire up or rewrite the two orphaned test files~~ | 6 | **done** — deleted 2026-08-14 |
+| ~~2~~ | ~~Bridge ground height: three rules, up to 1.03 m apart~~ | 5.1 | **done** — `bb35904` |
+| ~~3~~ | ~~`map-kit` prop floating over the canal~~ | 5.2 | **done** — `bb35904` |
 | 4 | Lamp declared twice; adapter carries only power | 5.5 | needs a test that the two agree |
 | 5 | `practicalRadiance` into the enforced-duplication pattern | 5.3 | decide the wrap constant first |
 | 6 | Delete findings 1, 3, 6, 7, 12 and the dead chroma-key path | 3, 4.1 | **ungated** — mechanical, ~90 lines |

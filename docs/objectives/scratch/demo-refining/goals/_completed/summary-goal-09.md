@@ -5,10 +5,82 @@
 `6761df4`, `6b4ca12`, `bce490a`, `10213e1`, `29dfb05`, `cfd4d93`, `19280ab`
 **Goal file:** [`execute-goal-09.md`](execute-goal-09.md)
 
-## Action needed from the owner
+## Owner decisions — answered 2026-08-14
 
-Eight items. Five are the owner questions the goal named and reserved; three are things this goal
-found and is not entitled to decide. Items 6 and 7 are the ones that block other work.
+The owner reviewed all eight items. **Seven are resolved and landed; one remains open.** The table
+records what was decided and what was done. The questions as originally asked are kept below it.
+
+| # | Decision | What was done |
+|---|---|---|
+| 1 | 27 ambience instances — **"not intentional, probably clutter"** | Deleted: three slot ranges and three population loops. `point-light-expo` still passes all 10 budgets; local contrast 8.74 → 8.71, inside capture noise. `8e9f7cf` |
+| 2 | Per-instance `iTint` — **"ok"** | No action. Already deleted by goals 06–08; recorded so the loss is not silent. |
+| 3 | `markedScale` / `markedMinimumAlpha` — **"seems fine to me"** | **Left exactly as authored**, 1.38 and 0.7. The thirteenth knob closes as a deliberate gameplay affordance rather than scar tissue, on the owner's read of the demo. Not re-tuned. |
+| 4 | Onboarding data — **"idk what you are talking about"** | Question withdrawn as unanswerable-as-written; explained below. Nothing on screen depended on it. |
+| 5 | Camera parameter — **"idk what you are talking about"** | Question withdrawn as unanswerable-as-written; explained below. Left in place. |
+| 6 | Town contrast floor — **"antiky town demo looks fine. I only look at it, not the brometal town."** | Floor re-derived **8.5 → 7.5** through the escape hatch the budget already documented: *"if this demo lands a look the owner is happy with and the budget still fails, the budget is wrong."* Reasoning written into the test. |
+| 7 | Unused test files — **"burn any unused test files, they are useless."** | `tests/ambient-contract.test.ts` and `tests/water-depth-contract.test.ts` deleted. Source-text regex tests wired to no runner — the category `AGENTS.md` already forbids. Also removes the stated blocker on decomposing `town.ts` and `index.ts`. |
+| 8 | Shared-test scope defect | **Still open.** Outside this goal's owned tree. Explained below. |
+
+The owner also directed **"also fix this"** at the bridge-height divergence and the floating prop.
+Both are fixed, test-first, in `bb35904`.
+
+### Why items 4 and 5 were unanswerable as asked
+
+Both were carried forward in the plan's shorthand and are not legible without the file open. That is
+a defect in how I relayed them, not in the answer. Restated:
+
+- **Item 4** was about four lines of tutorial text in `point-light-expo` ("WASD / ARROWS — MOVE" and
+  three more). Each label used to be wrapped in a record carrying three fields nothing drew, one of
+  which listed the bead counts `[1, 2, 3]` for the relay markers — which compute those counts
+  themselves. The wrapper is gone; the labels render identically.
+- **Item 5** is a function that accepts a camera position and ignores it. It exists because the
+  background was once meant to slide with the camera and does not. Whether to delete the parameter
+  or make it work depends on whether you want parallax, which is why it was gated rather than
+  decided. It costs nothing sitting there.
+
+### Item 8, still open: what that shared test actually checks
+
+`packages/demos/tests/pipeline-invariants.test.mjs:425` — *"the batch factories expose one instance
+writer, not two"*. It opens every file named `render-batches.ts` and counts methods called `set(`.
+The rule is real: `combat-arena` and `point-light-expo` each used to offer **two** ways to write an
+instance row — a live `setValues(...)` and a dead `set(...)` twin — so a reader had to guess which
+to use. The test stops the twin returning.
+
+The defect is its scope:
+
+```js
+for (const slug of ['combat-arena', 'point-light-expo']) {
+  for (const source of await demoSources(slug)) { … }
+```
+
+`demoSources()` at `:235` **takes no parameter**. The argument is silently dropped, so each pass
+scans all ten demos and the identical scan runs twice. It has never checked only the two demos it
+names. Nothing surfaced until a third demo grew a `render-batches.ts`. One line to fix, in a file
+this goal is not allowed to touch.
+
+## The two town defects, fixed
+
+**The floating prop.** `map-kit` was authored at grid `(-27, 18)` — open canal. The ground query has
+no canal case, so over water it returns 0, meaning "ground at height zero" rather than "there is no
+ground here". The kit sat at +0.31 m against a water level of −1.25 m, hovering 1.56 m up. Moved to
+`(-27, 19)`, the south bank.
+
+**The bridge.** The fix separates the two questions that were being conflated. `groundHeightGrid`
+now answers only *how tall is the macro voxel column* — structural, deliberately coarse, and what
+the spandrels, piers and authored crown profile are built from. A new `placementSurfaceGrid` answers
+*where does an object rest*, delegating to the same `topSurfaceGrid` the character motor already
+walks on. Every object-placement site uses the second. Off the bridge the two are arithmetically
+identical, so **no existing geometry moved** and the capture confirms it; on the bridge, placement
+now follows the deck instead of sitting up to 1.03 m from it.
+
+Both fixes have tests written first, watched fail, and verified to fail again on reintroduction:
+putting a crate back on the bridge reports *"crate sits at y=1.550 but the ground there is 0.517"* —
+the 1.033 m the inventory predicted, to the millimetre.
+
+## The questions as originally asked
+
+Eight items. Five were the owner questions the goal named and reserved; three were found by this
+goal. Items 6 and 7 were the ones blocking other work.
 
 | # | What | Why it needs you | Blocks |
 |---|---|---|---|
@@ -155,10 +227,15 @@ committed pre-change sidecar, to every digit.
 
 ## What remains blocked
 
-- The last of the thirteen knobs (`markedMinimumAlpha` / `markedScale`) waits on owner item 3.
-- `antiky-town`'s highest-value finding — **three bridge-height rules disagreeing by up to 1.03 m**
-  (inventory §5.1) — is scoped and measured but not fixed. It needs the equality test written first,
-  and that test does not exist and would fail today. It is a goal of its own.
-- The floating `map-kit` sprite prop over the canal (inventory §5.2) is a live one-line fix that
-  wants a "every prop stands on ground" test first.
-- Decomposing `town.ts` (2292) and `index.ts` (1224) is blocked on owner item 7.
+After the owner's 2026-08-14 decisions, almost nothing.
+
+- **One line, in a file this goal may not touch**: the `demoSources(slug)` scope defect (item 8).
+- **Decomposing `town.ts` (2292) and `index.ts` (1224)** is now *unblocked* — the two source-text
+  test files that pinned their layout are deleted — but `tests/render-interpolation.test.ts` still
+  regexes `index.ts`, so that one has to be rewritten against behaviour before `index.ts` is split.
+- The rest of the `antiky-town` inventory's ranked list (§7 of that document) is open work, not
+  blocked work. The two items the owner called out are done.
+
+**Closed by those decisions:** the thirteenth knob (item 3, left as authored), the bridge-height
+divergence, the floating prop, the ambience clutter, the contrast floor, and the two dead test
+files.
