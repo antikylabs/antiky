@@ -5,6 +5,7 @@ import {
   normalize,
   pow,
   shader,
+  smoothstep,
   vec3,
   vec4,
 } from 'brometal';
@@ -39,18 +40,26 @@ export default shader({
 
   fragment(_, { vWorld }) {
     const direction = normalize(vWorld);
-    const height = clamp(direction.y, -0.2, 1);
-    // Zenith to horizon: the gradient lives low, the way an afternoon sky does.
-    const horizonBand = pow(1 - clamp(height, 0, 1), 3.2);
-    const zenith = vec3(0.16, 0.34, 0.58);
-    const mid = vec3(0.42, 0.62, 0.78);
-    const horizon = vec3(1.05, 0.82, 0.55);
-    const base = zenith.add(mid.sub(zenith).scale(clamp(1 - height * 1.5, 0, 1)));
-    const sky = base.add(horizon.sub(base).scale(horizonBand));
+    const height = clamp(direction.y, -0.35, 1);
+    // The camera sees roughly -0.15..0.3 of elevation, so the whole gradient must happen inside
+    // that band — the first authoring spread it over the hemisphere and the frame saw only the
+    // horizon colour. The warm band is a thin seam now, blue arrives fast above it, and below the
+    // horizon a cool sea-haze deepens instead of staying cream.
+    const above = clamp(height, 0, 1);
+    const horizonBand = pow(1 - above, 9) * smoothstep(-0.1, 0.005, height);
+    const zenith = vec3(0.1, 0.24, 0.46);
+    const mid = vec3(0.24, 0.42, 0.6);
+    const horizon = vec3(0.66, 0.52, 0.34);
+    const base = zenith.add(mid.sub(zenith).scale(clamp(1 - above * 3.2, 0, 1)));
+    const below = clamp(0 - height, 0, 1);
+    const sea = vec3(0.16, 0.24, 0.3);
+    const skyAbove = base.add(horizon.sub(base).scale(horizonBand));
+    const sky = skyAbove.scale(1 - smoothstep(0, 0.18, below))
+      .add(sea.scale(smoothstep(0, 0.18, below)));
     // A broad warm glow where the sun hangs behind the course's far end — up-course, low.
-    const toSun = normalize(vec3(0.55, 0.18, -0.8));
+    const toSun = normalize(vec3(0.55, 0.16, -0.8));
     const sunness = max(direction.x * toSun.x + direction.y * toSun.y + direction.z * toSun.z, 0);
-    const glow = vec3(1.35, 1.0, 0.62).scale(exp((sunness - 1) * 9) * 0.85);
+    const glow = vec3(0.9, 0.62, 0.34).scale(exp((sunness - 1) * 11) * 0.6);
     return vec4(sky.add(glow), 1);
   },
 });
