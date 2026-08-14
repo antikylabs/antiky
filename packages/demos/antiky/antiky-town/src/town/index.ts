@@ -725,7 +725,9 @@ async function createTownRuntime(
   postProgram.uniforms.uGradeStrength.set(0.16);
   postProgram.uniforms.uShadowTint.set([0.88, 0.95, 1.08]);
   postProgram.uniforms.uHighlightTint.set([1.06, 0.96, 0.86]);
-  postProgram.uniforms.uVignette.set(mode === 'ambient' ? 0.12 : 0.085);
+  // Goal 08's re-tune: 0.085 was below the visible threshold — the acceptance band wants corners
+  // 10-25% below centre, and this is the setting that lands inside it.
+  postProgram.uniforms.uVignette.set(mode === 'ambient' ? 0.24 : 0.2);
   postProgram.uniforms.uAtmosphereColor.set([0.6, 0.32, 0.2]);
   postProgram.uniforms.uAtmosphereStart.set(40);
   postProgram.uniforms.uAtmosphereEnd.set(112);
@@ -1114,11 +1116,17 @@ async function createTownRuntime(
       postProgram.uniforms.uScene.set(scene.texture);
       postProgram.uniforms.uTexel.set(texel);
       postProgram.uniforms.uFocus.set(focusDistance);
-      postProgram.uniforms.uNearFocusRange.set(mode === 'ambient' ? 20 : 12);
-      postProgram.uniforms.uFarFocusRange.set(mode === 'ambient' ? 26 : 18);
-      postProgram.uniforms.uDofTransition.set(7);
-      postProgram.uniforms.uDofMaxRadius.set(mobile ? 0 : mode === 'ambient' ? 1.1 : 0.45);
-      postProgram.uniforms.uDofStrength.set(mobile ? 0 : mode === 'ambient' ? 0.24 : 0.075);
+      // Goal 08's re-tune, with the goal's own arithmetic as the reason: the shipped values gave
+      // coc = 0.075 x 0.45 = a maximum blur radius of 0.034 px — three hundredths of a pixel,
+      // arithmetically incapable of being visible, and the focus band covered the whole town.
+      // The dead zones narrow so the far ridge and the near wall both leave focus while the
+      // midground characters stay sample-for-sample crisp (uDepthReject holds the silhouettes),
+      // and the radius rises into the visible range. The mobile path stays 0 — same cost call.
+      postProgram.uniforms.uNearFocusRange.set(mode === 'ambient' ? 9 : 6);
+      postProgram.uniforms.uFarFocusRange.set(mode === 'ambient' ? 12 : 9);
+      postProgram.uniforms.uDofTransition.set(10);
+      postProgram.uniforms.uDofMaxRadius.set(mobile ? 0 : mode === 'ambient' ? 7 : 5.5);
+      postProgram.uniforms.uDofStrength.set(mobile ? 0 : mode === 'ambient' ? 0.85 : 0.8);
       postProgram.uniforms.uDepthReject.set(3);
       postProgram.draw();
       lastValidSlotZeroPower = commitTownSlotZeroPower(options.slotZeroPower, slotZeroPower);
