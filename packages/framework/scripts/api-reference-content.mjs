@@ -242,9 +242,37 @@ try {
       },
     ],
   },
+  {
+    slug: 'random',
+    title: 'Seeded randomness API',
+    summary: 'Draw reproducible pseudo-random values from an explicit seed, with forks that do not depend on draw order.',
+    useWhen: 'Use one seeded stream wherever a simulation needs randomness, so a run replays exactly and its state digest means something.',
+    guide: { href: '../framework/engine-sessions.md', label: 'Run a fixed-step game session' },
+    exampleDescription: '`seed` is an explicit simulation input, carried in the snapshot. Forking by label keeps two subsystems independent of each other\'s draw order.',
+    example: `import { createRandomStream } from '@antiky/framework';
+
+const random = createRandomStream(seed);
+const scatter = random.fork(1);
+const damage = random.fork(2);
+
+const offset = scatter.unit();`,
+    modules: [
+      {
+        source: 'random/seeded-random.ts',
+        title: 'Seeded random streams',
+        description: 'Hash integers reproducibly and draw from a seeded stream whose forks depend on their label alone.',
+      },
+    ],
+  },
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
+  // Seeded randomness
+  hash32: 'A reproducible 32-bit hash of one or two integers, using integer operations only.',
+  hashUnit: 'The same hash mapped onto `[0, 1)`.',
+  RandomStream: 'A seeded sequence that replays exactly and forks into independent child streams.',
+  createRandomStream: 'Create a seeded stream for one simulation or one subsystem of it.',
+
   // Resource disposal
   DisposableResource: 'Anything that can be released. The only shape a disposal scope requires.',
   DisposalScope: 'Owns adopted resources and releases them newest first, collecting every failure.',

@@ -1,3 +1,4 @@
+import { hashUnit } from '@antiky/framework';
 import { EXPO_LIGHT_DEFINITIONS } from './lights.ts';
 import {
   CHARGE_FIELD_THRESHOLD,
@@ -128,11 +129,6 @@ function clampArenaZ(value: number): number {
   return clamp(value, -ARENA_HALF_EXTENTS[1], ARENA_HALF_EXTENTS[1]);
 }
 
-function seeded(index: number, salt: number): number {
-  const value = Math.sin(index * 73.17 + salt * 41.73) * 43_758.5453;
-  return value - Math.floor(value);
-}
-
 export function createBlackoutRelaySimulation(
   emit: (event: RelayEvent) => void,
   options: RelaySimulationOptions = {},
@@ -157,7 +153,7 @@ export function createBlackoutRelaySimulation(
     z,
     mode: 'threaten',
     irradiance: 0,
-    phase: seeded(index, 2) * Math.PI * 2,
+    phase: hashUnit(index, 2) * Math.PI * 2,
   }));
   const particles: RelayParticle[] = Array.from({ length: RELAY_PARTICLE_CAPACITY }, () => ({
     x: 0,
@@ -208,15 +204,15 @@ export function createBlackoutRelaySimulation(
     for (let burstIndex = 0; burstIndex < count; burstIndex += 1) {
       const particle = particles[particleCursor]!;
       particleCursor = (particleCursor + 1) % particles.length;
-      const angle = seeded(revision + burstIndex, relayIndex + kind * 5) * Math.PI * 2;
-      const speed = force * (0.45 + seeded(revision + burstIndex, relayIndex + 11));
+      const angle = hashUnit(revision + burstIndex, relayIndex + kind * 5) * Math.PI * 2;
+      const speed = force * (0.45 + hashUnit(revision + burstIndex, relayIndex + 11));
       particle.x = x;
-      particle.y = 0.28 + seeded(revision + burstIndex, relayIndex + 13) * 0.42;
+      particle.y = 0.28 + hashUnit(revision + burstIndex, relayIndex + 13) * 0.42;
       particle.z = z;
       particle.vx = Math.cos(angle) * speed;
-      particle.vy = 0.75 + seeded(revision + burstIndex, relayIndex + 17) * force;
+      particle.vy = 0.75 + hashUnit(revision + burstIndex, relayIndex + 17) * force;
       particle.vz = Math.sin(angle) * speed;
-      particle.life = 0.42 + seeded(revision + burstIndex, relayIndex + 19) * 0.44;
+      particle.life = 0.42 + hashUnit(revision + burstIndex, relayIndex + 19) * 0.44;
       particle.relayIndex = relayIndex;
       particle.kind = kind;
     }

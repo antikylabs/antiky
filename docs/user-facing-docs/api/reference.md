@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:918ab41701f13e96
+frameworkSource: sha256:332ed760a91facc3
 ---
 
 # Framework API reference
 
-This is the complete public API exported by the Antiky Framework package. It covers all 195 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
+This is the complete public API exported by the Antiky Framework package. It covers all 199 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
 
 Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.
 
@@ -29,6 +29,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 | [Point-light integration API](point-light-integration.md) | Project authored lights into runtime, renderer, inspection, world, and event views. | [Point lights: Renderer integration](../framework/point-lights.md#send-changes-to-your-renderer) |
 | [Game host API](game-host.md) | Mount one portable game module with host-owned canvas, input, timing, measurements, inspection, and cleanup. | [Build a game module](../framework/game-modules.md) |
 | [Resource disposal API](resources.md) | Own a set of resources and release them in reverse order, reporting every failure rather than the first. | [Run a fixed-step game session](../framework/engine-sessions.md) |
+| [Seeded randomness API](random.md) | Draw reproducible pseudo-random values from an explicit seed, with forks that do not depend on draw order. | [Run a fixed-step game session](../framework/engine-sessions.md) |
 
 ## Shared rules
 
@@ -72,6 +73,10 @@ Start with a task guide when you are building a feature. Use the pages below whe
 ### Resource disposal API
 
 [`DisposableResource`](resources.md#disposableresource) · [`DisposalScope`](resources.md#disposalscope) · [`createDisposalScope`](resources.md#createdisposalscope) · [`ResourceTransaction`](resources.md#resourcetransaction) · [`acquireTransactional`](resources.md#acquiretransactional) · [`RendererResourceLifetime`](resources.md#rendererresourcelifetime) · [`createRendererResourceLifetime`](resources.md#createrendererresourcelifetime)
+
+### Seeded randomness API
+
+[`hash32`](random.md#hash32) · [`hashUnit`](random.md#hashunit) · [`RandomStream`](random.md#randomstream) · [`createRandomStream`](random.md#createrandomstream)
 
 ## Keeping the reference current
 
