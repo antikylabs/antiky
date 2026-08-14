@@ -1,25 +1,25 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "demo": "point-light-expo",
-  "capturedAt": "2026-08-13T05:05:48.211Z",
+  "capturedAt": "2026-08-14T01:41:52.502Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "094cdb283542f42d",
-    "fileCount": 128
+    "digest": "47c2e191f69bf4fe",
+    "fileCount": 132
   },
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.141773,
+    "mean": 0.045972,
     "p05": 0.001389,
-    "p50": 0.109423,
-    "p95": 0.416192,
-    "spread": 0.414804
+    "p50": 0.06623,
+    "p95": 0.073594,
+    "spread": 0.072205
   },
   "localContrast": {
-    "median": 8.6722,
+    "median": 0.1324,
     "p10": 0
   },
   "clipping": {
@@ -27,37 +27,49 @@
     "low": 0
   },
   "saturation": {
-    "mean": 0.55028
+    "mean": 0.306026
+  },
+  "encodedLuma": {
+    "p05": 0.01794,
+    "p50": 0.282208,
+    "p95": 0.297611,
+    "spread": 0.279671,
+    "clipped": 0
+  },
+  "hue": {
+    "clusters": 5,
+    "dominantShare": 0.981222,
+    "chromaticFraction": 0.624078
   },
   "edges": {
-    "hard": 0.0105
+    "hard": 0.005135
   },
   "probes": {
     "onboarding": {
-      "meanLuminance": 0.068851,
-      "standardDeviation": 0.142976,
+      "meanLuminance": 0.06061,
+      "standardDeviation": 0.142871,
       "pixels": 36480
     },
     "sunShadow": {
-      "meanLuminance": 0.102329,
-      "standardDeviation": 0.034572,
+      "meanLuminance": 0.066346,
+      "standardDeviation": 0.000314,
       "pixels": 1024
     },
     "sunLit": {
-      "meanLuminance": 0.17167,
-      "standardDeviation": 0.073848,
+      "meanLuminance": 0.069638,
+      "standardDeviation": 0,
       "pixels": 1024
     },
     "bloomNear": {
-      "meanLuminance": 0.276557,
-      "standardDeviation": 0.171899,
+      "meanLuminance": 0.073977,
+      "standardDeviation": 0.02795,
       "pixels": 576
     },
     "bloomFar": {
-      "meanLuminance": 0.137731,
-      "standardDeviation": 0.082755,
+      "meanLuminance": 0.069638,
+      "standardDeviation": 0,
       "pixels": 576
     }
   },
-  "seal": "48f9be95e935697f"
+  "seal": "9b735e0ec46f2d23"
 }

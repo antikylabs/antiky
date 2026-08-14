@@ -42,8 +42,15 @@ export const RELAY_PRESENTATION = Object.freeze({
   }),
   fog: Object.freeze({
     color: color(0.06, 0.085, 0.075),
-    start: 10,
-    end: 21,
+    /**
+     * Camera distance, and that matters: the eye sits 18 up and 10.5 back, so the whole floor
+     * lives between roughly 19 and 26 units from it. The old 10..21 range only worked because the
+     * 0.34 cap kept it from finishing; at full mix it drowned the entire scene in one flat green —
+     * measured p95 0.298 with local contrast 0.13. 19..26 clears the play area and completes
+     * exactly at the plane's far corner, which is the edge the fog exists to dissolve.
+     */
+    start: 19,
+    end: 26,
     /**
      * 1 at the far end, up from 0.34: the fog is finally allowed to finish its job and dissolve
      * the ground plane's boundary into the horizon haze, which is goal 08's fix for the hard-edged
