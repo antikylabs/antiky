@@ -253,7 +253,6 @@ test('moving platforms are deterministic members of one finite authored course',
   assert.deepEqual(first, second);
   assert.equal(first.length, COURSE_PLATFORMS.length);
   assert.ok(first.some((platform) => platform.definition.amplitude > 0));
-  assert.ok(first.every((platform) => platform.lap === 0));
 });
 
 test('Storm Cut spikes preserve their offset from the moving support at every phase', () => {

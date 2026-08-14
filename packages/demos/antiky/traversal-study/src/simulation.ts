@@ -72,7 +72,6 @@ export type TraversalEvent = Readonly<{
 export type PlatformInstance = Readonly<{
   definition: PlatformDefinition;
   definitionIndex: number;
-  lap: 0;
   x: number;
   top: number;
 }>;
@@ -145,7 +144,6 @@ type MutableTraversalSnapshot = {
 const platformInstances: MutablePlatformInstance[] = COURSE_PLATFORMS.map((definition, definitionIndex) => ({
     definition,
     definitionIndex,
-    lap: 0 as const,
     x: definition.x,
     top: definition.top,
 }));
