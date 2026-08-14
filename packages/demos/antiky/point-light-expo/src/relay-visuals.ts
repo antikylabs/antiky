@@ -291,14 +291,14 @@ function populateRings(
       light.transform.position[0], -0.28, light.transform.position[2],
       field.safe,
       relayColor[0], relayColor[1], relayColor[2],
-      0.9,
+      0.55,
     );
     rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.relayCharge, index),
       light.transform.position[0], -0.26, light.transform.position[2],
       field.charge,
       relayColor[0], relayColor[1], relayColor[2],
-      state.deposits[index] ? 0.4 : 1.6,
+      state.deposits[index] ? 0.35 : 1.1,
     );
   }
   for (let index = 0; index < RELAY_PRESENTATION.forgeRingScales.length; index += 1) {
@@ -370,7 +370,7 @@ function populateRings(
       Math.cos(angle) * 4.7, -0.29, Math.sin(angle) * 3.5,
       scale,
       ambienceColor[0], ambienceColor[1], ambienceColor[2],
-      0.2,
+      0.05,
     );
   }
   rings.upload();

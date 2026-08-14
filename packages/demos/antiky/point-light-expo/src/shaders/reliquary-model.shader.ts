@@ -335,7 +335,13 @@ export default shader({
     // fight a scene that was lit in display space, and with the encode in place there is nothing
     // left for them to fight. Deleted rather than re-tuned: a knob that compensates for a bug
     // outlives the bug and then nobody can tell which is which.
-    const base = clamp(decodeSrgb(texture(uDiffuse, vUv).xyz), 0, 1).mul(vTint);
+    // §6.1's palette strategy: the environment's own paint holds a narrow desaturated band so
+    // every saturated colour in frame belongs to a light. The rock and prop albedos are authored
+    // warm gold-brown; pulled halfway to their own grey they read as night stone, and the
+    // practicals repaint their pools over them.
+    const painted = clamp(decodeSrgb(texture(uDiffuse, vUv).xyz), 0, 1);
+    const paintedGrey = dot(painted, vec3(0.2126, 0.7152, 0.0722));
+    const base = mix(painted, vec3(paintedGrey, paintedGrey, paintedGrey), 0.5).mul(vTint);
     const relay = pointRadiance(
       vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness, base,
     ).add(pointRadiance(

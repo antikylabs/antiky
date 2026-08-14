@@ -348,7 +348,7 @@ export function createRingBatch(
       offsets[at + 1] = y;
       offsets[at + 2] = z;
       shapes[index * 2] = radius;
-      shapes[index * 2 + 1] = 0.2;
+      shapes[index * 2 + 1] = 0.12;
       colors[at] = colorR;
       colors[at + 1] = colorG;
       colors[at + 2] = colorB;
