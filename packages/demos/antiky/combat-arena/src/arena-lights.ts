@@ -48,7 +48,7 @@ export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4,
     // wall faces, so this is the lever that actually moves that number. The warm posts lead the
     // cool ones on purpose: the frame's chromatic mass was 82% one blue cluster, and amber is the
     // counterweight that pulls the deck's mids warm without touching the team signals.
-    power: teamEnd !== undefined ? 1.0 : warm ? 1.12 : 0.92,
+    power: teamEnd !== undefined ? 1.0 : warm ? 1.5 : 1.2,
     // Tight enough that each stays near its own post. A radius spanning the whole deck turns six
     // lights into one flat fill, which is the opposite of what posting lights around a space does.
     radius: 7.0,
