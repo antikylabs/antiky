@@ -364,7 +364,7 @@ export default shader({
     // contrast rose to 10.9 while the rim read as glare, which is exactly goal 99 M7's warning
     // that a metric can move the right way while the frame moves the wrong one.
     const capBand = smoothstep(1.94, 1.99, vWorld.y) * (1 - smoothstep(2.03, 2.09, vWorld.y));
-    const trim = vec3(4.0, 4.6, 4.9).scale((railBand + skirtBand * 0.55) * uTrimStrength * inwardFacing)
+    const trim = vec3(4.4, 5.0, 5.3).scale((railBand + skirtBand * 0.55) * uTrimStrength * inwardFacing)
       .add(vec3(1.5, 1.7, 1.85).scale(capBand * uTrimStrength));
     const confirmed = mix(floodlit.add(mirrored).add(trim), vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the
