@@ -1,10 +1,10 @@
 {
   "schemaVersion": 4,
   "demo": "antiky-town",
-  "capturedAt": "2026-08-14T03:02:01.026Z",
+  "capturedAt": "2026-08-14T20:55:24.457Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "075d07a7e05087f4",
+    "digest": "7f1295b20909e0f9",
     "fileCount": 113
   },
   "frame": {
@@ -12,38 +12,38 @@
     "height": 720
   },
   "luminance": {
-    "mean": 0.11606,
-    "p05": 0.020333,
-    "p50": 0.080071,
-    "p95": 0.361709,
-    "spread": 0.341377
+    "mean": 0.116035,
+    "p05": 0.020348,
+    "p50": 0.080008,
+    "p95": 0.361981,
+    "spread": 0.341633
   },
   "localContrast": {
-    "median": 7.7854,
-    "p10": 1.6834
+    "median": 7.7492,
+    "p10": 1.7027
   },
   "clipping": {
     "high": 0,
     "low": 0
   },
   "saturation": {
-    "mean": 0.320002
+    "mean": 0.319984
   },
   "encodedLuma": {
     "p05": 0.151599,
-    "p50": 0.3083,
-    "p95": 0.63301,
-    "spread": 0.481411,
+    "p50": 0.30828,
+    "p95": 0.633026,
+    "spread": 0.481427,
     "clipped": 0
   },
   "hue": {
     "clusters": 5,
-    "dominantShare": 0.423343,
-    "chromaticFraction": 0.783555
+    "dominantShare": 0.423443,
+    "chromaticFraction": 0.783623
   },
   "edges": {
-    "hard": 0.010837
+    "hard": 0.010873
   },
   "probes": {},
-  "seal": "d45e4a0b46553e52"
+  "seal": "5b1783d3e4c4c9b9"
 }
