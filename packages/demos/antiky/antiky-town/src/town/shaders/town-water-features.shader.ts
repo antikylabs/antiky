@@ -24,7 +24,6 @@ import {
   vec4,
   type Vec3,
 } from 'brometal';
-import { specGGX } from 'brometal/shader-functions';
 
 function surfaceNormal(world: Vec3, time: number, amplitude: number): Vec3 {
   const dx = cos(world.x * 2.1 + time * 0.85) * 1.176 +
@@ -50,6 +49,36 @@ function fallingNormal(uvX: number, uvY: number, phase: number, time: number): V
  * stable hardware depth and linear camera distance in scene alpha, matching
  * the town post-processing payload.
  */
+/**
+ * Cook-Torrance GGX specular, the reference implementation (`point-light-expo`) copied by hand —
+ * the same energy-conserving model the other three demos carry, with the Smith visibility and
+ * Schlick Fresnel terms BroMetal's distribution-only `specGGX` leaves out. Its arrival is what
+ * lets the `min(specGGX, ...)` ceilings below it go: energy is conserved by construction, so
+ * there is nothing left to clamp. `pipeline-invariants.test.mjs` holds every copy identical.
+ */
+function specularGGX(normal: Vec3, light: Vec3, view: Vec3, roughness: number, f0: Vec3): Vec3 {
+  const halfway = normalize(light.add(view));
+  const nDotL = max(dot(normal, light), 0);
+  // Floored rather than clamped to zero. Both of these end up in a denominator, and a surface
+  // exactly edge-on to the viewer should be an unlit pixel, not a division by zero.
+  const nDotV = max(dot(normal, view), 0.0001);
+  const nDotH = max(dot(normal, halfway), 0);
+  const vDotH = max(dot(view, halfway), 0);
+  const alpha = roughness * roughness;
+  const alphaSq = alpha * alpha;
+  const distributionDenominator = nDotH * nDotH * (alphaSq - 1) + 1;
+  const distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  const occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1 - alphaSq) + alphaSq);
+  const occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1 - alphaSq) + alphaSq);
+  const visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  // (1 - V·H)^5 as five multiplies rather than a `pow`: cheaper, and exact at both endpoints.
+  const grazing = 1 - vDotH;
+  const grazingSq = grazing * grazing;
+  const fresnelWeight = grazingSq * grazingSq * grazing;
+  const fresnel = f0.add(vec3(1, 1, 1).sub(f0).scale(fresnelWeight));
+  return fresnel.scale(distribution * visibility * nDotL);
+}
+
 export default shader({
   attributes: {
     aPosition: 'vec3',
@@ -233,8 +262,11 @@ export default shader({
       const radial = length(centeredUv);
       const ring = sin(radial * 31 - uTime * 5.2 + vFeature.y * 6.2831853) * 0.5 + 0.5;
       const crossing = sin((vWorld.x - vWorld.z) * 4.3 + uTime * 1.7) * 0.5 + 0.5;
-      const bodyMix = 0.2 + smoothstep(-0.85, 0.9, vSignal) * 0.2;
-      color = mix(uDeepColor, uShallowColor, bodyMix);
+      // Goal 08: wider colour travel down the channel, striated along the run so the strip
+      // reads as moving water instead of one painted band.
+      const runStriation = sin(vUv.y * 9 - uTime * 2.1 + vFeature.y * 6.2831853) * 0.5 + 0.5;
+      const bodyMix = 0.12 + smoothstep(-0.85, 0.9, vSignal) * 0.34 + runStriation * 0.24;
+      color = mix(uDeepColor, uShallowColor, clamp(bodyMix, 0, 1));
       const rim = smoothstep(0.82, 1.02, radial) * (0.08 + vFeature.w * 0.22);
       foam = clamp(
         rim + vFeature.w * smoothstep(0.58, 0.92, ring) * (0.45 + crossing * 0.55),
@@ -281,8 +313,11 @@ export default shader({
     color = mix(color, uSkyColor, fresnel * reflectionStrength);
     color = mix(color, uFoamColor, clamp(foam, 0, 1) * 0.82);
 
-    const sunSpecular = min(specGGX(normal, light, view, roughness), 3) *
-      uSunIntensity * shadow;
+    // Dielectric water, f0 0.02, energy-conserving — the ceiling left with the old helper.
+    const sunSpecular = dot(
+      specularGGX(normal, light, view, roughness, vec3(0.02, 0.02, 0.02)),
+      vec3(1, 1, 1),
+    ) * uSunIntensity * shadow * 3;
     const directional = (0.14 + ndotl * 0.22) * shadow;
     color = color
       .scale(0.72 + directional)

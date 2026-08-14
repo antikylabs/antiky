@@ -46,16 +46,24 @@ struct BmVSOut {
   @location(1) vDepth : f32,
   @location(2) vRipple : f32,
 }
-fn specGGX(normal : vec3f, lightDir : vec3f, viewDir : vec3f, roughness : f32) -> f32 {
-  let n = normalize(normal);
-  let halfway = normalize(normalize(lightDir) + normalize(viewDir));
-  let ndoth = max(dot(n, halfway), 0.0);
-  let a = roughness * roughness;
-  let a2 = a * a;
-  let denom = ndoth * ndoth * (a2 - 1.0) + 1.0;
-  let ndf = a2 / (3.14159265 * denom * denom);
-  let ndotl = max(dot(n, normalize(lightDir)), 0.0);
-  return ndf * ndotl * 0.25;
+fn specularGGX(normal : vec3f, light : vec3f, view : vec3f, roughness : f32, f0 : vec3f) -> vec3f {
+  let halfway = normalize(light + view);
+  let nDotL = max(dot(normal, light), 0.0);
+  let nDotV = max(dot(normal, view), 0.0001);
+  let nDotH = max(dot(normal, halfway), 0.0);
+  let vDotH = max(dot(view, halfway), 0.0);
+  let alpha = roughness * roughness;
+  let alphaSq = alpha * alpha;
+  let distributionDenominator = nDotH * nDotH * (alphaSq - 1.0) + 1.0;
+  let distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  let occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1.0 - alphaSq) + alphaSq);
+  let occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1.0 - alphaSq) + alphaSq);
+  let visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  let grazing = 1.0 - vDotH;
+  let grazingSq = grazing * grazing;
+  let fresnelWeight = grazingSq * grazingSq * grazing;
+  let fresnel = f0 + (vec3f(1.0, 1.0, 1.0) - f0) * fresnelWeight;
+  return fresnel * (distribution * visibility * nDotL);
 }
 fn waterNormal(x : f32, z : f32, time : f32) -> vec3f {
   let dx = cos(x * 0.72 + time * 0.7) * 0.09 + cos((x + z) * 1.1 - time * 0.82) * 0.045;
@@ -69,7 +77,7 @@ fn practicalWaterRadiance(world : vec3f, normal : vec3f, view : vec3f, posInvRan
   let attenuation = range * range;
   let light = normalize(toLight);
   let diffuse = max(dot(normal, light), 0.0) * 0.08;
-  let specular = min(specGGX(normal, light, view, 0.2), 2.2) * 0.16;
+  let specular = dot(specularGGX(normal, light, view, 0.2, vec3f(0.02, 0.02, 0.02)), vec3f(1.0, 1.0, 1.0)) * 0.45;
   return colorPower.xyz * (colorPower.w * attenuation * (diffuse + specular));
 }
 @vertex
@@ -107,10 +115,13 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let shadow = 1.0 - insideShadow * clamp(bm_u.uShadowStrength, 0.0, 1.0) * occluded * 0.25;
   let ndotv = max(dot(normal, view), 0.0);
   let fresnel = 0.025 + 0.975 * pow(1.0 - ndotv, 5.0);
-  let bodyMix = 0.18 + smoothstep(-0.72, 0.82, bm_in.vRipple) * 0.18;
-  let body = mix(bm_u.uDeepColor, bm_u.uShallowColor, bodyMix);
+  let striation = sin(bm_in.vWorld.x * 0.9 - bm_u.uTime * 0.62 + bm_in.vWorld.z * 0.35) * 0.5 + 0.5;
+  let bodyMix = 0.12 + smoothstep(-0.72, 0.82, bm_in.vRipple) * 0.34 + striation * 0.22;
+  let body = mix(bm_u.uDeepColor, bm_u.uShallowColor, clamp(bodyMix, 0.0, 1.0));
+  let crestFoam = smoothstep(0.78, 1.0, bm_in.vRipple) * (0.3 + striation * 0.35);
   var color = mix(body, bm_u.uSkyColor, fresnel * 0.72);
-  let sunSpecular = min(specGGX(normal, light, view, clamp(bm_u.uRoughness, 0.08, 1.0)), 3.0) * bm_u.uSunIntensity * shadow;
+  color = mix(color, vec3f(0.9, 0.95, 0.96), clamp(crestFoam, 0.0, 1.0) * 0.6);
+  let sunSpecular = dot(specularGGX(normal, light, view, clamp(bm_u.uRoughness, 0.08, 1.0), vec3f(0.02, 0.02, 0.02)), vec3f(1.0, 1.0, 1.0)) * bm_u.uSunIntensity * shadow * 3.0;
   let diffuseGlint = ndotl * shadow * 0.06;
   let crest = smoothstep(0.72, 0.98, bm_in.vRipple) * clamp(bm_u.uCrestStrength, 0.0, 1.0);
   color = color + bm_u.uSunColor * (sunSpecular + diffuseGlint) + bm_u.uShallowColor * (crest * 0.22);

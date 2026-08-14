@@ -43,17 +43,6 @@ struct BmVSOut {
   @location(4) vSignal : f32,
   @location(5) vDepth : f32,
 }
-fn specGGX(normal : vec3f, lightDir : vec3f, viewDir : vec3f, roughness : f32) -> f32 {
-  let n = normalize(normal);
-  let halfway = normalize(normalize(lightDir) + normalize(viewDir));
-  let ndoth = max(dot(n, halfway), 0.0);
-  let a = roughness * roughness;
-  let a2 = a * a;
-  let denom = ndoth * ndoth * (a2 - 1.0) + 1.0;
-  let ndf = a2 / (3.14159265 * denom * denom);
-  let ndotl = max(dot(n, normalize(lightDir)), 0.0);
-  return ndf * ndotl * 0.25;
-}
 fn surfaceNormal(world : vec3f, time : f32, amplitude : f32) -> vec3f {
   let dx = cos(world.x * 2.1 + time * 0.85) * 1.176 + cos((world.x + world.z) * 3.2 + time * 1.13) * 0.448;
   let dz = cos(world.z * 1.7 - time * 0.72) * 0.51 + cos((world.x + world.z) * 3.2 + time * 1.13) * 0.448;
@@ -63,6 +52,25 @@ fn fallingNormal(uvX : f32, uvY : f32, phase : f32, time : f32) -> vec3f {
   let crossSlope = cos(uvX * 12.0 + uvY * 7.0 - time * 5.4 + phase * 6.2831853) * 0.16 + cos(uvX * 29.0 - uvY * 4.0 - time * 8.1 + phase * 3.7) * 0.09;
   let downSlope = sin(uvX * 12.0 + uvY * 7.0 - time * 5.4 + phase * 6.2831853) * 0.055;
   return normalize(vec3f(-crossSlope, downSlope, 1.0));
+}
+fn specularGGX(normal : vec3f, light : vec3f, view : vec3f, roughness : f32, f0 : vec3f) -> vec3f {
+  let halfway = normalize(light + view);
+  let nDotL = max(dot(normal, light), 0.0);
+  let nDotV = max(dot(normal, view), 0.0001);
+  let nDotH = max(dot(normal, halfway), 0.0);
+  let vDotH = max(dot(view, halfway), 0.0);
+  let alpha = roughness * roughness;
+  let alphaSq = alpha * alpha;
+  let distributionDenominator = nDotH * nDotH * (alphaSq - 1.0) + 1.0;
+  let distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  let occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1.0 - alphaSq) + alphaSq);
+  let occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1.0 - alphaSq) + alphaSq);
+  let visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  let grazing = 1.0 - vDotH;
+  let grazingSq = grazing * grazing;
+  let fresnelWeight = grazingSq * grazingSq * grazing;
+  let fresnel = f0 + (vec3f(1.0, 1.0, 1.0) - f0) * fresnelWeight;
+  return fresnel * (distribution * visibility * nDotL);
 }
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
@@ -146,8 +154,9 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
     let radial = length(centeredUv);
     let ring = sin(radial * 31.0 - bm_u.uTime * 5.2 + bm_in.vFeature.y * 6.2831853) * 0.5 + 0.5;
     let crossing = sin((bm_in.vWorld.x - bm_in.vWorld.z) * 4.3 + bm_u.uTime * 1.7) * 0.5 + 0.5;
-    let bodyMix = 0.2 + smoothstep(-0.85, 0.9, bm_in.vSignal) * 0.2;
-    color = mix(bm_u.uDeepColor, bm_u.uShallowColor, bodyMix);
+    let runStriation = sin(bm_in.vUv.y * 9.0 - bm_u.uTime * 2.1 + bm_in.vFeature.y * 6.2831853) * 0.5 + 0.5;
+    let bodyMix = 0.12 + smoothstep(-0.85, 0.9, bm_in.vSignal) * 0.34 + runStriation * 0.24;
+    color = mix(bm_u.uDeepColor, bm_u.uShallowColor, clamp(bodyMix, 0.0, 1.0));
     let rim = smoothstep(0.82, 1.02, radial) * (0.08 + bm_in.vFeature.w * 0.22);
     foam = clamp(rim + bm_in.vFeature.w * smoothstep(0.58, 0.92, ring) * (0.45 + crossing * 0.55), 0.0, 1.0);
     if (bm_in.vFeature.w > 0.8) {
@@ -186,7 +195,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let fresnel = 0.025 + 0.975 * pow(1.0 - ndotv, 5.0);
   color = mix(color, bm_u.uSkyColor, fresnel * reflectionStrength);
   color = mix(color, bm_u.uFoamColor, clamp(foam, 0.0, 1.0) * 0.82);
-  let sunSpecular = min(specGGX(normal, light, view, roughness), 3.0) * bm_u.uSunIntensity * shadow;
+  let sunSpecular = dot(specularGGX(normal, light, view, roughness, vec3f(0.02, 0.02, 0.02)), vec3f(1.0, 1.0, 1.0)) * bm_u.uSunIntensity * shadow * 3.0;
   let directional = (0.14 + ndotl * 0.22) * shadow;
   color = color * (0.72 + directional) + bm_u.uSunColor * (sunSpecular + ndotl * shadow * 0.035);
   let fog = smoothstep(bm_u.uFogStart, bm_u.uFogEnd, bm_in.vDepth) * clamp(bm_u.uFogStrength, 0.0, 1.0);

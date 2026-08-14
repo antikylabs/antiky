@@ -23,7 +23,36 @@ import {
   type Vec3,
   type Vec4,
 } from 'brometal';
-import { specGGX } from 'brometal/shader-functions';
+
+/**
+ * Cook-Torrance GGX specular, the reference implementation (`point-light-expo`) copied by hand —
+ * the same energy-conserving model the other three demos carry, with the Smith visibility and
+ * Schlick Fresnel terms BroMetal's distribution-only `specGGX` leaves out. Its arrival is what
+ * lets the `min(specGGX, ...)` ceilings below it go: energy is conserved by construction, so
+ * there is nothing left to clamp. `pipeline-invariants.test.mjs` holds every copy identical.
+ */
+function specularGGX(normal: Vec3, light: Vec3, view: Vec3, roughness: number, f0: Vec3): Vec3 {
+  const halfway = normalize(light.add(view));
+  const nDotL = max(dot(normal, light), 0);
+  // Floored rather than clamped to zero. Both of these end up in a denominator, and a surface
+  // exactly edge-on to the viewer should be an unlit pixel, not a division by zero.
+  const nDotV = max(dot(normal, view), 0.0001);
+  const nDotH = max(dot(normal, halfway), 0);
+  const vDotH = max(dot(view, halfway), 0);
+  const alpha = roughness * roughness;
+  const alphaSq = alpha * alpha;
+  const distributionDenominator = nDotH * nDotH * (alphaSq - 1) + 1;
+  const distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  const occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1 - alphaSq) + alphaSq);
+  const occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1 - alphaSq) + alphaSq);
+  const visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  // (1 - V·H)^5 as five multiplies rather than a `pow`: cheaper, and exact at both endpoints.
+  const grazing = 1 - vDotH;
+  const grazingSq = grazing * grazing;
+  const fresnelWeight = grazingSq * grazingSq * grazing;
+  const fresnel = f0.add(vec3(1, 1, 1).sub(f0).scale(fresnelWeight));
+  return fresnel.scale(distribution * visibility * nDotL);
+}
 
 function waterNormal(x: number, z: number, time: number): Vec3 {
   const dx = cos(x * 0.72 + time * 0.7) * 0.09 +
@@ -46,7 +75,7 @@ function practicalWaterRadiance(
   const attenuation = range * range;
   const light = normalize(toLight);
   const diffuse = max(dot(normal, light), 0) * 0.08;
-  const specular = min(specGGX(normal, light, view, 0.2), 2.2) * 0.16;
+  const specular = dot(specularGGX(normal, light, view, 0.2, vec3(0.02, 0.02, 0.02)), vec3(1, 1, 1)) * 0.45;
   return colorPower.xyz.scale(colorPower.w * attenuation * (diffuse + specular));
 }
 
@@ -166,12 +195,22 @@ export default shader({
 
     const ndotv = max(dot(normal, view), 0);
     const fresnel = 0.025 + 0.975 * pow(1 - ndotv, 5);
-    const bodyMix = 0.18 + smoothstep(-0.72, 0.82, vRipple) * 0.18;
-    const body = mix(uDeepColor, uShallowColor, bodyMix);
+    // Goal 08: real colour travel along the flow. The old 0.18..0.36 band read as one cyan; the
+    // striation runs along the canal's own axis on two rates so the surface never slides as one
+    // rigid sheet, and the crest of each ripple carries a foam fleck at the banks' scale.
+    const striation = sin(vWorld.x * 0.9 - uTime * 0.62 + vWorld.z * 0.35) * 0.5 + 0.5;
+    const bodyMix = 0.12 + smoothstep(-0.72, 0.82, vRipple) * 0.34 + striation * 0.22;
+    const body = mix(uDeepColor, uShallowColor, clamp(bodyMix, 0, 1));
+    const crestFoam = smoothstep(0.78, 1, vRipple) * (0.3 + striation * 0.35);
     let color = mix(body, uSkyColor, fresnel * 0.72);
+    color = mix(color, vec3(0.9, 0.95, 0.96), clamp(crestFoam, 0, 1) * 0.6);
 
-    const sunSpecular = min(specGGX(normal, light, view, clamp(uRoughness, 0.08, 1)), 3) *
-      uSunIntensity * shadow;
+    // Water is a dielectric: f0 0.02. Energy-conserving, so the old ceiling is gone with the
+    // distribution-only helper it was containing.
+    const sunSpecular = dot(
+      specularGGX(normal, light, view, clamp(uRoughness, 0.08, 1), vec3(0.02, 0.02, 0.02)),
+      vec3(1, 1, 1),
+    ) * uSunIntensity * shadow * 3;
     const diffuseGlint = ndotl * shadow * 0.06;
     const crest = smoothstep(0.72, 0.98, vRipple) * clamp(uCrestStrength, 0, 1);
     color = color
