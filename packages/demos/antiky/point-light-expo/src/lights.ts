@@ -47,7 +47,7 @@ export const EXPO_LIGHT_DEFINITIONS = Object.freeze([
       schemaVersion: 1 as const,
       color: [0.63, 0.2, 0.5] as const,
       radius: 3.5,
-      power: 3.2,
+      power: 4,
     }),
   }),
 ]);

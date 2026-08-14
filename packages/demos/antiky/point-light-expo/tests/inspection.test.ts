@@ -30,7 +30,7 @@ test('relay inspection exposes gameplay hierarchy, live stores, and bounded even
     initialPlayer: [-5.2, -2.7],
     initialShades: [],
   });
-  const lightPowers = [3.4, 3.6, 3.2] as const;
+  const lightPowers = [3.4, 3.6, 4] as const;
   const idle = Object.freeze({
     movement: Object.freeze({ x: 0, z: 0, active: false }),
     interact: false,

@@ -1,10 +1,10 @@
 {
   "schemaVersion": 4,
   "demo": "point-light-expo",
-  "capturedAt": "2026-08-14T01:54:23.594Z",
+  "capturedAt": "2026-08-14T01:55:27.047Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "aa29929fe8349fd3",
+    "digest": "4c5c82df69c33ba1",
     "fileCount": 132
   },
   "frame": {
@@ -12,14 +12,14 @@
     "height": 720
   },
   "luminance": {
-    "mean": 0.127096,
+    "mean": 0.128502,
     "p05": 0.001389,
-    "p50": 0.06498,
-    "p95": 0.615819,
-    "spread": 0.614431
+    "p50": 0.065082,
+    "p95": 0.61905,
+    "spread": 0.617661
   },
   "localContrast": {
-    "median": 8.7865,
+    "median": 8.8764,
     "p10": 0
   },
   "clipping": {
@@ -27,49 +27,49 @@
     "low": 0
   },
   "saturation": {
-    "mean": 0.283821
+    "mean": 0.260197
   },
   "encodedLuma": {
     "p05": 0.01794,
-    "p50": 0.280237,
-    "p95": 0.798004,
-    "spread": 0.780064,
+    "p50": 0.280772,
+    "p95": 0.799986,
+    "spread": 0.782045,
     "clipped": 0.000003
   },
   "hue": {
     "clusters": 4,
-    "dominantShare": 0.672181,
-    "chromaticFraction": 0.557869
+    "dominantShare": 0.578565,
+    "chromaticFraction": 0.449733
   },
   "edges": {
-    "hard": 0.011497
+    "hard": 0.011352
   },
   "probes": {
     "onboarding": {
-      "meanLuminance": 0.065221,
-      "standardDeviation": 0.143046,
+      "meanLuminance": 0.065083,
+      "standardDeviation": 0.143068,
       "pixels": 36480
     },
     "sunShadow": {
-      "meanLuminance": 0.039268,
-      "standardDeviation": 0.009852,
+      "meanLuminance": 0.039243,
+      "standardDeviation": 0.009853,
       "pixels": 1024
     },
     "sunLit": {
-      "meanLuminance": 0.150254,
-      "standardDeviation": 0.092663,
+      "meanLuminance": 0.151941,
+      "standardDeviation": 0.093085,
       "pixels": 1024
     },
     "bloomNear": {
-      "meanLuminance": 0.46981,
-      "standardDeviation": 0.243398,
+      "meanLuminance": 0.472595,
+      "standardDeviation": 0.240978,
       "pixels": 576
     },
     "bloomFar": {
-      "meanLuminance": 0.200372,
-      "standardDeviation": 0.168408,
+      "meanLuminance": 0.211488,
+      "standardDeviation": 0.167784,
       "pixels": 576
     }
   },
-  "seal": "bf1bf3994caaa6e4"
+  "seal": "ebcbb139ddbf3d25"
 }
