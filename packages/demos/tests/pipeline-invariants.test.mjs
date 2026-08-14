@@ -58,6 +58,11 @@ const SAMPLER_ROLES = Object.freeze({
   // second time to values that never went through it once.
   uBloom: 'data',
   uSource: 'data',
+  // Goal 08's planar reflection: the mirrored scene pass, already linear HDR like the target it
+  // was drawn into. Decoding it would double-apply the transfer function.
+  uReflection: 'data',
+  // Goal 08's distortion field: a screen-space offset vector per texel, not a picture at all.
+  uDistortion: 'data',
   // Distance from the light, not a picture. Decoding it as sRGB would corrupt every comparison.
   // Keyed `shadowMap` because the sample happens inside BroMetal's `shadowFactor`, so the name
   // that reaches the compiled WGSL is the helper's parameter rather than the demo's uniform.
