@@ -226,11 +226,11 @@ export function createCombatCameraProjector(): CombatCameraProjector {
       // flatter angle gives the ships silhouettes against the deck instead of top plates, and puts
       // the camera low enough that the deck's planar reflection reads at grazing.
       const desiredPosition: readonly [number, number, number] = terminal
-        ? [0, mobile ? 12.8 : 10.0, mobile ? 28.7 : 24.1]
+        ? [0, mobile ? 12.8 : 10.2, mobile ? 27.3 : 22.6]
         : [
           state.player.x * 0.08 + driftX + velocityLeadX + threatLeadX * 0.18,
-          (mobile ? 12.6 : 9.8) + driftY - dashPush * (mobile ? 0.32 : 0.48),
-          (mobile ? 28.6 : 24.0) + state.player.z * 0.05 + velocityLeadZ + threatLeadZ * 0.12,
+          (mobile ? 12.6 : 10.0) + driftY - dashPush * (mobile ? 0.32 : 0.48),
+          (mobile ? 27.2 : 22.5) + state.player.z * 0.05 + velocityLeadZ + threatLeadZ * 0.12,
         ];
       const desiredTarget: readonly [number, number, number] = terminal
         ? [0, 0.28, 0]
