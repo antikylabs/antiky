@@ -77,7 +77,9 @@ export const DEMO_PROBES = Object.freeze({
      * than its reference — so the darkness is the shadow and not a difference between two patches.
      */
     sunShadow: Object.freeze({ x: 1082, y: 438, width: 32, height: 32 }),
-    sunLit: Object.freeze({ x: 898, y: 348, width: 32, height: 32 }),
+    // Moved by goal 08: the old box (898, 348) now has the plum relay's field ring crossing it,
+    // which read as stripes to the acne bound. Plain litter, no rings, still fully lit.
+    sunLit: Object.freeze({ x: 700, y: 560, width: 32, height: 32 }),
     /**
      * Ground 20 px beyond the blue relay's edge, and the same ground 100 px out.
      *

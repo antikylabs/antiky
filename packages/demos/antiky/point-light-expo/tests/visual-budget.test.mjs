@@ -198,16 +198,17 @@ test('point-light-expo does not stripe its lit ground with shadow acne', async (
   //
   // That check was "luminance standard deviation inside a probe on a flat lit plane facing the sun
   // is < 0.02", which assumes the plane is plain. This floor is a photoscanned forest floor: its
-  // litter alone measures 0.063 with the shadow term switched off entirely, so 0.02 is unreachable
+  // litter alone measured 0.063 with the shadow term switched off entirely, so 0.02 is unreachable
   // for a reason that has nothing to do with acne.
   //
   // Acne is variance the *shadow* adds, so that is what is measured. With shadows on the probe
-  // reads 0.063065; with the same sun and the shadow forced to fully lit it reads 0.063065. The
+  // read 0.063065 either way at the pre-goal-08 grade; goal 08's desaturated night litter runs
+  // 0.084-0.10 with no shadow influence at all, which is why the ceiling sits at 0.11 now. The
   // shadow adds nothing, which is what "no acne" means. The ceiling below is the texture's own
   // figure with room to move, and it fails if striping ever appears on top of it.
   assert.ok(
-    lit.standardDeviation <= 0.075,
-    `lit ground spreads ${lit.standardDeviation}, which is above the forest floor's own 0.063. `
+    lit.standardDeviation <= 0.11,
+    `lit ground spreads ${lit.standardDeviation}, above the litter's own no-shadow 0.084. `
     + 'Stripes at the shadow-map texel scale are the thing to look for.',
   );
 });
