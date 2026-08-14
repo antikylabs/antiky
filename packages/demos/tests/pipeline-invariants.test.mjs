@@ -397,6 +397,7 @@ const DELETED_NAMES = Object.freeze([
   { name: 'catalogParts', why: 'described the ship models; nothing rendered from it' },
   { name: 'uTint', why: 'all thirteen traversal-study batches passed [1, 1, 1], so it multiplied by one' },
   { name: 'uModel', why: 'point-light-expo only ever set the identity matrix, so both muls were no-ops' },
+  { name: 'cables', why: 'a third saturated hue looping the arena rim, competing with both team colours' },
 ]);
 
 test('the dead code this objective deleted has not come back', async () => {

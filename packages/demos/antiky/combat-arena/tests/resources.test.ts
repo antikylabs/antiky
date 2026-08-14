@@ -50,7 +50,7 @@ test('arena catalog rolls back completed batches and the in-flight texture on co
   const programs: number[] = [];
   let programCount = 0;
   await assert.rejects(createArenaCatalogResources({} as never, {
-    room: 1, walls: 1, wallDetails: 1, floor: 1, cables: 1, targets: 1, grenades: 1,
+    room: 1, walls: 1, wallDetails: 1, floor: 1, targets: 1, grenades: 1,
   }, {
     loadModel: async () => fakeModel,
     createBitmap: async () => ({ close() { bitmaps.push(1); } }) as never,
@@ -89,7 +89,7 @@ test('arena catalog disposes a created texture even if bitmap close fails during
   let detailDisposed = 0;
   let texturesDisposed = 0;
   await assert.rejects(createArenaCatalogResources({} as never, {
-    room: 1, walls: 1, wallDetails: 1, floor: 1, cables: 1, targets: 1, grenades: 1,
+    room: 1, walls: 1, wallDetails: 1, floor: 1, targets: 1, grenades: 1,
   }, {
     loadModel: async () => fakeModel,
     createBitmap: async () => ({ close() { throw new Error('injected close failure'); } }) as never,
@@ -336,7 +336,7 @@ test('renderer rolls back ships and catalog when top-level projection creation f
   await assert.rejects(createCombatRendererWith({} as HTMLCanvasElement, {
     createRenderer: async () => renderer as never,
     createCatalog: async () => ({
-      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
+      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, targets: batch, grenades: batch,
       frame() {}, dispose() { disposed.push('catalog'); },
     }) as never,
     createShips: async () => ({
@@ -369,7 +369,7 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
   await assert.rejects(createCombatRendererWith({} as HTMLCanvasElement, {
     createRenderer: async () => ({ destroy() { disposed.push('renderer'); } }) as never,
     createCatalog: async () => ({
-      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
+      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, targets: batch, grenades: batch,
       frame() {}, dispose() { disposed.push('catalog'); },
     }) as never,
     createShips: async () => ({
@@ -419,7 +419,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
   const combatRenderer = await createCombatRendererWith({} as HTMLCanvasElement, {
     createRenderer: async () => renderer as never,
     createCatalog: async () => ({
-      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, cables: batch, targets: batch, grenades: batch,
+      room: batch, walls: batch, wallDetails: batch, floorTiles: batch, targets: batch, grenades: batch,
       frame() {}, dispose() { disposals.catalog += 1; },
     }) as never,
     createShips: async () => ({

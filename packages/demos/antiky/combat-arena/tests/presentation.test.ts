@@ -119,14 +119,18 @@ test('terminal camera gives the result composition priority over player drift', 
 
 test('renderer reporting is derived from its capacities and catalog asset set', () => {
   const measurements = deriveCombatRendererMeasurements();
-  // Twelve: the two wall panels joined the ten the demo already loaded.
-  assert.equal(measurements.catalogAssets, 12);
-  assert.ok(measurements.catalogInstances >= 100);
+  // Eleven: the two wall panels joined the ten the demo loaded, and goal 08 deleted the cable
+  // loops — a third saturated hue looping the rim, competing with both team colours.
+  assert.equal(measurements.catalogAssets, 11);
+  // 86 after the 28 cable instances left. The floor guards against the catalog quietly emptying,
+  // not against a deliberate deletion.
+  assert.ok(measurements.catalogInstances >= 80);
   assert.ok(measurements.environmentLayers >= 4);
-  // 18: sixteen, plus one draw each for the two wall-panel batches. Derived from the capacity
-  // records rather than typed, so this is the one place that has to move when the scene gains a
-  // pass — and it should move deliberately, which is why it is a literal and not a computation.
-  assert.equal(measurements.drawCalls, 18);
+  // 17: sixteen, plus one draw each for the two wall-panel batches, minus the deleted cable
+  // batch. Derived from the capacity records rather than typed, so this is the one place that has
+  // to move when the scene gains a pass — and it should move deliberately, which is why it is a
+  // literal and not a computation.
+  assert.equal(measurements.drawCalls, 17);
   assert.equal(measurements.uploadBytesPerFrame, 15_780);
   // Raised from 384 on the owner's instruction to replace the stretched room shell with real wall
   // panels from the kit. Sixteen ring positions — eleven plain, five detailed — is +16 instances.

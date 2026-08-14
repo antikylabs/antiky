@@ -11,7 +11,6 @@ import { ENEMY_HULL_CONTRACTS, PLAYER_HULL_CONTRACT } from '../src/combat-hulls.
 const selectedAssets = Object.freeze([
   'room-small.glb',
   'template-floor-layer.glb',
-  'cables.glb',
   'target-detail.glb',
   'grenade-a.glb',
 ]);
@@ -19,7 +18,6 @@ const selectedAssets = Object.freeze([
 const sourceUrls = Object.freeze([
   new URL('../assets/kenney/modular-space-kit/room-small.glb', import.meta.url),
   new URL('../assets/kenney/modular-space-kit/template-floor-layer.glb', import.meta.url),
-  new URL('../assets/kenney/modular-space-kit/cables.glb', import.meta.url),
   new URL('../assets/kenney/blaster-kit/target-detail.glb', import.meta.url),
   new URL('../assets/kenney/blaster-kit/grenade-a.glb', import.meta.url),
 ]);

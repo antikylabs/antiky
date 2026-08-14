@@ -225,7 +225,7 @@ export async function createCombatRendererWith(
     const shadows = registerResource(disposables, dependencies.createShadowPass(renderer));
     const catalogBatches = [
       catalog.room, catalog.walls, catalog.wallDetails, catalog.floorTiles,
-      catalog.cables, catalog.targets, catalog.grenades,
+      catalog.targets, catalog.grenades,
     ] as const;
     for (const batch of catalogBatches) {
       shadows.bind(batch.program as never);
@@ -275,7 +275,6 @@ export async function createCombatRendererWith(
       catalog.walls.program.draw();
       catalog.wallDetails.program.draw();
       catalog.floorTiles.program.draw();
-      catalog.cables.program.draw();
       projection.drawSurface();
       catalog.grenades.program.draw();
       catalog.targets.program.draw();

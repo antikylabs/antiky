@@ -8,7 +8,6 @@ export const ARENA_CATALOG_CAPACITY = Object.freeze({
   wallDetails: 3,
   room: 1,
   floor: 25,
-  cables: 28,
   targets: 18,
   grenades: 24,
 });
@@ -120,32 +119,6 @@ export function initializeArenaCatalog(catalog: ArenaCatalogResources): void {
   }
   catalog.floorTiles.upload();
 
-  catalog.cables.clear();
-  for (let index = 0; index < 24; index += 1) {
-    const angle = index / 24 * Math.PI * 2 + Math.PI / 24;
-    const outer = index % 3 !== 0;
-    const radius = outer ? 8.25 : 6.85;
-    const scale = outer ? 0.88 : 0.62;
-    catalog.cables.set(
-      index,
-      [Math.cos(angle) * radius, -0.115, Math.sin(angle) * radius],
-      [scale, scale, scale],
-      outer ? [0.34, 0.36, 0.39] : [0.22, 0.27, 0.3],
-      [0.012, 0, angle + Math.PI / 2],
-    );
-  }
-  for (let index = 24; index < ARENA_CATALOG_CAPACITY.cables; index += 1) {
-    const side = index % 2 === 0 ? -1 : 1;
-    const lane = Math.floor((index - 24) / 2);
-    catalog.cables.set(
-      index,
-      [side * (4.9 + lane * 0.72), -0.11, 7.05],
-      [0.58, 0.58, 0.58],
-      [0.3, 0.33, 0.36],
-      [0.01, 0, side < 0 ? Math.PI * 0.08 : -Math.PI * 0.08],
-    );
-  }
-  catalog.cables.upload();
 }
 
 function enemyFacing(state: CombatSnapshot, enemyIndex: number): number {

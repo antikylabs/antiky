@@ -22,7 +22,6 @@ type Vec3 = readonly [number, number, number];
 const MODEL_URLS = Object.freeze({
   room: new URL('../assets/kenney/modular-space-kit/room-small.glb?no-inline', import.meta.url).href,
   floor: new URL('../assets/kenney/modular-space-kit/template-floor-layer.glb?no-inline', import.meta.url).href,
-  cables: new URL('../assets/kenney/modular-space-kit/cables.glb?no-inline', import.meta.url).href,
   target: new URL('../assets/kenney/blaster-kit/target-detail.glb?no-inline', import.meta.url).href,
   grenade: new URL('../assets/kenney/blaster-kit/grenade-a.glb?no-inline', import.meta.url).href,
   // Real wall panels from the same kit, in place of one room shell scaled 1.5x. The kit ships forty
@@ -56,7 +55,6 @@ export type ArenaCatalogResources = Readonly<{
   walls: ModelBatch;
   wallDetails: ModelBatch;
   floorTiles: ModelBatch;
-  cables: ModelBatch;
   targets: ModelBatch;
   grenades: ModelBatch;
   frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void;
@@ -106,7 +104,7 @@ async function createModelBatch(
   detailNormal: BroMetalTexture,
   kitMaterials: BroMetalTexture,
   plating: BroMetalTexture,
-  /** The deck and structure are plated; cables and blaster-kit props are not. */
+  /** The deck and structure are plated; the blaster-kit props are not. */
   platingStrength: number,
 ): Promise<ModelBatch> {
   const mesh = model.meshes[0];
@@ -215,7 +213,6 @@ export async function createArenaCatalogResources(
     walls: number;
     wallDetails: number;
     floor: number;
-    cables: number;
     targets: number;
     grenades: number;
   }>,
@@ -224,7 +221,6 @@ export async function createArenaCatalogResources(
   const models = await Promise.all([
     dependencies.loadModel(MODEL_URLS.room),
     dependencies.loadModel(MODEL_URLS.floor),
-    dependencies.loadModel(MODEL_URLS.cables),
     dependencies.loadModel(MODEL_URLS.target),
     dependencies.loadModel(MODEL_URLS.grenade),
     dependencies.loadModel(MODEL_URLS.wall),
@@ -242,22 +238,20 @@ export async function createArenaCatalogResources(
     registerResource(resources, materialMaps.roughness);
     const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
     const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
-    const cables = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.cables, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0));
-    const targets = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35));
-    const grenades = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0));
-    const walls = registerResource(resources, await createModelBatch(renderer, models[5]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
-    const wallDetails = registerResource(resources, await createModelBatch(renderer, models[6]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
+    const targets = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35));
+    const grenades = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0));
+    const walls = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
+    const wallDetails = registerResource(resources, await createModelBatch(renderer, models[5]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
 
     // Disposal covers everything the catalog owns; per-frame work is only the batches. Iterating
     // `resources` here would call `frame` on a texture.
-    const batches: ModelBatch[] = [room, floorTiles, cables, targets, grenades, walls, wallDetails];
+    const batches: ModelBatch[] = [room, floorTiles, targets, grenades, walls, wallDetails];
 
     return Object.freeze({
       room,
       walls,
       wallDetails,
       floorTiles,
-      cables,
       targets,
       grenades,
       frame(viewProjection, cameraPosition, time): void {

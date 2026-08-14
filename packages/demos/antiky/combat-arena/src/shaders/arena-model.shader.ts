@@ -247,8 +247,8 @@ export default shader({
     // colour costs about five stops and turns a lit deck into a black hole. Centred on 1.0, panel
     // grain lighter than the average brightens and grain darker than it darkens.
     //
-    // `uMaterialStrength` is per batch: the deck and structure are plated, the cables and the
-    // blaster-kit props are not.
+    // `uMaterialStrength` is per batch: the deck and structure are plated, the blaster-kit
+    // props are not.
     //
     // Sampled in the fragment body, never through a helper — `texture()` inside a DSL helper
     // compiles to `textureSampleLevel(..., 0.0)` and loses the mip chain.
