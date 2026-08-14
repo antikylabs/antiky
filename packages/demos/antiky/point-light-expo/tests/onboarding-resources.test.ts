@@ -20,9 +20,12 @@ function fakeCanvas() {
       textAlign: '',
       textBaseline: '',
       font: '',
+      shadowColor: '',
+      shadowBlur: 0,
       fillRect() {},
       strokeRect() {},
       fillText() {},
+      createRadialGradient() { return { addColorStop() {} }; },
     },
   };
 }

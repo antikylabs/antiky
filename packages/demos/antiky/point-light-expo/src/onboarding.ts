@@ -89,18 +89,25 @@ export function createRelayOnboardingOverlay(
         192,
         'Unable to create the relay result panel.',
       );
-      status.context.fillStyle = 'rgba(12, 18, 16, 0.9)';
+      // Goal 08's re-skin. The old panel was a hairline accent stroke around terminal type, which
+      // reads as debug output. A soft vignette plate whose glow carries the accent reads as part
+      // of the night scene's light language instead.
+      const plate = status.context.createRadialGradient(512, 96, 40, 512, 96, 620);
+      plate.addColorStop(0, 'rgba(16, 24, 22, 0.94)');
+      plate.addColorStop(0.8, 'rgba(10, 16, 14, 0.82)');
+      plate.addColorStop(1, 'rgba(8, 12, 11, 0)');
+      status.context.fillStyle = plate;
       status.context.fillRect(0, 0, 1_024, 192);
-      status.context.strokeStyle = accent;
-      status.context.lineWidth = 6;
-      status.context.strokeRect(5, 5, 1_014, 182);
       status.context.textAlign = 'center';
       status.context.textBaseline = 'middle';
-      status.context.font = '700 48px ui-monospace, SFMono-Regular, Menlo, monospace';
+      status.context.shadowColor = accent;
+      status.context.shadowBlur = 26;
+      status.context.font = '700 52px Georgia, ui-serif, serif';
       status.context.fillStyle = accent;
       status.context.fillText(title, 512, 68);
-      status.context.font = '600 26px ui-monospace, SFMono-Regular, Menlo, monospace';
-      status.context.fillStyle = '#e2e0ca';
+      status.context.shadowBlur = 0;
+      status.context.font = '500 26px Georgia, ui-serif, serif';
+      status.context.fillStyle = '#ded9c2';
       status.context.fillText(detail, 512, 138);
       return resources.register(dependencies.createTexture(renderer, status.canvas));
     };
