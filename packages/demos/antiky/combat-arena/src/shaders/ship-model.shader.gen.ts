@@ -69,6 +69,25 @@ fn channelToLinear(channel : f32) -> f32 {
 fn decodeSrgb(color : vec3f) -> vec3f {
   return vec3f(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
 }
+fn specularGGX(normal : vec3f, light : vec3f, view : vec3f, roughness : f32, f0 : vec3f) -> vec3f {
+  let halfway = normalize(light + view);
+  let nDotL = max(dot(normal, light), 0.0);
+  let nDotV = max(dot(normal, view), 0.0001);
+  let nDotH = max(dot(normal, halfway), 0.0);
+  let vDotH = max(dot(view, halfway), 0.0);
+  let alpha = roughness * roughness;
+  let alphaSq = alpha * alpha;
+  let distributionDenominator = nDotH * nDotH * (alphaSq - 1.0) + 1.0;
+  let distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  let occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1.0 - alphaSq) + alphaSq);
+  let occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1.0 - alphaSq) + alphaSq);
+  let visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  let grazing = 1.0 - vDotH;
+  let grazingSq = grazing * grazing;
+  let fresnelWeight = grazingSq * grazingSq * grazing;
+  let fresnel = f0 + (vec3f(1.0, 1.0, 1.0) - f0) * fresnelWeight;
+  return fresnel * (distribution * visibility * nDotL);
+}
 @vertex
 fn vs_main(bm_in : BmVSIn) -> BmVSOut {
   var bm_out : BmVSOut;
@@ -117,7 +136,9 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let planetFacing = dot(normal, earthward) * 0.5 + 0.5;
   let ambient = mix(vec3f(0.18, 0.18, 0.18), vec3f(1.55, 1.55, 1.55), planetFacing);
   let earthshine = vec3f(0.4, 0.5, 0.66) * ambient;
-  let lit = authored * earthshine + authored * (keyLight * 1.15 + fillLight * 0.32);
+  let specular = specularGGX(normal, key, view, 0.3, vec3f(0.06, 0.06, 0.06)) * (1.15 * sunVisibility);
+  let rimLight = bm_in.vTint * (rim * 0.34);
+  let lit = authored * earthshine + authored * (keyLight * 1.15 + fillLight * 0.32) + specular + rimLight;
   let energy = bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.2) * pulse * (0.12 + rim * 0.44));
   let hit = clamp(bm_in.vParams.y, 0.0, 1.0);
   let confirmed = mix(lit + energy, vec3f(3.0, 3.15, 3.3), hit * hit);

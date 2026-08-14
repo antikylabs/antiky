@@ -11,6 +11,7 @@ import {
   shader,
   sin,
   smoothstep,
+  sqrt,
   texture,
   vec2,
   vec3,
@@ -47,6 +48,38 @@ function channelToLinear(channel: number): number {
 
 function decodeSrgb(color: Vec3): Vec3 {
   return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
+
+/**
+ * Cook-Torrance GGX specular, copied from the reference (`point-light-expo`). Goal 07 carried the
+ * render slice here without it, which left these hulls with zero specular response — fatal against
+ * a Rocket League target, whose ships are glossy painted metal before they are anything else.
+ * `pipeline-invariants.test.mjs` asserts every copy of this helper compiles identically.
+ *
+ * Declared here rather than imported: the BroMetal MVP resolves only module-level helpers declared
+ * above their first use.
+ */
+function specularGGX(normal: Vec3, light: Vec3, view: Vec3, roughness: number, f0: Vec3): Vec3 {
+  const halfway = normalize(light.add(view));
+  const nDotL = max(dot(normal, light), 0);
+  // Floored rather than clamped to zero. Both of these end up in a denominator, and a surface
+  // exactly edge-on to the viewer should be an unlit pixel, not a division by zero.
+  const nDotV = max(dot(normal, view), 0.0001);
+  const nDotH = max(dot(normal, halfway), 0);
+  const vDotH = max(dot(view, halfway), 0);
+  const alpha = roughness * roughness;
+  const alphaSq = alpha * alpha;
+  const distributionDenominator = nDotH * nDotH * (alphaSq - 1) + 1;
+  const distribution = alphaSq / (3.14159265 * distributionDenominator * distributionDenominator);
+  const occlusionTowardView = nDotL * sqrt(nDotV * nDotV * (1 - alphaSq) + alphaSq);
+  const occlusionTowardLight = nDotV * sqrt(nDotL * nDotL * (1 - alphaSq) + alphaSq);
+  const visibility = 0.5 / max(occlusionTowardView + occlusionTowardLight, 0.0001);
+  // (1 - V·H)^5 as five multiplies rather than a `pow`: cheaper, and exact at both endpoints.
+  const grazing = 1 - vDotH;
+  const grazingSq = grazing * grazing;
+  const fresnelWeight = grazingSq * grazingSq * grazing;
+  const fresnel = f0.add(vec3(1, 1, 1).sub(f0).scale(fresnelWeight));
+  return fresnel.scale(distribution * visibility * nDotL);
 }
 
 export default shader({
@@ -206,8 +239,20 @@ export default shader({
     const planetFacing = dot(normal, earthward) * 0.5 + 0.5;
     const ambient = mix(vec3(0.18, 0.18, 0.18), vec3(1.55, 1.55, 1.55), planetFacing);
     const earthshine = vec3(0.40, 0.50, 0.66).mul(ambient);
+    // Glossy painted hull: a moderate-roughness dielectric clearcoat over the authored paint.
+    // The key drives it and the sun's shadow gates it, same as the diffuse term. In HDR this is
+    // what puts genuine blown highlights on a hull — the Rocket League tell the §6.2 brief names —
+    // and what the specular criterion (hull p95 >= 2x median) measures.
+    const specular = specularGGX(normal, key, view, 0.3, vec3(0.06, 0.06, 0.06))
+      .scale(1.15 * sunVisibility);
+    // Team-coloured rim, always on. Goal 07 found this term computed and then gated behind the
+    // emissive parameter, so it appeared only on dashing ships; LoL and Rocket League both rim
+    // every combatant, always, because it is what separates a dark hull from a dark deck.
+    const rimLight = vTint.scale(rim * 0.34);
     const lit = authored.mul(earthshine)
-      .add(authored.scale(keyLight * 1.15 + fillLight * 0.32));
+      .add(authored.scale(keyLight * 1.15 + fillLight * 0.32))
+      .add(specular)
+      .add(rimLight);
     const energy = vTint.scale(clamp(vParams.x, 0, 1.2) * pulse * (0.12 + rim * 0.44));
     const hit = clamp(vParams.y, 0, 1);
     const confirmed = mix(lit.add(energy), vec3(3, 3.15, 3.3), hit * hit);
