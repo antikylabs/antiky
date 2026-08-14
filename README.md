@@ -129,7 +129,7 @@ security boundary.
 | Run type checks and tests | `npm run check` |
 | Build the production website | `npm run build` |
 
-Use `antiky-town`, `point-light-expo`, `town-study`, `shader-study`, `solar-forge`,
+Use `antiky-town`, `point-light-expo`, `shader-study`, `solar-forge`,
 `luminous-reef`, `orbital-atlas`, or `glass-garden` as a focused demo slug. The
 [Antiky](packages/demos/antiky/README.md), [BroMetal](packages/demos/brometal/README.md), and
 [Three.js](packages/demos/threejs/README.md) guides describe each group.

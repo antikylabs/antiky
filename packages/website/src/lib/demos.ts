@@ -3,7 +3,6 @@ export type DemoSlug =
   | 'traversal-study'
   | 'antiky-town'
   | 'point-light-expo'
-  | 'town-study'
   | 'shader-study'
   | 'solar-forge'
   | 'luminous-reef'
@@ -139,24 +138,6 @@ export const DEMOS: readonly DemoMeta[] = [
     tags: ['Antiky Framework', 'point lights', 'custom shader'],
     requiresWebGpu: true,
     controls: 'Move the pointer to shift the gallery camera',
-  },
-  {
-    slug: 'town-study',
-    title: 'Town Study',
-    pillar: 'BroMetal',
-    tier: 'engine',
-    tagline: 'A living pixel cast inside a golden-hour voxel town.',
-    notes:
-      'Cross the canal and enter a market town at sunset. This edition is a pure BroMetal project: the renderer and game own the scene while Studio supplies only the portable host lifecycle.',
-    proves: [
-      'A handcrafted bridge, market, canal, houses, and bell tower',
-      'Crisp illustrated travelers with physical depth, light, and shadow',
-      'A Framework-free BroMetal project running unchanged in Studio',
-    ],
-    tags: ['BroMetal', 'voxel town', 'real-time lighting'],
-    requiresWebGpu: true,
-    controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
-    controlMode: 'move',
   },
   {
     slug: 'shader-study',

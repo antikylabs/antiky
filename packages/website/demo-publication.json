@@ -8,8 +8,14 @@
       "workspace": "@antiky/demo-combat-arena",
       "projectDirectory": "packages/demos/antiky/combat-arena",
       "sources": [
-        { "label": "project", "path": "packages/demos/antiky/combat-arena" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/antiky/combat-arena"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     },
     {
@@ -19,8 +25,14 @@
       "workspace": "@antiky/demo-traversal-study",
       "projectDirectory": "packages/demos/antiky/traversal-study",
       "sources": [
-        { "label": "project", "path": "packages/demos/antiky/traversal-study" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/antiky/traversal-study"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     },
     {
@@ -30,8 +42,14 @@
       "workspace": "@antiky/demo-antiky-town",
       "projectDirectory": "packages/demos/antiky/antiky-town",
       "sources": [
-        { "label": "project", "path": "packages/demos/antiky/antiky-town" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/antiky/antiky-town"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     },
     {
@@ -41,19 +59,14 @@
       "workspace": "@antiky/demo-point-light-expo",
       "projectDirectory": "packages/demos/antiky/point-light-expo",
       "sources": [
-        { "label": "project", "path": "packages/demos/antiky/point-light-expo" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
-      ]
-    },
-    {
-      "slug": "town-study",
-      "projectName": "Town Study",
-      "renderer": "brometal",
-      "workspace": "@antiky/demo-town-study",
-      "projectDirectory": "packages/demos/brometal/town-study",
-      "sources": [
-        { "label": "project", "path": "packages/demos/brometal/town-study" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/antiky/point-light-expo"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     },
     {
@@ -63,8 +76,14 @@
       "workspace": "@antiky/demo-shader-study",
       "projectDirectory": "packages/demos/brometal/shader-study",
       "sources": [
-        { "label": "project", "path": "packages/demos/brometal/shader-study" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/brometal/shader-study"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     },
     {
@@ -74,8 +93,14 @@
       "workspace": "@antiky/demo-solar-forge",
       "projectDirectory": "packages/demos/brometal/solar-forge",
       "sources": [
-        { "label": "project", "path": "packages/demos/brometal/solar-forge" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/brometal/solar-forge"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     },
     {
@@ -85,8 +110,14 @@
       "workspace": "@antiky/demo-luminous-reef",
       "projectDirectory": "packages/demos/brometal/luminous-reef",
       "sources": [
-        { "label": "project", "path": "packages/demos/brometal/luminous-reef" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/brometal/luminous-reef"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     },
     {
@@ -96,8 +127,14 @@
       "workspace": "@antiky/demo-orbital-atlas",
       "projectDirectory": "packages/demos/threejs/orbital-atlas",
       "sources": [
-        { "label": "project", "path": "packages/demos/threejs/orbital-atlas" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/threejs/orbital-atlas"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     },
     {
@@ -107,8 +144,14 @@
       "workspace": "@antiky/demo-glass-garden",
       "projectDirectory": "packages/demos/threejs/glass-garden",
       "sources": [
-        { "label": "project", "path": "packages/demos/threejs/glass-garden" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/threejs/glass-garden"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build-demo-artifact.mjs"
+        }
       ]
     }
   ]

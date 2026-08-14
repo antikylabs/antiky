@@ -60,6 +60,6 @@ directional light already exists.
   coefficients earn their bake step over two hand-picked colours, and it has not been run yet.
 - **Atlas gutters.** The three world atlases still declare no gutter, which `pipeline-invariants`
   reports. That is goal 14, not this one.
-- **The `brometal/town-study` twin** shipped byte-identical copies of twelve of these shaders and is
+- **The `brometal/town-study` twin** (retired 2026-08-14) shipped byte-identical copies of twelve of these shaders and was
   now diverged, because it is a fifth demo goal 05 does not name. Nothing is broken by that — it
   compiles its own copies — but the two are no longer the same shaders.

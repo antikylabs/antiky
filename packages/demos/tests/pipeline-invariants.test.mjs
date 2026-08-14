@@ -122,14 +122,6 @@ const SAMPLER_EXCEPTIONS = Object.freeze({
   'antiky/antiky-town/src/town/shaders/town-foliage-shadow.shader.gen.ts': { uAtlas: 'mask' },
   // UI drawn over the scene and shown as authored, not lit.
   'antiky/point-light-expo/src/shaders/onboarding.shader.gen.ts': { uAtlas: 'authored' },
-  // `town-study` is the Framework-free twin of `antiky-town` and ships the same shaders against the
-  // same atlases, so it carries the same exceptions for the same reasons. It was outside every
-  // invariant here until discovery covered all three demo categories, and was found to be sampling
-  // its material atlas with no sRGB decode at all — a live defect, now fixed.
-  'brometal/town-study/src/town/shaders/town-sprite.shader.gen.ts': { uAtlas: 'authored' },
-  'brometal/town-study/src/town/shaders/town-sprite-shadow.shader.gen.ts': { uAtlas: 'mask' },
-  'brometal/town-study/src/town/shaders/town-prop-shadow.shader.gen.ts': { uAtlas: 'mask' },
-  'brometal/town-study/src/town/shaders/town-foliage-shadow.shader.gen.ts': { uAtlas: 'mask' },
 });
 
 function roleOf(shader, texture) {

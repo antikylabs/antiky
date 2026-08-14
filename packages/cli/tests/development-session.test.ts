@@ -68,7 +68,7 @@ async function makeProject(options: {
         options.shaderBehavior ?? 'run',
       ],
       workingDirectory: '.',
-      url: `http://127.0.0.1:${GAME_PORT}/demos/town-study`,
+      url: `http://127.0.0.1:${GAME_PORT}/demos/antiky-town`,
       viewport: { width: 960, height: 540 },
     },
     network: {
@@ -288,7 +288,6 @@ test('public demo manifests mount their compiled module in the CLI-owned host', 
     ['antiky', 'combat-arena'],
     ['antiky', 'point-light-expo'],
     ['antiky', 'traversal-study'],
-    ['brometal', 'town-study'],
     ['brometal', 'shader-study'],
   ] as const) {
     const projectPath = join(repositoryRoot, 'packages', 'demos', category, slug, `${slug}.antiky`);
@@ -361,7 +360,7 @@ test('Studio worker imports the project service and stops it through a structure
     assert.equal(allocatedGamePort % 2, 0);
     assert.equal(allocatedInspectionPort, allocatedGamePort + 1);
     assert.ok(ready.connection.credential.length >= 32);
-    const gameResponse = await fetch(`http://127.0.0.1:${allocatedGamePort}/demos/town-study`);
+    const gameResponse = await fetch(`http://127.0.0.1:${allocatedGamePort}/demos/antiky-town`);
     assert.equal(gameResponse.status, 200);
     await gameResponse.text();
 

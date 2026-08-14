@@ -11,9 +11,9 @@ import type {
 } from './contract.ts';
 
 /**
- * The six hand-copied contracts, as they exist in the demos today.
+ * The hand-copied contracts, as they exist in the demos today.
  *
- * Five are byte-identical; the sixth is the full contract (see below). This is the shape a demo
+ * All five surviving copies are byte-identical. This is the shape a demo
  * currently declares for itself, and a real `GameModuleEntry` has to remain usable wherever one of
  * these is expected — otherwise the demos cannot ever stop copying.
  */
@@ -35,13 +35,12 @@ type StudioGameEntry = (context: Readonly<{
 }>>;
 
 /**
- * `town-study`'s variant, which is the whole contract rather than a narrowed one.
+ * The complete contract, as `town-study` declared it before that demo was retired.
  *
- * Worth naming precisely, because it corrects the premise this work started from: the sixth copy
- * does not merely add `mode`. It carries the full seven-field pointer, `movement` and
- * `runtimeInstanceId` too. So the drift is not one demo ahead by a field — it is *five* demos stuck
- * on a two-field pointer while the sixth kept pace, and the five are the ones that cannot see
- * `clicked`, `down`, `active`, `dragX`, `dragY`, `movement` or `mode`.
+ * Kept because it is the shape a copy *should* have: the full seven-field pointer, `movement` and
+ * `runtimeInstanceId`. The five surviving copies are all stuck on a two-field pointer, so none of
+ * them can see `clicked`, `down`, `active`, `dragX`, `dragY`, `movement` or `mode`. This alias is
+ * what they would grow into, and asserting against it keeps that target honest.
  */
 type StudioGameEntryWithMode = (context: Readonly<{
   canvas: HTMLCanvasElement;
@@ -139,15 +138,15 @@ test('the demos that hand-copied the contract still declare the shape this guard
       if (text === null) continue;
       found.push(`${category.name}/${demo.name}`);
       assert.match(text, /frame\(platformTimeSeconds:\s*number\):\s*void/, `${demo.name} frame shape`);
-      // Five copies declare a two-field pointer; town-study declares the full one. Either is a
-      // shape this guard models — a seventh shape is not, and would mean the aliases above have
-      // stopped describing the demos.
+      // Every surviving copy declares the two-field pointer. The complete shape above is what one
+      // would grow into; a third shape is neither, and would mean the aliases have stopped
+      // describing the demos.
       const narrow = /pointer:\s*Readonly<\{\s*x:\s*number;\s*y:\s*number;?\s*\}>/.test(text);
       const complete = /clicked:\s*boolean/.test(text) && /mode:\s*'ambient'/.test(text);
       assert.ok(narrow || complete, `${demo.name} declares a pointer shape this guard does not model`);
       if (narrow) narrowCopies += 1;
     }
   }
-  assert.equal(found.length, 6, `expected six hand-copied contracts, found ${found.join(', ')}`);
-  assert.equal(narrowCopies, 5, 'five copies are still stuck on the two-field pointer');
+  assert.equal(found.length, 5, `expected five hand-copied contracts, found ${found.join(', ')}`);
+  assert.equal(narrowCopies, 5, 'every surviving copy is still stuck on the two-field pointer');
 });

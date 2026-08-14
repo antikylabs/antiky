@@ -40,7 +40,6 @@ export const DEMOS = Object.freeze({
   'luminous-reef': 'packages/demos/brometal/luminous-reef/luminous-reef.antiky',
   'shader-study': 'packages/demos/brometal/shader-study/shader-study.antiky',
   'solar-forge': 'packages/demos/brometal/solar-forge/solar-forge.antiky',
-  'town-study': 'packages/demos/brometal/town-study/town-study.antiky',
   'glass-garden': 'packages/demos/threejs/glass-garden/glass-garden.antiky',
   'orbital-atlas': 'packages/demos/threejs/orbital-atlas/orbital-atlas.antiky',
 });

@@ -43,7 +43,7 @@ test('framework source has no Node, React, Next, BroMetal, Studio, or MCP import
     }
     assert.doesNotMatch(
       source.text,
-      /Market Lamp West|town-study/,
+      /Market Lamp West|antiky-town/,
       `${source.name} contains demo-specific point-light data`,
     );
   }

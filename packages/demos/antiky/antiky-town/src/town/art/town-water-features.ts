@@ -566,7 +566,7 @@ export function mergeTownWaterFeatureMeshes(
   return finish(merged);
 }
 
-/** One-upload convenience used by town-study.ts. */
+/** One-upload convenience used by `town/index.ts`. */
 export function buildTownWaterFeatures(
   waterfall: TownWaterfall,
   fountain: TownFountain,

@@ -42,7 +42,7 @@ function snapshot(developmentSessionId: string, runtimeInstanceId = 'runtime-001
       manifestPath: '/project/test.antiky',
       projectRoot: '/project',
       revision: 'a'.repeat(64),
-      gameUrl: 'http://127.0.0.1:3010/demos/town-study',
+      gameUrl: 'http://127.0.0.1:3010/demos/antiky-town',
       host: '127.0.0.1',
       gamePort: 3010,
       inspectionPort: 3011,

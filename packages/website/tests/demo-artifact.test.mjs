@@ -18,7 +18,6 @@ test('publication includes the complete renderer showcase', () => {
     { slug: 'traversal-study', renderer: 'antiky' },
     { slug: 'antiky-town', renderer: 'antiky' },
     { slug: 'point-light-expo', renderer: 'antiky' },
-    { slug: 'town-study', renderer: 'brometal' },
     { slug: 'shader-study', renderer: 'brometal' },
     { slug: 'solar-forge', renderer: 'brometal' },
     { slug: 'luminous-reef', renderer: 'brometal' },

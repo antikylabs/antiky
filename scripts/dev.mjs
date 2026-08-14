@@ -13,7 +13,6 @@ const demoProjects = {
   'combat-arena': 'packages/demos/antiky/combat-arena/combat-arena.antiky',
   'point-light-expo': 'packages/demos/antiky/point-light-expo/point-light-expo.antiky',
   'traversal-study': 'packages/demos/antiky/traversal-study/traversal-study.antiky',
-  'town-study': 'packages/demos/brometal/town-study/town-study.antiky',
   'shader-study': 'packages/demos/brometal/shader-study/shader-study.antiky',
   'solar-forge': 'packages/demos/brometal/solar-forge/solar-forge.antiky',
   'luminous-reef': 'packages/demos/brometal/luminous-reef/luminous-reef.antiky',
@@ -35,7 +34,7 @@ Shortcuts:
 }
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const demoSlug = targetArgs[0] ?? 'town-study';
+const demoSlug = targetArgs[0] ?? 'antiky-town';
 if (target === 'demos' && !(demoSlug in demoProjects)) {
   console.error(`Unknown demo: ${demoSlug}`);
   process.exit(1);

@@ -78,7 +78,6 @@ test('the website catalog exposes all renderer families and gates only WebGPU de
     'traversal-study',
     'antiky-town',
     'point-light-expo',
-    'town-study',
     'shader-study',
     'solar-forge',
     'luminous-reef',
@@ -121,7 +120,7 @@ test('every published demo has a distinct real poster and the catalog groups all
   assert.equal(digests.size, publication.demos.length, 'Demo posters must not reuse the same image');
   const groups = [
     ['framework-demos', 'Antiky Framework', ['combat-arena', 'traversal-study', 'antiky-town', 'point-light-expo']],
-    ['brometal-demos', 'BroMetal', ['town-study', 'shader-study', 'solar-forge', 'luminous-reef']],
+    ['brometal-demos', 'BroMetal', ['shader-study', 'solar-forge', 'luminous-reef']],
     ['threejs-demos', 'Three.js', ['orbital-atlas', 'glass-garden']],
   ];
   const groupStarts = groups.map(([id, heading]) => {
@@ -343,14 +342,14 @@ test('mobile posters are fitted rather than cropped past their subject', async (
   assert.ok(visibleWidthWithCover < 0.7, 'this test is meaningless if cover would already fit');
 });
 
-test('Town Study is not billed as a shader study', async () => {
+test('the town is not billed as a shader study', async () => {
   const { DEMOS, DEMO_GROUPS } = await import('../src/lib/demos.ts');
 
-  // Town Study is ~9,000 lines: a voxel surface mesher, a sprite batcher, a tested character motor,
-  // and twelve shader pairs including dedicated shadow passes. The other three BroMetal studies are
-  // fullscreen quads. One group for both read as a claim that a quad is BroMetal's ceiling.
-  const townStudy = DEMOS.find((demo) => demo.slug === 'town-study');
-  assert.equal(townStudy?.tier, 'engine');
+  // Antiky Town is ~11,700 lines: a voxel surface mesher, a sprite batcher, a tested character
+  // motor, and a real post pass. The three BroMetal studies are fullscreen quads. One group for
+  // both would read as a claim that a quad is this engine's ceiling.
+  const antikyTown = DEMOS.find((demo) => demo.slug === 'antiky-town');
+  assert.equal(antikyTown?.pillar, 'Framework', 'the town belongs with the Framework demos');
   for (const slug of ['shader-study', 'solar-forge', 'luminous-reef']) {
     assert.equal(DEMOS.find((demo) => demo.slug === slug)?.tier, 'shader-study');
   }

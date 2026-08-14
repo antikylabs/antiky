@@ -8,7 +8,6 @@ const showcase = Object.freeze([
   { category: 'antiky', slug: 'combat-arena', renderer: 'brometal', framework: true },
   { category: 'antiky', slug: 'point-light-expo', renderer: 'brometal', framework: true },
   { category: 'antiky', slug: 'traversal-study', renderer: 'brometal', framework: true },
-  { category: 'brometal', slug: 'town-study', renderer: 'brometal', framework: false },
   { category: 'brometal', slug: 'shader-study', renderer: 'brometal', framework: false },
   { category: 'brometal', slug: 'solar-forge', renderer: 'brometal', framework: false },
   { category: 'brometal', slug: 'luminous-reef', renderer: 'brometal', framework: false },
@@ -33,7 +32,7 @@ async function sourceFiles(directory) {
 test('the showcase has the approved category and project matrix', async () => {
   const expected = {
     antiky: ['antiky-town', 'combat-arena', 'point-light-expo', 'traversal-study'],
-    brometal: ['luminous-reef', 'shader-study', 'solar-forge', 'town-study'],
+    brometal: ['luminous-reef', 'shader-study', 'solar-forge'],
     threejs: ['glass-garden', 'orbital-atlas'],
   };
   for (const [category, slugs] of Object.entries(expected)) {

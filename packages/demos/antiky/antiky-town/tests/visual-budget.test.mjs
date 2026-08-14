@@ -30,7 +30,7 @@ import test from 'node:test';
  *
  * 7.5 keeps roughly five times the capture's run-to-run noise as headroom while staying far above
  * the near-zero a flat, unlit or untextured surface produces, which is what this measure exists to
- * catch. The `town-study` twin measures 7.23 for comparison — this demo is ahead of it, not behind.
+ * catch. The retired `town-study` twin measured 7.23 for comparison — this demo was ahead of it, not behind.
  *
  * These bounds remain provisional and owner-adjustable, on the same terms.
  */

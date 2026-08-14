@@ -145,7 +145,9 @@ test('the committed shader output is what the compiler actually produces', async
   let checked = 0;
   const shaderPackages = await discoverShaderPackages();
   assert.ok(
-    shaderPackages.length >= 8,
+    // Seven since `town-study` was retired: it was `antiky-town`'s Framework-free twin and shipped
+    // byte-identical copies of twelve of these shaders.
+    shaderPackages.length >= 7,
     `expected to discover every package with generated shaders, found ${shaderPackages.length}`,
   );
   for (const shaderPackage of shaderPackages) {

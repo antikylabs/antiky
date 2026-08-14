@@ -37,7 +37,7 @@ const development: StudioDevelopmentState = {
       manifestPath: '/project/test.antiky',
       projectRoot: '/project',
       revision: 'a'.repeat(64),
-      gameUrl: 'http://127.0.0.1:3010/demos/town-study',
+      gameUrl: 'http://127.0.0.1:3010/demos/antiky-town',
       host: '127.0.0.1',
       gamePort: 3010,
       inspectionPort: 3011,
@@ -370,7 +370,7 @@ test('connected Studio renders the live game and every semantic inspection surfa
     'Received 2026-08-05T12:00:02.000Z',
     'Redacted',
   ]) assert.match(html, new RegExp(value));
-  assert.match(html, /src="http:\/\/127\.0\.0\.1:3010\/demos\/town-study"/);
+  assert.match(html, /src="http:\/\/127\.0\.0\.1:3010\/demos\/antiky-town"/);
   assert.match(html, /allow="autoplay; fullscreen; gamepad; webgpu"/);
   assert.match(html, /<button[^>]*>Restart game<\/button>/);
   assert.match(html, /<button[^>]*>Stop game<\/button>/);
