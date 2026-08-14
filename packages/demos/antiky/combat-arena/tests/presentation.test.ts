@@ -126,11 +126,12 @@ test('renderer reporting is derived from its capacities and catalog asset set', 
   // not against a deliberate deletion.
   assert.ok(measurements.catalogInstances >= 80);
   assert.ok(measurements.environmentLayers >= 4);
-  // 17: sixteen, plus one draw each for the two wall-panel batches, minus the deleted cable
-  // batch. Derived from the capacity records rather than typed, so this is the one place that has
-  // to move when the scene gains a pass — and it should move deliberately, which is why it is a
-  // literal and not a computation.
-  assert.equal(measurements.drawCalls, 17);
+  // 23: sixteen, plus one draw each for the two wall-panel batches, minus the deleted cable
+  // batch, plus the planar reflection redrawing the five ship batches and the energy glow through
+  // the deck mirror. Derived from the capacity records rather than typed, so this is the one place
+  // that has to move when the scene gains a pass — and it should move deliberately, which is why it
+  // is a literal and not a computation.
+  assert.equal(measurements.drawCalls, 23);
   assert.equal(measurements.uploadBytesPerFrame, 15_780);
   // Raised from 384 on the owner's instruction to replace the stretched room shell with real wall
   // panels from the kit. Sixteen ring positions — eleven plain, five detailed — is +16 instances.

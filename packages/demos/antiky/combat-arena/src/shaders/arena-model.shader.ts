@@ -11,6 +11,7 @@ import {
   shader,
   sin,
   smoothstep,
+  targetUv,
   texture,
   vec2,
   vec3,
@@ -116,6 +117,13 @@ export default shader({
     uLightFalloff5: 'float',
     uMaterialDiffuse: 'sampler2D',
     uMaterialStrength: 'float',
+    /**
+     * The planar reflection of the scene, rendered through the deck plane, and how strongly this
+     * batch shows it. Strength is per batch like `uMaterialStrength`: the deck reflects, nothing
+     * else does, and an unset strength is 0 so every other batch skips the whole term.
+     */
+    uReflection: 'sampler2D',
+    uReflectionStrength: 'float',
     uTime: 'float',
   },
   varyings: {
@@ -124,6 +132,7 @@ export default shader({
     vUv: 'vec2',
     vTint: 'vec3',
     vParams: 'vec3',
+    vClip: 'vec4',
   },
 
   vertex({ aPosition, aNormal, aUv, iOffset, iScale, iTint, iParams }, { uViewProj }, v) {
@@ -139,7 +148,9 @@ export default shader({
     v.vUv = aUv;
     v.vTint = iTint;
     v.vParams = iParams;
-    return uViewProj.mul(vec4(world, 1));
+    const clip = uViewProj.mul(vec4(world, 1));
+    v.vClip = clip;
+    return clip;
   },
 
   fragment(
@@ -148,8 +159,8 @@ export default shader({
     uShadowMap,
     uLightViewProj,
     uLightPosition,
-    uShadowRange, uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
-    { vWorld, vNormal, vUv, vTint, vParams },
+    uShadowRange, uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uReflection, uReflectionStrength, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
+    { vWorld, vNormal, vUv, vTint, vParams, vClip },
   ) {
     const baseNormal = normalize(vNormal);
     // Triplanar detail normal, written out here rather than called through a helper.
@@ -301,7 +312,21 @@ export default shader({
       .add(arenaFloodlight(vWorld, normal, uLightPosition3, uLightColor3, uLightFalloff3))
       .add(arenaFloodlight(vWorld, normal, uLightPosition4, uLightColor4, uLightFalloff4))
       .add(arenaFloodlight(vWorld, normal, uLightPosition5, uLightColor5, uLightFalloff5));
-    const confirmed = mix(floodlit, vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
+    // Planar reflection — the Rocket League tell. The renderer mirrors the camera through the
+    // deck plane and draws the ships and their glow into `uReflection`; this looks that image up
+    // at this fragment's own screen position. `targetUv` divides by w, so the interpolated clip
+    // position is exactly the right thing to hand it. The lookup is perturbed by the detail tilt
+    // so the reflection breaks against the plating grain instead of reading as chrome, and the
+    // grazing term makes it strongest where a low camera looks across the deck, the way a real
+    // glossy floor behaves. Strength is per batch: the deck shows it, nothing else does.
+    const reflectionUv = targetUv(vClip);
+    const reflected = texture(
+      uReflection,
+      vec2(reflectionUv.x + (tilt.x + tilt.z) * 0.018, reflectionUv.y + tilt.y * 0.018),
+    ).xyz;
+    const grazingReflection = pow(1 - max(dot(normal, view), 0), 2);
+    const mirrored = reflected.scale(uReflectionStrength * (0.34 + grazingReflection * 0.66) * (1.2 - kitRoughness));
+    const confirmed = mix(floodlit.add(mirrored), vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the
     // ship shader's original range. The tighter floor ranges faded the ground while ships at the
     // same distance were still crisp, which is what made near and far disagree about depth.

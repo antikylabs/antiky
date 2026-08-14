@@ -95,6 +95,33 @@ const COMBAT_BLOOM = Object.freeze({ threshold: 1, radius: 5, strength: 1 });
  */
 const LINEAR_CLEAR = Object.freeze([0.003419, 0.005158, 0.008368, 1] as const);
 
+/**
+ * The deck's mirror plane, and how much of the mirrored image the deck shows.
+ *
+ * -0.145 is where the contact shadows already sit (`combat-projection.ts`), which is the measured
+ * "things touch the floor here" height — the right plane for a reflection for exactly the reason
+ * it was the right plane for the shadows.
+ */
+const DECK_MIRROR_Y = -0.145;
+const DECK_REFLECTION_STRENGTH = 0.5;
+
+/**
+ * `out = viewProjection x mirror`, where the mirror flips world space through `y = DECK_MIRROR_Y`.
+ *
+ * Column-major, like every matrix BroMetal hands out: the mirror is identity with `m[5] = -1` and
+ * `m[13] = 2k`, so the product only touches column 1 and column 3 — column 1 negates, column 3
+ * gains `2k` times column 1. Written out by hand because this runs every frame and a general 4x4
+ * multiply would spend sixty-four multiplies computing mostly copies.
+ */
+function mirrorThroughDeck(out: Float32Array, viewProjection: Float32Array): void {
+  out.set(viewProjection);
+  const lift = 2 * DECK_MIRROR_Y;
+  for (let row = 0; row < 4; row += 1) {
+    out[4 + row] = -viewProjection[4 + row]!;
+    out[12 + row] = viewProjection[12 + row]! + lift * viewProjection[4 + row]!;
+  }
+}
+
 export function deriveCombatRendererMeasurements(): CombatRendererMeasurements {
   const arenaInstances = Object.values(ARENA_CATALOG_CAPACITY)
     .reduce((total, capacity) => total + capacity, 0);
@@ -109,8 +136,11 @@ export function deriveCombatRendererMeasurements(): CombatRendererMeasurements {
     .reduce((total, name) => total + COMBAT_PROJECTION_CAPACITY[name] * COMBAT_PROJECTION_INSTANCE_FLOATS[name], 0);
   return Object.freeze({
     instances,
+    // The final term is the planar reflection: the five ship batches and the energy glow drawn a
+    // second time through the deck mirror.
     drawCalls: Object.keys(ARENA_CATALOG_CAPACITY).length + SHIP_CATALOG_ASSET_COUNT
-      + Object.keys(COMBAT_PROJECTION_CAPACITY).length + SPACE_BACKDROP_DRAWS,
+      + Object.keys(COMBAT_PROJECTION_CAPACITY).length + SPACE_BACKDROP_DRAWS
+      + SHIP_CATALOG_ASSET_COUNT + 1,
     uploadBytesPerFrame: (dynamicInstances * floatsPerInstance + projectionFloats + SHIP_INSTANCE_CAPACITY * 3)
       * Float32Array.BYTES_PER_ELEMENT,
     catalogAssets: CATALOG_ASSET_COUNT + SHIP_CATALOG_ASSET_COUNT,
@@ -141,6 +171,8 @@ export type CombatRendererDependencies = Readonly<{
   /** The bloom chain's targets and programs, injected for the same reason as everything else here. */
   createBloomTarget(renderer: Renderer, width: number, height: number): RenderTarget;
   createBloomProgram(renderer: Renderer, pass: 'extract' | 'blur'): BroMetalProgram;
+  /** The planar-reflection target the deck samples: half resolution, rebuilt on canvas resize. */
+  createReflectionTarget(renderer: Renderer, width: number, height: number): RenderTarget;
 }>;
 
 const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
@@ -172,6 +204,16 @@ const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
     : createProgram(renderer, bloomBlurShader)),
   loadVfxBillboard,
   createBackdrop: createSpaceBackdrop,
+  createReflectionTarget: (renderer, width, height) => createRenderTarget(renderer, {
+    width,
+    height,
+    // Mirrored ships overlap themselves; without a depth test the reflection shows whichever
+    // triangle drew last.
+    depth: true,
+    // The deck perturbs its lookup by the plating grain, so neighbouring fragments read between
+    // texels — goal 02's render-target-filtering patch again.
+    filter: 'linear',
+  }),
 });
 
 export async function createCombatRendererWith(
@@ -215,6 +257,25 @@ export async function createCombatRendererWith(
       }
       return sceneTarget;
     };
+    // Half resolution: a reflection broken by plating grain carries no detail worth full price,
+    // and Rocket League's own floor reflections are famously quarter-res.
+    let reflectionTarget: RenderTarget | undefined;
+    const ensureReflectionTarget = (): RenderTarget => {
+      const width = Math.max(1, Math.floor(renderer.canvas.width / 2));
+      const height = Math.max(1, Math.floor(renderer.canvas.height / 2));
+      if (!reflectionTarget || reflectionTarget.width !== width || reflectionTarget.height !== height) {
+        reflectionTarget?.dispose();
+        reflectionTarget = dependencies.createReflectionTarget(renderer, width, height);
+      }
+      return reflectionTarget;
+    };
+    // What `render` measured this frame, for `draw` to mirror. The mirror pass cannot recompute
+    // these — the camera projector consumes pointer state — so they are captured at projection
+    // time and read at draw time, inside the same tick.
+    const mirroredViewProjection = new Float32Array(16);
+    const mirroredCameraPosition = new Float32Array(3);
+    let frameViewProjection: Float32Array = mirroredViewProjection;
+    let frameTime = 0;
     // `blend: 'alpha'` on a pass that blends nothing, because in BroMetal that is the only way to
     // ask for "do not write depth": the pipeline sets `depthWriteEnabled: blend === 'none'`. The
     // post quad sits at clip z = 0 and covers the canvas, so with depth writing on it stamps 0 into
@@ -299,6 +360,27 @@ export async function createCombatRendererWith(
       // Before the scene, because the scene reads what this writes. `drawTo` finishes and submits
       // its own encoder, so the two passes are ordered by the queue rather than by hope.
       shadows.render(drawCasters);
+      // The deck's mirror: ships and their glow, seen through the floor plane. The same programs
+      // draw both passes — BroMetal's uniform ring gives every draw its own snapshot, so setting
+      // the mirrored matrices, drawing, and setting the real ones back is safe within one frame.
+      // The mirrored camera position keeps the view-dependent terms (specular, rim) correct in the
+      // mirror, which is what makes it read as a reflection rather than as a second lit ship.
+      const reflection = ensureReflectionTarget();
+      mirrorThroughDeck(mirroredViewProjection, frameViewProjection);
+      mirroredCameraPosition[0] = cameraPosition[0]!;
+      mirroredCameraPosition[1] = 2 * DECK_MIRROR_Y - cameraPosition[1]!;
+      mirroredCameraPosition[2] = cameraPosition[2]!;
+      ships.frame(mirroredViewProjection, mirroredCameraPosition, frameTime);
+      projection.frame(mirroredViewProjection, mirroredCameraPosition, frameTime);
+      renderer.drawTo(reflection, () => {
+        ships.draw();
+        projection.drawEnergy();
+      }, { clear: [0, 0, 0, 0] });
+      ships.frame(frameViewProjection, cameraPosition, frameTime);
+      projection.frame(frameViewProjection, cameraPosition, frameTime);
+      const floorUniforms = catalog.floorTiles.program.uniforms as unknown as Record<string, { set(value: unknown): void }>;
+      floorUniforms.uReflection!.set(reflection.texture);
+      floorUniforms.uReflectionStrength!.set(DECK_REFLECTION_STRENGTH);
       const scene = ensureSceneTarget();
       renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
       // Extract, blur across, blur down. Three quarter-resolution passes over an already-drawn
@@ -332,6 +414,8 @@ export async function createCombatRendererWith(
       camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
       camera.lookAt(...cameraFrame.target);
       const viewProjection = camera.viewProjection(renderer.aspect);
+      frameViewProjection = viewProjection;
+      frameTime = state.time;
       catalog.frame(viewProjection, cameraPosition, state.time);
       ships.frame(viewProjection, cameraPosition, state.time);
       projection.frame(viewProjection, cameraPosition, state.time);
@@ -350,6 +434,7 @@ export async function createCombatRendererWith(
           // Not registered with the scope: it is rebuilt on canvas resize, so the scope would hold
           // whichever one happened to exist at construction.
           sceneTarget?.dispose();
+          reflectionTarget?.dispose();
           bloomTargets?.[0].dispose();
           bloomTargets?.[1].dispose();
           disposeResources(disposables);
