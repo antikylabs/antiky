@@ -1,5 +1,5 @@
+import { hashUnit } from '@antiky/framework';
 import {
-  seeded,
   type CombatParticle,
   type CombatProjectile,
   type ProjectileKind,
@@ -61,15 +61,15 @@ export function createParticlePool(particles: CombatParticle[]): ParticlePool {
       for (let burstIndex = 0; burstIndex < count; burstIndex += 1) {
         const particle = particles[cursor]!;
         cursor = (cursor + 1) % particles.length;
-        const angle = seeded(revision + burstIndex, color + 4) * Math.PI * 2;
-        const speed = force * (0.4 + seeded(revision + burstIndex, color + 7));
+        const angle = hashUnit(revision + burstIndex, color + 4) * Math.PI * 2;
+        const speed = force * (0.4 + hashUnit(revision + burstIndex, color + 7));
         particle.x = x;
-        particle.y = 0.24 + seeded(revision + burstIndex, color + 9) * 0.42;
+        particle.y = 0.24 + hashUnit(revision + burstIndex, color + 9) * 0.42;
         particle.z = z;
         particle.vx = Math.cos(angle) * speed;
-        particle.vy = 0.9 + seeded(revision + burstIndex, color + 11) * force;
+        particle.vy = 0.9 + hashUnit(revision + burstIndex, color + 11) * force;
         particle.vz = Math.sin(angle) * speed;
-        particle.life = 0.3 + seeded(revision + burstIndex, color + 13) * 0.48;
+        particle.life = 0.3 + hashUnit(revision + burstIndex, color + 13) * 0.48;
         // Recorded so the projection can build a curve on age rather than on remaining time. It
         // cannot derive this: lifetimes vary 0.3 to 0.78 seconds per particle by design, and a
         // curve keyed on `life` alone cannot tell a fresh short-lived spark from a dying long one.

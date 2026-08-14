@@ -1,3 +1,4 @@
+import { hashUnit } from '@antiky/framework';
 export const ENEMY_COUNT = 6;
 export const PROJECTILE_CAPACITY = 36;
 export const PARTICLE_CAPACITY = 144;
@@ -175,11 +176,6 @@ export const ROUND_DEFINITIONS: readonly (readonly RoundEnemy[])[] = Object.free
   ]),
 ]);
 
-export function seeded(index: number, salt: number): number {
-  const value = Math.sin(index * 91.71 + salt * 37.13) * 43758.5453;
-  return value - Math.floor(value);
-}
-
 export function clampToArena(point: { x: number; z: number }, radius = ARENA_RADIUS): void {
   const distance = Math.hypot(point.x, point.z);
   if (distance <= radius) return;
@@ -259,7 +255,7 @@ export function createCombatStatePools(): Readonly<{
     cooldown: 0,
     role: 'rusher',
     kind: 0,
-    phase: seeded(index, 2) * Math.PI * 2,
+    phase: hashUnit(index, 2) * Math.PI * 2,
     pattern: 0,
     lastDash: -1,
     revision: 1,
