@@ -258,10 +258,10 @@ export default shader({
     // hue, which is what the acceptance criterion measures.
     const transmission = max(0 - dot(normal, light), 0) * cardWeight;
     const backScatter = pow(max(0 - dot(view, light), 0), 5) * cardWeight;
-    const transmitted = uSunColor.scale(uSunIntensity * (transmission * 0.45 + backScatter * 0.85) * shadow);
+    const transmitted = uSunColor.scale(uSunIntensity * (transmission * 0.4 + backScatter * 0.5) * shadow);
     // Rim on the canopy: the band just inside a backlit silhouette catches the sun the criterion's
     // 1.6x bar asks for. Gated by the same back-scatter so an unlit crown stays matte.
-    const canopyRim = pow(1 - max(dot(normal, view), 0), 3) * cardWeight * (0.25 + backScatter * 1.4);
+    const canopyRim = pow(1 - max(dot(normal, view), 0), 3) * cardWeight * (0.18 + backScatter * 0.9);
 
     const halfVector = normalize(light.add(view));
     const specular = pow(max(dot(normal, halfVector), 0), mix(18, 8, clamp(vKind, 0, 1)));

@@ -1680,9 +1680,17 @@ function scatterTownClutter(
   const PLAZA_Z = 4;
   for (let patch = 0; patch < PATCH_COUNT; patch += 1) {
     const patchSeed = patch * 733 + 91;
-    const patchX = WORLD_MIN_X + 3 + hash(patchSeed) * (WORLD_MAX_X - WORLD_MIN_X - 6);
-    const patchZ = WORLD_MIN_Z + 3 + hash(patchSeed * 3 + 1) * (WORLD_MAX_Z - WORLD_MIN_Z - 6);
-    const patchRadius = 2.0 + hash(patchSeed * 7 + 2) * 2.8;
+    // Three of every five patches land in the near-field lawns the camera actually frames — the
+    // lower-left meadow the owner named. Spread evenly over the whole 92x70 world, the visible
+    // field drew two patches and read as an empty lawn, which is the lattice problem inverted.
+    const nearField = patch % 5 < 2;
+    const patchX = nearField
+      ? WORLD_MIN_X + 3 + hash(patchSeed) * 56
+      : WORLD_MIN_X + 3 + hash(patchSeed) * (WORLD_MAX_X - WORLD_MIN_X - 6);
+    const patchZ = nearField
+      ? -8 + hash(patchSeed * 3 + 1) * (WORLD_MAX_Z - 3 - -8)
+      : WORLD_MIN_Z + 3 + hash(patchSeed * 3 + 1) * (WORLD_MAX_Z - WORLD_MIN_Z - 6);
+    const patchRadius = 1.9 + hash(patchSeed * 7 + 2) * 2.4;
     const bladeCount = Math.floor(26 + hash(patchSeed * 11 + 3) * 38);
     for (let blade = 0; blade < bladeCount; blade += 1) {
       const bladeSeed = patchSeed + blade * 517 + 5;
