@@ -190,6 +190,10 @@ const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
     // The canvas is 4x multisampled and a render target is not by default. Leaving this off
     // silently removes anti-aliasing from everything the demo draws.
     samples: 4,
+    // The bloom extract downsamples this 4x and the distortion pass reads it at warped positions;
+    // on a point sampler both snap to texel centres — the extract is what turned thin emissives
+    // into the boxy glow goal 08's trim made obvious. Goal 02's render-target-filtering patch.
+    filter: 'linear',
   }),
   createPostProgram: (renderer) => createProgram(renderer, postShader, { blend: 'alpha' }),
   createShadowPass,
@@ -419,12 +423,16 @@ export async function createCombatRendererWith(
       const [bloomA, bloomB] = ensureBloomTargets();
       bloomExtract.uniforms.uScene!.set(scene.texture);
       bloomExtract.uniforms.uThreshold!.set(COMBAT_BLOOM.threshold);
+      bloomExtract.uniforms.uTexel!.set([1 / bloomA.width, 1 / bloomA.height]);
       renderer.drawTo(bloomA, () => bloomExtract.draw());
       bloomBlur.uniforms.uSource!.set(bloomA.texture);
-      bloomBlur.uniforms.uDirection!.set([COMBAT_BLOOM.radius / bloomA.width, 0]);
+      // radius / 3, because the blur's outermost tap sits at three steps: a step of the full
+      // radius put the seven taps a whole radius apart, and any bright single texel printed as a
+      // lattice of seven boxes per axis. Now the far tap lands at the radius, as intended.
+      bloomBlur.uniforms.uDirection!.set([COMBAT_BLOOM.radius / 3 / bloomA.width, 0]);
       renderer.drawTo(bloomB, () => bloomBlur.draw());
       bloomBlur.uniforms.uSource!.set(bloomB.texture);
-      bloomBlur.uniforms.uDirection!.set([0, COMBAT_BLOOM.radius / bloomA.height]);
+      bloomBlur.uniforms.uDirection!.set([0, COMBAT_BLOOM.radius / 3 / bloomA.height]);
       renderer.drawTo(bloomA, () => bloomBlur.draw());
 
       postProgram.uniforms.uScene!.set(scene.texture);
