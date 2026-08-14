@@ -133,6 +133,14 @@ export default shader({
      * an idle frame needs somewhere for them to live.
      */
     uTrimStrength: 'float',
+    /**
+     * How far this batch's albedo is pulled toward its own grey, per batch. §6.2's palette
+     * strategy in one knob: the kit's blue-painted panels are the structure of the whole arena,
+     * and left at full chroma they put two-thirds of the frame's chromatic pixels into a single
+     * blue cluster — the hue budget's "everything is one colour" failure. A tint multiply cannot
+     * desaturate a texture, so the pull happens here. The props keep their paint.
+     */
+    uDesaturate: 'float',
     uTime: 'float',
   },
   varyings: {
@@ -168,7 +176,7 @@ export default shader({
     uShadowMap,
     uLightViewProj,
     uLightPosition,
-    uShadowRange, uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uReflection, uReflectionStrength, uTrimStrength, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
+    uShadowRange, uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uReflection, uReflectionStrength, uTrimStrength, uDesaturate, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
     { vWorld, vNormal, vUv, vTint, vParams, vClip },
   ) {
     const baseNormal = normalize(vNormal);
@@ -281,7 +289,9 @@ export default shader({
         .scale(1 / weightSum),
     ).scale(28.03);
     const surface = mix(vec3(1, 1, 1), mix(vec3(1, 1, 1), plating, 0.34), uMaterialStrength);
-    const sampled = decodeSrgb(texture(uTex, vUv).xyz).mul(vTint).mul(surface);
+    const painted = decodeSrgb(texture(uTex, vUv).xyz);
+    const paintGrey = dot(painted, vec3(0.2126, 0.7152, 0.0722));
+    const sampled = mix(painted, vec3(paintGrey, paintGrey, paintGrey), uDesaturate).mul(vTint).mul(surface);
     // Earthshine. In orbit the planet fills a large part of the sky and bounces a lot of blue light
     // onto everything facing it — that fill is the difference between "in space" and "in orbit", and
     // it is why the arena was reading as a deck in a void.

@@ -71,7 +71,7 @@ export const COMBAT_RENDERER_OPTIONS = Object.freeze({
  * toward the p95 target, while the sky's own floor was lowered in the same commit so the darks stay
  * under the p05 ceiling. The reference keeps exposure here rather than as a per-material uniform.
  */
-const COMBAT_EXPOSURE = 1.12;
+const COMBAT_EXPOSURE = 1.06;
 
 /**
  * Bloom, in pre-exposure linear units.
