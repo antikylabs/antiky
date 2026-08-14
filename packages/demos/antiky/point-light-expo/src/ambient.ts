@@ -30,11 +30,20 @@ export function normalisedSkyIrradiance(
   const band0 = luminance(coefficients[0]!);
   if (band0 <= 0) throw new Error('The baked sky has no light in it, which means the bake is wrong.');
   const scale = luminance(reference) / band0;
-  return Object.freeze(coefficients.map((channelValues) => Object.freeze([
-    channelValues[0] * scale,
-    channelValues[1] * scale,
-    channelValues[2] * scale,
-  ] as const)));
+  // Goal 08 desaturates the bake toward its own luminance per coefficient. Dikhololo Night's sky
+  // carries a strong sodium-lamp warmth, and left intact it painted every surface in the scene
+  // gold — the frame measured half its chromatic pixels in one 30-55° band whatever the albedos
+  // did, because the tint rode in through the ambient. §6.1 wants the fill "very low" and neutral,
+  // with every saturated colour belonging to a light; the direction survives, the sodium does not.
+  const keepChroma = 0.35;
+  return Object.freeze(coefficients.map((channelValues) => {
+    const grey = luminance(channelValues as unknown as readonly [number, number, number]);
+    return Object.freeze([
+      (grey + (channelValues[0] - grey) * keepChroma) * scale,
+      (grey + (channelValues[1] - grey) * keepChroma) * scale,
+      (grey + (channelValues[2] - grey) * keepChroma) * scale,
+    ] as const);
+  }));
 }
 
 

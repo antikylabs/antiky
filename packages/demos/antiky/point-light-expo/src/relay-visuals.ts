@@ -298,7 +298,7 @@ function populateRings(
       light.transform.position[0], -0.26, light.transform.position[2],
       field.charge,
       relayColor[0], relayColor[1], relayColor[2],
-      state.deposits[index] ? 0.35 : 1.5,
+      state.deposits[index] ? 0.35 : 1.6,
     );
   }
   for (let index = 0; index < RELAY_PRESENTATION.forgeRingScales.length; index += 1) {
