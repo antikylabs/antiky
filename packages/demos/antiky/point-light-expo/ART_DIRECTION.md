@@ -30,7 +30,7 @@ A true night scene:
 
 | p05 | p50 | p95 | spread | clipped |
 | --- | --- | --- | --- | --- |
-| ≤ 0.05 → **0.018** | 0.18–0.32 → **0.282** | ≥ 0.80 → **0.803** | ≥ 0.72 → **0.785** | ≤ 2% → **~0%** |
+| ≤ 0.05 → **0.014** | 0.18–0.32 → **0.278** | ≥ 0.80 → **0.822** | ≥ 0.72 → **0.808** | ≤ 2% → **~0%** |
 
 The ambients dropped to night levels (surface 0.96 → 0.5, floor 1.08 → 0.55, catalog 1.14 → 0.62)
 so the darks are real; the highlights are the practicals' clipped cores, the ring glyphs, and the

@@ -9,7 +9,7 @@ ranked items plus one sub-feature are deferred with the measurement or the instr
 justified it.
 
 **Commits:** `d918fb1..` (≈60 commits; the per-demo blocks are listed under *What landed*).
-`npm test` is green — 17 suites, 0 failures. `npm run demos:verify`: 55 pass, 5 fail, every
+`npm test` is green — 17 suites, 0 failures. `npm run demos:verify`: 54 pass, 6 fail, every
 failure named below.
 
 ## Action needed from the owner
@@ -118,6 +118,16 @@ floors 0.26–0.3) is in place. Fountain spray **deferred** with its reasoning i
   read as glare — goal 99 M7's number-up-frame-worse, caught by looking.
 - The §7.1 hue criterion caught *my own* grades twice (amber wash, cyan pool concentration)
   before it caught the original defect.
+- **The quarter-res bloom chain had two latent sampling defects in all three demos that copied
+  it, found when the owner asked why every light wore a boxy blur.** The extract took one nearest
+  tap per quarter-res texel from a scene target nobody had given `filter: 'linear'` — 15 of every
+  16 pixels never sampled — and the blur's `uDirection` stepped a whole radius per tap, so its
+  seven taps sat a radius apart and printed any bright single texel as a lattice of boxes. Goal
+  08's five-times-over-white trim and fixtures made a defect the softer old sources had hidden
+  impossible to miss. Fixed in all three chains (linear scene target, a real 4-tap downsample,
+  step = radius/3), re-sealed, and the §7.1 rows re-balanced where the bogus smear had been
+  carrying highlight area (arena bloom strength 1.45; the expo's ring bands widened to carry the
+  population honestly). *Fixed.*
 - Probe archaeology cost more than any code: shadow probes read wall and sky after the camera
   moved; the AC-L5 probe read the ship's shadow until a control isolated the reflection; the DOF
   "far ridge" box measured content contrast until transition-width replaced sd; the guard boxes
