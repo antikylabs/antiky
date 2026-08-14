@@ -128,11 +128,11 @@ test('renderer reporting is derived from its capacities and catalog asset set', 
   assert.ok(measurements.environmentLayers >= 4);
   // 25: sixteen, plus one draw each for the two wall-panel batches, minus the deleted cable
   // batch, plus the planar reflection redrawing the five ship batches and the energy glow through
-  // the deck mirror, plus goal 08's ribbon trails and distortion ripples. Derived from the
+  // the deck mirror with the trim-lit wall batches, plus goal 08's ribbon trails and distortion ripples. Derived from the
   // capacity records rather than typed, so this is the one place that has to move when the scene
   // gains a pass — and it should move deliberately, which is why it is a literal and not a
   // computation.
-  assert.equal(measurements.drawCalls, 25);
+  assert.equal(measurements.drawCalls, 27);
   assert.equal(measurements.uploadBytesPerFrame, 17_964);
   // Raised from 384 on the owner's instruction (wall panels), then from 400 by goal 08's required
   // items 16 and 17: 72 ribbon segments and 7 distortion ripples, less the 28 deleted cables and

@@ -141,7 +141,7 @@ export function deriveCombatRendererMeasurements(): CombatRendererMeasurements {
     // second time through the deck mirror.
     drawCalls: Object.keys(ARENA_CATALOG_CAPACITY).length + SHIP_CATALOG_ASSET_COUNT
       + Object.keys(COMBAT_PROJECTION_CAPACITY).length + SPACE_BACKDROP_DRAWS
-      + SHIP_CATALOG_ASSET_COUNT + 1,
+      + SHIP_CATALOG_ASSET_COUNT + 3,
     uploadBytesPerFrame: (dynamicInstances * floatsPerInstance + projectionFloats + SHIP_INSTANCE_CAPACITY * 3)
       * Float32Array.BYTES_PER_ELEMENT,
     catalogAssets: CATALOG_ASSET_COUNT + SHIP_CATALOG_ASSET_COUNT,
@@ -392,12 +392,19 @@ export async function createCombatRendererWith(
       mirroredCameraPosition[2] = cameraPosition[2]!;
       ships.frame(mirroredViewProjection, mirroredCameraPosition, frameTime);
       projection.frame(mirroredViewProjection, mirroredCameraPosition, frameTime);
+      catalog.frame(mirroredViewProjection, mirroredCameraPosition, frameTime);
       renderer.drawTo(reflection, () => {
+        // The rim structure is here for its emissive trim: the ships' undersides are dark — a
+        // physically honest mirror shows a belly, not a beauty pass — and the rail is the bright
+        // thing this arena owns. Its smear down the deck is the Rocket League tell AC-L5 measures.
+        catalog.walls.program.draw();
+        catalog.wallDetails.program.draw();
         ships.draw();
         projection.drawEnergy();
       }, { clear: [0, 0, 0, 0] });
       ships.frame(frameViewProjection, cameraPosition, frameTime);
       projection.frame(frameViewProjection, cameraPosition, frameTime);
+      catalog.frame(frameViewProjection, cameraPosition, frameTime);
       const floorUniforms = catalog.floorTiles.program.uniforms as unknown as Record<string, { set(value: unknown): void }>;
       floorUniforms.uReflection!.set(reflection.texture);
       floorUniforms.uReflectionStrength!.set(DECK_REFLECTION_STRENGTH);
