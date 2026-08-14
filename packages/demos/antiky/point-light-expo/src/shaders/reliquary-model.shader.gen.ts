@@ -183,7 +183,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let occlusion = mix(0.58 + materialMap.x * 0.42, 1.0, bm_u.uMaterialLayout);
   let painted = clamp(decodeSrgb(textureSample(uDiffuse, uDiffuse_sampler, bm_in.vUv).xyz), vec3f(0.0), vec3f(1.0));
   let paintedGrey = dot(painted, vec3f(0.2126, 0.7152, 0.0722));
-  let base = mix(painted, vec3f(paintedGrey, paintedGrey, paintedGrey), 0.5) * bm_in.vTint;
+  let base = mix(painted, vec3f(paintedGrey, paintedGrey, paintedGrey), 0.68) * bm_in.vTint;
   let relay = (pointRadiance(bm_in.vWorld, normal, view, bm_u.uEmberPosition, bm_u.uEmberColor, bm_u.uEmberPower, bm_u.uEmberRadius, roughness, base) + pointRadiance(bm_in.vWorld, normal, view, bm_u.uIonPosition, bm_u.uIonColor, bm_u.uIonPower, bm_u.uIonRadius, roughness, base) + pointRadiance(bm_in.vWorld, normal, view, bm_u.uVioletPosition, bm_u.uVioletColor, bm_u.uVioletPower, bm_u.uVioletRadius, roughness, base)) * bm_u.uRelayLightStrength;
   let shIrradiance = bm_u.uSh0 + bm_u.uSh1 * normal.y + bm_u.uSh2 * normal.z + bm_u.uSh3 * normal.x + bm_u.uSh4 * (normal.x * normal.y) + bm_u.uSh5 * (normal.y * normal.z) + bm_u.uSh6 * (3.0 * normal.z * normal.z - 1.0) + bm_u.uSh7 * (normal.x * normal.z) + bm_u.uSh8 * (normal.x * normal.x - normal.y * normal.y);
   let ambient = shIrradiance * bm_u.uAmbientStrength;

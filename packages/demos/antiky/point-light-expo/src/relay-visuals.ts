@@ -291,14 +291,14 @@ function populateRings(
       light.transform.position[0], -0.28, light.transform.position[2],
       field.safe,
       relayColor[0], relayColor[1], relayColor[2],
-      0.55,
+      0.7,
     );
     rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.relayCharge, index),
       light.transform.position[0], -0.26, light.transform.position[2],
       field.charge,
       relayColor[0], relayColor[1], relayColor[2],
-      state.deposits[index] ? 0.35 : 1.1,
+      state.deposits[index] ? 0.35 : 1.35,
     );
   }
   for (let index = 0; index < RELAY_PRESENTATION.forgeRingScales.length; index += 1) {

@@ -36,7 +36,7 @@ export const RELAY_PRESENTATION = Object.freeze({
     color: color(0.3, 0.36, 0.3),
     strength: 0.55,
   }),
-  floorDiffuseTint: color(0.5, 0.62, 0.6),
+  floorDiffuseTint: color(0.55, 0.6, 0.59),
   catalogMaterial: Object.freeze({
     ambientStrength: 0.62,
   }),

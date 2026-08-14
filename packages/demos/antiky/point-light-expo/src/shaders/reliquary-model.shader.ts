@@ -341,7 +341,7 @@ export default shader({
     // practicals repaint their pools over them.
     const painted = clamp(decodeSrgb(texture(uDiffuse, vUv).xyz), 0, 1);
     const paintedGrey = dot(painted, vec3(0.2126, 0.7152, 0.0722));
-    const base = mix(painted, vec3(paintedGrey, paintedGrey, paintedGrey), 0.5).mul(vTint);
+    const base = mix(painted, vec3(paintedGrey, paintedGrey, paintedGrey), 0.68).mul(vTint);
     const relay = pointRadiance(
       vWorld, normal, view, uEmberPosition, uEmberColor, uEmberPower, uEmberRadius, roughness, base,
     ).add(pointRadiance(
