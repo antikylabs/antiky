@@ -330,7 +330,9 @@ export async function createRelayRenderer(
       // The resolve now happens in linear light, before the tone-map, rather than in display space
       // after it. That is the order an HDR target exists to provide, and it is why a few thousand
       // pixels on the highest-contrast edges still differ from the pre-06-02 frame.
-      sceneTarget = createRenderTarget(renderer, { width, height, depth: true, samples: 4 });
+      // `filter: 'linear'` because the bloom extract downsamples this 4x — on a point sampler it
+      // read 1 of every 16 pixels and small bright sources boxed. Goal 02's filtering patch.
+      sceneTarget = createRenderTarget(renderer, { width, height, depth: true, samples: 4, filter: 'linear' });
     }
     return sceneTarget;
   };
@@ -431,10 +433,13 @@ export async function createRelayRenderer(
     const [bloomA, bloomB] = ensureBloomTargets();
     bloomExtract.uniforms.uScene.set(scene.texture);
     bloomExtract.uniforms.uThreshold.set(RELAY_PRESENTATION.bloom.threshold);
+    bloomExtract.uniforms.uTexel.set([1 / bloomA.width, 1 / bloomA.height]);
     renderer.drawTo(bloomA, () => bloomExtract.draw());
     // The step is in uv, so it has to come from the bloom target's size and not the canvas's.
-    const acrossStep = RELAY_PRESENTATION.bloom.radius / bloomA.width;
-    const downStep = RELAY_PRESENTATION.bloom.radius / bloomA.height;
+    // radius / 3: the blur's outermost tap sits at three steps, so a whole-radius step spread the
+    // seven taps a radius apart and printed bright singles as a lattice of boxes.
+    const acrossStep = RELAY_PRESENTATION.bloom.radius / 3 / bloomA.width;
+    const downStep = RELAY_PRESENTATION.bloom.radius / 3 / bloomA.height;
     bloomBlur.uniforms.uSource.set(bloomA.texture);
     bloomBlur.uniforms.uDirection.set([acrossStep, 0]);
     renderer.drawTo(bloomB, () => bloomBlur.draw());

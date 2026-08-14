@@ -556,7 +556,15 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       const height = Math.max(1, renderer.canvas.height);
       if (!sceneTarget || sceneTarget.width !== width || sceneTarget.height !== height) {
         sceneTarget?.dispose();
-        sceneTarget = createRenderTarget(renderer, { width, height, depth: true, samples: 4 });
+        sceneTarget = createRenderTarget(renderer, {
+        width,
+        height,
+        depth: true,
+        samples: 4,
+        // `filter: 'linear'` because the bloom extract downsamples this 4x — on a point sampler it
+        // read 1 of every 16 pixels and small bright sources boxed. Goal 02's filtering patch.
+        filter: 'linear',
+      });
       }
       return sceneTarget;
     };
@@ -645,12 +653,15 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       const [bloomA, bloomB] = ensureBloomTargets();
       bloomExtract.uniforms.uScene!.set(scene.texture);
       bloomExtract.uniforms.uThreshold!.set(TRAVERSAL_BLOOM.threshold);
+      bloomExtract.uniforms.uTexel!.set([1 / bloomA.width, 1 / bloomA.height]);
       renderer.drawTo(bloomA, () => bloomExtract.draw());
       bloomBlur.uniforms.uSource!.set(bloomA.texture);
-      bloomBlur.uniforms.uDirection!.set([TRAVERSAL_BLOOM.radius / bloomA.width, 0]);
+      // radius / 3: the outermost tap sits at three steps; a whole-radius step printed bright
+      // singles as a lattice of boxes.
+      bloomBlur.uniforms.uDirection!.set([TRAVERSAL_BLOOM.radius / 3 / bloomA.width, 0]);
       renderer.drawTo(bloomB, () => bloomBlur.draw());
       bloomBlur.uniforms.uSource!.set(bloomB.texture);
-      bloomBlur.uniforms.uDirection!.set([0, TRAVERSAL_BLOOM.radius / bloomA.height]);
+      bloomBlur.uniforms.uDirection!.set([0, TRAVERSAL_BLOOM.radius / 3 / bloomA.height]);
       renderer.drawTo(bloomA, () => bloomBlur.draw());
 
       postProgram.uniforms.uScene!.set(scene.texture);

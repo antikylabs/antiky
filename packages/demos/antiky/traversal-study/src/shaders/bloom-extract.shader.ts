@@ -1,4 +1,4 @@
-import { max, shader, targetUv, texture, vec4 } from 'brometal';
+import { max, shader, targetUv, texture, vec2, vec4 } from 'brometal';
 /**
  * The part of the frame bright enough to bleed light, pulled out of the HDR target.
  *
@@ -21,6 +21,8 @@ export default shader({
   uniforms: {
     uScene: 'sampler2D',
     uThreshold: 'float',
+    /** One quarter-resolution texel in uv, for the downsample taps below. */
+    uTexel: 'vec2',
   },
   varyings: { vUv: 'vec2' },
 
@@ -29,8 +31,15 @@ export default shader({
     return vec4(aPosition.x, aPosition.y, 0, 1);
   },
 
-  fragment({ uScene, uThreshold }, { vUv }) {
-    const scene = texture(uScene, vUv).xyz;
+  fragment({ uScene, uThreshold, uTexel }, { vUv }) {
+    // A real 4x downsample, not a point pick — one nearest tap read 1 of every 16 scene pixels,
+    // and any small bright source became isolated hot texels the blur walked into boxes.
+    const offset = vec2(uTexel.x * 0.25, uTexel.y * 0.25);
+    const scene = texture(uScene, vec2(vUv.x - offset.x, vUv.y - offset.y)).xyz
+      .add(texture(uScene, vec2(vUv.x + offset.x, vUv.y - offset.y)).xyz)
+      .add(texture(uScene, vec2(vUv.x - offset.x, vUv.y + offset.y)).xyz)
+      .add(texture(uScene, vec2(vUv.x + offset.x, vUv.y + offset.y)).xyz)
+      .scale(0.25);
     const brightest = max(max(scene.x, scene.y), scene.z);
     // Guarded because a black pixel divides by zero here, and a NaN in a bloom chain spreads across
     // the whole frame on the next blur rather than staying where it started.
