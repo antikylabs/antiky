@@ -30,11 +30,17 @@ export const ARENA_LIGHTS: readonly ArenaLight[] = Object.freeze([0, 1, 2, 3, 4,
     color: Object.freeze(warm ? [1, 0.62, 0.24] as const : [0.36, 0.78, 1] as const),
     // Six lights sum. At 2.6 each the deck blew to white — the arena is roughly 16 across and every
     // point on it is inside two or three of these, so the useful figure is roughly a sixth of what a
-    // single light would want. These are accents picking out the rim, not the scene's key.
-    power: warm ? 0.42 : 0.46,
+    // single light would want.
+    //
+    // Goal 08 doubled the warm posts and raised the cool ones: the §7.1 row for this demo asks for
+    // a p95 of 0.88 and the frame measured 0.62 — the brightest large surfaces are the flood-lit
+    // wall faces, so this is the lever that actually moves that number. The warm posts lead the
+    // cool ones on purpose: the frame's chromatic mass was 82% one blue cluster, and amber is the
+    // counterweight that pulls the deck's mids warm without touching the team signals.
+    power: warm ? 0.95 : 0.62,
     // Tight enough that each stays near its own post. A radius spanning the whole deck turns six
     // lights into one flat fill, which is the opposite of what posting lights around a space does.
-    radius: 6.5,
+    radius: 7.0,
   });
 }));
 
