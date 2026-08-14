@@ -1,5 +1,6 @@
 import {
   shader,
+  sqrt,
   abs,
   clamp,
   cos,
@@ -210,8 +211,12 @@ export default shader({
     const depthBias = uShadowBias * (1 + (1 - ndotl) * 1.8);
     let occluded = 0;
     for (let i = 0; i < 4; i += 1) {
-      const x = mod(i, 2) - 0.5;
-      const y = floor(i / 2) - 0.5;
+      // Goal 08 widened the penumbra to match the voxel surface's: four vogel taps over ±2.6
+      // texels instead of the half-texel grid. Bias is untouched, so no acne returns.
+      const angle = i * 2.399963 + 0.7;
+      const ringRadius = sqrt((i + 0.5) / 4) * 2.6;
+      const x = cos(angle) * ringRadius;
+      const y = sin(angle) * ringRadius;
       const stored = texture(uShadowMap, shadowUv.add(uShadowTexel.mul(vec2(x, y))));
       const nearestDepth = stored.x + stored.y / 255;
       occluded = occluded + step(nearestDepth + depthBias, receiverDepth);

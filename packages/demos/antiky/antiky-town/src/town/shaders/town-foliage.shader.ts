@@ -1,5 +1,6 @@
 import {
   shader,
+  sqrt,
   clamp,
   cos,
   discard,
@@ -229,8 +230,12 @@ export default shader({
     const depthBias = uShadowBias + uShadowSlopeBias * slope * slope;
     let occluded = 0;
     for (let i = 0; i < 9; i += 1) {
-      const x = mod(i, 3) - 1;
-      const y = floor(i / 3) - 1;
+      // Goal 08 widened the penumbra: a vogel disk over ±3 texels replaces the ±1 grid, whose
+      // 1-2 px transitions read as paper cut-outs. Bias is untouched, so no acne returns.
+      const angle = i * 2.399963 + 0.7;
+      const ringRadius = sqrt((i + 0.5) / 9) * 3;
+      const x = cos(angle) * ringRadius;
+      const y = sin(angle) * ringRadius;
       const stored = texture(uShadowMap, shadowUv.add(uShadowTexel.mul(vec2(x, y))));
       const nearestDepth = stored.x + stored.y / 255;
       occluded = occluded + step(nearestDepth + depthBias, receiverDepth);

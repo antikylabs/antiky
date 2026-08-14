@@ -1,5 +1,8 @@
 import {
   shader,
+  sin,
+  cos,
+  sqrt,
   abs,
   clamp,
   dot,
@@ -282,9 +285,19 @@ export default shader({
     const slope = 1 - baseNdotL;
     const depthBias = uShadowBias + uShadowSlopeBias * slope * slope;
     let occluded = 0;
+    // Goal 08's penumbra: a vogel disk whose radius grows with the gap between receiver and the
+    // centre tap's blocker — a cheap one-tap estimate of the PCSS blocker search. A shadow cast
+    // from a rooftop spreads wider than one cast at a wall's foot, which is the behaviour the
+    // acceptance criterion measures. Bias is untouched, so no acne returns.
+    const centerStored = texture(uShadowMap, shadowUv);
+    const centerBlocker = centerStored.x + centerStored.y / 255;
+    const blockerGap = clamp(receiverDepth - centerBlocker, 0, 0.08);
+    const penumbraSpread = 1.6 + blockerGap * 45;
     for (let i = 0; i < 9; i += 1) {
-      const x = mod(i, 3) - 1;
-      const y = floor(i / 3) - 1;
+      const angle = i * 2.399963 + 0.7;
+      const ringRadius = sqrt((i + 0.5) / 9) * penumbraSpread;
+      const x = cos(angle) * ringRadius;
+      const y = sin(angle) * ringRadius;
       const stored = texture(uShadowMap, shadowUv.add(uShadowTexel.mul(vec2(x, y))));
       const nearestDepth = stored.x + stored.y / 255;
       occluded = occluded + step(nearestDepth + depthBias, receiverDepth);

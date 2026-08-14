@@ -128,8 +128,10 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let depthBias = bm_u.uShadowBias * (1.0 + (1.0 - ndotl) * 1.8);
   var occluded = 0.0;
   for (var i = 0.0; i < 4.0; i = i + 1.0) {
-    let x = ((i) - (2.0) * floor((i) / (2.0))) - 0.5;
-    let y = floor(i / 2.0) - 0.5;
+    let angle = i * 2.399963 + 0.7;
+    let ringRadius = sqrt((i + 0.5) / 4.0) * 2.6;
+    let x = cos(angle) * ringRadius;
+    let y = sin(angle) * ringRadius;
     let stored = textureSample(uShadowMap, uShadowMap_sampler, shadowUv + bm_u.uShadowTexel * vec2f(x, y));
     let nearestDepth = stored.x + stored.y / 255.0;
     occluded = occluded + step(nearestDepth + depthBias, receiverDepth);

@@ -147,9 +147,15 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let slope = 1.0 - baseNdotL;
   let depthBias = bm_u.uShadowBias + bm_u.uShadowSlopeBias * slope * slope;
   var occluded = 0.0;
+  let centerStored = textureSample(uShadowMap, uShadowMap_sampler, shadowUv);
+  let centerBlocker = centerStored.x + centerStored.y / 255.0;
+  let blockerGap = clamp(receiverDepth - centerBlocker, 0.0, 0.08);
+  let penumbraSpread = 1.6 + blockerGap * 45.0;
   for (var i = 0.0; i < 9.0; i = i + 1.0) {
-    let x = ((i) - (3.0) * floor((i) / (3.0))) - 1.0;
-    let y = floor(i / 3.0) - 1.0;
+    let angle = i * 2.399963 + 0.7;
+    let ringRadius = sqrt((i + 0.5) / 9.0) * penumbraSpread;
+    let x = cos(angle) * ringRadius;
+    let y = sin(angle) * ringRadius;
     let stored = textureSample(uShadowMap, uShadowMap_sampler, shadowUv + bm_u.uShadowTexel * vec2f(x, y));
     let nearestDepth = stored.x + stored.y / 255.0;
     occluded = occluded + step(nearestDepth + depthBias, receiverDepth);
