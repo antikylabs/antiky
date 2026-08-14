@@ -7,9 +7,10 @@ import { ARENA_ROOM_PROFILE } from '../src/arena-composition.ts';
 import { COMBAT_READABILITY_PROFILE } from '../src/combat-projection.ts';
 import {
   ENEMY_HULL_CONTRACTS,
+  PLAYER_HULL_CONTRACT,
   PLAYER_HURT_RADIUS,
-  SHIP_PRESENTATION_SPANS,
 } from '../src/combat-hulls.ts';
+import { SHIP_FOOTPRINTS } from '../src/ship-footprints.gen.ts';
 import { combatEscalationProfile, enemyVisualProfile } from '../src/combat-visuals.ts';
 import { COMBAT_RENDERER_OPTIONS, deriveCombatRendererMeasurements } from '../src/renderer.ts';
 import { createCombatSimulation } from '../src/simulation.ts';
@@ -152,7 +153,7 @@ test('authoritative per-role collisions cover the rendered hull-edge contract', 
   const roles = ['rusher', 'gunner', 'shield-anchor', 'warden'] as const;
   for (const role of roles) {
     const contract = ENEMY_HULL_CONTRACTS[role];
-    const span = SHIP_PRESENTATION_SPANS[role];
+    const span = contract.span;
     const renderedEdge = Math.max(span.width, span.length) * 0.5;
     assert.ok(contract.projectileRadius >= renderedEdge, `${role} projectile radius`);
     assert.ok(contract.bladeRadius > contract.projectileRadius, `${role} blade allowance`);
@@ -164,9 +165,9 @@ test('arena foreground, combatant scale, and mark/HUD hierarchy stay readable', 
   const roomTop = ARENA_ROOM_PROFILE.offsetY
     + ARENA_ROOM_PROFILE.sourceHeight * ARENA_ROOM_PROFILE.verticalScale;
   assert.ok(roomTop <= 2);
-  assert.ok(SHIP_PRESENTATION_SPANS.player.width >= 1.7);
-  assert.ok(SHIP_PRESENTATION_SPANS.rusher.length >= 2.1);
-  assert.ok(SHIP_PRESENTATION_SPANS.warden.width >= SHIP_PRESENTATION_SPANS.rusher.width * 3.3);
+  assert.ok(PLAYER_HULL_CONTRACT.span.width >= 1.7);
+  assert.ok(ENEMY_HULL_CONTRACTS.rusher.span.length >= 2.1);
+  assert.ok(ENEMY_HULL_CONTRACTS.warden.span.width >= ENEMY_HULL_CONTRACTS.rusher.span.width * 3.3);
   assert.ok(COMBAT_READABILITY_PROFILE.markedMinimumAlpha >= 0.7);
   assert.ok(COMBAT_READABILITY_PROFILE.markedScale >= 1.35);
   assert.ok(COMBAT_READABILITY_PROFILE.hudZ > 5);
@@ -206,8 +207,14 @@ test('enemy roles project materially different silhouettes and combat-state emph
   assert.ok(gunner.hardpoints > rusher.hardpoints);
   assert.ok(anchor.width > gunner.width);
   assert.ok(warden.width > anchor.width);
-  assert.ok(warden.width >= SHIP_PRESENTATION_SPANS.warden.width * 0.9);
-  assert.ok(anchor.width >= SHIP_PRESENTATION_SPANS['shield-anchor'].width * 0.9);
+  // Exact, not within 10%. These used to be hand-rounded copies of the generated footprints, and
+  // the tolerance existed only to absorb the rounding. The profile now reads the footprint, so any
+  // gap at all means the transcription has come back.
+  assert.equal(warden.width, SHIP_FOOTPRINTS.ships.warden.span.width);
+  assert.equal(warden.length, SHIP_FOOTPRINTS.ships.warden.span.length);
+  assert.equal(anchor.width, SHIP_FOOTPRINTS.ships.shieldAnchor.span.width);
+  assert.equal(rusher.width, SHIP_FOOTPRINTS.ships.rusher.span.width);
+  assert.equal(gunner.width, SHIP_FOOTPRINTS.ships.gunner.span.width);
   assert.ok(telegraph.emissive > recovery.emissive * 2);
 });
 

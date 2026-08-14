@@ -13,7 +13,6 @@ import { COMBAT_PALETTE, enemyVisualProfile } from './combat-visuals.ts';
 import {
   ENEMY_HULL_CONTRACTS,
   PLAYER_HULL_CONTRACT,
-  SHIP_PRESENTATION_SPANS,
 } from './combat-hulls.ts';
 import type { CombatSnapshot } from './combat-state.ts';
 import type { Vec3 } from './render-batches.ts';

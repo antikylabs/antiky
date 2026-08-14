@@ -76,11 +76,3 @@ export const ENEMY_HULL_CONTRACTS: Readonly<Record<EnemyRole, HullContract>> = O
     0.38,
   ),
 });
-
-export const SHIP_PRESENTATION_SPANS = Object.freeze({
-  player: PLAYER_HULL_CONTRACT.span,
-  rusher: ENEMY_HULL_CONTRACTS.rusher.span,
-  gunner: ENEMY_HULL_CONTRACTS.gunner.span,
-  'shield-anchor': ENEMY_HULL_CONTRACTS['shield-anchor'].span,
-  warden: ENEMY_HULL_CONTRACTS.warden.span,
-});

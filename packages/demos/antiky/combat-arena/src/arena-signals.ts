@@ -1,10 +1,8 @@
 import type { CombatSnapshot } from './combat-state.ts';
+import { COMBAT_PALETTE } from './combat-visuals.ts';
 import type { GlowBatch, SurfaceBatch, Vec3 } from './render-batches.ts';
 
-const CYAN: Vec3 = [0.08, 0.72, 0.92];
-const WHITE: Vec3 = [0.82, 0.9, 1];
-const WARM: Vec3 = [1, 0.24, 0.07];
-const DARK: Vec3 = [0.055, 0.065, 0.075];
+const { cyan: CYAN, white: WHITE, warm: WARM, ink: DARK } = COMBAT_PALETTE;
 type SignalOffsets = Readonly<{ gauge: number; ring: number }>;
 
 function surface(

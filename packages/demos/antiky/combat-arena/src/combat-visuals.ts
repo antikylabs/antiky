@@ -1,3 +1,4 @@
+import { ENEMY_HULL_CONTRACTS } from './combat-hulls.ts';
 import type { CombatEnemy, CombatSnapshot, EnemyRole, EnemyState } from './combat-state.ts';
 import type { Vec3 } from './render-batches.ts';
 
@@ -10,6 +11,8 @@ export const COMBAT_PALETTE = Object.freeze({
   steel: [0.22, 0.25, 0.29] as Vec3,
   steelDark: [0.045, 0.052, 0.062] as Vec3,
   shadow: [0.003, 0.005, 0.009] as Vec3,
+  /** The near-black the onboarding and defeat cues rule their floor bars in. */
+  ink: [0.055, 0.065, 0.075] as Vec3,
 });
 
 export type CombatEscalationProfile = Readonly<{
@@ -78,12 +81,28 @@ type RoleShape = Readonly<{
   hardpoints: number;
 }>;
 
-const ROLE_SHAPES: Readonly<Record<EnemyRole, RoleShape>> = Object.freeze({
-  rusher: Object.freeze({ width: 1.41, length: 2.19, hardpoints: 0 }),
-  gunner: Object.freeze({ width: 1.92, length: 2.01, hardpoints: 2 }),
-  'shield-anchor': Object.freeze({ width: 1.94, length: 2.6, hardpoints: 2 }),
-  warden: Object.freeze({ width: 4.81, length: 4.6, hardpoints: 4 }),
+/**
+ * How many emitters a role mounts. This is authored; the hull's width and length are not — they
+ * are measured off the shipped GLBs by `scripts/intake-quaternius-ships.mjs` and reach us through
+ * `ENEMY_HULL_CONTRACTS[role].span`. They used to be hand-rounded copies here (1.41 against the
+ * generated 1.4094126, and so on), which meant a re-intake moved the hulls but left the hit
+ * flashes and hardpoint emitters behind.
+ */
+const ROLE_HARDPOINTS: Readonly<Record<EnemyRole, number>> = Object.freeze({
+  rusher: 0,
+  gunner: 2,
+  'shield-anchor': 2,
+  warden: 4,
 });
+
+function roleShape(role: EnemyRole): RoleShape {
+  const span = ENEMY_HULL_CONTRACTS[role].span;
+  return Object.freeze({
+    width: span.width,
+    length: span.length,
+    hardpoints: ROLE_HARDPOINTS[role],
+  });
+}
 
 function stateEmissive(state: EnemyState): number {
   if (state === 'telegraph') return 0.82;
@@ -114,7 +133,7 @@ for (const role of ENEMY_ROLES) {
   const states = {} as Record<EnemyState, EnemyVisualProfile>;
   for (const state of ENEMY_STATES) {
     states[state] = Object.freeze({
-      ...ROLE_SHAPES[role],
+      ...roleShape(role),
       emissive: stateEmissive(state),
       tint: ROLE_TINTS[role],
     });
