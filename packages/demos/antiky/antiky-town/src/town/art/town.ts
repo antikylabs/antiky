@@ -1598,22 +1598,6 @@ function occupiedByCollider(colliders: readonly TownCollider[], gx: number, gz: 
   ));
 }
 
-function grassCluster(vegetation: TownVegetation[], gx: number, gz: number, seed: number): void {
-  const groundTop = groundHeightGrid(gx, gz) + 0.5;
-  addVegetation(vegetation, gx, groundTop, gz, 'grass', 0.72 + hash(seed * 13) * 0.58, seed);
-  if (hash(seed * 61) > 0.82) {
-    addVegetation(
-      vegetation,
-      gx,
-      groundTop,
-      gz,
-      'flower',
-      0.48 + hash(seed * 73) * 0.35,
-      seed + 409,
-    );
-  }
-}
-
 function terracottaPot(
   builder: VoxelBuilder,
   vegetation: TownVegetation[],
@@ -1648,14 +1632,74 @@ function scatterTownClutter(
   colliders: readonly TownCollider[],
   vegetation: TownVegetation[],
 ): void {
-  // A 1.24 m deterministic sampling rhythm meets the foreground density gate
-  // while preserving every paved route and all authored collision envelopes.
-  for (let gz = WORLD_MIN_Z + 2; gz <= WORLD_MAX_Z; gz += 2) {
-    for (let gx = WORLD_MIN_X + 2 + (Math.abs(gz) % 4 === 0 ? 1 : 0); gx <= WORLD_MAX_X - 2; gx += 2) {
-      if (isCanal(gx, gz) || pavedGroundAt(gx, gz) || occupiedByCollider(colliders, gx, gz)) continue;
-      const seed = gx * 97 + gz * 193;
-      if (hash(seed) < 0.16) continue;
-      grassCluster(vegetation, gx, gz, seed);
+  // Patch-clustered meadow — goal 08, replacing a 2 m parity lattice with 16% dropout. A uniform
+  // lattice reads as a lattice: the capture showed one tuft stamped in rows, and the eye finds the
+  // rhythm immediately. Patches with radial falloff, continuous jitter, scale and blade variety,
+  // slope awareness, a soft feather at paved edges, and distance falloff are each one rule here,
+  // and each is measured by `town-grass-distribution.test.ts` rather than trusted.
+  //
+  // Everything stays deterministic — same hash, same seeds — so `buildTownWorld` remains a pure
+  // function of nothing, which the validation suite depends on.
+  const PATCH_COUNT = 58;
+  const PLAZA_X = 0;
+  const PLAZA_Z = 4;
+  for (let patch = 0; patch < PATCH_COUNT; patch += 1) {
+    const patchSeed = patch * 733 + 91;
+    const patchX = WORLD_MIN_X + 3 + hash(patchSeed) * (WORLD_MAX_X - WORLD_MIN_X - 6);
+    const patchZ = WORLD_MIN_Z + 3 + hash(patchSeed * 3 + 1) * (WORLD_MAX_Z - WORLD_MIN_Z - 6);
+    const patchRadius = 2.0 + hash(patchSeed * 7 + 2) * 2.8;
+    const bladeCount = Math.floor(22 + hash(patchSeed * 11 + 3) * 34);
+    for (let blade = 0; blade < bladeCount; blade += 1) {
+      const bladeSeed = patchSeed + blade * 517 + 5;
+      const angle = hash(bladeSeed) * Math.PI * 2;
+      // sqrt keeps the disc filled rather than ringed; the falloff gate below thins the rim.
+      const radial = Math.sqrt(hash(bladeSeed * 3 + 1)) * patchRadius;
+      const gx = patchX + Math.cos(angle) * radial;
+      const gz = patchZ + Math.sin(angle) * radial;
+      if (gx < WORLD_MIN_X + 2 || gx > WORLD_MAX_X - 2 || gz < WORLD_MIN_Z + 2 || gz > WORLD_MAX_Z - 1) continue;
+      const cellX = Math.round(gx);
+      const cellZ = Math.round(gz);
+      if (isCanal(cellX, cellZ) || pavedGroundAt(cellX, cellZ) || occupiedByCollider(colliders, gx, gz)) continue;
+      // Patch falloff: the rim keeps fewer blades than the core, so a patch feathers into the
+      // field instead of stopping at its radius.
+      if (hash(bladeSeed * 5 + 2) < (radial / patchRadius) * 0.45) continue;
+      // Slope gate: grass collects in flats and hollows, not on berm faces.
+      const here = groundHeightGrid(cellX, cellZ);
+      const neighbourhood = [
+        groundHeightGrid(cellX + 1, cellZ), groundHeightGrid(cellX - 1, cellZ),
+        groundHeightGrid(cellX, cellZ + 1), groundHeightGrid(cellX, cellZ - 1),
+      ];
+      let steepest = 0;
+      let neighbourSum = 0;
+      for (const height of neighbourhood) {
+        steepest = Math.max(steepest, Math.abs(height - here));
+        neighbourSum += height;
+      }
+      if (steepest > 0.9) continue;
+      // Concave collectors keep everything; open flats thin slightly.
+      const hollow = neighbourSum / 4 - here > 0.2;
+      if (!hollow && hash(bladeSeed * 13 + 4) < 0.12) continue;
+      // Soft exclusion feather: the field thins over two cells approaching pavement or a wall
+      // instead of stopping on the boundary line.
+      const pavedRing1 = pavedGroundAt(cellX + 1, cellZ) || pavedGroundAt(cellX - 1, cellZ)
+        || pavedGroundAt(cellX, cellZ + 1) || pavedGroundAt(cellX, cellZ - 1);
+      const pavedRing2 = pavedGroundAt(cellX + 2, cellZ) || pavedGroundAt(cellX - 2, cellZ)
+        || pavedGroundAt(cellX, cellZ + 2) || pavedGroundAt(cellX, cellZ - 2);
+      const feather = pavedRing1 ? 0.2 : pavedRing2 ? 0.6 : 1;
+      if (hash(bladeSeed * 17 + 5) > feather) continue;
+      // Distance falloff from the plaza the camera lives over.
+      const plazaDistance = Math.hypot(gx - PLAZA_X, gz - PLAZA_Z);
+      if (plazaDistance > 24 && hash(bladeSeed * 19 + 6) < (plazaDistance - 24) / 30) continue;
+      const groundTop = here + 0.5;
+      // A taller blade among the short, so the meadow has a profile rather than one height.
+      const tall = hash(bladeSeed * 23 + 7) > 0.85;
+      const scale = tall
+        ? 1.2 + hash(bladeSeed * 31 + 8) * 0.6
+        : 0.5 + hash(bladeSeed * 31 + 8) * 0.85;
+      addVegetation(vegetation, gx, groundTop, gz, tall ? 'reeds' : 'grass', scale, bladeSeed);
+      if (!tall && hash(bladeSeed * 37 + 9) > 0.86) {
+        addVegetation(vegetation, gx + 0.4, groundTop, gz - 0.3, 'flower', 0.42 + hash(bladeSeed * 41 + 10) * 0.35, bladeSeed + 409);
+      }
     }
   }
 
@@ -1848,6 +1892,21 @@ function distantTerrain(builder: VoxelBuilder, vegetation: TownVegetation[]): vo
     [-45, 10, -46, 7], [-32, 9, -48, 6], [-8, 9, -50, 7],
     [3, 9, -50, 6], [33, 11, -47, 8], [45, 9, -45, 7],
   ] as const) distantTree(vegetation, x, y, z, height);
+}
+
+/**
+ * What kind of ground a grid cell is, for the grass-distribution tests. The placement rules below
+ * consume the same predicates, so the tests measure the exact contract the generator enforces.
+ */
+export function townGroundKindAt(gx: number, gz: number): 'canal' | 'paved' | 'open' {
+  if (isCanal(gx, gz)) return 'canal';
+  if (pavedGroundAt(gx, gz)) return 'paved';
+  return 'open';
+}
+
+/** Ground height for the same tests: slope and collector rules are measured, not trusted. */
+export function townGroundHeightAt(gx: number, gz: number): number {
+  return groundHeightGrid(Math.round(gx), Math.round(gz));
 }
 
 function pavedGroundAt(gx: number, gz: number): boolean {
