@@ -223,7 +223,9 @@ export async function sourceDigest(rawDirectory) {
 /** The committed record of what a demo looked like on a given run. */
 export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, source }) {
   const sidecar = {
-    schemaVersion: 3,
+    // 4 added `encodedLuma` and `hue` for the §7.1 frame-level value targets, which are written
+    // against the delivered bytes rather than linear light.
+    schemaVersion: 4,
     demo: slug,
     capturedAt,
     warmUpFrames,
@@ -248,6 +250,22 @@ export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, sou
       low: Number(stats.clippedLow.toFixed(6)),
     },
     saturation: { mean: Number(stats.meanSaturation.toFixed(6)) },
+    /**
+     * The §7.1 measurements, in the space that table is written in: Rec. 709 luma of the
+     * delivered sRGB bytes, and hue clustering over the chromatic pixels.
+     */
+    encodedLuma: {
+      p05: Number(stats.encodedLumaP05.toFixed(6)),
+      p50: Number(stats.encodedLumaP50.toFixed(6)),
+      p95: Number(stats.encodedLumaP95.toFixed(6)),
+      spread: Number(stats.encodedLumaSpread.toFixed(6)),
+      clipped: Number(stats.encodedLumaClipped.toFixed(6)),
+    },
+    hue: {
+      clusters: stats.hueClusterCount,
+      dominantShare: Number(stats.hueDominantShare.toFixed(6)),
+      chromaticFraction: Number(stats.chromaticFraction.toFixed(6)),
+    },
     /**
      * Anti-aliasing. `hard` is the fraction of pixels on an unsampled edge; it rises when a scene
      * stops being multisampled, which is a change nothing else here notices.

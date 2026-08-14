@@ -138,7 +138,7 @@ test('the metrics sidecar records the numbers the budgets assert against', async
     source: { digest: 'abc123', fileCount: 7 },
   });
 
-  assert.equal(sidecar.schemaVersion, 3);
+  assert.equal(sidecar.schemaVersion, 4);
   // The digest is what stops a budget judging a capture taken from different code.
   assert.deepEqual(sidecar.source, { digest: 'abc123', fileCount: 7 });
   // Sealed, so a hand-edited measurement stops matching.
@@ -160,6 +160,15 @@ test('the metrics sidecar records the numbers the budgets assert against', async
   assert.equal(sidecar.clipping.high, 0.5);
   assert.equal(sidecar.clipping.low, 0.5);
   assert.equal(typeof sidecar.edges.hard, 'number');
+  // The §7.1 measurements: encoded luma over a half-black, half-white frame spans the range, and
+  // an achromatic frame has no hue clusters rather than a spurious one.
+  assert.equal(sidecar.encodedLuma.p05, 0);
+  assert.equal(sidecar.encodedLuma.p95, 1);
+  assert.equal(sidecar.encodedLuma.spread, 1);
+  assert.equal(sidecar.encodedLuma.clipped, 0.5);
+  assert.equal(sidecar.hue.clusters, 0);
+  assert.equal(sidecar.hue.dominantShare, 0);
+  assert.equal(sidecar.hue.chromaticFraction, 0);
   // No probes were requested, so the map is present and empty rather than missing.
   assert.deepEqual(sidecar.probes, {});
   // The sidecar is committed, so it must serialise cleanly and stay diff-friendly.

@@ -408,3 +408,97 @@ test('a gradient is not counted as a hard edge however far it travels', async (t
   const stats = await readFrameStats(file);
   assert.equal(stats.hardEdgeFraction, 0);
 });
+
+test('encoded luma measures the delivered bytes, not linear light', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // Mid grey: 0.502 as delivered, 0.216 in linear light. The §7.1 value targets are written
+  // against the delivered image, so the two scales must not be conflated.
+  const file = await writePng(directory, 'grey.png', {
+    width: 32,
+    height: 32,
+    fill: () => [128, 128, 128],
+  });
+  const stats = await readFrameStats(file);
+  assert.ok(Math.abs(stats.encodedLumaP50 - 128 / 255) < 0.001, `got ${stats.encodedLumaP50}`);
+  assert.ok(Math.abs(stats.meanLuminance - 0.2158) < 0.001, 'the linear measure must not move');
+  assert.equal(stats.encodedLumaSpread, 0);
+});
+
+test('encoded luma clipping counts blown luma, not saturated colour', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // Left tenth pure white, the rest pure red. Saturated red carries maximal bytes in one channel
+  // at mid luma, so a per-channel definition would call the whole frame blown.
+  const file = await writePng(directory, 'red.png', {
+    width: 100,
+    height: 10,
+    fill: (x) => (x < 10 ? [255, 255, 255] : [255, 0, 0]),
+  });
+  const stats = await readFrameStats(file);
+  assert.ok(Math.abs(stats.encodedLumaClipped - 0.1) < 0.001, `got ${stats.encodedLumaClipped}`);
+  assert.ok(Math.abs(stats.encodedLumaP50 - 0.2126) < 0.01, 'red sits at luma 0.2126, unclipped');
+});
+
+test('hue clusters count distinguishable colour populations', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // Three equal patches at 0°, 120° and 240° — the clearest possible three-cluster frame.
+  const three = await writePng(directory, 'three.png', {
+    width: 96,
+    height: 32,
+    fill: (x) => (x < 32 ? [255, 0, 0] : x < 64 ? [0, 255, 0] : [0, 0, 255]),
+  });
+  const threeStats = await readFrameStats(three);
+  assert.equal(threeStats.hueClusterCount, 3);
+  assert.ok(threeStats.hueDominantShare < 0.55, `got ${threeStats.hueDominantShare}`);
+
+  // Two patches 15° apart merge: the separation is inside the 25° window.
+  const merged = await writePng(directory, 'merged.png', {
+    width: 64,
+    height: 32,
+    fill: (x) => (x < 32 ? [255, 0, 0] : [255, 64, 0]),
+  });
+  const mergedStats = await readFrameStats(merged);
+  assert.equal(mergedStats.hueClusterCount, 1);
+
+  // 70/30 between two well-separated hues: two clusters, and the dominant one carries 70%.
+  const dominant = await writePng(directory, 'dominant.png', {
+    width: 100,
+    height: 32,
+    fill: (x) => (x < 70 ? [255, 0, 0] : [0, 255, 0]),
+  });
+  const dominantStats = await readFrameStats(dominant);
+  assert.equal(dominantStats.hueClusterCount, 2);
+  assert.ok(Math.abs(dominantStats.hueDominantShare - 0.7) < 0.02, `got ${dominantStats.hueDominantShare}`);
+});
+
+test('grey and near-black pixels do not vote on hue', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-frame-stats-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  // An achromatic frame has no hue clusters at all rather than a spurious one.
+  const grey = await writePng(directory, 'grey.png', {
+    width: 32,
+    height: 32,
+    fill: () => [120, 120, 120],
+  });
+  const greyStats = await readFrameStats(grey);
+  assert.equal(greyStats.hueClusterCount, 0);
+  assert.equal(greyStats.hueDominantShare, 0);
+  assert.equal(greyStats.chromaticFraction, 0);
+
+  // A hue carried only by near-black pixels is invisible and must not count. Half the frame is
+  // near-black red, half is visible green: one cluster, green.
+  const dark = await writePng(directory, 'dark.png', {
+    width: 64,
+    height: 32,
+    fill: (x) => (x < 32 ? [24, 0, 0] : [0, 200, 0]),
+  });
+  const darkStats = await readFrameStats(dark);
+  assert.equal(darkStats.hueClusterCount, 1);
+  assert.ok(Math.abs(darkStats.chromaticFraction - 0.5) < 0.01, `got ${darkStats.chromaticFraction}`);
+});
