@@ -48,11 +48,25 @@ for (let index = 0; index < anchors.length; index += 1) {
     x,
     // Lowered by goal 08's composition pass: the camera rides 2 units higher now and tilts down,
     // so the cliffs drop with the horizon to keep anchoring the frame's lower third.
-    y: far ? -13.6 : -8.7,
+    y: far ? -12.3 : -7.6,
     z: depth,
     scale: [scaleX, scaleY, far ? 1.2 : 1] as const,
     yaw: index % 2 === 0 ? 0.12 : -0.16,
     phase: index * 0.37,
+  }));
+
+  // Goal 08's composition fill: a second staggered rank of mid cliffs, so the band behind the
+  // course reads as a coastline rather than as empty haze. LittleBigPlanet's frames are full of
+  // stage; sixty percent dead sky was this demo's diagnosed defect.
+  landmarks.push(Object.freeze({
+    asset: 'coastal-cliff',
+    layer: 'middle-cliffs',
+    x: x + 7,
+    y: -8.6,
+    z: -15.2 - index % 2 * 1.1,
+    scale: [1.7, 0.74, 1.05] as const,
+    yaw: index % 2 === 0 ? -0.1 : 0.14,
+    phase: index * 0.53 + 0.21,
   }));
 
   if (index % 2 === 0) {
