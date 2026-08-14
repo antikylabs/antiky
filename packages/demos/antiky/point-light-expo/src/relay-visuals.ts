@@ -252,20 +252,6 @@ function populateFormsAndOrbs(
       identityIndex += 1;
     }
   }
-  for (let index = 0; index < RELAY_RENDER_SLOTS.orbs.ambience.count; index += 1) {
-    const angle = index / RELAY_RENDER_SLOTS.orbs.ambience.count * Math.PI * 2 + 0.12;
-    const radius = 6.55 + (index % 3) * 0.34;
-    const scaleXz = 0.12 + (index % 2) * 0.05;
-    const ambienceColor = index % 4 === 0 ? VERDIGRIS : BONE;
-    setSurface(
-      orbs,
-      renderSlot(RELAY_RENDER_SLOTS.orbs.ambience, index),
-      Math.cos(angle) * radius, 0.2 + (index % 4) * 0.16, Math.sin(angle) * radius * 0.68,
-      scaleXz, 0.18 + (index % 3) * 0.04, scaleXz,
-      ambienceColor,
-      0.72, index % 4 === 0 ? 0.56 : 0.05, 0.005,
-    );
-  }
   orbs.upload();
   // Written above alongside the orbs; without this the contact-shadow program is drawn with empty
   // instance buffers and BroMetal refuses the draw, taking the whole demo down with it.
@@ -361,18 +347,6 @@ function populateRings(
       visible * 2.4,
     );
   }
-  for (let index = 0; index < RELAY_RENDER_SLOTS.rings.ambience.count; index += 1) {
-    const angle = index / RELAY_RENDER_SLOTS.rings.ambience.count * Math.PI * 2 + 0.28;
-    const scale = 0.34 + (index % 3) * 0.16;
-    const ambienceColor = index % 2 === 0 ? VERDIGRIS : OLD_BRASS;
-    rings.setValues(
-      renderSlot(RELAY_RENDER_SLOTS.rings.ambience, index),
-      Math.cos(angle) * 4.7, -0.29, Math.sin(angle) * 3.5,
-      scale,
-      ambienceColor[0], ambienceColor[1], ambienceColor[2],
-      0.05,
-    );
-  }
   rings.upload();
 }
 
@@ -454,20 +428,6 @@ function populateGlows(glows: GlowBatch, state: RelaySnapshot, powers: readonly 
       DANGER,
       shade.mode === 'threaten' ? 1.9 : 0.3,
       shade.phase,
-    );
-  }
-  for (let index = 0; index < RELAY_RENDER_SLOTS.glows.ambience.count; index += 1) {
-    const angle = index * 2.39996;
-    const radius = 2.8 + (index % 5) * 1.15;
-    setGlow(
-      glows,
-      renderSlot(RELAY_RENDER_SLOTS.glows.ambience, index),
-      Math.cos(angle) * radius, 0.35 + (index % 4) * 0.48, Math.sin(angle) * radius * 0.7,
-      0.025 + (index % 3) * 0.008,
-      index % 3 === 0 ? colorForRelay(index % 3) : BONE,
-      0.34,
-      index * 0.73,
-      0.15,
     );
   }
   glows.upload();

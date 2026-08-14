@@ -45,9 +45,6 @@ const RELAY_VISUAL_COUNTS = Object.freeze({
   forgeRing: RELAY_PRESENTATION.forgeRingScales.length,
   terminalRing: RELAY_COUNT,
   relayIdentityMarker: RELAY_IDENTITY_MARKER_COUNT,
-  surfaceAmbience: 6,
-  ringAmbience: 8,
-  glowAmbience: 13,
 });
 
 export const RELAY_RENDER_SLOTS = Object.freeze({
@@ -71,7 +68,6 @@ export const RELAY_RENDER_SLOTS = Object.freeze({
     forgeCore: 1,
     forgeSockets: RELAY_COUNT,
     relayIdentityMarkers: RELAY_IDENTITY_MARKER_COUNT,
-    ambience: RELAY_VISUAL_COUNTS.surfaceAmbience,
   }),
   rings: createSlotRanges({
     relaySafe: RELAY_COUNT,
@@ -81,7 +77,6 @@ export const RELAY_RENDER_SLOTS = Object.freeze({
     player: 1,
     shades: SHADE_COUNT,
     terminal: RELAY_VISUAL_COUNTS.terminalRing,
-    ambience: RELAY_VISUAL_COUNTS.ringAmbience,
   }),
   glows: createSlotRanges({
     particles: RELAY_PARTICLE_CAPACITY,
@@ -90,7 +85,6 @@ export const RELAY_RENDER_SLOTS = Object.freeze({
     charge: RELAY_VISUAL_COUNTS.chargeMote,
     forgeSockets: RELAY_COUNT,
     shades: SHADE_COUNT,
-    ambience: RELAY_VISUAL_COUNTS.glowAmbience,
   }),
   organic: createSlotRanges({
     backArchPillars: 6,
