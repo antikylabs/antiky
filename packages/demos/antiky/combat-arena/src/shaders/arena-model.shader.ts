@@ -359,9 +359,13 @@ export default shader({
     // a venetian blind, not architecture. A fragment whose horizontal normal points away from the
     // arena's axis is an outside face and takes no trim.
     const inwardFacing = step(normal.x * vWorld.x + normal.z * vWorld.z, 0);
-    const capBand = smoothstep(1.9, 2.0, vWorld.y) * step(0.35, normal.y);
-    const trim = vec3(4.6, 5.2, 5.6).scale((railBand + skirtBand * 0.55) * uTrimStrength * inwardFacing)
-      .add(vec3(2.4, 2.7, 2.9).scale(capBand * uTrimStrength));
+    // A narrow lit coping at the wall's top edge — a band, not the whole top plate. The first
+    // attempt gated on "top-facing above 1.9" and every wall-top deck went white-hot: local
+    // contrast rose to 10.9 while the rim read as glare, which is exactly goal 99 M7's warning
+    // that a metric can move the right way while the frame moves the wrong one.
+    const capBand = smoothstep(1.94, 1.99, vWorld.y) * (1 - smoothstep(2.03, 2.09, vWorld.y));
+    const trim = vec3(3.4, 4.0, 4.3).scale((railBand + skirtBand * 0.55) * uTrimStrength * inwardFacing)
+      .add(vec3(1.5, 1.7, 1.85).scale(capBand * uTrimStrength));
     const confirmed = mix(floodlit.add(mirrored).add(trim), vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the
     // ship shader's original range. The tighter floor ranges faded the ground while ships at the
