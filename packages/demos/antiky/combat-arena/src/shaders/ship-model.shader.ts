@@ -243,8 +243,8 @@ export default shader({
     // The key drives it and the sun's shadow gates it, same as the diffuse term. In HDR this is
     // what puts genuine blown highlights on a hull — the Rocket League tell the §6.2 brief names —
     // and what the specular criterion (hull p95 >= 2x median) measures.
-    const specular = specularGGX(normal, key, view, 0.3, vec3(0.06, 0.06, 0.06))
-      .scale(1.15 * sunVisibility);
+    const specular = specularGGX(normal, key, view, 0.26, vec3(0.07, 0.07, 0.07))
+      .scale(1.9 * sunVisibility);
     // Team-coloured rim, always on. Goal 07 found this term computed and then gated behind the
     // emissive parameter, so it appeared only on dashing ships; LoL and Rocket League both rim
     // every combatant, always, because it is what separates a dark hull from a dark deck.

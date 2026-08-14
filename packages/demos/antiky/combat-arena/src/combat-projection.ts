@@ -12,6 +12,7 @@ import {
 
 import { ARENA_STRUCTURE_INSTANCES, setArenaEnergy, setArenaStructure } from './arena-environment.ts';
 import { setCombatSignals } from './arena-signals.ts';
+import { ARENA_LIGHTS } from './arena-lights.ts';
 import { COMBAT_PALETTE, enemyVisualProfile } from './combat-visuals.ts';
 import {
   createContactShadowBatch,
@@ -167,6 +168,21 @@ function pushGlow(
 function setCombatGlows(glows: GlowBatch, state: CombatSnapshot): void {
   glows.clear();
   let index = 0;
+
+  // The six floodlight fixtures themselves. Goal 08: a rig whose light arrives from nowhere reads
+  // as paint — the fixture is the small blown-out core that says "this is a light", and it is what
+  // the bloom pass exists to pick up. The glow shader is additive into the HDR target, so these
+  // exceed 1.0 and bloom the way the §6.2 brief asks the goal glow to.
+  for (let post = 0; post < ARENA_LIGHTS.length; post += 1) {
+    const fixture = ARENA_LIGHTS[post]!;
+    index = pushGlow(
+      glows, index,
+      fixture.position[0] * 0.965, fixture.position[1] + 0.12, fixture.position[2] * 0.965,
+      0.16, 0.16, 0.3,
+      fixture.color,
+      1.35, 0, post * 1.7,
+    );
+  }
 
   for (const projectile of state.projectiles) {
     if (projectile.life <= 0) continue;

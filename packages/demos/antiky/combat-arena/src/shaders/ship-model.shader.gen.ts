@@ -136,7 +136,7 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let planetFacing = dot(normal, earthward) * 0.5 + 0.5;
   let ambient = mix(vec3f(0.18, 0.18, 0.18), vec3f(1.55, 1.55, 1.55), planetFacing);
   let earthshine = vec3f(0.4, 0.5, 0.66) * ambient;
-  let specular = specularGGX(normal, key, view, 0.3, vec3f(0.06, 0.06, 0.06)) * (1.15 * sunVisibility);
+  let specular = specularGGX(normal, key, view, 0.26, vec3f(0.07, 0.07, 0.07)) * (1.9 * sunVisibility);
   let rimLight = bm_in.vTint * (rim * 0.34);
   let lit = authored * earthshine + authored * (keyLight * 1.15 + fillLight * 0.32) + specular + rimLight;
   let energy = bm_in.vTint * (clamp(bm_in.vParams.x, 0.0, 1.2) * pulse * (0.12 + rim * 0.44));

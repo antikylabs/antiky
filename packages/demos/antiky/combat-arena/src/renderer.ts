@@ -66,11 +66,12 @@ export const COMBAT_RENDERER_OPTIONS = Object.freeze({
 /**
  * Exposure, in one place.
  *
- * 1 for now, deliberately: W B.2's only real check is that the image did not move, and a value
- * other than 1 would move it. It exists as a named knob because W B.5 grades against it, and
- * because the reference keeps exposure here rather than as a per-material uniform.
+ * Goal 07 held this at 1 because W B.2's only real check was that the image did not move. Goal 08
+ * grades against it: 1.2 lifts the mids into the §7.1 p50 band and pushes the flood-lit wall faces
+ * toward the p95 target, while the sky's own floor was lowered in the same commit so the darks stay
+ * under the p05 ceiling. The reference keeps exposure here rather than as a per-material uniform.
  */
-const COMBAT_EXPOSURE = 1;
+const COMBAT_EXPOSURE = 1.2;
 
 /**
  * Bloom, in pre-exposure linear units.
