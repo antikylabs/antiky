@@ -46,14 +46,14 @@ export default shader({
     // the frame's darks live up there.
     const haze = pow(1 - clamp(height, 0, 1), 6);
     const below = clamp(0 - height, 0, 1);
-    const zenith = vec3(0.0016, 0.0028, 0.0026);
-    const horizon = vec3(0.02, 0.042, 0.04);
+    const zenith = vec3(0.0006, 0.001, 0.001);
+    const horizon = vec3(0.008, 0.017, 0.016);
     // A faint warm seam at eye level — the one warm note the night allows itself.
-    const seam = pow(max(1 - abs(height) * 9, 0), 2) * 0.012;
+    const seam = pow(max(1 - abs(height) * 9, 0), 2) * 0.005;
     const sky = zenith.add(horizon.sub(zenith).scale(haze)).add(vec3(seam, seam * 0.7, seam * 0.35));
     // Below the horizon the dome fades toward the fog colour so the plane edge has something of
     // its own colour behind it.
-    const ground = vec3(0.014, 0.02, 0.018);
+    const ground = vec3(0.0035, 0.005, 0.0048);
     return vec4(sky.scale(1 - below).add(ground.scale(below)), 1);
   },
 });

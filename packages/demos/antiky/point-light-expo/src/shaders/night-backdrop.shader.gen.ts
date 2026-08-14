@@ -29,11 +29,11 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let height = clamp(direction.y, -1.0, 1.0);
   let haze = pow(1.0 - clamp(height, 0.0, 1.0), 6.0);
   let below = clamp(0.0 - height, 0.0, 1.0);
-  let zenith = vec3f(0.0016, 0.0028, 0.0026);
-  let horizon = vec3f(0.02, 0.042, 0.04);
-  let seam = pow(max(1.0 - abs(height) * 9.0, 0.0), 2.0) * 0.012;
+  let zenith = vec3f(0.0006, 0.001, 0.001);
+  let horizon = vec3f(0.008, 0.017, 0.016);
+  let seam = pow(max(1.0 - abs(height) * 9.0, 0.0), 2.0) * 0.005;
   let sky = zenith + (horizon - zenith) * haze + vec3f(seam, seam * 0.7, seam * 0.35);
-  let ground = vec3f(0.014, 0.02, 0.018);
+  let ground = vec3f(0.0035, 0.005, 0.0048);
   return vec4f(sky * (1.0 - below) + ground * below, 1.0);
 }
 `,
