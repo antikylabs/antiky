@@ -19,7 +19,9 @@ export const RELAY_PRESENTATION = Object.freeze({
   bloom: Object.freeze({
     threshold: 1,
     radius: 5,
-    strength: 1.15,
+    // 1.35 after goal 08 unboxed the bloom chain: the old lattice-spread taps were smearing halo
+    // area the p95 target was counting; the clean deposit needed a fraction more strength.
+    strength: 1.35,
   }),
   /**
    * Goal 08's night grade. §6.1 calls this a night scene whose practicals are the key, and the
