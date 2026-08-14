@@ -31,7 +31,7 @@ import {
   writeVec3,
   type CatalogProgram,
   type Vec3,
-} from './render-batches.ts';
+} from './course-batches.ts';
 import {
   backgroundCompositionAt,
 } from './environment.ts';
