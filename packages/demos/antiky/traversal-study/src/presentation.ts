@@ -44,7 +44,10 @@ function writeTraversalCameraFrame(
   const targetY = Math.max(1.15, state.player.y * 0.55 + 0.95 + verticalAnticipation);
 
   output.position[0] = state.player.x + lead + (mobile ? 0.8 : 1.7);
-  output.position[1] = targetY + (mobile ? 5.1 : 3.45) + pointerLift + speedPullback * 0.15;
+  // Goal 08's composition move: the camera rides higher and looks down at the same target, which
+  // pulls the horizon up the frame. At the old 3.45 the horizon sat below centre and sixty percent
+  // of every frame was one flat sky; from up here the course band owns the lower two-thirds.
+  output.position[1] = targetY + (mobile ? 6.7 : 5.4) + pointerLift + speedPullback * 0.15;
   output.position[2] = (mobile ? 16.6 : 11) + speedPullback;
   output.target[0] = state.player.x + lead;
   output.target[1] = targetY;

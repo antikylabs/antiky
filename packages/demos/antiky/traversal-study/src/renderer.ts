@@ -53,6 +53,7 @@ import bloomBlurShader from './shaders/bloom-blur.shader.gen.ts';
 import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
 import traversalGlowShader from './shaders/traversal-glow.shader.gen';
+import courseSkyShader from './shaders/course-sky.shader.gen';
 import traversalModelShader from './shaders/traversal-model.shader.gen';
 import traversalSurfaceShader from './shaders/traversal-surface.shader.gen';
 import { RUNNER_RADIUS, type TraversalSnapshot } from './simulation.ts';
@@ -202,9 +203,12 @@ function createGlowBatch(
   geometry: Geometry,
   capacity: number,
   billboard: BroMetalTexture,
+  // Goal 08: the emissive effects batch is additive so a checkpoint glow can exceed 1.0 and reach
+  // the bloom pass; alpha-blended output caps at 1.0 and can never bloom whatever the post does.
+  blend: 'alpha' | 'additive' = 'alpha',
 ) {
   const disposal = createDisposalStack();
-  const program = disposal.adopt(createProgram(renderer, traversalGlowShader, { blend: 'alpha' }));
+  const program = disposal.adopt(createProgram(renderer, traversalGlowShader, { blend }));
   program.uniforms.uBillboard.set(billboard);
   try {
     program.attributes.aPosition.set(geometry.positions);
@@ -469,7 +473,10 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
     const hud = owned.adopt(createHudBatch(renderer));
     const trail = owned.adopt(createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 8, heightSegments: 6 }), TRAVERSAL_BATCH_CAPACITIES.trail, vfxBillboard));
     const effects = owned.adopt(createGlowBatch(renderer, createTorus({ radius: 1, tube: 0.055, radialSegments: 8, tubularSegments: 48 }), TRAVERSAL_BATCH_CAPACITIES.effects, vfxBillboard));
-    const procedural = [contactShadow, hud, trail, effects];
+    // The emissive glyphs — checkpoint rings and the delivery pulse — drawn additively into HDR so
+    // they can bloom. The dust puffs stay in the alpha batch above: dust is matter, not light.
+    const emissives = owned.adopt(createGlowBatch(renderer, createTorus({ radius: 1, tube: 0.055, radialSegments: 8, tubularSegments: 48 }), 4, vfxBillboard, 'additive'));
+    const procedural = [contactShadow, hud, trail, effects, emissives];
     const cameraRig = createTraversalCameraRig();
     // near 0.5 against far 240 is a 480:1 depth ratio, inside the 500:1 budget. The old 0.1 gave
     // 2400:1 and spent most of the depth buffer's precision on the first half-metre, which nothing
@@ -489,13 +496,22 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       courier.drawDepth();
     };
 
+    const skyProgram = owned.adopt(createProgram(renderer, courseSkyShader));
+    {
+      // Inside the camera's 240-unit far plane, following the camera like the arena's sky.
+      const dome = createSphere({ radius: 170, widthSegments: 24, heightSegments: 16 });
+      skyProgram.attributes.aPosition.set(dome.positions);
+      skyProgram.setIndices(dome.indices);
+    }
+
     const drawScene = (): void => {
+      skyProgram.draw();
       cloudLarge.draw(); cloudSmall.draw();
       coastalCliffs.draw(); relayTowers.draw(); coastalTrees.draw(); trees.draw();
       grass.draw(); overhang.draw(); moving.draw();
       contactShadow.draw();
       spikes.draw(); flags.draw(); coins.draw();
-      effects.draw(); courier.draw(); trail.draw(); hud.draw();
+      effects.draw(); emissives.draw(); courier.draw(); trail.draw(); hud.draw();
     };
 
     /**
@@ -743,13 +759,18 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       trail.upload();
 
       effects.clear();
+      emissives.clear();
       for (let index = 0; index < COURSE_CHECKPOINTS.length; index += 1) {
         const checkpoint = COURSE_CHECKPOINTS[index]!;
         const checkpointScale = 0.82 + state.effects.checkpoint * 0.3;
-        effects.set(index, checkpoint.x, courseTopAt(checkpoint.x, state.time) + 1.05, 0.1, checkpointScale, checkpointScale, 1, index <= state.checkpointIndex ? OCHRE : SEA_GREY, 0.18 + state.effects.checkpoint * 0.22, state.time * 0.16, index);
+        // Colour gain 2.6: additive into HDR, so an active checkpoint's ring runs over 1.0 in
+        // linear light and the bloom pass picks it up — the whole reason this batch exists.
+        const glyphColor = index <= state.checkpointIndex ? OCHRE : SEA_GREY;
+        emissives.set(index, checkpoint.x, courseTopAt(checkpoint.x, state.time) + 1.05, 0.1, checkpointScale, checkpointScale, 1, [glyphColor[0] * 2.6, glyphColor[1] * 2.6, glyphColor[2] * 2.6], 0.18 + state.effects.checkpoint * 0.22, state.time * 0.16, index);
       }
       const deliveryScale = 1.45 + state.effects.delivery * 0.45;
-      effects.set(3, DELIVERY_X, courseTopAt(DELIVERY_X, state.time) + 1.35, 0.1, deliveryScale, deliveryScale, 1, state.outcome === 'failed' ? VERMILION : OCHRE, state.outcome === 'delivered' ? 0.68 : 0.2, state.time * 0.12, 4);
+      const deliveryColor = state.outcome === 'failed' ? VERMILION : OCHRE;
+      emissives.set(3, DELIVERY_X, courseTopAt(DELIVERY_X, state.time) + 1.35, 0.1, deliveryScale, deliveryScale, 1, [deliveryColor[0] * 2.6, deliveryColor[1] * 2.6, deliveryColor[2] * 2.6], state.outcome === 'delivered' ? 0.68 : 0.2, state.time * 0.12, 4);
       const landScale = 0.55 + state.effects.land * 0.9;
       effects.set(4, state.player.x, supportTop + 0.08, 0.12, landScale, landScale, 1, CREAM, state.effects.land * 0.52, 0, 5);
       const jumpScale = 0.5 + state.effects.jump * 0.55;
@@ -761,6 +782,7 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       const resetScale = 0.75 + resetPulse * 1.4;
       effects.set(7, state.player.x, state.player.y, 0.14, resetScale, resetScale, 1, state.effects.damage > state.effects.retry ? VERMILION : CREAM, resetPulse * 0.66, -state.time * 0.24, 8);
       effects.upload();
+      emissives.upload();
 
       const cameraFrame = cameraRig.update(renderer.aspect, state, pointer, deltaSeconds);
       cameraPosition.set(cameraFrame.position);
@@ -876,6 +898,9 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       hud.upload();
 
       for (let index = 0; index < procedural.length; index += 1) procedural[index]!.setFrame(viewProjection, cameraPosition, state.time);
+      skyProgram.uniforms.uViewProj.set(viewProjection);
+      skyProgram.uniforms.uCameraPosition.set(cameraPosition);
+      skyProgram.uniforms.uTime.set(state.time);
       for (let index = 0; index < catalogEntries.length; index += 1) catalogEntries[index]!.setFrame(viewProjection, cameraPosition, state.time);
       renderer.present(drawFrame);
     };
