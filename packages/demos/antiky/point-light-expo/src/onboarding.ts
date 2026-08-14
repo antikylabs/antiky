@@ -12,7 +12,7 @@ import {
   RELAY_ONBOARDING_PRESENTATION,
   RELAY_ONBOARDING_ROWS,
 } from './onboarding-cues.ts';
-import { createResourceScope } from './resource-lifetime.ts';
+import { createDisposalScope } from '@antiky/framework';
 
 type OverlayCanvas = Readonly<{
   canvas: HTMLCanvasElement;
@@ -53,7 +53,7 @@ export function createRelayOnboardingOverlay(
   renderer: Renderer,
   dependencies: RelayOnboardingDependencies = ONBOARDING_DEPENDENCIES,
 ): RelayOnboardingOverlay {
-  const resources = createResourceScope();
+  const resources = createDisposalScope();
   try {
     const { canvas, context } = dependencies.createCanvas(
       1_024,
@@ -74,8 +74,8 @@ export function createRelayOnboardingOverlay(
     });
 
     const geometry = createPlane({ width: 2, height: 2 });
-    const texture = resources.register(dependencies.createTexture(renderer, canvas));
-    const program = resources.register(dependencies.createProgram(renderer));
+    const texture = resources.adopt(dependencies.createTexture(renderer, canvas));
+    const program = resources.adopt(dependencies.createProgram(renderer));
     program.attributes.aPosition!.set(geometry.positions);
     program.attributes.aUv!.set(geometry.uvs);
     program.setIndices(geometry.indices);
@@ -109,7 +109,7 @@ export function createRelayOnboardingOverlay(
       status.context.font = '500 26px Georgia, ui-serif, serif';
       status.context.fillStyle = '#ded9c2';
       status.context.fillText(detail, 512, 138);
-      return resources.register(dependencies.createTexture(renderer, status.canvas));
+      return resources.adopt(dependencies.createTexture(renderer, status.canvas));
     };
     const wonTexture = createStatusTexture(
       'RELIQUARY RESTORED',
@@ -121,7 +121,7 @@ export function createRelayOnboardingOverlay(
       'RELEASE + CLICK TO REIGNITE',
       '#ed6470',
     );
-    const statusProgram = resources.register(dependencies.createProgram(renderer));
+    const statusProgram = resources.adopt(dependencies.createProgram(renderer));
     statusProgram.attributes.aPosition!.set(geometry.positions);
     statusProgram.attributes.aUv!.set(geometry.uvs);
     statusProgram.setIndices(geometry.indices);

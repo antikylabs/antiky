@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:abec93cf7a78bb76
+frameworkSource: sha256:918ab41701f13e96
 ---
 
 # Engine session API
@@ -364,7 +364,9 @@ Thrown after cleanup when one or more owned services fail to dispose.
 ```ts
 class EngineSessionDisposalError extends Error {
     readonly code = 'ANTIKY_ENGINE_SESSION_DISPOSAL_FAILED';
-    constructor(readonly failureCount: number);
+    readonly causes: readonly unknown[];
+    constructor(causes: readonly unknown[]);
+    get failureCount(): number;
 }
 ```
 

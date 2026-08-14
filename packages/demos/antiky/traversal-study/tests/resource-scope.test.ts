@@ -3,9 +3,9 @@ import test from 'node:test';
 
 import {
   acquireTransactional,
-  createDisposalStack,
+  createDisposalScope,
   createRendererResourceLifetime,
-} from '../src/resource-scope.ts';
+} from '@antiky/framework';
 
 test('transactional acquisition rolls completed resources back in reverse order after a fault', async () => {
   const disposed: string[] = [];
@@ -40,7 +40,7 @@ test('successful resource disposal is reverse-order and idempotent', async () =>
 
 test('a disposal stack immediately owns adopted resources and never double-disposes', () => {
   let count = 0;
-  const stack = createDisposalStack();
+  const stack = createDisposalScope();
   stack.adopt({ dispose: () => { count += 1; } });
   stack.dispose();
   stack.dispose();

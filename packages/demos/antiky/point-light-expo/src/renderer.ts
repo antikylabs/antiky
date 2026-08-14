@@ -59,7 +59,7 @@ import {
   createSurfaceBatch,
 } from './render-batches.ts';
 import { RELAY_RENDER_PROFILE } from './render-profile.ts';
-import { createResourceScope } from './resource-lifetime.ts';
+import { createDisposalScope } from '@antiky/framework';
 import { bindDepthProgram, createShadowPass } from './shadow-pass.ts';
 import { populateRelayVisuals } from './relay-visuals.ts';
 import { setupReliquaryModels } from './reliquary-model-layout.ts';
@@ -100,19 +100,19 @@ export async function createRelayRenderer(
   renderer: Renderer,
   lights: readonly PresentationLight[],
 ): Promise<RelayRenderer> {
-  const resources = createResourceScope();
+  const resources = createDisposalScope();
   try {
-    const diffuseTexture = resources.register(await loadTexture(renderer, FLOOR_DIFFUSE_URL, {
+    const diffuseTexture = resources.adopt(await loadTexture(renderer, FLOOR_DIFFUSE_URL, {
       filter: 'smooth', wrap: 'repeat', anisotropy: 8,
     }));
-    const aoTexture = resources.register(await loadTexture(renderer, FLOOR_AO_URL, {
+    const aoTexture = resources.adopt(await loadTexture(renderer, FLOOR_AO_URL, {
       filter: 'smooth', wrap: 'repeat', anisotropy: 8,
     }));
-    const roughnessTexture = resources.register(await loadTexture(renderer, FLOOR_ROUGHNESS_URL, {
+    const roughnessTexture = resources.adopt(await loadTexture(renderer, FLOOR_ROUGHNESS_URL, {
       filter: 'smooth', wrap: 'repeat', anisotropy: 8,
     }));
     // The second ground layer, blended over the first by a world-space mask.
-    const secondGroundTexture = resources.register(await loadTexture(renderer, SECOND_GROUND_URL, {
+    const secondGroundTexture = resources.adopt(await loadTexture(renderer, SECOND_GROUND_URL, {
       filter: 'smooth', wrap: 'repeat', anisotropy: 8,
     }));
 
@@ -124,10 +124,10 @@ export async function createRelayRenderer(
   });
   // Loaded once and shared by the floor and every prop batch. The reliquary has five programs that
   // want it, and five uploads of the same 512x512 image is four wasted.
-  const detailNormal = resources.register(await loadDetailNormal(renderer));
+  const detailNormal = resources.adopt(await loadDetailNormal(renderer));
   // One sprite for every glow: it is the demo's effect texture, not a per-effect material.
-  const vfxBillboard = resources.register(await loadVfxBillboard(renderer));
-  const floorProgram = resources.register(createProgram(renderer, floorShader));
+  const vfxBillboard = resources.adopt(await loadVfxBillboard(renderer));
+  const floorProgram = resources.adopt(createProgram(renderer, floorShader));
   floorProgram.attributes.aPosition.set(floorGeometry.positions);
   floorProgram.attributes.aUv.set(floorGeometry.uvs);
   floorProgram.setIndices(floorGeometry.indices);
@@ -135,26 +135,26 @@ export async function createRelayRenderer(
   floorProgram.uniforms.uAo.set(aoTexture);
   floorProgram.uniforms.uRoughness.set(roughnessTexture);
   floorProgram.uniforms.uDetailNormal.set(detailNormal);
-  const onboarding = resources.register(createRelayOnboardingOverlay(renderer));
+  const onboarding = resources.adopt(createRelayOnboardingOverlay(renderer));
 
-  const forms = resources.register(createSurfaceBatch(
+  const forms = resources.adopt(createSurfaceBatch(
     renderer,
     createCone({ radius: 1, height: 2, radialSegments: 5 }),
     RELAY_RENDER_PROFILE.capacities.forms,
     detailNormal,
   ));
-  const creatures = resources.register(createSurfaceBatch(
+  const creatures = resources.adopt(createSurfaceBatch(
     renderer,
     createShadeGeometry(),
     RELAY_RENDER_PROFILE.capacities.creatures,
     detailNormal,
   ));
-  const contacts = resources.register(createContactShadowBatch(
+  const contacts = resources.adopt(createContactShadowBatch(
     renderer,
     RELAY_RENDER_PROFILE.capacities.contacts,
     vfxBillboard,
   ));
-  const orbs = resources.register(createSurfaceBatch(
+  const orbs = resources.adopt(createSurfaceBatch(
     renderer,
     createSphere({ radius: 1, widthSegments: 24, heightSegments: 16 }),
     RELAY_RENDER_PROFILE.capacities.orbs,
@@ -163,26 +163,26 @@ export async function createRelayRenderer(
   // Goal 08: the rings left the lit path. They were `tube: 0.035` tori with eight radial
   // segments — countable polygons in the capture — drawn through the surface shader, so the key
   // light and fog acted on what is really a gameplay glyph. Each is now a soft additive band.
-  const rings = resources.register(createRingBatch(
+  const rings = resources.adopt(createRingBatch(
     renderer,
     RELAY_RENDER_PROFILE.capacities.rings,
     vfxBillboard,
   ));
-  const glows = resources.register(createGlowBatch(
+  const glows = resources.adopt(createGlowBatch(
     renderer,
     createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }),
     RELAY_RENDER_PROFILE.capacities.glows,
     vfxBillboard,
   ));
-  const organic = resources.register(await createReliquaryModelBatch(
+  const organic = resources.adopt(await createReliquaryModelBatch(
     renderer,
     RELAY_RENDER_PROFILE.capacities.organic,
   ));
-  const rocks = resources.register(await createRockModelBatch(
+  const rocks = resources.adopt(await createRockModelBatch(
     renderer,
     RELAY_RENDER_PROFILE.capacities.rocks,
   ));
-  const stumps = resources.register(await createStumpModelBatch(
+  const stumps = resources.adopt(await createStumpModelBatch(
     renderer,
     RELAY_RENDER_PROFILE.capacities.stumps,
   ));
@@ -190,7 +190,7 @@ export async function createRelayRenderer(
 
   // The night horizon: a dome at infinity behind everything, so the ground plane's edge fades
   // into haze instead of cutting against void. Same at-infinity construction as the arena's sky.
-  const backdropProgram = resources.register(createProgram(renderer, nightBackdropShader));
+  const backdropProgram = resources.adopt(createProgram(renderer, nightBackdropShader));
   {
     // Inside the camera's 45-unit far plane — at 60 the whole dome clipped and the void stayed black.
     const dome = createSphere({ radius: 40, widthSegments: 24, heightSegments: 16 });
@@ -205,7 +205,7 @@ export async function createRelayRenderer(
 
   // Created before the uniform binding below, because every material program is pointed at its map
   // once at setup rather than rebound each frame.
-  const shadows = resources.register(createShadowPass(renderer));
+  const shadows = resources.adopt(createShadowPass(renderer));
   /** Where each relay stands, what colour it burns and how far it reaches. None of it varies. */
   const setStaticLights = (program: {
     uniforms: Record<string, { set(value: never): void } | undefined>;
@@ -388,14 +388,14 @@ export async function createRelayRenderer(
     return bloomTargets;
   };
   const fullscreenQuad = createPlane({ width: 2, height: 2 });
-  const bloomExtract = resources.register(createProgram(renderer, bloomExtractShader));
+  const bloomExtract = resources.adopt(createProgram(renderer, bloomExtractShader));
   bloomExtract.attributes.aPosition.set(fullscreenQuad.positions);
   bloomExtract.setIndices(fullscreenQuad.indices);
-  const bloomBlur = resources.register(createProgram(renderer, bloomBlurShader));
+  const bloomBlur = resources.adopt(createProgram(renderer, bloomBlurShader));
   bloomBlur.attributes.aPosition.set(fullscreenQuad.positions);
   bloomBlur.setIndices(fullscreenQuad.indices);
 
-  const postProgram = resources.register(createProgram(renderer, postShader, { blend: 'alpha' }));
+  const postProgram = resources.adopt(createProgram(renderer, postShader, { blend: 'alpha' }));
   postProgram.attributes.aPosition.set(createPlane({ width: 2, height: 2 }).positions);
   postProgram.setIndices(createPlane({ width: 2, height: 2 }).indices);
 

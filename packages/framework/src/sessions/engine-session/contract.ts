@@ -190,8 +190,26 @@ export class EngineSessionValidationError extends Error {
 export class EngineSessionDisposalError extends Error {
   readonly code = 'ANTIKY_ENGINE_SESSION_DISPOSAL_FAILED';
 
-  constructor(readonly failureCount: number) {
-    super(`EngineSession disposal failed for ${failureCount} owned service${failureCount === 1 ? '' : 's'}.`);
+  /**
+   * Why each service failed to dispose, in the order they were released.
+   *
+   * This used to carry only a count. A session whose services failed to release reported *how many*
+   * had failed and nothing about any of them, so the one piece of information needed to diagnose it
+   * was collected and then discarded a line later.
+   */
+  readonly causes: readonly unknown[];
+
+  constructor(causes: readonly unknown[]) {
+    const count = causes.length;
+    super(
+      `EngineSession disposal failed for ${count} owned service${count === 1 ? '' : 's'}.`,
+      { cause: causes[0] },
+    );
+    this.causes = Object.freeze([...causes]);
     this.name = 'EngineSessionDisposalError';
+  }
+
+  get failureCount(): number {
+    return this.causes.length;
   }
 }

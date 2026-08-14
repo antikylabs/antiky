@@ -17,7 +17,7 @@ import {
 
 import { TRAVERSAL_ASSETS, type TraversalAssetId } from './asset-catalog.ts';
 import { COURSE_SKY } from './ambient.ts';
-import { acquireTransactional, createDisposalStack, type DisposalStack } from './resource-scope.ts';
+import { acquireTransactional, createDisposalScope, type DisposalScope } from '@antiky/framework';
 import modelDepthShader from './shaders/model-depth.shader.gen.ts';
 import surfaceDepthShader from './shaders/surface-depth.shader.gen.ts';
 import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
@@ -44,7 +44,7 @@ export function writeVec3(target: Float32Array, index: number, x: number, y: num
   target[offset + 2] = z;
 }
 
-export function rollbackAndRethrow(disposal: DisposalStack, cause: unknown): never {
+export function rollbackAndRethrow(disposal: DisposalScope, cause: unknown): never {
   try {
     disposal.dispose();
   } catch (rollbackCause: unknown) {
@@ -80,7 +80,7 @@ export function createSurfaceBatch(
    */
   castsShadows = false,
 ) {
-  const disposal = createDisposalStack();
+  const disposal = createDisposalScope();
   const depthProgram = castsShadows
     ? disposal.adopt(createProgram(renderer, surfaceDepthShader))
     : undefined;
@@ -148,7 +148,7 @@ export function createGlowBatch(
   // the bloom pass; alpha-blended output caps at 1.0 and can never bloom whatever the post does.
   blend: 'alpha' | 'additive' = 'alpha',
 ) {
-  const disposal = createDisposalStack();
+  const disposal = createDisposalScope();
   const program = disposal.adopt(createProgram(renderer, traversalGlowShader, { blend }));
   program.uniforms.uBillboard.set(billboard);
   try {
@@ -238,7 +238,7 @@ export async function createCatalogBatch(
   const asset = TRAVERSAL_ASSETS.find((entry) => entry.id === assetId)!;
   const model = await loadGlb(asset.url);
   if (model.images.length === 0) throw new Error(`${asset.fileName} has no embedded catalog image.`);
-  const disposal = createDisposalStack();
+  const disposal = createDisposalScope();
   const textures: BroMetalTexture[] = [];
   const programs: CatalogProgram[] = [];
   const depthPrograms: BroMetalProgram[] = [];

@@ -17,7 +17,7 @@ import {
 import type { CombatSnapshot } from './combat-state.ts';
 import type { Vec3 } from './render-batches.ts';
 import { loadDetailNormal } from './detail-normal.ts';
-import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
+import { createDisposalScope } from '@antiky/framework';
 import arenaDepthShader from './shaders/arena-depth.shader.gen.ts';
 import shipModelShader from './shaders/ship-model.shader.gen.ts';
 
@@ -90,19 +90,19 @@ async function createShipBatch(
     throw new Error('Ultimate Spaceships model requires its embedded authored color texture');
   }
 
-  const owned: { dispose(): void }[] = [];
+  const owned = createDisposalScope();
   const bitmap = await dependencies.createBitmap(model.images[mesh.imageIndex]!);
   let texture: BroMetalTexture;
   let program: BroMetalProgram;
   let depthProgram: BroMetalProgram;
   try {
     try {
-      texture = registerResource(owned, dependencies.createTexture(renderer, bitmap));
+      texture = owned.adopt(dependencies.createTexture(renderer, bitmap));
     } finally {
       bitmap.close();
     }
-    program = registerResource(owned, dependencies.createProgram(renderer));
-    depthProgram = registerResource(owned, dependencies.createDepthProgram(renderer));
+    program = owned.adopt(dependencies.createProgram(renderer));
+    depthProgram = owned.adopt(dependencies.createDepthProgram(renderer));
     depthProgram.attributes.aPosition!.set(mesh.positions);
     depthProgram.setIndices(mesh.indices);
     program.attributes.aPosition!.set(mesh.positions);
@@ -112,7 +112,7 @@ async function createShipBatch(
     program.uniforms.uTex!.set(texture);
     program.uniforms.uDetailNormal!.set(detailNormal);
   } catch (cause: unknown) {
-    rollbackResources(owned);
+    owned.rollback();
     throw cause;
   }
 
@@ -168,7 +168,7 @@ async function createShipBatch(
     /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
     drawDepth(): void { depthProgram.draw(); },
     dispose(): void {
-      disposeResources(owned);
+      owned.dispose();
     },
   });
 }
@@ -197,21 +197,21 @@ export async function createShipFleet(
   // The detail normal is owned by the fleet, not by any one hull, so it is registered first and
   // rolled back with the rest. A texture created before the failure point and not registered is a
   // leak that nothing reports.
-  const resources: { dispose(): void }[] = [];
+  const resources = createDisposalScope();
   let player: ShipBatch;
   let rushers: ShipBatch;
   let gunner: ShipBatch;
   let anchor: ShipBatch;
   let warden: ShipBatch;
   try {
-    const detailNormal = registerResource(resources, await dependencies.loadDetailNormal(renderer));
-    player = registerResource(resources, await createShipBatch(renderer, models[0]!, 1, dependencies, detailNormal));
-    rushers = registerResource(resources, await createShipBatch(renderer, models[1]!, 2, dependencies, detailNormal));
-    gunner = registerResource(resources, await createShipBatch(renderer, models[2]!, 1, dependencies, detailNormal));
-    anchor = registerResource(resources, await createShipBatch(renderer, models[3]!, 1, dependencies, detailNormal));
-    warden = registerResource(resources, await createShipBatch(renderer, models[4]!, 1, dependencies, detailNormal));
+    const detailNormal = resources.adopt(await dependencies.loadDetailNormal(renderer));
+    player = resources.adopt(await createShipBatch(renderer, models[0]!, 1, dependencies, detailNormal));
+    rushers = resources.adopt(await createShipBatch(renderer, models[1]!, 2, dependencies, detailNormal));
+    gunner = resources.adopt(await createShipBatch(renderer, models[2]!, 1, dependencies, detailNormal));
+    anchor = resources.adopt(await createShipBatch(renderer, models[3]!, 1, dependencies, detailNormal));
+    warden = resources.adopt(await createShipBatch(renderer, models[4]!, 1, dependencies, detailNormal));
   } catch (cause: unknown) {
-    rollbackResources(resources);
+    resources.rollback();
     throw cause;
   }
   // Per-frame work is only the hulls; disposal covers everything the fleet owns.
@@ -271,7 +271,10 @@ export async function createShipFleet(
     },
     programs: batches,
     dispose(): void {
-      disposeResources(batches);
+      // The scope, not `batches`: it also owns the shared detail normal, which the previous
+      // `disposeResources(batches)` walked straight past and leaked. Reverse order releases the
+      // hulls before the texture they sample.
+      resources.dispose();
     },
   });
 }

@@ -9,7 +9,7 @@ import {
   type Renderer,
 } from 'brometal';
 
-import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
+import { createDisposalScope } from '@antiky/framework';
 import modelDepthShader from './shaders/model-depth.shader.gen.ts';
 import reliquaryModelShader from './shaders/reliquary-model.shader.gen.ts';
 
@@ -131,12 +131,12 @@ async function createCatalogModelBatch(
     || mesh.indices === null
   ) throw new Error(`${descriptor.label} runtime model requires one indexed mesh with normals and UVs.`);
 
-  const owned: { dispose(): void }[] = [];
+  const owned = createDisposalScope();
   try {
     const loadTexture = async (name: string, role: TextureRole) => {
       const bitmap = await dependencies.createBitmap(modelImage(model, name, descriptor.label));
       try {
-        return registerResource(owned, dependencies.createTexture(renderer, bitmap, role));
+        return owned.adopt(dependencies.createTexture(renderer, bitmap, role));
       } finally {
         bitmap.close();
       }
@@ -144,8 +144,8 @@ async function createCatalogModelBatch(
     const diffuse = await loadTexture(descriptor.diffuseImage, 'diffuse');
     const material = await loadTexture(descriptor.materialImage, 'material');
     const normalMap = await loadTexture(descriptor.normalImage, 'normal');
-    const program = registerResource(owned, dependencies.createProgram(renderer));
-    const depthProgram = registerResource(owned, dependencies.createDepthProgram(renderer));
+    const program = owned.adopt(dependencies.createProgram(renderer));
+    const depthProgram = owned.adopt(dependencies.createDepthProgram(renderer));
     depthProgram.attributes.aPosition!.set(mesh.positions);
     depthProgram.setIndices(mesh.indices);
     program.attributes.aPosition!.set(mesh.positions);
@@ -214,10 +214,10 @@ async function createCatalogModelBatch(
       draw(): void { program.draw(); },
       drawDepth(): void { depthProgram.draw(); },
       depthProgram,
-      dispose(): void { disposeResources(owned); },
+      dispose(): void { owned.dispose(); },
     });
   } catch (cause: unknown) {
-    rollbackResources(owned);
+    owned.rollback();
     throw cause;
   }
 }

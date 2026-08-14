@@ -519,7 +519,7 @@ export function createEngineSession<Input>(
         failures.push(error);
       }
     }
-    if (failures.length > 0) throw new EngineSessionDisposalError(failures.length);
+    if (failures.length > 0) throw new EngineSessionDisposalError(failures);
   };
 
   return Object.freeze({

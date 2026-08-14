@@ -24,7 +24,7 @@ import {
   type GlowBatch,
   type Vec3,
 } from './render-batches.ts';
-import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
+import { createDisposalScope } from '@antiky/framework';
 import { ENEMY_COUNT, PROJECTILE_CAPACITY, type CombatEnemy, type CombatSnapshot, type EnemyRole } from './combat-state.ts';
 
 // Was 68 when the seven contact shadows lived here too. They now have their own unlit batch.
@@ -358,7 +358,7 @@ export function createCombatProjection(
   billboard: BroMetalTexture,
   dependencies: CombatProjectionDependencies = COMBAT_PROJECTION_DEPENDENCIES,
 ): CombatProjection {
-  const resources: { dispose(): void }[] = [];
+  const resources = createDisposalScope();
   let surfaces: ReturnType<typeof createSurfaceBatch>;
   let shadows: ReturnType<typeof createContactShadowBatch>;
   let glows: ReturnType<typeof createGlowBatch>;
@@ -370,21 +370,21 @@ export function createCombatProjection(
     // The depth factory is what makes these props cast. Without it `surfaceDepthProgram` is
     // undefined and the renderer's shadow binding throws during construction, which surfaces as a
     // capture timeout rather than as an error — the runtime never finishes publishing.
-    surfaces = registerResource(resources, dependencies.createSurfaceBatch(
+    surfaces = resources.adopt(dependencies.createSurfaceBatch(
       renderer,
       createCube(),
       SURFACE_CAPACITY,
       undefined,
       (target) => createProgram(target, arenaDepthShader),
     ));
-    shadows = registerResource(resources, dependencies.createContactShadowBatch(renderer, CONTACT_SHADOW_CAPACITY, billboard));
-    hud = registerResource(resources, dependencies.createHudBatch(renderer));
-    glows = registerResource(resources, dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY, billboard));
-    rings = registerResource(resources, dependencies.createGlowBatch(renderer, horizontalGeometry(createTorus({ radius: 1, tube: 0.035, radialSegments: 10, tubularSegments: 96 })), RING_CAPACITY, billboard));
-    ribbons = registerResource(resources, dependencies.createRibbonBatch(renderer, RIBBON_CAPACITY, billboard));
-    ripples = registerResource(resources, dependencies.createRippleBatch(renderer, RIPPLE_CAPACITY));
+    shadows = resources.adopt(dependencies.createContactShadowBatch(renderer, CONTACT_SHADOW_CAPACITY, billboard));
+    hud = resources.adopt(dependencies.createHudBatch(renderer));
+    glows = resources.adopt(dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY, billboard));
+    rings = resources.adopt(dependencies.createGlowBatch(renderer, horizontalGeometry(createTorus({ radius: 1, tube: 0.035, radialSegments: 10, tubularSegments: 96 })), RING_CAPACITY, billboard));
+    ribbons = resources.adopt(dependencies.createRibbonBatch(renderer, RIBBON_CAPACITY, billboard));
+    ripples = resources.adopt(dependencies.createRippleBatch(renderer, RIPPLE_CAPACITY));
   } catch (cause: unknown) {
-    rollbackResources(resources);
+    resources.rollback();
     throw cause;
   }
 
@@ -524,7 +524,7 @@ export function createCombatProjection(
       hud.draw();
     },
     dispose(): void {
-      disposeResources(resources);
+      resources.dispose();
     },
   });
 }

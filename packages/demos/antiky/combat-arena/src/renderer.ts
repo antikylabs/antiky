@@ -31,7 +31,7 @@ import {
   type CombatProjection,
 } from './combat-projection.ts';
 import { createCombatCameraProjector } from './presentation.ts';
-import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
+import { createDisposalScope } from '@antiky/framework';
 import { SHIP_CATALOG_ASSET_COUNT, SHIP_INSTANCE_CAPACITY, createShipFleet, type ShipFleet } from './ship-assets.ts';
 import {
   SPACE_BACKDROP_DRAWS,
@@ -234,16 +234,16 @@ export async function createCombatRendererWith(
   dependencies: CombatRendererDependencies,
 ): Promise<CombatRenderer> {
   const renderer = await dependencies.createRenderer(canvas);
-  const disposables: { dispose(): void }[] = [];
+  const disposables = createDisposalScope();
   try {
-    const catalog = registerResource(disposables, await dependencies.createCatalog(renderer, ARENA_CATALOG_CAPACITY));
-    const ships: ShipFleet = registerResource(disposables, await dependencies.createShips(renderer));
+    const catalog = disposables.adopt(await dependencies.createCatalog(renderer, ARENA_CATALOG_CAPACITY));
+    const ships: ShipFleet = disposables.adopt(await dependencies.createShips(renderer));
     initializeArenaCatalog(catalog);
     // The renderer owns the effect sprite; the projection borrows it. Loaded here because this is
     // the async boundary and `createCombatProjection` is not one.
-    const billboard = registerResource(disposables, await dependencies.loadVfxBillboard(renderer));
-    const projection = registerResource(disposables, dependencies.createProjection(renderer, billboard));
-    const backdrop = registerResource(disposables, await dependencies.createBackdrop(renderer));
+    const billboard = disposables.adopt(await dependencies.loadVfxBillboard(renderer));
+    const projection = disposables.adopt(dependencies.createProjection(renderer, billboard));
+    const backdrop = disposables.adopt(await dependencies.createBackdrop(renderer));
 
     const cameraPosition = new Float32Array(3);
     const cameraProjector = createCombatCameraProjector();
@@ -307,7 +307,7 @@ export async function createCombatRendererWith(
     // fragment writes alpha 1, so `src * srcAlpha + dst * (1 - srcAlpha)` is exactly `src`.
     // The sun's shadow map. Bound once at setup: every material reads the same target and the same
     // light, which is what makes one sun one sun.
-    const shadows = registerResource(disposables, dependencies.createShadowPass(renderer));
+    const shadows = disposables.adopt(dependencies.createShadowPass(renderer));
     const catalogBatches = [
       catalog.room, catalog.walls, catalog.wallDetails, catalog.floorTiles,
       catalog.targets, catalog.grenades,
@@ -324,7 +324,7 @@ export async function createCombatRendererWith(
     // 1: this is the batch drawn through `arena-surface`, which bobs its instances on a clock.
     bindDepthProgram(projection.surfaceDepthProgram as never, 1);
 
-    const postProgram = registerResource(disposables, dependencies.createPostProgram(renderer));
+    const postProgram = disposables.adopt(dependencies.createPostProgram(renderer));
     const fullscreenQuad = createPlane({ width: 2, height: 2 });
     // Two quarter-resolution targets, ping-ponged by the blur. Quarter because a blur's output is
     // low-frequency by definition, and two because a separable blur cannot read and write the same
@@ -345,10 +345,10 @@ export async function createCombatRendererWith(
       }
       return bloomTargets;
     };
-    const bloomExtract = registerResource(disposables, dependencies.createBloomProgram(renderer, 'extract'));
+    const bloomExtract = disposables.adopt(dependencies.createBloomProgram(renderer, 'extract'));
     bloomExtract.attributes.aPosition!.set(fullscreenQuad.positions);
     bloomExtract.setIndices(fullscreenQuad.indices);
-    const bloomBlur = registerResource(disposables, dependencies.createBloomProgram(renderer, 'blur'));
+    const bloomBlur = disposables.adopt(dependencies.createBloomProgram(renderer, 'blur'));
     bloomBlur.attributes.aPosition!.set(fullscreenQuad.positions);
     bloomBlur.setIndices(fullscreenQuad.indices);
     postProgram.attributes.aPosition!.set(fullscreenQuad.positions);
@@ -478,14 +478,14 @@ export async function createCombatRendererWith(
           distortionTarget?.dispose();
           bloomTargets?.[0].dispose();
           bloomTargets?.[1].dispose();
-          disposeResources(disposables);
+          disposables.dispose();
         } finally {
           renderer.destroy();
         }
       },
     });
   } catch (cause: unknown) {
-    rollbackResources(disposables);
+    disposables.rollback();
     renderer.destroy();
     throw cause;
   }

@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:abec93cf7a78bb76
+frameworkSource: sha256:918ab41701f13e96
 ---
 
 # Framework API reference
 
-This is the complete public API exported by the Antiky Framework package. It covers all 188 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
+This is the complete public API exported by the Antiky Framework package. It covers all 195 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
 
 Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.
 
@@ -28,6 +28,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 | [Point-light command API](point-light-commands.md) | Validate versioned power-change commands, trusted execution context, results, and accepted facts. | [Point lights: Change power](../framework/point-lights.md#change-power-while-the-game-runs) |
 | [Point-light integration API](point-light-integration.md) | Project authored lights into runtime, renderer, inspection, world, and event views. | [Point lights: Renderer integration](../framework/point-lights.md#send-changes-to-your-renderer) |
 | [Game host API](game-host.md) | Mount one portable game module with host-owned canvas, input, timing, measurements, inspection, and cleanup. | [Build a game module](../framework/game-modules.md) |
+| [Resource disposal API](resources.md) | Own a set of resources and release them in reverse order, reporting every failure rather than the first. | [Run a fixed-step game session](../framework/engine-sessions.md) |
 
 ## Shared rules
 
@@ -67,6 +68,10 @@ Start with a task guide when you are building a feature. Use the pages below whe
 ### Game host API
 
 [`GamePointerInput`](game-host.md#gamepointerinput) · [`GameMovementInput`](game-host.md#gamemovementinput) · [`GameHostMode`](game-host.md#gamehostmode) · [`GameMeasurements`](game-host.md#gamemeasurements) · [`GameHostInspectionState`](game-host.md#gamehostinspectionstate) · [`GameInspectionDetails`](game-host.md#gameinspectiondetails) · [`GameSessionControlResult`](game-host.md#gamesessioncontrolresult) · [`GameInspectionPort`](game-host.md#gameinspectionport) · [`createGameInspectionSnapshot`](game-host.md#creategameinspectionsnapshot) · [`GameHostContext`](game-host.md#gamehostcontext) · [`GameInstance`](game-host.md#gameinstance) · [`GameModuleEntry`](game-host.md#gamemoduleentry)
+
+### Resource disposal API
+
+[`DisposableResource`](resources.md#disposableresource) · [`DisposalScope`](resources.md#disposalscope) · [`createDisposalScope`](resources.md#createdisposalscope) · [`ResourceTransaction`](resources.md#resourcetransaction) · [`acquireTransactional`](resources.md#acquiretransactional) · [`RendererResourceLifetime`](resources.md#rendererresourcelifetime) · [`createRendererResourceLifetime`](resources.md#createrendererresourcelifetime)
 
 ## Keeping the reference current
 

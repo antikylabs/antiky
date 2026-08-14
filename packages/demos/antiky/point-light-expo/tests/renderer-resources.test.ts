@@ -1,18 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import * as lifetime from '../src/resource-lifetime.ts';
+import * as lifetime from '@antiky/framework';
 
 test('renderer construction faults roll back every earlier resource once in reverse order', () => {
   const stages = ['floor-diffuse', 'floor-program', 'surface-batch', 'catalog-model', 'uniform-setup'];
   for (let failureIndex = 0; failureIndex < stages.length; failureIndex += 1) {
     const disposed: string[] = [];
-    const scope = lifetime.createResourceScope();
+    const scope = lifetime.createDisposalScope();
     assert.throws(() => {
       for (let index = 0; index < stages.length; index += 1) {
         if (index === failureIndex) throw new Error(`injected ${stages[index]} failure`);
         const label = stages[index]!;
-        scope.register({ dispose() { disposed.push(label); } });
+        scope.adopt({ dispose() { disposed.push(label); } });
       }
     }, /injected/);
     scope.rollback();
@@ -23,9 +23,9 @@ test('renderer construction faults roll back every earlier resource once in reve
 
 test('successful renderer ownership also ignores repeated disposal', () => {
   const disposed: string[] = [];
-  const scope = lifetime.createResourceScope();
-  scope.register({ dispose() { disposed.push('texture'); } });
-  scope.register({ dispose() { disposed.push('program'); } });
+  const scope = lifetime.createDisposalScope();
+  scope.adopt({ dispose() { disposed.push('texture'); } });
+  scope.adopt({ dispose() { disposed.push('program'); } });
   scope.dispose();
   scope.dispose();
   scope.rollback();

@@ -13,7 +13,7 @@ import { loadKitMaterialMaps } from './kit-material-maps.ts';
 import { arenaLightUniforms } from './arena-lights.ts';
 import { createKitMaterialLookup } from './kit-materials.ts';
 import { loadDetailNormal } from './detail-normal.ts';
-import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
+import { createDisposalScope } from '@antiky/framework';
 import arenaDepthShader from './shaders/arena-depth.shader.gen.ts';
 import arenaModelShader from './shaders/arena-model.shader.gen.ts';
 
@@ -119,19 +119,19 @@ async function createModelBatch(
     throw new Error('Combat catalog model requires an embedded base-color image');
   }
   const image = model.images[mesh.imageIndex]!;
-  const owned: { dispose(): void }[] = [];
+  const owned = createDisposalScope();
   const bitmap = await dependencies.createBitmap(image);
   let texture: BroMetalTexture;
   let program: BroMetalProgram;
   let depthProgram: BroMetalProgram;
   try {
     try {
-      texture = registerResource(owned, dependencies.createTexture(renderer, bitmap));
+      texture = owned.adopt(dependencies.createTexture(renderer, bitmap));
     } finally {
       bitmap.close();
     }
-    program = registerResource(owned, dependencies.createProgram(renderer));
-    depthProgram = registerResource(owned, dependencies.createDepthProgram(renderer));
+    program = owned.adopt(dependencies.createProgram(renderer));
+    depthProgram = owned.adopt(dependencies.createDepthProgram(renderer));
     depthProgram.attributes.aPosition!.set(mesh.positions);
     depthProgram.setIndices(mesh.indices);
     program.attributes.aPosition!.set(mesh.positions);
@@ -151,7 +151,7 @@ async function createModelBatch(
       program.uniforms[name as keyof typeof program.uniforms]!.set(value as never);
     }
   } catch (cause: unknown) {
-    rollbackResources(owned);
+    owned.rollback();
     throw cause;
   }
   const offsets = new Float32Array(capacity * 3);
@@ -207,7 +207,7 @@ async function createModelBatch(
     /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
     drawDepth(): void { depthProgram.draw(); },
     dispose(): void {
-      disposeResources(owned);
+      owned.dispose();
     },
   });
 }
@@ -235,19 +235,19 @@ export async function createArenaCatalogResources(
   // The detail normal is owned by the catalog, not by any one batch, so it is registered first and
   // rolled back with the rest. A texture created before the failure point and not registered is a
   // leak that nothing reports.
-  const resources: { dispose(): void }[] = [];
+  const resources = createDisposalScope();
   try {
-    const detailNormal = registerResource(resources, await dependencies.loadDetailNormal(renderer));
-    const kitMaterials = registerResource(resources, dependencies.createKitMaterialLookup(renderer));
+    const detailNormal = resources.adopt(await dependencies.loadDetailNormal(renderer));
+    const kitMaterials = resources.adopt(dependencies.createKitMaterialLookup(renderer));
     const materialMaps = await dependencies.loadKitMaterialMaps(renderer);
-    registerResource(resources, materialMaps.diffuse);
-    registerResource(resources, materialMaps.roughness);
-    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
-    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 0, 0.85));
-    const targets = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35, 0, 0));
-    const grenades = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0, 0, 0));
-    const walls = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
-    const wallDetails = registerResource(resources, await createModelBatch(renderer, models[5]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
+    resources.adopt(materialMaps.diffuse);
+    resources.adopt(materialMaps.roughness);
+    const room = resources.adopt(await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
+    const floorTiles = resources.adopt(await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 0, 0.85));
+    const targets = resources.adopt(await createModelBatch(renderer, models[2]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35, 0, 0));
+    const grenades = resources.adopt(await createModelBatch(renderer, models[3]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0, 0, 0));
+    const walls = resources.adopt(await createModelBatch(renderer, models[4]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
+    const wallDetails = resources.adopt(await createModelBatch(renderer, models[5]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1, 0.85));
 
     // Disposal covers everything the catalog owns; per-frame work is only the batches. Iterating
     // `resources` here would call `frame` on a texture.
@@ -266,11 +266,11 @@ export async function createArenaCatalogResources(
         }
       },
       dispose(): void {
-        disposeResources(resources);
+        resources.dispose();
       },
     });
   } catch (cause: unknown) {
-    rollbackResources(resources);
+    resources.rollback();
     throw cause;
   }
 }

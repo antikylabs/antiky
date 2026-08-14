@@ -40,7 +40,7 @@ import { TRAVERSAL_BATCH_CAPACITIES } from './render-plan.ts';
 import {
   acquireTransactional,
   createRendererResourceLifetime,
-} from './resource-scope.ts';
+} from '@antiky/framework';
 import { summarizeTraversalMeasurements } from './measurements.ts';
 import { COURSE_SKY } from './ambient.ts';
 import { loadKitMaterialMaps } from './kit-material-maps.ts';

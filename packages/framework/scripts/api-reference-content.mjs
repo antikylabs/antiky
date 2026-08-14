@@ -217,9 +217,42 @@ export default mountGame;`,
       },
     ],
   },
+  {
+    slug: 'resources',
+    title: 'Resource disposal API',
+    summary: 'Own a set of resources and release them in reverse order, reporting every failure rather than the first.',
+    useWhen: 'Use one scope wherever construction acquires several things that must be released together, especially when a partial construction has to be unwound.',
+    guide: { href: '../framework/engine-sessions.md', label: 'Run a fixed-step game session' },
+    exampleDescription: '`loadTexture` and `createProgram` each acquire something that must be released. If the program fails to link, the texture is still released and the construction fault is what the caller sees.',
+    example: `import { createDisposalScope } from '@antiky/framework';
+
+const scope = createDisposalScope();
+try {
+  const texture = scope.adopt(loadTexture(source));
+  const program = scope.adopt(createProgram(texture));
+  return { program, dispose: () => scope.dispose() };
+} catch (cause) {
+  scope.rollback(cause);
+}`,
+    modules: [
+      {
+        source: 'resources/disposal-scope.ts',
+        title: 'Disposal scope',
+        description: 'Adopt resources as they are acquired, release them newest first, and unwind a failed construction without losing the fault that caused it.',
+      },
+    ],
+  },
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
+  // Resource disposal
+  DisposableResource: 'Anything that can be released. The only shape a disposal scope requires.',
+  DisposalScope: 'Owns adopted resources and releases them newest first, collecting every failure.',
+  createDisposalScope: 'Create a scope that adopts resources and releases them in reverse order.',
+  ResourceTransaction: 'A completed all-or-nothing acquisition and the handle that releases it.',
+  acquireTransactional: 'Acquire every resource in order, or release what was acquired and rethrow.',
+  RendererResourceLifetime: 'A disposal scope that also owns the renderer, destroyed last and exactly once.',
+  createRendererResourceLifetime: 'Create a scope whose renderer is destroyed after the resources borrowed from it.',
   // Identity
   WorldId: 'A branded UUIDv7 for one authored world.',
   EntityId: 'A branded UUIDv7 for one stable world entity.',
