@@ -143,11 +143,11 @@ fn fs_main(bm_in : BmVSOut) -> @location(0) vec4f {
   let transmission = max(0.0 - dot(normal, light), 0.0) * cardWeight;
   let backScatter = pow(max(0.0 - dot(view, light), 0.0), 5.0) * cardWeight;
   let transmitted = bm_u.uSunColor * (bm_u.uSunIntensity * (transmission * 0.4 + backScatter * 0.5) * shadow);
-  let canopyRim = pow(1.0 - max(dot(normal, view), 0.0), 3.0) * cardWeight * (0.18 + backScatter * 0.9);
+  let canopyRim = pow(1.0 - max(dot(normal, view), 0.0), 3.0) * cardWeight * (0.3 + backScatter * 1.3);
   let halfVector = normalize(light + view);
   let specular = pow(max(dot(normal, halfVector), 0.0), mix(18.0, 8.0, clamp(bm_in.vKind, 0.0, 1.0)));
   var color = baseColor * (sky + ground + direct + transmitted) * bm_in.vRootAo;
-  color = color + bm_u.uSunColor * (canopyRim * 0.5 * shadow);
+  color = color + bm_u.uSunColor * (canopyRim * 0.75 * shadow);
   color = color + bm_u.uSunColor * (specular * mix(0.06, 0.025, clamp(bm_in.vKind, 0.0, 1.0)) * shadow);
   let fog = smoothstep(bm_u.uFogStart, bm_u.uFogEnd, bm_in.vDepth) * clamp(bm_u.uFogStrength, 0.0, 1.0);
   color = mix(color, bm_u.uFogColor, fog);

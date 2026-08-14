@@ -261,12 +261,12 @@ export default shader({
     const transmitted = uSunColor.scale(uSunIntensity * (transmission * 0.4 + backScatter * 0.5) * shadow);
     // Rim on the canopy: the band just inside a backlit silhouette catches the sun the criterion's
     // 1.6x bar asks for. Gated by the same back-scatter so an unlit crown stays matte.
-    const canopyRim = pow(1 - max(dot(normal, view), 0), 3) * cardWeight * (0.18 + backScatter * 0.9);
+    const canopyRim = pow(1 - max(dot(normal, view), 0), 3) * cardWeight * (0.3 + backScatter * 1.3);
 
     const halfVector = normalize(light.add(view));
     const specular = pow(max(dot(normal, halfVector), 0), mix(18, 8, clamp(vKind, 0, 1)));
     let color = baseColor.mul(sky.add(ground).add(direct).add(transmitted)).scale(vRootAo);
-    color = color.add(uSunColor.scale(canopyRim * 0.5 * shadow));
+    color = color.add(uSunColor.scale(canopyRim * 0.75 * shadow));
     color = color.add(uSunColor.scale(specular * mix(0.06, 0.025, clamp(vKind, 0, 1)) * shadow));
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);
