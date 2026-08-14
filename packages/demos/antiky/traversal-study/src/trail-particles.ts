@@ -4,6 +4,7 @@
  * A fixed pool written round-robin, so a run never allocates. Particles are plain mutable objects
  * because the snapshot copies them once per read and nothing else retains them.
  */
+import { hashUnit } from '@antiky/framework';
 
 export type TrailParticle = {
   x: number;
@@ -40,11 +41,6 @@ const TRAIL_GRAVITY = 2.8;
 /** Parked well below the course, which is how the renderer knows not to draw a spent particle. */
 const PARKED_Y = -20;
 
-function seeded(index: number, salt: number): number {
-  const value = Math.sin(index * 73.91 + salt * 19.37) * 41758.31;
-  return value - Math.floor(value);
-}
-
 export function createTrailParticles(capacity: number): TrailParticles {
   const particles: TrailParticle[] = Array.from(
     { length: capacity },
@@ -68,9 +64,9 @@ export function createTrailParticles(capacity: number): TrailParticles {
         cursor = (cursor + 1) % particles.length;
         particle.x = x;
         particle.y = y;
-        particle.vx = -facing * (0.65 + seeded(seed + index, 2) * force);
-        particle.vy = 0.4 + seeded(seed + index, 3) * force;
-        particle.life = 0.28 + seeded(seed + index, 4) * 0.34;
+        particle.vx = -facing * (0.65 + hashUnit(seed + index, 2) * force);
+        particle.vy = 0.4 + hashUnit(seed + index, 3) * force;
+        particle.life = 0.28 + hashUnit(seed + index, 4) * 0.34;
         particle.color = color;
       }
     },

@@ -21,6 +21,7 @@ import {
   hazardTop,
   platformTop,
 } from './course.ts';
+import { hashUnit } from '@antiky/framework';
 import { groundTopAt } from './course-query.ts';
 import {
   GROUND_QUAD,
@@ -84,11 +85,6 @@ const CREAM: Vec3 = [0.88, 0.76, 0.55];
 const GRASS: Vec3 = [0.2, 0.42, 0.25];
 const INK: Vec3 = [0.055, 0.075, 0.085];
 
-
-function stableNoise(index: number, salt: number): number {
-  const value = Math.sin(index * 63.17 + salt * 17.53) * 43147.19;
-  return value - Math.floor(value);
-}
 
 export type TraversalRenderer = Readonly<{
   measurements: Readonly<{ instances: number; drawCalls: number; uploadBytesPerFrame: number; note: string }>;
@@ -445,9 +441,9 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       const windAnchor = Math.floor(state.player.x / 20) * 20;
       for (let index = 0; index < 30; index += 1) {
         const depth = index % 3;
-        const wrap = ((state.time * (1.7 + depth * 0.4) + stableNoise(index, 5) * 24) % 24) - 12;
+        const wrap = ((state.time * (1.7 + depth * 0.4) + hashUnit(index, 5) * 24) % 24) - 12;
         const speck = 0.025 + depth * 0.012;
-        trail.set(state.trail.length + index, windAnchor + wrap, -0.4 + stableNoise(index, 9) * 7, -2 - depth * 2.6, speck * 2.4, speck, speck, depth === 0 ? CREAM : SEA_GREY, 0.1, -0.05, index);
+        trail.set(state.trail.length + index, windAnchor + wrap, -0.4 + hashUnit(index, 9) * 7, -2 - depth * 2.6, speck * 2.4, speck, speck, depth === 0 ? CREAM : SEA_GREY, 0.1, -0.05, index);
       }
       trail.upload();
 
