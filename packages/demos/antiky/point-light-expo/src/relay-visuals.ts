@@ -291,7 +291,7 @@ function populateRings(
       light.transform.position[0], -0.28, light.transform.position[2],
       field.safe,
       relayColor[0], relayColor[1], relayColor[2],
-      0.7,
+      0.85,
     );
     rings.setValues(
       renderSlot(RELAY_RENDER_SLOTS.rings.relayCharge, index),
