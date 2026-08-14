@@ -162,11 +162,11 @@ export default shader({
     // Linear HDR, and nothing else. Exposure, the tone-map and the encode all happen once in
     // `post.shader.ts`.
     //
-    // The band gain is 0.14, down from 1.15. At 1.15 the Milky Way read as a bright grey wash over
+    // The band gain is 0.046, down from 1.15 in three measured steps. At 1.15 the Milky Way read as a bright grey wash over
     // a quarter of the frame, and goal 08's low camera then aimed straight into the band's core —
     // at 0.34 the background still measured brighter than the arena's own shadows. The §7.1 target
     // wants the darkest 5% of the frame at or under 0.04 encoded, and space is where that darkness
     // lives. The generated stars keep their own gain so they stay crisp over the darker band.
-    return vec4(inverseTonemapACES(band.scale(0.11).add(starLight).add(vec3(0.0022, 0.003, 0.0068))), 1);
+    return vec4(inverseTonemapACES(band.scale(0.046).add(starLight).add(vec3(0.001, 0.0013, 0.003))), 1);
   },
 });

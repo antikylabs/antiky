@@ -106,6 +106,8 @@ async function createModelBatch(
   plating: BroMetalTexture,
   /** The deck and structure are plated; the blaster-kit props are not. */
   platingStrength: number,
+  /** Item 14's ruled emissive bands: 1 on the rim structure, 0 on the deck and props. */
+  trimStrength: number,
 ): Promise<ModelBatch> {
   const mesh = model.meshes[0];
   if (mesh === undefined || mesh.normals === null || mesh.uvs === null || mesh.indices === null) {
@@ -139,6 +141,7 @@ async function createModelBatch(
     program.uniforms.uKitMaterials!.set(kitMaterials);
     program.uniforms.uMaterialDiffuse!.set(plating);
     program.uniforms.uMaterialStrength!.set(platingStrength);
+    program.uniforms.uTrimStrength!.set(trimStrength);
     // The rim floodlights. BroMetal's DSL has no array uniforms, so each light is three bindings and
     // this loop is the one place that knows it — the shader side stays a plain sum of six terms.
     for (const [name, value] of Object.entries(arenaLightUniforms())) {
@@ -236,12 +239,12 @@ export async function createArenaCatalogResources(
     const materialMaps = await dependencies.loadKitMaterialMaps(renderer);
     registerResource(resources, materialMaps.diffuse);
     registerResource(resources, materialMaps.roughness);
-    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
-    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
-    const targets = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35));
-    const grenades = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0));
-    const walls = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
-    const wallDetails = registerResource(resources, await createModelBatch(renderer, models[5]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1));
+    const room = registerResource(resources, await createModelBatch(renderer, models[0]!, capacity.room, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1));
+    const floorTiles = registerResource(resources, await createModelBatch(renderer, models[1]!, capacity.floor, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 0));
+    const targets = registerResource(resources, await createModelBatch(renderer, models[2]!, capacity.targets, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0.35, 0));
+    const grenades = registerResource(resources, await createModelBatch(renderer, models[3]!, capacity.grenades, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 0, 0));
+    const walls = registerResource(resources, await createModelBatch(renderer, models[4]!, capacity.walls, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1));
+    const wallDetails = registerResource(resources, await createModelBatch(renderer, models[5]!, capacity.wallDetails, dependencies, detailNormal, kitMaterials, materialMaps.diffuse, 1, 1));
 
     // Disposal covers everything the catalog owns; per-frame work is only the batches. Iterating
     // `resources` here would call `frame` on a texture.

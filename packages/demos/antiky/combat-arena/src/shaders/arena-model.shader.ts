@@ -124,6 +124,15 @@ export default shader({
      */
     uReflection: 'sampler2D',
     uReflectionStrength: 'float',
+    /**
+     * Item 14's procedural world-space trim: two emissive bands ruled across the rim structure by
+     * world height alone, so every panel — whatever its UVs, scale or rotation — carries the same
+     * two lines. Per batch like the other strengths: the walls and room shell are trimmed, the
+     * deck and props are not. The bands are emissive above 1.0, which makes them the arena's
+     * always-on highlight source — the §6.2 value structure asks for genuine blown highlights and
+     * an idle frame needs somewhere for them to live.
+     */
+    uTrimStrength: 'float',
     uTime: 'float',
   },
   varyings: {
@@ -159,7 +168,7 @@ export default shader({
     uShadowMap,
     uLightViewProj,
     uLightPosition,
-    uShadowRange, uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uReflection, uReflectionStrength, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
+    uShadowRange, uCameraPosition, uTex, uDetailNormal, uKitMaterials, uMaterialDiffuse, uMaterialStrength, uReflection, uReflectionStrength, uTrimStrength, uLightPosition0, uLightColor0, uLightFalloff0, uLightPosition1, uLightColor1, uLightFalloff1, uLightPosition2, uLightColor2, uLightFalloff2, uLightPosition3, uLightColor3, uLightFalloff3, uLightPosition4, uLightColor4, uLightFalloff4, uLightPosition5, uLightColor5, uLightFalloff5, uTime },
     { vWorld, vNormal, vUv, vTint, vParams, vClip },
   ) {
     const baseNormal = normalize(vNormal);
@@ -330,7 +339,13 @@ export default shader({
     ).xyz;
     const grazingReflection = pow(1 - max(dot(normal, view), 0), 2);
     const mirrored = reflected.scale(uReflectionStrength * (0.34 + grazingReflection * 0.66) * (1.2 - kitRoughness));
-    const confirmed = mix(floodlit.add(mirrored), vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
+    // Two ruled lines: a bright rail at 1.62 and a low skirting line at 0.34, each a few
+    // centimetres wide with a soft edge. World-space `vWorld.y` is what makes this item 14's
+    // "procedural trim" — no UVs are consulted, so the kit's atlas never fights it.
+    const railBand = 1 - smoothstep(0.045, 0.075, abs(vWorld.y - 1.62));
+    const skirtBand = 1 - smoothstep(0.03, 0.055, abs(vWorld.y - 0.34));
+    const trim = vec3(0.9, 1.9, 2.4).scale((railBand + skirtBand * 0.55) * uTrimStrength);
+    const confirmed = mix(floodlit.add(mirrored).add(trim), vec3(1.7, 1.8, 1.9), clamp(vParams.y, 0, 1));
     // One fog range for the arena, matching the sun above: same reason, same guard. 17..34 is the
     // ship shader's original range. The tighter floor ranges faded the ground while ships at the
     // same distance were still crisp, which is what made near and far disagree about depth.
