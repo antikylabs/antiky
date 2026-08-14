@@ -3,6 +3,8 @@ import { createProgram, type BroMetalProgram, type BroMetalTexture, type Geometr
 import arenaGlowShader from './shaders/arena-glow.shader.gen.ts';
 import arenaSurfaceShader from './shaders/arena-surface.shader.gen.ts';
 import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
+import arenaRibbonShader from './shaders/arena-ribbon.shader.gen.ts';
+import arenaRippleShader from './shaders/arena-ripple.shader.gen.ts';
 
 export type Vec3 = readonly [number, number, number];
 export type SurfaceBatch = ReturnType<typeof createSurfaceBatch>;
@@ -254,6 +256,128 @@ export function createGlowBatch(
     frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
       program.uniforms.uViewProj!.set(viewProjection);
       program.uniforms.uCameraPosition!.set(cameraPosition);
+      program.uniforms.uTime!.set(time);
+    },
+    dispose(): void {
+      program.dispose();
+    },
+  });
+}
+
+/**
+ * Ribbon trail segments — item 16. One instance per segment; the projection writes consecutive
+ * segments that share endpoints, so a projectile's trail is one continuous tapered stroke rather
+ * than a chain of sprites.
+ */
+export function createRibbonBatch(
+  renderer: Renderer,
+  capacity: number,
+  billboard: BroMetalTexture,
+  programFactory: BatchProgramFactory = (target) => createProgram(target, arenaRibbonShader, { blend: 'additive' }),
+) {
+  const program = programFactory(renderer);
+  program.uniforms.uBillboard!.set(billboard);
+  try {
+    // x runs 0..1 along the segment, y -1..1 across it.
+    program.attributes.aPosition!.set(new Float32Array([0, -1, 0, 1, -1, 0, 1, 1, 0, 0, 1, 0]));
+    program.setIndices(new Uint16Array([0, 1, 2, 0, 2, 3]));
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
+  const starts = new Float32Array(capacity * 3);
+  const ends = new Float32Array(capacity * 3);
+  const colors = new Float32Array(capacity * 3);
+  const params = new Float32Array(capacity * 3);
+
+  return Object.freeze({
+    program,
+    clear(): void {
+      params.fill(0);
+    },
+    setValues(
+      index: number,
+      startX: number, startY: number, startZ: number,
+      endX: number, endY: number, endZ: number,
+      colorR: number, colorG: number, colorB: number,
+      width: number, intensity: number, fade: number,
+    ): void {
+      const at = index * 3;
+      starts[at] = startX;
+      starts[at + 1] = startY;
+      starts[at + 2] = startZ;
+      ends[at] = endX;
+      ends[at + 1] = endY;
+      ends[at + 2] = endZ;
+      colors[at] = colorR;
+      colors[at + 1] = colorG;
+      colors[at + 2] = colorB;
+      params[at] = width;
+      params[at + 1] = intensity;
+      params[at + 2] = fade;
+    },
+    upload(): void {
+      program.instanceAttributes.iStart!.set(starts);
+      program.instanceAttributes.iEnd!.set(ends);
+      program.instanceAttributes.iColor!.set(colors);
+      program.instanceAttributes.iParams!.set(params);
+    },
+    frame(viewProjection: Float32Array, cameraPosition: Float32Array, time: number): void {
+      program.uniforms.uViewProj!.set(viewProjection);
+      program.uniforms.uCameraPosition!.set(cameraPosition);
+      program.uniforms.uTime!.set(time);
+    },
+    dispose(): void {
+      program.dispose();
+    },
+  });
+}
+
+/**
+ * Distortion ripples — item 17's source pass. These draw into the quarter-resolution offset
+ * target, not the scene: red and green carry the screen-space nudge the post pass applies to its
+ * scene lookup.
+ */
+export function createRippleBatch(
+  renderer: Renderer,
+  capacity: number,
+  programFactory: BatchProgramFactory = (target) => createProgram(target, arenaRippleShader, { blend: 'additive' }),
+) {
+  const program = programFactory(renderer);
+  try {
+    program.attributes.aPosition!.set(new Float32Array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0]));
+    program.setIndices(new Uint16Array([0, 1, 2, 0, 2, 3]));
+  } catch (cause: unknown) {
+    program.dispose();
+    throw cause;
+  }
+  const offsets = new Float32Array(capacity * 3);
+  const params = new Float32Array(capacity * 3);
+
+  return Object.freeze({
+    program,
+    clear(): void {
+      params.fill(0);
+    },
+    setValues(
+      index: number,
+      offsetX: number, offsetY: number, offsetZ: number,
+      radius: number, strength: number, thickness: number,
+    ): void {
+      const at = index * 3;
+      offsets[at] = offsetX;
+      offsets[at + 1] = offsetY;
+      offsets[at + 2] = offsetZ;
+      params[at] = radius;
+      params[at + 1] = strength;
+      params[at + 2] = thickness;
+    },
+    upload(): void {
+      program.instanceAttributes.iOffset!.set(offsets);
+      program.instanceAttributes.iParams!.set(params);
+    },
+    frame(viewProjection: Float32Array, time: number): void {
+      program.uniforms.uViewProj!.set(viewProjection);
       program.uniforms.uTime!.set(time);
     },
     dispose(): void {

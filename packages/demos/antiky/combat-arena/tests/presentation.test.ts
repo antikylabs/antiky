@@ -126,20 +126,19 @@ test('renderer reporting is derived from its capacities and catalog asset set', 
   // not against a deliberate deletion.
   assert.ok(measurements.catalogInstances >= 80);
   assert.ok(measurements.environmentLayers >= 4);
-  // 23: sixteen, plus one draw each for the two wall-panel batches, minus the deleted cable
+  // 25: sixteen, plus one draw each for the two wall-panel batches, minus the deleted cable
   // batch, plus the planar reflection redrawing the five ship batches and the energy glow through
-  // the deck mirror. Derived from the capacity records rather than typed, so this is the one place
-  // that has to move when the scene gains a pass — and it should move deliberately, which is why it
-  // is a literal and not a computation.
-  assert.equal(measurements.drawCalls, 23);
-  assert.equal(measurements.uploadBytesPerFrame, 15_780);
-  // Raised from 384 on the owner's instruction to replace the stretched room shell with real wall
-  // panels from the kit. Sixteen ring positions — eleven plain, five detailed — is +16 instances.
-  //
-  // The bound is not arbitrary and should not drift: it is the per-frame instance count the demo
-  // commits to, and 384 was exactly where the scene sat before. Anything that raises it should be a
-  // decision someone made, not a number that grew.
-  assert.ok(measurements.instances <= 400, `instances ${measurements.instances} over the 400 budget`);
+  // the deck mirror, plus goal 08's ribbon trails and distortion ripples. Derived from the
+  // capacity records rather than typed, so this is the one place that has to move when the scene
+  // gains a pass — and it should move deliberately, which is why it is a literal and not a
+  // computation.
+  assert.equal(measurements.drawCalls, 25);
+  assert.equal(measurements.uploadBytesPerFrame, 17_964);
+  // Raised from 384 on the owner's instruction (wall panels), then from 400 by goal 08's required
+  // items 16 and 17: 72 ribbon segments and 7 distortion ripples, less the 28 deleted cables and
+  // the 30 glow slots the ribbon freed. The arithmetic is the point — the bound moves only when a
+  // goal's required scope moves it, and the summary flags every move to the owner.
+  assert.ok(measurements.instances <= 420, `instances ${measurements.instances} over the 420 budget`);
   assert.ok(measurements.uploadBytesPerFrame <= 24 * 1_024);
   assert.ok(measurements.uploadBytesPerFrame > 0);
   assert.equal(measurements.particlePacking, 'active-prefix');

@@ -274,6 +274,8 @@ test('combat projection rolls back surface and glow batches if ring construction
       if (glowCount === 2) throw new Error('injected ring failure');
       return batch('glow') as never;
     },
+    createRibbonBatch: () => batch('ribbon') as never,
+    createRippleBatch: () => batch('ripple') as never,
   }), /injected ring failure/);
   assert.deepEqual(disposed, ['glow', 'shadow', 'surface']);
 });
@@ -294,6 +296,8 @@ test('steady combat projection uses numeric instance writers instead of tuple wr
     createSurfaceBatch: () => batch() as never,
     createContactShadowBatch: () => batch() as never,
     createGlowBatch: () => batch() as never,
+    createRibbonBatch: () => batch() as never,
+    createRippleBatch: () => batch() as never,
     createHudBatch: () => ({ clear() {}, set() {}, upload() {}, draw() {}, dispose() {} }) as never,
   });
   projection.project(createCombatSimulation(() => {}).read());
@@ -319,6 +323,7 @@ test('renderer destroys its context and catalog if the next top-level resource f
     createBloomTarget: () => { throw new Error('must not reach the bloom chain'); },
     createBloomProgram: () => { throw new Error('must not reach the bloom chain'); },
     createReflectionTarget: () => { throw new Error('must not reach the reflection target'); },
+    createDistortionTarget: () => { throw new Error('must not reach the distortion target'); },
   }), /injected fleet failure/);
   assert.deepEqual(disposed, ['catalog', 'renderer']);
 });
@@ -354,6 +359,7 @@ test('renderer rolls back ships and catalog when top-level projection creation f
     createBloomTarget: () => { throw new Error('must not reach the bloom chain'); },
     createBloomProgram: () => { throw new Error('must not reach the bloom chain'); },
     createReflectionTarget: () => { throw new Error('must not reach the reflection target'); },
+    createDistortionTarget: () => { throw new Error('must not reach the distortion target'); },
   }), /injected projection failure/);
   assert.deepEqual(disposed, ['ships', 'catalog', 'renderer']);
 });
@@ -381,7 +387,7 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => ({
       project() {}, frame() {}, drawSurface() {}, drawSurfaceDepth() {},
-      drawShadows() {}, drawEnergy() {}, drawHud() {},
+      drawShadows() {}, drawEnergy() {}, drawRipples() {}, drawHud() {},
       surfaceProgram: {} as never, surfaceDepthProgram: {} as never,
       dispose() { disposed.push('projection'); },
     }),
@@ -393,6 +399,7 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
     createBloomTarget: () => { throw new Error('must not reach the bloom chain'); },
     createBloomProgram: () => { throw new Error('must not reach the bloom chain'); },
     createReflectionTarget: () => { throw new Error('must not reach the reflection target'); },
+    createDistortionTarget: () => { throw new Error('must not reach the distortion target'); },
   }), /injected backdrop failure/);
   assert.deepEqual(disposed, ['projection', 'ships', 'catalog', 'renderer']);
 });
@@ -400,7 +407,7 @@ test('renderer rolls back projection, ships, and catalog when backdrop creation 
 test('renderer disposal is idempotent and destroys every GPU owner once', async () => {
   const disposals = {
     catalog: 0, ships: 0, projection: 0, backdrop: 0, renderer: 0, sceneTarget: 0, postProgram: 0,
-    shadowPass: 0, bloomTarget: 0, bloomProgram: 0, reflectionTarget: 0,
+    shadowPass: 0, bloomTarget: 0, bloomProgram: 0, reflectionTarget: 0, distortionTarget: 0,
   };
   const batch = {
     // `setValues` too: `initializeArenaCatalog` lays out the wall ring through it before the
@@ -432,7 +439,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
     loadVfxBillboard: async () => ({ dispose() {} }),
     createProjection: () => ({
       project() {}, frame() {}, drawSurface() {}, drawSurfaceDepth() {},
-      drawShadows() {}, drawEnergy() {}, drawHud() {},
+      drawShadows() {}, drawEnergy() {}, drawRipples() {}, drawHud() {},
       surfaceProgram: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }) } as never,
       surfaceDepthProgram: { uniforms: new Proxy({}, { get: () => ({ set() {} }) }) } as never,
       dispose() { disposals.projection += 1; },
@@ -474,6 +481,10 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
       width: 1, height: 1, texture: {}, depth: true,
       dispose() { disposals.reflectionTarget += 1; },
     }) as never,
+    createDistortionTarget: () => ({
+      width: 1, height: 1, texture: {}, depth: false,
+      dispose() { disposals.distortionTarget += 1; },
+    }) as never,
   });
   // One frame first, because the scene target is built lazily on the first draw. Disposing without
   // rendering would leave nothing to dispose and the assertion below would be checking that a
@@ -483,7 +494,7 @@ test('renderer disposal is idempotent and destroys every GPU owner once', async 
   combatRenderer.dispose();
   assert.deepEqual(disposals, {
     catalog: 1, ships: 1, projection: 1, backdrop: 1, renderer: 1, sceneTarget: 1, postProgram: 1,
-    shadowPass: 1, bloomTarget: 2, bloomProgram: 2, reflectionTarget: 1,
+    shadowPass: 1, bloomTarget: 2, bloomProgram: 2, reflectionTarget: 1, distortionTarget: 1,
   });
 });
 

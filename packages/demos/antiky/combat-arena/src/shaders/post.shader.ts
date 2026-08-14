@@ -81,6 +81,13 @@ export default shader({
     uBloom: 'sampler2D',
     uBloomStrength: 'float',
     uExposure: 'float',
+    /**
+     * Item 17's offset map: red and green carry a screen-space nudge written by the ripple pass.
+     * Warping the *lookup* rather than the scene is the whole trick — an impact bends the already
+     * rendered image outward for a few frames, which reads as a pressure wave without a single
+     * extra scene draw. Zero offset samples straight, so an empty map is exactly a no-op.
+     */
+    uDistortion: 'sampler2D',
   },
   varyings: { vUv: 'vec2' },
 
@@ -91,9 +98,13 @@ export default shader({
     return vec4(aPosition.x, aPosition.y, 0, 1);
   },
 
-  fragment({ uScene, uBloom, uBloomStrength, uExposure }, { vUv }) {
-    const scene = texture(uScene, vUv).xyz;
-    // Added in linear light, before exposure, because that is the space it was extracted in.
+  fragment({ uScene, uBloom, uBloomStrength, uExposure, uDistortion }, { vUv }) {
+    const ripple = texture(uDistortion, vUv).xy;
+    const warped = vec2(vUv.x + ripple.x, vUv.y + ripple.y);
+    const scene = texture(uScene, warped).xyz;
+    // Added in linear light, before exposure, because that is the space it was extracted in. The
+    // bloom deliberately samples the unwarped position: a halo that ripples with the impact reads
+    // as the light itself wobbling rather than the air.
     const withBloom = scene.add(texture(uBloom, vUv).xyz.scale(uBloomStrength));
     const exposed = withBloom.scale(uExposure);
 

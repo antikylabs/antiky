@@ -17,18 +17,32 @@ import { COMBAT_PALETTE, enemyVisualProfile } from './combat-visuals.ts';
 import {
   createContactShadowBatch,
   createGlowBatch,
+  createRibbonBatch,
+  createRippleBatch,
   createSurfaceBatch,
   horizontalGeometry,
   type GlowBatch,
   type Vec3,
 } from './render-batches.ts';
 import { disposeResources, registerResource, rollbackResources } from './resource-lifetime.ts';
-import { ENEMY_COUNT, type CombatEnemy, type CombatSnapshot, type EnemyRole } from './combat-state.ts';
+import { ENEMY_COUNT, PROJECTILE_CAPACITY, type CombatEnemy, type CombatSnapshot, type EnemyRole } from './combat-state.ts';
 
 // Was 68 when the seven contact shadows lived here too. They now have their own unlit batch.
 const SURFACE_CAPACITY = 61;
 const CONTACT_SHADOW_CAPACITY = ENEMY_COUNT + 1;
-const GLOW_CAPACITY = 173;
+const GLOW_CAPACITY = 143;
+/**
+ * Item 16's trails: each projectile keeps a short CPU position history and draws the segments
+ * between consecutive samples as one continuous tapered ribbon.
+ *
+ * The glow capacity above dropped from 173 to 143 in the same change: the ribbon replaced the
+ * per-projectile midpoint trail sprite, which freed the 36 slots that sprite was sized for (with
+ * six of them re-spent on the floodlight fixtures).
+ */
+const RIBBON_SAMPLES = 3;
+const RIBBON_CAPACITY = PROJECTILE_CAPACITY * (RIBBON_SAMPLES - 1);
+/** Item 17's impact rings: one slot per enemy plus one for the player. */
+const RIPPLE_CAPACITY = ENEMY_COUNT + 1;
 const RING_CAPACITY = 40;
 const GAUGE_START = ARENA_STRUCTURE_INSTANCES;
 const SIGNAL_GAUGE_START = GAUGE_START + 28;
@@ -50,6 +64,8 @@ export const COMBAT_PROJECTION_CAPACITY = Object.freeze({
   shadows: CONTACT_SHADOW_CAPACITY,
   glows: GLOW_CAPACITY,
   rings: RING_CAPACITY,
+  ribbons: RIBBON_CAPACITY,
+  ripples: RIPPLE_CAPACITY,
 });
 
 /**
@@ -61,6 +77,8 @@ export const COMBAT_PROJECTION_INSTANCE_FLOATS = Object.freeze({
   shadows: 9,
   glows: 12,
   rings: 12,
+  ribbons: 12,
+  ripples: 6,
 });
 
 function roleColor(role: EnemyRole): Vec3 {
@@ -191,8 +209,9 @@ function setCombatGlows(glows: GlowBatch, state: CombatSnapshot): void {
     const color = projectile.kind === 'hostile' ? COMBAT_PALETTE.warm : projectile.kind === 'deflected' ? COMBAT_PALETTE.white : COMBAT_PALETTE.cyan;
     const rotation = -Math.atan2(projectile.vx, projectile.vz);
     const trail = projectile.kind === 'deflected' ? 0.78 : projectile.kind === 'hostile' ? 0.52 : 0.34;
+    // The head keeps its glow; the old midpoint trail sprite is gone — item 16's ribbon draws the
+    // trail as one stroke instead of beads.
     index = pushGlow(glows, index, projectile.x, 0.48, projectile.z, 0.095, 0.095, projectile.kind === 'hostile' ? 0.3 : 0.22, color, projectile.kind === 'hostile' ? 0.9 : 0.7, rotation, projectile.life);
-    index = pushGlow(glows, index, (projectile.x + projectile.previousX) * 0.5, 0.42, (projectile.z + projectile.previousZ) * 0.5, 0.035, 0.025, trail, color, 0.42, rotation, projectile.life + 0.7);
   }
 
   for (let enemyIndex = 0; enemyIndex < state.enemies.length; enemyIndex += 1) {
@@ -301,6 +320,8 @@ export type CombatProjection = Readonly<{
   drawSurfaceDepth(): void;
   drawShadows(): void;
   drawEnergy(): void;
+  /** Item 17's distortion sources, drawn into the offset target the post pass reads. */
+  drawRipples(): void;
   /** Flat, screen-space, and last: the HUD sits over everything the scene drew. */
   drawHud(): void;
   dispose(): void;
@@ -309,6 +330,8 @@ export type CombatProjection = Readonly<{
 export type CombatProjectionDependencies = Readonly<{
   createSurfaceBatch: typeof createSurfaceBatch;
   createGlowBatch: typeof createGlowBatch;
+  createRibbonBatch: typeof createRibbonBatch;
+  createRippleBatch: typeof createRippleBatch;
   createHudBatch: typeof createHudBatch;
   createContactShadowBatch: typeof createContactShadowBatch;
 }>;
@@ -316,6 +339,8 @@ export type CombatProjectionDependencies = Readonly<{
 const COMBAT_PROJECTION_DEPENDENCIES: CombatProjectionDependencies = Object.freeze({
   createSurfaceBatch,
   createGlowBatch,
+  createRibbonBatch,
+  createRippleBatch,
   createHudBatch,
   createContactShadowBatch,
 });
@@ -339,6 +364,8 @@ export function createCombatProjection(
   let glows: ReturnType<typeof createGlowBatch>;
   let hud: HudBatch;
   let rings: ReturnType<typeof createGlowBatch>;
+  let ribbons: ReturnType<typeof createRibbonBatch>;
+  let ripples: ReturnType<typeof createRippleBatch>;
   try {
     // The depth factory is what makes these props cast. Without it `surfaceDepthProgram` is
     // undefined and the renderer's shadow binding throws during construction, which surfaces as a
@@ -354,10 +381,90 @@ export function createCombatProjection(
     hud = registerResource(resources, dependencies.createHudBatch(renderer));
     glows = registerResource(resources, dependencies.createGlowBatch(renderer, createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), GLOW_CAPACITY, billboard));
     rings = registerResource(resources, dependencies.createGlowBatch(renderer, horizontalGeometry(createTorus({ radius: 1, tube: 0.035, radialSegments: 10, tubularSegments: 96 })), RING_CAPACITY, billboard));
+    ribbons = registerResource(resources, dependencies.createRibbonBatch(renderer, RIBBON_CAPACITY, billboard));
+    ripples = registerResource(resources, dependencies.createRippleBatch(renderer, RIPPLE_CAPACITY));
   } catch (cause: unknown) {
     rollbackResources(resources);
     throw cause;
   }
+
+  // The trail history: RIBBON_SAMPLES recent positions per projectile slot. Slots are pooled and
+  // stable, so indexing by slot is safe. The head sample refreshes every projection; when a slot
+  // is dead its history collapses onto the current point so the next shot starts clean instead of
+  // ribboning from wherever the last one died.
+  const trailHistory = new Float32Array(PROJECTILE_CAPACITY * RIBBON_SAMPLES * 3);
+  const trailAlive = new Uint8Array(PROJECTILE_CAPACITY);
+
+  const setTrails = (state: CombatSnapshot): void => {
+    ribbons.clear();
+    let segment = 0;
+    for (let slot = 0; slot < state.projectiles.length; slot += 1) {
+      const projectile = state.projectiles[slot]!;
+      const base = slot * RIBBON_SAMPLES * 3;
+      const y = 0.46;
+      if (projectile.life <= 0) {
+        trailAlive[slot] = 0;
+        continue;
+      }
+      if (trailAlive[slot] === 0) {
+        for (let sample = 0; sample < RIBBON_SAMPLES; sample += 1) {
+          trailHistory[base + sample * 3] = projectile.x;
+          trailHistory[base + sample * 3 + 1] = y;
+          trailHistory[base + sample * 3 + 2] = projectile.z;
+        }
+        trailAlive[slot] = 1;
+      }
+      // Shift the tail down and write the head.
+      for (let sample = RIBBON_SAMPLES - 1; sample > 0; sample -= 1) {
+        trailHistory[base + sample * 3] = trailHistory[base + (sample - 1) * 3]!;
+        trailHistory[base + sample * 3 + 1] = trailHistory[base + (sample - 1) * 3 + 1]!;
+        trailHistory[base + sample * 3 + 2] = trailHistory[base + (sample - 1) * 3 + 2]!;
+      }
+      trailHistory[base] = projectile.x;
+      trailHistory[base + 1] = y;
+      trailHistory[base + 2] = projectile.z;
+
+      const color = projectile.kind === 'hostile' ? COMBAT_PALETTE.warm : projectile.kind === 'deflected' ? COMBAT_PALETTE.white : COMBAT_PALETTE.cyan;
+      const intensity = Math.min(1, projectile.life * 3) * (projectile.kind === 'hostile' ? 1.35 : 1.1);
+      for (let sample = 0; sample < RIBBON_SAMPLES - 1; sample += 1) {
+        // Older segments fade and thin: the stroke tapers into its own past.
+        const fade = 1 - sample / (RIBBON_SAMPLES - 1);
+        ribbons.setValues(
+          segment,
+          trailHistory[base + (sample + 1) * 3]!, trailHistory[base + (sample + 1) * 3 + 1]!, trailHistory[base + (sample + 1) * 3 + 2]!,
+          trailHistory[base + sample * 3]!, trailHistory[base + sample * 3 + 1]!, trailHistory[base + sample * 3 + 2]!,
+          color[0], color[1], color[2],
+          0.085 * (0.4 + fade * 0.6), intensity, fade,
+        );
+        segment += 1;
+      }
+    }
+    ribbons.upload();
+  };
+
+  const setRipples = (state: CombatSnapshot): void => {
+    ripples.clear();
+    // An enemy's `hit` runs 1 -> 0 after an impact; the ring expands as it fades, which is the
+    // pressure wave leaving the point of impact. Strength is screen-space UV units, so 0.012 is a
+    // little over one percent of the frame at the ring's crest.
+    for (let enemyIndex = 0; enemyIndex < state.enemies.length; enemyIndex += 1) {
+      const enemy = state.enemies[enemyIndex]!;
+      const hit = enemy.active ? Math.max(0, Math.min(1, enemy.hit)) : 0;
+      const expansion = 1 - hit;
+      ripples.setValues(
+        enemyIndex,
+        enemy.x, -0.1, enemy.z,
+        0.35 + expansion * 1.6, hit * hit * 0.014, 0.5,
+      );
+    }
+    const impact = Math.max(0, Math.min(1, state.impact));
+    ripples.setValues(
+      ENEMY_COUNT,
+      state.player.x, -0.1, state.player.z,
+      0.3 + (1 - impact) * 1.3, impact * impact * 0.016, 0.45,
+    );
+    ripples.upload();
+  };
 
   return Object.freeze({
     project(state): void {
@@ -380,12 +487,16 @@ export function createCombatProjection(
       shadows.upload();
       rings.upload();
       setCombatGlows(glows, state);
+      setTrails(state);
+      setRipples(state);
     },
     frame(viewProjection, cameraPosition, time): void {
       surfaces.frame(viewProjection, cameraPosition, time);
       shadows.frame(viewProjection);
       rings.frame(viewProjection, cameraPosition, time);
       glows.frame(viewProjection, cameraPosition, time);
+      ribbons.frame(viewProjection, cameraPosition, time);
+      ripples.frame(viewProjection, time);
     },
     surfaceProgram: surfaces.program,
     surfaceDepthProgram: surfaces.depthProgram!,
@@ -402,7 +513,12 @@ export function createCombatProjection(
     },
     drawEnergy(): void {
       rings.program.draw();
+      ribbons.program.draw();
       glows.program.draw();
+    },
+    /** The distortion sources, drawn into the offset target the post pass reads. */
+    drawRipples(): void {
+      ripples.program.draw();
     },
     drawHud(): void {
       hud.draw();

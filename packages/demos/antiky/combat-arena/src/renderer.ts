@@ -174,6 +174,8 @@ export type CombatRendererDependencies = Readonly<{
   createBloomProgram(renderer: Renderer, pass: 'extract' | 'blur'): BroMetalProgram;
   /** The planar-reflection target the deck samples: half resolution, rebuilt on canvas resize. */
   createReflectionTarget(renderer: Renderer, width: number, height: number): RenderTarget;
+  /** Item 17's offset map: quarter resolution, written by the ripple pass, read by the post pass. */
+  createDistortionTarget(renderer: Renderer, width: number, height: number): RenderTarget;
 }>;
 
 const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
@@ -213,6 +215,12 @@ const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
     depth: true,
     // The deck perturbs its lookup by the plating grain, so neighbouring fragments read between
     // texels — goal 02's render-target-filtering patch again.
+    filter: 'linear',
+  }),
+  createDistortionTarget: (renderer, width, height) => createRenderTarget(renderer, {
+    width,
+    height,
+    // An offset field is low frequency by construction, and the post pass reads between texels.
     filter: 'linear',
   }),
 });
@@ -270,6 +278,16 @@ export async function createCombatRendererWith(
         reflectionTarget = dependencies.createReflectionTarget(renderer, width, height);
       }
       return reflectionTarget;
+    };
+    let distortionTarget: RenderTarget | undefined;
+    const ensureDistortionTarget = (): RenderTarget => {
+      const width = Math.max(1, Math.floor(renderer.canvas.width / 4));
+      const height = Math.max(1, Math.floor(renderer.canvas.height / 4));
+      if (!distortionTarget || distortionTarget.width !== width || distortionTarget.height !== height) {
+        distortionTarget?.dispose();
+        distortionTarget = dependencies.createDistortionTarget(renderer, width, height);
+      }
+      return distortionTarget;
     };
     // What `render` measured this frame, for `draw` to mirror. The mirror pass cannot recompute
     // these — the camera projector consumes pointer state — so they are captured at projection
@@ -385,6 +403,10 @@ export async function createCombatRendererWith(
       floorUniforms.uReflectionStrength!.set(DECK_REFLECTION_STRENGTH);
       const scene = ensureSceneTarget();
       renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
+      // The impact ripples, into their own quarter-res offset map. Cleared to zero, which is
+      // "nothing distorts anywhere" — the post pass adds the map to its scene lookup unconditionally.
+      const distortion = ensureDistortionTarget();
+      renderer.drawTo(distortion, () => projection.drawRipples(), { clear: [0, 0, 0, 0] });
       // Extract, blur across, blur down. Three quarter-resolution passes over an already-drawn
       // scene, so nothing here touches the geometry again.
       const [bloomA, bloomB] = ensureBloomTargets();
@@ -399,6 +421,7 @@ export async function createCombatRendererWith(
       renderer.drawTo(bloomA, () => bloomBlur.draw());
 
       postProgram.uniforms.uScene!.set(scene.texture);
+      postProgram.uniforms.uDistortion!.set(distortion.texture);
       postProgram.uniforms.uBloom!.set(bloomA.texture);
       postProgram.uniforms.uBloomStrength!.set(COMBAT_BLOOM.strength);
       postProgram.uniforms.uExposure!.set(COMBAT_EXPOSURE);
@@ -437,6 +460,7 @@ export async function createCombatRendererWith(
           // whichever one happened to exist at construction.
           sceneTarget?.dispose();
           reflectionTarget?.dispose();
+          distortionTarget?.dispose();
           bloomTargets?.[0].dispose();
           bloomTargets?.[1].dispose();
           disposeResources(disposables);
