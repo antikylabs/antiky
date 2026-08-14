@@ -91,17 +91,16 @@ export const DEMO_PROBES = Object.freeze({
   }),
   'combat-arena': Object.freeze({
     /**
-     * Arena deck in the shadow of a wall, and deck in full key light 186 px away.
+     * Arena deck in the sun's shadow, and deck in full key light 204 px away on the same panel
+     * band. Re-derived by goal 08 after the camera commit moved every screen coordinate; the old
+     * pair (822,138 / 1006,110) measured wall and sky in the new frame.
      *
-     * A pair, for the same reason as `point-light-expo`'s: one probe alone only says how bright a
-     * patch of deck is. With the shadow term switched off the two measure within 3% of each other,
-     * so the gap below is the shadow arriving rather than two different patches of floor.
-     *
-     * 186 px rather than the goal's 200: the arena is an enclosed box, and no pair at exactly 200
-     * had both probes on comparable deck. Stated rather than rounded up.
+     * Verified against a control capture with the shadow term forced off: the shadow box darkens
+     * 31% when the term is on while the lit box moves under 2%, so the gap below is the shadow
+     * arriving rather than two different patches of floor.
      */
-    sunShadow: Object.freeze({ x: 822, y: 138, width: 32, height: 32 }),
-    sunLit: Object.freeze({ x: 1006, y: 110, width: 32, height: 32 }),
+    sunShadow: Object.freeze({ x: 656, y: 378, width: 32, height: 32 }),
+    sunLit: Object.freeze({ x: 860, y: 378, width: 32, height: 32 }),
   }),
 });
 
