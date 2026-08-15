@@ -20,8 +20,8 @@ import {
   buildTownWorld,
   samplePath,
   type TownWalker,
-} from './art/town';
-import { cameraRelativeMovement } from './camera-relative-movement';
+} from './art/town.ts';
+import { cameraRelativeMovement } from './camera-relative-movement.ts';
 import {
   bindTownAwningGeometry,
   bindTownPropGeometry,
@@ -31,17 +31,17 @@ import {
   createTownPropGeometry,
   uploadTownAwningBatch,
   uploadTownPropBatch,
-} from './art/town-dynamic-props';
+} from './art/town-dynamic-props.ts';
 import {
   bindTownFoliageGeometry,
   buildTownFoliageRenderData,
   uploadTownFoliageInstances,
   type TownFoliageGeometry,
   type TownFoliageInstances,
-} from './art/town-foliage';
+} from './art/town-foliage.ts';
 import { TOWN_SKY } from './ambient.ts';
 import { DETAIL_NORMAL_TEXTURE } from './detail-normal.ts';
-import { buildTownWaterFeatures } from './art/town-water-features';
+import { buildTownWaterFeatures } from './art/town-water-features.ts';
 import {
   SpriteBatch,
   billboardBasis,
@@ -50,36 +50,36 @@ import {
   loadSpriteSilhouetteAtlas,
   spriteAtlas,
   spriteInstanceData,
-} from './art/sprite-batch';
+} from './art/sprite-batch.ts';
 import {
   CharacterQueryWorld,
   KinematicCharacterMotor,
   StaticCharacterWorldAdapter,
   createHeightFieldGroundSampler,
-} from './physics';
+} from './physics/index.ts';
 import {
   commitTownSlotZeroPower,
   readTownSlotZeroPower,
   type TownDemoOptions,
-} from './practical-light-input';
+} from './practical-light-input.ts';
 import type {
   TownGameSetup,
   TownRuntime,
   TownRuntimeFactory,
-} from './town-runtime';
-import postShader from './shaders/town-post.shader.gen';
-import awningShadowShader from './shaders/town-awning-shadow.shader.gen';
-import awningShader from './shaders/town-awning.shader.gen';
-import foliageShadowShader from './shaders/town-foliage-shadow.shader.gen';
-import foliageShader from './shaders/town-foliage.shader.gen';
-import propShadowShader from './shaders/town-prop-shadow.shader.gen';
-import propShader from './shaders/town-prop.shader.gen';
-import shadowShader from './shaders/town-shadow.shader.gen';
-import spriteShadowShader from './shaders/town-sprite-shadow.shader.gen';
-import spriteShader from './shaders/town-sprite.shader.gen';
-import voxelShader from './shaders/town-voxel.shader.gen';
-import waterFeaturesShader from './shaders/town-water-features.shader.gen';
-import waterShader from './shaders/town-water.shader.gen';
+} from './town-runtime.ts';
+import postShader from './shaders/town-post.shader.gen.ts';
+import awningShadowShader from './shaders/town-awning-shadow.shader.gen.ts';
+import awningShader from './shaders/town-awning.shader.gen.ts';
+import foliageShadowShader from './shaders/town-foliage-shadow.shader.gen.ts';
+import foliageShader from './shaders/town-foliage.shader.gen.ts';
+import propShadowShader from './shaders/town-prop-shadow.shader.gen.ts';
+import propShader from './shaders/town-prop.shader.gen.ts';
+import shadowShader from './shaders/town-shadow.shader.gen.ts';
+import spriteShadowShader from './shaders/town-sprite-shadow.shader.gen.ts';
+import spriteShader from './shaders/town-sprite.shader.gen.ts';
+import voxelShader from './shaders/town-voxel.shader.gen.ts';
+import waterFeaturesShader from './shaders/town-water-features.shader.gen.ts';
+import waterShader from './shaders/town-water.shader.gen.ts';
 
 // Camera-right/front golden-hour key. The previous vector was almost pure
 // screen-right, placing the visible plaza and façades behind their own skyline
