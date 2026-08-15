@@ -31,6 +31,12 @@
       "skillPath": "skills/copywriting/SKILL.md",
       "computedHash": "c8d63b1f77be04fd54981720de65697988810bd28331097dbe0aaf3e166d638a"
     },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "ceb127db3ff5732ac4f0fd97eeb26bedf212acfa0a80a1143618dde0eb3f096f"
+    },
     "marketing-council": {
       "source": "coreyhaines31/marketingskills",
       "sourceType": "github",
