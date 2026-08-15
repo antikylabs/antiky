@@ -6,9 +6,8 @@ import test from 'node:test';
 
 import sharp from 'sharp';
 
+import { ATLAS_DEEPEST_MIP, ATLAS_GUTTER_PIXELS, checkAtlasLayout } from '../scripts/asset-fidelity-policy.mjs';
 import {
-  DEEPEST_MIP,
-  GUTTER_PIXELS,
   buildLayers,
   buildPaddedAtlas,
   measureBorderError,
@@ -49,7 +48,7 @@ function syntheticSource() {
 const isRed = (r, g, b) => r >= 180 && g === 0 && b === 0;
 const isCyan = (r, g, b) => r === 0 && g >= 180 && b >= 180;
 
-async function synthetic({ inner = { width: TILE_SIZE, height: TILE_SIZE }, gutter = GUTTER_PIXELS } = {}) {
+async function synthetic({ inner = { width: TILE_SIZE, height: TILE_SIZE }, gutter = ATLAS_GUTTER_PIXELS } = {}) {
   const directory = await mkdtemp(path.join(tmpdir(), 'atlas-slicer-'));
   await mkdir(path.join(directory, 'source'), { recursive: true });
   await writeFile(path.join(directory, 'source', 'synthetic.png'), await syntheticSource().toBuffer());
@@ -98,8 +97,8 @@ test('the gutter holds the tile edge extruded, not black and not transparent', a
   const written = await buildPaddedAtlas(descriptorPath);
   const image = await readRaw(path.join(directory, written.image));
 
-  assert.equal(written.gutter, GUTTER_PIXELS);
-  assert.equal(image.width, (TILE_SIZE + GUTTER_PIXELS * 2) * 2);
+  assert.equal(written.gutter, ATLAS_GUTTER_PIXELS);
+  assert.equal(image.width, (TILE_SIZE + ATLAS_GUTTER_PIXELS * 2) * 2);
 
   // Walk the red tile's left gutter. Every pixel must equal the tile's own leftmost column at that
   // row — the definition of extrusion — and therefore must not be black or transparent.
@@ -107,7 +106,7 @@ test('the gutter holds the tile edge extruded, not black and not transparent', a
   let checked = 0;
   for (let y = rect.top; y < rect.top + rect.height; y += 7) {
     const edge = image.at(rect.left, y);
-    for (let x = rect.left - GUTTER_PIXELS; x < rect.left; x += 1) {
+    for (let x = rect.left - ATLAS_GUTTER_PIXELS; x < rect.left; x += 1) {
       const gutterPixel = image.at(x, y);
       assert.deepEqual(gutterPixel, edge, `gutter at ${x},${y} is not the extruded edge`);
       assert.ok(isRed(...gutterPixel), `gutter at ${x},${y} is not the red tile's own colour`);
@@ -118,7 +117,7 @@ test('the gutter holds the tile edge extruded, not black and not transparent', a
   assert.ok(checked > 500, `expected to walk the whole gutter, walked ${checked} pixels`);
 
   // The corner is the hardest case for an extrusion written as four separate edge passes.
-  const corner = image.at(rect.left - GUTTER_PIXELS, rect.top - GUTTER_PIXELS);
+  const corner = image.at(rect.left - ATLAS_GUTTER_PIXELS, rect.top - ATLAS_GUTTER_PIXELS);
   assert.deepEqual(corner, image.at(rect.left, rect.top));
 });
 
@@ -150,7 +149,7 @@ test('a mip-4 average taken across the tile boundary stays inside one tile', asy
   // tile's own edge repeated.
   const span = 16;
   let straddled = 0;
-  for (let offset = -span; offset <= GUTTER_PIXELS - span; offset += 4) {
+  for (let offset = -span; offset <= ATLAS_GUTTER_PIXELS - span; offset += 4) {
     const left = red.left + red.width + offset;
     let r = 0;
     let g = 0;
@@ -195,19 +194,61 @@ test('padding drives the measured border error to nothing', async () => {
 });
 
 test('the measurement is not satisfied by alignment alone', async () => {
-  // A grid whose cells are already multiples of 64 keeps every mip texel inside its own tile, so a
-  // measurement that only looks inside the tile scores it clean while its edges still sit directly
-  // against the neighbour. That is the trap the vegetation atlas was already in, and it is why the
-  // compared band reaches one texel past the rectangle.
-  const { directory, descriptorPath } = await synthetic({ gutter: 0 });
-  const written = await buildPaddedAtlas(descriptorPath);
-  assert.equal(written.grid.cellWidth, TILE_SIZE);
-  const aligned = await measureBorderError({
-    imagePath: path.join(directory, written.image),
-    rects: pixelRects(written),
-    mip: 4,
+  // The fixture's tiles are 64x64 at x = 0 and x = 64, so every mip texel down to level 6 already
+  // sits wholly inside one tile — the grid is perfectly aligned and there is still no gutter. A
+  // measurement that only looked inside the rectangle would call this clean, which is the trap the
+  // vegetation atlas was already in: 384x512 cells, aligned, tiles hard against each other.
+  const { directory } = await synthetic();
+  const rects = pixelRects({
+    size: { width: TILE_SIZE * 2, height: TILE_SIZE },
+    grid: { columns: 2, rows: 1 },
+    tiles: ['red', 'cyan'],
   });
-  assert.ok(aligned.mean > 10, `a 64-aligned but unguttered atlas must still measure badly, got ${aligned.mean}`);
+  assert.deepEqual(rects.map((rect) => rect.left), [0, 64]);
+  for (const mip of [2, 4, 6]) {
+    const aligned = await measureBorderError({
+      imagePath: path.join(directory, 'source', 'synthetic.png'),
+      rects,
+      mip,
+    });
+    assert.ok(aligned.mean > 10, `an aligned but unguttered atlas measured ${aligned.mean} at mip ${mip}`);
+  }
+});
+
+test('the shared policy rejects an atlas that arrives without a usable gutter', () => {
+  // The same shape as the attribute and material-map rules: it takes the facts, so the packer can
+  // check before it writes and a test can check what shipped.
+  const sound = {
+    image: 'sound.png',
+    gutter: ATLAS_GUTTER_PIXELS,
+    size: { width: 1024, height: 512 },
+    tiles: ['a'],
+    tileRects: [{ name: 'a', x: 64 / 1024, y: 64 / 512, width: 384 / 1024, height: 384 / 512 }],
+  };
+  assert.deepEqual(checkAtlasLayout(sound), []);
+
+  assert.match(
+    checkAtlasLayout({ ...sound, gutter: undefined }).join('\n'),
+    /no gutter declared/,
+  );
+  // A gutter thinner than the mip it must survive is the same defect with a number attached.
+  assert.match(
+    checkAtlasLayout({ ...sound, gutter: 8 }).join('\n'),
+    new RegExp(`thinner than the ${ATLAS_GUTTER_PIXELS}px`),
+  );
+  assert.match(
+    checkAtlasLayout({ ...sound, tileRects: [] }).join('\n'),
+    /publishes no per-tile rectangles/,
+  );
+  // A rectangle nudged off the mip grid puts gutter pixels into a texel the shader samples, which no
+  // gutter width repairs.
+  assert.match(
+    checkAtlasLayout({
+      ...sound,
+      tileRects: [{ ...sound.tileRects[0], x: 70 / 1024 }],
+    }).join('\n'),
+    new RegExp(`whole mip-${ATLAS_DEEPEST_MIP} texels`),
+  );
 });
 
 test('layers mode writes one image per tile with no cross-tile pixels', async () => {
@@ -235,6 +276,7 @@ test('layers mode writes one image per tile with no cross-tile pixels', async ()
 
 test('the tool run twice on one input writes the same bytes', async () => {
   const { directory, descriptorPath } = await synthetic();
+  const pristine = await readFile(descriptorPath);
   const first = await buildPaddedAtlas(descriptorPath);
   const firstImage = await readFile(path.join(directory, first.image));
   const firstDescriptor = await readFile(descriptorPath);
@@ -243,6 +285,13 @@ test('the tool run twice on one input writes the same bytes', async () => {
   // tool always slices the authored source, so a rebuild cannot drift by consuming its own output.
   const second = await buildPaddedAtlas(descriptorPath);
   assert.deepEqual(await readFile(path.join(directory, second.image)), firstImage);
+  assert.deepEqual(await readFile(descriptorPath), firstDescriptor);
+
+  // And a run from the untouched recipe must land on the same bytes as a rebuild. Without this, a
+  // field the tool writes could inherit its position from whatever was already in the file, so the
+  // first build of an atlas and every later one would disagree by key order alone.
+  await writeFile(descriptorPath, pristine);
+  await buildPaddedAtlas(descriptorPath);
   assert.deepEqual(await readFile(descriptorPath), firstDescriptor);
   assert.equal(second.imageSha256, first.imageSha256);
   assert.equal(second.source.sha256, first.source.sha256);
@@ -264,8 +313,8 @@ test('a resampled tile lands on the requested power-of-two size', async () => {
   assert.deepEqual(written.grid, {
     columns: 2,
     rows: 1,
-    cellWidth: 128 + GUTTER_PIXELS * 2,
-    cellHeight: 128 + GUTTER_PIXELS * 2,
+    cellWidth: 128 + ATLAS_GUTTER_PIXELS * 2,
+    cellHeight: 128 + ATLAS_GUTTER_PIXELS * 2,
   });
   const image = await readRaw(path.join(directory, written.image));
   assert.equal(image.width, written.size.width);
@@ -278,13 +327,13 @@ test('a resampled tile lands on the requested power-of-two size', async () => {
 test('every cell edge lands on a whole texel at every mip down to the derived level', async () => {
   const { descriptorPath } = await synthetic();
   const written = await buildPaddedAtlas(descriptorPath);
-  const texel = 2 ** DEEPEST_MIP;
+  const texel = 2 ** ATLAS_DEEPEST_MIP;
   for (const value of [
     written.size.width, written.size.height,
     written.grid.cellWidth, written.grid.cellHeight,
     written.inner.width, written.inner.height,
     written.gutter,
   ]) {
-    assert.equal(value % texel, 0, `${value} is not a whole number of mip-${DEEPEST_MIP} texels`);
+    assert.equal(value % texel, 0, `${value} is not a whole number of mip-${ATLAS_DEEPEST_MIP} texels`);
   }
 });

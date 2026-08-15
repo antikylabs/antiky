@@ -39,6 +39,85 @@ export const PALETTE_MAX_WIDTH = 16;
 export const PRESERVED_MATERIAL_MAPS = Object.freeze(['normalTexture']);
 
 /**
+ * The deepest mip level a town surface selects, and therefore the level every atlas must survive.
+ *
+ * Derived rather than chosen, in `build-texture-atlas.mjs`: at the far plane a town material covers
+ * about 37.7 texels per pixel, which is mip 5.24, rounded up to 6.
+ */
+export const ATLAS_DEEPEST_MIP = 6;
+
+/**
+ * The narrowest gutter an atlas may declare.
+ *
+ * A texel at mip N averages 2^N source texels, so a tile stays clean to mip N only if it carries at
+ * least 2^N pixels of its own material outside the rectangle anything samples.
+ */
+export const ATLAS_GUTTER_PIXELS = 2 ** ATLAS_DEEPEST_MIP;
+
+/**
+ * Check one atlas layout against the policy.
+ *
+ * The atlas equivalent of `checkFidelity`: it takes the descriptor rather than the image, so the
+ * packer can assert before it writes and a test can assert against what shipped. Pixels are somebody
+ * else's job — `pipeline-invariants.test.mjs` opens the image and proves the gutter is really
+ * extruded, because a `"gutter": 64` typed into the JSON is a claim and not a measurement.
+ *
+ * The rule exists because the defect it prevents is invisible until it ships. An atlas with no
+ * gutter looks correct at full size and grows a wrong-coloured fringe on every distant surface, and
+ * the three atlases already in the tree arrived that way with nothing to stop them.
+ */
+export function checkAtlasLayout(descriptor, name = descriptor.image ?? 'atlas') {
+  const failures = [];
+  const texel = 2 ** ATLAS_DEEPEST_MIP;
+
+  if (descriptor.gutter === undefined) {
+    failures.push(
+      `${name}: no gutter declared. Pack it with build-texture-atlas.mjs, which surrounds every tile `
+      + `with ${ATLAS_GUTTER_PIXELS}px of its own extruded edge.`,
+    );
+  } else if (descriptor.gutter < ATLAS_GUTTER_PIXELS) {
+    failures.push(
+      `${name}: a ${descriptor.gutter}px gutter is thinner than the ${ATLAS_GUTTER_PIXELS}px a mip-`
+      + `${ATLAS_DEEPEST_MIP} average reaches, so a distant surface still samples the tile beside it`,
+    );
+  }
+
+  if (!Array.isArray(descriptor.tileRects) || descriptor.tileRects.length === 0) {
+    failures.push(
+      `${name}: publishes no per-tile rectangles, so a shader must recompute the grid and cannot `
+      + 'inset. Nothing then keeps the shader and the image agreeing.',
+    );
+    return failures;
+  }
+
+  if (descriptor.tiles && descriptor.tiles.length !== descriptor.tileRects.length) {
+    failures.push(
+      `${name}: ${descriptor.tiles.length} tiles but ${descriptor.tileRects.length} rectangles`,
+    );
+  }
+
+  const { width, height } = descriptor.size ?? {};
+  if (!width || !height) {
+    failures.push(`${name}: no image size, so a normalised rectangle cannot be checked against pixels`);
+    return failures;
+  }
+
+  // Alignment is the other half of the fix. A rectangle whose pixel edges fall inside a mip texel
+  // puts part of the gutter into a texel the shader samples, and no gutter width repairs that.
+  for (const rect of descriptor.tileRects) {
+    const pixels = [rect.x * width, rect.width * width, rect.y * height, rect.height * height];
+    if (pixels.some((value) => Math.abs(value - Math.round(value)) > 1e-6 || Math.round(value) % texel !== 0)) {
+      failures.push(
+        `${name}/${rect.name}: its rectangle is [${pixels.map((v) => v.toFixed(2)).join(', ')}]px, `
+        + `which does not land on whole mip-${ATLAS_DEEPEST_MIP} texels of ${texel}px`,
+      );
+    }
+  }
+
+  return failures;
+}
+
+/**
  * Check one packed model against the policy.
  *
  * Takes the facts rather than a file, so a script can call it before writing anything and a test can

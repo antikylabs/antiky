@@ -21,6 +21,13 @@ import {
   samplePath,
   type TownWalker,
 } from './art/town.ts';
+import {
+  TOWN_MATERIAL_ATLAS,
+  atlasGridUniform,
+  authoredTexel,
+  tileIndex,
+  tileRect,
+} from './art/atlas-layout.ts';
 import { cameraRelativeMovement } from './camera-relative-movement.ts';
 import {
   bindTownAwningGeometry,
@@ -91,7 +98,19 @@ const GROUND_COLOR = [0.56, 0.27, 0.15] as const;
 const FOG_COLOR = [0.46, 0.36, 0.36] as const;
 const SHADOW_CLEAR = [1, 1, 1, 1] as const;
 const SCENE_CLEAR = [0.04, 0.05, 0.08, FAR_DEPTH] as const;
-const MATERIAL_ATLAS_TEXEL = [1 / 1254, 1 / 1254] as const;
+/**
+ * Everything the material atlas's packed layout tells the two shaders that sample it.
+ *
+ * Read from the JSON the packer wrote, not restated here. `atlasGridUniform` also checks the grid
+ * arithmetic `town-voxel` performs against every rectangle in that JSON, so repacking the atlas
+ * either moves the samples with it or fails loudly at construction.
+ */
+const MATERIAL_ATLAS_GRID = atlasGridUniform(TOWN_MATERIAL_ATLAS);
+const MATERIAL_AUTHORED_TEXEL = authoredTexel(TOWN_MATERIAL_ATLAS);
+const MARKET_CLOTH_RECT = tileRect(
+  TOWN_MATERIAL_ATLAS,
+  tileIndex(TOWN_MATERIAL_ATLAS, 'red-cream-market-cloth'),
+);
 const HERO_SPEED = 3.8;
 const STANDEE_THICKNESS = 0.1;
 const NPC_COUNT = 8;
@@ -481,7 +500,8 @@ async function createTownRuntime(
             uSunIntensity: 2.65,
             ...HEMISPHERE,
             uEmissiveIntensity: mode === 'ambient' ? 2.7 : 2,
-            uMaterialAtlasTexel: MATERIAL_ATLAS_TEXEL,
+            uAtlasGrid: MATERIAL_ATLAS_GRID,
+            uAuthoredTexel: MATERIAL_AUTHORED_TEXEL,
             ...skyUniforms(),
             ...LAND_FOG,
             uShadowTexel: shadowTexel,
@@ -553,7 +573,7 @@ async function createTownRuntime(
           uploadTownAwningBatch(program, awningBatch);
           applyStatics(program, {
             uLightViewProj: lightViewProjection,
-            uMaterialAtlasTexel: MATERIAL_ATLAS_TEXEL,
+            uClothRect: MARKET_CLOTH_RECT,
             uLightDir: LIGHT_DIR,
             uSunColor: SUN_COLOR,
             uSunIntensity: 2.65,
@@ -650,7 +670,8 @@ async function createTownRuntime(
             ...skyUniforms(),
             ...HEMISPHERE,
             uEmissiveIntensity: 0,
-            uMaterialAtlasTexel: MATERIAL_ATLAS_TEXEL,
+            uAtlasGrid: MATERIAL_ATLAS_GRID,
+            uAuthoredTexel: MATERIAL_AUTHORED_TEXEL,
             ...LAND_FOG,
             ...SOFT_SHADOW,
             ...practicalPositions(8),

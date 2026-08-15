@@ -71,11 +71,9 @@ import path from 'node:path';
 
 import sharp from 'sharp';
 
-/** The mip level a town surface reaches at its far plane, and so the level the gutter is sized for. */
-export const DEEPEST_MIP = 6;
-
-/** 2^DEEPEST_MIP. Every cell, gutter and inner rectangle is a whole number of these. */
-export const GUTTER_PIXELS = 2 ** DEEPEST_MIP;
+// The gutter width and the mip level it is derived from live in the shared asset policy, so the
+// packer that writes an atlas and the rule that rejects one cannot drift apart.
+import { ATLAS_DEEPEST_MIP, checkAtlasLayout } from './asset-fidelity-policy.mjs';
 
 /** PNG settings pinned so two runs on the same input produce the same bytes. */
 const PNG = Object.freeze({ compressionLevel: 9, effort: 10, palette: false });
@@ -117,6 +115,7 @@ export function sourceTileRect(size, grid, index) {
 export async function sliceTiles(sourcePath, grid, tileNames, inner) {
   const source = sharp(sourcePath);
   const { width, height, hasAlpha } = await source.metadata();
+  const cell = { width: width / grid.columns, height: height / grid.rows };
   const tiles = [];
   for (let index = 0; index < tileNames.length; index += 1) {
     const rect = sourceTileRect({ width, height }, grid, index);
@@ -137,7 +136,31 @@ export async function sliceTiles(sourcePath, grid, tileNames, inner) {
       channels: info.channels,
     });
   }
-  return { tiles, hasAlpha: Boolean(hasAlpha) };
+  return { tiles, hasAlpha: Boolean(hasAlpha), size: { width, height }, cell };
+}
+
+/**
+ * What the tool read, so a consumer can tell how far the art was resampled.
+ *
+ * `cell` is the authored tile size and may be fractional — 1254 / 4 = 313.5 is exactly the defect
+ * this tool exists to remove. A shader that steps a fixed distance across the material needs the
+ * ratio between this and `inner` to keep stepping the same distance after the resample.
+ */
+function sourceReceipt(descriptor, sliced, bytes) {
+  // The fields below are rebuilt every run. Anything else the block carries — the vegetation
+  // atlas records how it was keyed for transparency — is authored provenance and is kept as is.
+  const owned = new Set(['image', 'grid', 'size', 'cell', 'sha256']);
+  const authored = Object.fromEntries(
+    Object.entries(descriptor.source).filter(([key]) => !owned.has(key)),
+  );
+  return {
+    image: descriptor.source.image,
+    grid: descriptor.source.grid,
+    size: sliced.size,
+    cell: { width: sliced.cell.width, height: sliced.cell.height },
+    ...authored,
+    sha256: sha256(bytes),
+  };
 }
 
 /**
@@ -207,7 +230,8 @@ export async function buildPaddedAtlas(descriptorPath) {
   const descriptor = JSON.parse(await readFile(descriptorPath, 'utf8'));
   const plan = buildPlan(descriptor, descriptorPath);
   const sourceBytes = await readFile(plan.sourcePath);
-  const { tiles, hasAlpha } = await sliceTiles(plan.sourcePath, plan.grid, plan.tileNames, plan.inner);
+  const sliced = await sliceTiles(plan.sourcePath, plan.grid, plan.tileNames, plan.inner);
+  const { tiles, hasAlpha } = sliced;
 
   const channels = hasAlpha ? 4 : 3;
   const cellWidth = plan.inner.width + plan.gutter * 2;
@@ -251,8 +275,12 @@ export async function buildPaddedAtlas(descriptorPath) {
     inner: { width: plan.inner.width, height: plan.inner.height },
     uvOrigin: 'bottom-left',
     tileRects,
-    source: { ...descriptor.source, sha256: sha256(sourceBytes) },
+    source: sourceReceipt(descriptor, sliced, sourceBytes),
   };
+  // The packer holds itself to the same rule that rejects an atlas arriving from anywhere else.
+  const failures = checkAtlasLayout(written, imageName);
+  if (failures.length > 0) throw new Error(failures.join('\n'));
+
   await writeFile(descriptorPath, serialiseDescriptor(written));
   return written;
 }
@@ -268,7 +296,8 @@ export async function buildLayers(descriptorPath, outDirectory) {
   const descriptor = JSON.parse(await readFile(descriptorPath, 'utf8'));
   const plan = buildPlan(descriptor, descriptorPath);
   const sourceBytes = await readFile(plan.sourcePath);
-  const { tiles, hasAlpha } = await sliceTiles(plan.sourcePath, plan.grid, plan.tileNames, plan.inner);
+  const sliced = await sliceTiles(plan.sourcePath, plan.grid, plan.tileNames, plan.inner);
+  const { tiles, hasAlpha } = sliced;
   await mkdir(outDirectory, { recursive: true });
 
   const layers = [];
@@ -287,7 +316,7 @@ export async function buildLayers(descriptorPath, outDirectory) {
     layerSize: { width: plan.inner.width, height: plan.inner.height },
     channels: hasAlpha ? 4 : 3,
     layers,
-    source: { ...descriptor.source, sha256: sha256(sourceBytes) },
+    source: sourceReceipt(descriptor, sliced, sourceBytes),
   };
   const manifestPath = path.join(outDirectory, 'layers.json');
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
@@ -352,7 +381,7 @@ function isolatedBlock(image, blockX, blockY, size, rect) {
  * in them. That measures palette overlap: extruding each tile's edge made it *worse*, and the only
  * thing that scored zero was flattening every tile to one colour.
  */
-export async function measureBorderError({ imagePath, rects, mip = DEEPEST_MIP }) {
+export async function measureBorderError({ imagePath, rects, mip = ATLAS_DEEPEST_MIP }) {
   const image = await readRaw(imagePath);
   const size = 2 ** mip;
   let sum = 0;
@@ -452,7 +481,7 @@ async function main(argv) {
   }
 
   const mipIndex = argv.indexOf('--mip');
-  const mip = mipIndex === -1 ? DEEPEST_MIP : Number(argv[mipIndex + 1]);
+  const mip = mipIndex === -1 ? ATLAS_DEEPEST_MIP : Number(argv[mipIndex + 1]);
   const descriptor = JSON.parse(await readFile(descriptorPath, 'utf8'));
   const imagePath = path.join(path.dirname(descriptorPath), descriptor.image);
   const result = await measureBorderError({ imagePath, rects: pixelRects(descriptor), mip });

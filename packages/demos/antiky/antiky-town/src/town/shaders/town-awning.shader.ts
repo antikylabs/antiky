@@ -75,7 +75,8 @@ export default shader({
     uTime: 'float',
     uMaterialAtlas: 'sampler2D',
     uDetailNormal: 'sampler2D',
-    uMaterialAtlasTexel: 'vec2',
+    /** The market-cloth tile's inner rectangle as (u, v, width, height), from the atlas JSON. */
+    uClothRect: 'vec4',
     uLightDir: 'vec3',
     uSunColor: 'vec3',
     uSunIntensity: 'float',
@@ -160,7 +161,7 @@ export default shader({
       uCamPos,
       uMaterialAtlas,
       uDetailNormal,
-      uMaterialAtlasTexel,
+      uClothRect,
       uLightDir,
       uSunColor,
       uSunIntensity,
@@ -180,14 +181,14 @@ export default shader({
     },
     { vUv, vWorld, vNormal, vStyle, vSide, vDepth },
   ) {
-    const localInset = vec2(uMaterialAtlasTexel.x * 4, uMaterialAtlasTexel.y * 3);
-    const farInset = vec2(1, 1).sub(localInset);
-    const clothUv = vec2(
-      mix(localInset.x, farInset.x, vUv.x),
-      mix(localInset.y, farInset.y, vUv.y),
+    // The market cloth's own rectangle, handed in from the atlas layout rather than worked out from
+    // a grid written down here. The one-texel inset this replaces existed to keep the sample off the
+    // tile boundary; the packed atlas surrounds every tile with 64 pixels of its own extruded edge,
+    // so the rectangle can be addressed edge to edge.
+    const atlasUv = vec2(
+      uClothRect.x + vUv.x * uClothRect.z,
+      uClothRect.y + vUv.y * uClothRect.w,
     );
-    // Tile eight is the bottom-left red/cream market cloth.
-    const atlasUv = vec2(clothUv.x / 4, clothUv.y / 3);
     const clothSample = decodeSrgb(texture(uMaterialAtlas, atlasUv).xyz);
     const sampleLuma = max(dot(clothSample, vec3(0.299, 0.587, 0.114)), 0.04);
     const stripe = smoothstep(0.045, 0.19, clothSample.x - max(clothSample.y, clothSample.z));

@@ -124,7 +124,10 @@ export default shader({
     uEmissiveIntensity: 'float',
     uMaterialAtlas: 'sampler2D',
     uDetailNormal: 'sampler2D',
-    uMaterialAtlasTexel: 'vec2',
+    /** (columns, rows, gutter in u, gutter in v) for the material atlas, from its JSON layout. */
+    uAtlasGrid: 'vec4',
+    /** One authored texel in packed-atlas UV, so the two height taps keep their authored spacing. */
+    uAuthoredTexel: 'vec2',
     uPracticalCount: 'float',
     uPracticalStrength: 'float',
     uPracticalPosInvRangeSq0: 'vec4',
@@ -203,7 +206,8 @@ export default shader({
       uEmissiveIntensity,
       uMaterialAtlas,
       uDetailNormal,
-      uMaterialAtlasTexel,
+      uAtlasGrid,
+      uAuthoredTexel,
       uPracticalCount,
       uPracticalStrength,
       uPracticalPosInvRangeSq0,
@@ -310,11 +314,11 @@ export default shader({
     if (abs(normal.x) > 0.5) surfaceUv = vec2(vWorld.z, vWorld.y);
     if (abs(normal.z) > 0.5) surfaceUv = vec2(vWorld.x, vWorld.y);
     const tiledUv = surfaceUv.scale(0.82);
-    const wrappedUv = vec2(fract(tiledUv.x), fract(tiledUv.y));
-    surfaceUv = vec2(
-      mix(0.02, 0.98, wrappedUv.x),
-      mix(0.02, 0.98, wrappedUv.y),
-    );
+    // The whole tile, edge to edge. This used to shrink to [0.02, 0.98] to keep the sample off the
+    // tile boundary, back when the boundary was the neighbouring tile. The atlas now carries 64
+    // pixels of its own extruded edge outside every rectangle, so there is nothing to hide from and
+    // the outer 4% of each material is visible again.
+    surfaceUv = vec2(fract(tiledUv.x), fract(tiledUv.y));
 
     const materialId = floor(vMaterialId + 0.5);
     let atlasTile = 0;
@@ -341,11 +345,22 @@ export default shader({
     else if (materialId < 48) atlasTile = 4;
     else if (materialId < 49) atlasTile = 3;
 
-    const atlasColumn = mod(atlasTile, 4);
-    const atlasRow = floor(atlasTile / 4);
+    // The tile's inner rectangle, worked out from the layout the packer published rather than from a
+    // grid written down here. `uAtlasGrid` carries (columns, rows, gutter in u, gutter in v), and
+    // `atlas-layout.ts` checks this arithmetic against every rectangle in the atlas JSON before the
+    // uniform is bound — so repacking the atlas moves the sample with it instead of leaving the
+    // shader addressing pixels that have moved.
+    //
+    // Rows count from the top of the image and v counts from the bottom, hence `rows - 1 - row`.
+    const atlasColumns = uAtlasGrid.x;
+    const atlasRows = uAtlasGrid.y;
+    const cellU = 1 / atlasColumns;
+    const cellV = 1 / atlasRows;
+    const atlasColumn = mod(atlasTile, atlasColumns);
+    const atlasRow = floor(atlasTile / atlasColumns);
     const atlasUv = vec2(
-      (atlasColumn + surfaceUv.x) / 4,
-      (2 - atlasRow + surfaceUv.y) / 3,
+      atlasColumn * cellU + uAtlasGrid.z + surfaceUv.x * (cellU - uAtlasGrid.z * 2),
+      (atlasRows - 1 - atlasRow) * cellV + uAtlasGrid.w + surfaceUv.y * (cellV - uAtlasGrid.w * 2),
     );
     const materialSample = decodeSrgb(texture(uMaterialAtlas, atlasUv).xyz);
     const sampleLuma = max(dot(materialSample, vec3(0.299, 0.587, 0.114)), 0.08);
@@ -360,8 +375,8 @@ export default shader({
     // Two forward height taps turn atlas value into a restrained world-space
     // micro-normal. This is real grazing-light depth on stone, timber, plaster,
     // shingles, and ground rather than a baked highlight in the albedo.
-    const sampleU = texture(uMaterialAtlas, atlasUv.add(vec2(uMaterialAtlasTexel.x * 2, 0))).xyz;
-    const sampleV = texture(uMaterialAtlas, atlasUv.add(vec2(0, uMaterialAtlasTexel.y * 2))).xyz;
+    const sampleU = texture(uMaterialAtlas, atlasUv.add(vec2(uAuthoredTexel.x * 2, 0))).xyz;
+    const sampleV = texture(uMaterialAtlas, atlasUv.add(vec2(0, uAuthoredTexel.y * 2))).xyz;
     const heightU = dot(sampleU, vec3(0.299, 0.587, 0.114));
     const heightV = dot(sampleV, vec3(0.299, 0.587, 0.114));
     let tangentU = vec3(1, 0, 0);

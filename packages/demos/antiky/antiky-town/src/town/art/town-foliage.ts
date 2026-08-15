@@ -1,13 +1,7 @@
 import type { PipelineProgram } from '@antiky/framework/render-driver';
 
+import { TOWN_VEGETATION_ATLAS, tileRect } from './atlas-layout.ts';
 import type { TownVegetation, TownVegetationType } from './town.ts';
-
-export const TOWN_VEGETATION_ATLAS_GRID = {
-  columns: 4,
-  rows: 2,
-  tileWidth: 384,
-  tileHeight: 512,
-} as const;
 
 /** Static local-space geometry consumed by both visible and shadow programs. */
 export type TownFoliageGeometry = {
@@ -390,24 +384,13 @@ function pushRawInstance(
 ): void {
   target.centers.push(input.x, input.y, input.z);
   target.shapes.push(input.width, input.height, input.yaw, input.phase);
-  target.uvRects.push(...atlasRect(input.tile));
+  // The tile's published inner rectangle, edge to edge. The 1.5-texel inset this replaces kept the
+  // sample off a tile boundary that the neighbouring plant sat directly against; the packed atlas
+  // puts 64 pixels of extruded edge there instead.
+  target.uvRects.push(...tileRect(TOWN_VEGETATION_ATLAS, input.tile));
   target.tints.push(input.tint[0], input.tint[1], input.tint[2]);
   target.kinds.push(input.kind);
   target.winds.push(input.bend, input.bottomAnchorMix);
-}
-
-function atlasRect(tile: number): readonly [number, number, number, number] {
-  const { columns, rows, tileWidth, tileHeight } = TOWN_VEGETATION_ATLAS_GRID;
-  const column = tile % columns;
-  const row = Math.floor(tile / columns);
-  const insetU = 1.5 / (columns * tileWidth);
-  const insetV = 1.5 / (rows * tileHeight);
-  return [
-    column / columns + insetU,
-    1 - (row + 1) / rows + insetV,
-    1 / columns - insetU * 2,
-    1 / rows - insetV * 2,
-  ];
 }
 
 function createMutableInstances(): MutableInstances {

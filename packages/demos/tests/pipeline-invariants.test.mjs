@@ -555,8 +555,15 @@ test('every mipped atlas declares a gutter and is sampled inside it', async () =
   // the atlas carries a gutter wide enough for the mip levels it reaches, and the shader samples
   // inside it. Goal 14 delivers both; goal 15 removes the need for either by giving each tile its
   // own array layer.
+  //
+  // Both halves are checked here. `checkAtlasLayout` holds the descriptor to the shared policy — a
+  // gutter at least as wide as a mip-6 texel, per-tile rectangles, and rectangles that land on whole
+  // texels — and then the image itself is opened and every inner-rectangle edge is compared against
+  // the gutter pixel beside it.
+  const { checkAtlasLayout } = await import('../scripts/asset-fidelity-policy.mjs');
   const failures = [];
   let atlases = 0;
+  let extrusionsProbed = 0;
   for (const demo of demos) {
     let entries;
     try {
@@ -572,55 +579,60 @@ test('every mipped atlas declares a gutter and is sampled inside it', async () =
       atlases += 1;
 
       const relative = path.relative(demosRoot, descriptorPath);
-      // A declared gutter is checked against the image, not taken on trust. `"gutter": 8` typed into
-      // the JSON with the pixels untouched turned this test green while every tile still sat
-      // edge-to-edge — a self-certifying field is not a measurement.
-      if (descriptor.gutter !== undefined && descriptor.gutter > 0) {
-        const image = path.join(path.dirname(descriptorPath), descriptor.image);
-        const sharp = (await import('sharp')).default;
-        const { data, info } = await sharp(image).raw().toBuffer({ resolveWithObject: true });
-        const tileWidth = info.width / descriptor.grid.columns;
-        const at = (x, y) => {
-          const index = (y * info.width + x) * info.channels;
-          return [data[index], data[index + 1], data[index + 2]];
-        };
-        // Inside a real gutter the edge colour is extruded, so pixels either side of a tile boundary
-        // belong to their own tile and barely differ from their inward neighbour.
-        let abrupt = 0;
-        let sampled = 0;
-        for (let column = 1; column < descriptor.grid.columns; column += 1) {
-          const boundary = Math.round(column * tileWidth);
-          for (let y = 20; y < info.height - 20; y += 8) {
-            const inside = at(boundary - 1, y);
-            const outside = at(boundary, y);
-            const change = Math.max(...[0, 1, 2].map((c) => Math.abs(inside[c] - outside[c])));
+      // What the atlas *claims*, held to the shared policy so one rule covers the packer, this test,
+      // and any atlas that arrives later from somewhere else.
+      failures.push(...checkAtlasLayout(descriptor, relative));
+      if (checkAtlasLayout(descriptor, relative).length > 0) continue;
+
+      // And what the atlas *is*. A declared gutter is checked against the image, never taken on
+      // trust: `"gutter": 8` typed into the JSON with the pixels untouched turned an earlier version
+      // of this test green while every tile still sat edge-to-edge.
+      //
+      // The probe is at the inner rectangle's edge, not at the cell boundary. Two neighbouring cells
+      // meet gutter-to-gutter and are *supposed* to change abruptly there — they hold different
+      // materials. What must be continuous is the step from the last pixel a shader samples to the
+      // first pixel of the gutter beside it, because the gutter is that pixel extruded. Probing the
+      // cell boundary instead measured the one place the layout does not promise anything, and
+      // reported 82% abrupt on a correctly packed atlas.
+      const image = path.join(path.dirname(descriptorPath), descriptor.image);
+      const sharp = (await import('sharp')).default;
+      const { data, info } = await sharp(image).raw().toBuffer({ resolveWithObject: true });
+      const at = (x, y) => {
+        const index = (y * info.width + x) * info.channels;
+        return [data[index], data[index + 1], data[index + 2], info.channels === 4 ? data[index + 3] : 255];
+      };
+      let abrupt = 0;
+      let sampled = 0;
+      for (const rect of descriptor.tileRects) {
+        const left = Math.round(rect.x * info.width);
+        const width = Math.round(rect.width * info.width);
+        const top = Math.round((1 - rect.y - rect.height) * info.height);
+        const height = Math.round(rect.height * info.height);
+        for (let y = top; y < top + height; y += 8) {
+          for (const [inside, outside] of [[left, left - 1], [left + width - 1, left + width]]) {
+            const change = Math.max(...[0, 1, 2, 3].map((c) => Math.abs(at(inside, y)[c] - at(outside, y)[c])));
             sampled += 1;
-            if (change > 24) abrupt += 1;
+            if (change > 0) abrupt += 1;
           }
         }
-        if (sampled > 0 && abrupt / sampled > 0.1) {
-          failures.push(
-            `${relative}: declares a gutter of ${descriptor.gutter} but `
-            + `${((abrupt / sampled) * 100).toFixed(0)}% of its tile boundaries change abruptly — `
-            + 'the pixels were never extruded.',
-          );
+        for (let x = left; x < left + width; x += 8) {
+          for (const [inside, outside] of [[top, top - 1], [top + height - 1, top + height]]) {
+            const change = Math.max(...[0, 1, 2, 3].map((c) => Math.abs(at(x, inside)[c] - at(x, outside)[c])));
+            sampled += 1;
+            if (change > 0) abrupt += 1;
+          }
         }
       }
-      if (descriptor.gutter === undefined) {
+      extrusionsProbed += sampled;
+      if (abrupt > 0) {
         failures.push(
-          `${relative}: no gutter declared. Its ${descriptor.grid.columns}x${descriptor.grid.rows} `
-          + `grid over ${descriptor.size.width}px gives ${descriptor.size.width / descriptor.grid.columns}px `
-          + 'tiles, and a mip average at a tile edge reads the tile beside it.',
-        );
-      }
-      if (descriptor.tiles !== undefined && descriptor.tileRects === undefined) {
-        failures.push(
-          `${relative}: tiles are addressed by grid position, so a shader must recompute the layout `
-          + 'and cannot inset. Publish per-tile rectangles instead.',
+          `${relative}: declares a gutter of ${descriptor.gutter} but ${abrupt} of ${sampled} `
+          + 'inner-rectangle edges differ from the pixel outside them — the edge was never extruded.',
         );
       }
     }
   }
+  assert.ok(extrusionsProbed > 1000, `expected to walk every tile edge, walked ${extrusionsProbed}`);
   assert.ok(atlases >= 3, `expected to find the demo atlases, found ${atlases}`);
   assert.deepEqual(
     failures,

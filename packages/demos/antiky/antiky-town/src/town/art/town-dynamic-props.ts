@@ -1,5 +1,6 @@
 import type { PipelineProgram } from '@antiky/framework/render-driver';
 
+import { TOWN_PROP_ATLAS, tileRect } from './atlas-layout.ts';
 import type { TownAwning, TownAwningStyle, TownSpriteProp, TownSpritePropType } from './town.ts';
 
 export const TOWN_AWNING_STYLE_INDEX = {
@@ -19,10 +20,6 @@ export const TOWN_PROP_TILE_BY_TYPE = {
   crate: 7,
 } as const satisfies Record<TownSpritePropType, number>;
 
-export const TOWN_PROP_ATLAS_COLUMNS = 4;
-export const TOWN_PROP_ATLAS_ROWS = 2;
-export const TOWN_PROP_ATLAS_CELL_WIDTH = 418;
-export const TOWN_PROP_ATLAS_CELL_HEIGHT = 470;
 export const TOWN_PROP_CARD_HEIGHT_SCALE = 1.35;
 
 export type TownAwningGeometry = {
@@ -238,13 +235,9 @@ export function buildTownPropBatch(props: readonly TownSpriteProp[]): TownPropBa
   const yaws = new Float32Array(props.length);
   const curvatures = new Float32Array(props.length);
   const tiles = new Float32Array(props.length);
-  const du = 1 / TOWN_PROP_ATLAS_COLUMNS;
-  const dv = 1 / TOWN_PROP_ATLAS_ROWS;
-  const atlasWidth = TOWN_PROP_ATLAS_COLUMNS * TOWN_PROP_ATLAS_CELL_WIDTH;
-  const atlasHeight = TOWN_PROP_ATLAS_ROWS * TOWN_PROP_ATLAS_CELL_HEIGHT;
-  const insetU = 0.5 / atlasWidth;
-  const insetV = 0.5 / atlasHeight;
-  const aspect = TOWN_PROP_ATLAS_CELL_WIDTH / TOWN_PROP_ATLAS_CELL_HEIGHT;
+  // A card is exactly as wide as the tile it shows, so its shape follows the packed tile rather
+  // than a cell size copied into this file.
+  const aspect = TOWN_PROP_ATLAS.inner.width / TOWN_PROP_ATLAS.inner.height;
 
   props.forEach((prop, index) => {
     if (
@@ -256,17 +249,13 @@ export function buildTownPropBatch(props: readonly TownSpriteProp[]): TownPropBa
       throw new Error(`Invalid town sprite prop at index ${index}`);
     }
     const tile = TOWN_PROP_TILE_BY_TYPE[prop.type];
-    const column = tile % TOWN_PROP_ATLAS_COLUMNS;
-    const row = Math.floor(tile / TOWN_PROP_ATLAS_COLUMNS);
     const height = prop.scale * TOWN_PROP_CARD_HEIGHT_SCALE;
     centers.set([prop.x, prop.y, prop.z], index * 3);
     sizes.set([height * aspect, height], index * 2);
-    uvRects.set([
-      column * du + insetU,
-      1 - (row + 1) * dv + insetV,
-      du - insetU * 2,
-      dv - insetV * 2,
-    ], index * 4);
+    // The tile's published inner rectangle, edge to edge. The half-texel inset this replaces kept
+    // the sample off a tile boundary that the neighbouring prop sat directly against; the packed
+    // atlas puts 64 pixels of extruded edge there instead.
+    uvRects.set(tileRect(TOWN_PROP_ATLAS, tile), index * 4);
     yaws[index] = prop.yaw;
     curvatures[index] = prop.curvature;
     tiles[index] = tile;

@@ -1,17 +1,24 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "emitMode": "padded",
   "image": "town-prop-atlas-v2.png",
-  "imageSha256": "cc1f9d1c561f333ad44893860917c2971f83ff68bbeca89f5d42981d08b13f57",
+  "imageSha256": "6c17523e51bd25dfb6d8dd617e01266b17f5d79117d8ac77074c21b33238bfa7",
   "size": {
-    "width": 1672,
-    "height": 940
+    "width": 2560,
+    "height": 1408
   },
   "grid": {
     "columns": 4,
     "rows": 2,
-    "cellWidth": 418,
-    "cellHeight": 470
+    "cellWidth": 640,
+    "cellHeight": 704
   },
+  "gutter": 64,
+  "inner": {
+    "width": 512,
+    "height": 576
+  },
+  "uvOrigin": "bottom-left",
   "tiles": [
     "barrel",
     "open-chest",
@@ -22,6 +29,80 @@
     "produce-basket",
     "crate"
   ],
+  "tileRects": [
+    {
+      "name": "barrel",
+      "x": 0.025,
+      "y": 0.545454545,
+      "width": 0.2,
+      "height": 0.409090909
+    },
+    {
+      "name": "open-chest",
+      "x": 0.275,
+      "y": 0.545454545,
+      "width": 0.2,
+      "height": 0.409090909
+    },
+    {
+      "name": "closed-chest",
+      "x": 0.525,
+      "y": 0.545454545,
+      "width": 0.2,
+      "height": 0.409090909
+    },
+    {
+      "name": "open-book",
+      "x": 0.775,
+      "y": 0.545454545,
+      "width": 0.2,
+      "height": 0.409090909
+    },
+    {
+      "name": "book-stack",
+      "x": 0.025,
+      "y": 0.045454545,
+      "width": 0.2,
+      "height": 0.409090909
+    },
+    {
+      "name": "map-kit",
+      "x": 0.275,
+      "y": 0.045454545,
+      "width": 0.2,
+      "height": 0.409090909
+    },
+    {
+      "name": "produce-basket",
+      "x": 0.525,
+      "y": 0.045454545,
+      "width": 0.2,
+      "height": 0.409090909
+    },
+    {
+      "name": "crate",
+      "x": 0.775,
+      "y": 0.045454545,
+      "width": 0.2,
+      "height": 0.409090909
+    }
+  ],
+  "source": {
+    "image": "source/town-prop-atlas-v2.png",
+    "grid": {
+      "columns": 4,
+      "rows": 2
+    },
+    "size": {
+      "width": 1672,
+      "height": 940
+    },
+    "cell": {
+      "width": 418,
+      "height": 470
+    },
+    "sha256": "cc1f9d1c561f333ad44893860917c2971f83ff68bbeca89f5d42981d08b13f57"
+  },
   "usage": "Alpha-tested props mapped to subdivided, curved 2.5D cards with a distinct back surface and scene depth/shadows.",
   "provenance": {
     "generator": "OpenAI built-in image generation",
