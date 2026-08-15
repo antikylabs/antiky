@@ -118,6 +118,72 @@ under `packages/website/PRODUCT.md`'s taxonomy that keeps the render driver a **
 rather than a Current one. The public wording already says exactly that and must not be changed
 until a demo actually renders through it.
 
+## SOLVED — point-light-expo renders through the driver
+
+**Two faults, both fixed.** The demo now captures, the visual budget passes 10/10, the suite is
+88/88, and `rg` finds no BroMetal resource creation in its `src`.
+
+1. **`uTime` bound on a program that does not declare it** — see the section above.
+2. **`uBillboard` bound to a texture *key* instead of a texture.**
+   `createContactShadowBatch`'s `setup` did `program.uniforms.uBillboard.set(billboardTexture as
+   never)`, where `billboardTexture` is the string `'vfx-billboard'`. BroMetal answered *"uniform
+   'uBillboard' (sampler2D) expects a texture created from this WebGPU renderer"*. `setup` runs
+   during pipeline registration, before the driver has loaded any texture, so there was nothing to
+   bind anyway — the frame names it by key, exactly as the floor's five maps do. The `as never` cast
+   is what let it typecheck. Deleting the line was the entire fix.
+
+**Before and after**, against sidecar `b0a7fbae`:
+
+| | before | after | drift |
+|---|---|---|---|
+| mean luminance | 0.128856 | 0.120989 | **2.0/255**, inside the 3/255 budget |
+| p95 | 0.660144 | 0.644686 | |
+| local contrast | 8.7395 | 8.63 | |
+
+### How it was actually found, which matters more than the bug
+
+Twelve hypotheses were eliminated blind across four sessions. What ended it was fixing the
+**diagnosability**, not forming a thirteenth.
+
+`capture_frame` is not external — it is Playwright in
+`packages/cli/src/host/managed-capture-runtime.ts`. It now installs `pageerror`, `console` and
+`requestfailed` handlers that append to the file named by **`ANTIKY_BROWSER_LOG`**, and does nothing
+at all when that variable is unset:
+
+```
+ANTIKY_BROWSER_LOG=/tmp/browser.log npm run demos:shoot -- --demo <slug>
+```
+
+The first instrumented run produced *no output*, and that was the decisive result: the host catches a
+module-entry rejection, so Playwright never sees an uncaught error. Adding one `console.error` in the
+demo's own catch made the message and stack appear immediately.
+
+**The lesson worth carrying:** when a harness reports only a timeout, fix the harness before forming
+another hypothesis. Four sessions of elimination cost far more than the twenty minutes the
+instrumentation took.
+
+## antiky-town — the remaining half of outcome 5
+
+Not started. The surface, measured rather than estimated:
+
+| File | Lines | BroMetal resource calls |
+|---|---|---|
+| `src/town/index.ts` | 1204 | 22 |
+| `src/town/detail-normal.ts` | 28 | 1 |
+| `src/game.ts`, `src/town/town-runtime.ts`, `src/town/art/sprite-batch.ts` | 537 | 0 |
+
+`index.ts` is the whole renderer in one file, so the migration is the same all-or-nothing shape
+`point-light-expo` had: it cannot be split across sessions in a compiling state.
+
+**The recipe is now proven, and the two traps are known.** Both faults above are cases of `setup`
+doing something it must not — binding a texture that does not exist yet, or a uniform the program
+never declared. When converting `index.ts`, `setup` may bind **geometry only**; every texture and
+every per-frame uniform belongs in the frame data, named by key. Port
+`tests/renderer-construction.test.ts` first: it builds the whole renderer headlessly against a stub
+that rejects undeclared binding names and empty data, and it would have caught the `uTime` fault
+without a browser. The `uBillboard` fault needs a real renderer, because only a real one can tell a
+texture from a string — so run one `ANTIKY_BROWSER_LOG` capture before assuming success.
+
 ## The migration, fully written and not yet running
 
 `wip/goal-12-driver-migration` now holds the **whole** `point-light-expo` migration. Every file is
