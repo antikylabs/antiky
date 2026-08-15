@@ -24,6 +24,7 @@ supports rather than accepting them.
 | Skipping a draw entirely | `instances: 0` |
 | Registering a pipeline after construction, for assets loaded at runtime | `registerPipeline()` |
 | Owning textures: fetched from a URL, or built from a canvas or bitmap | `TextureSource`, `loadTextures()` |
+| Fixed-size targets, for a shadow map whose resolution is a quality setting | `TargetRequest.size` |
 | Releasing every program and target it made | `dispose()` |
 
 ## The five demos that cannot use it at all, and why that is not the driver's fault
@@ -102,6 +103,11 @@ capability question.
 
 **Nothing on this list now blocks a migration.** Items 2 and 3 are recorded so the next person does
 not rediscover them; neither is needed by any demo today.
+
+Three gaps were found by attempting the migration rather than by reasoning about it, and all three
+are closed: the missing `additive` blend mode, textures and instance rows having no contract shape,
+and — found last, when the shadow pass was read — targets being sizeable only as a fraction of the
+canvas. A shadow map is a fixed 2048 by authoring choice and must not change when the canvas does.
 
 ## Honest status
 

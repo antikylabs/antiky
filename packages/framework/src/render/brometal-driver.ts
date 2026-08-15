@@ -186,8 +186,12 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
     for (const request of nextRequests) {
       const previous = requests.get(request.key);
       const existing = targets.get(request.key);
-      const wantedWidth = Math.max(1, Math.round(width * request.scale));
-      const wantedHeight = Math.max(1, Math.round(height * request.scale));
+      const wantedWidth = request.size === undefined
+        ? Math.max(1, Math.round(width * (request.scale ?? 1)))
+        : Math.max(1, request.size[0]);
+      const wantedHeight = request.size === undefined
+        ? Math.max(1, Math.round(height * (request.scale ?? 1)))
+        : Math.max(1, request.size[1]);
       // Recreated only when the size or the shape actually changed. A canvas resize is the common
       // case and a frame is the wrong place to reallocate a target that already fits.
       if (

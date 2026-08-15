@@ -344,3 +344,21 @@ test('loading twice does not build a texture twice', async () => {
     passes: [{ draws: [{ pipeline: 'floor', uniforms: { uDiffuse: { texture: 'atlas' } } }] }],
   }));
 });
+
+test('a fixed-size target ignores the canvas entirely', () => {
+  // A shadow map is authored at a resolution, not derived from the window. Resizing the browser
+  // must not change how sharp a shadow is.
+  const { driver, renderer } = harness(['depth'], [800, 600]);
+  driver.configureTargets([{ key: 'shadow', size: [2_048, 2_048], depth: true, samples: 1 }]);
+  renderer.canvas.width = 1_600;
+  driver.configureTargets([{ key: 'shadow', size: [2_048, 2_048], depth: true, samples: 1 }]);
+  assert.deepEqual(renderer.disposedTargets, [], 'a canvas resize must not rebuild a fixed target');
+});
+
+test('a scaled target still follows the canvas', () => {
+  const { driver, renderer } = harness(['post'], [800, 600]);
+  driver.configureTargets([{ key: 'scene', scale: 1 }]);
+  renderer.canvas.width = 1_600;
+  driver.configureTargets([{ key: 'scene', scale: 1 }]);
+  assert.deepEqual(renderer.disposedTargets, ['t1']);
+});

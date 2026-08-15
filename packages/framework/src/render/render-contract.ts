@@ -77,7 +77,17 @@ export type DrawCall = Readonly<{
  */
 export type TargetRequest = Readonly<{
   key: TargetKey;
-  scale: number;
+  /**
+   * A fraction of the canvas, so a bloom chain asks for quarter resolution without learning the
+   * canvas size. Ignored when `size` is given.
+   */
+  scale?: number;
+  /**
+   * A fixed size in pixels, for a target whose resolution is a quality setting rather than a
+   * function of the canvas. A shadow map is the case that forced this: it is authored at a fixed
+   * resolution and must not change when the canvas is resized.
+   */
+  size?: readonly [number, number];
   depth?: boolean;
   samples?: number;
 }>;
