@@ -39,6 +39,7 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0019: Use Rapier for CPU physics and Nexus for GPU physics](framework/0019-use-rapier-for-cpu-physics-and-nexus-for-gpu-physics_H.md)
 - [0020: Keep game code and game hosts in different modules](framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md)
 - [0021: Own BroMetal in a BroMetal render driver](framework/0021-brometal-render-driver-ownership_H.md)
+- [0022: Use GPU IDs to select Framework entities](framework/0022-use-gpu-ids-to-select-framework-entities_H.md)
 
 ### CLI
 
