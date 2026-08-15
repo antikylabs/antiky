@@ -2,11 +2,38 @@
 
 ## Prerequisites
 
-- **Goal 14** — its slicer's `--layers` mode is what feeds an array texture. Building the array
-  binding with nothing to put in it would leave the capability untested against real art.
-- Read `docs/objectives/ideas/skill-text.md` before starting. It records the local-patch and
-  fork-and-upstream workflow used for BroMetal PRs [#3](https://github.com/ericdrowell/brometal/pull/3)–[#7](https://github.com/ericdrowell/brometal/pull/7),
-  including the retirement instructions each patch module carries.
+- **Goal 14** — **complete.** Its slicer's `--layers` mode is what feeds an array texture, and it
+  emits one image per tile with no gutter and no cross-tile pixels, which is exactly an array
+  layer set. Building the array binding with nothing to put in it would leave the capability untested
+  against real art.
+- **Use the `team-brometal` skill.** It owns this workflow and supersedes the old
+  `docs/objectives/ideas/skill-text.md` note, which no longer exists. Run
+  `patch <name>` then `pr <patch>`; a later `update` retires each patch when its pull request lands.
+  The skill carries the runner's guarantees, the patch-module shape, the required tests and the
+  pull-request body format, so this goal states only what is specific to these two capabilities.
+
+  **Do not skip `pr`.** ADR 0021 requires a focused upstream pull request per patch; a local patch
+  with no PR becomes permanent by default.
+
+## Before you write anything
+
+From the skill's `patch` reference, in order. The first step is not a formality — the skill records
+that this repository has been four releases behind while writing a patch for something already fixed.
+
+1. **Confirm both gaps still exist in the latest published version.** `npm view brometal version`,
+   then read that version's source. *As of 2026-08-15 the pinned `EXPECTED_VERSION`, the installed
+   copy and the latest published release were all `0.17.2`, so the verification below was against the
+   current release — but re-check, because that will not stay true.*
+2. **Write the failing test first** and watch it fail against unpatched BroMetal.
+3. **Read the code you are about to change, including its comments**, and treat each one as load
+   bearing until you know otherwise.
+4. **Confirm it is upstreamable** — ADR 0021 admits only contributions that help renderers in general
+   or correct an error. Both items here are exposure of a standard WebGPU capability, which is the
+   clearest possible case, but say so explicitly in the PR.
+
+Note the split the skill draws: a **patch** is written against the installed `dist/`, but a **pull
+request is written against the fork's source**, branched from current `upstream/main`. The `dist/`
+paths cited below locate the gaps in the shipped artifact; do not send a PR that edits `dist/`.
 
 ## `/goal` objective
 
@@ -70,8 +97,9 @@ bundling them would repeat the mistake of PR #2.
 ## Required outcome
 
 1. **`scripts/patch-brometal/sampler-lod-clamp.mjs`** adding `lodMinClamp` and `lodMaxClamp` to
-   `TextureOptions` and passing them to `createSampler`, with the patch module naming its upstream PR
-   and carrying retirement instructions like the existing five.
+   `TextureOptions` and passing them to `createSampler`. Module shape, the version guard, the
+   "moved target throws" behaviour and the retirement instructions are the skill's `patch`
+   reference — follow it rather than copying one of the existing five by eye.
 2. **`scripts/patch-brometal/texture-array-sampler.mjs`** adding a `sampler2DArray` DSL type end to
    end: parsed, carried through the IR, emitted as `texture_2d_array<f32>` in WGSL, bound with
    `viewDimension: '2d-array'`, uploaded with layers, and mipped per layer.
@@ -81,13 +109,18 @@ bundling them would repeat the mistake of PR #2.
 4. **The tile-boundary measurement at zero** for that demo — not "under 2%", but no cross-tile
    colour at all, because with layers there is no adjacent tile to average into. If it is not zero,
    the binding is wrong.
-5. **Two upstream pull requests** against the fork at
-   `https://github.com/shadowcodex-forks/brometal`, each following the established format: what the
-   patch is, why it exists, what it blocks without it, and an explicit request for the author to say
-   whether the approach is right and whether a better one exists.
-6. **`scripts/patch-brometal.test.mjs` covering both**, including that the patch runner is idempotent
-   and that a second run reports no change for the right reason rather than because it crashed —
-   that failure mode has bitten this repository before.
+5. **Two upstream pull requests**, opened through the skill's `pr` command against the fork at
+   `https://github.com/shadowcodex-forks/brometal`. The body follows
+   `.agents/skills/team-brometal/reference/pr-template.md` — nine sections, including leading with
+   the current behaviour quoted from their code, taking their existing comments seriously in public,
+   saying plainly if their code was not wrong, and closing by asking the author whether the approach
+   is right. Branch each from current `upstream/main`, prove it in **their** harness, and tag the
+   local patch module with the PR once open.
+6. **`scripts/patch-brometal.test.mjs` covering both.** The skill's `patch` reference lists the tests
+   the mechanism itself requires — including that a second run reports no change *for the right
+   reason* rather than because it crashed, and that a wrong version throws when exercised against a
+   fixture package rather than by editing the installed copy. That failure mode has bitten this
+   repository before.
 
 ## In scope
 
@@ -119,6 +152,12 @@ bundling them would repeat the mistake of PR #2.
   same temptation; each deserves its own justification.
 - **Do not wait for upstream to merge before using the patches.** ADR direction is local patches
   first, upstream PRs after — that is why `scripts/patch-brometal/` exists.
+- **Do not send Antiky preferences upstream.** ADR 0021 bounds a contribution to something that helps
+  renderers in general or corrects an error. Both items here qualify because WebGPU already specifies
+  them; anything else discovered along the way does not automatically.
+- **Do not bump the BroMetal version as part of this.** The skill's `update` command owns that, it is
+  a separately reviewed change, and the last upgrade silently moved dependency placement across eight
+  workspaces.
 - **Do not bundle the two changes into one PR.** PR #2 was 8,059 lines and had to be replaced by five
   focused ones.
 
@@ -126,15 +165,19 @@ bundling them would repeat the mistake of PR #2.
 
 - Tests are required for code changes (`AGENTS.md`).
 - Short one-line commit messages. No coauthor tags.
-- The BroMetal version guard is pinned; a version bump is a separate reviewed change, and the last
-  upgrade silently changed dependency placement across eight workspaces.
 - Preserve unrelated dirty worktree changes.
 
 ## Completion definition
 
 Complete when both patch modules apply idempotently with tests, one demo renders its atlas through an
 array sampler with a tile-boundary measurement of zero, both pull requests are open against the fork
-with the agreed format, and `npm test` is green.
+in the `pr-template.md` format and each patch module is tagged with its PR, and `npm test` is green.
+
+Goal 14's measurement is the one to reuse: mip a tile inside the atlas, mip the same tile in
+isolation, compare their borders over a band that reaches one texel **past** the tile rectangle. A
+band that only looks inside scores zero on an atlas that is merely well-aligned, which is how the
+first version of the atlas measurement went wrong. With true array layers the number is zero because
+there is no adjacent tile in the same image at all — that is the assertion, not a budget.
 
 ## What this closes
 
