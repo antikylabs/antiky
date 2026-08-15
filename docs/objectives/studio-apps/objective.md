@@ -13,10 +13,14 @@
 
 <!-- What should be true when this is done? Write it however it comes out. -->
 
+Studio should allow plugin-based extensions that allows the addition of new "apps" to the studio.
+
 ## Why now
 
 <!-- What makes this worth doing at this moment? A deadline, a blocker, an opportunity,
      an accumulating cost? -->
+
+We have a few first apps that we want to extend the studio with, and we want to make it easy to add new ones in the future including these ones.
 
 ## What good looks like
 
@@ -24,16 +28,29 @@
      a class of bug that stops happening? Vague is fine — "it should feel less janky" is
      a real answer and research can sharpen it. -->
 
+Well defined system for panels, webgpu viewport, terminal, etc. That are composable and mountable.
+
+mini apps should be able to load and configure the workspace of the studio in order to reflect the needs it has.
+
+
 ## What worries me
 
 <!-- The parts you expect to go wrong, the decisions you are unsure about, the thing you
      suspect is harder than it looks. This is the most useful section for research —
      it points at what to investigate. -->
 
+- making it too complex out the gate.
+- your implementation drifting from our design and functionality (The project page already does not reflect the design of the main page or settings page).
+- Apps looking like standard slop (use impeccable skill to help keep that from happening)
+- not offering enough customizability that an app we want to build can't be built.
+- that we accidently setup in a way that makes it harder to extend or add more mini app/plugin hooks etc.
+
 ## Constraints
 
 <!-- What must not change? What is fixed — deadlines, platforms, existing decisions,
      other work in flight, people's availability? -->
+
+Current experience of main workspace (game editor) view.
 
 ## Explicitly not this
 
@@ -44,3 +61,6 @@
 
 <!-- Anything you want answered before planning. Leave empty if you would rather
      research work that out. -->
+
+- best way to have extension system?
+- best way to have reusable webgpu canvas viewport?
