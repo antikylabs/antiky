@@ -83,7 +83,8 @@ Antiky is one development model with several responsibilities and surfaces:
 
 Studio is not the engine. Framework works without Studio. The game module selects rendering while
 the host supplies platform lifecycle. Antiky Framework games render with BroMetal today. A
-Framework-owned BroMetal render driver is accepted direction, not a current capability.
+Framework-owned BroMetal render driver is emerging: two Antiky demos render through it, the rest
+still write BroMetal by hand.
 
 ## Evidence status
 
