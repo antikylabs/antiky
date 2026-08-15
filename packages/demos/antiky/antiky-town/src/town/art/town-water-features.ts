@@ -1,4 +1,4 @@
-import type { TownFountain, TownWaterfall } from './town';
+import type { TownFountain, TownWaterfall } from './town.ts';
 
 /**
  * Shared vertex layout for renderer-owned town water features.

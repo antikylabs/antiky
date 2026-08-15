@@ -5,8 +5,8 @@ import {
   buildTownWorld,
   townGroundHeightAt,
   townGroundKindAt,
-} from './town';
-import { validateTownDeterminism, validateTownWorld } from './town-validation';
+} from './town.ts';
+import { validateTownDeterminism, validateTownWorld } from './town-validation.ts';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);

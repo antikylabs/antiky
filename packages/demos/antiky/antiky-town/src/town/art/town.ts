@@ -5,7 +5,7 @@ import {
   type VoxelMeshValidation,
   type VoxelSurfaceCell,
   type VoxelSurfaceMesh,
-} from './voxel-surface-mesh';
+} from './voxel-surface-mesh.ts';
 
 export const VOXEL_SIZE = 0.62;
 /** 0.2067 m surface cells: fine enough for trim without desktop-scale density. */

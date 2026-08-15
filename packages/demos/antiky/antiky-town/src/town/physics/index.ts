@@ -1,1 +1,1 @@
-export * from './character-motor';
+export * from './character-motor.ts';

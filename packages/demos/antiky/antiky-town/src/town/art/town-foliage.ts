@@ -1,6 +1,6 @@
 import type { PipelineProgram } from '@antiky/framework/render-driver';
 
-import type { TownVegetation, TownVegetationType } from './town';
+import type { TownVegetation, TownVegetationType } from './town.ts';
 
 export const TOWN_VEGETATION_ATLAS_GRID = {
   columns: 4,

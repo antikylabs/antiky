@@ -1,6 +1,6 @@
 import type { PipelineProgram } from '@antiky/framework/render-driver';
 
-import type { TownAwning, TownAwningStyle, TownSpriteProp, TownSpritePropType } from './town';
+import type { TownAwning, TownAwningStyle, TownSpriteProp, TownSpritePropType } from './town.ts';
 
 export const TOWN_AWNING_STYLE_INDEX = {
   'red-cream': 0,
