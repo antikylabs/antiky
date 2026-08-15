@@ -40,7 +40,7 @@ import bloomBlurShader from './shaders/bloom-blur.shader.gen.ts';
 import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
 import nightBackdropShader from './shaders/night-backdrop.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
-import floorShader from './shaders/reliquary-floor.shader.gen';
+import floorShader from './shaders/reliquary-floor.shader.gen.ts';
 import FLOOR_AO_URL from 'virtual:blackout-relay/forest-floor-ao';
 import FLOOR_DIFFUSE_URL from 'virtual:blackout-relay/forest-floor-diffuse';
 import FLOOR_ROUGHNESS_URL from 'virtual:blackout-relay/forest-floor-roughness';

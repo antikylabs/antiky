@@ -193,7 +193,55 @@ reports only a timeout, which is what made this cost four blind cycles.
 **Remove before merge.** The try/catch in `game.ts` is marked `TEMPORARY DIAGNOSTIC`. It converts a
 loud failure into a silent blank frame, which is right for diagnosis and wrong for a merged demo.
 
-5. **Still open, and now the whole suspect list:** whatever `createRelayRenderer` throws. BroMetal refuses
+### Construction is clean under stubs — so the throw is inside a real BroMetal call
+
+`tests/renderer-construction.test.ts` now builds the **entire** relay renderer in Node and it
+**passes**, registering more than fifteen pipelines without throwing. Getting there needed a Node
+stand-in for four browser things and one for BroMetal itself, and each gap is worth knowing:
+
+| Gap | Why Node hits it | Stand-in |
+|---|---|---|
+| `virtual:blackout-relay/*` | Vite virtual modules for the floor textures | `registerHooks` resolve to a data URL |
+| `fetch` of a `file:` URL | the GLB models are fetched by URL | served off disk, so the models **parse for real** |
+| `createImageBitmap` | decoding a GLB's embedded images | dimensions only |
+| `document.createElement('canvas')` | the onboarding overlay paints text | recording no-op 2D context |
+| `createProgram` and friends | the driver imports them as **free functions**, and each looks the renderer up in a private WeakMap only a real WebGPU renderer is in | `tests/support/brometal-stub.ts`, which re-exports the real package and overrides exactly four names |
+
+That last row is the reason a stub *renderer* was never going to be enough, and it is also the reason
+this test had never existed.
+
+**What the passing test proves and does not prove.** Everything construction does in pure data —
+pipeline keys, target descriptions, texture declarations, instance layouts, the GLB parse — is
+correct. The throw is therefore inside one of the four real BroMetal calls.
+
+**The strongest remaining hypothesis, and why the test cannot yet see it.** The stub's programs answer
+*any* uniform, attribute or instance-attribute name through a `Proxy`. A real BroMetal program does
+not: it rejects a name the compiled shader never declared. So a `setup` callback that binds `aUv` or
+`aNormal` on a **depth** pipeline — whose shader declares only `aPosition` — passes the stub and
+throws on a GPU. The six depth pipelines share their geometry setup with their lit twins, which is
+exactly the shape that produces this.
+
+Making the test catch it needs the declared names at runtime. They are currently only in the
+generated shader's **type parameters** (`CompiledShader<{ aPosition: 'vec3'; aUv: 'vec2' }, …>`), so
+the stub needs either a runtime metadata field on `CompiledShader` or a parse of the generated WGSL.
+That is the next concrete step, and it is a test change rather than another blind capture.
+
+### Two things fixed on the way
+
+- **`renderer.ts:43` imported `./shaders/reliquary-floor.shader.gen` with no extension**, where every
+  other shader import carries `.ts`. Vite resolved it, so the build and the typecheck were both
+  clean; Node could not, which is how it surfaced. Fixed.
+- **`createRenderTarget` was cleared as a suspect.** The driver passes an options object and
+  BroMetal's implementation is positional, which looked like a real mismatch — but the exported
+  wrapper unpacks the object before delegating, so the call is correct.
+
+### One real behavioural difference from the pre-migration demo, not yet explained
+
+The original renderer created its scene and bloom targets **lazily, inside the frame**, and rebuilt
+them when the canvas size changed (`renderer.ts:350,384` before the migration). The driver's
+`configureTargets` creates them **eagerly at construction**. Nothing yet shows this throws, and
+BroMetal clamps a zero dimension to 1, but it is a genuine change in when the canvas is measured and
+it should be ruled in or out rather than left unmentioned. BroMetal refuses
    that with "no instance data — call set(...) before draw()", which is the exact failure
    `presentation.test.ts:296` was written to guard and which no headless test can see. The suspects
    are the six depth pipelines: they receive `depthInstanceData`, but nothing verifies those arrays
