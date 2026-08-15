@@ -1,3 +1,5 @@
+import type { PipelineProgram } from '@antiky/framework/render-driver';
+
 import type { TownAwning, TownAwningStyle, TownSpriteProp, TownSpritePropType } from './town';
 
 export const TOWN_AWNING_STYLE_INDEX = {
@@ -55,36 +57,6 @@ export type TownPropBatch = {
   curvatures: Float32Array;
   tiles: Float32Array;
   count: number;
-};
-
-type GeometryTarget = {
-  attributes: {
-    aPosition: { set(value: Float32Array): void };
-    aUv: { set(value: Float32Array): void };
-  };
-  setIndices(value: Uint16Array): void;
-};
-
-type AwningBatchTarget = {
-  instanceAttributes: {
-    iCenter: { set(value: Float32Array): void };
-    iSize: { set(value: Float32Array): void };
-    iYaw: { set(value: Float32Array): void };
-    iSlope: { set(value: Float32Array): void };
-    iStyle: { set(value: Float32Array): void };
-    iPhase: { set(value: Float32Array): void };
-  };
-};
-
-type PropBatchTarget = {
-  instanceAttributes: {
-    iCenter: { set(value: Float32Array): void };
-    iSize: { set(value: Float32Array): void };
-    iUvRect: { set(value: Float32Array): void };
-    iYaw: { set(value: Float32Array): void };
-    iCurvature: { set(value: Float32Array): void };
-    iTile: { set(value: Float32Array): void };
-  };
 };
 
 function segmentCount(value: number | undefined, fallback: number, label: string): number {
@@ -183,23 +155,29 @@ export function buildTownAwningBatch(awnings: readonly TownAwning[]): TownAwning
 }
 
 export function bindTownAwningGeometry(
-  program: GeometryTarget,
+  program: PipelineProgram,
   geometry: TownAwningGeometry,
   shadowOnly = false,
 ): void {
-  program.attributes.aPosition.set(geometry.positions);
-  program.attributes.aUv.set(geometry.uvs);
+  program.attributes.aPosition?.set(geometry.positions);
+  program.attributes.aUv?.set(geometry.uvs);
   program.setIndices(shadowOnly ? geometry.shadowIndices : geometry.indices);
 }
 
-export function uploadTownAwningBatch(program: AwningBatchTarget, batch: TownAwningBatch): number {
+/**
+ * Every awning in the town, uploaded once when the pipeline is built.
+ *
+ * These rows never change — an awning does not move, and the shader owns its sag and wind — so they
+ * belong with the geometry rather than in each frame's draw.
+ */
+export function uploadTownAwningBatch(program: PipelineProgram, batch: TownAwningBatch): number {
   if (batch.count === 0) return 0;
-  program.instanceAttributes.iCenter.set(batch.centers);
-  program.instanceAttributes.iSize.set(batch.sizes);
-  program.instanceAttributes.iYaw.set(batch.yaws);
-  program.instanceAttributes.iSlope.set(batch.slopes);
-  program.instanceAttributes.iStyle.set(batch.styles);
-  program.instanceAttributes.iPhase.set(batch.phases);
+  program.instanceAttributes.iCenter?.set(batch.centers);
+  program.instanceAttributes.iSize?.set(batch.sizes);
+  program.instanceAttributes.iYaw?.set(batch.yaws);
+  program.instanceAttributes.iSlope?.set(batch.slopes);
+  program.instanceAttributes.iStyle?.set(batch.styles);
+  program.instanceAttributes.iPhase?.set(batch.phases);
   return batch.count;
 }
 
@@ -305,19 +283,20 @@ export function buildTownPropBatch(props: readonly TownSpriteProp[]): TownPropBa
   };
 }
 
-export function bindTownPropGeometry(program: GeometryTarget, geometry: TownPropGeometry): void {
-  program.attributes.aPosition.set(geometry.positions);
-  program.attributes.aUv.set(geometry.uvs);
+export function bindTownPropGeometry(program: PipelineProgram, geometry: TownPropGeometry): void {
+  program.attributes.aPosition?.set(geometry.positions);
+  program.attributes.aUv?.set(geometry.uvs);
   program.setIndices(geometry.indices);
 }
 
-export function uploadTownPropBatch(program: PropBatchTarget, batch: TownPropBatch): number {
+/** Every placed prop, uploaded once with the geometry. Props do not move. */
+export function uploadTownPropBatch(program: PipelineProgram, batch: TownPropBatch): number {
   if (batch.count === 0) return 0;
-  program.instanceAttributes.iCenter.set(batch.centers);
-  program.instanceAttributes.iSize.set(batch.sizes);
-  program.instanceAttributes.iUvRect.set(batch.uvRects);
-  program.instanceAttributes.iYaw.set(batch.yaws);
-  program.instanceAttributes.iCurvature.set(batch.curvatures);
-  program.instanceAttributes.iTile.set(batch.tiles);
+  program.instanceAttributes.iCenter?.set(batch.centers);
+  program.instanceAttributes.iSize?.set(batch.sizes);
+  program.instanceAttributes.iUvRect?.set(batch.uvRects);
+  program.instanceAttributes.iYaw?.set(batch.yaws);
+  program.instanceAttributes.iCurvature?.set(batch.curvatures);
+  program.instanceAttributes.iTile?.set(batch.tiles);
   return batch.count;
 }

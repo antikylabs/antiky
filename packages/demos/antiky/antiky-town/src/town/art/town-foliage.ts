@@ -1,3 +1,5 @@
+import type { PipelineProgram } from '@antiky/framework/render-driver';
+
 import type { TownVegetation, TownVegetationType } from './town';
 
 export const TOWN_VEGETATION_ATLAS_GRID = {
@@ -229,47 +231,33 @@ export function createOrganicTrunkGeometry(): TownFoliageGeometry {
   return compileGeometry(positions, normals, uvs, windWeights, indices);
 }
 
-type GeometryTarget = {
-  attributes: {
-    aPosition: { set(value: Float32Array): void };
-    aNormalWind: { set(value: Float32Array): void };
-    aUv: { set(value: Float32Array): void };
-  };
-  setIndices(value: Uint16Array): void;
-};
-
-/** Bind one geometry to a visible or shadow foliage program. */
+/** Bind one geometry to a visible or shadow foliage pipeline. */
 export function bindTownFoliageGeometry(
-  program: GeometryTarget,
+  program: PipelineProgram,
   geometry: TownFoliageGeometry,
 ): void {
-  program.attributes.aPosition.set(geometry.positions);
-  program.attributes.aNormalWind.set(geometry.normalWinds);
-  program.attributes.aUv.set(geometry.uvs);
+  program.attributes.aPosition?.set(geometry.positions);
+  program.attributes.aNormalWind?.set(geometry.normalWinds);
+  program.attributes.aUv?.set(geometry.uvs);
   program.setIndices(geometry.indices);
 }
 
-type InstanceTarget = {
-  instanceAttributes: {
-    iCenter: { set(value: Float32Array): void };
-    iShape: { set(value: Float32Array): void };
-    iUvRect: { set(value: Float32Array): void };
-    iTint: { set(value: Float32Array): void };
-    iWindKind: { set(value: Float32Array): void };
-  };
-};
-
-/** Upload the live instance prefix. Call once per BroMetal program. */
+/**
+ * Upload the live instance prefix. Call once per pipeline, when it is built.
+ *
+ * A plant's position, size and tint are decided when the town is generated and never change; only
+ * the wind moves it, and the wind lives in a uniform. So these rows are as static as the geometry.
+ */
 export function uploadTownFoliageInstances(
-  program: InstanceTarget,
+  program: PipelineProgram,
   instances: TownFoliageInstances,
 ): number {
   if (instances.count === 0) return 0;
-  program.instanceAttributes.iCenter.set(instances.centers);
-  program.instanceAttributes.iShape.set(instances.shapes);
-  program.instanceAttributes.iUvRect.set(instances.uvRects);
-  program.instanceAttributes.iTint.set(instances.tints);
-  program.instanceAttributes.iWindKind.set(instances.windKinds);
+  program.instanceAttributes.iCenter?.set(instances.centers);
+  program.instanceAttributes.iShape?.set(instances.shapes);
+  program.instanceAttributes.iUvRect?.set(instances.uvRects);
+  program.instanceAttributes.iTint?.set(instances.tints);
+  program.instanceAttributes.iWindKind?.set(instances.windKinds);
   return instances.count;
 }
 
