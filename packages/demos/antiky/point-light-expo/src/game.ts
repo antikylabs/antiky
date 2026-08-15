@@ -63,7 +63,22 @@ const game: GameModuleEntry = async (context) => {
       if (record === undefined) throw new Error(`Blackout Relay is missing authored light ${entityId}.`);
       return record;
     });
-    relayRenderer = await createRelayRenderer(renderer, lightRecords);
+    // TEMPORARY DIAGNOSTIC — remove once the driver migration renders.
+    // A construction failure here rejects the module entry, the host publishes nothing, and the
+    // capture harness reports only CAPTURE_RUNTIME_TIMEOUT. That hides the actual error completely.
+    // Reporting it through `report` puts it in the metrics sidecar, which is readable.
+    try {
+      relayRenderer = await createRelayRenderer(renderer, lightRecords);
+    } catch (cause: unknown) {
+      const detail = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
+      context.report({ note: `RENDERER CONSTRUCTION FAILED — ${detail}` });
+      // Publish a blank frame rather than rejecting, so the capture succeeds and the note above
+      // reaches the sidecar. If the capture still times out, construction was NOT the failure.
+      return Object.freeze({
+        frame(): void { renderer.present(() => {}); },
+        dispose(): void { renderer.destroy(); },
+      });
+    }
     const powers: [number, number, number] = [0, 0, 0];
     const inspectionModel = createRelayInspectionModel(context.runtimeInstanceId);
     const simulation = createBlackoutRelaySimulation((event) => inspectionModel.record(event));

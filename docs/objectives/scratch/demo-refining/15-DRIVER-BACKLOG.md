@@ -157,7 +157,43 @@ moved onto the driver in any sense that matters. Outcome 5 is unmet — there is
    and not the whole fault.** The old code bound it once at construction; the rewrite only bound it
    after the run ended, so on frame one the program had no texture at all. That is a genuine bug and
    the fix is kept — a rejected draw, not a hidden panel — but the capture still times out.
-4. **Still open:** a draw issued with instance buffers that were never populated. BroMetal refuses
+4. ~~A draw issued with instance buffers that were never populated~~ — **eliminated as the *first*
+   failure, and the fault has been localised much further. See below.**
+
+### The failure is in construction, not in the frame loop
+
+This is the session's one real finding, and it replaces the guesswork above.
+
+Every hypothesis 1-4 was a guess costing a full build-and-capture cycle to test blind, so instead the
+failure was made *observable*. `game.ts` now wraps `createRelayRenderer` in a try/catch that publishes
+a blank frame instead of rejecting. The failure mode changed immediately:
+
+| Before | After |
+|---|---|
+| `CAPTURE_RUNTIME_TIMEOUT` — nothing ever published | `The captured frame is a single flat colour` |
+
+The fallback path ran, which means **`createRelayRenderer` throws**. The frame loop is never reached,
+so every remaining hypothesis about draw calls, instance buffers and pass order is looking in the
+wrong place. What throws is one of: pipeline registration, texture loading, or `configureTargets`.
+
+Checked and cleared since:
+
+- **No duplicate pipeline key.** The only repeated string literal is `'player'`, in `inspection.ts`,
+  which is inspection data and never reaches `registerPipeline`.
+- **Texture URLs resolve correctly.** `new URL('../assets/...', import.meta.url).href` is the same
+  form the demo used before the migration, and Vite rewrites it at build time.
+
+**The remaining channel problem.** `scripts/shoot-demos.mjs` plumbs no page console and no `pageerror`
+handler, and it does not surface `context.report` notes on a failed capture — so the thrown message
+itself is still not readable from the harness. Getting it needs either a browser console on
+`npm run dev:demos point-light-expo`, or a one-line `page.on('console')` in the shoot script. The
+second is probably worth doing on its own merits: right now any demo that throws at construction
+reports only a timeout, which is what made this cost four blind cycles.
+
+**Remove before merge.** The try/catch in `game.ts` is marked `TEMPORARY DIAGNOSTIC`. It converts a
+loud failure into a silent blank frame, which is right for diagnosis and wrong for a merged demo.
+
+5. **Still open, and now the whole suspect list:** whatever `createRelayRenderer` throws. BroMetal refuses
    that with "no instance data — call set(...) before draw()", which is the exact failure
    `presentation.test.ts:296` was written to guard and which no headless test can see. The suspects
    are the six depth pipelines: they receive `depthInstanceData`, but nothing verifies those arrays
