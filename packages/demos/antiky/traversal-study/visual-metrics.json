@@ -1,10 +1,10 @@
 {
   "schemaVersion": 4,
   "demo": "traversal-study",
-  "capturedAt": "2026-08-15T03:52:10.126Z",
+  "capturedAt": "2026-08-15T05:04:03.047Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "bcf21b0bafed8a4e",
+    "digest": "246a7b6e52a5753e",
     "fileCount": 136
   },
   "frame": {
@@ -12,38 +12,38 @@
     "height": 720
   },
   "luminance": {
-    "mean": 0.267555,
+    "mean": 0.26757,
     "p05": 0.129706,
     "p50": 0.182509,
-    "p95": 0.575786,
-    "spread": 0.44608
+    "p95": 0.575742,
+    "spread": 0.446036
   },
   "localContrast": {
-    "median": 0.5797,
-    "p10": 0.0335
+    "median": 0.5802,
+    "p10": 0.0316
   },
   "clipping": {
     "high": 0,
     "low": 0.000004
   },
   "saturation": {
-    "mean": 0.281373
+    "mean": 0.281388
   },
   "encodedLuma": {
-    "p05": 0.384105,
+    "p05": 0.384133,
     "p50": 0.45775,
-    "p95": 0.782264,
-    "spread": 0.398159,
+    "p95": 0.782249,
+    "spread": 0.398115,
     "clipped": 0
   },
   "hue": {
     "clusters": 5,
-    "dominantShare": 0.777564,
-    "chromaticFraction": 0.806372
+    "dominantShare": 0.777504,
+    "chromaticFraction": 0.806428
   },
   "edges": {
-    "hard": 0.003529
+    "hard": 0.003545
   },
   "probes": {},
-  "seal": "198f742d9c3ef856"
+  "seal": "2eea72a287c6f2d7"
 }
