@@ -35,7 +35,19 @@ function bindingRecord(declared: Readonly<Record<string, unknown>>, kind: string
       if (!(name in declared)) {
         throw new Error(`BroMetal: program "${label}" has no ${kind} named "${name}"`);
       }
-      return { set: () => undefined };
+      // A real binding rejects data it cannot upload. Empty or absent data is the case that matters:
+      // it means a batch was built with no geometry, which a permissive stub hides completely.
+      return {
+        set(value: unknown) {
+          if (value === undefined || value === null) {
+            throw new Error(`BroMetal: ${kind} "${name}" on "${label}" was set to ${String(value)}`);
+          }
+          const length = (value as { length?: number }).length;
+          if (typeof length === 'number' && length === 0) {
+            throw new Error(`BroMetal: ${kind} "${name}" on "${label}" was set to empty data`);
+          }
+        },
+      };
     },
   });
 }
@@ -54,7 +66,12 @@ export function createProgram(_renderer: unknown, compiled: CompiledLike) {
     uniforms: bindingRecord(compiled?.uniforms ?? {}, 'uniform', label),
     attributes: bindingRecord(compiled?.attributes ?? {}, 'attribute', label),
     instanceAttributes: bindingRecord(compiled?.instanceAttributes ?? {}, 'instance attribute', label),
-    setIndices: () => undefined,
+    setIndices(indices: unknown) {
+      const length = (indices as { length?: number } | undefined)?.length;
+      if (indices === undefined || length === 0) {
+        throw new Error(`BroMetal: program "${label}" was given no indices`);
+      }
+    },
     draw: () => undefined,
     dispose: () => undefined,
   };

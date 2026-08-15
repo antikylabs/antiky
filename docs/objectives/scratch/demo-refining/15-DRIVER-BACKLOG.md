@@ -313,7 +313,20 @@ type parameter and mislead you. Import it instead.
 here: the blank-frame fallback proved the catch around `createRelayRenderer` runs, so construction
 throws, and `uTime` was a *frame-time* fault sitting behind it. Two faults, one now closed.
 
-So the remaining throw is in something only a real WebGPU device rejects. The two candidates left are the WGSL
+So the remaining throw is in something only a real WebGPU device rejects.
+
+Two more candidates were checked and cleared after the `uTime` fix:
+
+- **Empty geometry uploaded at construction.** The stub's bindings now reject `undefined`, `null` and
+  zero-length data, and `setIndices` rejects an empty index buffer. Construction still passes, so no
+  batch is built without geometry.
+- **The two PNG textures 404-ing.** `dist/assets` contains four JPGs and three GLBs and no PNG, which
+  looked damning. They are **inlined as base64 data URLs** in the bundle instead — `data:image/png`
+  appears twice — so both resolve without a network fetch at all.
+
+**Eleven hypotheses are now eliminated with evidence.** The honest position is that the remaining
+fault cannot be identified from Node, because everything Node can observe has been made observable
+and is correct. It needs the browser's error, which no tool in this repository surfaces. The two candidates left are the WGSL
 pipeline creation itself and the eager target creation described below. Both need a browser to
 observe, and the harness cannot narrow them further — which makes surfacing the browser error the
 next step rather than another hypothesis. `scripts/shoot-demos.mjs` cannot do it (`capture_frame` is
