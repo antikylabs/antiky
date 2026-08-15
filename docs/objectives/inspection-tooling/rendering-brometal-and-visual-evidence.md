@@ -239,16 +239,33 @@ per-layer mip test. Both were satisfied against a recording device: the mip test
 The only GPU-side evidence is a whole-frame capture that looks correct. A wrong layer index that
 happened to land on a similar-coloured material would pass every test in the repository.
 
-**Proposal:** a small `packages/demos/tests/support/gpu-page.mjs` (or a CLI equivalent) that launches
-the same Chromium with the same flags, serves a bundle over loopback, runs a callback in the page,
-and returns its result — so a test can create a real texture, draw, and read pixels back. This is
-about **150 lines** and it is the difference between asserting on calls and asserting on colour.
+**Closed 2026-08-15.** `packages/demos/tests/support/gpu-page.mjs` (~110 lines) launches the same
+Chromium with the same flags, serves the repository over loopback, hands a callback a page with a
+real device, and returns its result. `packages/demos/tests/texture-array-gpu.test.mjs` uses it to
+build an array texture through BroMetal's own patched `buildWebgpuTextureArray`, sample it, and read
+pixels back:
 
-Scope it deliberately: it is a *test* seam, not a new product surface. It should not become a second
-capture path, and it must stay out of the shipped CLI's tool list. Two known constraints: the shoot
-script warns against duplicating the managed Chromium, so this harness must not run concurrently with
-a capture; and it needs a bundler step, because a test module importing `brometal` from
-`node_modules` cannot be loaded by the page directly (`vite` is already a dependency).
+| Assertion | Result |
+| --- | --- |
+| the array binds with no WebGPU validation error (`pushErrorScope`) | pass |
+| layer index 0 returns layer 0's colour, index 1 returns layer 1's | pass |
+| at mip 6 each layer keeps its own colour and is not an average of both | pass |
+
+Proven able to fail: expecting layer 0 to be the other layer's colour turns test 2 red with the
+actual pixel printed.
+
+**No bundler was needed.** BroMetal's `dist` uses relative imports, so serving the repository as-is
+lets the page `import('/node_modules/brometal/dist/runtime/webgpu.js')` directly — which has the
+advantage of loading the **patched installed copy**, the artifact that actually ships.
+
+One deliberate limit remains: the WGSL doing the sampling is written in the test, not produced by
+BroMetal's shader compiler, which has no public entry point from Node (`compileShaderSource` is not
+exported). So this proves the patch's **runtime** half — upload, view dimension, per-layer mips —
+and the compiler half is still covered by the WGSL-emission test and the demo capture.
+
+Keep the scope: it is a test harness, not a product surface. It must not become a second capture
+path, must stay out of the shipped CLI's tool list, and must not run at the same time as a capture —
+the shoot script warns against a second managed Chromium, and two will fight over the GPU.
 
 ## Demo coverage and what it proves
 
