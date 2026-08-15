@@ -65,11 +65,22 @@ there is none. That is what deletes the defect rather than mitigating it.
 
 ## Honest limit on the runtime tests
 
-There is no headless WebGPU here, and the capture path is an MCP-managed Chromium the shoot script
-warns against duplicating. So the binding and mip tests drive the **real shipped code** against a
-recording `GPUDevice` stub — mocking at the system boundary, which is what
-`GOOD_ENGINEERING_H.md` permits — rather than reading pixels back from a two-layer texture on a GPU.
-The GPU-side proof is the capture, which renders the atlas through the array sampler and looks right.
+The binding and mip tests drive the **real shipped code** against a recording `GPUDevice` stub and
+assert on the *calls made*, not the *pixels produced*. The GPU-side proof is the capture, which
+renders the atlas through the array sampler and looks right.
+
+**Corrected 2026-08-15.** This was first written as "there is no headless WebGPU here", which is
+wrong. A real device is reachable from a plain Node test — probed and confirmed as
+`device ok: apple`. What is missing is a *test harness* exposing it: the only code that launches a
+browser is the capture runtime, reachable only through `capture_frame`, which returns a whole-frame
+PNG and cannot answer "does sampling layer 1 return layer 1's colour". Two details make the
+capability look absent when it is not — the profile directory must be a real path, and the page must
+be on a secure origin (`http://127.0.0.1`, not `about:blank`).
+
+That gap is now written up in
+[`docs/objectives/inspection-tooling/rendering-brometal-and-visual-evidence.md`](../../../inspection-tooling/rendering-brometal-and-visual-evidence.md)
+with the working launch recipe and a ~150-line proposal. **It bears directly on this goal:** a wrong
+layer index that happened to land on a similar-coloured material would pass every test here.
 
 ## The capture
 
