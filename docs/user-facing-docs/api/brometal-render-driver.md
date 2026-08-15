@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:01a3708de5346495
+frameworkSource: sha256:eb36f8b9f4c06c7d
 ---
 
 # BroMetal render driver API
@@ -55,9 +55,23 @@ The renderer and pipelines a BroMetal render driver is built from.
 type BroMetalRenderDriverOptions = Readonly<{
     renderer: Renderer;
     pipelines: Readonly<Record<string, PipelineDefinition>>;
-    textures?: Readonly<Record<string, unknown>>;
+    textures?: Readonly<Record<string, TextureSource>>;
     createProgram?: typeof createProgram;
     createRenderTarget?: typeof createRenderTarget;
+    createTexture?: typeof createTexture;
+    loadTexture?: typeof loadTexture;
+}>;
+```
+
+### `TextureSource`
+
+Where a texture comes from: a URL the driver fetches, or an already-decoded source.
+
+```ts
+type TextureSource = Readonly<{
+    url?: string;
+    source?: TexImageSource;
+    options?: TextureOptions;
 }>;
 ```
 
@@ -68,6 +82,8 @@ A render driver that also accepts pipelines registered after it is built.
 ```ts
 type BroMetalRenderDriver = RenderDriver & Readonly<{
     registerPipeline(key: string, definition: PipelineDefinition): void;
+    registerTexture(key: string, source: TextureSource): void;
+    loadTextures(): Promise<void>;
 }>;
 ```
 

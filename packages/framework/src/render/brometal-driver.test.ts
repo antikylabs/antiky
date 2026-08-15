@@ -89,6 +89,8 @@ function harness(
     renderer: renderer as never,
     pipelines: pipelines as never,
     ...(textures === undefined ? {} : { textures }),
+    createTexture: ((_r: unknown, source: { label?: string }) => ({ label: source.label ?? 'made' })) as never,
+    loadTexture: (async (_r: unknown, url: string) => ({ label: `loaded:${url}` })) as never,
     // Injected so the driver's real logic runs against fakes rather than a GPU.
     createProgram: ((_renderer: unknown, shader: { key: string }) => fakeProgram(shader.key, log)) as never,
     createRenderTarget: ((_renderer: unknown, request: never) => renderer.createdTarget(request)) as never,
@@ -243,10 +245,12 @@ test('instance rows reach the attributes named, before the draw', () => {
   assert.deepEqual(log, ['models.iOffset<-9', 'models.iScale<-9', 'draw:models']);
 });
 
-test('a texture is sampled by key, and an unknown one fails loudly', () => {
-  const atlas = { label: 'atlas' };
-  const { driver, log } = harness(['floor'], undefined, { 'floor-diffuse': atlas });
+test('a texture is sampled by key, and an unknown one fails loudly', async () => {
+  const { driver, log } = harness(['floor'], undefined, {
+    'floor-diffuse': { source: { label: 'atlas' } as never },
+  });
   driver.configureTargets([]);
+  await driver.loadTextures();
   log.length = 0;
 
   driver.submit({
@@ -315,4 +319,28 @@ test('registering over a live pipeline key is refused', () => {
     () => driver.registerPipeline('post', { shader: { key: 'other' } } as never),
     /already registered/,
   );
+});
+
+test('a URL-backed texture is fetched by the driver, not by the game', async () => {
+  // ADR 0021 gives textures to the driver. A game that called `loadTexture` itself would be taking
+  // the exception path, so the driver has to be able to do the fetching.
+  const { driver, log } = harness(['floor'], undefined, {
+    'floor-diffuse': { url: 'forest-floor.jpg' },
+  });
+  await driver.loadTextures();
+  log.length = 0;
+
+  driver.submit({
+    passes: [{ draws: [{ pipeline: 'floor', uniforms: { uDiffuse: { texture: 'floor-diffuse' } } }] }],
+  });
+  assert.deepEqual(log, ['floor.uDiffuse=loaded:forest-floor.jpg', 'draw:floor']);
+});
+
+test('loading twice does not build a texture twice', async () => {
+  const { driver } = harness(['floor'], undefined, { atlas: { url: 'a.png' } });
+  await driver.loadTextures();
+  await driver.loadTextures();
+  assert.doesNotThrow(() => driver.submit({
+    passes: [{ draws: [{ pipeline: 'floor', uniforms: { uDiffuse: { texture: 'atlas' } } }] }],
+  }));
 });

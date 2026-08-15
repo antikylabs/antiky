@@ -20,10 +20,14 @@
 import {
   createProgram,
   createRenderTarget,
+  createTexture,
+  loadTexture,
   type BroMetalProgram,
+  type BroMetalTexture,
   type CompiledShader,
   type RenderTarget,
   type Renderer,
+  type TextureOptions,
 } from 'brometal';
 
 import { createDisposalScope } from '../resources/disposal-scope.ts';
@@ -60,12 +64,13 @@ export type BroMetalRenderDriverOptions = Readonly<{
   renderer: Renderer;
   pipelines: Readonly<Record<string, PipelineDefinition>>;
   /**
-   * Textures the frames may sample, already loaded, keyed.
+   * Textures the frames may sample, keyed, described rather than built.
    *
-   * Loading is asset work and belongs to the host, which knows about URLs and decoding. Owning the
-   * GPU resource and releasing it is the driver's, which is the split ADR 0021 draws.
+   * A caller says "this URL" or "this canvas" and the driver creates, owns and releases the GPU
+   * texture. ADR 0021 gives textures to the driver, so a game that called `loadTexture` itself
+   * would be taking the exception path rather than the default one.
    */
-  textures?: Readonly<Record<string, unknown>>;
+  textures?: Readonly<Record<string, TextureSource>>;
   /**
    * The two BroMetal factories the driver calls, injectable.
    *
@@ -75,6 +80,8 @@ export type BroMetalRenderDriverOptions = Readonly<{
    */
   createProgram?: typeof createProgram;
   createRenderTarget?: typeof createRenderTarget;
+  createTexture?: typeof createTexture;
+  loadTexture?: typeof loadTexture;
 }>;
 
 /**
@@ -84,8 +91,20 @@ export type BroMetalRenderDriverOptions = Readonly<{
  * fetched at runtime, so those pipelines cannot exist before the driver does. Construction-only
  * registration would have forced every demo to await all its assets before it could draw anything.
  */
+/** Where a texture comes from. The driver turns either into a GPU texture it owns. */
+export type TextureSource = Readonly<{
+  url?: string;
+  /** Anything `createTexture` accepts — a canvas, an image, a bitmap. */
+  source?: TexImageSource;
+  options?: TextureOptions;
+}>;
+
 export type BroMetalRenderDriver = RenderDriver & Readonly<{
   registerPipeline(key: string, definition: PipelineDefinition): void;
+  /** Register a texture built from an already-decoded source. */
+  registerTexture(key: string, source: TextureSource): void;
+  /** Fetch and register every URL-backed texture. Call once, before the first frame that samples one. */
+  loadTextures(): Promise<void>;
 }>;
 
 export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions): BroMetalRenderDriver {
@@ -93,6 +112,7 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
   const buildTarget = options.createRenderTarget ?? createRenderTarget;
   const owned = createDisposalScope();
   const programs = new Map<string, BroMetalProgram>();
+  const textures = new Map<string, BroMetalTexture>();
   const targets = new Map<TargetKey, RenderTarget>();
   const requests = new Map<TargetKey, TargetRequest>();
 
@@ -111,6 +131,28 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
 
   for (const [key, definition] of Object.entries(options.pipelines)) registerPipeline(key, definition);
 
+  const buildTexture = options.createTexture ?? createTexture;
+  const fetchTexture = options.loadTexture ?? loadTexture;
+
+  const registerTexture = (key: string, source: TextureSource): void => {
+    if (source.source === undefined) {
+      throw new Error(`Texture "${key}" has no decoded source. Use loadTextures() for a URL.`);
+    }
+    textures.set(key, owned.adopt(buildTexture(options.renderer, source.source, source.options)));
+  };
+
+  const loadTextures = async (): Promise<void> => {
+    const pending = Object.entries(options.textures ?? {});
+    for (const [key, source] of pending) {
+      if (textures.has(key)) continue;
+      if (source.url !== undefined) {
+        textures.set(key, owned.adopt(await fetchTexture(options.renderer, source.url, source.options)));
+      } else if (source.source !== undefined) {
+        registerTexture(key, source);
+      }
+    }
+  };
+
   /**
    * Resolve a uniform value to something BroMetal accepts.
    *
@@ -122,7 +164,7 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       const reference = value as { target?: TargetKey; texture?: string };
       if (reference.texture !== undefined) {
-        const texture = options.textures?.[reference.texture];
+        const texture = textures.get(reference.texture);
         if (texture === undefined) {
           throw new Error(`Render frame sampled texture "${reference.texture}", which the driver was not given.`);
         }
@@ -190,6 +232,8 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
 
   return Object.freeze({
     registerPipeline,
+    registerTexture,
+    loadTextures,
     configureTargets,
     submit(frame: RenderFrame): void {
       for (let index = 0; index < frame.passes.length; index += 1) {
@@ -214,6 +258,7 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
       targets.clear();
       requests.clear();
       programs.clear();
+      textures.clear();
       owned.dispose();
     },
   });
