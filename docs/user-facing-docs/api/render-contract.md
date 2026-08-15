@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:8832ca5e375d42b2
+frameworkSource: sha256:c0cceb5a00eb8ee6
 ---
 
 # Render contract API
@@ -91,6 +91,8 @@ type DrawCall = Readonly<{
     pipeline: PipelineKey;
     uniforms?: Readonly<Record<string, UniformValue>>;
     instanceData?: Readonly<Record<string, Float32Array>>;
+    vertexData?: Readonly<Record<string, Float32Array>>;
+    indices?: Uint16Array | Uint32Array;
     instances?: number;
 }>;
 ```
@@ -109,6 +111,7 @@ type TargetRequest = Readonly<{
     ];
     depth?: boolean;
     samples?: number;
+    filter?: 'nearest' | 'linear';
 }>;
 ```
 

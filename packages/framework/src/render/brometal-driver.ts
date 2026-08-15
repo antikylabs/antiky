@@ -46,8 +46,28 @@ import type {
  * BroMetal's own output, and 0021 draws the line at the *frame data*, which names pipelines by key.
  * A second driver takes its own backend's equivalent here and consumes the identical frames.
  */
+/**
+ * What `setup` is handed: a program's three binding records, by name.
+ *
+ * Permissive rather than a concrete `BroMetalProgram`, because every generated shader has its own
+ * attribute, instance and uniform records. Naming one would make `setup` unusable for the rest.
+ */
+export type PipelineProgram = Readonly<{
+  attributes: Record<string, { set(value: unknown): void } | undefined>;
+  instanceAttributes: Record<string, { set(value: unknown): void } | undefined>;
+  uniforms: Record<string, { set(value: unknown): void } | undefined>;
+  setIndices(indices: unknown): void;
+}>;
+
 export type PipelineDefinition = Readonly<{
-  shader: CompiledShader<never, never, never>;
+  /**
+   * A compiled shader, as `*.shader.gen.ts` exports it.
+   *
+   * Typed loosely on purpose: every generated shader has its own attribute, instance and uniform
+   * records, and naming a single concrete one here would force every caller to cast — which would
+   * in turn cost `setup` its contextual typing and make its parameter implicitly `any`.
+   */
+  shader: unknown;
   /**
    * Passed through to `createProgram`, for the blend mode a pass needs.
    *
@@ -57,7 +77,7 @@ export type PipelineDefinition = Readonly<{
    */
   options?: Readonly<{ blend?: 'none' | 'alpha' | 'additive' }>;
   /** Called once after the program exists, for geometry and other one-time attribute uploads. */
-  setup?(program: BroMetalProgram): void;
+  setup?(program: PipelineProgram): void;
 }>;
 
 export type BroMetalRenderDriverOptions = Readonly<{
@@ -125,7 +145,7 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
       definition.shader as never,
       definition.options as never,
     ));
-    definition.setup?.(program);
+    definition.setup?.(program as unknown as PipelineProgram);
     programs.set(key, program);
   };
 
@@ -139,6 +159,11 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
       throw new Error(`Texture "${key}" has no decoded source. Use loadTextures() for a URL.`);
     }
     textures.set(key, owned.adopt(buildTexture(options.renderer, source.source, source.options)));
+    // The decoded bitmap has served its purpose the moment the GPU texture exists, and it holds
+    // real memory until something closes it. The driver creates the texture, so the driver closes
+    // the source — a caller that decoded it cannot know when that moment arrived.
+    const decoded = source.source as { close?: () => void };
+    if (typeof decoded.close === 'function') decoded.close();
   };
 
   const loadTextures = async (): Promise<void> => {
@@ -200,6 +225,7 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
         && existing.height === wantedHeight
         && previous?.depth === request.depth
         && previous?.samples === request.samples
+        && previous?.filter === request.filter
       ) continue;
       existing?.dispose();
       targets.set(request.key, buildTarget(options.renderer, {
@@ -207,7 +233,10 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
         height: wantedHeight,
         depth: request.depth === true,
         ...(request.samples === undefined ? {} : { samples: request.samples }),
-        filter: 'linear',
+        // Deliberately not BroMetal's own `nearest` default. Every target a frame here samples is an
+        // image — a scene resolve, a bloom step — and point sampling those produces blocky glow. A
+        // target holding packed numbers asks for `nearest` explicitly and says why.
+        filter: request.filter ?? 'linear',
       }));
       requests.set(request.key, request);
     }
@@ -225,6 +254,14 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
           program.instanceAttributes[name]?.set(rows);
         }
       }
+      // Before the indices, because the indices are what decide how many vertices are read. Landing
+      // a longer triangle list on the previous frame's shorter vertex buffers reads off the end.
+      if (draw.vertexData !== undefined) {
+        for (const [name, vertices] of Object.entries(draw.vertexData)) {
+          program.attributes[name]?.set(vertices);
+        }
+      }
+      if (draw.indices !== undefined) program.setIndices(draw.indices);
       if (draw.uniforms !== undefined) {
         for (const [name, value] of Object.entries(draw.uniforms)) {
           program.uniforms[name]?.set(resolve(value) as never);

@@ -1,9 +1,9 @@
-import type { TownWorld } from './town';
+import type { TownWorld } from './town.ts';
 import {
   validateVoxelSurfaceMesh,
   voxelQuadKey,
   type VoxelMeshStats,
-} from './voxel-surface-mesh';
+} from './voxel-surface-mesh.ts';
 
 export const TOWN_MESH_BUDGET = {
   // The fine façade/roof/paver pass trades a modest static-mesh increase for

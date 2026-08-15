@@ -1,57 +1,19 @@
-import {
-  createCamera,
-  createCone,
-  createPlane,
-  createProgram,
-  createRenderTarget,
-  createSphere,
-  loadTexture,
-  mat4,
-  type RenderTarget,
-  type Renderer,
-} from 'brometal';
+import { createCamera, createCone, createPlane, createSphere, type Renderer } from 'brometal';
 import type { GamePointerInput } from '@antiky/framework/game';
+import type { RenderFrame, TargetRequest, UniformValue } from '@antiky/framework';
+import {
+  createBroMetalRenderDriver,
+  type PipelineDefinition,
+  type TextureSource,
+} from '@antiky/framework/render-driver';
 
+import { FLOOR_SKY, SURFACE_SKY } from './ambient.ts';
+import { DETAIL_NORMAL_TEXTURE } from './detail-normal.ts';
 import { createRelayFrameScratch, setCameraPosition } from './frame-scratch.ts';
 import { relayOnboardingOpacity } from './onboarding-cues.ts';
-import { FLOOR_SKY, SURFACE_SKY } from './ambient.ts';
-import { loadDetailNormal } from './detail-normal.ts';
-import { loadVfxBillboard } from './vfx-billboard.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
-import bloomBlurShader from './shaders/bloom-blur.shader.gen.ts';
-import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
-import postShader from './shaders/post.shader.gen.ts';
-import nightBackdropShader from './shaders/night-backdrop.shader.gen.ts';
-
-/**
- * `RELAY_PRESENTATION.clearColor` expressed in linear light.
- *
- * The authored value is a display colour: before 06-02 it was written straight to the screen and
- * never passed through a shader. Now it enters an RGBA16F target and leaves through exposure, ACES
- * and the sRGB encode, so it has to be the linear value that comes back out as the authored one.
- * Solved numerically against that exact chain at the demo's exposure, which is why these are not
- * simply `decodeSrgb(clearColor)`.
- */
-const LINEAR_CLEAR = Object.freeze([0.006355, 0.009128, 0.008313, 1] as const);
-
-/**
- * `RELAY_PRESENTATION.fog.color` expressed in pre-exposure scene light.
- *
- * The same boundary problem as the clear colour. Before 06-02 each material mixed fog in *after*
- * applying exposure, so the authored value was a post-exposure quantity. Now materials write linear
- * light into the target and the post pass exposes all of it at once, so mixing the authored value
- * unchanged would expose the fog too — brightening it by the exposure factor.
- *
- * That matters far more than it sounds. Fog dominates the darks, and the sRGB encode has an enormous
- * slope there: a 0.005 linear shift near black is about 20/255 on screen. Left unconverted it moved
- * dark pixels from 25 to 89.
- */
-const LINEAR_FOG_COLOR: readonly [number, number, number] = Object.freeze([
-  RELAY_PRESENTATION.fog.color[0] / RELAY_PRESENTATION.exposure,
-  RELAY_PRESENTATION.fog.color[1] / RELAY_PRESENTATION.exposure,
-  RELAY_PRESENTATION.fog.color[2] / RELAY_PRESENTATION.exposure,
-]);
+import { populateRelayVisuals } from './relay-visuals.ts';
 import {
   createContactShadowBatch,
   createGlowBatch,
@@ -59,9 +21,6 @@ import {
   createSurfaceBatch,
 } from './render-batches.ts';
 import { RELAY_RENDER_PROFILE } from './render-profile.ts';
-import { createDisposalScope } from '@antiky/framework';
-import { bindDepthProgram, createShadowPass } from './shadow-pass.ts';
-import { populateRelayVisuals } from './relay-visuals.ts';
 import { setupReliquaryModels } from './reliquary-model-layout.ts';
 import {
   createReliquaryModelBatch,
@@ -69,12 +28,46 @@ import {
   createStumpModelBatch,
 } from './reliquary-models.ts';
 import { createShadeGeometry } from './shade-geometry.ts';
+import {
+  NOTHING_OCCLUDING,
+  SHADOW_CASTER_UNIFORMS,
+  SHADOW_RECEIVER_UNIFORMS,
+  SHADOW_TARGET,
+} from './shadow-pass.ts';
 import type { RelaySnapshot } from './simulation.ts';
-import floorShader from './shaders/reliquary-floor.shader.gen';
+import { VFX_BILLBOARD_TEXTURE } from './vfx-billboard.ts';
+import bloomBlurShader from './shaders/bloom-blur.shader.gen.ts';
+import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
+import nightBackdropShader from './shaders/night-backdrop.shader.gen.ts';
+import postShader from './shaders/post.shader.gen.ts';
+import floorShader from './shaders/reliquary-floor.shader.gen.ts';
 import FLOOR_AO_URL from 'virtual:blackout-relay/forest-floor-ao';
 import FLOOR_DIFFUSE_URL from 'virtual:blackout-relay/forest-floor-diffuse';
 import FLOOR_ROUGHNESS_URL from 'virtual:blackout-relay/forest-floor-roughness';
 import SECOND_GROUND_URL from 'virtual:blackout-relay/second-ground';
+
+/**
+ * `RELAY_PRESENTATION.clearColor` expressed in linear light.
+ *
+ * The authored value is a display colour. It enters an RGBA16F target and leaves through exposure,
+ * ACES and the sRGB encode, so it has to be the linear value that comes back out as the authored
+ * one. Solved numerically against that exact chain, which is why these are not simply
+ * `decodeSrgb(clearColor)`.
+ */
+const LINEAR_CLEAR = Object.freeze([0.006355, 0.009128, 0.008313, 1] as const);
+
+/**
+ * `RELAY_PRESENTATION.fog.color` expressed in pre-exposure scene light.
+ *
+ * Materials write linear light into the target and the post pass exposes all of it at once, so
+ * mixing the authored value unchanged would expose the fog too. Fog dominates the darks and the
+ * sRGB encode has an enormous slope there: left unconverted it moved dark pixels from 25 to 89.
+ */
+const LINEAR_FOG_COLOR: readonly [number, number, number] = Object.freeze([
+  RELAY_PRESENTATION.fog.color[0] / RELAY_PRESENTATION.exposure,
+  RELAY_PRESENTATION.fog.color[1] / RELAY_PRESENTATION.exposure,
+  RELAY_PRESENTATION.fog.color[2] / RELAY_PRESENTATION.exposure,
+]);
 
 type PresentationLight = Readonly<{
   transform: Readonly<{ position: readonly [number, number, number] }>;
@@ -96,225 +89,162 @@ export type RelayRenderer = Readonly<{
   dispose(): void;
 }>;
 
+/** The nine spherical-harmonic bands, as uniform names the shaders declare one at a time. */
+function skyUniforms(sky: readonly (readonly number[])[]): Record<string, UniformValue> {
+  const uniforms: Record<string, UniformValue> = {};
+  for (let band = 0; band < 9; band += 1) uniforms[`uSh${band}`] = sky[band]!;
+  return uniforms;
+}
+
+/** Fog and relay strength, identical on every lit material. */
+const ATMOSPHERE: Readonly<Record<string, UniformValue>> = Object.freeze({
+  uRelayLightStrength: RELAY_PRESENTATION.relayLightStrength,
+  uFogColor: LINEAR_FOG_COLOR,
+  uFogStart: RELAY_PRESENTATION.fog.start,
+  uFogEnd: RELAY_PRESENTATION.fog.end,
+  uFogMaximumMix: RELAY_PRESENTATION.fog.maximumMix,
+});
+
 export async function createRelayRenderer(
   renderer: Renderer,
   lights: readonly PresentationLight[],
 ): Promise<RelayRenderer> {
-  const resources = createDisposalScope();
-  try {
-    const diffuseTexture = resources.adopt(await loadTexture(renderer, FLOOR_DIFFUSE_URL, {
-      filter: 'smooth', wrap: 'repeat', anisotropy: 8,
-    }));
-    const aoTexture = resources.adopt(await loadTexture(renderer, FLOOR_AO_URL, {
-      filter: 'smooth', wrap: 'repeat', anisotropy: 8,
-    }));
-    const roughnessTexture = resources.adopt(await loadTexture(renderer, FLOOR_ROUGHNESS_URL, {
-      filter: 'smooth', wrap: 'repeat', anisotropy: 8,
-    }));
-    // The second ground layer, blended over the first by a world-space mask.
-    const secondGroundTexture = resources.adopt(await loadTexture(renderer, SECOND_GROUND_URL, {
-      filter: 'smooth', wrap: 'repeat', anisotropy: 8,
-    }));
+  /**
+   * Where each relay stands, what colour it burns and how far it reaches.
+   *
+   * None of it varies: the light service's only mutators are `submitPointLightPower` and
+   * `correctPointLightPower`, and `lights` is the record set captured once here. Only the three
+   * powers are written per frame.
+   */
+  const relayUniforms: Record<string, UniformValue> = {};
+  for (const [index, name] of ['uEmber', 'uIon', 'uViolet'].entries()) {
+    const light = lights[index]!;
+    relayUniforms[`${name}Position`] = light.transform.position;
+    relayUniforms[`${name}Color`] = light.pointLight.color;
+    relayUniforms[`${name}Radius`] = light.pointLight.radius;
+  }
 
-  const floorGeometry = createPlane({
-    width: 18,
-    height: 12.8,
-    widthSegments: 24,
-    heightSegments: 18,
-  });
-  // Loaded once and shared by the floor and every prop batch. The reliquary has five programs that
-  // want it, and five uploads of the same 512x512 image is four wasted.
-  const detailNormal = resources.adopt(await loadDetailNormal(renderer));
-  // One sprite for every glow: it is the demo's effect texture, not a per-effect material.
-  const vfxBillboard = resources.adopt(await loadVfxBillboard(renderer));
-  const floorProgram = resources.adopt(createProgram(renderer, floorShader));
-  floorProgram.attributes.aPosition.set(floorGeometry.positions);
-  floorProgram.attributes.aUv.set(floorGeometry.uvs);
-  floorProgram.setIndices(floorGeometry.indices);
-  floorProgram.uniforms.uDiffuse.set(diffuseTexture);
-  floorProgram.uniforms.uAo.set(aoTexture);
-  floorProgram.uniforms.uRoughness.set(roughnessTexture);
-  floorProgram.uniforms.uDetailNormal.set(detailNormal);
-  const onboarding = resources.adopt(createRelayOnboardingOverlay(renderer));
+  const floorGeometry = createPlane({ width: 18, height: 12.8, widthSegments: 24, heightSegments: 18 });
+  // Inside the camera's 45-unit far plane — at 60 the whole dome clipped and the void stayed black.
+  const dome = createSphere({ radius: 40, widthSegments: 24, heightSegments: 16 });
+  // Seen from inside, and this renderer culls back faces: reversing the index order flips every
+  // triangle's winding so the sphere's inside is its front.
+  dome.indices.reverse();
 
-  const forms = resources.adopt(createSurfaceBatch(
-    renderer,
-    createCone({ radius: 1, height: 2, radialSegments: 5 }),
-    RELAY_RENDER_PROFILE.capacities.forms,
-    detailNormal,
-  ));
-  const creatures = resources.adopt(createSurfaceBatch(
-    renderer,
-    createShadeGeometry(),
-    RELAY_RENDER_PROFILE.capacities.creatures,
-    detailNormal,
-  ));
-  const contacts = resources.adopt(createContactShadowBatch(
-    renderer,
-    RELAY_RENDER_PROFILE.capacities.contacts,
-    vfxBillboard,
-  ));
-  const orbs = resources.adopt(createSurfaceBatch(
-    renderer,
-    createSphere({ radius: 1, widthSegments: 24, heightSegments: 16 }),
-    RELAY_RENDER_PROFILE.capacities.orbs,
-    detailNormal,
-  ));
-  // Goal 08: the rings left the lit path. They were `tube: 0.035` tori with eight radial
-  // segments — countable polygons in the capture — drawn through the surface shader, so the key
-  // light and fog acted on what is really a gameplay glyph. Each is now a soft additive band.
-  const rings = resources.adopt(createRingBatch(
-    renderer,
-    RELAY_RENDER_PROFILE.capacities.rings,
-    vfxBillboard,
-  ));
-  const glows = resources.adopt(createGlowBatch(
-    renderer,
-    createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }),
-    RELAY_RENDER_PROFILE.capacities.glows,
-    vfxBillboard,
-  ));
-  const organic = resources.adopt(await createReliquaryModelBatch(
-    renderer,
-    RELAY_RENDER_PROFILE.capacities.organic,
-  ));
-  const rocks = resources.adopt(await createRockModelBatch(
-    renderer,
-    RELAY_RENDER_PROFILE.capacities.rocks,
-  ));
-  const stumps = resources.adopt(await createStumpModelBatch(
-    renderer,
-    RELAY_RENDER_PROFILE.capacities.stumps,
-  ));
+  const capacities = RELAY_RENDER_PROFILE.capacities;
+  const forms = createSurfaceBatch(createCone({ radius: 1, height: 2, radialSegments: 5 }), capacities.forms);
+  const creatures = createSurfaceBatch(createShadeGeometry(), capacities.creatures);
+  const orbs = createSurfaceBatch(createSphere({ radius: 1, widthSegments: 24, heightSegments: 16 }), capacities.orbs);
+  const contacts = createContactShadowBatch(capacities.contacts, 'vfx-billboard');
+  // Goal 08: the rings left the lit path. They are gameplay glyphs, not geometry, so each is a soft
+  // additive band rather than a torus the key light and fog act on.
+  const rings = createRingBatch(capacities.rings);
+  const glows = createGlowBatch(createSphere({ radius: 1, widthSegments: 12, heightSegments: 8 }), capacities.glows);
+  const organic = await createReliquaryModelBatch(capacities.organic);
+  const rocks = await createRockModelBatch(capacities.rocks);
+  const stumps = await createStumpModelBatch(capacities.stumps);
   setupReliquaryModels(organic, rocks, stumps);
+  const onboarding = createRelayOnboardingOverlay();
 
-  // The night horizon: a dome at infinity behind everything, so the ground plane's edge fades
-  // into haze instead of cutting against void. Same at-infinity construction as the arena's sky.
-  const backdropProgram = resources.adopt(createProgram(renderer, nightBackdropShader));
-  {
-    // Inside the camera's 45-unit far plane — at 60 the whole dome clipped and the void stayed black.
-    const dome = createSphere({ radius: 40, widthSegments: 24, heightSegments: 16 });
-      // Seen from inside, and this renderer culls back faces: reversing the index order flips
-      // every triangle's winding so the sphere's inside is its front. Without this the whole dome
-      // is silently culled and the sky stays the flat clear colour — which is exactly what the
-      // first capture showed.
-      dome.indices.reverse();
-    backdropProgram.attributes.aPosition.set(dome.positions);
-    backdropProgram.setIndices(dome.indices);
-  }
-
-  // Created before the uniform binding below, because every material program is pointed at its map
-  // once at setup rather than rebound each frame.
-  const shadows = resources.adopt(createShadowPass(renderer));
-  /** Where each relay stands, what colour it burns and how far it reaches. None of it varies. */
-  const setStaticLights = (program: {
-    uniforms: Record<string, { set(value: never): void } | undefined>;
-  }): void => {
-    const names = ['uEmber', 'uIon', 'uViolet'] as const;
-    for (let index = 0; index < names.length; index += 1) {
-      const light = lights[index]!;
-      program.uniforms[`${names[index]!}Position`]?.set(light.transform.position as never);
-      program.uniforms[`${names[index]!}Color`]?.set(light.pointLight.color as never);
-      program.uniforms[`${names[index]!}Radius`]?.set(light.pointLight.radius as never);
-    }
+  const surfaceStatic = { ...skyUniforms(SURFACE_SKY), uAmbientStrength: RELAY_PRESENTATION.surfaceAmbient.strength, ...ATMOSPHERE, ...relayUniforms };
+  const catalogStatic = { ...skyUniforms(SURFACE_SKY), uAmbientStrength: RELAY_PRESENTATION.catalogMaterial.ambientStrength, ...ATMOSPHERE, ...relayUniforms };
+  const floorStatic = {
+    ...skyUniforms(FLOOR_SKY),
+    uAmbientStrength: RELAY_PRESENTATION.floorAmbient.strength,
+    uDiffuseTint: RELAY_PRESENTATION.floorDiffuseTint,
+    ...ATMOSPHERE,
+    ...relayUniforms,
   };
-  const surfaceBatches = [forms, creatures, orbs] as const;
-  for (let index = 0; index < surfaceBatches.length; index += 1) {
-    const batch = surfaceBatches[index]!;
-    batch.program.uniforms.uSh0.set(SURFACE_SKY[0]!);
-    batch.program.uniforms.uSh1.set(SURFACE_SKY[1]!);
-    batch.program.uniforms.uSh2.set(SURFACE_SKY[2]!);
-    batch.program.uniforms.uSh3.set(SURFACE_SKY[3]!);
-    batch.program.uniforms.uSh4.set(SURFACE_SKY[4]!);
-    batch.program.uniforms.uSh5.set(SURFACE_SKY[5]!);
-    batch.program.uniforms.uSh6.set(SURFACE_SKY[6]!);
-    batch.program.uniforms.uSh7.set(SURFACE_SKY[7]!);
-    batch.program.uniforms.uSh8.set(SURFACE_SKY[8]!);
-    batch.program.uniforms.uAmbientStrength.set(RELAY_PRESENTATION.surfaceAmbient.strength);
-    batch.program.uniforms.uRelayLightStrength.set(RELAY_PRESENTATION.relayLightStrength);
-    batch.program.uniforms.uFogColor.set(LINEAR_FOG_COLOR);
-    batch.program.uniforms.uFogStart.set(RELAY_PRESENTATION.fog.start);
-    batch.program.uniforms.uFogEnd.set(RELAY_PRESENTATION.fog.end);
-    batch.program.uniforms.uFogMaximumMix.set(RELAY_PRESENTATION.fog.maximumMix);
-    setStaticLights(batch.program as never);
-    shadows.bind(batch.program as never);
-    bindDepthProgram(batch.depthProgram as never);
-  }
-  const modelBatches = [organic, rocks, stumps] as const;
-  for (let index = 0; index < modelBatches.length; index += 1) {
-    const batch = modelBatches[index]!;
-    batch.program.uniforms.uSh0!.set(SURFACE_SKY[0]!);
-    batch.program.uniforms.uSh1!.set(SURFACE_SKY[1]!);
-    batch.program.uniforms.uSh2!.set(SURFACE_SKY[2]!);
-    batch.program.uniforms.uSh3!.set(SURFACE_SKY[3]!);
-    batch.program.uniforms.uSh4!.set(SURFACE_SKY[4]!);
-    batch.program.uniforms.uSh5!.set(SURFACE_SKY[5]!);
-    batch.program.uniforms.uSh6!.set(SURFACE_SKY[6]!);
-    batch.program.uniforms.uSh7!.set(SURFACE_SKY[7]!);
-    batch.program.uniforms.uSh8!.set(SURFACE_SKY[8]!);
-    batch.program.uniforms.uAmbientStrength!.set(RELAY_PRESENTATION.catalogMaterial.ambientStrength);
-    batch.program.uniforms.uRelayLightStrength!.set(RELAY_PRESENTATION.relayLightStrength);
-    batch.program.uniforms.uFogColor!.set(LINEAR_FOG_COLOR);
-    batch.program.uniforms.uFogStart!.set(RELAY_PRESENTATION.fog.start);
-    batch.program.uniforms.uFogEnd!.set(RELAY_PRESENTATION.fog.end);
-    batch.program.uniforms.uFogMaximumMix!.set(RELAY_PRESENTATION.fog.maximumMix);
-    setStaticLights(batch.program as never);
-    shadows.bind(batch.program as never);
-    bindDepthProgram(batch.depthProgram as never);
-  }
-  setStaticLights(floorProgram as never);
-  floorProgram.uniforms.uDiffuseTint.set(RELAY_PRESENTATION.floorDiffuseTint);
-  // Nine coefficients instead of one colour. BroMetal's DSL has no array uniform type, so they are
-  // nine separate bindings rather than one — verbose at the call site, but the shader side is a
-  // straight nine multiply-adds with no indexing.
-  // Written out rather than looped: the uniform record is a typed literal, so an index built from a
-  // template string is not a key TypeScript can check. Nine lines that the compiler verifies beat a
-  // loop that needs a cast to compile.
 
-  floorProgram.uniforms.uSh0.set(FLOOR_SKY[0]!);
-  floorProgram.uniforms.uSh1.set(FLOOR_SKY[1]!);
-  floorProgram.uniforms.uSh2.set(FLOOR_SKY[2]!);
-  floorProgram.uniforms.uSh3.set(FLOOR_SKY[3]!);
-  floorProgram.uniforms.uSh4.set(FLOOR_SKY[4]!);
-  floorProgram.uniforms.uSh5.set(FLOOR_SKY[5]!);
-  floorProgram.uniforms.uSh6.set(FLOOR_SKY[6]!);
-  floorProgram.uniforms.uSh7.set(FLOOR_SKY[7]!);
-  floorProgram.uniforms.uSh8.set(FLOOR_SKY[8]!);
-  floorProgram.uniforms.uAmbientStrength.set(RELAY_PRESENTATION.floorAmbient.strength);
-  floorProgram.uniforms.uRelayLightStrength.set(RELAY_PRESENTATION.relayLightStrength);
-  floorProgram.uniforms.uFogColor.set(LINEAR_FOG_COLOR);
-  floorProgram.uniforms.uFogStart.set(RELAY_PRESENTATION.fog.start);
-  floorProgram.uniforms.uFogEnd.set(RELAY_PRESENTATION.fog.end);
-  floorProgram.uniforms.uFogMaximumMix.set(RELAY_PRESENTATION.fog.maximumMix);
-  // The floor is the demo's largest shadow receiver and casts nothing itself.
-  shadows.bind(floorProgram as never);
+  /** Applies the values that never change once, when the driver builds the program. */
+  const staticSetup = (values: Readonly<Record<string, UniformValue>>) => (
+    (program: { uniforms: Record<string, { set(value: unknown): void } | undefined> }): void => {
+      for (const [name, value] of Object.entries(values)) program.uniforms[name]?.set(value);
+    }
+  );
+
+  const fullscreen = createPlane({ width: 2, height: 2 });
+  const quad = (program: {
+    attributes: Record<string, { set(value: unknown): void } | undefined>;
+    setIndices(indices: unknown): void;
+  }): void => {
+    program.attributes.aPosition?.set(fullscreen.positions);
+    program.setIndices(fullscreen.indices);
+  };
+
+  const driver = createBroMetalRenderDriver({
+    renderer,
+    textures: {
+      'detail-normal': DETAIL_NORMAL_TEXTURE,
+      'vfx-billboard': VFX_BILLBOARD_TEXTURE,
+      'floor-diffuse': { url: FLOOR_DIFFUSE_URL, options: { filter: 'smooth', wrap: 'repeat', anisotropy: 8 } },
+      'floor-ao': { url: FLOOR_AO_URL, options: { filter: 'smooth', wrap: 'repeat', anisotropy: 8 } },
+      'floor-roughness': { url: FLOOR_ROUGHNESS_URL, options: { filter: 'smooth', wrap: 'repeat', anisotropy: 8 } },
+      // The second ground layer, blended over the first by a world-space mask.
+      'second-ground': { url: SECOND_GROUND_URL, options: { filter: 'smooth', wrap: 'repeat', anisotropy: 8 } },
+      ...organic.textures,
+      ...rocks.textures,
+      ...stumps.textures,
+      ...onboarding.textures,
+    } as Record<string, TextureSource>,
+    pipelines: {
+      floor: {
+        shader: floorShader,
+        setup(program) {
+          program.attributes.aPosition?.set(floorGeometry.positions);
+          program.attributes.aUv?.set(floorGeometry.uvs);
+          program.setIndices(floorGeometry.indices);
+          staticSetup(floorStatic)(program);
+        },
+      },
+      backdrop: {
+        shader: nightBackdropShader,
+        setup(program) {
+          program.attributes.aPosition?.set(dome.positions);
+          program.setIndices(dome.indices);
+        },
+      },
+      'bloom-extract': { shader: bloomExtractShader, setup: quad },
+      'bloom-blur': { shader: bloomBlurShader, setup: quad },
+      // `blend: 'alpha'` on a pass that blends nothing, because in BroMetal that is the only way to
+      // ask for "do not write depth". The post quad sits at clip z = 0 and covers the canvas, so
+      // with depth writing on it stamps 0 into every depth texel and the overlay then vanishes.
+      post: { shader: postShader, options: { blend: 'alpha' }, setup: quad },
+      onboarding: onboarding.pipeline,
+      'onboarding-status': onboarding.statusPipeline,
+      ...surfacePipelines('forms', forms, surfaceStatic),
+      ...surfacePipelines('creatures', creatures, surfaceStatic),
+      ...surfacePipelines('orbs', orbs, surfaceStatic),
+      ...catalogPipelines('organic', organic, catalogStatic),
+      ...catalogPipelines('rocks', rocks, catalogStatic),
+      ...catalogPipelines('stumps', stumps, catalogStatic),
+      contacts: contacts.pipeline,
+      rings: rings.pipeline,
+      glows: glows.pipeline,
+    } as Record<string, PipelineDefinition>,
+  });
+  await driver.loadTextures();
+
+  const TARGETS: readonly TargetRequest[] = Object.freeze([
+    SHADOW_TARGET,
+    // `samples: 4` because the canvas is, and an off-screen target is not by default — moving the
+    // scene into one silently took its anti-aliasing away. `filter: 'linear'` because the bloom
+    // extract downsamples it 4x.
+    { key: 'scene', scale: 1, depth: true, samples: 4 },
+    { key: 'bloom-a', scale: 0.25 },
+    { key: 'bloom-b', scale: 0.25 },
+  ]);
+
   const frameScratch = createRelayFrameScratch();
   const cameraPosition = frameScratch.cameraPosition;
   const camera = createCamera({
     position: RELAY_PRESENTATION.camera.position,
     fovY: RELAY_PRESENTATION.camera.fovY,
-    // near 0.1 against far 45 was 450:1, already inside the 500:1 budget but wasteful: this is a
-    // fixed overhead camera and nothing reaches within a metre of it. 0.15 gives 300:1.
+    // near 0.1 against far 45 was 450:1, already inside the 500:1 budget but wasteful for a fixed
+    // overhead camera nothing reaches within a metre of. 0.15 gives 300:1.
     near: 0.15,
     far: 45,
   });
-  /**
-   * The three relay powers, and only those.
-   *
-   * Each relay also has a position, a colour and a radius, and those nine values used to be
-   * re-uploaded beside the powers on every program on every frame. They cannot change: the light
-   * service's only mutators are `submitPointLightPower` and `correctPointLightPower`, and `lights`
-   * is the record set captured once when the renderer was built. They are written at construction
-   * by `setStaticLights` instead.
-   */
-  const setLights = (
-    powers: readonly [number, number, number],
-    program: (typeof surfaceBatches)[number]['program'] | typeof organic.program,
-  ): void => {
-    program.uniforms.uEmberPower!.set(powers[0]);
-    program.uniforms.uIonPower!.set(powers[1]);
-    program.uniforms.uVioletPower!.set(powers[2]);
-  };
 
   const visualBatches = Object.freeze({ forms, creatures, contacts, orbs, rings, glows });
   const hasDeposit = (state: RelaySnapshot): boolean => {
@@ -322,160 +252,6 @@ export async function createRelayRenderer(
       if (state.deposits[index]) return true;
     }
     return false;
-  };
-  // One RGBA16F target for the whole scene, and one pass that turns it into an image.
-  //
-  // BroMetal fixes every offscreen target to `rgba16float`, so there is no format to choose — a
-  // `drawTo` target is already 16-bit float. `depth: true` because the scene is depth-sorted
-  // geometry, not a single quad.
-  //
-  // The target is rebuilt only when the canvas size changes; reallocating every frame would throw
-  // away the drawing buffer sixty times a second for nothing.
-  let sceneTarget: RenderTarget | undefined;
-  const ensureSceneTarget = (): RenderTarget => {
-    const width = Math.max(1, renderer.canvas.width);
-    const height = Math.max(1, renderer.canvas.height);
-    if (!sceneTarget || sceneTarget.width !== width || sceneTarget.height !== height) {
-      sceneTarget?.dispose();
-      // `samples: 4` because the canvas is 4x multisampled and the target is not by default.
-      // Moving the scene off the screen and into a target silently took its anti-aliasing away:
-      // hard luminance steps went from 6,356 to 9,449 before this was set. The target texture
-      // stays single-sampled and receives the resolve, so the post pass samples it unchanged.
-      //
-      // The resolve now happens in linear light, before the tone-map, rather than in display space
-      // after it. That is the order an HDR target exists to provide, and it is why a few thousand
-      // pixels on the highest-contrast edges still differ from the pre-06-02 frame.
-      // `filter: 'linear'` because the bloom extract downsamples this 4x — on a point sampler it
-      // read 1 of every 16 pixels and small bright sources boxed. Goal 02's filtering patch.
-      sceneTarget = createRenderTarget(renderer, { width, height, depth: true, samples: 4, filter: 'linear' });
-    }
-    return sceneTarget;
-  };
-  // `blend: 'alpha'` on a pass that is not blending anything, because in BroMetal that is the only
-  // way to ask for "do not write depth": the pipeline sets `depthWriteEnabled: blend === 'none'`
-  // and `depthCompare: 'less'` with no separate knob. The post quad sits at clip z = 0 and covers
-  // the canvas, so with depth writing on it stamps 0 into every depth texel — and the onboarding
-  // overlay, also at z = 0, then fails `0 < 0` and vanishes. That is what happened: the panel was
-  // missing from the first 06-02 capture and accounted for 2.74 of the 3.26/255 drift.
-  //
-  // The blend is a true no-op here: the fragment writes alpha 1, so `src * srcAlpha + dst * (1 -
-  // srcAlpha)` is exactly `src`. Nothing has drawn to the canvas before it, and the canvas depth
-  // clears to 1 each frame, so both this quad and the overlay pass the test.
-  /**
-   * Two quarter-resolution targets, ping-ponged by the blur.
-   *
-   * Quarter resolution because a blur is the one pass where resolution buys nothing: the output is
-   * low-frequency by definition, and a quarter-size chain costs a sixteenth of the samples. Two of
-   * them because a separable blur cannot read and write the same texture — across into one, down
-   * into the other.
-   *
-   * `filter: 'linear'` is goal 02's `render-target-filtering` patch and is hard-blocking here. On a
-   * point sampler the taps between texels snap back onto texel centres, and the chain produces
-   * blocky glow that crawls whenever the camera moves.
-   */
-  let bloomTargets: readonly [RenderTarget, RenderTarget] | undefined;
-  const ensureBloomTargets = (): readonly [RenderTarget, RenderTarget] => {
-    const width = Math.max(1, Math.floor(renderer.canvas.width / 4));
-    const height = Math.max(1, Math.floor(renderer.canvas.height / 4));
-    if (!bloomTargets || bloomTargets[0].width !== width || bloomTargets[0].height !== height) {
-      bloomTargets?.[0].dispose();
-      bloomTargets?.[1].dispose();
-      bloomTargets = [
-        createRenderTarget(renderer, { width, height, filter: 'linear' }),
-        createRenderTarget(renderer, { width, height, filter: 'linear' }),
-      ];
-    }
-    return bloomTargets;
-  };
-  const fullscreenQuad = createPlane({ width: 2, height: 2 });
-  const bloomExtract = resources.adopt(createProgram(renderer, bloomExtractShader));
-  bloomExtract.attributes.aPosition.set(fullscreenQuad.positions);
-  bloomExtract.setIndices(fullscreenQuad.indices);
-  const bloomBlur = resources.adopt(createProgram(renderer, bloomBlurShader));
-  bloomBlur.attributes.aPosition.set(fullscreenQuad.positions);
-  bloomBlur.setIndices(fullscreenQuad.indices);
-
-  const postProgram = resources.adopt(createProgram(renderer, postShader, { blend: 'alpha' }));
-  postProgram.attributes.aPosition.set(createPlane({ width: 2, height: 2 }).positions);
-  postProgram.setIndices(createPlane({ width: 2, height: 2 }).indices);
-
-  // Everything that blocks the sun. The floor is absent on purpose — it is the receiver, and a flat
-  // plane facing the light writes a depth its own lookup then has to bias its way back out of.
-  //
-  // The blended passes are absent too. `contacts` and `glows` are billboards standing in for light,
-  // not solid geometry, and a sprite of a glow casting a hard shadow is exactly wrong.
-  const drawCasters = (): void => {
-    organic.drawDepth();
-    rocks.drawDepth();
-    stumps.drawDepth();
-    forms.drawDepth();
-    creatures.drawDepth();
-    orbs.drawDepth();
-  };
-
-  const drawScene = (): void => {
-    backdropProgram.draw();
-    floorProgram.draw();
-    organic.draw();
-    rocks.draw();
-    stumps.draw();
-    forms.draw();
-    creatures.draw();
-    orbs.draw();
-    // Blended, so it runs once every opaque surface has written depth. Before glows, so a light
-    // reads as sitting on top of the shadow rather than under it. The rings are additive glyphs
-    // and sit between: under the contact shadows would dim them, over the glows would double them.
-    contacts.draw();
-    rings.draw();
-    glows.draw();
-  };
-
-  const drawFrame = (): void => {
-    // Before the scene, because the scene reads what this writes. `drawTo` finishes and submits its
-    // own encoder, so the two passes are ordered by the queue rather than by hope.
-    shadows.render(drawCasters);
-    const scene = ensureSceneTarget();
-    // The target must be cleared to the scene's background, not to `drawTo`'s default of
-    // transparent black. Missing this turned 34% of the frame — everything outside the floor — from
-    // the authored void colour to pure black, which was most of this step's measured drift.
-    //
-    // The value is linear because the target is: the post pass exposes, tone-maps and encodes it
-    // along with everything else, so it has to enter the pipeline in the same space as the geometry.
-    renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
-
-    // Extract, blur across, blur down. Three quarter-resolution passes over a scene that is already
-    // drawn, so nothing here touches the geometry again.
-    const [bloomA, bloomB] = ensureBloomTargets();
-    bloomExtract.uniforms.uScene.set(scene.texture);
-    bloomExtract.uniforms.uThreshold.set(RELAY_PRESENTATION.bloom.threshold);
-    bloomExtract.uniforms.uTexel.set([1 / bloomA.width, 1 / bloomA.height]);
-    renderer.drawTo(bloomA, () => bloomExtract.draw());
-    // The step is in uv, so it has to come from the bloom target's size and not the canvas's.
-    // radius / 3: the blur's outermost tap sits at three steps, so a whole-radius step spread the
-    // seven taps a radius apart and printed bright singles as a lattice of boxes.
-    const acrossStep = RELAY_PRESENTATION.bloom.radius / 3 / bloomA.width;
-    const downStep = RELAY_PRESENTATION.bloom.radius / 3 / bloomA.height;
-    bloomBlur.uniforms.uSource.set(bloomA.texture);
-    bloomBlur.uniforms.uDirection.set([acrossStep, 0]);
-    renderer.drawTo(bloomB, () => bloomBlur.draw());
-    bloomBlur.uniforms.uSource.set(bloomB.texture);
-    bloomBlur.uniforms.uDirection.set([0, downStep]);
-    renderer.drawTo(bloomA, () => bloomBlur.draw());
-
-    postProgram.uniforms.uScene.set(scene.texture);
-    postProgram.uniforms.uBloom.set(bloomA.texture);
-    postProgram.uniforms.uBloomStrength.set(RELAY_PRESENTATION.bloom.strength);
-    postProgram.uniforms.uExposure.set(RELAY_PRESENTATION.exposure);
-    postProgram.draw();
-
-    // Drawn after the post pass, on purpose, and this is the ambiguity goal 06-02 asks to settle.
-    //
-    // The overlay is authored display-space UI. Inside the target it would be exposed and
-    // tone-mapped along with the scene, which would change text that was picked to be legible
-    // exactly as authored. Outside it, the identity holds — which is what UI wants and what it
-    // already did before this step.
-    onboarding.draw();
-    onboarding.drawStatus();
   };
 
   const render = (
@@ -485,10 +261,7 @@ export async function createRelayRenderer(
   ): void => {
     populateRelayVisuals(visualBatches, state, powers);
     void pointer;
-    const dangerTrauma = Math.max(
-      0,
-      state.dangerPulse - RELAY_PRESENTATION.camera.dangerShakeThreshold,
-    );
+    const dangerTrauma = Math.max(0, state.dangerPulse - RELAY_PRESENTATION.camera.dangerShakeThreshold);
     const shake = Math.min(RELAY_PRESENTATION.camera.maximumShake, dangerTrauma * 0.08);
     const cameraX = RELAY_PRESENTATION.camera.position[0] + Math.sin(state.time * 24) * shake;
     const cameraY = RELAY_PRESENTATION.camera.position[1];
@@ -500,43 +273,154 @@ export async function createRelayRenderer(
       RELAY_PRESENTATION.camera.target[1],
       RELAY_PRESENTATION.camera.target[2],
     );
-    const viewProjection = camera.viewProjection(renderer.aspect);
+    const viewProjection = Array.from(camera.viewProjection(renderer.aspect));
+    const eye = Array.from(cameraPosition);
 
-    for (let index = 0; index < surfaceBatches.length; index += 1) {
-      const batch = surfaceBatches[index]!;
-      batch.program.uniforms.uViewProj.set(viewProjection);
-      batch.program.uniforms.uCameraPosition.set(cameraPosition);
-      batch.program.uniforms.uTime.set(state.time);
-      setLights(powers, batch.program);
-    }
-    for (let index = 0; index < modelBatches.length; index += 1) {
-      const batch = modelBatches[index]!;
-      batch.program.uniforms.uViewProj!.set(viewProjection);
-      batch.program.uniforms.uCameraPosition!.set(cameraPosition);
-      batch.program.uniforms.uTime!.set(state.time);
-      setLights(powers, batch.program);
-    }
-    floorProgram.uniforms.uViewProj.set(viewProjection);
-    floorProgram.uniforms.uCameraPosition.set(cameraPosition);
-    floorProgram.uniforms.uEmberPower.set(powers[0]);
-    floorProgram.uniforms.uIonPower.set(powers[1]);
-    floorProgram.uniforms.uVioletPower.set(powers[2]);
-    contacts.program.uniforms.uViewProj.set(viewProjection);
-    rings.frame(viewProjection, state.time);
-    backdropProgram.uniforms.uViewProj.set(viewProjection);
-    backdropProgram.uniforms.uCameraPosition.set(cameraPosition);
-    backdropProgram.uniforms.uTime.set(state.time);
-    glows.program.uniforms.uViewProj.set(viewProjection);
-    glows.program.uniforms.uCameraPosition.set(cameraPosition);
-    glows.program.uniforms.uTime.set(state.time);
-    onboarding.setOpacity(relayOnboardingOpacity(
-      state.time,
-      hasDeposit(state),
-      state.status,
-    ));
-    onboarding.setStatus(state.status, state.time);
+    /** What every lit material needs each frame, on top of what it was built with. */
+    const perFrame: Record<string, UniformValue> = {
+      uViewProj: viewProjection,
+      uCameraPosition: eye,
+      uEmberPower: powers[0],
+      uIonPower: powers[1],
+      uVioletPower: powers[2],
+      ...SHADOW_RECEIVER_UNIFORMS,
+    };
 
-    renderer.present(drawFrame);
+    // `uTime` sits here rather than in `perFrame` because the floor shares `perFrame` and does not
+    // declare it — BroMetal rejects a uniform its program never compiled, so a value every lit
+    // material happens to want is not automatically a value every one of them has.
+    const litDraw = (pipeline: string, batch: { instanceData: Record<string, Float32Array> }, extra?: Record<string, UniformValue>) => ({
+      pipeline,
+      uniforms: { ...perFrame, uTime: state.time, ...(extra ?? {}) },
+      instanceData: batch.instanceData,
+    });
+    const casterDraw = (pipeline: string, batch: { depthInstanceData: Record<string, Float32Array> }) => ({
+      pipeline,
+      uniforms: SHADOW_CASTER_UNIFORMS,
+      instanceData: batch.depthInstanceData,
+    });
+
+    const frame: RenderFrame = {
+      passes: [
+        // Before the scene, because the scene reads what this writes. The blended passes are absent:
+        // a sprite of a glow casting a hard shadow is exactly wrong.
+        {
+          target: 'shadow',
+          clear: NOTHING_OCCLUDING,
+          draws: [
+            casterDraw('organic-depth', organic),
+            casterDraw('rocks-depth', rocks),
+            casterDraw('stumps-depth', stumps),
+            casterDraw('forms-depth', forms),
+            casterDraw('creatures-depth', creatures),
+            casterDraw('orbs-depth', orbs),
+          ],
+        },
+        {
+          target: 'scene',
+          // Cleared to the scene's background, not to transparent black. Missing this turned 34% of
+          // the frame — everything outside the floor — from the authored void colour to pure black.
+          clear: LINEAR_CLEAR,
+          draws: [
+            { pipeline: 'backdrop', uniforms: { uViewProj: viewProjection, uCameraPosition: eye, uTime: state.time } },
+            {
+              pipeline: 'floor',
+              // The floor's five maps are set here rather than in `setup`, because a pipeline is
+              // built before `loadTextures` has run and there is nothing to point at yet.
+              uniforms: {
+                ...perFrame,
+                uDiffuse: { texture: 'floor-diffuse' },
+                uSecondGround: { texture: 'second-ground' },
+                uAo: { texture: 'floor-ao' },
+                uRoughness: { texture: 'floor-roughness' },
+                uDetailNormal: { texture: 'detail-normal' },
+              },
+            },
+            litDraw('organic', organic, organic.uniforms as Record<string, UniformValue>),
+            litDraw('rocks', rocks, rocks.uniforms as Record<string, UniformValue>),
+            litDraw('stumps', stumps, stumps.uniforms as Record<string, UniformValue>),
+            litDraw('forms', forms, { uDetailNormal: { texture: 'detail-normal' } }),
+            litDraw('creatures', creatures, { uDetailNormal: { texture: 'detail-normal' } }),
+            litDraw('orbs', orbs, { uDetailNormal: { texture: 'detail-normal' } }),
+            // Blended, so they run once every opaque surface has written depth. The rings sit
+            // between the contact shadows and the glows: under the shadows would dim them, over the
+            // glows would double them.
+            { pipeline: 'contacts', uniforms: { uViewProj: viewProjection, uBillboard: { texture: 'vfx-billboard' } }, instanceData: contacts.instanceData },
+            { pipeline: 'rings', uniforms: { uViewProj: viewProjection, uTime: state.time, uBillboard: { texture: 'vfx-billboard' } }, instanceData: rings.instanceData },
+            { pipeline: 'glows', uniforms: { uViewProj: viewProjection, uCameraPosition: eye, uTime: state.time, uBillboard: { texture: 'vfx-billboard' } }, instanceData: glows.instanceData },
+          ],
+        },
+        // Extract, blur across, blur down. Three quarter-resolution passes over a scene already
+        // drawn, so nothing here touches the geometry again. The step is in uv and comes from the
+        // bloom target's size, not the canvas's — radius/3 because the blur's outermost tap sits at
+        // three steps, and a whole-radius step printed bright singles as a lattice of boxes.
+        {
+          target: 'bloom-a',
+          draws: [{
+            pipeline: 'bloom-extract',
+            uniforms: {
+              uScene: { target: 'scene' },
+              uThreshold: RELAY_PRESENTATION.bloom.threshold,
+              uTexel: [4 / Math.max(1, renderer.canvas.width), 4 / Math.max(1, renderer.canvas.height)],
+            },
+          }],
+        },
+        {
+          target: 'bloom-b',
+          draws: [{
+            pipeline: 'bloom-blur',
+            uniforms: {
+              uSource: { target: 'bloom-a' },
+              uDirection: [RELAY_PRESENTATION.bloom.radius / 3 / Math.max(1, renderer.canvas.width / 4), 0],
+            },
+          }],
+        },
+        {
+          target: 'bloom-a',
+          draws: [{
+            pipeline: 'bloom-blur',
+            uniforms: {
+              uSource: { target: 'bloom-b' },
+              uDirection: [0, RELAY_PRESENTATION.bloom.radius / 3 / Math.max(1, renderer.canvas.height / 4)],
+            },
+          }],
+        },
+        {
+          draws: [
+            {
+              pipeline: 'post',
+              uniforms: {
+                uScene: { target: 'scene' },
+                uBloom: { target: 'bloom-a' },
+                uBloomStrength: RELAY_PRESENTATION.bloom.strength,
+                uExposure: RELAY_PRESENTATION.exposure,
+              },
+            },
+            // After the post pass, on purpose. The overlay is authored display-space UI; inside the
+            // target it would be exposed and tone-mapped along with the scene.
+            {
+              pipeline: 'onboarding',
+              uniforms: {
+                uAtlas: { texture: 'onboarding-legend' },
+                ...onboarding.uniforms(relayOnboardingOpacity(state.time, hasDeposit(state), state.status)),
+              },
+            },
+            {
+              pipeline: 'onboarding-status',
+              uniforms: (onboarding.statusUniforms(state.status, state.time) ?? {}) as Record<string, UniformValue>,
+            },
+          ],
+        },
+      ],
+    };
+
+    renderer.present(() => {
+      // Inside the present callback, matching where the original created its targets. Note this
+      // was *not* the cause of the runtime fault — moving it changed nothing — so do not spend a
+      // second session on it.
+      driver.configureTargets(TARGETS);
+      driver.submit(frame);
+    });
   };
 
   return Object.freeze({
@@ -546,11 +430,33 @@ export async function createRelayRenderer(
     }),
     render,
     dispose(): void {
-      resources.dispose();
+      driver.dispose();
     },
   });
-  } catch (cause: unknown) {
-    resources.rollback();
-    throw cause;
-  }
+}
+
+/** A lit batch and its shadow caster, as two keyed pipelines. */
+function surfacePipelines(
+  key: string,
+  batch: { pipeline: PipelineDefinition; depthPipeline: PipelineDefinition },
+  statics: Readonly<Record<string, UniformValue>>,
+): Record<string, PipelineDefinition> {
+  return {
+    [key]: {
+      ...batch.pipeline,
+      setup(program) {
+        batch.pipeline.setup?.(program);
+        for (const [name, value] of Object.entries(statics)) program.uniforms[name]?.set(value);
+      },
+    },
+    [`${key}-depth`]: batch.depthPipeline,
+  };
+}
+
+function catalogPipelines(
+  key: string,
+  batch: { pipeline: PipelineDefinition; depthPipeline: PipelineDefinition },
+  statics: Readonly<Record<string, UniformValue>>,
+): Record<string, PipelineDefinition> {
+  return surfacePipelines(key, batch, statics);
 }

@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:8832ca5e375d42b2
+frameworkSource: sha256:c0cceb5a00eb8ee6
 ---
 
 # BroMetal render driver API
@@ -33,17 +33,36 @@ driver.configureTargets([{ key: 'scene', scale: 1, depth: true, samples: 4 }]);
 
 Own every BroMetal program and render target, and draw a contract frame pass by pass.
 
+### `PipelineProgram`
+
+The binding records a pipeline setup callback is handed.
+
+```ts
+type PipelineProgram = Readonly<{
+    attributes: Record<string, {
+        set(value: unknown): void;
+    } | undefined>;
+    instanceAttributes: Record<string, {
+        set(value: unknown): void;
+    } | undefined>;
+    uniforms: Record<string, {
+        set(value: unknown): void;
+    } | undefined>;
+    setIndices(indices: unknown): void;
+}>;
+```
+
 ### `PipelineDefinition`
 
 One pipeline the BroMetal driver can draw, supplied when it is constructed.
 
 ```ts
 type PipelineDefinition = Readonly<{
-    shader: CompiledShader<never, never, never>;
+    shader: unknown;
     options?: Readonly<{
         blend?: 'none' | 'alpha' | 'additive';
     }>;
-    setup?(program: BroMetalProgram): void;
+    setup?(program: PipelineProgram): void;
 }>;
 ```
 

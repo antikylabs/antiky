@@ -43,7 +43,6 @@ function setupTrunkArches(batch: ReliquaryModelBatch): void {
       0.02, 0,
     );
   }
-  batch.upload();
 }
 
 function setupRocks(batch: ReliquaryModelBatch): void {
@@ -108,7 +107,6 @@ function setupRocks(batch: ReliquaryModelBatch): void {
       -0.02, 0,
     );
   }
-  batch.upload();
 }
 
 function setupStumps(batch: ReliquaryModelBatch): void {
@@ -146,7 +144,6 @@ function setupStumps(batch: ReliquaryModelBatch): void {
       -0.02, 0,
     );
   }
-  batch.upload();
 }
 
 export function setupReliquaryModels(

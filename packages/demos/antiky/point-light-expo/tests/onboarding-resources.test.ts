@@ -3,13 +3,6 @@ import test from 'node:test';
 
 import { createRelayOnboardingOverlay } from '../src/onboarding.ts';
 
-type DisposableOverlay = Readonly<{ dispose(): void }>;
-
-const createOverlay = createRelayOnboardingOverlay as unknown as (
-  renderer: unknown,
-  dependencies: unknown,
-) => DisposableOverlay;
-
 function fakeCanvas() {
   return {
     canvas: {},
@@ -81,59 +74,51 @@ function createFaultHarness(failureStage: string | null, disposalFailure: string
   return { dependencies, disposed };
 }
 
-test('onboarding construction faults roll back every created nested resource in reverse order', () => {
-  const cases = [
-    ['create-legend-program', ['legend-texture']],
-    ['setup-legend-program-position', ['legend-program', 'legend-texture']],
-    ['status-canvas-1', ['legend-program', 'legend-texture']],
-    ['create-won-texture', ['legend-program', 'legend-texture']],
-    ['create-lost-texture', ['won-texture', 'legend-program', 'legend-texture']],
-    ['create-status-program', ['lost-texture', 'won-texture', 'legend-program', 'legend-texture']],
-    ['setup-status-program-opacity', [
-      'status-program',
-      'lost-texture',
-      'won-texture',
-      'legend-program',
-      'legend-texture',
-    ]],
-  ] as const;
+/**
+ * The overlay creates no GPU resource any more, so there is nothing here to roll back.
+ *
+ * It used to build two programs and three textures and own their disposal, and the three tests this
+ * replaces injected fakes to prove a failed construction released what it had already made. That
+ * responsibility moved to the render driver, which owns every program and texture and is asserted
+ * against the same failures in `packages/framework/src/render/brometal-driver.test.ts`.
+ *
+ * What is still this module's job, and what these assert: it paints its canvases and describes what
+ * it needs. A canvas it fails to paint is a blank panel, and nothing else would catch that.
+ */
+test('the overlay paints a legend and two result plates, and describes them as textures', () => {
+  const overlay = createRelayOnboardingOverlay({ createCanvas: () => fakeCanvas() as never });
 
-  for (const [failureStage, expectedDisposals] of cases) {
-    const harness = createFaultHarness(failureStage);
-    assert.throws(
-      () => createOverlay({} as never, harness.dependencies),
-      new RegExp(`injected ${failureStage}`),
-    );
-    assert.deepEqual(harness.disposed, expectedDisposals, failureStage);
+  assert.deepEqual(
+    Object.keys(overlay.textures).sort(),
+    ['onboarding-legend', 'onboarding-lost', 'onboarding-won'],
+  );
+  for (const [key, source] of Object.entries(overlay.textures)) {
+    assert.ok(source.source !== undefined, `${key} was described without a painted canvas`);
+    assert.equal(source.url, undefined, `${key} is painted here, not fetched`);
   }
 });
 
-test('onboarding disposal attempts every nested resource once when one disposer throws', () => {
-  const harness = createFaultHarness(null, 'status-program');
-  const overlay = createOverlay({} as never, harness.dependencies);
-
-  assert.throws(() => overlay.dispose(), /dispose status-program/);
-  assert.deepEqual(harness.disposed, [
-    'status-program',
-    'lost-texture',
-    'won-texture',
-    'legend-program',
-    'legend-texture',
-  ]);
-  overlay.dispose();
-  assert.equal(harness.disposed.length, 5);
+test('the overlay reports a fault from the canvas it cannot create', () => {
+  // The one error this module still owns. A host with no 2D context gets a named failure rather
+  // than a silently blank panel.
+  assert.throws(
+    () => createRelayOnboardingOverlay({
+      createCanvas: (_width, _height, message) => { throw new Error(message); },
+    }),
+    /Unable to create the Blackout Relay control legend/,
+  );
 });
 
-test('onboarding rollback preserves construction failure while attempting every disposer', () => {
-  const harness = createFaultHarness('create-status-program', 'won-texture');
-  assert.throws(
-    () => createOverlay({} as never, harness.dependencies),
-    /injected create-status-program/,
-  );
-  assert.deepEqual(harness.disposed, [
-    'lost-texture',
-    'won-texture',
-    'legend-program',
-    'legend-texture',
-  ]);
+test('the result plate is hidden while playing and fades once the run ends', () => {
+  const overlay = createRelayOnboardingOverlay({ createCanvas: () => fakeCanvas() as never });
+
+  const playing = overlay.statusUniforms('playing', 3)!;
+  assert.equal(playing.uOpacity, 0);
+  // Bound even while invisible: an unbound sampler is a rejected draw, not a hidden panel.
+  assert.deepEqual(playing.uAtlas, { texture: 'onboarding-won' });
+  const won = overlay.statusUniforms('won', 3)!;
+  assert.deepEqual(won.uAtlas, { texture: 'onboarding-won' });
+  assert.ok((won.uOpacity as number) > 0.87);
+  const lost = overlay.statusUniforms('lost', 3)!;
+  assert.deepEqual(lost.uAtlas, { texture: 'onboarding-lost' });
 });

@@ -152,44 +152,44 @@ test('catalog and derivation receipts match every shipped dead-tree byte', async
   assert.equal(sha256(output), derived.output.sha256);
 });
 
-test('catalog model construction rolls back textures, bitmaps, and the in-flight program', async () => {
+test('catalog model construction describes its textures without building any', async () => {
   const { createReliquaryModelBatch } = await import('../src/reliquary-models.ts');
-  const disposed: string[] = [];
-  const closed: string[] = [];
-  await assert.rejects(createReliquaryModelBatch({} as never, 2, {
+  const decoded: string[] = [];
+  const batch = await createReliquaryModelBatch(2, {
     loadModel: async () => fakeModel,
-    createBitmap: async (image) => ({ close() { closed.push(image.name); } }) as never,
-    createTexture: (_renderer, _bitmap, role) => ({ dispose() { disposed.push(role); } }) as never,
-    createProgram: () => fakeProgram(disposed, true) as never,
-    createDepthProgram: () => fakeProgram(disposed) as never,
-  }), /injected model attribute failure/);
-  assert.deepEqual(closed, ['dead_tree_trunk_diff', 'dead_tree_trunk_arm', 'dead_tree_trunk_nor']);
-  // Two programs now: the lit one and the shadow-pass one, both rolled back in reverse order.
-  assert.deepEqual(disposed, ['program', 'program', 'normal', 'material', 'diffuse']);
+    createBitmap: async (image) => {
+      decoded.push(image.name);
+      return { close() {} } as never;
+    },
+  });
+
+  // The batch decodes the GLB's three embedded images and hands them over as descriptions. It
+  // creates no GPU resource itself, which is what moved to the driver — and the driver closes each
+  // bitmap once its texture exists, asserted in `brometal-driver.test.ts`.
+  assert.deepEqual(decoded, ['dead_tree_trunk_diff', 'dead_tree_trunk_arm', 'dead_tree_trunk_nor']);
+  assert.deepEqual(Object.keys(batch.textures).sort(), ['organic-diffuse', 'organic-material', 'organic-normal']);
+  assert.equal(typeof batch.pipeline.shader, 'object');
+  assert.equal(typeof batch.depthPipeline.shader, 'object');
 });
 
-test('catalog model uploads reuse retained instance storage and draw the parsed mesh', async () => {
+test('catalog model instance storage is retained across frames', async () => {
   const { createReliquaryModelBatch } = await import('../src/reliquary-models.ts');
-  const disposed: string[] = [];
-  const program = fakeProgram(disposed);
-  const depthProgram = fakeProgram(disposed);
-  const batch = await createReliquaryModelBatch({} as never, 2, {
+  const batch = await createReliquaryModelBatch(2, {
     loadModel: async () => fakeModel,
     createBitmap: async () => ({ close() {} }) as never,
-    createTexture: (_renderer, _bitmap, role) => ({ role, dispose() { disposed.push(role); } }) as never,
-    createProgram: () => program as never,
-    createDepthProgram: () => depthProgram as never,
   });
+
   batch.setValues(0, 1, 2, 3, 4, 5, 6, 0.7, 0.8, 0.9, 0.2, 0.3, 0.4);
-  batch.upload();
-  const firstOffsets = program.retained.get('iOffset');
+  const firstOffsets = batch.instanceData.iOffset;
+  assert.equal(firstOffsets![0], 1);
+
   batch.clear();
   batch.setValues(0, 2, 3, 4, 5, 6, 7, 0.6, 0.7, 0.8, 0.1, 0.2, 0.3);
-  batch.upload();
-  assert.equal(program.retained.get('iOffset'), firstOffsets);
-  batch.draw();
-  assert.equal(program.retained.get('draws'), 1);
-  batch.dispose();
-  // Two programs now: the lit one and the shadow-pass one, both rolled back in reverse order.
-  assert.deepEqual(disposed, ['program', 'program', 'normal', 'material', 'diffuse']);
+
+  // The same array, rewritten. A batch that reallocated would hand the driver a new buffer every
+  // frame, which is the allocation this pooling exists to avoid.
+  assert.equal(batch.instanceData.iOffset, firstOffsets);
+  assert.equal(batch.instanceData.iOffset![0], 2);
+  // The depth pass shares the arrays, so a caster cannot drift from what it casts.
+  assert.equal(batch.depthInstanceData.iOffset, batch.instanceData.iOffset);
 });

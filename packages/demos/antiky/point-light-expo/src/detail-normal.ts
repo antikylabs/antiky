@@ -1,4 +1,4 @@
-import { loadTexture, type BroMetalTexture, type Renderer } from 'brometal';
+import type { TextureSource } from '@antiky/framework/render-driver';
 
 const DETAIL_NORMAL_URL = new URL(
   '../assets/textures/detail-normal-512.png',
@@ -18,11 +18,7 @@ const DETAIL_NORMAL_URL = new URL(
  * high rate across surfaces seen at grazing angles, which is exactly the case trilinear alone
  * handles badly.
  */
-export function loadDetailNormal(renderer: Renderer): Promise<BroMetalTexture> {
-  return loadTexture(renderer, DETAIL_NORMAL_URL, {
-    wrap: 'repeat',
-    filter: 'smooth',
-    anisotropy: 8,
-    flipY: false,
-  });
-}
+export const DETAIL_NORMAL_TEXTURE: TextureSource = Object.freeze({
+  url: DETAIL_NORMAL_URL,
+  options: { wrap: 'repeat', filter: 'smooth', anisotropy: 8, flipY: false } as const,
+});

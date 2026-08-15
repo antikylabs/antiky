@@ -1,9 +1,5 @@
-import {
-  createProgram,
-  type BroMetalTexture,
-  type Geometry,
-  type Renderer,
-} from 'brometal';
+import type { Geometry } from 'brometal';
+import type { PipelineDefinition } from '@antiky/framework/render-driver';
 
 import contactShadowShader from './shaders/contact-shadow.shader.gen.ts';
 import foundryGlowShader from './shaders/foundry-glow.shader.gen.ts';
@@ -95,28 +91,26 @@ export function groundQuad(): Geometry {
  * Contact shadows. Separate from the surface batch because they are the one thing in the relay that
  * must not be lit, and because alpha blending has to run after the opaque pass.
  */
-export function createContactShadowBatch(
-  renderer: Renderer,
-  capacity: number,
-  billboard: BroMetalTexture,
-  createShadowProgram = () => createProgram(renderer, contactShadowShader, { blend: 'alpha' }),
-) {
-  const program = createShadowProgram();
-  program.uniforms.uBillboard.set(billboard);
+export function createContactShadowBatch(capacity: number, billboardTexture: string) {
   const geometry = groundQuad();
-  try {
-    program.attributes.aPosition.set(geometry.positions);
-    program.setIndices(geometry.indices);
-  } catch (cause: unknown) {
-    program.dispose();
-    throw cause;
-  }
   const offsets = new Float32Array(capacity * 3);
   const scales = new Float32Array(capacity * 3);
   const colors = new Float32Array(capacity * 3);
 
   return Object.freeze({
-    program,
+    pipeline: {
+      shader: contactShadowShader,
+      options: { blend: 'alpha' },
+      setup(program) {
+        program.attributes.aPosition!.set(geometry.positions);
+        program.setIndices(geometry.indices);
+        // `uBillboard` is deliberately *not* bound here. `setup` runs while the pipeline is being
+        // registered, which is before the driver has loaded any texture, so there is nothing to
+        // point at yet — the frame names it by key instead, the same way the floor's maps do.
+      },
+    } satisfies PipelineDefinition,
+    billboardTexture,
+    instanceData: { iOffset: offsets, iScale: scales, iColor: colors },
     clear(): void {
       scales.fill(0);
       colors.fill(0);
@@ -139,60 +133,38 @@ export function createContactShadowBatch(
       colors[at + 1] = colorG;
       colors[at + 2] = colorB;
     },
-    upload(): void {
-      program.instanceAttributes.iOffset.set(offsets);
-      program.instanceAttributes.iScale.set(scales);
-      program.instanceAttributes.iColor.set(colors);
-    },
-    draw(): void { program.draw(); },
-    dispose(): void { program.dispose(); },
   });
 }
 
-export function createSurfaceBatch(
-  renderer: Renderer,
-  geometry: Geometry,
-  capacity: number,
-  detailNormal: BroMetalTexture,
-) {
-  const program = createProgram(renderer, foundryShader);
-  // The same geometry seen from the sun, writing distance instead of colour. One batch owning both
-  // programs, so the instance arrays below stay the single answer to where these surfaces are.
-  const depthProgram = createProgram(renderer, surfaceDepthShader);
-  try {
-    program.attributes.aPosition.set(geometry.positions);
-    program.attributes.aNormal.set(geometry.normals);
-    program.setIndices(geometry.indices);
-    program.uniforms.uDetailNormal.set(detailNormal);
-    depthProgram.attributes.aPosition.set(geometry.positions);
-    depthProgram.setIndices(geometry.indices);
-  } catch (cause: unknown) {
-    depthProgram.dispose();
-    program.dispose();
-    throw cause;
-  }
+export function createSurfaceBatch(geometry: Geometry, capacity: number) {
   const data = createSurfaceInstanceData(capacity);
 
   return Object.freeze({
-    program,
-    depthProgram,
+    pipeline: {
+      shader: foundryShader,
+      setup(program) {
+        program.attributes.aPosition!.set(geometry.positions);
+        program.attributes.aNormal!.set(geometry.normals);
+        program.setIndices(geometry.indices);
+      },
+    } satisfies PipelineDefinition,
+    depthPipeline: {
+      shader: surfaceDepthShader,
+      setup(program) {
+        program.attributes.aPosition!.set(geometry.positions);
+        program.setIndices(geometry.indices);
+      },
+    } satisfies PipelineDefinition,
+    instanceData: {
+      iOffset: data.offsets,
+      iScale: data.scales,
+      iBaseColor: data.colors,
+      iMaterial: data.materials,
+      iYaw: data.yaws,
+    },
+    depthInstanceData: { iOffset: data.offsets, iScale: data.scales, iYaw: data.yaws },
     clear: data.clear,
     setValues: data.setValues,
-    upload(): void {
-      program.instanceAttributes.iOffset.set(data.offsets);
-      program.instanceAttributes.iScale.set(data.scales);
-      program.instanceAttributes.iBaseColor.set(data.colors);
-      program.instanceAttributes.iMaterial.set(data.materials);
-      program.instanceAttributes.iYaw.set(data.yaws);
-      // Only what moves a vertex. Colour and material have no bearing on where a shadow falls.
-      depthProgram.instanceAttributes.iOffset.set(data.offsets);
-      depthProgram.instanceAttributes.iScale.set(data.scales);
-      depthProgram.instanceAttributes.iYaw.set(data.yaws);
-    },
-    draw(): void { program.draw(); },
-    /** Draw into the shadow map. Call inside the depth pass, after `upload`. */
-    drawDepth(): void { depthProgram.draw(); },
-    dispose(): void { depthProgram.dispose(); program.dispose(); },
   });
 }
 
@@ -236,38 +208,29 @@ export function createGlowInstanceData(capacity: number) {
   });
 }
 
-export function createGlowBatch(
-  renderer: Renderer,
-  geometry: Geometry,
-  capacity: number,
-  billboard: BroMetalTexture,
-) {
-  const program = createProgram(renderer, foundryGlowShader, { blend: 'additive' });
-  program.uniforms.uBillboard.set(billboard);
-  try {
-    program.attributes.aPosition.set(geometry.positions);
-    program.attributes.aNormal.set(geometry.normals);
-    program.setIndices(geometry.indices);
-  } catch (cause: unknown) {
-    program.dispose();
-    throw cause;
-  }
+export function createGlowBatch(geometry: Geometry, capacity: number) {
   const data = createGlowInstanceData(capacity);
 
   return Object.freeze({
-    program,
+    pipeline: {
+      shader: foundryGlowShader,
+      options: { blend: 'additive' },
+      setup(program) {
+        program.attributes.aPosition!.set(geometry.positions);
+        program.attributes.aNormal!.set(geometry.normals);
+        program.setIndices(geometry.indices);
+      },
+    } satisfies PipelineDefinition,
+    instanceData: {
+      iOffset: data.offsets,
+      iScale: data.scales,
+      iColor: data.colors,
+      iPower: data.powers,
+      iPhase: data.phases,
+      iMotion: data.motions,
+    },
     clear: data.clear,
     setValues: data.setValues,
-    upload(): void {
-      program.instanceAttributes.iOffset.set(data.offsets);
-      program.instanceAttributes.iScale.set(data.scales);
-      program.instanceAttributes.iColor.set(data.colors);
-      program.instanceAttributes.iPower.set(data.powers);
-      program.instanceAttributes.iPhase.set(data.phases);
-      program.instanceAttributes.iMotion.set(data.motions);
-    },
-    draw(): void { program.draw(); },
-    dispose(): void { program.dispose(); },
   });
 }
 
@@ -310,29 +273,24 @@ export function createRingGeometry(segments = 64, bandHalfWidth = 0.16): Geometr
  * found in the capture. The band half-width matches `createRingGeometry`'s, handed to the shader
  * per instance so a future ring can widen without new geometry.
  */
-export function createRingBatch(
-  renderer: Renderer,
-  capacity: number,
-  billboard: BroMetalTexture,
-) {
-  const program = createProgram(renderer, relayRingShader, { blend: 'additive' });
-  program.uniforms.uBillboard.set(billboard);
+export function createRingBatch(capacity: number) {
   const geometry = createRingGeometry();
-  try {
-    program.attributes.aPosition.set(geometry.positions);
-    program.attributes.aUv.set(geometry.uvs);
-    program.setIndices(geometry.indices);
-  } catch (cause: unknown) {
-    program.dispose();
-    throw cause;
-  }
   const offsets = new Float32Array(capacity * 3);
   const shapes = new Float32Array(capacity * 2);
   const colors = new Float32Array(capacity * 3);
   const intensities = new Float32Array(capacity);
 
   return Object.freeze({
-    program,
+    pipeline: {
+      shader: relayRingShader,
+      options: { blend: 'additive' },
+      setup(program) {
+        program.attributes.aPosition!.set(geometry.positions);
+        program.attributes.aUv!.set(geometry.uvs);
+        program.setIndices(geometry.indices);
+      },
+    } satisfies PipelineDefinition,
+    instanceData: { iOffset: offsets, iShape: shapes, iColor: colors, iIntensity: intensities },
     clear(): void {
       intensities.fill(0);
     },
@@ -353,22 +311,6 @@ export function createRingBatch(
       colors[at + 1] = colorG;
       colors[at + 2] = colorB;
       intensities[index] = intensity;
-    },
-    upload(): void {
-      program.instanceAttributes.iOffset.set(offsets);
-      program.instanceAttributes.iShape.set(shapes);
-      program.instanceAttributes.iColor.set(colors);
-      program.instanceAttributes.iIntensity.set(intensities);
-    },
-    frame(viewProjection: Float32Array, time: number): void {
-      program.uniforms.uViewProj.set(viewProjection);
-      program.uniforms.uTime.set(time);
-    },
-    draw(): void {
-      program.draw();
-    },
-    dispose(): void {
-      program.dispose();
     },
   });
 }
