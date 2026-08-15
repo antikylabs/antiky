@@ -255,7 +255,10 @@ dev-service log nor `.antiky/` holds a browser console. The tool list also inclu
   sampled depth format. The pre-migration scene target also combined `depth: true` with
   `filter: 'linear'`. Not the fault.
 
-### The strongest lead, found in the dev-service log and not yet tested
+### A lead from the dev-service log that looked decisive and is DISPROVEN
+
+**Read the correction at the end of this section before acting on any of it.**
+
 
 `npm run dev:demos point-light-expo` prints, on every build:
 
@@ -281,11 +284,14 @@ and the test never submits a frame. Extending it to build one frame and submit i
 against the strict stub is a small change and would either confirm this or clear it, with no capture
 cycle and no browser.
 
-**One caveat, stated because it matters.** This is a *frame-time* fault, and the evidence above says
-construction throws. Both can be true — the blank-frame fallback proved the catch around
-`createRelayRenderer` runs, so something in construction does throw — but `uTime` would be a second,
-separate failure waiting behind it. Whoever picks this up should confirm which one they are looking
-at before fixing either.
+**Correction — this is not the fault.** The premise was wrong. `uTime` is still present in
+`relay-ring.shader.gen.ts` and `reliquary-model.shader.gen.ts`; the warning means only that the WGSL
+body never reads it, not that BroMetal removes it from the program's declared uniforms. Binding it is
+legal and the frame is right to set it. Checked before changing anything, which is the only reason a
+correct line of code was not "fixed".
+
+The reusable lesson is that a shader warning in the dev log describes the *source*, not the compiled
+interface. The compiled interface is in the `.shader.gen.ts` file and can be read directly.
 
 So the throw is in something only a real WebGPU device rejects. The two candidates left are the WGSL
 pipeline creation itself and the eager target creation described below. Both need a browser to
