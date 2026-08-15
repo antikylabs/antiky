@@ -118,7 +118,45 @@ under `packages/website/PRODUCT.md`'s taxonomy that keeps the render driver a **
 rather than a Current one. The public wording already says exactly that and must not be changed
 until a demo actually renders through it.
 
-## The migration, half-landed on a branch
+## The migration, fully written and not yet running
+
+`wip/goal-12-driver-migration` now holds the **whole** `point-light-expo` migration. Every file is
+converted, and the state is precise:
+
+**What passes**
+
+- `rg 'createProgram\(|createTexture\(|createRenderTarget\(|loadTexture\(|createBuffer\('` over
+  `point-light-expo/src` returns **zero hits**. Outcome 4's literal evidence check is met.
+- `tsc --noEmit` is clean for the demo.
+- All **86** of the demo's tests pass, including the resource-leak and instance-storage tests, which
+  were rewritten to assert the surviving intent now that the seams they injected into moved to the
+  driver.
+- `vite build` succeeds and the bundle contains the driver.
+
+**What does not**
+
+- `npm run demos:shoot -- --demo point-light-expo` fails with `CAPTURE_RUNTIME_TIMEOUT`. The demo
+  builds and loads but never publishes a frame, so something throws at runtime that no unit test
+  reaches — every test here runs without a GPU.
+
+So outcome 4 is met on the letter and **not in substance**: a demo that does not render has not
+moved onto the driver in any sense that matters. Outcome 5 is unmet — there is no after-capture.
+
+**Where to look first.** In rough order of likelihood, none yet eliminated:
+
+1. `driver.configureTargets(TARGETS)` is called inside `render` but outside `renderer.present(...)`.
+   The original created its targets lazily *inside* the present callback. Creating a render target
+   outside a frame may not be legal.
+2. A uniform the old code set once at construction but the new code sets per draw, or vice versa,
+   where BroMetal rejects the timing rather than the value.
+3. A draw issued with instance buffers that were never populated. BroMetal refuses that with "no
+   instance data — call set(...) before draw()", which is the exact failure
+   `presentation.test.ts:296` was written to guard and which no headless test can see.
+
+The fastest way in is a browser console on `npm run dev:demos point-light-expo`, which the capture
+harness deliberately does not surface.
+
+## The earlier half-landed state, for reference
 
 `wip/goal-12-driver-migration` holds the first half of the `point-light-expo` migration. It is **not
 merged** and the demo does not build there — that is expected, and the branch exists so the attempt
