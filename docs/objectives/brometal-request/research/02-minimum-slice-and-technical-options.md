@@ -24,7 +24,10 @@ the same stable key
 ```
 
 It does not require a scene graph, general ECS, render graph, GPU readback, Studio, MCP, inspection,
-command history, or three state projections. Those can remain adapters or later consumers.
+or command history. A pure helper can remain outside Framework state projections. If Framework owns
+a mutable spatial registry, ADR 0009 requires classifying it as authoring or runtime state and
+keeping later projections separate; ADR 0001 requires specialized entity-associated storage rather
+than a parallel entity model.
 
 **Established reusable inputs.** Antiky can reuse its stable ID implementation, semantic pointer
 shape, immutable-value and bounded-validation practices, headless testing seams, and
@@ -41,7 +44,7 @@ render-independent helper.
 | Shape | What it owns | Advantages | Risks and limits |
 | --- | --- | --- | --- |
 | **Caller-owned records plus pure helpers** | The caller owns keys, lifecycle, and transform collection. Antiky supplies validation, camera/conversion, and hit-test functions over bounded records. | Smallest dependency and closest to “helper, not framework.” No generic world model is invented. | Each consumer can repeat lifecycle and indexing policy. Inspection and future authoring/runtime projection require adapters. |
-| **Tiny Framework-owned spatial registry** | A private map owns add/remove/replace/list/get for stable key to 2D transform/selectable shape. Camera and inspection remain separate. | Gives one complete, testable boundary and a natural stable-key return from picking. A few-dozen-object map matches current evidence. | API choices for identity, mutation, rotation/scale, ordering, and errors become supported product policy. It can accidentally grow into a premature ECS. |
+| **Tiny Framework-owned spatial registry** | A private map owns add/remove/replace/list/get for stable key to 2D transform/selectable shape. Camera and inspection remain separate. | Gives one complete, testable boundary and a natural stable-key return from picking. A few-dozen-object map matches current evidence. | It must be specialized entity-associated storage and explicitly authoring or runtime state. Identity, mutation, rotation/scale, ordering, and errors become product policy; it can accidentally grow into a parallel ECS. |
 | **General Framework `World`/ECS first** | Entities, components, relationships, queries, projections, selection, and sessions. | Aligns with long-term architecture vocabulary. | The issue does not require it; storage and query design remain open; it delays the useful slice and violates the project's proof-before-abstraction direction. |
 
 **Inferred assessment.** The first two shapes are credible. The general `World` shape is not

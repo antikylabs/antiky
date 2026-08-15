@@ -77,7 +77,7 @@ weekend release. It gives no API, install command, demo, test, or release artifa
 | 2D projection | `createCamera` is a reusable perspective camera. The shipped 2D example writes its own orthographic matrix because `mat4.orthographic` is absent. | Town has a private orthographic shadow-light helper, not a reusable player camera. Framework exports no camera module. | **Missing as public 2D camera behavior.** |
 | Pan and zoom | Absolute perspective pose and FOV setters are available. | The host has drag deltas, but no camera consumes them. The pointer contract has no wheel/pinch value; generated docs incorrectly claim wheel input. | **Missing as composed behavior.** |
 | Follow and damping | Examples implement follow locally around the perspective camera. | Traversal, Combat Arena, and Town contain different working follow/easing implementations tied to game state. | **Proven ingredients, no reusable contract.** |
-| Render independence | BroMetal deliberately remains a small compiler/runtime without a scene graph. | Accepted host/game and driver boundaries permit renderer-neutral state and input behavior. | **Good architectural fit:** the helper need not change BroMetal's render path. |
+| Render independence | BroMetal's current public surface is a small compiler/runtime with no scene graph. | Accepted host/game and driver boundaries permit renderer-neutral state and input behavior. | **Good architectural fit:** the helper need not change BroMetal's render path. |
 | External installation | BroMetal is published at `0.17.2`. | `@antiky/framework` is private, version `0.0.0`, source-only, and absent from npm and GitHub releases at the snapshot. | **Not externally consumable as a supported package.** |
 
 ## Important implementation facts
@@ -115,10 +115,11 @@ follow/damping examples. Those parts are independently owned and have not conver
 camera module. Framework ADR 0004 requires equal 2D, 3D, and 2.3D support, so this is an
 implementation gap rather than a direction mismatch.
 
-**Established defect candidate.** BroMetal `0.17.2`'s perspective matrix uses an OpenGL-style depth
-range while WebGPU uses `0..1`; Antiky demos locally compensate for the mismatch. This is separate
-from the requested 2D helper and is a general renderer-correctness candidate for the BroMetal
-test-first patch workflow.
+**Established formula mismatch; inferred defect candidate.** Inspected BroMetal `0.17.2` code uses
+an OpenGL-style perspective-depth formula, while Antiky's local WebGPU projection uses and tests a
+`0..1` depth mapping. Classifying this as a BroMetal defect and upstreaming a correction still
+requires an authoritative WebGPU reference and a failing exact-version BroMetal regression. It is
+separate from the requested 2D helper.
 
 ## Open evidence
 
