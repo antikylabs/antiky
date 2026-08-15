@@ -1,10 +1,10 @@
 {
   "schemaVersion": 4,
   "demo": "point-light-expo",
-  "capturedAt": "2026-08-15T02:27:47.863Z",
+  "capturedAt": "2026-08-15T02:50:46.547Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "548c020a14a113c9",
+    "digest": "4dd3c0b64fff2bf8",
     "fileCount": 149
   },
   "frame": {
@@ -12,11 +12,11 @@
     "height": 720
   },
   "luminance": {
-    "mean": 0.120989,
+    "mean": 0.120124,
     "p05": 0.001085,
-    "p50": 0.061176,
-    "p95": 0.644686,
-    "spread": 0.643601
+    "p50": 0.060765,
+    "p95": 0.641059,
+    "spread": 0.639974
   },
   "localContrast": {
     "median": 8.6257,
@@ -27,27 +27,27 @@
     "low": 0
   },
   "saturation": {
-    "mean": 0.246814
+    "mean": 0.245623
   },
   "encodedLuma": {
     "p05": 0.014019,
-    "p50": 0.272358,
-    "p95": 0.815201,
-    "spread": 0.801182,
+    "p50": 0.271524,
+    "p95": 0.813962,
+    "spread": 0.799944,
     "clipped": 0.000003
   },
   "hue": {
     "clusters": 4,
-    "dominantShare": 0.450635,
-    "chromaticFraction": 0.355544
+    "dominantShare": 0.45576,
+    "chromaticFraction": 0.353583
   },
   "edges": {
-    "hard": 0.010824
+    "hard": 0.010883
   },
   "probes": {
     "onboarding": {
-      "meanLuminance": 0.063946,
-      "standardDeviation": 0.143062,
+      "meanLuminance": 0.063929,
+      "standardDeviation": 0.143059,
       "pixels": 36480
     },
     "sunShadow": {
@@ -71,5 +71,5 @@
       "pixels": 576
     }
   },
-  "seal": "53274c2cc57b5674"
+  "seal": "0aac0fbc16fc8632"
 }
