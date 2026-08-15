@@ -225,6 +225,7 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
         && existing.height === wantedHeight
         && previous?.depth === request.depth
         && previous?.samples === request.samples
+        && previous?.filter === request.filter
       ) continue;
       existing?.dispose();
       targets.set(request.key, buildTarget(options.renderer, {
@@ -232,7 +233,10 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
         height: wantedHeight,
         depth: request.depth === true,
         ...(request.samples === undefined ? {} : { samples: request.samples }),
-        filter: 'linear',
+        // Deliberately not BroMetal's own `nearest` default. Every target a frame here samples is an
+        // image — a scene resolve, a bloom step — and point sampling those produces blocky glow. A
+        // target holding packed numbers asks for `nearest` explicitly and says why.
+        filter: request.filter ?? 'linear',
       }));
       requests.set(request.key, request);
     }
@@ -250,6 +254,14 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
           program.instanceAttributes[name]?.set(rows);
         }
       }
+      // Before the indices, because the indices are what decide how many vertices are read. Landing
+      // a longer triangle list on the previous frame's shorter vertex buffers reads off the end.
+      if (draw.vertexData !== undefined) {
+        for (const [name, vertices] of Object.entries(draw.vertexData)) {
+          program.attributes[name]?.set(vertices);
+        }
+      }
+      if (draw.indices !== undefined) program.setIndices(draw.indices);
       if (draw.uniforms !== undefined) {
         for (const [name, value] of Object.entries(draw.uniforms)) {
           program.uniforms[name]?.set(resolve(value) as never);

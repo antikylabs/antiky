@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:c7502a803a4b9fae
+frameworkSource: sha256:c0cceb5a00eb8ee6
 ---
 
 # Resource disposal API

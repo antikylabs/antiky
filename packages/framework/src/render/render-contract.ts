@@ -60,6 +60,23 @@ export type DrawCall = Readonly<{
    */
   instanceData?: Readonly<Record<string, Float32Array>>;
   /**
+   * Vertex attribute data uploaded immediately before this draw, by attribute name.
+   *
+   * The per-vertex twin of `instanceData`, and needed for the same reason: geometry that is rebuilt
+   * on the CPU every frame rather than uploaded once. A mesh whose vertex *count* changes between
+   * frames cannot be expressed as instance rows, because there is no fixed per-instance shape to
+   * write rows into.
+   */
+  vertexData?: Readonly<Record<string, Float32Array>>;
+  /**
+   * Indices uploaded immediately before this draw.
+   *
+   * Belongs with `vertexData` and is only meaningful beside it: rebuilt geometry changes its
+   * triangle list along with its vertices, and uploading one without the other draws the new
+   * vertices in the old order.
+   */
+  indices?: Uint16Array | Uint32Array;
+  /**
    * How many instances to draw.
    *
    * Omitted means "whatever the pipeline's instance buffers already hold". Zero means skip the draw
@@ -90,6 +107,15 @@ export type TargetRequest = Readonly<{
   size?: readonly [number, number];
   depth?: boolean;
   samples?: number;
+  /**
+   * How the target is sampled when a later pass reads it. Defaults to `linear`.
+   *
+   * `nearest` is not a quality setting — it is a correctness one for any target holding numbers
+   * rather than an image. A shadow map that packs a depth into two channels as a whole part and a
+   * fraction is the case that forced this: interpolating the fraction across a step in the whole
+   * part yields a depth belonging to neither texel, and every shadow edge fills with acne.
+   */
+  filter?: 'nearest' | 'linear';
 }>;
 
 export type RenderPass = Readonly<{

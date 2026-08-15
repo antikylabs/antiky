@@ -15,6 +15,7 @@ import { createBroMetalRenderDriver } from './brometal-driver.ts';
 function fakeRenderer(width = 800, height = 600) {
   const log: string[] = [];
   const disposedTargets: string[] = [];
+  const builtTargets: string[] = [];
   let nextTarget = 0;
 
   const renderer = {
@@ -25,8 +26,15 @@ function fakeRenderer(width = 800, height = 600) {
       draw();
       log.push(`end:${target.label}`);
     },
-    createdTarget(request: { width: number; height: number; depth: boolean; samples?: number }) {
+    createdTarget(request: {
+      width: number;
+      height: number;
+      depth: boolean;
+      samples?: number;
+      filter?: string;
+    }) {
       const label = `t${nextTarget += 1}`;
+      builtTargets.push(`${label}:${request.width}x${request.height}:${request.filter}`);
       return {
         label,
         width: request.width,
@@ -37,6 +45,7 @@ function fakeRenderer(width = 800, height = 600) {
     },
     log,
     disposedTargets,
+    builtTargets,
   };
   return renderer;
 }
@@ -53,9 +62,17 @@ function fakeProgram(key: string, log: string[]) {
       set: (value: unknown) => { log.push(`${key}.${name}<-${(value as Float32Array).length}`); },
     };
   }
+  const attributes: Record<string, { set(value: unknown): void }> = {};
+  for (const name of ['aPosition', 'aNormal']) {
+    attributes[name] = {
+      set: (value: unknown) => { log.push(`${key}.${name}<-${(value as Float32Array).length}`); },
+    };
+  }
   return {
     uniforms,
     instanceAttributes,
+    attributes,
+    setIndices: (value: unknown) => { log.push(`${key}.indices<-${(value as Uint32Array).length}`); },
     draw: () => { log.push(`draw:${key}`); },
     dispose: () => { log.push(`dispose:${key}`); },
   };
@@ -243,6 +260,53 @@ test('instance rows reach the attributes named, before the draw', () => {
   // Uploaded first, drawn second. A draw that ran before its rows landed would show the previous
   // frame's positions, which is the whole reason the order is asserted rather than assumed.
   assert.deepEqual(log, ['models.iOffset<-9', 'models.iScale<-9', 'draw:models']);
+});
+
+test('geometry rebuilt every frame reaches the attributes named, before the draw', () => {
+  // Instance rows cannot express this: a mesh whose vertex count changes between frames has no
+  // fixed per-instance shape to write rows into. A die-cut character's side walls, extruded from
+  // the alpha contour of whichever sprite frame is showing, are exactly that.
+  const { driver, log } = harness(['edges']);
+  driver.configureTargets([]);
+  log.length = 0;
+
+  driver.submit({
+    passes: [{
+      draws: [{
+        pipeline: 'edges',
+        vertexData: { aPosition: new Float32Array(12), aNormal: new Float32Array(12) },
+        indices: new Uint32Array(6),
+      }],
+    }],
+  });
+
+  // Indices last of the three, and all three before the draw. A longer triangle list landing on the
+  // previous frame's shorter vertex buffers reads off the end of them.
+  assert.deepEqual(log, [
+    'edges.aPosition<-12',
+    'edges.aNormal<-12',
+    'edges.indices<-6',
+    'draw:edges',
+  ]);
+});
+
+test('a target that holds numbers rather than an image can ask for point sampling', () => {
+  // Not a quality setting. A shadow map that packs one depth into two channels as a whole part and
+  // a fraction is corrupted by interpolation: across a step in the whole part the fraction lands
+  // between two unrelated values, and the decoded depth belongs to neither texel.
+  const { driver, renderer } = harness(['depth'], [800, 600]);
+  driver.configureTargets([
+    { key: 'shadow', size: [2_048, 2_048], depth: true, filter: 'nearest' },
+    { key: 'scene', scale: 1 },
+  ]);
+  assert.deepEqual(renderer.builtTargets, ['t1:2048x2048:nearest', 't2:800x600:linear']);
+});
+
+test('changing only a target filter rebuilds it', () => {
+  const { driver, renderer } = harness(['depth']);
+  driver.configureTargets([{ key: 'shadow', scale: 1 }]);
+  driver.configureTargets([{ key: 'shadow', scale: 1, filter: 'nearest' }]);
+  assert.deepEqual(renderer.disposedTargets, ['t1']);
 });
 
 test('a texture is sampled by key, and an unknown one fails loudly', async () => {
