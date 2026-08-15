@@ -280,16 +280,18 @@ export async function createRelayRenderer(
     const perFrame: Record<string, UniformValue> = {
       uViewProj: viewProjection,
       uCameraPosition: eye,
-      uTime: state.time,
       uEmberPower: powers[0],
       uIonPower: powers[1],
       uVioletPower: powers[2],
       ...SHADOW_RECEIVER_UNIFORMS,
     };
 
+    // `uTime` sits here rather than in `perFrame` because the floor shares `perFrame` and does not
+    // declare it — BroMetal rejects a uniform its program never compiled, so a value every lit
+    // material happens to want is not automatically a value every one of them has.
     const litDraw = (pipeline: string, batch: { instanceData: Record<string, Float32Array> }, extra?: Record<string, UniformValue>) => ({
       pipeline,
-      uniforms: extra === undefined ? perFrame : { ...perFrame, ...extra },
+      uniforms: { ...perFrame, uTime: state.time, ...(extra ?? {}) },
       instanceData: batch.instanceData,
     });
     const casterDraw = (pipeline: string, batch: { depthInstanceData: Record<string, Float32Array> }) => ({

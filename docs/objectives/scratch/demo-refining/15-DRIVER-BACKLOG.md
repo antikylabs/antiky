@@ -255,9 +255,7 @@ dev-service log nor `.antiky/` holds a browser console. The tool list also inclu
   sampled depth format. The pre-migration scene target also combined `depth: true` with
   `filter: 'linear'`. Not the fault.
 
-### A lead from the dev-service log that looked decisive and is DISPROVEN
-
-**Read the correction at the end of this section before acting on any of it.**
+### A real bug, found and fixed: `uTime` bound on a program that does not declare it
 
 
 `npm run dev:demos point-light-expo` prints, on every build:
@@ -284,16 +282,38 @@ and the test never submits a frame. Extending it to build one frame and submit i
 against the strict stub is a small change and would either confirm this or clear it, with no capture
 cycle and no browser.
 
-**Correction — this is not the fault.** The premise was wrong. `uTime` is still present in
-`relay-ring.shader.gen.ts` and `reliquary-model.shader.gen.ts`; the warning means only that the WGSL
-body never reads it, not that BroMetal removes it from the program's declared uniforms. Binding it is
-legal and the frame is right to set it. Checked before changing anything, which is the only reason a
-correct line of code was not "fixed".
+**Confirmed and fixed.** I first talked myself out of this by grepping `uTime` in
+`relay-ring.shader.gen.ts` and counting four hits — but those are the *type parameter* and the WGSL
+source text, not the runtime `uniforms` map. Importing each compiled shader and inspecting
+`default.uniforms` gives the real answer:
 
-The reusable lesson is that a shader warning in the dev log describes the *source*, not the compiled
-interface. The compiled interface is in the `.shader.gen.ts` file and can be read directly.
+| Declares `uTime` | Does not |
+|---|---|
+| `foundry`, `foundry-glow`, `night-backdrop`, `relay-ring`, `reliquary-model` | `reliquary-floor`, `contact-shadow`, `bloom-blur`, `bloom-extract`, `model-depth`, `onboarding`, `post`, `surface-depth` |
 
-So the throw is in something only a real WebGPU device rejects. The two candidates left are the WGSL
+The migration hoisted `uTime` into the shared `perFrame` uniform record, which the **floor** draw
+spreads — and `reliquary-floor` does not declare it. The pre-migration code bound uniforms
+per-program by hand, so it simply never set `uTime` on the floor. A value every lit material happens
+to want is not automatically a value every one of them has. `uTime` now lives in `litDraw`, whose
+pipelines all declare it, and the floor keeps the rest of `perFrame`.
+
+**The test that catches it** is the second case in `renderer-construction.test.ts`: it builds one
+real frame from the simulation's own view and submits it through the driver against the strict stub.
+It failed with `program "unlabelled" has no uniform named "uTime"` before the fix and passes after.
+Construction alone never touched it, because uniforms are bound at submit time.
+
+**Reusable lessons.** A shader warning in the dev log describes the *source*; the compiled interface
+is the `uniforms` object in the `.shader.gen.ts` file, and `grep` on that file will happily count the
+type parameter and mislead you. Import it instead.
+
+### Still failing after that fix — there is a second fault, in construction
+
+`npm run demos:shoot -- --demo point-light-expo` still returns `CAPTURE_RUNTIME_TIMEOUT` with the
+`uTime` bug fixed and all 88 demo tests passing. That is consistent with everything else recorded
+here: the blank-frame fallback proved the catch around `createRelayRenderer` runs, so construction
+throws, and `uTime` was a *frame-time* fault sitting behind it. Two faults, one now closed.
+
+So the remaining throw is in something only a real WebGPU device rejects. The two candidates left are the WGSL
 pipeline creation itself and the eager target creation described below. Both need a browser to
 observe, and the harness cannot narrow them further — which makes surfacing the browser error the
 next step rather than another hypothesis. `scripts/shoot-demos.mjs` cannot do it (`capture_frame` is

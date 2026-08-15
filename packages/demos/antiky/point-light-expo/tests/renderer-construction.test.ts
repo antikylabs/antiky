@@ -122,6 +122,11 @@ function stubRenderer(recorded: Recorded) {
     present(draw: () => void): void {
       draw();
     },
+    // Whatever the argument order, the callback is the function — run it so the pass's draws happen.
+    drawTo(...args: readonly unknown[]): void {
+      const callback = args.find((argument) => typeof argument === 'function');
+      if (typeof callback === 'function') callback();
+    },
     destroy(): void {},
   };
 }
@@ -156,5 +161,32 @@ test('the relay renderer can be constructed without throwing', async () => {
     if (!url.startsWith('file:')) continue;
     assert.ok(existsSync(fileURLToPath(url)), `the driver fetches a texture that does not exist: ${url}`);
   }
+  renderer.dispose();
+});
+
+/**
+ * Construction is only half the surface. Uniforms and instance rows are bound when a frame is
+ * *submitted*, so a frame that names a uniform its program does not declare throws at draw time and
+ * the construction test above sails past it. This drives one real frame through the driver against
+ * the same strict stub.
+ */
+test('one real frame submits without binding anything the programs lack', async () => {
+  const { createBlackoutRelaySimulation } = await import('../src/simulation.ts');
+  const { createPresentedView } = await import('../src/presented-view.ts');
+
+  const recorded: Recorded = { programs: [], targets: [], textures: [] };
+  const lights = ['ember', 'ion', 'violet'].map((id, index) => ({
+    entityId: id,
+    transform: { position: [index * 2, 1, 0] as const },
+    pointLight: { color: [1, 0.5, 0.25] as const, radius: 6, power: 1 },
+  }));
+  const renderer = await createRelayRenderer(stubRenderer(recorded) as never, lights as never);
+
+  const simulation = createBlackoutRelaySimulation(() => {});
+  const presentedView = createPresentedView(simulation.view());
+  presentedView.capture();
+  const pointer = Object.freeze({ x: 0, y: 0, insideViewport: false, pressed: false });
+
+  renderer.render(presentedView.present(1), [0, 0, 0], pointer as never);
   renderer.dispose();
 });
