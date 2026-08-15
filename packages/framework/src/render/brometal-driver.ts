@@ -159,6 +159,11 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
       throw new Error(`Texture "${key}" has no decoded source. Use loadTextures() for a URL.`);
     }
     textures.set(key, owned.adopt(buildTexture(options.renderer, source.source, source.options)));
+    // The decoded bitmap has served its purpose the moment the GPU texture exists, and it holds
+    // real memory until something closes it. The driver creates the texture, so the driver closes
+    // the source — a caller that decoded it cannot know when that moment arrived.
+    const decoded = source.source as { close?: () => void };
+    if (typeof decoded.close === 'function') decoded.close();
   };
 
   const loadTextures = async (): Promise<void> => {

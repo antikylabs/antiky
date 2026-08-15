@@ -313,14 +313,21 @@ test('every visual batch that gets drawn also gets its instance data uploaded', 
   const names = [...body.matchAll(/^\s*(\w+):/gm)].map((match) => match[1]);
   assert.ok(names.length >= 5, `expected the full batch set, found ${names.join(', ')}`);
 
-  // `.draw(` with any arguments, not `.draw()` exactly. Requiring empty parentheses meant
-  // `glows.draw({ instanceCount: liveGlows })` — a shape this demo already advertises through
-  // `particlePacking: 'active-prefix'` — skipped the batch entirely, so deleting its upload passed.
-  const drawn = names.filter((name) => new RegExp(`\\b${name}\\.draw\\(`).test(renderer));
-  assert.ok(
-    drawn.length >= 5,
-    `expected most of the batch set to be drawn, matched ${drawn.length}: ${drawn.join(', ')}`,
+  // The failure mode moved with the render driver but did not go away. A batch no longer uploads
+  // itself; its rows ride along on the draw as `instanceData`. So the equivalent mistake is a draw
+  // that names a pipeline and forgets the rows, and BroMetal refuses that draw exactly as before.
+  //
+  // Two spellings count, because the frame uses both: `litDraw('name', name, …)`, which passes the
+  // batch and takes its `instanceData`, and an explicit `instanceData: name.instanceData` for the
+  // blended batches that need their own uniforms.
+  const supplied = names.filter((name) => (
+    new RegExp(`litDraw\\('${name}', ${name}\\b`).test(renderer)
+    || new RegExp(`instanceData: ${name}\\.instanceData`).test(renderer)
+  ));
+  assert.deepEqual(
+    names.filter((name) => !supplied.includes(name)),
+    [],
+    'these batches are drawn every frame but never have their instance rows supplied to the draw',
   );
-  const missing = drawn.filter((name) => !new RegExp(`\\b${name}\\.upload\\(`).test(visuals));
-  assert.deepEqual(missing, [], 'these batches are drawn every frame but never have their instance data uploaded');
+  assert.ok(supplied.length >= 5, `expected the full batch set, matched ${supplied.join(', ')}`);
 });

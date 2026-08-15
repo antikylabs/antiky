@@ -20,5 +20,5 @@ const DETAIL_NORMAL_URL = new URL(
  */
 export const DETAIL_NORMAL_TEXTURE: TextureSource = Object.freeze({
   url: DETAIL_NORMAL_URL,
-  options: { wrap: 'repeat', filter: 'smooth', anisotropy: 8, flipY: false },
+  options: { wrap: 'repeat', filter: 'smooth', anisotropy: 8, flipY: false } as const,
 });

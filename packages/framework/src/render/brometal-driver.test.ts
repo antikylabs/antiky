@@ -362,3 +362,14 @@ test('a scaled target still follows the canvas', () => {
   driver.configureTargets([{ key: 'scene', scale: 1 }]);
   assert.deepEqual(renderer.disposedTargets, ['t1']);
 });
+
+test('a decoded bitmap is closed once its texture exists', () => {
+  // It holds real memory until something closes it, and only the driver knows when the GPU texture
+  // is built. A caller that decoded the image cannot know that moment.
+  let closed = 0;
+  const { driver } = harness(['floor'], undefined, {
+    atlas: { source: { label: 'atlas', close: () => { closed += 1; } } as never },
+  });
+  driver.registerTexture('atlas', { source: { label: 'atlas', close: () => { closed += 1; } } as never });
+  assert.equal(closed, 1);
+});

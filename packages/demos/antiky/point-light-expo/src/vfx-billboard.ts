@@ -13,5 +13,5 @@ const VFX_BILLBOARD_URL = new URL('../assets/textures/vfx-billboard-256.png', im
  */
 export const VFX_BILLBOARD_TEXTURE: TextureSource = Object.freeze({
   url: VFX_BILLBOARD_URL,
-  options: { wrap: 'clamp', filter: 'smooth', anisotropy: 4, flipY: false },
+  options: { wrap: 'clamp', filter: 'smooth', anisotropy: 4, flipY: false } as const,
 });

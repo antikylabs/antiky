@@ -146,7 +146,7 @@ test('rock and stump derivatives are distinct one-draw BroMetal models with embe
   assert.ok(Math.abs(rockSpan[1] / rockSpan[0] - stumpSpan[1] / stumpSpan[0]) > 0.2);
 });
 
-test('both primary model factories upload and draw their parsed catalog geometry', async () => {
+test('both primary model factories parse their catalog geometry into shared instance storage', async () => {
   const modelSources = await Promise.all([
     readFile(new URL('assets/derived/rock-moss-set-01-runtime.glb', PACKAGE_ROOT)),
     readFile(new URL('assets/derived/tree-stump-01-runtime.glb', PACKAGE_ROOT)),
@@ -155,28 +155,21 @@ test('both primary model factories upload and draw their parsed catalog geometry
   const { createRockModelBatch, createStumpModelBatch } = await import('../src/reliquary-models.ts');
   const factories = [createRockModelBatch, createStumpModelBatch] as const;
   for (let index = 0; index < factories.length; index += 1) {
-    const disposed: string[] = [];
-    const program = fakeProgram(disposed);
-    const depthProgram = fakeProgram(disposed);
-    const batch = await factories[index]!({} as never, 1, {
+    const batch = await factories[index]!(1, {
       loadModel: async () => models[index]!,
       createBitmap: async () => ({ close() {} }) as never,
-      createTexture: (_renderer, _bitmap, role) => ({
-        dispose() { disposed.push(role); },
-      }) as never,
-      createProgram: () => program as never,
-      createDepthProgram: () => depthProgram as never,
     });
     batch.setValues(0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0);
-    batch.upload();
-    batch.draw();
-    batch.drawDepth();
-    assert.equal(program.retained.get('draws'), 1);
-    // The shadow pass has to see the same props the lit pass does. A batch that uploads instances
-    // to one program and not the other casts shadows from geometry that is no longer there.
-    assert.equal(depthProgram.retained.get('draws'), 1);
-    batch.dispose();
-    assert.deepEqual(disposed, ['program', 'program', 'normal', 'material', 'diffuse']);
+
+    assert.equal(batch.instanceData.iScale![0], 1);
+    // The shadow pass has to see the same props the lit pass does. A batch handing the two passes
+    // different arrays casts shadows from geometry that is no longer there.
+    assert.equal(batch.depthInstanceData.iOffset, batch.instanceData.iOffset);
+    assert.equal(batch.depthInstanceData.iScale, batch.instanceData.iScale);
+    assert.equal(batch.depthInstanceData.iRotation, batch.instanceData.iRotation);
+    // Three textures described, and both pipelines present.
+    assert.equal(Object.keys(batch.textures).length, 3);
+    assert.notEqual(batch.pipeline, batch.depthPipeline);
   }
 });
 
