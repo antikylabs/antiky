@@ -144,9 +144,10 @@ moved onto the driver in any sense that matters. Outcome 5 is unmet — there is
 
 **Where to look first.** In rough order of likelihood, none yet eliminated:
 
-1. `driver.configureTargets(TARGETS)` is called inside `render` but outside `renderer.present(...)`.
-   The original created its targets lazily *inside* the present callback. Creating a render target
-   outside a frame may not be legal.
+1. ~~`configureTargets` called outside `renderer.present(...)`~~ — **tested and eliminated.** Moving
+   it inside the present callback changed nothing; the timeout is identical. The call now sits
+   inside anyway, matching the original, but that is not the fault. Do not spend a second session
+   on it.
 2. A uniform the old code set once at construction but the new code sets per draw, or vice versa,
    where BroMetal rejects the timing rather than the value.
 3. A draw issued with instance buffers that were never populated. BroMetal refuses that with "no

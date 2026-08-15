@@ -298,7 +298,6 @@ export async function createRelayRenderer(
       instanceData: batch.depthInstanceData,
     });
 
-    driver.configureTargets(TARGETS);
     const frame: RenderFrame = {
       passes: [
         // Before the scene, because the scene reads what this writes. The blended passes are absent:
@@ -413,7 +412,13 @@ export async function createRelayRenderer(
       ],
     };
 
-    renderer.present(() => { driver.submit(frame); });
+    renderer.present(() => {
+      // Inside the present callback, matching where the original created its targets. Note this
+      // was *not* the cause of the runtime fault — moving it changed nothing — so do not spend a
+      // second session on it.
+      driver.configureTargets(TARGETS);
+      driver.submit(frame);
+    });
   };
 
   return Object.freeze({
