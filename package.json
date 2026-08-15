@@ -6,6 +6,7 @@
     "packages/cli",
     "packages/asset-catalog",
     "packages/framework",
+    "packages/brometal-driver",
     "packages/website",
     "packages/demos/*/*",
     "packages/studio/*"

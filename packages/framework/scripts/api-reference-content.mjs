@@ -330,9 +330,47 @@ export default mountGame;`,
       },
     ],
   },
+  {
+    slug: 'render-contract',
+    title: 'Render contract API',
+    summary: 'Describe a frame as passes, targets and pipeline keys, so a render driver can draw it without the game naming a graphics object.',
+    useWhen: 'Use this to hand rendering to a driver. A game that builds graphics resources itself is taking an exception, not the default path.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'A scene drawn into a floating-point target, reduced through a bloom step, then resolved to the canvas. `scene` and `bloom` are keys; the driver owns what they are made of.',
+    example: `import type { RenderFrame } from '@antiky/framework';
+
+const frame: RenderFrame = {
+  passes: [
+    { target: 'scene', clear: [0, 0, 0, 1], draws: [{ pipeline: 'world' }] },
+    { target: 'bloom', draws: [{ pipeline: 'extract', uniforms: { uScene: { target: 'scene' } } }] },
+    { draws: [{ pipeline: 'post', uniforms: { uBloom: { target: 'bloom' }, uExposure: 1.24 } }] },
+  ],
+};
+
+driver.submit(frame);`,
+    modules: [
+      {
+        source: 'render/render-contract.ts',
+        title: 'Render frame contract',
+        description: 'Name pipelines and targets by key and describe a frame as data, so a driver can be replaced without changing the framework.',
+      },
+    ],
+  },
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
+  // Render contract
+  ClearColor: 'A clear colour in linear light, with alpha.',
+  PipelineKey: 'Names one pipeline a render driver was constructed with.',
+  TargetKey: 'Names one render target a driver owns, or the canvas when absent.',
+  UniformValue: 'A uniform a game sets for a draw: a number, a number list, or a reference to a target.',
+  DrawCall: 'One pipeline drawn, with the uniforms set immediately before it.',
+  TargetRequest: 'A render target a frame will use, sized as a fraction of the canvas.',
+  RenderPass: 'One target, what to clear it to, and the draws that write into it.',
+  RenderFrame: 'One frame, as an ordered list of passes.',
+  RenderDriver: 'What every render driver implements: configure targets, submit a frame, dispose.',
+  isContractValue: 'Whether a value carries only contract data rather than a backend handle.',
+
   // Session frame driver
   SessionFrameFault: 'A frame whose advance returned something other than ADVANCED.',
   SessionFrameDriverOptions: 'The host services a frame driver needs: advance, input, present, and where a fault goes.',

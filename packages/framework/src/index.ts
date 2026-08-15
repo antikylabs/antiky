@@ -6,6 +6,7 @@ export * from './inspection/snapshot.ts';
 export * from './inspection/world.ts';
 export * from './input/latched-action.ts';
 export * from './random/seeded-random.ts';
+export * from './render/render-contract.ts';
 export * from './resources/disposal-scope.ts';
 export * from './point-light/commands.ts';
 export * from './point-light/inspection.ts';

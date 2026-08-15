@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:e91c4d2f79d1d6e4
+frameworkSource: sha256:a534c2c23c2c8b79
 ---
 
 # Framework API reference
 
-This is the complete public API exported by the Antiky Framework package. It covers all 217 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
+This is the complete public API exported by the Antiky Framework package. It covers all 227 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
 
 Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.
 
@@ -32,6 +32,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 | [Seeded randomness API](random.md) | Draw reproducible pseudo-random values from an explicit seed, with forks that do not depend on draw order. | [Run a fixed-step game session](../framework/engine-sessions.md) |
 | [Latched input API](input.md) | Hold a one-shot action from the frame it was pressed until a fixed step consumes it, counting a held button once. | [Build a game module](../framework/game-modules.md) |
 | [Game contract API](game-contract.md) | The shape of a game module and the context a host supplies it, with nothing imported behind it. | [Build a game module](../framework/game-modules.md) |
+| [Render contract API](render-contract.md) | Describe a frame as passes, targets and pipeline keys, so a render driver can draw it without the game naming a graphics object. | [Build a game module](../framework/game-modules.md) |
 
 ## Shared rules
 
@@ -87,6 +88,10 @@ Start with a task guide when you are building a feature. Use the pages below whe
 ### Game contract API
 
 [`GamePointerInput`](game-contract.md#gamepointerinput) · [`GameMovementInput`](game-contract.md#gamemovementinput) · [`GameHostMode`](game-contract.md#gamehostmode) · [`GameMeasurements`](game-contract.md#gamemeasurements) · [`GameHostContext`](game-contract.md#gamehostcontext) · [`GameInstance`](game-contract.md#gameinstance) · [`GameModuleEntry`](game-contract.md#gamemoduleentry)
+
+### Render contract API
+
+[`ClearColor`](render-contract.md#clearcolor) · [`PipelineKey`](render-contract.md#pipelinekey) · [`TargetKey`](render-contract.md#targetkey) · [`UniformValue`](render-contract.md#uniformvalue) · [`DrawCall`](render-contract.md#drawcall) · [`TargetRequest`](render-contract.md#targetrequest) · [`RenderPass`](render-contract.md#renderpass) · [`RenderFrame`](render-contract.md#renderframe) · [`RenderDriver`](render-contract.md#renderdriver) · [`isContractValue`](render-contract.md#iscontractvalue)
 
 ## Keeping the reference current
 
