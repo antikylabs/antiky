@@ -104,7 +104,9 @@ export function createContactShadowBatch(capacity: number, billboardTexture: str
       setup(program) {
         program.attributes.aPosition!.set(geometry.positions);
         program.setIndices(geometry.indices);
-        program.uniforms.uBillboard!.set(billboardTexture as never);
+        // `uBillboard` is deliberately *not* bound here. `setup` runs while the pipeline is being
+        // registered, which is before the driver has loaded any texture, so there is nothing to
+        // point at yet — the frame names it by key instead, the same way the floor's maps do.
       },
     } satisfies PipelineDefinition,
     billboardTexture,

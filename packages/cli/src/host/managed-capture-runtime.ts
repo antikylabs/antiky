@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 
+import { appendFileSync } from 'node:fs';
 import { chmod, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -190,6 +191,38 @@ async function defaultLauncher(input: ManagedBrowserLaunchInput): Promise<Manage
   });
   page.on('download', (download) => { void download.cancel(); });
   page.on('popup', (popup) => { void popup.close(); });
+
+  /**
+   * A game that throws before publishing its first frame produces only `CAPTURE_RUNTIME_TIMEOUT`,
+   * with the thrown message visible nowhere — not in the tool result, not in the dev-service log and
+   * not in `get_diagnostics`. That turns any startup failure into a blind search.
+   *
+   * The browser's own errors go to a file so they survive the run. `ANTIKY_BROWSER_LOG` names it;
+   * without that variable this does nothing at all, so normal captures are unaffected.
+   */
+  const browserLog = process.env['ANTIKY_BROWSER_LOG'];
+  if (browserLog !== undefined && browserLog !== '') {
+    const record = (line: string): void => {
+      try {
+        appendFileSync(browserLog, `${line}\n`);
+      } catch {
+        // Diagnostics must never break a capture.
+      }
+    };
+    record('[attached] browser page instrumented');
+    page.on('pageerror', (error) => {
+      record(`[pageerror] ${error.name}: ${error.message}`);
+      if (error.stack !== undefined) record(error.stack);
+    });
+    page.on('console', (message) => {
+      if (message.type() === 'error' || message.type() === 'warning') {
+        record(`[console.${message.type()}] ${message.text()}`);
+      }
+    });
+    page.on('requestfailed', (request) => {
+      record(`[requestfailed] ${request.url()} — ${request.failure()?.errorText ?? 'unknown'}`);
+    });
+  }
   return Object.freeze({
     browserVersion: context.browser()?.version() ?? 'unavailable',
     async navigate(url: string): Promise<void> {
