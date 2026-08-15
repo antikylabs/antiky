@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:de33d498218de015
+frameworkSource: sha256:22a6c0d73a27da1f
 ---
 
 # BroMetal render driver API
@@ -55,6 +55,7 @@ The renderer and pipelines a BroMetal render driver is built from.
 type BroMetalRenderDriverOptions = Readonly<{
     renderer: Renderer;
     pipelines: Readonly<Record<string, PipelineDefinition>>;
+    textures?: Readonly<Record<string, unknown>>;
     createProgram?: typeof createProgram;
     createRenderTarget?: typeof createRenderTarget;
 }>;

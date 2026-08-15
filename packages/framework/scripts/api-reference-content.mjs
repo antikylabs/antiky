@@ -394,6 +394,7 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   // Render contract
   ClearColor: 'A clear colour in linear light, with alpha.',
   PipelineKey: 'Names one pipeline a render driver was constructed with.',
+  TextureKey: 'Names one texture the driver was given to sample.',
   TargetKey: 'Names one render target a driver owns, or the canvas when absent.',
   UniformValue: 'A uniform a game sets for a draw: a number, a number list, or a reference to a target.',
   DrawCall: 'One pipeline drawn, with the uniforms set immediately before it.',

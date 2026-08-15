@@ -41,12 +41,24 @@ export type TargetKey = string;
 export type UniformValue =
   | number
   | readonly number[]
-  | Readonly<{ target: TargetKey }>;
+  | Readonly<{ target: TargetKey }>
+  | Readonly<{ texture: TextureKey }>;
+
+/** Names one texture the driver was given. Loading is the host's job; owning it is the driver's. */
+export type TextureKey = string;
 
 export type DrawCall = Readonly<{
   pipeline: PipelineKey;
   /** Uniforms set immediately before this draw, by name. */
   uniforms?: Readonly<Record<string, UniformValue>>;
+  /**
+   * Per-instance attribute data uploaded immediately before this draw, by attribute name.
+   *
+   * This is what ADR 0021 means by "typed updates": a game writes rows into its own typed arrays and
+   * hands them over, and the driver decides what a buffer is. Every instanced batch in both demos
+   * this was extracted from does exactly this and nothing more exotic.
+   */
+  instanceData?: Readonly<Record<string, Float32Array>>;
   /**
    * How many instances to draw.
    *

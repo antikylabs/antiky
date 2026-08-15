@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:de33d498218de015
+frameworkSource: sha256:22a6c0d73a27da1f
 ---
 
 # Render contract API
@@ -69,7 +69,17 @@ A uniform a game sets for a draw: a number, a number list, or a reference to a t
 ```ts
 type UniformValue = number | readonly number[] | Readonly<{
     target: TargetKey;
+}> | Readonly<{
+    texture: TextureKey;
 }>;
+```
+
+### `TextureKey`
+
+Names one texture the driver was given to sample.
+
+```ts
+type TextureKey = string;
 ```
 
 ### `DrawCall`
@@ -80,6 +90,7 @@ One pipeline drawn, with the uniforms set immediately before it.
 type DrawCall = Readonly<{
     pipeline: PipelineKey;
     uniforms?: Readonly<Record<string, UniformValue>>;
+    instanceData?: Readonly<Record<string, Float32Array>>;
     instances?: number;
 }>;
 ```

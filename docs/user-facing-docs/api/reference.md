@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:de33d498218de015
+frameworkSource: sha256:22a6c0d73a27da1f
 ---
 
 # Framework API reference
 
-This is the complete public API exported by the Antiky Framework package. It covers all 230 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
+This is the complete public API exported by the Antiky Framework package. It covers all 231 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
 
 Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.
 
@@ -92,7 +92,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 
 ### Render contract API
 
-[`ClearColor`](render-contract.md#clearcolor) · [`PipelineKey`](render-contract.md#pipelinekey) · [`TargetKey`](render-contract.md#targetkey) · [`UniformValue`](render-contract.md#uniformvalue) · [`DrawCall`](render-contract.md#drawcall) · [`TargetRequest`](render-contract.md#targetrequest) · [`RenderPass`](render-contract.md#renderpass) · [`RenderFrame`](render-contract.md#renderframe) · [`RenderDriver`](render-contract.md#renderdriver) · [`isContractValue`](render-contract.md#iscontractvalue)
+[`ClearColor`](render-contract.md#clearcolor) · [`PipelineKey`](render-contract.md#pipelinekey) · [`TargetKey`](render-contract.md#targetkey) · [`UniformValue`](render-contract.md#uniformvalue) · [`TextureKey`](render-contract.md#texturekey) · [`DrawCall`](render-contract.md#drawcall) · [`TargetRequest`](render-contract.md#targetrequest) · [`RenderPass`](render-contract.md#renderpass) · [`RenderFrame`](render-contract.md#renderframe) · [`RenderDriver`](render-contract.md#renderdriver) · [`isContractValue`](render-contract.md#iscontractvalue)
 
 ### BroMetal render driver API
 

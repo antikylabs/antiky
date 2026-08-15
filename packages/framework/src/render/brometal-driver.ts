@@ -54,6 +54,13 @@ export type BroMetalRenderDriverOptions = Readonly<{
   renderer: Renderer;
   pipelines: Readonly<Record<string, PipelineDefinition>>;
   /**
+   * Textures the frames may sample, already loaded, keyed.
+   *
+   * Loading is asset work and belongs to the host, which knows about URLs and decoding. Owning the
+   * GPU resource and releasing it is the driver's, which is the split ADR 0021 draws.
+   */
+  textures?: Readonly<Record<string, unknown>>;
+  /**
    * The two BroMetal factories the driver calls, injectable.
    *
    * The same seam every resource-owning module in this repository already exposes, and for the same
@@ -91,7 +98,15 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
    */
   const resolve = (value: UniformValue): unknown => {
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      const targetKey = (value as { target: TargetKey }).target;
+      const reference = value as { target?: TargetKey; texture?: string };
+      if (reference.texture !== undefined) {
+        const texture = options.textures?.[reference.texture];
+        if (texture === undefined) {
+          throw new Error(`Render frame sampled texture "${reference.texture}", which the driver was not given.`);
+        }
+        return texture;
+      }
+      const targetKey = reference.target!;
       const target = targets.get(targetKey);
       if (target === undefined) {
         throw new Error(`Render frame sampled target "${targetKey}", which was never configured.`);
@@ -136,6 +151,11 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
       const program = programs.get(draw.pipeline);
       if (program === undefined) {
         throw new Error(`Render frame drew pipeline "${draw.pipeline}", which the driver was not given.`);
+      }
+      if (draw.instanceData !== undefined) {
+        for (const [name, rows] of Object.entries(draw.instanceData)) {
+          program.instanceAttributes[name]?.set(rows);
+        }
       }
       if (draw.uniforms !== undefined) {
         for (const [name, value] of Object.entries(draw.uniforms)) {

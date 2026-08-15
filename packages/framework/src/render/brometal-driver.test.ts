@@ -44,11 +44,18 @@ function fakeRenderer(width = 800, height = 600) {
 /** Programs the driver builds, recording uniform writes and draws. */
 function fakeProgram(key: string, log: string[]) {
   const uniforms: Record<string, { set(value: unknown): void }> = {};
-  for (const name of ['uScene', 'uBloom', 'uExposure', 'uThreshold', 'uAtlasCell']) {
+  for (const name of ['uScene', 'uBloom', 'uExposure', 'uThreshold', 'uAtlasCell', 'uDiffuse']) {
     uniforms[name] = { set: (value: unknown) => { log.push(`${key}.${name}=${describe(value)}`); } };
+  }
+  const instanceAttributes: Record<string, { set(value: unknown): void }> = {};
+  for (const name of ['iOffset', 'iScale', 'iColor']) {
+    instanceAttributes[name] = {
+      set: (value: unknown) => { log.push(`${key}.${name}<-${(value as Float32Array).length}`); },
+    };
   }
   return {
     uniforms,
+    instanceAttributes,
     draw: () => { log.push(`draw:${key}`); },
     dispose: () => { log.push(`dispose:${key}`); },
   };
@@ -68,7 +75,11 @@ function describe(value: unknown): string {
  * renderer whose methods stand in for them. Keeping the seam here rather than inside the driver
  * means the driver has no test-only branch in it.
  */
-function harness(pipelineKeys: readonly string[], size?: readonly [number, number]) {
+function harness(
+  pipelineKeys: readonly string[],
+  size?: readonly [number, number],
+  textures?: Readonly<Record<string, unknown>>,
+) {
   const renderer = fakeRenderer(size?.[0], size?.[1]);
   const log = renderer.log;
   const pipelines: Record<string, never> = {};
@@ -77,6 +88,7 @@ function harness(pipelineKeys: readonly string[], size?: readonly [number, numbe
   const driver = createBroMetalRenderDriver({
     renderer: renderer as never,
     pipelines: pipelines as never,
+    ...(textures === undefined ? {} : { textures }),
     // Injected so the driver's real logic runs against fakes rather than a GPU.
     createProgram: ((_renderer: unknown, shader: { key: string }) => fakeProgram(shader.key, log)) as never,
     createRenderTarget: ((_renderer: unknown, request: never) => renderer.createdTarget(request)) as never,
@@ -209,4 +221,43 @@ test('dispose releases every program and every target', () => {
 
   assert.deepEqual(renderer.disposedTargets, ['t1']);
   assert.deepEqual(log.filter((entry) => entry.startsWith('dispose:')).sort(), ['dispose:floor', 'dispose:post']);
+});
+
+test('instance rows reach the attributes named, before the draw', () => {
+  const { driver, log } = harness(['models']);
+  driver.configureTargets([]);
+  log.length = 0;
+
+  driver.submit({
+    passes: [{
+      draws: [{
+        pipeline: 'models',
+        instances: 3,
+        instanceData: { iOffset: new Float32Array(9), iScale: new Float32Array(9) },
+      }],
+    }],
+  });
+
+  // Uploaded first, drawn second. A draw that ran before its rows landed would show the previous
+  // frame's positions, which is the whole reason the order is asserted rather than assumed.
+  assert.deepEqual(log, ['models.iOffset<-9', 'models.iScale<-9', 'draw:models']);
+});
+
+test('a texture is sampled by key, and an unknown one fails loudly', () => {
+  const atlas = { label: 'atlas' };
+  const { driver, log } = harness(['floor'], undefined, { 'floor-diffuse': atlas });
+  driver.configureTargets([]);
+  log.length = 0;
+
+  driver.submit({
+    passes: [{ draws: [{ pipeline: 'floor', uniforms: { uDiffuse: { texture: 'floor-diffuse' } } }] }],
+  });
+  assert.deepEqual(log, ['floor.uDiffuse=atlas', 'draw:floor']);
+
+  assert.throws(
+    () => driver.submit({
+      passes: [{ draws: [{ pipeline: 'floor', uniforms: { uDiffuse: { texture: 'missing' } } }] }],
+    }),
+    /texture "missing"/,
+  );
 });
