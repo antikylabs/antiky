@@ -322,7 +322,19 @@ export async function createRelayRenderer(
           clear: LINEAR_CLEAR,
           draws: [
             { pipeline: 'backdrop', uniforms: { uViewProj: viewProjection, uCameraPosition: eye, uTime: state.time } },
-            { pipeline: 'floor', uniforms: perFrame },
+            {
+              pipeline: 'floor',
+              // The floor's five maps are set here rather than in `setup`, because a pipeline is
+              // built before `loadTextures` has run and there is nothing to point at yet.
+              uniforms: {
+                ...perFrame,
+                uDiffuse: { texture: 'floor-diffuse' },
+                uSecondGround: { texture: 'second-ground' },
+                uAo: { texture: 'floor-ao' },
+                uRoughness: { texture: 'floor-roughness' },
+                uDetailNormal: { texture: 'detail-normal' },
+              },
+            },
             litDraw('organic', organic, organic.uniforms as Record<string, UniformValue>),
             litDraw('rocks', rocks, rocks.uniforms as Record<string, UniformValue>),
             litDraw('stumps', stumps, stumps.uniforms as Record<string, UniformValue>),
