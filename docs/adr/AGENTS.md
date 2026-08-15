@@ -8,15 +8,19 @@ Read these files before you create or change an Architecture Decision Record (AD
 
 - [`README.md`](README.md)
 - [`../GOOD_ENGINEERING_H.md`](../GOOD_ENGINEERING_H.md)
-- [ASD-STE100 Issue 9](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf)
+- [`team-simplified-technical-english`](../../.agents/skills/team-simplified-technical-english/SKILL.md)
 
 ADRs are human-owned records. An agent can create or change an `_H` ADR only when a human gives an
 explicit instruction. Preserve the decision and the intent of the human owner.
 
 ## Required language standard
 
-Every new or changed ADR must conform to ASD-STE100 Simplified Technical English, Issue 9. Do not
-describe text as compliant only because it has short sentences and active voice.
+Every new or changed ADR must use ASD-STE100 Simplified Technical English, Issue 9. Use the
+`team-simplified-technical-english` skill and its bundled rule guide, controlled dictionary, and
+linter. Read the reference files that the selected skill mode requires.
+
+Do not describe text as compliant only because it has short sentences, active voice, or a clean
+linter result.
 
 Issue 9 has 53 writing rules and a controlled dictionary. Apply all the rules that are relevant to
 descriptive text. Validate each general word against the dictionary. Use each approved word only
@@ -32,8 +36,8 @@ Before you write, make a list of the necessary technical nouns and technical ver
 identify an authoritative Antiky, industry, or subject-field source. Define an uncommon term when it
 first occurs. Use one term for one meaning throughout the ADR.
 
-If you cannot read the official Issue 9 standard, do not claim compliance. Stop and tell the human
-owner which validation you cannot do.
+Report the machine checks and the judgment checks separately. State which rules the audit could not
+decide.
 
 ## ADR writing workflow
 
