@@ -1,18 +1,11 @@
-import {
-  createPlane,
-  createProgram,
-  createTexture,
-  type BroMetalProgram,
-  type BroMetalTexture,
-  type Renderer,
-} from 'brometal';
+import { createPlane } from 'brometal';
+import type { PipelineDefinition, TextureSource } from '@antiky/framework/render-driver';
 
 import onboardingShader from './shaders/onboarding.shader.gen.ts';
 import {
   RELAY_ONBOARDING_PRESENTATION,
   RELAY_ONBOARDING_ROWS,
 } from './onboarding-cues.ts';
-import { createDisposalScope } from '@antiky/framework';
 
 type OverlayCanvas = Readonly<{
   canvas: HTMLCanvasElement;
@@ -21,8 +14,6 @@ type OverlayCanvas = Readonly<{
 
 export type RelayOnboardingDependencies = Readonly<{
   createCanvas(width: number, height: number, errorMessage: string): OverlayCanvas;
-  createTexture(renderer: Renderer, canvas: HTMLCanvasElement): BroMetalTexture;
-  createProgram(renderer: Renderer): BroMetalProgram;
 }>;
 
 const ONBOARDING_DEPENDENCIES: RelayOnboardingDependencies = Object.freeze({
@@ -34,131 +25,115 @@ const ONBOARDING_DEPENDENCIES: RelayOnboardingDependencies = Object.freeze({
     if (context === null) throw new Error(errorMessage);
     return { canvas, context };
   },
-  createTexture: (renderer, canvas) => createTexture(renderer, canvas, {
-    filter: 'smooth',
-    wrap: 'clamp',
-  }),
-  createProgram: (renderer) => createProgram(renderer, onboardingShader, { blend: 'alpha' }),
 });
 
 export type RelayOnboardingOverlay = Readonly<{
-  setOpacity(opacity: number): void;
-  setStatus(status: 'playing' | 'won' | 'lost', time: number): void;
-  draw(): void;
-  drawStatus(): void;
-  dispose(): void;
+  /** Textures the driver should own: the legend panel and the two result plates. */
+  textures: Record<string, TextureSource>;
+  pipeline: PipelineDefinition;
+  statusPipeline: PipelineDefinition;
+  /** Uniforms for the legend draw, recomputed each frame from the fade. */
+  uniforms(opacity: number): Record<string, number>;
+  /** Uniforms for the result plate, or null while the run is still playing. */
+  statusUniforms(status: 'playing' | 'won' | 'lost', time: number): Record<string, unknown> | null;
 }>;
 
 export function createRelayOnboardingOverlay(
-  renderer: Renderer,
   dependencies: RelayOnboardingDependencies = ONBOARDING_DEPENDENCIES,
 ): RelayOnboardingOverlay {
-  const resources = createDisposalScope();
-  try {
-    const { canvas, context } = dependencies.createCanvas(
-      1_024,
-      128,
-      'Unable to create the Blackout Relay control legend.',
-    );
-    context.fillStyle = 'rgba(8, 12, 11, 0.82)';
-    context.fillRect(0, 0, 1_024, 128);
-    context.strokeStyle = 'rgba(126, 149, 126, 0.72)';
-    context.lineWidth = 3;
-    context.strokeRect(3, 3, 1_018, 122);
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.font = '600 26px ui-monospace, SFMono-Regular, Menlo, monospace';
-    RELAY_ONBOARDING_ROWS.forEach((row, index) => {
-      context.fillStyle = index === 0 ? '#d5d4bd' : '#c8d4b2';
-      context.fillText(row.join('   '), 512, 35 + index * 58);
-    });
+  const { canvas, context } = dependencies.createCanvas(
+    1_024,
+    128,
+    'Unable to create the Blackout Relay control legend.',
+  );
+  context.fillStyle = 'rgba(8, 12, 11, 0.82)';
+  context.fillRect(0, 0, 1_024, 128);
+  context.strokeStyle = 'rgba(126, 149, 126, 0.72)';
+  context.lineWidth = 3;
+  context.strokeRect(3, 3, 1_018, 122);
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.font = '600 26px ui-monospace, SFMono-Regular, Menlo, monospace';
+  RELAY_ONBOARDING_ROWS.forEach((row, index) => {
+    context.fillStyle = index === 0 ? '#d5d4bd' : '#c8d4b2';
+    context.fillText(row.join('   '), 512, 35 + index * 58);
+  });
 
-    const geometry = createPlane({ width: 2, height: 2 });
-    const texture = resources.adopt(dependencies.createTexture(renderer, canvas));
-    const program = resources.adopt(dependencies.createProgram(renderer));
-    program.attributes.aPosition!.set(geometry.positions);
-    program.attributes.aUv!.set(geometry.uvs);
-    program.setIndices(geometry.indices);
-    program.uniforms.uAtlas!.set(texture);
-    program.uniforms.uScale!.set(RELAY_ONBOARDING_PRESENTATION.scale);
-    program.uniforms.uOffset!.set(RELAY_ONBOARDING_PRESENTATION.offset);
+  const statusCanvas = (title: string, detail: string, accent: string): HTMLCanvasElement => {
+    const status = dependencies.createCanvas(1_024, 192, 'Unable to create the relay result panel.');
+    // Goal 08's re-skin. The old panel was a hairline accent stroke around terminal type, which
+    // reads as debug output. A soft vignette plate whose glow carries the accent reads as part of
+    // the night scene's light language instead.
+    const plate = status.context.createRadialGradient(512, 96, 40, 512, 96, 620);
+    plate.addColorStop(0, 'rgba(16, 24, 22, 0.94)');
+    plate.addColorStop(0.8, 'rgba(10, 16, 14, 0.82)');
+    plate.addColorStop(1, 'rgba(8, 12, 11, 0)');
+    status.context.fillStyle = plate;
+    status.context.fillRect(0, 0, 1_024, 192);
+    status.context.textAlign = 'center';
+    status.context.textBaseline = 'middle';
+    status.context.shadowColor = accent;
+    status.context.shadowBlur = 26;
+    status.context.font = '700 52px Georgia, ui-serif, serif';
+    status.context.fillStyle = accent;
+    status.context.fillText(title, 512, 68);
+    status.context.shadowBlur = 0;
+    status.context.font = '500 26px Georgia, ui-serif, serif';
+    status.context.fillStyle = '#ded9c2';
+    status.context.fillText(detail, 512, 138);
+    return status.canvas;
+  };
 
-    const createStatusTexture = (title: string, detail: string, accent: string) => {
-      const status = dependencies.createCanvas(
-        1_024,
-        192,
-        'Unable to create the relay result panel.',
-      );
-      // Goal 08's re-skin. The old panel was a hairline accent stroke around terminal type, which
-      // reads as debug output. A soft vignette plate whose glow carries the accent reads as part
-      // of the night scene's light language instead.
-      const plate = status.context.createRadialGradient(512, 96, 40, 512, 96, 620);
-      plate.addColorStop(0, 'rgba(16, 24, 22, 0.94)');
-      plate.addColorStop(0.8, 'rgba(10, 16, 14, 0.82)');
-      plate.addColorStop(1, 'rgba(8, 12, 11, 0)');
-      status.context.fillStyle = plate;
-      status.context.fillRect(0, 0, 1_024, 192);
-      status.context.textAlign = 'center';
-      status.context.textBaseline = 'middle';
-      status.context.shadowColor = accent;
-      status.context.shadowBlur = 26;
-      status.context.font = '700 52px Georgia, ui-serif, serif';
-      status.context.fillStyle = accent;
-      status.context.fillText(title, 512, 68);
-      status.context.shadowBlur = 0;
-      status.context.font = '500 26px Georgia, ui-serif, serif';
-      status.context.fillStyle = '#ded9c2';
-      status.context.fillText(detail, 512, 138);
-      return resources.adopt(dependencies.createTexture(renderer, status.canvas));
-    };
-    const wonTexture = createStatusTexture(
-      'RELIQUARY RESTORED',
-      'RELEASE + CLICK TO RELAY AGAIN',
-      '#e6c477',
-    );
-    const lostTexture = createStatusTexture(
-      'PRISM FRACTURED',
-      'RELEASE + CLICK TO REIGNITE',
-      '#ed6470',
-    );
-    const statusProgram = resources.adopt(dependencies.createProgram(renderer));
-    statusProgram.attributes.aPosition!.set(geometry.positions);
-    statusProgram.attributes.aUv!.set(geometry.uvs);
-    statusProgram.setIndices(geometry.indices);
-    statusProgram.uniforms.uAtlas!.set(wonTexture);
-    statusProgram.uniforms.uScale!.set([0.48, 0.14]);
-    statusProgram.uniforms.uOffset!.set([0, 0.08]);
-    statusProgram.uniforms.uOpacity!.set(0);
-    let visibleStatus: 'won' | 'lost' | null = null;
+  const geometry = createPlane({ width: 2, height: 2 });
+  const overlayOptions = { filter: 'smooth', wrap: 'clamp' } as const;
+  const quadSetup = (program: { attributes: never; setIndices(indices: never): void }): void => {
+    const attributes = program.attributes as unknown as Record<string, { set(value: unknown): void }>;
+    attributes.aPosition!.set(geometry.positions);
+    attributes.aUv!.set(geometry.uvs);
+    program.setIndices(geometry.indices as never);
+  };
 
-    return Object.freeze({
-      setOpacity(opacity: number): void {
-        program.uniforms.uOpacity!.set(opacity);
+  return Object.freeze({
+    textures: {
+      'onboarding-legend': { source: canvas, options: overlayOptions },
+      'onboarding-won': {
+        source: statusCanvas('RELIQUARY RESTORED', 'RELEASE + CLICK TO RELAY AGAIN', '#e6c477'),
+        options: overlayOptions,
       },
-      setStatus(status: 'playing' | 'won' | 'lost', time: number): void {
-        if (status === 'playing') {
-          visibleStatus = null;
-          statusProgram.uniforms.uOpacity!.set(0);
-          return;
-        }
-        if (status !== visibleStatus) {
-          visibleStatus = status;
-          statusProgram.uniforms.uAtlas!.set(status === 'won' ? wonTexture : lostTexture);
-        }
-        statusProgram.uniforms.uOpacity!.set(0.94 + Math.sin(time * 2.6) * 0.06);
+      'onboarding-lost': {
+        source: statusCanvas('PRISM FRACTURED', 'RELEASE + CLICK TO REIGNITE', '#ed6470'),
+        options: overlayOptions,
       },
-      draw(): void {
-        program.draw();
+    } as Record<string, TextureSource>,
+    pipeline: {
+      shader: onboardingShader,
+      options: { blend: 'alpha' },
+      setup(program) {
+        quadSetup(program as never);
+        const uniforms = program.uniforms as unknown as Record<string, { set(value: unknown): void }>;
+        uniforms.uScale!.set(RELAY_ONBOARDING_PRESENTATION.scale);
+        uniforms.uOffset!.set(RELAY_ONBOARDING_PRESENTATION.offset);
       },
-      drawStatus(): void {
-        statusProgram.draw();
+    } satisfies PipelineDefinition,
+    statusPipeline: {
+      shader: onboardingShader,
+      options: { blend: 'alpha' },
+      setup(program) {
+        quadSetup(program as never);
+        const uniforms = program.uniforms as unknown as Record<string, { set(value: unknown): void }>;
+        uniforms.uScale!.set([0.48, 0.14]);
+        uniforms.uOffset!.set([0, 0.08]);
       },
-      dispose(): void {
-        resources.dispose();
-      },
-    });
-  } catch (cause: unknown) {
-    resources.rollback();
-    throw cause;
-  }
+    } satisfies PipelineDefinition,
+    uniforms(opacity: number) {
+      return { uOpacity: opacity };
+    },
+    statusUniforms(status, time) {
+      if (status === 'playing') return { uOpacity: 0 };
+      return {
+        uAtlas: { texture: status === 'won' ? 'onboarding-won' : 'onboarding-lost' },
+        uOpacity: 0.94 + Math.sin(time * 2.6) * 0.06,
+      };
+    },
+  });
 }

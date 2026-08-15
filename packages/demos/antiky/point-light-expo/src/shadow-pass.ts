@@ -1,9 +1,4 @@
-import {
-  createRenderTarget,
-  type BroMetalProgram,
-  type RenderTarget,
-  type Renderer,
-} from 'brometal';
+import type { TargetRequest, UniformValue } from '@antiky/framework';
 
 import { SHADOW_MAP_SIZE, SUN_COLOR, SUN_DIRECTION, SUN_STRENGTH, createRelaySunShadow } from './sun.ts';
 
@@ -25,74 +20,49 @@ import { SHADOW_MAP_SIZE, SUN_COLOR, SUN_DIRECTION, SUN_STRENGTH, createRelaySun
  * what `drawTo` does by default — would say every texel holds something at the light's own eye, and
  * the whole scene would fall into shadow.
  */
-const NOTHING_OCCLUDING = Object.freeze([1, 1, 1, 1] as const);
+export const NOTHING_OCCLUDING = Object.freeze([1, 1, 1, 1] as const);
 
-/** The uniform names a material shader must declare to be bound by this pass. */
-type ShadowReceiver = BroMetalProgram<never, never, never>;
+/** The shadow map, as a target request the driver fulfils. */
+export const SHADOW_TARGET: TargetRequest = Object.freeze({
+  key: 'shadow',
+  size: [SHADOW_MAP_SIZE, SHADOW_MAP_SIZE] as const,
+  // The map has to record the *nearest* caster to the light. Without a depth test that is whichever
+  // triangle was submitted last, which is a shadow map that flickers as the draw order changes.
+  depth: true,
+  // Deliberately *not* multisampled, unlike the scene target. Averaging distance across a silhouette
+  // produces a value belonging to neither the caster nor what is behind it, and that in-between
+  // distance reads as a bright halo tracing every shadow edge.
+  samples: 1,
+});
 
-export type ShadowPass = Readonly<{
-  /** Point a material shader at the map and tell it where the sun is. Call once at setup. */
-  bind(program: ShadowReceiver): void;
-  /** Draw the casters from the light. Call before the scene pass, once per frame. */
-  render(drawCasters: () => void): void;
-  dispose(): void;
-}>;
+const sun = createRelaySunShadow();
 
-export function createShadowPass(renderer: Renderer): ShadowPass {
-  const sun = createRelaySunShadow();
-  const target: RenderTarget = createRenderTarget(renderer, {
-    width: SHADOW_MAP_SIZE,
-    height: SHADOW_MAP_SIZE,
-    // The map has to record the *nearest* caster to the light. Without a depth test that is
-    // whichever triangle was submitted last, which is a shadow map that flickers as the draw order
-    // changes.
-    depth: true,
-    // The lookup takes nine taps a fraction of a texel apart. On a point sampler those nine reads
-    // land on the same texel and the softness parameter does nothing — this is what goal 02's
-    // `render-target-filtering` patch exists for.
-    filter: 'linear',
-    // Deliberately *not* multisampled, unlike the scene target. Averaging distance across a
-    // silhouette produces a value belonging to neither the caster nor what is behind it, and that
-    // in-between distance reads as a bright halo tracing every shadow edge. The nine-tap lookup is
-    // where softness comes from here.
-    samples: 1,
-  });
+// Pre-multiplied, because strength and colour are one quantity by the time a shader sees them and
+// two uniforms carrying one idea is an invitation to set one and forget the other.
+const LIT_COLOR: readonly [number, number, number] = [
+  SUN_COLOR[0] * SUN_STRENGTH,
+  SUN_COLOR[1] * SUN_STRENGTH,
+  SUN_COLOR[2] * SUN_STRENGTH,
+];
 
-  // Pre-multiplied, because strength and colour are one quantity by the time a shader sees them and
-  // two uniforms carrying one idea is an invitation to set one and forget the other.
-  const litColor: readonly [number, number, number] = [
-    SUN_COLOR[0] * SUN_STRENGTH,
-    SUN_COLOR[1] * SUN_STRENGTH,
-    SUN_COLOR[2] * SUN_STRENGTH,
-  ];
-
-  return Object.freeze({
-    bind(program: ShadowReceiver): void {
-      const uniforms = program.uniforms as unknown as Record<string, { set(value: unknown): void }>;
-      uniforms.uSunDirection!.set(SUN_DIRECTION);
-      uniforms.uSunColor!.set(litColor);
-      uniforms.uShadowMap!.set(target.texture);
-      uniforms.uLightViewProj!.set(sun.viewProjection);
-      uniforms.uLightPosition!.set(sun.position);
-      uniforms.uShadowRange!.set(sun.range);
-    },
-    render(drawCasters: () => void): void {
-      renderer.drawTo(target, drawCasters, { clear: NOTHING_OCCLUDING });
-    },
-    dispose(): void {
-      target.dispose();
-    },
-  });
-}
+/** What a material pipeline needs to read the map. Set every frame; none of it varies. */
+export const SHADOW_RECEIVER_UNIFORMS: Readonly<Record<string, UniformValue>> = Object.freeze({
+  uSunDirection: SUN_DIRECTION,
+  uSunColor: LIT_COLOR,
+  uShadowMap: { target: 'shadow' },
+  uLightViewProj: Array.from(sun.viewProjection),
+  uLightPosition: sun.position,
+  uShadowRange: sun.range,
+});
 
 /**
- * The uniforms a depth program needs. Separate from `bind` because a caster is told where the light
- * is and nothing else — it has no material, no colour and no opinion about the sun.
+ * What a depth pipeline needs.
+ *
+ * Separate from the receiver uniforms because a caster is told where the light is and nothing else —
+ * it has no material, no colour and no opinion about the sun.
  */
-export function bindDepthProgram(program: ShadowReceiver): void {
-  const sun = createRelaySunShadow();
-  const uniforms = program.uniforms as unknown as Record<string, { set(value: unknown): void }>;
-  uniforms.uLightViewProj!.set(sun.viewProjection);
-  uniforms.uLightPosition!.set(sun.position);
-  uniforms.uShadowRange!.set(sun.range);
-}
+export const SHADOW_CASTER_UNIFORMS: Readonly<Record<string, UniformValue>> = Object.freeze({
+  uLightViewProj: Array.from(sun.viewProjection),
+  uLightPosition: sun.position,
+  uShadowRange: sun.range,
+});

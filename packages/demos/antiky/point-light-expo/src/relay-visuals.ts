@@ -124,7 +124,6 @@ function populateFormsAndOrbs(
     0.24, 0.42, 0.16 + state.player.charge.value * 0.42 + state.dangerPulse * 0.2,
     -Math.atan2(state.player.facingX, state.player.facingZ),
   );
-  forms.upload();
 
   creatures.clear();
   for (let index = 0; index < state.shades.length; index += 1) {
@@ -142,7 +141,6 @@ function populateFormsAndOrbs(
       Math.atan2(facingX, -facingZ),
     );
   }
-  creatures.upload();
 
   orbs.clear();
   contacts.clear();
@@ -252,10 +250,8 @@ function populateFormsAndOrbs(
       identityIndex += 1;
     }
   }
-  orbs.upload();
   // Written above alongside the orbs; without this the contact-shadow program is drawn with empty
   // instance buffers and BroMetal refuses the draw, taking the whole demo down with it.
-  contacts.upload();
 }
 
 function populateRings(
@@ -347,7 +343,6 @@ function populateRings(
       visible * 2.4,
     );
   }
-  rings.upload();
 }
 
 function populateGlows(glows: GlowBatch, state: RelaySnapshot, powers: readonly number[]): void {
@@ -430,7 +425,6 @@ function populateGlows(glows: GlowBatch, state: RelaySnapshot, powers: readonly 
       shade.phase,
     );
   }
-  glows.upload();
 }
 
 export function populateRelayVisuals(

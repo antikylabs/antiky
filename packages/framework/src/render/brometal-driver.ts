@@ -46,8 +46,28 @@ import type {
  * BroMetal's own output, and 0021 draws the line at the *frame data*, which names pipelines by key.
  * A second driver takes its own backend's equivalent here and consumes the identical frames.
  */
+/**
+ * What `setup` is handed: a program's three binding records, by name.
+ *
+ * Permissive rather than a concrete `BroMetalProgram`, because every generated shader has its own
+ * attribute, instance and uniform records. Naming one would make `setup` unusable for the rest.
+ */
+export type PipelineProgram = Readonly<{
+  attributes: Record<string, { set(value: unknown): void } | undefined>;
+  instanceAttributes: Record<string, { set(value: unknown): void } | undefined>;
+  uniforms: Record<string, { set(value: unknown): void } | undefined>;
+  setIndices(indices: unknown): void;
+}>;
+
 export type PipelineDefinition = Readonly<{
-  shader: CompiledShader<never, never, never>;
+  /**
+   * A compiled shader, as `*.shader.gen.ts` exports it.
+   *
+   * Typed loosely on purpose: every generated shader has its own attribute, instance and uniform
+   * records, and naming a single concrete one here would force every caller to cast — which would
+   * in turn cost `setup` its contextual typing and make its parameter implicitly `any`.
+   */
+  shader: unknown;
   /**
    * Passed through to `createProgram`, for the blend mode a pass needs.
    *
@@ -57,7 +77,7 @@ export type PipelineDefinition = Readonly<{
    */
   options?: Readonly<{ blend?: 'none' | 'alpha' | 'additive' }>;
   /** Called once after the program exists, for geometry and other one-time attribute uploads. */
-  setup?(program: BroMetalProgram): void;
+  setup?(program: PipelineProgram): void;
 }>;
 
 export type BroMetalRenderDriverOptions = Readonly<{
@@ -125,7 +145,7 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
       definition.shader as never,
       definition.options as never,
     ));
-    definition.setup?.(program);
+    definition.setup?.(program as unknown as PipelineProgram);
     programs.set(key, program);
   };
 
