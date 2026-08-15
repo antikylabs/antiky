@@ -19,17 +19,41 @@ export interface StubCall {
 
 export const calls: StubCall[] = [];
 
-/** Answers any uniform, attribute or instance-attribute name the driver looks up. */
-function bindingRecord() {
-  return new Proxy({}, { get: () => ({ set: () => undefined }) });
+/**
+ * Answers only the names the compiled shader declares, and throws on anything else.
+ *
+ * This strictness is the entire point. A real BroMetal program rejects a binding its shader never
+ * declared, so a permissive stub would pass while the browser threw — which is exactly how the
+ * driver migration reached a green suite and a blank screen. The common shape it catches is a
+ * `setup` callback shared between a lit pipeline and its depth-only twin: the twin's shader declares
+ * `aPosition` alone, so binding `aUv` or `aNormal` on it is a GPU error and nothing else.
+ */
+function bindingRecord(declared: Readonly<Record<string, unknown>>, kind: string, label: string) {
+  return new Proxy({}, {
+    get(_target, property) {
+      const name = String(property);
+      if (!(name in declared)) {
+        throw new Error(`BroMetal: program "${label}" has no ${kind} named "${name}"`);
+      }
+      return { set: () => undefined };
+    },
+  });
 }
 
-export function createProgram(_renderer: unknown, compiled: { readonly label?: string }) {
-  calls.push({ kind: 'program', label: compiled?.label ?? 'unlabelled' });
+interface CompiledLike {
+  readonly label?: string;
+  readonly attributes?: Readonly<Record<string, unknown>>;
+  readonly instanceAttributes?: Readonly<Record<string, unknown>>;
+  readonly uniforms?: Readonly<Record<string, unknown>>;
+}
+
+export function createProgram(_renderer: unknown, compiled: CompiledLike) {
+  const label = compiled?.label ?? 'unlabelled';
+  calls.push({ kind: 'program', label });
   return {
-    uniforms: bindingRecord(),
-    attributes: bindingRecord(),
-    instanceAttributes: bindingRecord(),
+    uniforms: bindingRecord(compiled?.uniforms ?? {}, 'uniform', label),
+    attributes: bindingRecord(compiled?.attributes ?? {}, 'attribute', label),
+    instanceAttributes: bindingRecord(compiled?.instanceAttributes ?? {}, 'instance attribute', label),
     setIndices: () => undefined,
     draw: () => undefined,
     dispose: () => undefined,

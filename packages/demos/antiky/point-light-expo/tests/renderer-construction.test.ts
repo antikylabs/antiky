@@ -142,5 +142,19 @@ test('the relay renderer can be constructed without throwing', async () => {
 
   const programs = calls.filter((call) => call.kind === 'program');
   assert.ok(programs.length > 15, `construction registered only ${programs.length} pipelines`);
+
+  /**
+   * Every texture the driver fetches must exist. A missing one rejects `loadTexture`, which rejects
+   * construction, which publishes no frame at all — and the capture harness reports that as a bare
+   * timeout with no clue which file is absent.
+   */
+  const { existsSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const fetched = calls.filter((call) => call.kind === 'loaded').map((call) => call.label);
+  console.log('textures fetched:', JSON.stringify(fetched, null, 2));
+  for (const url of fetched) {
+    if (!url.startsWith('file:')) continue;
+    assert.ok(existsSync(fileURLToPath(url)), `the driver fetches a texture that does not exist: ${url}`);
+  }
   renderer.dispose();
 });

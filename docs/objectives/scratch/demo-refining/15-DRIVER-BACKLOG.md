@@ -221,10 +221,27 @@ not: it rejects a name the compiled shader never declared. So a `setup` callback
 throws on a GPU. The six depth pipelines share their geometry setup with their lit twins, which is
 exactly the shape that produces this.
 
-Making the test catch it needs the declared names at runtime. They are currently only in the
-generated shader's **type parameters** (`CompiledShader<{ aPosition: 'vec3'; aUv: 'vec2' }, …>`), so
-the stub needs either a runtime metadata field on `CompiledShader` or a parse of the generated WGSL.
-That is the next concrete step, and it is a test change rather than another blind capture.
+**That hypothesis is now eliminated too.** The generated shader carries `attributes`,
+`instanceAttributes` and `uniforms` as **runtime** fields, not only as type parameters, so the stub
+was made strict: every binding record throws on a name its shader never declared. Construction still
+passes. No `setup` callback binds anything undeclared, on a lit pipeline or a depth twin.
+
+**Texture fetching is eliminated as well.** The test now prints and checks every URL the driver
+loads. There are six, and both `file:` ones — `detail-normal-512.png` and `vfx-billboard-256.png` —
+exist on disk. The other four are the Vite virtual floor modules, which the bundler rewrites.
+
+### Where that leaves it
+
+Everything about construction that can be checked without a GPU has been checked and is correct:
+pipeline keys, declared bindings, target descriptions, texture URLs, instance layouts, and the GLB
+parse — the models are parsed from their real bytes in this test, not faked.
+
+So the throw is in something only a real WebGPU device rejects. The two candidates left are the WGSL
+pipeline creation itself and the eager target creation described below. Both need a browser to
+observe, and the harness cannot narrow them further — which makes surfacing the browser error the
+next step rather than another hypothesis. `scripts/shoot-demos.mjs` cannot do it (`capture_frame` is
+an external tool with no console plumbing), so this needs a browser on
+`npm run dev:demos point-light-expo`.
 
 ### Two things fixed on the way
 
