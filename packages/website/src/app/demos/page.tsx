@@ -6,7 +6,7 @@ import { BROMETAL_VERSION } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Demos',
-  description: 'Ten runnable Antiky Framework, BroMetal, and Three.js studies, each showing a narrow piece of current work.',
+  description: 'Nine runnable Antiky Framework, BroMetal, and Three.js studies, each showing a narrow piece of current work.',
   alternates: { canonical: '/demos' },
 };
 
@@ -15,7 +15,7 @@ export default function DemosPage() {
     <>
       <section className="page-hero wrap demos-intro">
         <h1>Run the work.</h1>
-        <p className="status-line"><span className="status-dot status-live" /> Ten live studies</p>
+        <p className="status-line"><span className="status-dot status-live" /> Nine live studies</p>
         <p className="page-lead">
           These are live modules, not trailers: four Antiky Framework studies, four BroMetal {BROMETAL_VERSION}{' '}
           studies, and two Three.js scenes in the same portable host. Each shows a bounded result;

@@ -171,7 +171,7 @@ presenting it as the Antiky Labs identity.
 - **Games (`/games`)** — connect Antiky Town, focused studies, and Emberwyrd to the game-led method.
 - **Research (`/research`)** — maintain the boundary between runnable evidence, direction, and open
   questions.
-- **Demos (`/demos`)** — let visitors run ten approved artifacts and understand what each does and
+- **Demos (`/demos`)** — let visitors run nine approved artifacts and understand what each does and
   does not show.
 - **Docs (`/docs`)** — publish exact current Framework, CLI, MCP, Studio, and API behavior.
 

@@ -196,7 +196,7 @@ export default function HomePage() {
             library into the identity of the lab.
           </p>
           <div className="thesis-links">
-            <Link className="text-link" href="/demos">Explore all ten studies <ArrowRight /></Link>
+            <Link className="text-link" href="/demos">Explore all nine studies <ArrowRight /></Link>
             <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">
               Visit BroMetal <ArrowUpRight />
             </a>
