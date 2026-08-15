@@ -471,6 +471,14 @@ async function createTownRuntime(
       'vegetation-atlas': { url: VEGETATION_ATLAS_URL, options: ATLAS_SAMPLING },
       // Point-sampled and unfiltered, unlike every other atlas here: the wayfarer sheet is painted
       // at one pixel per texel and any smoothing drags the neighbouring frame across the cell edge.
+      //
+      // It has no gutter and it is not getting one. Goal 14 measured it anyway, because the same
+      // defect will reach sprite sheets the moment anything minifies them: 0.00/255 border error at
+      // mip 3 — its 128px cells are aligned and its frames have empty margins — rising to 7.56 mean
+      // and 20 worst at mip 6, where a texel is half a cell wide. None of that is realised today,
+      // because `nearest` with no mip chain and no anisotropy never averages two texels at all. Add
+      // a zoom-out, a parallax layer or a rotating sprite and it becomes real, and the answer then is
+      // to repack it with `build-texture-atlas.mjs`, not to soften the filter.
       'actor-atlas': { url: ACTOR_ATLAS_URL, options: { filter: 'nearest', wrap: 'clamp' } },
     } as Record<string, TextureSource>,
     pipelines: {
