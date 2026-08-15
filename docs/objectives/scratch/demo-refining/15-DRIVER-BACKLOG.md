@@ -236,6 +236,25 @@ Everything about construction that can be checked without a GPU has been checked
 pipeline keys, declared bindings, target descriptions, texture URLs, instance layouts, and the GLB
 parse — the models are parsed from their real bytes in this test, not faked.
 
+**A diagnostics channel exists and is worth knowing about.** `packages/cli/src/bin.ts tool
+get_diagnostics --project <manifest>` reports runtime health while `npm run dev:demos <slug>` is
+running. For this failure it returns `ANTIKY_SOURCE_BUILD_FAILED — "source update did not produce a
+ready runtime."`, which confirms the shape but still does not carry the thrown message. Neither the
+dev-service log nor `.antiky/` holds a browser console. The tool list also includes
+`get_render_stats`, `get_render_evidence` and `get_event_log`, none of which were tried.
+
+**Two further hypotheses died on inspection, both worth recording so they are not retried:**
+
+- *Eager target creation.* The pre-migration demo built its scene and bloom targets lazily inside the
+  frame and rebuilt them on resize; the driver builds them at construction. Still a real difference,
+  still unexplained, but BroMetal clamps any zero dimension to 1, so it does not obviously throw.
+- *`filter: 'linear'` forced onto the shadow map.* The driver hardcodes linear filtering for every
+  target, and WebGPU cannot linearly filter a depth texture — which looked decisive until reading
+  `shadow-pass.ts`: the shadow map clears to `[1, 1, 1, 1]` and stores distance in a **colour**
+  texture, which is filterable. `depth: true` there requests a depth *attachment* for the test, not a
+  sampled depth format. The pre-migration scene target also combined `depth: true` with
+  `filter: 'linear'`. Not the fault.
+
 So the throw is in something only a real WebGPU device rejects. The two candidates left are the WGSL
 pipeline creation itself and the eager target creation described below. Both need a browser to
 observe, and the harness cannot narrow them further — which makes surfacing the browser error the

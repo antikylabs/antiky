@@ -72,12 +72,7 @@ const game: GameModuleEntry = async (context) => {
     } catch (cause: unknown) {
       const detail = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
       context.report({ note: `RENDERER CONSTRUCTION FAILED — ${detail}` });
-      // Publish a blank frame rather than rejecting, so the capture succeeds and the note above
-      // reaches the sidecar. If the capture still times out, construction was NOT the failure.
-      return Object.freeze({
-        frame(): void { renderer.present(() => {}); },
-        dispose(): void { renderer.destroy(); },
-      });
+      throw cause;
     }
     const powers: [number, number, number] = [0, 0, 0];
     const inspectionModel = createRelayInspectionModel(context.runtimeInstanceId);
