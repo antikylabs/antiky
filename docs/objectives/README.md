@@ -18,7 +18,6 @@ Before planning or implementing work, read:
 
 | Objective | Roadmap | Purpose |
 | --- | --- | --- |
-| [Antiky Town](antiky-town/README.md) | [Town roadmap](antiky-town/slice-list.md) | Develops the Town game and proves reusable Framework paths through player-visible slices. |
 | [Libraries](libraries/README.md) | [Research summary](libraries/research/README.md) | Explores semantic asset-pack enrichment and an owned, agent-usable BroMetal shader recipe library. |
 
 ## Archived objectives
@@ -27,28 +26,7 @@ Before planning or implementing work, read:
 | --- | --- |
 | [Asset catalog](_archives/asset-catalog-summary.md) | Records the shipped static catalog, research conclusions, source posture, and durable admission rules. |
 | [Antiky Studio](_archives/studio-summary.md) | Records the shipped Studio workspace, project model, shared development services, and durable boundaries. |
-
-## Slice workflow
-
-The [slice delivery workflow](antiky-town/SLICE_WORKFLOW_A.md) and
-[plan template](antiky-town/SLICE_PLAN_TEMPLATE_A.md) apply to objectives that use slices. Read the
-selected objective's `README.md`, roadmap, scoped instructions, and complete plan before
-implementation.
-
-A project folder can contain these records:
-
-| Record | Purpose |
-| --- | --- |
-| `slice-list.md` | Gives the current roadmap and selects the next complete result. |
-| `slice-NN/plan.md` | Defines one executable outcome, its boundaries, gates, and proof. |
-| `slice-NN/slice-summary.md` | Keeps the commit, verification results, and essential measurements after closeout. |
-| `_completed/` | Temporarily groups completed plans while the larger objective remains active. |
-| `_superseded/` | Temporarily keeps retired plans while their historical context is still needed. Never execute these plans. |
-
-Keep implementation in `packages/`. Keep durable usage guidance in
-[`../user-facing-docs/`](../user-facing-docs/README.md). Raw run evidence and temporary verification
-belong in ignored `outputs/` and `verification/` directories or in CI artifacts. Remove local
-evidence directories after closeout and keep the short slice summary.
+| [Antiky Town (legacy)](_archives/antiky-town-summary.md) | Records the first three shipped Town slices, the superseded plans, and the current restart boundary. |
 
 ## Objective closeout and archive method
 

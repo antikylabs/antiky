@@ -1,4 +1,0 @@
-# Feedback, one item per line...
-# When done fixing them mark them with "x |" at the start of a line.
-
----

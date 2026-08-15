@@ -35,7 +35,8 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
    numbered 99 so new goals can be 14, 15, … without ever renumbering the one that must stay at
    the end.
 
-`_completed/` mirrors the convention already used at `docs/objectives/antiky-town/_completed/`.
+`_completed/` keeps each completed goal beside its summary so that the contract and result remain
+together.
 
 ---
 
