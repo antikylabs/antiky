@@ -261,3 +261,27 @@ test('a texture is sampled by key, and an unknown one fails loudly', () => {
     /texture "missing"/,
   );
 });
+
+test('every blend mode BroMetal accepts is expressible', () => {
+  // Regression: the first draft of this type offered `add`, which BroMetal does not accept and
+  // which would have rejected every additive glow pipeline in the repository.
+  const renderer = fakeRenderer();
+  const built: string[] = [];
+  const driver = createBroMetalRenderDriver({
+    renderer: renderer as never,
+    pipelines: {
+      solid: { shader: { key: 'solid' } },
+      overlay: { shader: { key: 'overlay' }, options: { blend: 'alpha' } },
+      glow: { shader: { key: 'glow' }, options: { blend: 'additive' } },
+      opaque: { shader: { key: 'opaque' }, options: { blend: 'none' } },
+    } as never,
+    createProgram: ((_r: unknown, shader: { key: string }, options?: { blend?: string }) => {
+      built.push(`${shader.key}:${options?.blend ?? 'default'}`);
+      return fakeProgram(shader.key, renderer.log);
+    }) as never,
+    createRenderTarget: ((_r: unknown, request: never) => renderer.createdTarget(request)) as never,
+  } as never);
+
+  assert.deepEqual(built, ['solid:default', 'overlay:alpha', 'glow:additive', 'opaque:none']);
+  driver.dispose();
+});

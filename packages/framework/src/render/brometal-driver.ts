@@ -44,8 +44,14 @@ import type {
  */
 export type PipelineDefinition = Readonly<{
   shader: CompiledShader<never, never, never>;
-  /** Passed through to `createProgram`, for the blend mode a pass needs. */
-  options?: Readonly<{ blend?: 'alpha' | 'add' }>;
+  /**
+   * Passed through to `createProgram`, for the blend mode a pass needs.
+   *
+   * The three BroMetal accepts. Spelled `additive`, not `add`: the first draft guessed and would
+   * have rejected every additive pipeline in the repository, which is most of the glow and effect
+   * work in all four demos.
+   */
+  options?: Readonly<{ blend?: 'none' | 'alpha' | 'additive' }>;
   /** Called once after the program exists, for geometry and other one-time attribute uploads. */
   setup?(program: BroMetalProgram): void;
 }>;

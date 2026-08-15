@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:22a6c0d73a27da1f
+frameworkSource: sha256:282d16b6dee7eb62
 ---
 
 # BroMetal render driver API
@@ -41,7 +41,7 @@ One pipeline the BroMetal driver can draw, supplied when it is constructed.
 type PipelineDefinition = Readonly<{
     shader: CompiledShader<never, never, never>;
     options?: Readonly<{
-        blend?: 'alpha' | 'add';
+        blend?: 'none' | 'alpha' | 'additive';
     }>;
     setup?(program: BroMetalProgram): void;
 }>;
