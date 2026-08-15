@@ -19,6 +19,7 @@ Before planning or implementing work, read:
 | Objective | Roadmap | Purpose |
 | --- | --- | --- |
 | [Libraries](libraries/README.md) | [Research summary](libraries/research/README.md) | Explores semantic asset-pack enrichment and an owned, agent-usable BroMetal shader recipe library. |
+| [Studio apps](studio-apps/README.md) | — | being defined |
 
 ## Archived objectives
 
