@@ -63,14 +63,29 @@ the shipped `generateWebgpuMipmaps` against a recording device and asserts **no 
 `arrayLayerCount > 1`**. A multi-layer view is the only way a coarse mip could cross layers, and
 there is none. That is what deletes the defect rather than mitigating it.
 
-## Honest limit on the runtime tests
+## The runtime tests now run on a real GPU
 
-The binding and mip tests drive the **real shipped code** against a recording `GPUDevice` stub and
-assert on the *calls made*, not the *pixels produced*. The GPU-side proof is the capture, which
-renders the atlas through the array sampler and looks right.
+The patch is proven on device, not only against a stub.
+`packages/demos/tests/texture-array-gpu.test.mjs` builds an array texture through BroMetal's own
+patched `buildWebgpuTextureArray`, samples it, and reads pixels back:
 
-**Corrected 2026-08-15.** This was first written as "there is no headless WebGPU here", which is
-wrong. A real device is reachable from a plain Node test — probed and confirmed as
+| Assertion | Result |
+| --- | --- |
+| the array binds with no WebGPU validation error | pass |
+| layer 0 returns layer 0's colour, layer 1 returns layer 1's | pass |
+| at mip 6 each layer keeps its own colour, not an average of both | pass |
+
+Proven able to fail: expecting layer 0 to hold the other layer's colour turns it red with the actual
+pixel printed. The stub tests remain as the cheap fast check; this is the one that would catch a
+wrong layer index landing on a similar-coloured material.
+
+One deliberate limit: the WGSL doing the sampling is written in the test rather than produced by
+BroMetal's compiler, which has no public entry point from Node. So this proves the **runtime** half —
+upload, view dimension, per-layer mips. The compiler half is covered by the WGSL-emission test and
+the demo capture.
+
+**Corrected 2026-08-15.** This was first written as "there is no headless WebGPU here", which was
+wrong, and the harness described below now exists. A real device is reachable from a plain Node test — probed and confirmed as
 `device ok: apple`. What is missing is a *test harness* exposing it: the only code that launches a
 browser is the capture runtime, reachable only through `capture_frame`, which returns a whole-frame
 PNG and cannot answer "does sampling layer 1 return layer 1's colour". Two details make the
