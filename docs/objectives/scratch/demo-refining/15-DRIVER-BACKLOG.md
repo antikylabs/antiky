@@ -22,6 +22,7 @@ supports rather than accepting them.
 | Uniforms: numbers, number lists, another pass's output, a named texture | `UniformValue` |
 | Per-instance attribute rows | `DrawCall.instanceData` |
 | Skipping a draw entirely | `instances: 0` |
+| Registering a pipeline after construction, for assets loaded at runtime | `registerPipeline()` |
 | Releasing every program and target it made | `dispose()` |
 
 ## The five demos that cannot use it at all, and why that is not the driver's fault
@@ -72,21 +73,21 @@ The remaining obstacle to moving `point-light-expo` is **size, not capability**:
   the scene pass alone issuing eleven draws in a deliberate order that comments in
   `renderer.ts:417-430` explain and that a careless port would silently reorder.
 
-**One genuine contract gap follows from the second point:** pipelines are supplied at construction,
-and three of this demo's pipelines cannot exist until a GLB has loaded. The driver needs either an
-async construction path or a way to register a pipeline after the driver exists. That is the first
-item of real backlog below.
+**One genuine contract gap followed from the second point, and it is now closed:** pipelines were
+supplied only at construction, and three of this demo's pipelines cannot exist until a GLB has
+loaded. `registerPipeline` was added for exactly that. Nothing else about the migration is a
+capability question.
 
 ## Backlog, ranked
 
 | # | What the driver needs | Why | Which demos |
 |---|---|---|---|
-| 1 | **Register a pipeline after construction**, or an async construction path | Three catalog batches per demo are built from GLB models fetched at runtime. Today every pipeline must exist before the driver does. | all four |
+| ~~1~~ | ~~**Register a pipeline after construction**~~ — **done**, `registerPipeline(key, definition)` | Three catalog batches per demo are built from GLB models fetched at runtime, so those pipelines cannot exist before the driver does. Registering over a live key is refused rather than silently replacing a program. | all four |
 | 2 | **A render-target texture that outlives one frame**, sampled by a later frame | The shadow map is written in one pass and read in the next; that already works. What does not is a target a demo wants to keep across frames for temporal work. Nothing needs this today — listed so it is not mistaken for supported. | none yet |
 | 3 | **Per-pipeline depth state** | BroMetal ties depth-write to blend mode with no separate control, which `renderer.ts:354-360` documents as a real trap — a post quad with depth writing on erased an overlay. The driver inherits that coupling rather than fixing it. | `point-light-expo` |
 
-Item 1 is the only one blocking a migration today. Items 2 and 3 are recorded so the next person
-does not rediscover them.
+**Nothing on this list now blocks a migration.** Items 2 and 3 are recorded so the next person does
+not rediscover them; neither is needed by any demo today.
 
 ## Honest status
 

@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:282d16b6dee7eb62
+frameworkSource: sha256:01a3708de5346495
 ---
 
 # BroMetal render driver API
@@ -61,10 +61,20 @@ type BroMetalRenderDriverOptions = Readonly<{
 }>;
 ```
 
+### `BroMetalRenderDriver`
+
+A render driver that also accepts pipelines registered after it is built.
+
+```ts
+type BroMetalRenderDriver = RenderDriver & Readonly<{
+    registerPipeline(key: string, definition: PipelineDefinition): void;
+}>;
+```
+
 ### `createBroMetalRenderDriver`
 
 Create the render driver that owns Antiky BroMetal resources and draws contract frames.
 
 ```ts
-function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions): RenderDriver;
+function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions): BroMetalRenderDriver;
 ```

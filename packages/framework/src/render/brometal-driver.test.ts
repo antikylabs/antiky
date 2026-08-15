@@ -285,3 +285,34 @@ test('every blend mode BroMetal accepts is expressible', () => {
   assert.deepEqual(built, ['solid:default', 'overlay:alpha', 'glow:additive', 'opaque:none']);
   driver.dispose();
 });
+
+test('a pipeline can be registered after the driver exists', () => {
+  // Backlog item 1. Catalog batches are built from GLB models fetched at runtime, so they cannot be
+  // supplied at construction without making every demo await all its assets before drawing.
+  const { driver, log } = harness(['post']);
+  driver.configureTargets([]);
+  log.length = 0;
+
+  driver.registerPipeline('late-model', { shader: { key: 'late-model' } } as never);
+  driver.submit({ passes: [{ draws: [{ pipeline: 'late-model' }] }] });
+
+  assert.deepEqual(log, ['draw:late-model']);
+});
+
+test('a late pipeline is released with the rest', () => {
+  const { driver, log } = harness(['post']);
+  driver.registerPipeline('late-model', { shader: { key: 'late-model' } } as never);
+  log.length = 0;
+  driver.dispose();
+  assert.deepEqual(log.filter((entry) => entry.startsWith('dispose:')).sort(), ['dispose:late-model', 'dispose:post']);
+});
+
+test('registering over a live pipeline key is refused', () => {
+  // Silently replacing one would leak the program it displaced and change what every existing frame
+  // draws, which is a worse outcome than a loud error.
+  const { driver } = harness(['post']);
+  assert.throws(
+    () => driver.registerPipeline('post', { shader: { key: 'other' } } as never),
+    /already registered/,
+  );
+});

@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:282d16b6dee7eb62
+frameworkSource: sha256:01a3708de5346495
 ---
 
 # Framework API reference
 
-This is the complete public API exported by the Antiky Framework package. It covers all 231 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
+This is the complete public API exported by the Antiky Framework package. It covers all 232 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
 
 Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.
 
@@ -96,7 +96,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 
 ### BroMetal render driver API
 
-[`PipelineDefinition`](brometal-render-driver.md#pipelinedefinition) · [`BroMetalRenderDriverOptions`](brometal-render-driver.md#brometalrenderdriveroptions) · [`createBroMetalRenderDriver`](brometal-render-driver.md#createbrometalrenderdriver)
+[`PipelineDefinition`](brometal-render-driver.md#pipelinedefinition) · [`BroMetalRenderDriverOptions`](brometal-render-driver.md#brometalrenderdriveroptions) · [`BroMetalRenderDriver`](brometal-render-driver.md#brometalrenderdriver) · [`createBroMetalRenderDriver`](brometal-render-driver.md#createbrometalrenderdriver)
 
 ## Keeping the reference current
 

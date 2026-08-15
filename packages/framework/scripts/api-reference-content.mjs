@@ -389,6 +389,7 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   // BroMetal render driver
   PipelineDefinition: 'One pipeline the BroMetal driver can draw, supplied when it is constructed.',
   BroMetalRenderDriverOptions: 'The renderer and pipelines a BroMetal render driver is built from.',
+  BroMetalRenderDriver: 'A render driver that also accepts pipelines registered after it is built.',
   createBroMetalRenderDriver: 'Create the render driver that owns Antiky BroMetal resources and draws contract frames.',
 
   // Render contract

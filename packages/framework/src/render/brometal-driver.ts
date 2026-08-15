@@ -77,7 +77,18 @@ export type BroMetalRenderDriverOptions = Readonly<{
   createRenderTarget?: typeof createRenderTarget;
 }>;
 
-export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions): RenderDriver {
+/**
+ * The driver, plus the one operation that is BroMetal's rather than the contract's.
+ *
+ * `registerPipeline` exists because three of every Antiky demo's batches are built from GLB models
+ * fetched at runtime, so those pipelines cannot exist before the driver does. Construction-only
+ * registration would have forced every demo to await all its assets before it could draw anything.
+ */
+export type BroMetalRenderDriver = RenderDriver & Readonly<{
+  registerPipeline(key: string, definition: PipelineDefinition): void;
+}>;
+
+export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions): BroMetalRenderDriver {
   const buildProgram = options.createProgram ?? createProgram;
   const buildTarget = options.createRenderTarget ?? createRenderTarget;
   const owned = createDisposalScope();
@@ -85,7 +96,10 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
   const targets = new Map<TargetKey, RenderTarget>();
   const requests = new Map<TargetKey, TargetRequest>();
 
-  for (const [key, definition] of Object.entries(options.pipelines)) {
+  const registerPipeline = (key: string, definition: PipelineDefinition): void => {
+    if (programs.has(key)) {
+      throw new Error(`Pipeline "${key}" is already registered. Pick a distinct key rather than replacing one mid-run.`);
+    }
     const program = owned.adopt(buildProgram(
       options.renderer,
       definition.shader as never,
@@ -93,7 +107,9 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
     ));
     definition.setup?.(program);
     programs.set(key, program);
-  }
+  };
+
+  for (const [key, definition] of Object.entries(options.pipelines)) registerPipeline(key, definition);
 
   /**
    * Resolve a uniform value to something BroMetal accepts.
@@ -173,6 +189,7 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
   };
 
   return Object.freeze({
+    registerPipeline,
     configureTargets,
     submit(frame: RenderFrame): void {
       for (let index = 0; index < frame.passes.length; index += 1) {
