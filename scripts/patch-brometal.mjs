@@ -15,6 +15,10 @@ import { name as discard, apply as applyDiscard } from './patch-brometal/discard
 import { name as present, apply as applyPresent } from './patch-brometal/present.mjs';
 import { name as samplerLodClamp, apply as applySamplerLodClamp } from './patch-brometal/sampler-lod-clamp.mjs';
 import {
+  name as textureArraySampler,
+  apply as applyTextureArraySampler,
+} from './patch-brometal/texture-array-sampler.mjs';
+import {
   name as renderTargetFiltering,
   apply as applyRenderTargetFiltering,
 } from './patch-brometal/render-target-filtering.mjs';
@@ -38,6 +42,7 @@ export const PATCHES = Object.freeze([
   { name: offscreenMultisampling, apply: applyOffscreenMultisampling },
   { name: attributeBufferDefects, apply: applyAttributeBufferDefects },
   { name: samplerLodClamp, apply: applySamplerLodClamp },
+  { name: textureArraySampler, apply: applyTextureArraySampler },
 ]);
 
 /**
