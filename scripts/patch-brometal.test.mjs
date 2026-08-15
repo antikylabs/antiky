@@ -117,6 +117,22 @@ test('the installed package carries both render-pipeline patches', async () => {
   assert.doesNotMatch(runtime, /internals\.passSamples = 1;/);
 });
 
+test('the installed package can clamp a texture to a mip range', async () => {
+  await runPatch();
+  const runtime = await readFile(await findInstalledRuntime(), 'utf8');
+  const types = await readFile(path.join(path.dirname(await findInstalledRuntime()), 'texture.d.ts'), 'utf8');
+
+  // `lodMinClamp` and `lodMaxClamp` are standard GPUSamplerDescriptor fields. BroMetal exposed
+  // wrap, filter and anisotropy and nothing else, so a caller could not cap the mip chain at all.
+  assert.match(types, /lodMinClamp\?: number;/);
+  assert.match(types, /lodMaxClamp\?: number;/);
+
+  // Passed through only when asked for: an unset clamp must leave the descriptor untouched rather
+  // than pinning it to a default, because WebGPU's own defaults (0 and 32) are what we want then.
+  assert.match(runtime, /lodMinClamp: options\.lodMinClamp/);
+  assert.match(runtime, /lodMaxClamp: options\.lodMaxClamp/);
+});
+
 test('a different BroMetal version stops the patch rather than applying it blindly', async (t) => {
   const directory = await mkdtemp(path.join(tmpdir(), 'antiky-brometal-version-'));
   t.after(() => rm(directory, { recursive: true, force: true }));

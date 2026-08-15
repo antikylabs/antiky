@@ -13,6 +13,7 @@ import path from 'node:path';
 
 import { name as discard, apply as applyDiscard } from './patch-brometal/discard.mjs';
 import { name as present, apply as applyPresent } from './patch-brometal/present.mjs';
+import { name as samplerLodClamp, apply as applySamplerLodClamp } from './patch-brometal/sampler-lod-clamp.mjs';
 import {
   name as renderTargetFiltering,
   apply as applyRenderTargetFiltering,
@@ -36,6 +37,7 @@ export const PATCHES = Object.freeze([
   { name: renderTargetFiltering, apply: applyRenderTargetFiltering },
   { name: offscreenMultisampling, apply: applyOffscreenMultisampling },
   { name: attributeBufferDefects, apply: applyAttributeBufferDefects },
+  { name: samplerLodClamp, apply: applySamplerLodClamp },
 ]);
 
 /**

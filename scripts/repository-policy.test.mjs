@@ -36,6 +36,7 @@ test('repository-level scripts stay within the owned allowlist', async () => {
     'scripts/patch-brometal/offscreen-multisampling.mjs',
     'scripts/patch-brometal/present.mjs',
     'scripts/patch-brometal/render-target-filtering.mjs',
+    'scripts/patch-brometal/sampler-lod-clamp.mjs',
     'scripts/port-release.mjs',
     'scripts/port-release.test.mjs',
     'scripts/repository-policy.test.mjs',
