@@ -19,7 +19,9 @@ x studio - add make panels resizeable
 x studio - fix unable to pause game
 x studio - fix status bar and duplicate information
 x skills - add user documentation skill - diataxis.fr
-\ demos - fix up demos to be better quality
+x demos - fix up demos to be better quality
+demos - review the execute 99 task
+bugs - mouse click no longer works (at least in the studio)
 \ website - review all marketing and website changes.
 studio - fix terminal bugs on codex /exit causes weird execute problems
 studio - fix terminal bugs random crashes
