@@ -255,6 +255,38 @@ dev-service log nor `.antiky/` holds a browser console. The tool list also inclu
   sampled depth format. The pre-migration scene target also combined `depth: true` with
   `filter: 'linear'`. Not the fault.
 
+### The strongest lead, found in the dev-service log and not yet tested
+
+`npm run dev:demos point-light-expo` prints, on every build:
+
+```
+[shaders] ⚠ relay-ring.shader.ts — uniform 'uTime' is declared but never used
+[shaders] ⚠ reliquary-model.shader.ts — uniform 'uTime' is declared but never used
+```
+
+A uniform BroMetal reports as unused is **stripped from the compiled program**, so the program has no
+`uTime` to bind. The built bundle nevertheless sets it:
+
+```js
+{ pipeline: "rings", uniforms: { uViewProj: y, uTime: t.time, uBillboard: { texture: "vfx-billboard" } } }
+```
+
+Setting a uniform a program does not have is exactly the class of error a real BroMetal program
+rejects and a permissive stub accepts. The pre-migration demo bound its uniforms by hand and simply
+never set the stripped one; the frame data now sets it declaratively for every pipeline.
+
+**Why the construction harness does not catch it yet.** The strict stub validates binding names, but
+only for what construction touches — the `setup` callbacks. Frame uniforms are set at *submit* time,
+and the test never submits a frame. Extending it to build one frame and submit it through the driver
+against the strict stub is a small change and would either confirm this or clear it, with no capture
+cycle and no browser.
+
+**One caveat, stated because it matters.** This is a *frame-time* fault, and the evidence above says
+construction throws. Both can be true — the blank-frame fallback proved the catch around
+`createRelayRenderer` runs, so something in construction does throw — but `uTime` would be a second,
+separate failure waiting behind it. Whoever picks this up should confirm which one they are looking
+at before fixing either.
+
 So the throw is in something only a real WebGPU device rejects. The two candidates left are the WGSL
 pipeline creation itself and the eager target creation described below. Both need a browser to
 observe, and the harness cannot narrow them further — which makes surfacing the browser error the
