@@ -127,7 +127,17 @@ test('the town runtime can be constructed without throwing', async () => {
    */
   const fetched = calls.slice(before).filter((call) => call.kind === 'loaded').map((call) => call.label);
   assert.equal(fetched.length, 5, `the driver fetched ${fetched.length} textures`);
-  for (const url of fetched) {
+
+  // One of the five is an array texture: the material atlas arrives as twelve separate layer
+  // images rather than one packed picture, and each layer is mipped on its own so no material can
+  // pick up its neighbour. Every one of the twelve has to exist, or the array is built with a hole.
+  const layered = fetched.filter((label) => label.startsWith('layers['));
+  assert.equal(layered.length, 1, 'exactly one texture should be an array');
+  assert.match(layered[0]!, /^layers\[12\]:/, 'the material atlas should carry twelve layers');
+
+  const files = fetched.flatMap((label) => label.replace(/^layers\[\d+\]:/, '').split(' '));
+  assert.equal(files.length, 16, `the driver fetched ${files.length} image files`);
+  for (const url of files) {
     assert.ok(existsSync(fileURLToPath(url)), `the driver fetches a texture that does not exist: ${url}`);
   }
   runtime.dispose();

@@ -58,8 +58,13 @@ directional light already exists.
   direction-dependent — so unlike the other demos, SH-9 is an upgrade to something real rather than a
   replacement for a flat constant. It is the fairest test in the repository of whether nine
   coefficients earn their bake step over two hand-picked colours, and it has not been run yet.
-- **Atlas gutters.** The three world atlases still declare no gutter, which `pipeline-invariants`
-  reports. That is goal 14, not this one.
+- **Atlas gutters.** Closed twice over. Goal 14 gave all three world atlases a 64px extruded gutter,
+  and goal 15 went further for the material atlas: its twelve tiles are now twelve layers of an
+  array texture, sampled through a `sampler2DArray` with the material id as the layer index. Each
+  layer is mipped on its own, so a coarse level cannot reach the tile next door and the measured
+  border error is zero rather than small. The prop and vegetation atlases keep their gutter — they
+  are addressed by per-instance rectangles, and converting them is an art and performance decision
+  rather than a consequence of this one.
 - **The `brometal/town-study` twin** (retired 2026-08-14) shipped byte-identical copies of twelve of these shaders and was
   now diverged, because it is a fifth demo goal 05 does not name. Nothing is broken by that — it
   compiles its own copies — but the two are no longer the same shaders.

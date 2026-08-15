@@ -12,7 +12,6 @@ import {
   max,
   min,
   mix,
-  mod,
   normalize,
   pow,
   smoothstep,
@@ -122,11 +121,10 @@ export default shader({
     uGroundColor: 'vec3',
     uGroundIntensity: 'float',
     uEmissiveIntensity: 'float',
-    uMaterialAtlas: 'sampler2D',
+    /** Twelve materials as twelve array layers, indexed by material id rather than addressed by UV. */
+    uMaterialAtlas: 'sampler2DArray',
     uDetailNormal: 'sampler2D',
-    /** (columns, rows, gutter in u, gutter in v) for the material atlas, from its JSON layout. */
-    uAtlasGrid: 'vec4',
-    /** One authored texel in packed-atlas UV, so the two height taps keep their authored spacing. */
+    /** One authored texel in a layer's own UV, so the two height taps keep their authored spacing. */
     uAuthoredTexel: 'vec2',
     uPracticalCount: 'float',
     uPracticalStrength: 'float',
@@ -206,7 +204,6 @@ export default shader({
       uEmissiveIntensity,
       uMaterialAtlas,
       uDetailNormal,
-      uAtlasGrid,
       uAuthoredTexel,
       uPracticalCount,
       uPracticalStrength,
@@ -315,9 +312,9 @@ export default shader({
     if (abs(normal.z) > 0.5) surfaceUv = vec2(vWorld.x, vWorld.y);
     const tiledUv = surfaceUv.scale(0.82);
     // The whole tile, edge to edge. This used to shrink to [0.02, 0.98] to keep the sample off the
-    // tile boundary, back when the boundary was the neighbouring tile. The atlas now carries 64
-    // pixels of its own extruded edge outside every rectangle, so there is nothing to hide from and
-    // the outer 4% of each material is visible again.
+    // tile boundary, back when the boundary was the neighbouring tile. Then the packed atlas gave
+    // every tile 64 pixels of its own extruded edge, and now each material is its own array layer —
+    // so the boundary is the edge of an image with nothing beyond it, at every mip level.
     surfaceUv = vec2(fract(tiledUv.x), fract(tiledUv.y));
 
     const materialId = floor(vMaterialId + 0.5);
@@ -345,24 +342,12 @@ export default shader({
     else if (materialId < 48) atlasTile = 4;
     else if (materialId < 49) atlasTile = 3;
 
-    // The tile's inner rectangle, worked out from the layout the packer published rather than from a
-    // grid written down here. `uAtlasGrid` carries (columns, rows, gutter in u, gutter in v), and
-    // `atlas-layout.ts` checks this arithmetic against every rectangle in the atlas JSON before the
-    // uniform is bound — so repacking the atlas moves the sample with it instead of leaving the
-    // shader addressing pixels that have moved.
-    //
-    // Rows count from the top of the image and v counts from the bottom, hence `rows - 1 - row`.
-    const atlasColumns = uAtlasGrid.x;
-    const atlasRows = uAtlasGrid.y;
-    const cellU = 1 / atlasColumns;
-    const cellV = 1 / atlasRows;
-    const atlasColumn = mod(atlasTile, atlasColumns);
-    const atlasRow = floor(atlasTile / atlasColumns);
-    const atlasUv = vec2(
-      atlasColumn * cellU + uAtlasGrid.z + surfaceUv.x * (cellU - uAtlasGrid.z * 2),
-      (atlasRows - 1 - atlasRow) * cellV + uAtlasGrid.w + surfaceUv.y * (cellV - uAtlasGrid.w * 2),
-    );
-    const materialSample = decodeSrgb(texture(uMaterialAtlas, atlasUv).xyz);
+    // The tile is a layer, so the material id *is* the address. What this replaces was a grid
+    // derivation — columns, rows, a gutter inset in u and v, and a rectangle worked out per
+    // fragment — that existed only because twelve materials shared one image. None of it survives
+    // contact with an array texture, and neither does the class of bug it invited: a sample can no
+    // longer land on the wrong tile, at any mip level, however the atlas is repacked.
+    const materialSample = decodeSrgb(texture(uMaterialAtlas, surfaceUv, atlasTile).xyz);
     const sampleLuma = max(dot(materialSample, vec3(0.299, 0.587, 0.114)), 0.08);
     const microValue = clamp(1 + (sampleLuma - 0.5) * 0.82, 0.62, 1.4);
     const microChroma = materialSample.scale(1 / sampleLuma);
@@ -375,8 +360,8 @@ export default shader({
     // Two forward height taps turn atlas value into a restrained world-space
     // micro-normal. This is real grazing-light depth on stone, timber, plaster,
     // shingles, and ground rather than a baked highlight in the albedo.
-    const sampleU = texture(uMaterialAtlas, atlasUv.add(vec2(uAuthoredTexel.x * 2, 0))).xyz;
-    const sampleV = texture(uMaterialAtlas, atlasUv.add(vec2(0, uAuthoredTexel.y * 2))).xyz;
+    const sampleU = texture(uMaterialAtlas, surfaceUv.add(vec2(uAuthoredTexel.x * 2, 0)), atlasTile).xyz;
+    const sampleV = texture(uMaterialAtlas, surfaceUv.add(vec2(0, uAuthoredTexel.y * 2)), atlasTile).xyz;
     const heightU = dot(sampleU, vec3(0.299, 0.587, 0.114));
     const heightV = dot(sampleV, vec3(0.299, 0.587, 0.114));
     let tangentU = vec3(1, 0, 0);

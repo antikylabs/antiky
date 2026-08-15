@@ -1,4 +1,5 @@
 import materialAtlasJson from '../../../assets/textures/town-material-atlas-v1.json' with { type: 'json' };
+import materialLayersJson from '../../../assets/textures/town-material-atlas-v1-layers/layers.json' with { type: 'json' };
 import propAtlasJson from '../../../assets/textures/town-prop-atlas-v2.json' with { type: 'json' };
 import vegetationAtlasJson from '../../../assets/textures/town-vegetation-atlas-v2.json' with { type: 'json' };
 
@@ -49,6 +50,32 @@ export type AtlasLayout = {
 export const TOWN_MATERIAL_ATLAS = materialAtlasJson as AtlasLayout;
 export const TOWN_PROP_ATLAS = propAtlasJson as AtlasLayout;
 export const TOWN_VEGETATION_ATLAS = vegetationAtlasJson as AtlasLayout;
+
+/**
+ * The same tiles as separate images, one per array-texture layer.
+ *
+ * `build-texture-atlas.mjs --layers` writes these from the same authored source the packed atlas is
+ * cut from, so the two stay in step. There is no gutter and none is needed: a layer's mip chain is
+ * built from that layer alone, so a coarse level cannot reach the tile next door. That is the
+ * difference between managing the bleed and not having it.
+ */
+export type AtlasLayerSet = {
+  readonly emitMode: string;
+  readonly layerSize: { readonly width: number; readonly height: number };
+  readonly channels: number;
+  readonly layers: ReadonlyArray<{
+    readonly name: string;
+    readonly index: number;
+    readonly image: string;
+    readonly imageSha256: string;
+  }>;
+  readonly source: {
+    readonly size: { readonly width: number; readonly height: number };
+    readonly cell: { readonly width: number; readonly height: number };
+  };
+};
+
+export const TOWN_MATERIAL_LAYERS = materialLayersJson as AtlasLayerSet;
 
 /** A tile's inner rectangle as `[u, v, width, height]`, ready to hand to a shader or an instance. */
 export function tileRect(
@@ -128,4 +155,57 @@ export function authoredTexel(layout: AtlasLayout): readonly [number, number] {
     layout.inner.width / layout.source.cell.width / layout.size.width,
     layout.inner.height / layout.source.cell.height / layout.size.height,
   ];
+}
+
+/**
+ * The same step, for a layer set. A layer image *is* the tile, so its UV space is the tile's and
+ * the rectangle drops out of the arithmetic: one authored texel is simply `1 / source cell`.
+ */
+export const MATERIAL_LAYER_TEXEL: readonly [number, number] = [
+  1 / TOWN_MATERIAL_LAYERS.source.cell.width,
+  1 / TOWN_MATERIAL_LAYERS.source.cell.height,
+];
+
+/** The layer index a named material occupies — `tileIndex` for a layer set. */
+export function materialLayer(name: string): number {
+  const index = TOWN_MATERIAL_LAYERS.layers.findIndex((layer) => layer.name === name);
+  if (index === -1) throw new Error(`no atlas layer named ${name}`);
+  return index;
+}
+
+/**
+ * Every material layer as a URL, in the order the shader's layer index counts.
+ *
+ * Written out rather than derived from the manifest because Vite resolves
+ * `new URL(path, import.meta.url)` at build time and can only do it for a literal path. A template
+ * string would leave the twelve images unemitted and the demo would load nothing — so the manifest
+ * checks the list instead of generating it, and a repack that renames, adds or reorders a layer
+ * fails here at construction rather than drawing a plausible but wrong material.
+ */
+export const MATERIAL_LAYER_URLS: readonly string[] = checkLayerUrls([
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/00-warm-limestone.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/01-mossy-cobblestone.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/02-aged-ivory-plaster.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/03-hand-hewn-timber.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/04-terracotta-shingles.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/05-slate-shingles.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/06-meadow-grass-and-flowers.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/07-compacted-earth.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/08-red-cream-market-cloth.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/09-olive-leaves.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/10-wet-canal-stone.png', import.meta.url).href,
+  new URL('../../../assets/textures/town-material-atlas-v1-layers/11-damp-waterfall-rock.png', import.meta.url).href,
+]);
+
+function checkLayerUrls(urls: readonly string[]): readonly string[] {
+  const expected = TOWN_MATERIAL_LAYERS.layers.length;
+  if (urls.length !== expected) {
+    throw new Error(`the material atlas has ${expected} layers but ${urls.length} URLs are listed`);
+  }
+  // Only the count, because the built bundle inlines each image as a base64 data URL and a data URL
+  // carries no file name to match on. That each URL is the layer it should be, in index order, is
+  // asserted by `tests/atlas-layout.test.ts`, which runs against the source where the URL is still
+  // a path. A count is what remains checkable everywhere, and it catches the drift that actually
+  // happens: a layer added to or removed from the atlas.
+  return Object.freeze([...urls]);
 }

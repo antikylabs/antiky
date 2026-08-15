@@ -3,11 +3,15 @@ import test from 'node:test';
 
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import {
+  MATERIAL_LAYER_TEXEL,
+  MATERIAL_LAYER_URLS,
   TOWN_MATERIAL_ATLAS,
+  TOWN_MATERIAL_LAYERS,
   TOWN_PROP_ATLAS,
   TOWN_VEGETATION_ATLAS,
   atlasGridUniform,
   authoredTexel,
+  materialLayer,
   tileIndex,
   tileRect,
   type AtlasLayout,
@@ -89,6 +93,44 @@ test('the height taps still step one authored texel after the repack', () => {
   const { cell } = TOWN_MATERIAL_ATLAS.source;
   assert.ok(Math.abs(stepU / rect.width - 1 / cell.width) < 1e-9, 'the u step is no longer one authored texel');
   assert.ok(Math.abs(stepV / rect.height - 1 / cell.height) < 1e-9, 'the v step is no longer one authored texel');
+});
+
+test('the material layers are the packed atlas tiles, in the same order', () => {
+  // The voxel shader picks a layer by material id, and those ids were written against the packed
+  // atlas's tile order. If the layer set ever disagreed, every surface would draw a plausible but
+  // wrong material — the failure a screenshot does not obviously catch.
+  assert.deepEqual(
+    TOWN_MATERIAL_LAYERS.layers.map((layer) => layer.name),
+    [...TOWN_MATERIAL_ATLAS.tiles],
+  );
+  assert.equal(materialLayer('red-cream-market-cloth'), tileIndex(TOWN_MATERIAL_ATLAS, 'red-cream-market-cloth'));
+  assert.throws(() => materialLayer('no-such-layer'), /no atlas layer named/);
+
+  // One URL per layer, in index order. The list is written out for Vite's sake, so this is the
+  // check that stops it drifting from the manifest.
+  assert.equal(MATERIAL_LAYER_URLS.length, TOWN_MATERIAL_LAYERS.layers.length);
+  MATERIAL_LAYER_URLS.forEach((url, index) => {
+    assert.ok(
+      url.endsWith(`/${TOWN_MATERIAL_LAYERS.layers[index]!.image}`),
+      `layer ${index} is ${url}, not ${TOWN_MATERIAL_LAYERS.layers[index]!.image}`,
+    );
+  });
+});
+
+test('a layer tap steps the same distance across the material as the packed one did', () => {
+  // A layer image *is* the tile, so its UV space is the tile's: the packed atlas needed the tile's
+  // rectangle in the equation and this does not. The distance across the material must not change,
+  // or every stone and timber face gains or loses relief for no reason anybody would connect to a
+  // change in how the atlas is stored.
+  const [stepU, stepV] = MATERIAL_LAYER_TEXEL;
+  const { cell } = TOWN_MATERIAL_LAYERS.source;
+  assert.ok(Math.abs(stepU - 1 / cell.width) < 1e-9, 'the u step is no longer one authored texel');
+  assert.ok(Math.abs(stepV - 1 / cell.height) < 1e-9, 'the v step is no longer one authored texel');
+
+  const [packedU, packedV] = authoredTexel(TOWN_MATERIAL_ATLAS);
+  const rect = TOWN_MATERIAL_ATLAS.tileRects[0]!;
+  assert.ok(Math.abs(stepU - packedU / rect.width) < 1e-9, 'the u step moved when the atlas became layers');
+  assert.ok(Math.abs(stepV - packedV / rect.height) < 1e-9, 'the v step moved when the atlas became layers');
 });
 
 test('prop cards are cut to the rectangles the prop atlas publishes', () => {

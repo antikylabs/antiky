@@ -111,3 +111,15 @@ export async function loadTexture(_renderer: unknown, url: string) {
   calls.push({ kind: 'loaded', label: url });
   return { dispose: () => undefined };
 }
+
+/**
+ * One texture from many URLs. Stubbed for the same reason `loadTexture` is — the real one decodes
+ * images through `Image` and `createImageBitmap`, neither of which exists outside a browser.
+ *
+ * The label keeps every layer, so a harness can see the order the driver was given rather than just
+ * that something was loaded. Order is the whole contract of an array texture.
+ */
+export async function loadTextureArray(_renderer: unknown, urls: readonly string[]) {
+  calls.push({ kind: 'loaded', label: `layers[${urls.length}]:${urls.join(' ')}` });
+  return { layers: urls.length, dispose: () => undefined };
+}
