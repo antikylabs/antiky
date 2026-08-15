@@ -6,14 +6,16 @@
  * Antiky render data and never a BroMetal object; see
  * `packages/framework/src/render/render-contract.ts`, which imports nothing.
  *
- * It lives in its own package rather than under `packages/framework/src` because the framework must
- * install and run without a GPU, and a framework dependency on `brometal` would break that. The
- * reasoning is written out in `docs/objectives/scratch/demo-refining/14-DRIVER-HOME.md`.
+ * This is the single file `import-boundary.test.mjs` permits to import BroMetal, and a test asserts
+ * it stays single. It is reachable only as `@antiky/framework/render-driver` and deliberately not
+ * from the package barrel, so a server importing the framework does not pull a WebGPU library in
+ * behind it. The reasoning is in `docs/objectives/scratch/demo-refining/14-DRIVER-HOME.md`.
  *
  * The frame shape here was extracted from two working implementations that had independently
- * converged on it — `point-light-expo` and `antiky-town` both cast shadows into a depth target, draw
- * the scene into a floating-point target, reduce it through a bloom chain and resolve everything in
- * one final pass. Neither was designed from this; this was read off both.
+ * converged on it — both cast shadows into a depth target, draw the scene into a floating-point
+ * target, reduce it through a bloom chain and resolve everything in one final pass. Neither was
+ * designed from this; this was read off both. They are named in the design note cited above, because
+ * a test keeps demo names out of framework source.
  */
 import {
   createProgram,
@@ -24,14 +26,14 @@ import {
   type Renderer,
 } from 'brometal';
 
-import {
-  createDisposalScope,
-  type RenderDriver,
-  type RenderFrame,
-  type TargetKey,
-  type TargetRequest,
-  type UniformValue,
-} from '@antiky/framework';
+import { createDisposalScope } from '../resources/disposal-scope.ts';
+import type {
+  RenderDriver,
+  RenderFrame,
+  TargetKey,
+  TargetRequest,
+  UniformValue,
+} from './render-contract.ts';
 
 /**
  * One pipeline the driver can draw, supplied at construction.

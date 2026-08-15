@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:a534c2c23c2c8b79
+frameworkSource: sha256:de33d498218de015
 ---
 
 # Engine session API

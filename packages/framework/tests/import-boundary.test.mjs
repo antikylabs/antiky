@@ -31,13 +31,21 @@ test('framework source has no Node, React, Next, BroMetal, Studio, or MCP import
   })));
 
   for (const source of sources) {
+    // `docs/adr/framework/0021-brometal-render-driver-ownership_H.md` decides that the framework
+    // owns one component that speaks BroMetal, and that "framework code outside the driver will not
+    // use BroMetal". This is that one file. The carve-out is a single exact path rather than a
+    // directory or a pattern, so a second file cannot quietly join it.
+    const isRenderDriver = source.name === 'render/brometal-driver.ts';
     const specifiers = Array.from(
       source.text.matchAll(/(?:from\s+|import\s*(?:\(\s*)?)['"]([^'"]+)['"]/g),
       (match) => match[1],
     );
     for (const specifier of specifiers) {
+      const forbidden = forbiddenImports.filter(
+        (pattern) => !(isRenderDriver && pattern.source.startsWith('^brometal')),
+      );
       assert.ok(
-        !forbiddenImports.some((pattern) => pattern.test(specifier)),
+        !forbidden.some((pattern) => pattern.test(specifier)),
         `${source.name} imports forbidden dependency ${specifier}`,
       );
     }
@@ -66,4 +74,17 @@ test('the game contract module imports nothing at all', async () => {
   const imports = source.match(/^\s*import[\s{*]/gm) ?? [];
   assert.deepEqual(imports, [], 'src/game/contract.ts must have zero import statements');
   assert.doesNotMatch(source, /\brequire\(/, 'and no require() either');
+});
+
+test('exactly one framework file is allowed to import BroMetal', async () => {
+  // The carve-out ADR 0021 grants is to *the driver*, singular. If a second file starts importing
+  // BroMetal, the boundary has stopped meaning anything and this catches it before review does.
+  const importers = [];
+  for (const url of await sourceFiles(sourceDirectory)) {
+    const text = await readFile(url, 'utf8');
+    if (/from\s+['"]brometal/.test(text)) {
+      importers.push(url.pathname.slice(sourceDirectory.pathname.length));
+    }
+  }
+  assert.deepEqual(importers, ['render/brometal-driver.ts']);
 });

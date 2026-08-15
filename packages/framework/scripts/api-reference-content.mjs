@@ -356,9 +356,41 @@ driver.submit(frame);`,
       },
     ],
   },
+  {
+    slug: 'brometal-render-driver',
+    title: 'BroMetal render driver API',
+    packageEntry: '@antiky/framework/render-driver',
+    summary: 'Draw render contract frames with BroMetal, and own the programs, targets and their disposal.',
+    useWhen: 'Use this entry from a game host that renders with BroMetal. It is the only framework module that uses BroMetal, and it is reached by its own entry so a headless consumer never loads one.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'Pipelines are supplied once, keyed. After that the game describes frames as data and never names a graphics object.',
+    example: `import { createBroMetalRenderDriver } from '@antiky/framework/render-driver';
+
+const driver = createBroMetalRenderDriver({
+  renderer,
+  pipelines: {
+    world: { shader: worldShader, setup: (program) => program.attributes.aPosition.set(positions) },
+    post: { shader: postShader, options: { blend: 'alpha' } },
+  },
+});
+
+driver.configureTargets([{ key: 'scene', scale: 1, depth: true, samples: 4 }]);`,
+    modules: [
+      {
+        source: 'render/brometal-driver.ts',
+        title: 'BroMetal render driver',
+        description: 'Own every BroMetal program and render target, and draw a contract frame pass by pass.',
+      },
+    ],
+  },
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
+  // BroMetal render driver
+  PipelineDefinition: 'One pipeline the BroMetal driver can draw, supplied when it is constructed.',
+  BroMetalRenderDriverOptions: 'The renderer and pipelines a BroMetal render driver is built from.',
+  createBroMetalRenderDriver: 'Create the render driver that owns Antiky BroMetal resources and draws contract frames.',
+
   // Render contract
   ClearColor: 'A clear colour in linear light, with alpha.',
   PipelineKey: 'Names one pipeline a render driver was constructed with.',

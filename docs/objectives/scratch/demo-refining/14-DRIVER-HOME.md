@@ -17,17 +17,48 @@ Two accepted constraints meet head-on:
   `packages/framework/tests/import-boundary.test.mjs`, which walks `packages/framework/src/**` and
   rejects any import matching `/^brometal/`.
 
-A component that imports BroMetal cannot sit inside the tree that test guards. Goal 12 forbids
-editing the test to make room: *"changing that test is an architecture decision, not an
-implementation detail… if the answer requires editing that test, stop and get the owner's decision
-first."*
+A component that imports BroMetal cannot sit inside the tree that test guards *while the test stays
+as written*. Goal 12 reserves that edit for the owner: *"changing that test is an architecture
+decision, not an implementation detail… if the answer requires editing that test, stop and get the
+owner's decision first."*
 
 So the question is not whether the framework owns the driver — 0021 settles that. It is which
-directory the source sits in, given that ownership and that test.
+directory the source sits in, and whether the test should carve out an exception.
 
-## Two designs
+## Owner decision, 2026-08-14
 
-### Option A — the driver is its own workspace package
+**The driver lives in the framework, at `packages/framework/src/render/brometal-driver.ts`, reached
+as `@antiky/framework/render-driver`.** The owner made this call when the first draft of this note
+put it in a separate package.
+
+The first draft was wrong, and the reason is worth keeping. It leaned on a sentence in ADR 0021's
+**Context** — *"Framework source cannot import BroMetal"* — which describes the constraint as it
+stood *before* 0021. The **Decision** section says something different and more specific:
+
+> The framework will own this driver. The driver will use BroMetal directly. … Framework code
+> **outside the driver** will not use BroMetal.
+
+That phrasing already carves the driver out as the one exception, which means 0021 anticipates the
+driver living inside the framework. Reading a Context sentence as though it bound the Decision is
+what produced the extra package.
+
+What the move required, and what keeps it honest:
+
+- `import-boundary.test.mjs` now permits `brometal` in **one exact path**, `render/brometal-driver.ts`
+  — not a directory and not a pattern. A new test asserts the set of framework files importing
+  BroMetal is exactly that one file, so a second cannot join it quietly.
+- The driver is reachable only as `@antiky/framework/render-driver`, never from the package barrel.
+  A server importing `@antiky/framework` still does not load a WebGPU library.
+- `@antiky/framework` now declares `brometal` as a dependency. Installing it on a machine with no
+  GPU downloads the library but never executes it, because nothing on the headless path imports the
+  driver entry.
+
+The rejected alternative is kept below, because the trade-off it names is real and a future reader
+should not have to rediscover it.
+
+## The two designs that were considered
+
+### Option A — the driver is its own workspace package (**not chosen**)
 
 `packages/brometal-driver/`, published as `@antiky/brometal-driver`, depending on `brometal` and on
 `@antiky/framework` for the render contract types.
@@ -42,41 +73,34 @@ driver package implements it.
 - A second driver is another package implementing the same contract, which is exactly the
   portability property 0021 asks for.
 
-### Option B — the driver sits in the framework package, outside `src/`
+### Option B — the driver sits in the framework package, outside `src/` (**not chosen**)
 
 `packages/framework/driver/`, exported as `@antiky/framework/driver`.
 
-The test only walks `src/`, so it would pass without being edited.
+The test only walks `src/`, so this would pass without being edited.
 
-**Rejected.** Two reasons, and the first is decisive:
-
-1. **It contradicts ADR 0021 directly.** `@antiky/framework`'s `package.json` would have to declare
-   `brometal` as a dependency. Installing the framework would then install a WebGPU library on a
-   server that has no GPU, which is the exact situation 0021's Context says must not happen. Passing
-   the test while breaking the sentence the test exists to enforce is worse than failing it.
-2. **It passes by dodging.** The test's intent is "framework code does not import BroMetal". Moving
-   the import one directory sideways satisfies the letter and abandons the meaning. A future reader
-   would reasonably conclude the boundary is decorative.
+**Rejected, and it is worth being clear why this is not what the owner chose.** It passes by
+dodging: the test's intent is "framework code does not import BroMetal", and moving the import one
+directory sideways satisfies the letter while abandoning the meaning. The chosen design does the
+opposite — it edits the test to state the exception out loud, scoped to one exact path, with a
+second test asserting that set stays a single file. An exception a reader can see beats an exception
+hidden by a directory boundary.
 
 ## Decision
 
-**Option A.** The driver's source lives at `packages/brometal-driver/src/`, as the workspace package
-`@antiky/brometal-driver`.
+~~Option A.~~ **Superseded by the owner decision above.** The driver lives in the framework at
+`packages/framework/src/render/brometal-driver.ts`.
 
 The split of responsibility:
 
 | Where | What | Imports BroMetal |
 |---|---|---|
 | `packages/framework/src/render/` | the render data contract — pass descriptions, pipeline keys, typed updates | **no** |
-| `packages/brometal-driver/src/` | `createBroMetalRenderDriver`, which reads that contract and drives BroMetal | yes |
+| `packages/framework/src/render/brometal-driver.ts` | `createBroMetalRenderDriver`, which reads that contract and drives BroMetal | yes — the one permitted file |
 | a demo's `src/` | its own shaders and its scene, expressed as contract data | no, once moved |
 
-"The framework owns this driver" is satisfied in the sense 0021 means it: the driver is Antiky's,
-sits beside the framework, is versioned and tested with it, and is the default path for every game.
-It is not a third-party or per-game component. Ownership is about who is responsible for it, not
-about which folder holds the file — and the folder is constrained by a rule 0021 itself states.
-
-**No owner decision is needed**, because no test changes and no accepted record is contradicted.
+**An owner decision was needed and was made**, because the boundary test changed. Goal 12 reserved
+exactly this: *"changing that test is an architecture decision, not an implementation detail."*
 
 ## What the contract may and may not carry
 

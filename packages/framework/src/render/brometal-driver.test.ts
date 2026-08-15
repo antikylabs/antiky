@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import type { RenderFrame, TargetRequest } from '@antiky/framework';
+import type { RenderFrame, TargetRequest } from './render-contract.ts';
 
-import { createBroMetalRenderDriver } from '../src/index.ts';
+import { createBroMetalRenderDriver } from './brometal-driver.ts';
 
 /**
  * A stand-in for BroMetal's renderer, recording what the driver asked the GPU to do.
