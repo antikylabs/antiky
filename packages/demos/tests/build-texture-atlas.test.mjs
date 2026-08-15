@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import sharp from 'sharp';
 
@@ -302,6 +303,76 @@ test('the tool run twice on one input writes the same bytes', async () => {
     layersTwo.manifest.layers.map((layer) => layer.imageSha256),
     layersOne.manifest.layers.map((layer) => layer.imageSha256),
   );
+});
+
+/** The whole of one layer image, as the one rectangle the border measurement should compare. */
+function wholeImageRect(name, size) {
+  return pixelRects({ size, grid: { columns: 1, rows: 1 }, tiles: [name] });
+}
+
+test('layers drive the measured border error to zero with no gutter at all', async () => {
+  // The same measurement, the same band reaching one texel past the rectangle, and the same source
+  // pixels — the only difference is whether the two tiles share an image. Goal 14 got this number
+  // to zero by surrounding each tile with 64 pixels of its own edge. Layers get there by removing
+  // the neighbour, so the gutter is 0 and there is nothing left to average in.
+  const { directory, descriptorPath } = await synthetic({ gutter: 0 });
+  const packed = await measureBorderError({
+    imagePath: path.join(directory, 'source', 'synthetic.png'),
+    rects: pixelRects({
+      size: { width: TILE_SIZE * 2, height: TILE_SIZE },
+      grid: { columns: 2, rows: 1 },
+      tiles: ['red', 'cyan'],
+    }),
+    mip: 4,
+  });
+  assert.ok(packed.mean > 30, `the fixture is meant to bleed badly, measured ${packed.mean}`);
+
+  const out = path.join(directory, 'layers');
+  const { manifest } = await buildLayers(descriptorPath, out);
+  assert.equal(manifest.layers.length, 2);
+  for (const layer of manifest.layers) {
+    for (const mip of [2, 4, 6]) {
+      const measured = await measureBorderError({
+        imagePath: path.join(out, layer.image),
+        rects: wholeImageRect(layer.name, manifest.layerSize),
+        mip,
+      });
+      // Not a budget. There is no adjacent tile in this image, so any non-zero reading would mean
+      // the layer was cut wrong.
+      assert.equal(measured.mean, 0, `${layer.name} measured ${measured.mean} at mip ${mip}`);
+      assert.equal(measured.worst, 0);
+      assert.ok(measured.samples > 0, `${layer.name} at mip ${mip} compared nothing at all`);
+    }
+  }
+});
+
+test("the town's material atlas measures zero as layers", async () => {
+  // The capability against real art rather than a fixture. antiky-town samples these twelve images
+  // through a sampler2DArray, one layer per material, and this is the number that says the binding
+  // is right: a layer that had picked up any part of its neighbour would not read zero.
+  const layersDirectory = new URL(
+    '../antiky/antiky-town/assets/textures/town-material-atlas-v1-layers/',
+    import.meta.url,
+  );
+  const manifest = JSON.parse(await readFile(new URL('layers.json', layersDirectory), 'utf8'));
+  assert.equal(manifest.emitMode, 'layers');
+  assert.equal(manifest.layers.length, 12);
+
+  let measured = 0;
+  for (const layer of manifest.layers) {
+    for (const mip of [2, 4, ATLAS_DEEPEST_MIP]) {
+      const result = await measureBorderError({
+        imagePath: path.join(path.dirname(fileURLToPath(new URL('layers.json', layersDirectory))), layer.image),
+        rects: wholeImageRect(layer.name, manifest.layerSize),
+        mip,
+      });
+      assert.equal(result.mean, 0, `${layer.name} measured ${result.mean} at mip ${mip}`);
+      assert.equal(result.worst, 0, `${layer.name} worst ${result.worst} at mip ${mip}`);
+      assert.ok(result.samples > 0, `${layer.name} at mip ${mip} compared nothing at all`);
+      measured += 1;
+    }
+  }
+  assert.equal(measured, 36);
 });
 
 test('a resampled tile lands on the requested power-of-two size', async () => {
