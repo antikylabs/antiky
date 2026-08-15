@@ -22,6 +22,7 @@ import {
   createRenderTarget,
   createTexture,
   loadTexture,
+  loadTextureArray,
   type BroMetalProgram,
   type BroMetalTexture,
   type CompiledShader,
@@ -102,6 +103,7 @@ export type BroMetalRenderDriverOptions = Readonly<{
   createRenderTarget?: typeof createRenderTarget;
   createTexture?: typeof createTexture;
   loadTexture?: typeof loadTexture;
+  loadTextureArray?: typeof loadTextureArray;
 }>;
 
 /**
@@ -111,9 +113,20 @@ export type BroMetalRenderDriverOptions = Readonly<{
  * fetched at runtime, so those pipelines cannot exist before the driver does. Construction-only
  * registration would have forced every demo to await all its assets before it could draw anything.
  */
-/** Where a texture comes from. The driver turns either into a GPU texture it owns. */
+/** Where a texture comes from. The driver turns any of these into a GPU texture it owns. */
 export type TextureSource = Readonly<{
   url?: string;
+  /**
+   * One URL per layer of an array texture, for a shader that declares a `sampler2DArray`.
+   *
+   * The order is the shader's layer index, so it is preserved exactly — a driver that sorted or
+   * de-duplicated this list would draw the wrong layer with nothing to say so. Every image must be
+   * the same size; BroMetal checks that before it touches the device.
+   *
+   * An array is not a convenience over `url`. Each layer carries its own mip chain, so a tile can
+   * never pick up its neighbour at a coarse level, which is what an atlas gutter exists to prevent.
+   */
+  urls?: readonly string[];
   /** Anything `createTexture` accepts — a canvas, an image, a bitmap. */
   source?: TexImageSource;
   options?: TextureOptions;
@@ -153,10 +166,11 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
 
   const buildTexture = options.createTexture ?? createTexture;
   const fetchTexture = options.loadTexture ?? loadTexture;
+  const fetchTextureArray = options.loadTextureArray ?? loadTextureArray;
 
   const registerTexture = (key: string, source: TextureSource): void => {
     if (source.source === undefined) {
-      throw new Error(`Texture "${key}" has no decoded source. Use loadTextures() for a URL.`);
+      throw new Error(`Texture "${key}" has no decoded source. Use loadTextures() for a URL or a layer list.`);
     }
     textures.set(key, owned.adopt(buildTexture(options.renderer, source.source, source.options)));
     // The decoded bitmap has served its purpose the moment the GPU texture exists, and it holds
@@ -170,7 +184,13 @@ export function createBroMetalRenderDriver(options: BroMetalRenderDriverOptions)
     const pending = Object.entries(options.textures ?? {});
     for (const [key, source] of pending) {
       if (textures.has(key)) continue;
-      if (source.url !== undefined) {
+      // Layers first: a source that names both is a mistake, and picking the array is the one that
+      // matches what a `sampler2DArray` uniform will be bound to.
+      if (source.urls !== undefined) {
+        textures.set(key, owned.adopt(
+          await fetchTextureArray(options.renderer, source.urls, source.options),
+        ));
+      } else if (source.url !== undefined) {
         textures.set(key, owned.adopt(await fetchTexture(options.renderer, source.url, source.options)));
       } else if (source.source !== undefined) {
         registerTexture(key, source);

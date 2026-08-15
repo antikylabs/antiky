@@ -390,7 +390,7 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   PipelineDefinition: 'One pipeline the BroMetal driver can draw, supplied when it is constructed.',
   BroMetalRenderDriverOptions: 'The renderer and pipelines a BroMetal render driver is built from.',
   PipelineProgram: 'The binding records a pipeline setup callback is handed.',
-  TextureSource: 'Where a texture comes from: a URL the driver fetches, or an already-decoded source.',
+  TextureSource: 'Where a texture comes from: a URL the driver fetches, a list of URLs it fetches as the layers of one array texture, or an already-decoded source.',
   BroMetalRenderDriver: 'A render driver that also accepts pipelines registered after it is built.',
   createBroMetalRenderDriver: 'Create the render driver that owns Antiky BroMetal resources and draws contract frames.',
 

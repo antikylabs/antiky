@@ -108,6 +108,9 @@ function harness(
     ...(textures === undefined ? {} : { textures }),
     createTexture: ((_r: unknown, source: { label?: string }) => ({ label: source.label ?? 'made' })) as never,
     loadTexture: (async (_r: unknown, url: string) => ({ label: `loaded:${url}` })) as never,
+    loadTextureArray: (async (_r: unknown, urls: readonly string[]) => ({
+      label: `layers:${urls.join(',')}`,
+    })) as never,
     // Injected so the driver's real logic runs against fakes rather than a GPU.
     createProgram: ((_renderer: unknown, shader: { key: string }) => fakeProgram(shader.key, log)) as never,
     createRenderTarget: ((_renderer: unknown, request: never) => renderer.createdTarget(request)) as never,
@@ -398,6 +401,25 @@ test('a URL-backed texture is fetched by the driver, not by the game', async () 
     passes: [{ draws: [{ pipeline: 'floor', uniforms: { uDiffuse: { texture: 'floor-diffuse' } } }] }],
   });
   assert.deepEqual(log, ['floor.uDiffuse=loaded:forest-floor.jpg', 'draw:floor']);
+});
+
+test('a layered texture is fetched as one array, in the order its URLs were given', async () => {
+  // An array texture is one GPU object built from many images, and the order is load-bearing: the
+  // shader picks a layer by index, so a driver that reordered or de-duplicated the list would draw
+  // the wrong material with no error anywhere.
+  const { driver, log } = harness(['floor'], undefined, {
+    'material-layers': { urls: ['00-limestone.png', '01-cobblestone.png'] },
+  });
+  await driver.loadTextures();
+  log.length = 0;
+
+  driver.submit({
+    passes: [{ draws: [{ pipeline: 'floor', uniforms: { uDiffuse: { texture: 'material-layers' } } }] }],
+  });
+  assert.deepEqual(log, [
+    'floor.uDiffuse=layers:00-limestone.png,01-cobblestone.png',
+    'draw:floor',
+  ]);
 });
 
 test('loading twice does not build a texture twice', async () => {

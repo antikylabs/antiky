@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:c0cceb5a00eb8ee6
+frameworkSource: sha256:611ae942b71fd3d4
 ---
 
 # BroMetal render driver API
@@ -79,16 +79,18 @@ type BroMetalRenderDriverOptions = Readonly<{
     createRenderTarget?: typeof createRenderTarget;
     createTexture?: typeof createTexture;
     loadTexture?: typeof loadTexture;
+    loadTextureArray?: typeof loadTextureArray;
 }>;
 ```
 
 ### `TextureSource`
 
-Where a texture comes from: a URL the driver fetches, or an already-decoded source.
+Where a texture comes from: a URL the driver fetches, a list of URLs it fetches as the layers of one array texture, or an already-decoded source.
 
 ```ts
 type TextureSource = Readonly<{
     url?: string;
+    urls?: readonly string[];
     source?: TexImageSource;
     options?: TextureOptions;
 }>;
