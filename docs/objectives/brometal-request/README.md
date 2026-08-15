@@ -7,16 +7,18 @@ The owner asked whether Antiky already covers the needs in
 fit, and whether implementation should be planned. The original intent and concerns remain in
 [`objective.md`](objective.md).
 
-Research found that Antiky's direction fits the request, but its current product does not fulfill
-it. Stable entity identity, normalized pointer input, position values, and several camera-follow
-implementations exist as ingredients. A reusable transform tracker, pointer-to-stable-entity path,
-and 2D pan/zoom/follow camera do not. Antiky Framework itself is open source under MIT and available
-from the repository today; the separate distribution finding is only that it has not yet been
-published as a versioned npm package.
+Research found that Antiky's direction fits the request, but the complete behavior does not exist.
+Antiky already has stable entity IDs, pointer input, render passes, inspection data, and several
+camera-follow examples. It does not have the complete path from a clicked GPU pixel to a stable
+Framework entity and then to Studio selection. A reusable transform tracker and 2D pan/zoom/follow
+camera are also missing. Antiky Framework is open source under MIT and available from the repository
+today; npm publication is a separate concern.
 
-The research recommends building a small working Framework example first. It should use simple CPU
-click detection and a basic 2D pan/zoom/follow camera while avoiding a general ECS, Studio selection,
-GPU picking, and package-release work. Read the
+The research recommends checked-in Framework behavior, automated tests, and one runnable
+Antiky/BroMetal integration example. The example must prove GPU picking through stable Framework
+identity into Studio selection, together with the requested transform and 2D-camera behavior. A
+fixture of roughly a few dozen objects matches the issue's use case. It is not a package version,
+product limit, or scalability promise. Read the
 [`research summary`](research/README.md) for the evidence map, technical options, ownership
 boundary, unresolved external facts, and recommended defaults for `create-plan`.
 

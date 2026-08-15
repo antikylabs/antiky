@@ -2,7 +2,9 @@
 
 This document answers whether Antiky can provide the requested behavior, where it belongs, and what
 the next plan should do. Packaging evidence is retained in
-[`subagent_outputs/04-external-product-fit.md`](subagent_outputs/04-external-product-fit.md).
+[`subagent_outputs/04-external-product-fit.md`](subagent_outputs/04-external-product-fit.md). The
+owner-directed integration evidence is retained in the
+[`GPU-to-Studio re-audit`](subagent_outputs/05-gpu-framework-studio-trace.md).
 
 ## Open-source availability and package distribution
 
@@ -32,31 +34,37 @@ is exact-pinned `brometal@0.17.2`. The issue helper could therefore remain indep
 Studio, and MCP, but adopting the full 233-symbol Framework source surface is conceptually much
 larger than the requested spatial helper.
 
-## The local render driver is not the answer
+## The Framework driver owns the GPU part
 
-**Established local state, not released behavior.** The local committed source has a BroMetal
-render-driver subpath and generic frame contracts, but no migrated demo proves it and no release
-contains it. Antiky's root postinstall also applies five local BroMetal patches that are absent from
-a Framework package artifact. Some driver behavior depends on those patched target options.
+**Established local behavior, not released package behavior.** The Framework has a BroMetal driver
+and generic frame contracts. Town and Point Light Expo now construct the driver, submit real frames,
+and have headless driver-integration tests. The contract can describe ordered off-screen passes,
+numeric per-instance data, depth, one sample, and nearest filtering. No Antiky release contains this
+work yet.
 
-**Inferred.** The requested helper should not depend on the driver. The requester explicitly wants
-a render-independent layer, and entity state, CPU hit testing, and a 2D camera can exchange plain
-keys, shapes, and matrices. This avoids making their use depend on unreleased driver work or local
-BroMetal patches.
+**Established gap.** The driver has no pick result or readback operation. BroMetal `0.17.2` exposes
+off-screen drawing and sampling but no public pixel readback. Antiky also applies local BroMetal
+patches that are not part of a Framework package artifact.
+
+**Inferred ownership.** The external helper's transform and camera behavior can remain independent
+of rendering. The owner-required Antiky proof cannot: the Framework BroMetal driver must own the GPU
+ID pass and readback. BroMetal should own only the general readback primitive. Framework should own
+the temporary ID map, stable entity resolution, selection record, and inspection data. Studio should
+own selection display and inspection behavior.
 
 ## Bounded delivery shapes
 
 | Shape | What Antiky would provide | Fit and tradeoff |
 | --- | --- | --- |
 | **A. Candid response only** | Correct the current claim, document which ingredients exist, welcome the requester's own helper, and coordinate only on genuinely general BroMetal needs. | No new product or dependency; respects the requester's stated intent. It does not give Antiky a reusable proof or fulfill an offer to provide the behavior. |
-| **B. Proof-first Antiky slice, then narrow Framework surface** | Prove the small renderer-neutral tracker/helper, CPU picking, and 2D camera in one owned use case. Promote only the boundary that earns reuse, then package it through narrow Framework entries when the release gate exists. | Best match to Antiky's demo-first direction and existing identity/input foundations. Source use remains available immediately; convenient versioned npm consumption waits for packaging. |
+| **B. Proof-first Antiky integration, then narrow Framework surface** | Prove transform tracking, the 2D camera, and the complete GPU-ID-to-Framework-entity-to-Studio path in one owned use case. Promote only the boundaries that earn reuse. | Best match to Antiky's demo-first direction and Studio goal. Source use remains available immediately; npm publication stays separate. |
 | **C. Independent zero-runtime-dependency companion** | Publish a small package that accepts caller-owned keys, pointer data, shapes, and targets; BroMetal is an example adapter rather than a dependency. | Closest to “helper, not framework” and useful outside Antiky. It creates a separately versioned product, documentation and support surface, and possible duplication with Framework identity/transforms. |
 | **D. Publish the whole Framework immediately** | Treat the current Framework as the issue answer and publish it as a versioned npm package. | Weak fit. Registry packaging is unfinished, the API is much larger than the need, the three capabilities are not complete, and driver patches complicate external behavior. |
 
-**Inferred recommendation.** If the owner's statement “we can provide” means Antiky should build a
-real capability, the evidence supports Shape B. Prove the small renderer-neutral cut first, then use
-actual reuse and package constraints to choose a narrow Framework surface or Shape C. Do not begin
-with Shape D or claim the current source already fulfills the issue.
+**Inferred recommendation.** The owner's GPU and Studio direction selects Shape B. Prove the
+complete Antiky integration before deciding whether any renderer-neutral part also belongs in a
+separate companion. Do not begin with Shape D or claim the current source already fulfills the
+issue.
 
 Shape A remains an honest alternative if Antiky does not want to commit to external support. The
 requester already intends to build their own companion, so implementation is an Antiky product
@@ -68,17 +76,20 @@ choice, not an obligation created by the issue.
 | --- | --- | --- |
 | Stable UUIDv7 entity identity | **Reuse existing Antiky** for every Framework entity | ADR 0011 fixes Framework entity identity as UUIDv7. A neutral companion may accept caller-owned keys only if it does not redefine Framework `EntityId`. |
 | Semantic pointer `x/y`, down, active, click, drag | **Reuse existing Antiky**, with a click-sampling correction if needed | The host already owns raw DOM input. The spatial helper should consume semantic values, not listeners. |
-| Few-dozen entity/transform registry | **New Antiky only if the proof needs owned lifecycle** | Current tracking is point-light-specific. A caller-owned-record shape may be sufficient and is smaller. |
+| Entity/transform tracking for the proof | **New Antiky only if the proof needs owned lifecycle** | Current tracking is point-light-specific. The example's object count matches the issue fixture, not a Framework limit. |
 | Neutral 2D transform/selectable shapes | **New Antiky** if Antiky implements | The current position value is point-light-coupled and has no update/query contract. |
 | Viewport/world conversion | **New Antiky camera/spatial behavior** | No public Antiky or BroMetal conversion API exists. |
-| Bounded pointer-to-stable-key hit test | **New Antiky** for the minimum proof | Product-level spatial behavior; CPU bounds need no renderer change. |
+| GPU pick ID on each selectable draw or instance | **New Framework render preparation and driver behavior** | Numeric draw data exists, but no semantic owner, pick pass, or pick result exists. |
+| Public asynchronous target readback | **Verify BroMetal, then patch and contribute upstream if absent** | BroMetal `0.17.2` has internal copy support but no public readback. The operation is useful to renderers generally. |
+| Temporary GPU ID to stable `EntityId` map | **New Framework behavior** | ADR 0011 permits a numeric alias only within one state copy and lifetime. The stable ID must leave that boundary. |
+| Temporary selection record and inspection transport | **New Framework and development-host behavior** | Framework must publish the stable selected entity; raw GPU values and BroMetal objects must not cross into Studio. |
 | Pan/zoom/follow and damping policy | **New Antiky** if an Antiky-owned use case proves it | Existing demos supply techniques, not a reusable contract. |
-| Shared Studio/hierarchy/MCP selection | **No action for this minimum request** | It is a larger editor-session feature. Add it only if explicitly selected as the product boundary. |
+| Studio hierarchy selection and entity inspection | **New Studio behavior required by this objective** | Studio must show and inspect the same stable entity returned by the GPU path. |
+| MCP selection operations | **No action for this proof** | The selection record should permit future MCP use, but MCP is not required for the one-way GPU-to-Studio proof. |
 | `mat4.orthographic` | **Potential upstream BroMetal contribution** | General renderer math and already hand-written by BroMetal's own 2D example. Maintainer approval and test-first contribution work are still absent. |
 | WebGPU perspective depth formula | **Investigate as a separate upstream defect candidate** | The source-formula mismatch is established; defect and upstream classification remain inferred until an authoritative reference and exact-version failing regression support them. |
 | Matrix inverse/project/unproject | **Evaluate upstream only with proven general demand** | The 2D helper can initially own bounded fixed-plane conversion. |
-| Render-target readback / GPU IDs | **No action for the stated minimum** | Current requirements do not justify the larger render path. Upstream only if pixel-accurate picking proves it necessary and renderer-general. |
-| BroMetal render driver | **No action for this request** | Unreleased and contrary to the requester's render-independent boundary. |
+| BroMetal render driver | **Extend existing Framework behavior** | It is the accepted owner of Antiky GPU work and now has two migrated demo consumers. |
 | Public package build, versioning, docs, install proof | **New Antiky delivery work** | Required before an external user can consume any claimed Antiky solution. |
 | Canal dashboard product and its policy | **Requester-owned; no action** | Antiky should provide reusable capability, not take ownership of their application. |
 | Ecosystem hosting or endorsement | **Await BroMetal maintainer direction** | The issue has no maintainer answer. |
@@ -87,32 +98,38 @@ choice, not an obligation created by the issue.
 
 1. **Does Antiky already cover the requested behavior?** No. It covers valuable ingredients, not
    any of the three complete reusable behaviors or external delivery.
-2. **Is Antiky's Framework direction a bad fit?** No. Renderer-neutral state, semantic host input,
-   stable identity, and equal 2D support fit the need. A general ECS, full inspection stack, or
-   render-driver dependency would be a bad-sized implementation.
-3. **Has Antiky diverged from this path?** No accepted ADR contradicts a constrained slice. A
-   Framework registry must use UUIDv7 entity identity, remain specialized entity-associated
-   storage, and be classified as authoring or runtime state with separate projections.
-4. **Should implementation be planned?** Yes. Build a small working Framework example first. Keep
-   it separate from rendering and do not turn it into a general ECS or package-release project.
-5. **Does BroMetal need changes first?** No for the minimum CPU path. General math and the separate
-   perspective defect may merit focused upstream work, but the helper should not wait for them.
+2. **Is Antiky's Framework direction a bad fit?** No. Stable identity, separate render data, the
+   Framework-owned BroMetal driver, inspection transport, and Studio match the required path. A
+   general ECS is not a prerequisite.
+3. **Has Antiky diverged from this path?** No. Existing decisions require stable IDs, separate game
+   and render data, temporary GPU IDs, and GPU work inside the Framework driver. The selected path
+   follows those rules.
+4. **Should implementation be planned?** Yes. Build checked-in Framework behavior, tests, and one
+   runnable Antiky/BroMetal example that reaches Studio selection.
+5. **Does BroMetal need changes?** Probably for public asynchronous readback. Check the current
+   release first. If the capability is still absent, use a focused local patch and upstream pull
+   request without putting Framework entity policy into BroMetal.
 
 ## Recommended defaults for the plan
 
 The plan should use these defaults:
 
-1. Put the work in Framework, not a new package.
-2. Keep Framework's existing UUIDv7 entity IDs.
-3. Track only the 2D transform data needed by the example.
-4. Use simple CPU hit shapes and a predictable rule when objects overlap.
-5. Add a straightforward pan, zoom, and follow camera.
-6. Prove it in one small Antiky example before extracting more abstractions.
-7. Exclude Studio, MCP, GPU picking, npm publishing, and the canal application.
-8. Do not post to GitHub as part of implementation.
+1. Put reusable state, stable identity, selection, and camera behavior in Framework. Do not create a
+   new package yet.
+2. Keep Framework's existing UUIDv7 `EntityId` as the stable result. Use numeric GPU values only for
+   one rendered frame, and keep their stable-ID map until readback returns.
+3. Extend the Framework BroMetal driver with the GPU pick pass and readback boundary.
+4. Verify current BroMetal support. If readback is still missing, patch it locally, send the general
+   change upstream, and retire the patch when a released version includes it.
+5. Carry the resolved stable ID through temporary Framework selection and inspection transport.
+6. Make Studio highlight and inspect that same entity.
+7. Add the requested 2D pan, zoom, follow, and coordinate-conversion behavior.
+8. Prove the complete path in one runnable example with roughly a few dozen objects. That fixture is
+   not a product limit or package version.
+9. Do not make a general ECS, npm publication, MCP integration, or the canal application a
+   prerequisite. Do not post to GitHub unless the owner explicitly asks.
 
-We can start planning now. The owner only needs to speak up if this should be a separate package
-now, or if a GitHub reply should be sent now.
+No further owner decision is needed before planning this direction.
 
 ## Direction and ADR alignment
 
@@ -126,8 +143,8 @@ The recommended research direction does not contradict accepted ADRs:
 - ADR 0011 fixes Framework entity identity as UUIDv7 and allows temporary numeric aliases only
   inside bounded hot paths. Caller-owned keys apply only to a neutral companion boundary.
 - ADR 0020 keeps raw platform input in the host and semantic camera/pick intent in product code.
-- ADR 0021 keeps scene and interaction policy out of BroMetal while allowing general math and defect
-  fixes upstream.
+- ADR 0021 gives Antiky GPU work to the Framework BroMetal driver. It permits a general readback
+  operation upstream while keeping Framework entity and selection policy out of BroMetal.
 
 Creating a separate package or changing npm distribution would be a later product decision. Neither
 needs to block the first Framework implementation plan.

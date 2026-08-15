@@ -21,27 +21,32 @@ publication guard, not a statement about source access or licensing.
    wording.** Antiky is open source and working in the same problem area. “Already provides” is not
    supported for all three complete reusable capabilities. “Release this weekend” was still a
    future prediction at the snapshot, so it was unverified rather than disproven.
-3. **Antiky has ingredients, not the three reusable capabilities.** Stable UUIDv7 identity,
-   normalized pointer state, a position value, bounded inspection DTOs, render contracts, and
-   several camera-follow examples exist. A general tracker, screen/world conversion,
-   pointer-to-stable-entity hit path, and reusable 2D camera do not.
-4. **Framework is the right home for the missing work.** It can track the objects, handle clicks,
-   and provide the camera without changing BroMetal's drawing code. A full ECS or Studio selection
-   system would be much larger than this request.
-5. **The first version does not require a BroMetal change.** For a few dozen 2D objects, simple CPU
-   click checks are enough to prove the feature. GPU picking can wait unless a real example needs
-   exact pixel-level selection.
+3. **Antiky has useful pieces, not the complete behavior.** Stable UUIDv7 identity, normalized
+   pointer state, numeric draw data, ordered render passes, inspection records, and camera-follow
+   examples exist. A reusable transform tracker, GPU readback, render-ID-to-entity mapping, shared
+   selection record, Studio selection, and reusable 2D camera do not.
+4. **The required selection path has clear owners.** The BroMetal driver owns the GPU pick pass and
+   readback. Framework converts the temporary GPU value to a stable `EntityId` and records the
+   selection. Studio shows and inspects that same entity.
+5. **GPU picking is required for this Antiky objective.** The owner wants Studio to trace a clicked
+   rendered item back to its Framework entity. CPU hit testing remains useful comparison evidence,
+   but a CPU-only proof does not complete this objective. BroMetal `0.17.2` has no public readback
+   API. The implementation plan must check the current BroMetal release and use the BroMetal patch
+   and upstream workflow if that general capability is still missing.
 6. **Antiky is open source and available from the repository today; npm distribution is a separate
    concern.** Framework is MIT-licensed and its source can be used directly. The workspace's npm
    manifest has `private: true`, version `0.0.0`, and no published registry artifact. Those facts
    describe package distribution, not whether Antiky is open source.
-7. **The next step is a small working example.** Build the missing pieces in Framework, prove them
-   together in one Antiky example, and only then decide what code is worth reusing elsewhere.
+7. **The next deliverable is an executable integration proof, not a product version.** Build
+   checked-in Framework behavior, automated tests, and one runnable Antiky/BroMetal example that
+   proves the complete GPU-to-entity-to-Studio path. A fixture of roughly a few dozen objects matches
+   the issue's scale; it is not a permanent Framework limit.
 8. **Keep general renderer work separate.** `mat4.orthographic` is the clearest possible BroMetal
    primitive. A perspective-depth formula mismatch is established in source, but calling it a
    BroMetal defect requires an authoritative WebGPU reference and exact-version failing regression.
-   Inversion, project/unproject, and readback need proven general demand. Any contribution must
-   follow the exact-version, failing-test, narrow-patch, upstream-and-retire workflow.
+   Inversion and project/unproject still need proven general demand. GPU target readback now has a
+   concrete Antiky use and is general renderer behavior. Any contribution must follow the
+   exact-version, failing-test, narrow-patch, upstream-and-retire workflow.
 
 ## Research documents
 
@@ -51,7 +56,7 @@ publication guard, not a statement about source access or licensing.
 | [`01-request-and-current-coverage.md`](01-request-and-current-coverage.md) | The request, credibility of the current reply, and exact BroMetal/Antiky coverage |
 | [`02-minimum-slice-and-technical-options.md`](02-minimum-slice-and-technical-options.md) | The smallest useful boundary, tracker shapes, CPU/GPU picking, camera ownership, and proof fixture |
 | [`03-delivery-ownership-and-decisions.md`](03-delivery-ownership-and-decisions.md) | Open-source availability, delivery options, ownership, and recommended defaults |
-| [`subagent_outputs/`](subagent_outputs/) | Five raw read-only specialist reports retained unedited as evidence |
+| [`subagent_outputs/`](subagent_outputs/) | Six raw read-only specialist reports retained unedited as evidence |
 
 ## Research-question status
 
@@ -59,7 +64,7 @@ publication guard, not a statement about source access or licensing.
 | --- | --- | --- |
 | Requester's actual need and BroMetal response | Answered within available issue evidence | Request and current coverage |
 | Reusable entity/transform coverage | Answered | Request and current coverage; minimum slice |
-| Pointer-to-entity picking coverage | Answered | Request and current coverage; technical options |
+| GPU pointer-to-entity-to-Studio coverage | Answered | Request and current coverage; technical options; GPU/Studio re-audit |
 | Reusable 2D camera coverage | Answered | Request and current coverage; technical options |
 | How people can use Antiky today | Answered for the current snapshot | Delivery and ownership |
 | What belongs in Antiky or BroMetal | Answered | Delivery ownership matrix |
@@ -71,25 +76,29 @@ publication guard, not a statement about source access or licensing.
 
 The research supports moving to a plan with these defaults:
 
-1. Build the missing pieces inside Framework. Do not create another package yet.
-2. Keep the first version small: a few dozen 2D objects, simple transforms, and no general ECS.
-3. Start click detection with simple object shapes on the CPU. Do not build GPU picking yet.
-4. Add a basic 2D camera with pan, zoom, and follow. Let the implementation plan choose sensible
-   behavior and prove it with tests.
-5. Prove the whole flow in one small Antiky example.
-6. Leave Studio selection, MCP selection, npm publishing, and the requester's canal application out
-   of the first plan.
-7. Do not post another GitHub reply unless the owner explicitly asks for one.
+1. Build checked-in Framework behavior, automated tests, and one runnable Antiky/BroMetal
+   integration example. This is an executable proof, not a release or package version.
+2. Use roughly a few dozen objects in the fixture because that matches the issue's stated scale. Do
+   not treat that number or the proof's transform fields as permanent Framework limits.
+3. Give each selectable draw or instance a temporary numeric ID for one rendered frame. Keep the
+   matching stable Framework `EntityId` map until the GPU result returns.
+4. Render those IDs to a GPU pick target, read the clicked pixel asynchronously, reject stale
+   results, and resolve the value to the stable Framework entity.
+5. Record that entity as temporary Framework selection and show the same entity in Studio's
+   hierarchy and inspector.
+6. Add the requested 2D pan, zoom, follow, and coordinate-conversion behavior.
+7. Do not make a general ECS, npm publication, MCP integration, or the requester's canal application
+   a prerequisite for this proof. Do not create a separate package yet.
+8. Do not post another GitHub reply unless the owner explicitly asks for one.
 
-We can start planning now. The owner only needs to speak up if they want a separate package now or
-want a GitHub reply sent now.
+No further owner decision is needed before planning this direction.
 
 ## Important unresolved evidence
 
 - No BroMetal maintainer response establishes ecosystem ownership or acceptance.
 - The requester's BroMetal version, bundler, coordinate convention, hit shapes, overlap/fidelity
   needs, and support expectations are unknown.
-- No end-to-end test identifies a stable entity from a pointer event.
+- No end-to-end test traces a pointer through GPU readback, stable entity resolution, and Studio.
 - No reusable 2D camera proof covers conversion round trips, pan, zoom, follow, and resize.
 - No independent consumer has installed an Antiky package artifact.
 - No picking performance, bundle, or compatibility measurement exists.
@@ -97,12 +106,11 @@ want a GitHub reply sent now.
 
 ## Direction and ADR alignment
 
-The findings do not contradict accepted ADRs or the owner's concern about Framework fit when the
-slice stays inside their constraints. A Framework-owned registry must use UUIDv7 entity identity,
-remain specialized entity-associated storage, and be classified as authoring or runtime state with
-separate projections. A neutral companion can accept caller-owned keys without redefining Framework
-identity. Both shapes support renderer-neutral camera/hit-test behavior, semantic input supplied by
-the host, and only renderer-general changes upstream to BroMetal.
+The findings do not contradict accepted ADRs. The GPU stores a temporary number, not the durable
+identity of an object. The driver retains the matching number-to-`EntityId` map for the frame being
+read. Framework receives the stable `EntityId` and owns temporary selection state. Studio reads that
+selection through inspection data. BroMetal only needs a general GPU readback operation; it does not
+need to know about Framework entities or Studio.
 
 If a later objective creates a separate package or changes npm distribution, record that product
 decision then. It does not need to block this implementation plan.

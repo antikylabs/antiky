@@ -8,7 +8,9 @@ The raw evidence is retained in
 [`subagent_outputs/00-issue-brometal-surface.md`](subagent_outputs/00-issue-brometal-surface.md),
 [`subagent_outputs/01-entity-transform-coverage.md`](subagent_outputs/01-entity-transform-coverage.md),
 [`subagent_outputs/02-picking-selection-coverage.md`](subagent_outputs/02-picking-selection-coverage.md),
-and [`subagent_outputs/03-camera-coordinate-coverage.md`](subagent_outputs/03-camera-coordinate-coverage.md).
+[`subagent_outputs/03-camera-coordinate-coverage.md`](subagent_outputs/03-camera-coordinate-coverage.md),
+and the owner-directed
+[`GPU-to-Studio re-audit`](subagent_outputs/05-gpu-framework-studio-trace.md).
 
 ## Evidence labels
 
@@ -37,6 +39,12 @@ conversion, and bounded hit testing that returns the registered key. The issue d
 need for UUIDs that survive reloads, an ECS, hierarchy, events, Studio selection, physics, spatial
 indexing, or GPU picking.
 
+**Established — owner direction for Antiky.** The external issue does not require GPU picking or
+Studio. This Antiky objective does. The required Antiky result starts with a clicked GPU pixel,
+resolves the temporary rendered value to a stable Framework `EntityId`, and shows that same entity
+as the current selection in Studio. A CPU-only hit test can compare techniques, but it cannot prove
+this owner-selected result.
+
 **Gap.** The issue does not define rotation, scale, transform hierarchy, object shapes, overlap
 priority, alpha/depth fidelity, pan gestures, zoom anchoring, follow damping, bounds, serialization,
 or the package API. Those details cannot be treated as requirements yet.
@@ -58,11 +66,12 @@ feature-completeness and release statements provide no API, demo, test, or relea
 **Resolved comparison.** The claim is directionally true but operationally overstated:
 
 - **Established:** Antiky has stable entity identity, normalized pointer state, immutable
-  position values, inspection DTOs, rendering contracts, and several working camera-follow
-  implementations.
+  position values, inspection DTOs, ordered render passes, numeric per-instance draw data, and
+  several working camera-follow implementations.
 - **Established:** Antiky does not have a reusable general tracker, pointer-to-entity hit path, or
-  reusable 2D camera. Its open-source Framework is available from the repository but is not also
-  published as a versioned npm package.
+  reusable 2D camera. It also lacks GPU readback, a lifetime-safe rendered-ID-to-entity map,
+  temporary selection state, and Studio selection. Its open-source Framework is available from the
+  repository but is not also published as a versioned npm package.
 - **Inferred:** Antiky is building foundations in the same problem area, but it cannot truthfully
   tell an external BroMetal user that the requested helper already exists.
 
@@ -74,12 +83,12 @@ feature-completeness and release statements provide no API, demo, test, or relea
 | Track a few dozen transforms | Matrices and per-instance attributes exist, but no transform registry, lifecycle, or query API. | A position-only immutable `Transform` is coupled to point-light records. The point-light service uses a private ID-keyed map, while generic world/entity/component types are inspection-only DTOs. | **Missing as reusable behavior.** A caller must still own collection, create/remove/update, and queries. |
 | Pointer input | The renderer exposes its canvas; examples attach DOM listeners directly. | The host maps pointer movement to normalized bottom-origin coordinates and supplies down, active, click, and drag state. Five copied demo contracts expose only `x/y`; `pointerdown` does not capture a fresh immutable click position. | **Partially implemented:** input exists, reliable semantic click sampling needs a bounded correction. |
 | Pointer to scene/world | BroMetal exposes world-to-view and perspective view-projection, but no inverse, project/unproject, ray, or viewport abstraction. | Demos repeat private matrix math and camera-relative direction helpers. No public conversion API exists. | **Missing.** |
-| Scene/world to stable entity | No public picking, hit-test, readback, or entity-mapping API. Off-screen textures internally use `COPY_SRC`, but no public readback exists. | No semantic hit testing exists. Generic draw calls carry no owner or per-instance pick ID; point lights demonstrate only a feature-specific stable-ID-to-slot mapping. | **Missing.** |
-| Selection and inspection | Outside BroMetal's current scope. | World snapshots retain stable IDs, but there is no selection record, generic entity lookup, canvas/hierarchy convergence, or MCP get/set/clear selection. | **Not required for the issue minimum; missing for the larger Studio direction.** |
+| Scene/world to stable entity | No public picking, hit-test, readback, or entity-mapping API. Off-screen textures internally use `COPY_SRC`, but no public readback exists. | The render contract can describe an off-screen pass and numeric instance data, and Town proves the driver path. Draws still carry no semantic owner or pick ID, and the driver has no readback or stable reverse map. | **Missing.** |
+| Selection and inspection | Outside BroMetal's current scope. | World snapshots retain stable IDs, but there is no selection record, generic entity lookup, canvas/hierarchy convergence, or selected-entity inspector. | **Not requested by the external issue, required by the owner for this objective, and currently missing.** |
 | 2D projection | `createCamera` is a reusable perspective camera. The shipped 2D example writes its own orthographic matrix because `mat4.orthographic` is absent. | Town has a private orthographic shadow-light helper, not a reusable player camera. Framework exports no camera module. | **Missing as public 2D camera behavior.** |
 | Pan and zoom | Absolute perspective pose and FOV setters are available. | The host has drag deltas, but no camera consumes them. The pointer contract has no wheel/pinch value; generated docs incorrectly claim wheel input. | **Missing as composed behavior.** |
 | Follow and damping | Examples implement follow locally around the perspective camera. | Traversal, Combat Arena, and Town contain different working follow/easing implementations tied to game state. | **Proven ingredients, no reusable contract.** |
-| Render independence | BroMetal's current public surface is a small compiler/runtime with no scene graph. | Accepted host/game and driver boundaries permit renderer-neutral state and input behavior. | **Good architectural fit:** the helper need not change BroMetal's render path. |
+| Render independence | BroMetal's current public surface is a small compiler/runtime with no scene graph. | Transform and camera behavior can remain renderer-neutral. The owner-required Studio proof uses the Framework BroMetal driver for GPU identity and readback. | **Good architectural fit:** entity policy stays outside BroMetal while the driver owns GPU work. |
 | Source access and package distribution | BroMetal is published at `0.17.2`. | Antiky Framework is open source under MIT and available from the repository. Its npm manifest uses the publication guard `private: true`, remains at `0.0.0`, and had no registry artifact at the snapshot. | **Open-source source use exists today; versioned npm distribution does not yet.** |
 
 ## Important implementation facts
@@ -100,10 +109,12 @@ evidence for a small map-backed slice, not permission to fill in the whole futur
 
 ### Picking coverage
 
-**Established.** The implemented path stops after host pointer normalization. There is no shared
-screen/world conversion, selectable registry, hit test, stable draw-owner mapping, selection state,
-or generic selected-entity inspection. Existing demo clicks trigger jump, interact, or aim; none
-selects a rendered entity.
+**Established.** The host supplies normalized pointer input. The render contract can submit ordered
+off-screen passes and numeric per-instance values, and Town proves a real frame through the
+Framework BroMetal driver. The path still stops before semantic picking: there is no pick target,
+supported pixel readback, stable draw-owner map, lifetime-safe alias resolution, selection state,
+or selected-entity Studio view. Existing demo clicks trigger jump, interact, or aim; none selects a
+rendered Framework entity.
 
 **Claimed architecture.** Rendering and Studio guides describe future owner mappings and a shared
 selection service, but they explicitly leave the first canvas-selection method undecided. They
@@ -130,5 +141,6 @@ separate from the requested 2D helper.
 - Their BroMetal version, bundler, coordinate convention, hit shapes, fidelity needs, and support
   expectations are unknown.
 - No independent external project has installed the Framework source folder or a packed artifact.
-- No end-to-end proof covers pointer input through stable entity identity.
+- No end-to-end proof covers pointer input, GPU readback, stable entity identity, and Studio
+  selection.
 - No reusable 2D-camera proof covers pan, zoom, follow, coordinate round trips, and resize.
