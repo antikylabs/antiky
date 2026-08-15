@@ -200,16 +200,25 @@ BroMetal exposes no general public contract for:
 labels, sanitized capabilities, an opt-in instrumentation observer, optional timestamp queries, and
 policy-limited readback. Do not add Antiky world/material/evidence concepts to BroMetal.
 
-### No GPU-backed test harness, though a real WebGPU device is reachable
+### No agent-visible GPU probing, though a real WebGPU device is reachable
 
-**Gap**, and an unusual one: the capability exists and is simply not exposed as a test seam.
+**Gap — open.** The capability exists and a test can now reach it, but an *agent* still cannot.
 
-Every automated test in this repository that needs real WebGPU behaviour has to mock at the
-`GPUDevice` boundary, because the only code that launches a browser is
-`packages/cli/src/host/managed-capture-runtime.ts` and it is reachable only through `capture_frame`.
-That tool returns a **PNG of a whole frame**. It cannot answer "does sampling layer 1 of an array
-texture return layer 1's colour", so a test that wants that question answered drives the shipped code
-against a recording stub and asserts on the *calls made*, not the *pixels produced*.
+The only code in this repository that launches a browser is
+`packages/cli/src/host/managed-capture-runtime.ts`, and through the CLI and MCP it is reachable only
+as `capture_frame`, which returns a **PNG of a whole frame**. So the finest question an agent can
+ask about the GPU is "what did the whole screen look like".
+
+It cannot ask what a specific texture, layer or target actually contains. A wrong array layer index,
+a view bound at the wrong dimension, or a mip chain silently clamped all render *something*, and a
+whole-frame PNG shows a plausible picture in every one of those cases. An agent can only notice if it
+already suspects the defect and knows which pixels would betray it.
+
+The same shortage hits automated tests, which is how this surfaced: a test needing real WebGPU
+behaviour substitutes a fake `GPUDevice` and asserts on the *calls made* rather than the *pixels
+produced*. That half has since been addressed for tests — see below — and it is worth separating,
+because the fix for tests is a file in `packages/demos/tests` while the fix for agents is a contract
+in the inspection tooling.
 
 **Verified: a real device is one function call away.** Probed 2026-08-15 from a plain Node script:
 
@@ -239,11 +248,12 @@ per-layer mip test. Both were satisfied against a recording device: the mip test
 The only GPU-side evidence is a whole-frame capture that looks correct. A wrong layer index that
 happened to land on a similar-coloured material would pass every test in the repository.
 
-**Closed 2026-08-15.** `packages/demos/tests/support/gpu-page.mjs` (~110 lines) launches the same
-Chromium with the same flags, serves the repository over loopback, hands a callback a page with a
-real device, and returns its result. `packages/demos/tests/texture-array-gpu.test.mjs` uses it to
-build an array texture through BroMetal's own patched `buildWebgpuTextureArray`, sample it, and read
-pixels back:
+**Partly addressed 2026-08-15 — for tests only, and the inspection gap stays open.**
+
+`packages/demos/tests/support/gpu-page.mjs` (~110 lines) launches the same Chromium with the same
+flags, serves the repository over loopback, hands a callback a page with a real device, and returns
+its result. `packages/demos/tests/texture-array-gpu.test.mjs` uses it to build an array texture
+through BroMetal's own patched `buildWebgpuTextureArray`, sample it, and read pixels back:
 
 | Assertion | Result |
 | --- | --- |
@@ -263,9 +273,30 @@ BroMetal's shader compiler, which has no public entry point from Node (`compileS
 exported). So this proves the patch's **runtime** half — upload, view dimension, per-layer mips —
 and the compiler half is still covered by the WGSL-emission test and the demo capture.
 
-Keep the scope: it is a test harness, not a product surface. It must not become a second capture
-path, must stay out of the shipped CLI's tool list, and must not run at the same time as a capture —
-the shoot script warns against a second managed Chromium, and two will fight over the GPU.
+**Why this does not close the gap.** What exists is a *developer* harness: a `node:test` file, run
+from the repository, against code the author already knows the shape of. Nothing about it is reachable
+by an agent inspecting a running session. Through the CLI and MCP the answer is unchanged — an agent
+gets `capture_frame`, which returns a PNG of a whole frame, and cannot ask:
+
+- read back the pixels of *this* texture, target, or layer;
+- what did the GPU actually accept — were there validation errors this frame;
+- sample this texture at a chosen mip and layer and tell me the colour;
+- does this bound resource have the dimensions and view type it claims.
+
+A wrong layer index, a target bound at the wrong dimension, or a silently-clamped mip chain all look
+identical to a whole-frame PNG unless a human already suspects them and knows where to look. That is
+the gap, and it is an inspection gap rather than a testing one.
+
+**Proposal, unchanged in substance but now with a working precedent.** A bounded, policy-limited
+readback in the inspection contract — the CLI/MCP equivalent of what `gpu-page.mjs` does in a test.
+`gpu-page.mjs` is worth reading first when that is built: it already settles the launch recipe, the
+secure-origin requirement, and the fact that no bundler is needed. It is roughly the transport half
+of the answer with none of the contract half.
+
+Scope constraints when that lands: readback is expensive and can leak content, so it belongs behind
+the same policy limits as capture; it must not become a second capture path; and it must not run
+concurrently with a capture, because the shoot script warns against a second managed Chromium and
+two will fight over the GPU. The test harness inherits that last constraint today.
 
 ## Demo coverage and what it proves
 
