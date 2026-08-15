@@ -112,7 +112,10 @@ test('the overlay reports a fault from the canvas it cannot create', () => {
 test('the result plate is hidden while playing and fades once the run ends', () => {
   const overlay = createRelayOnboardingOverlay({ createCanvas: () => fakeCanvas() as never });
 
-  assert.deepEqual(overlay.statusUniforms('playing', 3), { uOpacity: 0 });
+  const playing = overlay.statusUniforms('playing', 3)!;
+  assert.equal(playing.uOpacity, 0);
+  // Bound even while invisible: an unbound sampler is a rejected draw, not a hidden panel.
+  assert.deepEqual(playing.uAtlas, { texture: 'onboarding-won' });
   const won = overlay.statusUniforms('won', 3)!;
   assert.deepEqual(won.uAtlas, { texture: 'onboarding-won' });
   assert.ok((won.uOpacity as number) > 0.87);

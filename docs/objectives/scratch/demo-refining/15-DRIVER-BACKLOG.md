@@ -148,11 +148,20 @@ moved onto the driver in any sense that matters. Outcome 5 is unmet — there is
    it inside the present callback changed nothing; the timeout is identical. The call now sits
    inside anyway, matching the original, but that is not the fault. Do not spend a second session
    on it.
-2. A uniform the old code set once at construction but the new code sets per draw, or vice versa,
-   where BroMetal rejects the timing rather than the value.
-3. A draw issued with instance buffers that were never populated. BroMetal refuses that with "no
-   instance data — call set(...) before draw()", which is the exact failure
-   `presentation.test.ts:296` was written to guard and which no headless test can see.
+2. ~~Matrix uniforms passed as plain arrays instead of `Float32Array`~~ — **eliminated by reading
+   BroMetal's types.** `UniformHandle.set` accepts `Float32Array | readonly number[]` for every
+   vector and matrix type (`runtime/uniforms.d.ts`), so `Array.from(...)` is legal. Worth knowing:
+   the contract's `UniformValue` union does not list typed arrays even though `isContractValue`
+   accepts them, so a caller must convert. That is a wart, not the fault.
+3. ~~The status overlay's `uAtlas` sampler left unbound while the run is playing~~ — **found, fixed,
+   and not the whole fault.** The old code bound it once at construction; the rewrite only bound it
+   after the run ended, so on frame one the program had no texture at all. That is a genuine bug and
+   the fix is kept — a rejected draw, not a hidden panel — but the capture still times out.
+4. **Still open:** a draw issued with instance buffers that were never populated. BroMetal refuses
+   that with "no instance data — call set(...) before draw()", which is the exact failure
+   `presentation.test.ts:296` was written to guard and which no headless test can see. The suspects
+   are the six depth pipelines: they receive `depthInstanceData`, but nothing verifies those arrays
+   were written before the shadow pass runs on the very first frame.
 
 The fastest way in is a browser console on `npm run dev:demos point-light-expo`, which the capture
 harness deliberately does not surface.

@@ -16,17 +16,23 @@
 <!-- What makes this worth doing at this moment? A deadline, a blocker, an opportunity,
      an accumulating cost? -->
 
+Someone is asking for these features on top of brometal providing. we can provide.
+
 ## What good looks like
 
 <!-- How would you recognise success? A demo you would show someone, a number that moves,
      a class of bug that stops happening? Vague is fine — "it should feel less janky" is
      a real answer and research can sharpen it. -->
 
+Will know better after we research.
+
 ## What worries me
 
 <!-- The parts you expect to go wrong, the decisions you are unsure about, the thing you
      suspect is harder than it looks. This is the most useful section for research —
      it points at what to investigate. -->
+
+That our framework isn't a good fit, that we've already diverged from a path of this, etc.
 
 ## Constraints
 

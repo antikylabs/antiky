@@ -129,10 +129,12 @@ export function createRelayOnboardingOverlay(
       return { uOpacity: opacity };
     },
     statusUniforms(status, time) {
-      if (status === 'playing') return { uOpacity: 0 };
+      // `uAtlas` is bound on every frame including "playing", when the plate is invisible. A
+      // sampler left unbound is not a blank draw — the program has no texture at all and the draw
+      // is rejected, which took the whole demo down rather than hiding one panel.
       return {
-        uAtlas: { texture: status === 'won' ? 'onboarding-won' : 'onboarding-lost' },
-        uOpacity: 0.94 + Math.sin(time * 2.6) * 0.06,
+        uAtlas: { texture: status === 'lost' ? 'onboarding-lost' : 'onboarding-won' },
+        uOpacity: status === 'playing' ? 0 : 0.94 + Math.sin(time * 2.6) * 0.06,
       };
     },
   });
