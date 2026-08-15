@@ -117,3 +117,37 @@ It has **no demo running on it**, which goal 12 names as its critical acceptance
 under `packages/website/PRODUCT.md`'s taxonomy that keeps the render driver a **Direction** claim
 rather than a Current one. The public wording already says exactly that and must not be changed
 until a demo actually renders through it.
+
+## The migration, half-landed on a branch
+
+`wip/goal-12-driver-migration` holds the first half of the `point-light-expo` migration. It is **not
+merged** and the demo does not build there — that is expected, and the branch exists so the attempt
+could be made without risking a working tree.
+
+**Converted, and typechecking clean:**
+
+| File | What it produces now instead of BroMetal resources |
+|---|---|
+| `render-batches.ts` | `PipelineDefinition` per batch, plus plain `Float32Array` instance rows |
+| `reliquary-models.ts` | pipeline + depth pipeline + three `TextureSource`s from the GLB's embedded images |
+| `onboarding.ts` | two pipelines and three canvas-backed `TextureSource`s |
+| `shadow-pass.ts` | `SHADOW_TARGET`, `SHADOW_RECEIVER_UNIFORMS`, `SHADOW_CASTER_UNIFORMS` |
+| `relay-visuals.ts`, `reliquary-model-layout.ts` | unchanged except that `upload()` calls are gone — the frame's `instanceData` replaces them |
+
+Four framework changes were needed to get there, all merged and tested on the main branch:
+`PipelineProgram` as a permissive `setup` parameter, a loosely-typed `shader` field so `setup` keeps
+contextual typing, `TargetRequest.size`, and driver-owned textures.
+
+**Still to convert — three files:**
+
+- `renderer.ts` — the orchestration. Build one driver, register ~20 pipelines, configure four
+  targets, and emit the frame that `frame-shape.test.ts` already pins.
+- `detail-normal.ts` and `vfx-billboard.ts` — two more `createTexture` calls, found only by grepping
+  after the five scoped files were done. Both become `TextureSource`s.
+
+**Then three test files**, whose dependency-injection seams point at the factories that changed:
+`renderer-resources.test.ts`, `catalog-model.test.ts`, `render-batches.test.ts`. They should inject
+into the driver's `createProgram` / `createTexture` seams instead.
+
+**Then the capture**, against the sidecar at `b0a7fbae` — p95 0.660, local contrast 8.74 — with the
+goal's budget of under 3/255 mean per-channel.
