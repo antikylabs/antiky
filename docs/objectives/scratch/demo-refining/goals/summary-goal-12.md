@@ -30,7 +30,12 @@ Against the nine required outcomes:
 3. **The driver's home, decided in writing before code** —
    [`14-DRIVER-HOME.md`](../14-DRIVER-HOME.md). See *What I got wrong*: the first answer was a
    separate package and the owner overruled it.
-4. **`point-light-expo` on the driver — NOT DONE.** The critical criterion. See owner item 1.
+4. **`point-light-expo` on the driver — NOT DONE.** The critical criterion. It was attempted:
+   `render-batches.ts` converts cleanly to pipeline definitions plus plain instance data, and the
+   converted file contains no BroMetal at all. Landing only that file left **71 type errors** in
+   `renderer.ts`, which is the coupling measured rather than estimated — the batches, the shadow
+   pass and the frame are one unit. The conversion was reverted to keep the tree green. See owner
+   item 1.
 5. **2.3D evidence — partially.** A driver test drives a sprite batch, a sprite shadow and a voxel
    surface through the identical contract shape, which is what `0004:22` asks be enforced by test
    rather than intention. `antiky-town` itself has not moved.
@@ -79,6 +84,21 @@ against real code instead of assuming it. Fixed, with a test that builds one pip
 forbids demo names in framework source, and I named the two demos the driver was extracted from — in
 the contract, then again in the driver. Rewording rather than loosening the guard was right both
 times, but I should have learned it the first time.
+
+## What the attempt measured
+
+Converting one file and counting the damage is worth more than an estimate:
+
+- `render-batches.ts` → pipeline definitions plus instance data: **clean**, zero BroMetal left, and
+  the data halves (`createSurfaceInstanceData`, `createGlowInstanceData`) were already factored out
+  by earlier goals, so they needed no change at all.
+- That one file alone broke `renderer.ts` in **71 places**. Every batch is constructed with a
+  renderer and consumed as `.program` / `.upload()` / `.draw()` / `.drawDepth()`, and the shadow
+  pass binds those same programs.
+
+So the remaining work is bounded and understood, not open-ended: four more files convert the same
+way, then `renderer.ts` is rewritten once to build a driver and a frame. It cannot be split across
+sessions in a green state, which is the whole reason it has not landed.
 
 ## Traps worth knowing
 
