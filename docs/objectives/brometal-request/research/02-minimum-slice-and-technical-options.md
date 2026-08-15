@@ -159,8 +159,10 @@ by default.
 
 ## Remaining gaps
 
-- The owner has not chosen the 2D coordinate and camera policy.
-- The requester has not stated whether bounds-level picking is sufficient.
+- The implementation plan still needs to choose simple, documented 2D coordinates and camera
+  behavior. This is an engineering choice, not owner homework.
+- The requester has not stated whether simple hit shapes are sufficient, so the first plan should
+  use them as the smallest working default.
 - No benchmark or end-to-end proof exists for either picking option.
 - No current Antiky-owned 2D demo proves the entire slice.
 - No second independent consumer has established whether a registry or pure-helper boundary is the

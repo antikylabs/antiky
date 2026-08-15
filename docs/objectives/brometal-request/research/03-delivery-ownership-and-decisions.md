@@ -1,29 +1,31 @@
 # Delivery, ownership, and decisions
 
 This document answers whether Antiky can provide the requested behavior, where it belongs, and what
-the owner must decide before `create-plan`. Packaging evidence is retained in
+the next plan should do. Packaging evidence is retained in
 [`subagent_outputs/04-external-product-fit.md`](subagent_outputs/04-external-product-fit.md).
 
-## External reality
+## Open-source availability and package distribution
 
-**Established at the 2026-08-14 snapshot.** An external BroMetal user cannot install a supported
-Antiky Framework package:
+**Established at the 2026-08-14 snapshot.** Antiky Framework is open source, MIT-licensed, and
+available from the repository. Separately, it did not have a versioned npm distribution:
 
-- `packages/framework/package.json` is private, version `0.0.0`, and exports TypeScript source;
+- `packages/framework/package.json` uses npm's `private: true` publication guard, remains at
+  version `0.0.0`, and exports TypeScript source;
 - the shared TypeScript configuration uses `noEmit: true`;
 - `@antiky/framework` was absent from npm;
 - the checked Antiky GitHub repositories had no releases;
 - the repository describes its workspaces as private/pre-release.
 
-**Established permission; unverified operation.** The Framework's MIT license permits reading,
-copying, and using its source. Consuming it from a checkout is plausible but was not tested in an
-independent project, so it cannot be offered as demonstrated installation behavior. A dry-run
+**Established source use; unverified drop-in package operation.** The MIT license permits reading,
+copying, modifying, and using Framework source now. The research did not test whether the current
+workspace can be consumed unchanged as a drop-in dependency by an independent project. A dry-run
 package contained raw TypeScript, tests, fixtures, scripts, and configuration but no emitted
 JavaScript, declaration build, package README, or consumer smoke test.
 
-**Inferred.** Removing `private` is not a release plan. External delivery needs an intentional
-artifact, versioning, JS/types or an explicit source-package toolchain, a file allowlist, install
-documentation, packed-artifact tests, and an independent consumer proof.
+**Inferred.** Turning off npm's publication guard is not by itself a registry-release plan. A
+versioned npm distribution needs an intentional artifact, JS/types or an explicit source-package
+toolchain, a file allowlist, install documentation, packed-artifact tests, and an independent
+consumer proof. None of that changes Framework's existing open-source status.
 
 **Established.** Framework does not depend on CLI or Studio. Its only declared runtime dependency
 is exact-pinned `brometal@0.17.2`. The issue helper could therefore remain independent of CLI, React,
@@ -47,9 +49,9 @@ BroMetal patches.
 | Shape | What Antiky would provide | Fit and tradeoff |
 | --- | --- | --- |
 | **A. Candid response only** | Correct the current claim, document which ingredients exist, welcome the requester's own helper, and coordinate only on genuinely general BroMetal needs. | No new product or dependency; respects the requester's stated intent. It does not give Antiky a reusable proof or fulfill an offer to provide the behavior. |
-| **B. Proof-first Antiky slice, then narrow Framework surface** | Prove the small renderer-neutral tracker/helper, CPU picking, and 2D camera in one owned use case. Promote only the boundary that earns reuse, then package it through narrow Framework entries when the release gate exists. | Best match to Antiky's demo-first direction and existing identity/input foundations. External consumption waits for packaging, and the full Framework package still brings BroMetal unless packaging separates the spatial surface. |
+| **B. Proof-first Antiky slice, then narrow Framework surface** | Prove the small renderer-neutral tracker/helper, CPU picking, and 2D camera in one owned use case. Promote only the boundary that earns reuse, then package it through narrow Framework entries when the release gate exists. | Best match to Antiky's demo-first direction and existing identity/input foundations. Source use remains available immediately; convenient versioned npm consumption waits for packaging. |
 | **C. Independent zero-runtime-dependency companion** | Publish a small package that accepts caller-owned keys, pointer data, shapes, and targets; BroMetal is an example adapter rather than a dependency. | Closest to “helper, not framework” and useful outside Antiky. It creates a separately versioned product, documentation and support surface, and possible duplication with Framework identity/transforms. |
-| **D. Publish the whole Framework immediately** | Treat the current Framework as the issue answer and make it installable. | Weak fit. Packaging is unfinished, the API is much larger than the need, the three capabilities are not complete, and driver patches complicate external behavior. |
+| **D. Publish the whole Framework immediately** | Treat the current Framework as the issue answer and publish it as a versioned npm package. | Weak fit. Registry packaging is unfinished, the API is much larger than the need, the three capabilities are not complete, and driver patches complicate external behavior. |
 
 **Inferred recommendation.** If the owner's statement “we can provide” means Antiky should build a
 real capability, the evidence supports Shape B. Prove the small renderer-neutral cut first, then use
@@ -91,35 +93,26 @@ choice, not an obligation created by the issue.
 3. **Has Antiky diverged from this path?** No accepted ADR contradicts a constrained slice. A
    Framework registry must use UUIDv7 entity identity, remain specialized entity-associated
    storage, and be classified as authoring or runtime state with separate projections.
-4. **Should implementation be planned?** Yes, if the owner intends a supported Antiky capability:
-   plan a proof-first, bounded, renderer-neutral slice. Do not plan the full Framework release as a
-   substitute for the missing behavior.
+4. **Should implementation be planned?** Yes. Build a small working Framework example first. Keep
+   it separate from rendering and do not turn it into a general ECS or package-release project.
 5. **Does BroMetal need changes first?** No for the minimum CPU path. General math and the separate
    perspective defect may merit focused upstream work, but the helper should not wait for them.
 
-## Owner decisions before planning
+## Recommended defaults for the plan
 
-Planning must not silently choose these:
+The plan should use these defaults:
 
-1. **Commitment and audience:** Is the outcome an Antiky-supported external capability, an
-   Antiky-internal proof that may later publish, or only a candid issue response?
-2. **Product home:** Should an earned API live in narrow Framework subpaths or in an independent
-   zero-runtime-dependency companion? Shape B can postpone the final choice until the proof exists.
-3. **Identity:** Framework identity is UUIDv7 under ADR 0011. If the product is instead a neutral
-   companion, should it accept caller-owned stable keys and provide an Antiky adapter without
-   redefining Framework `EntityId`?
-4. **Transform scope:** Is position-only 2D sufficient, or must the first contract include rotation,
-   scale, hierarchy, interpolation, or create/remove lifecycle?
-5. **Picking fidelity:** Are explicit CPU bounds with a deterministic topmost rule sufficient, or
-   must selection follow rendered alpha, occlusion, and depth?
-6. **Camera contract:** Choose projection, world plane/origin/Y direction, zoom input and anchor,
-   pan/follow precedence, bounds, dead zone, and damping/reset behavior.
-7. **Proof owner:** Which Antiky-owned example proves a few dozen objects, clicks, and follow without
-   taking ownership of the requester's canal project?
-8. **Release:** Is public pre-release packaging part of this objective, or a separate prerequisite
-   objective after the reusable cut is proven?
-9. **Issue communication:** Should the existing “already provides” and “release this weekend” claim
-   be clarified now? No external reply should be sent without owner direction.
+1. Put the work in Framework, not a new package.
+2. Keep Framework's existing UUIDv7 entity IDs.
+3. Track only the 2D transform data needed by the example.
+4. Use simple CPU hit shapes and a predictable rule when objects overlap.
+5. Add a straightforward pan, zoom, and follow camera.
+6. Prove it in one small Antiky example before extracting more abstractions.
+7. Exclude Studio, MCP, GPU picking, npm publishing, and the canal application.
+8. Do not post to GitHub as part of implementation.
+
+We can start planning now. The owner only needs to speak up if this should be a separate package
+now, or if a GitHub reply should be sent now.
 
 ## Direction and ADR alignment
 
@@ -136,10 +129,8 @@ The recommended research direction does not contradict accepted ADRs:
 - ADR 0021 keeps scene and interaction policy out of BroMetal while allowing general math and defect
   fixes upstream.
 
-**Inferred governance gap.** Choosing a separately versioned companion versus Framework subpaths,
-and committing to a public release boundary, are durable product/ownership decisions. If the owner
-selects either, planning should determine whether an ADR or AIP is required rather than burying the
-decision in implementation goals.
+Creating a separate package or changing npm distribution would be a later product decision. Neither
+needs to block the first Framework implementation plan.
 
 ## Unresolved external evidence
 

@@ -7,34 +7,36 @@ owner's [`objective.md`](../objective.md) and
 [BroMetal issue #8](https://github.com/ericdrowell/brometal/issues/8). It does not choose an
 implementation plan or authorize an external issue reply.
 
+**Owner correction:** Antiky Framework is open source. Its MIT-licensed source is available from
+the repository today. The `private: true` package-manifest value discussed below is an npm
+publication guard, not a statement about source access or licensing.
+
 ## Headline conclusions
 
 1. **The requester proposed their own companion; they did not ask Antiky to build it.** They want a
    small render-independent layer for a few dozen transforms, click-to-entity picking, and a 2D
    pan/zoom/follow camera. BroMetal's listed maintainer had not answered whether it belongs in the
    ecosystem at the research snapshot.
-2. **The existing issue reply mixes an overstated current claim with unverified future intent.**
-   Antiky is working in the same problem area, but “already provides” is not supported by a complete
-   API or install artifact. “Release this weekend” was still a future prediction at the snapshot;
-   the absence of an artifact then made it unverified, not disproven.
+2. **The open-source statement is established; the feature and release statements need narrower
+   wording.** Antiky is open source and working in the same problem area. “Already provides” is not
+   supported for all three complete reusable capabilities. “Release this weekend” was still a
+   future prediction at the snapshot, so it was unverified rather than disproven.
 3. **Antiky has ingredients, not the three reusable capabilities.** Stable UUIDv7 identity,
    normalized pointer state, a position value, bounded inspection DTOs, render contracts, and
    several camera-follow examples exist. A general tracker, screen/world conversion,
    pointer-to-stable-entity hit path, and reusable 2D camera do not.
-4. **The Framework direction fits the need and has not diverged from it.** A small
-   renderer-neutral spatial slice aligns with stable identity, host/game separation, equal 2D
-   support, and proof-first promotion. A general ECS, full Studio selection system, or render-driver
-   dependency would be too large for the stated request.
-5. **The minimum path does not require a BroMetal change.** Bounded CPU hit testing over explicit
-   2D shapes can use caller or Antiky IDs and plain camera matrices. GPU object-ID picking is a
-   larger fidelity option that current Antiky contracts and BroMetal's public API do not support.
-6. **Antiky cannot offer an installable solution today.** `@antiky/framework` is private,
-   source-only, `0.0.0`, and absent from npm and checked GitHub release surfaces. Publishing the
-   whole Framework would still not fill the missing behavior.
-7. **If Antiky intends to provide the capability, research supports a proof-first implementation
-   plan.** Prove one bounded renderer-neutral slice in an Antiky-owned use case, then promote the
-   earned API into narrow Framework subpaths or a separate companion. Do not promise a package or
-   create a general world model before the cut is proven.
+4. **Framework is the right home for the missing work.** It can track the objects, handle clicks,
+   and provide the camera without changing BroMetal's drawing code. A full ECS or Studio selection
+   system would be much larger than this request.
+5. **The first version does not require a BroMetal change.** For a few dozen 2D objects, simple CPU
+   click checks are enough to prove the feature. GPU picking can wait unless a real example needs
+   exact pixel-level selection.
+6. **Antiky is open source and available from the repository today; npm distribution is a separate
+   concern.** Framework is MIT-licensed and its source can be used directly. The workspace's npm
+   manifest has `private: true`, version `0.0.0`, and no published registry artifact. Those facts
+   describe package distribution, not whether Antiky is open source.
+7. **The next step is a small working example.** Build the missing pieces in Framework, prove them
+   together in one Antiky example, and only then decide what code is worth reusing elsewhere.
 8. **Keep general renderer work separate.** `mat4.orthographic` is the clearest possible BroMetal
    primitive. A perspective-depth formula mismatch is established in source, but calling it a
    BroMetal defect requires an authoritative WebGPU reference and exact-version failing regression.
@@ -48,7 +50,7 @@ implementation plan or authorize an external issue reply.
 | [`00-research-plan.md`](00-research-plan.md) | Questions, evidence lines, scope, and governing constraints |
 | [`01-request-and-current-coverage.md`](01-request-and-current-coverage.md) | The request, credibility of the current reply, and exact BroMetal/Antiky coverage |
 | [`02-minimum-slice-and-technical-options.md`](02-minimum-slice-and-technical-options.md) | The smallest useful boundary, tracker shapes, CPU/GPU picking, camera ownership, and proof fixture |
-| [`03-delivery-ownership-and-decisions.md`](03-delivery-ownership-and-decisions.md) | External availability, delivery shapes, capability ownership, ADR alignment, and owner decisions |
+| [`03-delivery-ownership-and-decisions.md`](03-delivery-ownership-and-decisions.md) | Open-source availability, delivery options, ownership, and recommended defaults |
 | [`subagent_outputs/`](subagent_outputs/) | Five raw read-only specialist reports retained unedited as evidence |
 
 ## Research-question status
@@ -59,34 +61,28 @@ implementation plan or authorize an external issue reply.
 | Reusable entity/transform coverage | Answered | Request and current coverage; minimum slice |
 | Pointer-to-entity picking coverage | Answered | Request and current coverage; technical options |
 | Reusable 2D camera coverage | Answered | Request and current coverage; technical options |
-| External consumability and dependency cost | Answered for the current snapshot | Delivery and ownership |
-| Existing Antiky versus new Antiky versus upstream versus no action | Answered in principle | Delivery ownership matrix |
+| How people can use Antiky today | Answered for the current snapshot | Delivery and ownership |
+| What belongs in Antiky or BroMetal | Answered | Delivery ownership matrix |
 | BroMetal maintainer intent | Open external evidence | Await a maintainer response on issue #8 |
 | Requester adoption and detailed semantics | Open external evidence | Ask only if the owner authorizes issue coordination |
-| Product and policy choices | Open by design | Owner decisions below |
+| Recommended next step | Answered | Defaults below |
 
-## Decisions needed from the owner
+## Recommended next step
 
-Planning should not silently choose these:
+The research supports moving to a plan with these defaults:
 
-1. **Commitment:** Is the result an externally supported Antiky capability, an internal proof that
-   may later publish, or only a candid issue response?
-2. **Product home:** Should an earned API become narrow Framework subpaths, or a separate
-   zero-runtime-dependency companion? A proof-first slice can postpone the final choice.
-3. **Identity and transform:** Framework entities must keep ADR 0011 UUIDv7 identity. Should a
-   neutral companion accept caller-owned keys without redefining Framework identity? Is position
-   sufficient, or must the first contract include rotation, scale, hierarchy, interpolation, and
-   lifecycle?
-4. **Picking fidelity:** Are bounded CPU shapes and a deterministic topmost rule sufficient, or
-   must selection match rendered alpha, occlusion, and depth?
-5. **Camera policy:** Choose projection, world plane and axes, zoom input and anchor, pan/follow
-   precedence, bounds, dead zone, damping, and reset behavior.
-6. **Proof target:** Which Antiky-owned example should prove the few-dozen-object workflow without
-   taking ownership of the requester's canal application?
-7. **Release scope:** Is package publication part of this objective, or a later delivery objective
-   after the reusable boundary exists?
-8. **Issue communication:** Should the existing availability claim be clarified now, and should the
-   requester be asked for missing semantics? No reply has been sent by this research.
+1. Build the missing pieces inside Framework. Do not create another package yet.
+2. Keep the first version small: a few dozen 2D objects, simple transforms, and no general ECS.
+3. Start click detection with simple object shapes on the CPU. Do not build GPU picking yet.
+4. Add a basic 2D camera with pan, zoom, and follow. Let the implementation plan choose sensible
+   behavior and prove it with tests.
+5. Prove the whole flow in one small Antiky example.
+6. Leave Studio selection, MCP selection, npm publishing, and the requester's canal application out
+   of the first plan.
+7. Do not post another GitHub reply unless the owner explicitly asks for one.
+
+We can start planning now. The owner only needs to speak up if they want a separate package now or
+want a GitHub reply sent now.
 
 ## Important unresolved evidence
 
@@ -108,6 +104,5 @@ separate projections. A neutral companion can accept caller-owned keys without r
 identity. Both shapes support renderer-neutral camera/hit-test behavior, semantic input supplied by
 the host, and only renderer-general changes upstream to BroMetal.
 
-Choosing a separately versioned companion or committing Framework to a public package boundary may
-be a durable ownership decision. If the owner selects either, the later plan should determine
-whether an ADR or AIP is needed rather than hiding that choice in implementation goals.
+If a later objective creates a separate package or changes npm distribution, record that product
+decision then. It does not need to block this implementation plan.

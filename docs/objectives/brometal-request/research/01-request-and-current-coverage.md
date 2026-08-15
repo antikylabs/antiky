@@ -50,17 +50,19 @@ maintainer. No listed BroMetal maintainer had answered the ecosystem or ownershi
 [comments API](https://api.github.com/repos/ericdrowell/brometal/issues/8/comments), and
 [comment](https://github.com/ericdrowell/brometal/issues/8#issuecomment-5299608314).
 
-**Claimed — contributor comment.** The comment says that Antiky Framework and Studio are building
-something similar, provide parts of the requested behavior, are open source, and were planned for a
-weekend release. It gives no API, install command, demo, test, or release artifact.
+**Mixed — contributor comment.** The statement that Antiky Framework is open source is established
+by its repository and MIT license. The comment also says that Antiky is building something similar,
+already provides parts of the requested behavior, and was planned for a weekend release. Those
+feature-completeness and release statements provide no API, demo, test, or release evidence.
 
 **Resolved comparison.** The claim is directionally true but operationally overstated:
 
 - **Established:** Antiky has stable entity identity, normalized pointer state, immutable
   position values, inspection DTOs, rendering contracts, and several working camera-follow
   implementations.
-- **Established:** Antiky does not have a reusable general tracker, pointer-to-entity hit path,
-  reusable 2D camera, or installable Framework package.
+- **Established:** Antiky does not have a reusable general tracker, pointer-to-entity hit path, or
+  reusable 2D camera. Its open-source Framework is available from the repository but is not also
+  published as a versioned npm package.
 - **Inferred:** Antiky is building foundations in the same problem area, but it cannot truthfully
   tell an external BroMetal user that the requested helper already exists.
 
@@ -78,7 +80,7 @@ weekend release. It gives no API, install command, demo, test, or release artifa
 | Pan and zoom | Absolute perspective pose and FOV setters are available. | The host has drag deltas, but no camera consumes them. The pointer contract has no wheel/pinch value; generated docs incorrectly claim wheel input. | **Missing as composed behavior.** |
 | Follow and damping | Examples implement follow locally around the perspective camera. | Traversal, Combat Arena, and Town contain different working follow/easing implementations tied to game state. | **Proven ingredients, no reusable contract.** |
 | Render independence | BroMetal's current public surface is a small compiler/runtime with no scene graph. | Accepted host/game and driver boundaries permit renderer-neutral state and input behavior. | **Good architectural fit:** the helper need not change BroMetal's render path. |
-| External installation | BroMetal is published at `0.17.2`. | `@antiky/framework` is private, version `0.0.0`, source-only, and absent from npm and GitHub releases at the snapshot. | **Not externally consumable as a supported package.** |
+| Source access and package distribution | BroMetal is published at `0.17.2`. | Antiky Framework is open source under MIT and available from the repository. Its npm manifest uses the publication guard `private: true`, remains at `0.0.0`, and had no registry artifact at the snapshot. | **Open-source source use exists today; versioned npm distribution does not yet.** |
 
 ## Important implementation facts
 
