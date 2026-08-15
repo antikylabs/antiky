@@ -23,6 +23,7 @@ supports rather than accepting them.
 | Per-instance attribute rows | `DrawCall.instanceData` |
 | Skipping a draw entirely | `instances: 0` |
 | Registering a pipeline after construction, for assets loaded at runtime | `registerPipeline()` |
+| Owning textures: fetched from a URL, or built from a canvas or bitmap | `TextureSource`, `loadTextures()` |
 | Releasing every program and target it made | `dispose()` |
 
 ## The five demos that cannot use it at all, and why that is not the driver's fault
@@ -60,6 +61,19 @@ Two things were found missing while checking, and **both are now fixed**:
    repository. Fixed, with a test that builds one pipeline of each blend mode.
 2. **Instance rows and textures had no contract shape at all.** Added as `DrawCall.instanceData` and
    `{ texture: key }`, which is what ADR 0021 means by "assets, and typed updates".
+
+### Why this migration cannot be done in pieces
+
+Worth stating plainly, because it is the reason the demo has not moved and it is not obvious.
+
+The scene pass draws the demo's own programs into a render target that the bloom chain then samples.
+Moving only the bloom and post passes to the driver would need the driver to hand its scene target
+back to the demo so the demo could draw into it — and ADR 0021 forbids exactly that: *"the driver
+must not hand a BroMetal object back out"*. Moving only the scene pass has the mirror problem.
+
+So for this demo the migration is **all-or-nothing**: every pipeline moves in one pass, or none
+does. There is no intermediate state that both compiles and keeps the frame correct. That is a
+property of this demo's frame, not a gap in the driver.
 
 ### The real blocker, and it is not a feature
 
