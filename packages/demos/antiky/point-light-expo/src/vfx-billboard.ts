@@ -1,4 +1,4 @@
-import { loadTexture, type BroMetalTexture, type Renderer } from 'brometal';
+import type { TextureSource } from '@antiky/framework/render-driver';
 
 const VFX_BILLBOARD_URL = new URL('../assets/textures/vfx-billboard-256.png', import.meta.url).href;
 
@@ -11,11 +11,7 @@ const VFX_BILLBOARD_URL = new URL('../assets/textures/vfx-billboard-256.png', im
  * `wrap: 'clamp'` because this is one sprite, not a tile. Repeating would wrap the rim's zero alpha
  * round to the opposite edge and cut a hard line across every glow.
  */
-export function loadVfxBillboard(renderer: Renderer): Promise<BroMetalTexture> {
-  return loadTexture(renderer, VFX_BILLBOARD_URL, {
-    wrap: 'clamp',
-    filter: 'smooth',
-    anisotropy: 4,
-    flipY: false,
-  });
-}
+export const VFX_BILLBOARD_TEXTURE: TextureSource = Object.freeze({
+  url: VFX_BILLBOARD_URL,
+  options: { wrap: 'clamp', filter: 'smooth', anisotropy: 4, flipY: false },
+});
