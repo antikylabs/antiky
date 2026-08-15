@@ -18,6 +18,7 @@ import {
   samplePath,
   type TownWalker,
 } from './art/town';
+import { cameraRelativeMovement } from './camera-relative-movement';
 import {
   bindTownAwningGeometry,
   bindTownPropGeometry,
@@ -848,8 +849,18 @@ async function createTownRuntime(
       simulationTime += dt;
       pendingPresentationSeconds += dt;
 
-      let heroInputX = movement.x;
-      let heroInputZ = movement.z;
+      // Rotated out of screen space into world space. The camera looks down a diagonal, so raw
+      // input walked the hero along the map's axes — W read as forward *and* right. Only the
+      // player's input needs this: the attract-mode path below is already authored in world space.
+      //
+      // Derived from the authored pose offset, not from the live `cameraPosition`. The camera lerps
+      // toward hero-plus-offset, so during a catch-up the live yaw differs slightly from the
+      // steady-state one — steering by it would make the controls swim while the camera settles.
+      const heroPose = cameraPose(mode, renderer.aspect);
+      const heroOffset = heroPose.offset ?? [0, 0, 0];
+      const steered = cameraRelativeMovement(movement, heroOffset[0], heroOffset[2]);
+      let heroInputX = steered.x;
+      let heroInputZ = steered.z;
       if (mode !== 'interactive') {
         hero.progress = (hero.progress + dt * 0.012) % 1;
         const target = samplePath(world.heroPath, hero.progress + 0.018);
