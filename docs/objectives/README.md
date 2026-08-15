@@ -18,6 +18,7 @@ Before planning or implementing work, read:
 
 | Objective | Roadmap | Purpose |
 | --- | --- | --- |
+| [BroMetal request](brometal-request/README.md) | — | Determines how Antiky should respond to the needs in BroMetal issue #8. |
 | [Libraries](libraries/README.md) | [Research summary](libraries/research/README.md) | Explores semantic asset-pack enrichment and an owned, agent-usable BroMetal shader recipe library. |
 
 ## Archived objectives
