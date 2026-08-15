@@ -111,12 +111,14 @@ canvas. A shadow map is a fixed 2048 by authoring choice and must not change whe
 
 ## Honest status
 
-The driver is **capable but unproven**. It has the contract, the implementation, a second
-implementation proving portability, and a sprite test satisfying `docs/adr/framework/0004-23d_H.md`.
-It has **no demo running on it**, which goal 12 names as its critical acceptance criterion, and
-under `packages/website/PRODUCT.md`'s taxonomy that keeps the render driver a **Direction** claim
-rather than a Current one. The public wording already says exactly that and must not be changed
-until a demo actually renders through it.
+The driver is **capable and now proven twice**. It has the contract, the implementation, a second
+implementation proving portability, a sprite test satisfying `docs/adr/framework/0004-23d_H.md`, and
+**two demos rendering through it** — `point-light-expo` and `antiky-town`, both captured, both inside
+their sealed visual budgets. Goal 12 names that as the critical acceptance criterion.
+
+Whether that promotes the render driver from a **Direction** claim to a Current one under
+`packages/website/PRODUCT.md`'s taxonomy is the repository owner's call, not this note's. The public
+wording is unchanged here.
 
 ## SOLVED — point-light-expo renders through the driver
 
@@ -162,27 +164,79 @@ demo's own catch made the message and stack appear immediately.
 another hypothesis. Four sessions of elimination cost far more than the twenty minutes the
 instrumentation took.
 
-## antiky-town — the remaining half of outcome 5
+## SOLVED — antiky-town renders through the driver
 
-Not started. The surface, measured rather than estimated:
+**Done in one pass, and the capture is bit-identical to the baseline.** `rg` finds no BroMetal
+resource creation under its `src`, the demo's suite is 48/48, and every measured value in the
+sidecar is unchanged:
 
-| File | Lines | BroMetal resource calls |
-|---|---|---|
-| `src/town/index.ts` | 1204 | 22 |
-| `src/town/detail-normal.ts` | 28 | 1 |
-| `src/game.ts`, `src/town/town-runtime.ts`, `src/town/art/sprite-batch.ts` | 537 | 0 |
+| | before | after | drift |
+|---|---|---|---|
+| mean luminance | 0.116026 | 0.116026 | **0.0/255** |
+| p95 | 0.361779 | 0.361779 | |
+| local contrast | 7.7478 | 7.7478 | |
+| saturation | 0.31997 | 0.31997 | |
 
-`index.ts` is the whole renderer in one file, so the migration is the same all-or-nothing shape
-`point-light-expo` had: it cannot be split across sessions in a compiling state.
+Sixteen pipelines, five driver-owned textures, two targets, three passes. Only `capturedAt`, the
+source digest and the seal moved.
 
-**The recipe is now proven, and the two traps are known.** Both faults above are cases of `setup`
-doing something it must not — binding a texture that does not exist yet, or a uniform the program
-never declared. When converting `index.ts`, `setup` may bind **geometry only**; every texture and
-every per-frame uniform belongs in the frame data, named by key. Port
-`tests/renderer-construction.test.ts` first: it builds the whole renderer headlessly against a stub
-that rejects undeclared binding names and empty data, and it would have caught the `uTime` fault
-without a browser. The `uBillboard` fault needs a real renderer, because only a real one can tell a
-texture from a string — so run one `ANTIKY_BROWSER_LOG` capture before assuming success.
+### Two contract gaps this demo found, both now closed
+
+Neither was a capability the driver was refusing on purpose; both were simply things
+`point-light-expo` did not happen to need.
+
+1. **`TargetRequest.filter`.** The driver hardcoded `filter: 'linear'` on every target it made, over
+   BroMetal's own `nearest` default. `town-shadow` packs one depth into R and G as a whole part and
+   a fraction (`stored.x + stored.y / 255`), so interpolating it decodes to a depth belonging to
+   neither texel and fills every shadow edge with acne. The default stays `linear`, because a bloom
+   chain is the common case and point-sampling it produces blocky glow — a target holding numbers
+   rather than an image now says `nearest` and says why.
+2. **`DrawCall.vertexData` and `DrawCall.indices`.** The die-cut characters' side walls are extruded
+   from the alpha contour of whichever sprite frame is showing, so the mesh — vertex *count*
+   included — is rebuilt every frame. Instance rows cannot express that: there is no fixed
+   per-instance shape to write rows into. These are the per-vertex twin of `instanceData` and behave
+   the same way, uploaded immediately before the draw.
+
+### What made it a single pass
+
+Both of the traps recorded above were designed out rather than debugged out.
+
+- **`setup` binds geometry, static instance rows and static numeric uniforms — never a texture.**
+  Every sampler in the demo is named in the frame by texture key. The awning, prop and foliage
+  instance rows *are* static — a building does not move and the wind lives in a uniform — so they
+  are uploaded once with the geometry rather than re-sent 60 times a second.
+- **No uniform record is spread into a pipeline that does not declare all of it.** The town has four
+  near-misses that would each have thrown on a GPU: fog strength is 0.22 on land and 0.2 on water;
+  the two water shaders declare no `uShadowSlopeBias`; the water shader has four practical-light
+  slots where the voxel and sprite shaders have eight; and `uSkyIntensity`/`uGroundColor` exist only
+  on the land shaders. Each is a separate frozen record, and the shader's real interface was read by
+  importing the `.shader.gen.ts` and printing `Object.keys(default.uniforms)` — never by grep, which
+  also counts the type parameter.
+
+### The harness that proves it without a browser
+
+`tests/renderer-construction.test.ts` builds the whole town runtime in Node against
+`tests/support/brometal-stub.ts`, which answers only the names a compiled shader declares, then
+submits one real frame and asserts the two targets' filters. Adding one undeclared uniform to the
+frame makes it fail with `BroMetal: program "shader[...]" has no uniform named "..."` — verified, not
+assumed. Getting there needed `.ts` extensions on the demo's relative imports, which Vite resolved
+and Node could not; that is the same gap `point-light-expo` hit on one file.
+
+Every texture the driver fetches is checked to exist on disk, because a missing one rejects
+`loadTextures`, which rejects construction, which publishes no frame — and the harness reports that
+as a bare timeout with no clue which file is absent.
+
+**The capture succeeded on the first run.** `ANTIKY_BROWSER_LOG` recorded nothing but the inspection
+socket closing at shutdown.
+
+### Two things worth knowing for the next demo
+
+- **The source digest covers the framework, not just the demo folder.** Touching
+  `packages/framework/src` invalidates all four sidecars, so a framework change means re-sealing
+  every demo, not only the one being worked on. `combat-arena`, `point-light-expo` and
+  `traversal-study` were re-shot for that reason and their numbers did not move.
+- **`traversal-study` fails its own local-contrast budget at 0.58, and did so before this work.**
+  Re-sealing reproduced the same number. It is a pre-existing problem, not a migration regression.
 
 ## The migration, fully written and not yet running
 
