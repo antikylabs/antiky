@@ -200,6 +200,56 @@ BroMetal exposes no general public contract for:
 labels, sanitized capabilities, an opt-in instrumentation observer, optional timestamp queries, and
 policy-limited readback. Do not add Antiky world/material/evidence concepts to BroMetal.
 
+### No GPU-backed test harness, though a real WebGPU device is reachable
+
+**Gap**, and an unusual one: the capability exists and is simply not exposed as a test seam.
+
+Every automated test in this repository that needs real WebGPU behaviour has to mock at the
+`GPUDevice` boundary, because the only code that launches a browser is
+`packages/cli/src/host/managed-capture-runtime.ts` and it is reachable only through `capture_frame`.
+That tool returns a **PNG of a whole frame**. It cannot answer "does sampling layer 1 of an array
+texture return layer 1's colour", so a test that wants that question answered drives the shipped code
+against a recording stub and asserts on the *calls made*, not the *pixels produced*.
+
+**Verified: a real device is one function call away.** Probed 2026-08-15 from a plain Node script:
+
+```
+chromium.launchPersistentContext(<real temp dir>, {
+  headless: true,
+  args: ['--enable-unsafe-webgpu', ...(darwin ? ['--use-angle=metal'] : [])],
+})
+→ navigator.gpu.requestAdapter() → requestDevice()  ⇒  device ok: apple
+```
+
+Two details cost an hour and belong in writing, because both fail in a way that looks like "this
+machine has no GPU":
+
+- **The profile directory must be a real path.** An empty string yields no `navigator.gpu`.
+- **The page must be on a secure origin.** `about:blank` yields no `navigator.gpu`; a page served
+  from `http://127.0.0.1` works. `127.0.0.1` is a secure context, so a throwaway `node:http` server
+  is sufficient — no TLS.
+
+Headless is fine. The flags are already in the capture runtime; nothing new is needed from Chromium.
+
+**What the gap costs, concretely.** Goal 15 added a `sampler2DArray` type to BroMetal and required
+"a runtime test that an array texture binds without WebGPU validation errors, and that a layer index
+selects the layer it names — a two-layer texture of distinct colours, sampled at each index", plus a
+per-layer mip test. Both were satisfied against a recording device: the mip test asserts no view has
+`arrayLayerCount > 1`, which is a sound proxy but is reasoning about the plan rather than the result.
+The only GPU-side evidence is a whole-frame capture that looks correct. A wrong layer index that
+happened to land on a similar-coloured material would pass every test in the repository.
+
+**Proposal:** a small `packages/demos/tests/support/gpu-page.mjs` (or a CLI equivalent) that launches
+the same Chromium with the same flags, serves a bundle over loopback, runs a callback in the page,
+and returns its result — so a test can create a real texture, draw, and read pixels back. This is
+about **150 lines** and it is the difference between asserting on calls and asserting on colour.
+
+Scope it deliberately: it is a *test* seam, not a new product surface. It should not become a second
+capture path, and it must stay out of the shipped CLI's tool list. Two known constraints: the shoot
+script warns against duplicating the managed Chromium, so this harness must not run concurrently with
+a capture; and it needs a bundler step, because a test module importing `brometal` from
+`node_modules` cannot be loaded by the page directly (`vite` is already a dependency).
+
 ## Demo coverage and what it proves
 
 | Demo | Verified rendering path | Current inspection limit |
