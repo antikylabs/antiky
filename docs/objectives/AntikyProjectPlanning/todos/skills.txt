@@ -1,4 +1,4 @@
-Grove development - create a general development skill
-Grove development - create a BroMetal development skill
-Grove development - create a framework development skill
+Game Dev - create a general development skill
+Game Dev - create a BroMetal development skill
+Game Dev - create a framework development skill
 create a game bible skill

@@ -4,7 +4,7 @@
 mindmap
   root((Antiky))
     Skills
-      Grove development
+      Game Dev
         General
         BroMetal
         Framework
