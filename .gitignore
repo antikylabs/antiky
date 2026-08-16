@@ -49,8 +49,8 @@ next-env.d.ts
 docs/_internal
 
 # disposable objective evidence
-docs/objectives/**/outputs/
-docs/objectives/**/verification/
+docs/**/objectives/**/outputs/
+docs/**/objectives/**/verification/
 .playwright-mcp/
 /*.png
 .hdri-cache/
