@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { searchAssets, type CatalogAsset } from './index.ts';
-import { CATALOG_ASSETS } from './catalog-data.ts';
-import { createPolyHavenAsset } from './providers/poly-haven.ts';
-import { parseKenneyAssetPage } from './providers/kenney-client.ts';
-import { fetchPolyHavenMetadataCatalog, fetchPolyHavenStarterCatalog } from './providers/poly-haven-client.ts';
-import { fetchQuaterniusCatalog, parseQuaterniusPackPage } from './providers/quaternius-client.ts';
-import { metaContent } from './providers/source-html.ts';
+import { searchAssets, type CatalogAsset } from '../src/index.ts';
+import { CATALOG_ASSETS } from '../src/catalog-data.ts';
+import { createPolyHavenAsset } from '../src/providers/poly-haven.ts';
+import { parseKenneyAssetPage } from '../src/providers/kenney-client.ts';
+import { fetchPolyHavenMetadataCatalog, fetchPolyHavenStarterCatalog } from '../src/providers/poly-haven-client.ts';
+import { fetchQuaterniusCatalog, parseQuaterniusPackPage } from '../src/providers/quaternius-client.ts';
+import { metaContent } from '../src/providers/source-html.ts';
 
 const assets: CatalogAsset[] = [
   {

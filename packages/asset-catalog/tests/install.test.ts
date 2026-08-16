@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { installCatalogAsset } from './node/install.ts';
-import type { CatalogAsset } from './index.ts';
+import { installCatalogAsset } from '../src/node/install.ts';
+import type { CatalogAsset } from '../src/index.ts';
 
 const bytes = new TextEncoder().encode('asset bytes');
 const md5 = createHash('md5').update(bytes).digest('hex');

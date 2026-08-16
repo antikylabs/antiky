@@ -17,7 +17,7 @@
     "catalog:crawl:handpicked": "node --experimental-strip-types --experimental-transform-types scripts/crawl-handpicked-sources.mjs",
     "previews": "node --experimental-strip-types --experimental-transform-types scripts/generate-previews.mjs public",
     "catalog:check": "node --experimental-strip-types --experimental-transform-types scripts/check-poly-haven.mjs",
-    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test src/*.test.ts tests/*.test.mjs",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

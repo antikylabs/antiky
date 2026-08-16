@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { CATALOG_ASSETS } from './catalog-data.ts';
-import { GENERATED_COMMUNITY_REPORT } from './generated-community-catalog.ts';
-import { GENERATED_HANDPICKED_REPORT } from './generated-handpicked-catalog.ts';
+import { CATALOG_ASSETS } from '../src/catalog-data.ts';
+import { GENERATED_COMMUNITY_REPORT } from '../src/generated-community-catalog.ts';
+import { GENERATED_HANDPICKED_REPORT } from '../src/generated-handpicked-catalog.ts';
 import {
   parseKayKitIndex,
   parseKayKitPage,
   parseOpenDuelystTree,
   parseScreamingBrainIndex,
-} from './providers/community-client.ts';
-import { HANDPICKED_ITCH_SOURCES, parseHandpickedItchPage } from './providers/handpicked-client.ts';
+} from '../src/providers/community-client.ts';
+import { HANDPICKED_ITCH_SOURCES, parseHandpickedItchPage } from '../src/providers/handpicked-client.ts';
 
 test('publishes every handpicked itch source once at its reviewed quality tier', () => {
   assert.equal(HANDPICKED_ITCH_SOURCES.length, 19);
