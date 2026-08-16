@@ -13,7 +13,7 @@ import {
   parseEntityId,
   parseSessionId,
   parseWorldId,
-} from './ids.ts';
+} from '../../src/identity/ids.ts';
 
 const deterministicSource = {
   timestampMilliseconds: 1_710_000_000_000,

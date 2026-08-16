@@ -5,7 +5,7 @@ import {
   acquireTransactional,
   createDisposalScope,
   createRendererResourceLifetime,
-} from './disposal-scope.ts';
+} from '../../src/resources/disposal-scope.ts';
 
 function recorder() {
   const released: string[] = [];

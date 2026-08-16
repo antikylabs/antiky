@@ -2,17 +2,17 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { createRandomStream, hash32, hashUnit } from './seeded-random.ts';
+import { createRandomStream, hash32, hashUnit } from '../../src/random/seeded-random.ts';
 
 const golden = JSON.parse(
-  readFileSync(new URL('./seeded-random.golden.json', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../src/random/seeded-random.golden.json', import.meta.url), 'utf8'),
 ) as { seed: number; draws: number[] };
 
 test('the hash uses integer operations only', () => {
   // The point of this promotion. Five demos hashed with `fract(sin(a·k + b·k) · k)`, which is not
   // specified to be reproducible across engines and whose low bits are correlated. Reading the
   // source is the only way to assert the absence of a technique.
-  const source = readFileSync(new URL('./seeded-random.ts', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../../src/random/seeded-random.ts', import.meta.url), 'utf8');
   const code = source.replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
   assert.doesNotMatch(code, /Math\.sin|Math\.cos|Math\.tan/, 'no trigonometric hashing');
   assert.doesNotMatch(code, /Math\.random/, 'a seeded stream must not reach for the ambient generator');

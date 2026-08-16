@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createLatchedAction } from './latched-action.ts';
+import { createLatchedAction } from '../../src/input/latched-action.ts';
 
 test('a held press is one action, not one per frame', () => {
   // The regression. Two of the three demo copies used `pending ||= pressed`, so holding the button

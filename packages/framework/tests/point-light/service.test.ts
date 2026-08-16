@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { parseEntityId, parseWorldId } from '../identity/ids.ts';
+import { parseEntityId, parseWorldId } from '../../src/identity/ids.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import {
   MAX_POINT_LIGHTS,
   PointLightServiceValidationError,
   createPointLightAuthoringService,
-} from './service.ts';
+} from '../../src/point-light/service.ts';
 
 const WORLD_ID = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');
 const WEST_ID = parseEntityId('018f0f3a-7b2c-7a1d-8e2f-123456789abd');

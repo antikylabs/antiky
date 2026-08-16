@@ -8,7 +8,7 @@ import {
   TRANSFORM_SCHEMA_VERSION,
   createPointLight,
   createTransform,
-} from './records.ts';
+} from '../../src/point-light/records.ts';
 
 test('versioned component creators apply documented defaults and freeze arrays', () => {
   const transform = createTransform({ schemaVersion: TRANSFORM_SCHEMA_VERSION });

@@ -6,7 +6,7 @@ import {
   type RenderDriver,
   type RenderFrame,
   type TargetRequest,
-} from './render-contract.ts';
+} from '../../src/render/render-contract.ts';
 
 /**
  * Proof that the contract can express a real demo's whole frame, before that demo moves onto it.

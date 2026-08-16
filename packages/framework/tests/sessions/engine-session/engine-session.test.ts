@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { parseSessionId, parseWorldId } from '../../identity/ids.ts';
+import { parseSessionId, parseWorldId } from '../../../src/identity/ids.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import {
   FIXED_STEP_SECONDS,
@@ -16,7 +16,7 @@ import {
   type EngineSession,
   type EngineSessionOptions,
   type EngineSystem,
-} from './index.ts';
+} from '../../../src/sessions/engine-session/index.ts';
 
 const SESSION_ID = parseSessionId('018f0f3a-7b2c-7a1d-8e2f-123456789ab0');
 const WORLD_ID = parseWorldId('018f0f3a-7b2c-7a1d-8e2f-123456789abc');

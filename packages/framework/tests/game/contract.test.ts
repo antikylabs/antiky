@@ -8,7 +8,7 @@ import type {
   GameMeasurements,
   GameModuleEntry,
   GamePointerInput,
-} from './contract.ts';
+} from '../../src/game/contract.ts';
 
 /**
  * The hand-copied contracts, as they exist in the demos today.

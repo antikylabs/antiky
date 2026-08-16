@@ -7,7 +7,7 @@ import {
   EventHistoryValidationError,
   createEventHistory,
   type EventHistoryInput,
-} from './events.ts';
+} from '../../src/inspection/events.ts';
 
 const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const ENTITY_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';

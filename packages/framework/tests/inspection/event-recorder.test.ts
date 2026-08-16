@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createBoundedEventRecorder } from './event-recorder.ts';
+import { createBoundedEventRecorder } from '../../src/inspection/event-recorder.ts';
 
 const DESCRIPTOR = {
   owner: 'framework' as const,

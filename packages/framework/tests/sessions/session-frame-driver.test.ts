@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createSessionFrameDriver, type SessionFrameFault } from './session-frame-driver.ts';
-import type { EngineFrameResult, EngineFrameResultCode } from './engine-session/contract.ts';
+import { createSessionFrameDriver, type SessionFrameFault } from '../../src/sessions/session-frame-driver.ts';
+import type { EngineFrameResult, EngineFrameResultCode } from '../../src/sessions/engine-session/contract.ts';
 
 function frameResult(
   code: EngineFrameResultCode = 'ADVANCED',

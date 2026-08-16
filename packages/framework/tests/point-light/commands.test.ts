@@ -9,7 +9,7 @@ import {
   encodedJsonByteLength,
   parsePointLightCommandResult,
   parseSetPointLightPowerCommand,
-} from './commands.ts';
+} from '../../src/point-light/commands.ts';
 
 const command = {
   protocolVersion: 1,

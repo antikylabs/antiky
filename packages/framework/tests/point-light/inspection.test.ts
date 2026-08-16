@@ -2,15 +2,15 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { createInspectionSnapshot } from '../inspection/snapshot.ts';
+import { createInspectionSnapshot } from '../../src/inspection/snapshot.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import {
   PointLightInspectionValidationError,
   createPointLightInspection,
   inspectPointLightService,
-} from './inspection.ts';
+} from '../../src/point-light/inspection.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { createPointLightAuthoringService } from './service.ts';
+import { createPointLightAuthoringService } from '../../src/point-light/service.ts';
 
 const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const VISIBLE_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';

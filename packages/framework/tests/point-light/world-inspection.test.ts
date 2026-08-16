@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { SET_POINT_LIGHT_POWER_COMMAND_TYPE } from './commands.ts';
+import { SET_POINT_LIGHT_POWER_COMMAND_TYPE } from '../../src/point-light/commands.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { inspectPointLightWorld } from './world-inspection.ts';
+import { inspectPointLightWorld } from '../../src/point-light/world-inspection.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { createPointLightAuthoringService } from './service.ts';
+import { createPointLightAuthoringService } from '../../src/point-light/service.ts';
 
 const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const VISIBLE_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';

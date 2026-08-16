@@ -5,12 +5,12 @@ import test from 'node:test';
 import {
   SET_POINT_LIGHT_POWER_COMMAND_TYPE,
   type PointLightCommandContextInput,
-} from './commands.ts';
+} from '../../src/point-light/commands.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import {
   PointLightReplayError,
   createPointLightAuthoringService,
-} from './service.ts';
+} from '../../src/point-light/service.ts';
 
 const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const WEST_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';

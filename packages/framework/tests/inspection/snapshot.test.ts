@@ -9,7 +9,7 @@ import {
   createInspectionSnapshot,
   createInspectionStore,
   type InspectionSnapshotInput,
-} from './snapshot.ts';
+} from '../../src/inspection/snapshot.ts';
 
 const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 

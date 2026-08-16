@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { createGameInspectionSnapshot } from './host.ts';
+import { createGameInspectionSnapshot } from '../../src/game/host.ts';
 
 test('game inspection snapshots combine host-owned lifecycle and measurements', () => {
   const snapshot = createGameInspectionSnapshot({

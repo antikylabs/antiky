@@ -6,7 +6,7 @@ import {
   type RenderDriver,
   type RenderFrame,
   type TargetRequest,
-} from './render-contract.ts';
+} from '../../src/render/render-contract.ts';
 
 /**
  * A second render driver, sharing no code with the BroMetal one.

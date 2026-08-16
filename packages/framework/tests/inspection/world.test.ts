@@ -8,7 +8,7 @@ import {
   WorldInspectionValidationError,
   createWorldInspection,
   type WorldInspectionInput,
-} from './world.ts';
+} from '../../src/inspection/world.ts';
 
 const WORLD_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const ROOT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';
