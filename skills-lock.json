@@ -1,29 +1,53 @@
 {
   "version": 1,
   "skills": {
-    "team-brometal": {
+    "anti-slop": {
       "source": "antikylabs/skills",
       "sourceType": "github",
-      "skillPath": "skills/team-brometal/SKILL.md",
-      "computedHash": "34fd201aa78d25f3b05ceef1b0bd60f5660698784cd00e2b4206bf3d41c31f25"
+      "skillPath": "skills/general/anti-slop/SKILL.md",
+      "computedHash": "19cf391d0c76b22a28bf65179c9468acfac71af096ab87cf2f3048cde9b04baa"
     },
-    "team-simplified-technical-english": {
+    "brometal-patching": {
       "source": "antikylabs/skills",
       "sourceType": "github",
-      "skillPath": "skills/team-simplified-technical-english/SKILL.md",
-      "computedHash": "99eb15b473df85102bb3fc9993cac602e52d9f19dbe6fd8c52e5a02a9e6d569a"
+      "skillPath": "skills/general/brometal-patching/SKILL.md",
+      "computedHash": "69568c5fdc990c305c5a49a76216ee4ee84dc4b9f9f9bdbafe21e34e819a9d36"
     },
-    "team-write-adrs": {
+    "engineering": {
       "source": "antikylabs/skills",
       "sourceType": "github",
-      "skillPath": "skills/team-write-adrs/SKILL.md",
-      "computedHash": "bfb4e3b87a9b1a3d1c55d3f9dbe9ce8f2e65e2ab75329a88e5b6639257fc9a2d"
+      "skillPath": "skills/general/engineering/SKILL.md",
+      "computedHash": "1c0b7da03ab966354853098b5dd7df3ae4040c2c71c2a2bcef43cd25707bc450"
     },
-    "team-write-objectives": {
+    "simplified-technical-english": {
       "source": "antikylabs/skills",
       "sourceType": "github",
-      "skillPath": "skills/team-write-objectives/SKILL.md",
-      "computedHash": "168ba7625dd4aa9fa9212e9b50f453f1af2011ca82faa9db90e0270c7fc1feb8"
+      "skillPath": "skills/general/simplified-technical-english/SKILL.md",
+      "computedHash": "6f37ba03e5742befb00507e47775353b94653f898104b2d89267a204e19381e0"
+    },
+    "wait-what": {
+      "source": "antikylabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/general/wait-what/SKILL.md",
+      "computedHash": "2eb3c845bc1d0b317e4b73e31c201191dbfaa0d82029fc4bbe3d0610a552d16f"
+    },
+    "write-adrs": {
+      "source": "antikylabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/general/write-adrs/SKILL.md",
+      "computedHash": "bf5ff00ca3ba09ea876eb4a3b25d8783e94094dc59e7cbfd80771c014ea5ac1b"
+    },
+    "write-docs": {
+      "source": "antikylabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/general/write-docs/SKILL.md",
+      "computedHash": "f209688b01ee1b8d49d8ebd2086f2066e90ec905d28121d84587ca25054fb449"
+    },
+    "write-objectives": {
+      "source": "antikylabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/general/write-objectives/SKILL.md",
+      "computedHash": "61c8035298a76b203fbf6e4b4736b3e9d3535722b9e22a49953ab8173215bf58"
     }
   }
 }
