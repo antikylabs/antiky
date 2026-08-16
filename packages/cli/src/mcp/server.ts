@@ -16,15 +16,15 @@ import type { DevelopmentClient } from '../development/client.ts';
 import {
   parseCaptureFrameRequestV2,
   parseCaptureFrameRequestV3,
-} from '../development/capture.ts';
+} from '../development/capture/index.ts';
 import {
   parseCaptureGameplaySequenceRequestV1,
   type CaptureGameplaySequenceResultV1,
-} from '../development/capture-sequence.ts';
+} from '../development/capture/sequence.ts';
 import {
   parseRenderEvidenceQueryV1,
   type RenderEvidenceResultV1,
-} from '../development/evidence.ts';
+} from '../development/capture/evidence.ts';
 import {
   projectDevelopmentEventHistoryV2,
   projectDevelopmentWorldInspectionV2,

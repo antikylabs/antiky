@@ -12,13 +12,13 @@ import {
   NOOP_CLI_DIAGNOSTIC_SINK,
   emitCliDiagnostic,
   type CliDiagnosticSink,
-} from './host/diagnostics.ts';
-import { startDevelopmentSession } from './host/session.ts';
+} from './host/inspection/diagnostics.ts';
+import { startDevelopmentSession } from './host/session/index.ts';
 import { callMcpTool } from './mcp/client.ts';
 import { runMcpServer } from './mcp/server.ts';
-import { initializeAntikyProject } from './project-initializer.ts';
-import { loadAntikyProject, migrateAntikyConfig } from './project-node.ts';
-import { launchStudioProject } from './studio-launch.ts';
+import { initializeAntikyProject } from './project/initializer.ts';
+import { loadAntikyProject, migrateAntikyConfig } from './project/node.ts';
+import { launchStudioProject } from './studio/launch.ts';
 
 export const CLI_USAGE = `Usage:
   antiky init [name] [--directory path]

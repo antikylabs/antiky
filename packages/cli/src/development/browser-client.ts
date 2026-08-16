@@ -4,7 +4,7 @@ import { AntikyCliError } from '../errors.ts';
 import {
   parseCaptureCapabilitiesV1,
   type CaptureCapabilitiesV1,
-} from './capture-capabilities.ts';
+} from './capture/capabilities.ts';
 import { parseDevelopmentMcpCallLog } from './mcp-calls.ts';
 import {
   projectDevelopmentEventHistory,
@@ -22,13 +22,13 @@ import {
   type CaptureFrameRequestV3,
   type DevelopmentCaptureResultV2,
   type DevelopmentCaptureResultV3,
-} from './capture.ts';
+} from './capture/index.ts';
 import {
   parseCaptureGameplaySequenceRequestV1,
   parseCaptureGameplaySequenceResultV1,
   type CaptureGameplaySequenceRequestV1,
   type CaptureGameplaySequenceResultV1,
-} from './capture-sequence.ts';
+} from './capture/sequence.ts';
 import {
   parseEvidenceArtifactRefV1,
   parseRenderEvidenceQueryV1,
@@ -36,7 +36,7 @@ import {
   type EvidenceArtifactRefV1,
   type RenderEvidenceQueryV1,
   type RenderEvidenceResultV1,
-} from './evidence.ts';
+} from './capture/evidence.ts';
 import {
   projectDevelopmentPointLight,
   projectDevelopmentPointLightListV2,

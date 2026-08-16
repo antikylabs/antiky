@@ -1,5 +1,5 @@
 import { AntikyCliError } from '../errors.ts';
-import type { AntikyProject } from '../project.ts';
+import type { AntikyProject } from '../project/index.ts';
 import { MCP_HTTP_PATH, MCP_PROTOCOL_VERSION } from './server.ts';
 
 const MCP_ACCEPT = 'application/json, text/event-stream';

@@ -71,7 +71,10 @@ test('antiky asset install rejects unknown catalog IDs', async () => {
 
 test('antiky init uses the folder name and creates only the frozen manifest', async () => {
   const directory = await emptyProjectDirectory('harbor-lights');
-  const expected = await readFile(new URL('fixtures/initialized-project.antiky', import.meta.url), 'utf8');
+  const expected = await readFile(
+    new URL('project/fixtures/initialized-project.antiky', import.meta.url),
+    'utf8',
+  );
   const result = output();
 
   assert.equal(await runCli(['init', '--directory', directory], result.io), 0);

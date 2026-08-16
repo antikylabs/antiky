@@ -2,7 +2,7 @@
 
 import { runCli } from './cli.ts';
 import { AntikyCliError } from './errors.ts';
-import type { CliDiagnosticSink } from './host/diagnostics.ts';
+import type { CliDiagnosticSink } from './host/inspection/diagnostics.ts';
 
 const diagnosticSink: CliDiagnosticSink = (event) => {
   if (event.level === 'error') {
