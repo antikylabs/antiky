@@ -73,7 +73,7 @@ every object.
 
 ## The occlusion bake exists and works; it is not wired
 
-`packages/demos/scripts/bake-vertex-occlusion.mjs`, with `packages/demos/tests/vertex-occlusion.test.mjs`.
+`packages/demos/scripts/bake/vertex-occlusion.mjs`, with `packages/demos/tests/vertex-occlusion.test.mjs`.
 Cosine-weighted Fibonacci hemisphere, uniform grid for ray acceleration, no randomness anywhere.
 
 **It is tested against shapes whose answer is known by looking at them**, and that is what caught the

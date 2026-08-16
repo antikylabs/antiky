@@ -17,13 +17,13 @@ import {
   type CombatSnapshot,
   type EnemyRole,
   type ProjectileKind,
-} from './combat-state.ts';
-import { updateEnemyBehavior } from './combat-ai.ts';
-import { ENEMY_HULL_CONTRACTS } from './combat-hulls.ts';
-import { nearestActiveEnemy, populateRound, resetCombatants } from './combat-encounter.ts';
-import { combatDigest } from './combat-digest.ts';
-import { createParticlePool, createProjectilePool } from './combat-pools.ts';
-import { updateCombatProjectiles } from './combat-projectiles.ts';
+} from './combat/state.ts';
+import { updateEnemyBehavior } from './combat/ai.ts';
+import { ENEMY_HULL_CONTRACTS } from './combat/hulls.ts';
+import { nearestActiveEnemy, populateRound, resetCombatants } from './combat/encounter.ts';
+import { combatDigest } from './combat/digest.ts';
+import { createParticlePool, createProjectilePool } from './combat/pools.ts';
+import { updateCombatProjectiles } from './combat/projectiles.ts';
 
 export {
   ARENA_RADIUS,
@@ -33,7 +33,7 @@ export {
   PARTICLE_CAPACITY,
   PROJECTILE_CAPACITY,
   ROUND_DEFINITIONS,
-} from './combat-state.ts';
+} from './combat/state.ts';
 export type {
   CombatEnemy,
   CombatEvent,
@@ -47,7 +47,7 @@ export type {
   EnemyRole,
   EnemyState,
   ProjectileKind,
-} from './combat-state.ts';
+} from './combat/state.ts';
 
 export function createCombatSimulation(emit: (event: CombatEvent) => void): CombatSimulation {
   const { player, enemies, projectiles, particles } = createCombatStatePools();

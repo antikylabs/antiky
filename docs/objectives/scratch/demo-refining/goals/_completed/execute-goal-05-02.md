@@ -95,7 +95,7 @@ A workable shape once the rows are named:
 
 ## What has landed
 
-- **`packages/demos/scripts/build-kit-materials.mjs`** samples the atlas embedded in the kit's own
+- **`packages/demos/scripts/build/kit-materials.mjs`** samples the atlas embedded in the kit's own
   GLBs on a 16x4 grid and emits `src/kit-materials.gen.ts` — 64 swatches, 46 in use, each with its
   measured colour and an assigned roughness.
 - **The roughness rule lives in one function**, `roughnessFor`, and is stated rather than implied: a

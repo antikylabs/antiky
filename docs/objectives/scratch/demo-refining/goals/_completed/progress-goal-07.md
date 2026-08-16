@@ -166,7 +166,7 @@ floods what the shadow removes.
 **The baked vertex AO half of W B.4 is not done.** The goal asks for occlusion baked into static
 geometry as well as hemispheric ambient, and the inside-corner probe (≥ 15% darker than a flat
 surface) has no occlusion term to measure. The bake tool exists and is tested
-(`packages/demos/scripts/bake-vertex-occlusion.mjs`, from goal 06-05) but wiring it blanked the scene
+(`packages/demos/scripts/bake/vertex-occlusion.mjs`, from goal 06-05) but wiring it blanked the scene
 in the reference and was reverted there — see goal 99 row **A13**.
 
 ### W B.5 — bloom, grade and vignette (`a789fc4`, `3d83a8d`)

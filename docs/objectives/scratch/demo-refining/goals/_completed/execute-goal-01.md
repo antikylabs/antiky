@@ -115,7 +115,7 @@ At minimum, prove:
   `normalTexture` or writes UVs without reading `TEXCOORD_0`; within one demo, all shaders declaring
   a sun or key direction agree and all shaders declaring fog ranges agree — `combat-arena` violates
   both today; and every `*.shader.ts` has an up-to-date `*.shader.gen.ts`, extending the existing
-  `packages/demos/tests/shader-output-parity.test.mjs` rather than duplicating it; and
+  `packages/demos/tests/shader/output-parity.test.mjs` rather than duplicating it; and
 - `npm test` is green at the end of this goal for everything except the W0.3 budgets, whose failure
   is the deliverable. State plainly in the handoff how the budgets are excluded from the default
   test run, or that they are expected-red and tracked as such.

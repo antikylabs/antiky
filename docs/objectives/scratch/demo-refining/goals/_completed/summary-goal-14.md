@@ -16,7 +16,7 @@
 
 ## What was delivered
 
-1. **`packages/demos/scripts/build-texture-atlas.mjs`** — a slicer with two emit modes over one
+1. **`packages/demos/scripts/build/texture-atlas.mjs`** — a slicer with two emit modes over one
    slicing core.
 2. **`--layers`** (one image per tile, no gutter, no cross-tile pixels — the shape goal 15 consumes)
    and **`--padded`** (single atlas, power-of-two cells, extruded gutter).

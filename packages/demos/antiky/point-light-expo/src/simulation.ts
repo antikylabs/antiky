@@ -5,14 +5,14 @@ import {
   SAFE_FIELD_THRESHOLD,
   sampleAuthoritativeRelayField,
   strongestAuthoritativeRelayField,
-} from './relay-field.ts';
+} from './relay/field.ts';
 
 export {
   CHARGE_FIELD_THRESHOLD,
   SAFE_FIELD_THRESHOLD,
   authoritativeRelayRegionRadii,
   sampleAuthoritativeRelayField,
-} from './relay-field.ts';
+} from './relay/field.ts';
 
 export const FORGE_POSITION = [0, 0] as const;
 export const DEFAULT_PLAYER_POSITION = [0, 2.15] as const;

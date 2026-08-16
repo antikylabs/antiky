@@ -16,20 +16,20 @@ import bloomExtractShader from './shaders/bloom-extract.shader.gen.ts';
 import postShader from './shaders/post.shader.gen.ts';
 import { bindDepthProgram, createShadowPass } from './shadow-pass.ts';
 
-import { CATALOG_ASSET_COUNT, createArenaCatalogResources } from './arena-assets.ts';
+import { CATALOG_ASSET_COUNT, createArenaCatalogResources } from './arena/assets.ts';
 import {
   ARENA_CATALOG_CAPACITY,
   ARENA_CATALOG_INSTANCES,
   initializeArenaCatalog,
   projectArenaCatalog,
-} from './arena-composition.ts';
-import { ARENA_ENVIRONMENT_LAYERS } from './arena-environment.ts';
+} from './arena/composition.ts';
+import { ARENA_ENVIRONMENT_LAYERS } from './arena/environment.ts';
 import {
   COMBAT_PROJECTION_CAPACITY,
   COMBAT_PROJECTION_INSTANCE_FLOATS,
   createCombatProjection,
   type CombatProjection,
-} from './combat-projection.ts';
+} from './combat/projection.ts';
 import { createCombatCameraProjector } from './presentation.ts';
 import { createDisposalScope } from '@antiky/framework';
 import { SHIP_CATALOG_ASSET_COUNT, SHIP_INSTANCE_CAPACITY, createShipFleet, type ShipFleet } from './ship-assets.ts';

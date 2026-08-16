@@ -90,7 +90,7 @@ test('game projects contain no delivery host or sibling-demo source imports', as
   for (const demo of showcase) {
     const directory = demoDirectory(demo);
     // Comments are stripped before matching. These files carry provenance notes naming the script
-    // that generated them — `packages/demos/scripts/build-detail-normal.mjs` and friends — and a
+    // that generated them — `packages/demos/scripts/build/detail-normal.mjs` and friends — and a
     // sentence about where bytes came from is not an import. Matching raw text turned every one of
     // those notes into a boundary violation.
     const source = stripComments((await Promise.all((await sourceFiles(new URL('src/', directory))).map(

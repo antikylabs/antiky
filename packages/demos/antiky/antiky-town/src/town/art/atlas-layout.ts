@@ -6,7 +6,7 @@ import vegetationAtlasJson from '../../../assets/textures/town-vegetation-atlas-
 /**
  * Where each atlas tile actually is, read from the file the atlas was built with.
  *
- * Every atlas here is packed by `packages/demos/scripts/build-texture-atlas.mjs`, which surrounds
+ * Every atlas here is packed by `packages/demos/scripts/build/texture-atlas.mjs`, which surrounds
  * each tile with 64 pixels of its own extruded edge so a mip average taken near the tile's border
  * finds more of the same material instead of the tile next door. That gutter only works if whatever
  * samples the atlas stays inside the tile's inner rectangle — so the rectangles come from the same

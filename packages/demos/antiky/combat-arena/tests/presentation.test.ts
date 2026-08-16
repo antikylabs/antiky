@@ -2,16 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createCombatCameraProjector } from '../src/presentation.ts';
-import { combatSignalMode } from '../src/arena-signals.ts';
-import { ARENA_ROOM_PROFILE } from '../src/arena-composition.ts';
-import { COMBAT_READABILITY_PROFILE } from '../src/combat-projection.ts';
+import { combatSignalMode } from '../src/arena/signals.ts';
+import { ARENA_ROOM_PROFILE } from '../src/arena/composition.ts';
+import { COMBAT_READABILITY_PROFILE } from '../src/combat/projection.ts';
 import {
   ENEMY_HULL_CONTRACTS,
   PLAYER_HULL_CONTRACT,
   PLAYER_HURT_RADIUS,
-} from '../src/combat-hulls.ts';
+} from '../src/combat/hulls.ts';
 import { SHIP_FOOTPRINTS } from '../src/ship-footprints.gen.ts';
-import { combatEscalationProfile, enemyVisualProfile } from '../src/combat-visuals.ts';
+import { combatEscalationProfile, enemyVisualProfile } from '../src/combat/visuals.ts';
 import { COMBAT_RENDERER_OPTIONS, deriveCombatRendererMeasurements } from '../src/renderer.ts';
 import { createCombatSimulation } from '../src/simulation.ts';
 

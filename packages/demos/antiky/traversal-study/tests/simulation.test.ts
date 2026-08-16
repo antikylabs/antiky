@@ -11,7 +11,7 @@ import {
   type TraversalEvent,
   type TraversalInput,
 } from '../src/simulation.ts';
-import { groundTopAt, supportAt } from '../src/course-query.ts';
+import { groundTopAt, supportAt } from '../src/course/query.ts';
 import { canonicalAttractCommand } from '../src/attract-controller.ts';
 import { COURSE_BEATS, COURSE_CHECKPOINTS, COURSE_HAZARDS, hazardTop } from '../src/course.ts';
 

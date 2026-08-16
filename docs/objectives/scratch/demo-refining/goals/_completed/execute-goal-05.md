@@ -307,7 +307,7 @@ below left `npm test` green and `npm run demos:verify` at its six known targets.
 
 | Item | State |
 |---|---|
-| **1** — tiling detail normal, triplanar | **Done, four demos.** `packages/demos/scripts/build-detail-normal.mjs` generates one 512² map into each demo. Projected by ten shaders: four model shaders, the reliquary floor and props, and the town voxel/prop/awning/water surfaces. |
+| **1** — tiling detail normal, triplanar | **Done, four demos.** `packages/demos/scripts/build/detail-normal.mjs` generates one 512² map into each demo. Projected by ten shaders: four model shaders, the reliquary floor and props, and the town voxel/prop/awning/water surfaces. |
 | **3** — rim/Fresnel, wrapped diffuse | **Done bar cloth sheen.** Rim added to the four model shaders that lacked one; wrapped diffuse for traversal's clouds behind an explicit per-batch `uWrap`. Cloth sheen needs fabric materials, so it waits on item 6. |
 | **4** — SH-9 irradiance | **Script done; point-light-expo fully wired.** `bake-sh9-irradiance.mjs` fetches an HDRI, decodes Radiance RGBE by hand, projects onto nine harmonics, emits 27 floats. Coefficients baked for all three named HDRIs. |
 | **10** — antiky-town surface record | **Done.** `packages/demos/antiky/antiky-town/MATERIALS.md`, colocated with the demo it describes. Records all thirteen shaders including the four rejections, and corrects the goal's table on `town-water`. |

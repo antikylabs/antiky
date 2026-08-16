@@ -22,7 +22,7 @@ import {
   hazardTop,
   platformTop,
 } from './course.ts';
-import { groundTopAt } from './course-query.ts';
+import { groundTopAt } from './course/query.ts';
 import {
   COYOTE_SECONDS,
   GROUND_ACCELERATION,

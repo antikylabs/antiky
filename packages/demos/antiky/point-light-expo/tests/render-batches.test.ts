@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import * as renderBatches from '../src/render-batches.ts';
+import * as renderBatches from '../src/render/batches.ts';
 import * as frameScratch from '../src/frame-scratch.ts';
 
 type RetainedSurfaceData = Readonly<{

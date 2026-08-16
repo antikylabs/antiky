@@ -10,11 +10,11 @@ import {
   type TraversalAct,
 } from './course.ts';
 
-import { platformInstancesNear, supportAt, type PlatformInstance } from './course-query.ts';
+import { platformInstancesNear, supportAt, type PlatformInstance } from './course/query.ts';
 import { createTrailParticles, type TrailParticle } from './trail-particles.ts';
 
 export { COURSE_LENGTH, COURSE_HAZARDS, COURSE_PLATFORMS, platformTop } from './course.ts';
-export { platformInstancesNear, type PlatformInstance } from './course-query.ts';
+export { platformInstancesNear, type PlatformInstance } from './course/query.ts';
 export { type TrailParticle } from './trail-particles.ts';
 
 export const RUNNER_RADIUS = 0.43;

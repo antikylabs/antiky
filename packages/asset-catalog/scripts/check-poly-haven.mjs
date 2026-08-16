@@ -4,7 +4,7 @@ import { CATALOG_ASSETS } from '../src/catalog-data.ts';
 import {
   fetchPolyHavenMetadataCatalog,
   fetchPolyHavenStarterCatalog,
-} from '../src/providers/poly-haven-client.ts';
+} from '../src/providers/poly/haven-client.ts';
 
 const snapshot = JSON.parse(await readFile(new URL('../data/poly-haven.generated.json', import.meta.url), 'utf8'));
 

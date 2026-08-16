@@ -140,7 +140,7 @@ bundling them would repeat the mistake of PR #2.
 - **The clamp does something measurable**: with `lodMaxClamp` set to 0, a minified texture must
   return its base level rather than a mip average.
 - The patch runner stays idempotent, and `npm test` is green with the patches applied.
-- `packages/demos/tests/shader-output-parity.test.mjs` still passes — it now compares committed
+- `packages/demos/tests/shader/output-parity.test.mjs` still passes — it now compares committed
   generated shaders against compiler output across eight packages, so a compiler change that alters
   emission will show up there and every affected `.gen.ts` must be regenerated and committed.
 

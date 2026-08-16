@@ -3,8 +3,8 @@ import test from 'node:test';
 
 import { createCube, type Model } from 'brometal';
 
-import { createArenaCatalogResources } from '../src/arena-assets.ts';
-import { createCombatProjection } from '../src/combat-projection.ts';
+import { createArenaCatalogResources } from '../src/arena/assets.ts';
+import { createCombatProjection } from '../src/combat/projection.ts';
 import { createCombatRendererWith } from '../src/renderer.ts';
 import { createContactShadowBatch, createSurfaceBatch, groundQuad } from '../src/render-batches.ts';
 import { createShipFleet } from '../src/ship-assets.ts';

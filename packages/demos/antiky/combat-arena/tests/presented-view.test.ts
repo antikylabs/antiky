@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createPresentedView } from '../src/presented-view.ts';
-import { type CombatInput } from '../src/combat-state.ts';
+import { type CombatInput } from '../src/combat/state.ts';
 import { createCombatSimulation, type CombatSnapshot } from '../src/simulation.ts';
 
 const IDLE: CombatInput = {

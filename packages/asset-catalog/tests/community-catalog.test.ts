@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { CATALOG_ASSETS } from '../src/catalog-data.ts';
-import { GENERATED_COMMUNITY_REPORT } from '../src/generated-community-catalog.ts';
-import { GENERATED_HANDPICKED_REPORT } from '../src/generated-handpicked-catalog.ts';
+import { GENERATED_COMMUNITY_REPORT } from '../src/generated/community-catalog.ts';
+import { GENERATED_HANDPICKED_REPORT } from '../src/generated/handpicked-catalog.ts';
 import {
   parseKayKitIndex,
   parseKayKitPage,

@@ -325,7 +325,7 @@ export default shader({
     // `rock-moss` (layout 1) gets no occlusion, and that is a gap rather than a choice: its
     // `catalog_material` image is one greyscale channel replicated across RGB, which is roughness
     // with no occlusion anywhere in it. Reading `materialMap.x` for it would read roughness as
-    // occlusion. `packages/demos/scripts/bake-vertex-occlusion.mjs` exists to fill this and is
+    // occlusion. `packages/demos/scripts/bake/vertex-occlusion.mjs` exists to fill this and is
     // tested, but wiring it in blanked the scene and the rock measured only 3.9% occluded at p10 —
     // it is a set of convex boulders with very little to occlude. See goal 99 row A13.
     const occlusion = mix(0.58 + materialMap.x * 0.42, 1, uMaterialLayout);
@@ -352,7 +352,7 @@ export default shader({
     // Ambient that knows which way the surface faces.
     //
     // This replaced a flat colour with a crude up-facing fudge bolted on. The nine coefficients come
-    // from a real sky, baked offline by `packages/demos/scripts/bake-sh9-irradiance.mjs`: nine
+    // from a real sky, baked offline by `packages/demos/scripts/bake/sh9-irradiance.mjs`: nine
     // multiply-adds, no texture fetch, and a genuine sky-to-ground hue shift rather than a scalar
     // lean toward brighter-if-upward.
     //

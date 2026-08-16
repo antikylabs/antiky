@@ -14,7 +14,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     },
@@ -150,7 +150,7 @@
         },
         {
           "label": "artifact-builder",
-          "path": "packages/website/scripts/build-demo-artifact.mjs"
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
         }
       ]
     }

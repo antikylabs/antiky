@@ -4,7 +4,7 @@ Part 1 of 4 of what remains in [goal 05](execute-goal-05.md). Covers the rest of
 
 ## Prerequisites
 
-- Goal 05's landed work. `packages/demos/scripts/bake-sh9-irradiance.mjs` exists and is validated:
+- Goal 05's landed work. `packages/demos/scripts/bake/sh9-irradiance.mjs` exists and is validated:
   zero negative irradiance across 15,000 sampled directions, up-to-down luminance ratio 10.1:1.
 - Read goal 05's "SH-9 is not automatically better than a hand-tuned ambient" section first. It is
   the reason this is its own step rather than a formality.

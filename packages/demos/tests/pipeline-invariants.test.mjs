@@ -9,7 +9,7 @@ import {
   discoverDemoSources,
   discoverDemos,
   discoverShaders,
-} from './shader-graph.mjs';
+} from './shader/graph.mjs';
 // One definition, imported rather than restated. It existed as three unrelated literals — here, in
 // the policy, and in traversal-study's renderer — with nothing keeping them equal.
 import { PALETTE_MAX_WIDTH } from '../scripts/asset-fidelity-policy.mjs';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { bakeVertexOcclusion, encodeOpenness } from '../scripts/bake-vertex-occlusion.mjs';
+import { bakeVertexOcclusion, encodeOpenness } from '../scripts/bake/vertex-occlusion.mjs';
 
 /**
  * The occlusion bake, checked against shapes whose answer is known by looking at them.

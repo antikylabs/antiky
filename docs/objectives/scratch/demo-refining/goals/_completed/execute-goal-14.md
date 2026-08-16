@@ -69,7 +69,7 @@ The three facts that make it structural rather than a tuning problem:
 
 ## Required outcome
 
-1. **An atlas tool** at `packages/demos/scripts/build-texture-atlas.mjs` whose core job is
+1. **An atlas tool** at `packages/demos/scripts/build/texture-atlas.mjs` whose core job is
    **slicing**: read a source image and a tile map, and produce one clean tile per entry. Slicing is
    what both renderer routes need — padded tiles today, array layers once goal 15 lands — so it is
    the part built to last.

@@ -183,7 +183,7 @@ The shader-authoring skill reinforces current operational ownership: inspect ins
 
 ## Evidence and validation already present
 
-- Repository-wide parity tests discover generated shaders, require source siblings, recompile in development and production modes, and byte-compare committed output: `packages/demos/tests/shader-output-parity.test.mjs:11-36`, `:127-202`.
+- Repository-wide parity tests discover generated shaders, require source siblings, recompile in development and production modes, and byte-compare committed output: `packages/demos/tests/shader/output-parity.test.mjs:11-36`, `:127-202`.
 - They also validate relative shader imports because stale or ignored imports can otherwise compile: `:83-125`.
 - Pipeline tests inspect compiled WGSL and enforce texture-role classification, decode/encode policy, lighting, and fog agreement: `packages/demos/tests/pipeline-invariants.test.mjs:17-35`, `:626-840`.
 - Material tests distinguish source wiring from actual visual effect and state that capture evidence is needed for the latter: `packages/demos/tests/material-invariants.test.mjs:84-128`.

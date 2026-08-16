@@ -6,7 +6,7 @@ import {
   discoverDemos,
   discoverDemoSources,
   discoverShaders,
-} from './shader-graph.mjs';
+} from './shader/graph.mjs';
 
 /**
  * Material invariants for goal 05.

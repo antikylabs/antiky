@@ -167,17 +167,17 @@ browser E2E suite for game verbs, scene transitions, failure/retry, or runtime i
 **Current:** the website owns a real artifact-verification pipeline rather than importing demo source
 at runtime:
 
-- [`build-demo-artifact.mjs`](../../../packages/website/scripts/build-demo-artifact.mjs) emits schema
+- [`build-demo-artifact.mjs`](../../../packages/website/scripts/build/demo-artifact.mjs) emits schema
   version 1 with the game-module contract, project/slug, source revision, entry, WebGPU requirement,
   viewport, portable files, sizes, and SHA-256 hashes; it caps one file at 64 MiB, the artifact at
   96 MiB, and the set at 256 files;
-- [`stage-demo-artifacts.mjs`](../../../packages/website/scripts/stage-demo-artifacts.mjs) rejects
+- [`stage-demo-artifacts.mjs`](../../../packages/website/scripts/stage/demo-artifacts.mjs) rejects
   unapproved demos/renderers, stale source, invalid or missing manifests, symlinks, path escape,
   extra/missing files, and hash/size mismatch before staging; and
-- [`demo-artifact.test.mjs`](../../../packages/website/tests/demo-artifact.test.mjs) builds all ten
+- [`demo-artifact.test.mjs`](../../../packages/website/tests/demo/artifact.test.mjs) builds all ten
   artifacts, verifies portable/hash-complete outputs and module load, rejects local-path/credential/
   timestamp leakage from the manifest, and proves byte-identical repeated Shader Study output.
-  [`demo-delivery.test.mjs`](../../../packages/website/tests/demo-delivery.test.mjs) checks the staged
+  [`demo-delivery.test.mjs`](../../../packages/website/tests/demo/delivery.test.mjs) checks the staged
   artifacts and high-resolution distinct poster assets.
 
 This is the current strongest artifact provenance. Its exact limitation matters: the source revision
@@ -793,7 +793,7 @@ website artifact bytes. It does not yet satisfy this release-ready definition en
   [game host](../../../packages/framework/src/game/host.ts), and [point-light slice](../../../packages/framework/src/point-light).
 - CLI: [development contracts](../../../packages/cli/src/development), [host](../../../packages/cli/src/host), [MCP tools](../../../packages/cli/src/mcp/tools.ts), and [tests](../../../packages/cli/tests).
 - Games: [Antiky demos](../../../packages/demos/antiky) and [all manifests](../../../packages/demos).
-- Website: [artifact builder](../../../packages/website/scripts/build-demo-artifact.mjs), [staging](../../../packages/website/scripts/stage-demo-artifacts.mjs), and [tests](../../../packages/website/tests/demo-artifact.test.mjs).
+- Website: [artifact builder](../../../packages/website/scripts/build/demo-artifact.mjs), [staging](../../../packages/website/scripts/stage/demo-artifacts.mjs), and [tests](../../../packages/website/tests/demo/artifact.test.mjs).
 - Studio: [Tauri package](../../../packages/studio/tauri).
 - Research: [production/QA](../skill-research/production-qa.md), [rendering/visual evidence](../skill-research/rendering-shaders-materials.md),
   and [game design/playtest](../skill-research/game-design-ux.md).

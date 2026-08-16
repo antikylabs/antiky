@@ -63,7 +63,7 @@ exposed it. Worked around by writing the exponent as a literal, with the reason 
 **`npm test` was already red at HEAD before this step started, for two unrelated reasons.**
 
 *First*, `game projects contain no delivery host or sibling-demo source imports` matched *comments* —
-goal 05's provenance notes naming `packages/demos/scripts/build-detail-normal.mjs` and friends. A
+goal 05's provenance notes naming `packages/demos/scripts/build/detail-normal.mjs` and friends. A
 sentence about where bytes came from is not an import. Fixed by stripping comments before matching,
 and verified it still fails on a real sibling-demo import.
 

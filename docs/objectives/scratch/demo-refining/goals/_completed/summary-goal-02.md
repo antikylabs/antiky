@@ -19,7 +19,7 @@ by the owner and completed — see *After the goal closed* below. No bug found h
 | `scripts/patch-brometal.mjs` | Two new patch sections, plus a rewrite of install discovery |
 | `scripts/tests/patch-brometal.test.mjs` | New. Idempotency, version guard, moved-target guard, all-copies-patched |
 | `packages/demos/*/*/package.json` (8) | BroMetal `0.15.0` → `0.17.2` |
-| `packages/demos/tests/shader-output-parity.test.mjs` | Version contract updated to `0.17.2` |
+| `packages/demos/tests/shader/output-parity.test.mjs` | Version contract updated to `0.17.2` |
 | `packages/demos/antiky/*/visual-metrics.json` | Re-captured twice — after the patches, and after the upgrade |
 | `docs/.../upstream/` | Two pull-request drafts and a handoff |
 
@@ -78,7 +78,7 @@ After the upgrade, all four antiky demos report **identical** metrics to before 
 ## Two problems the upgrade exposed, both fixed here
 
 1. **npm stopped hoisting BroMetal and nested a copy into each of the 8 demo workspaces.** That
-   broke `packages/demos/tests/shader-output-parity.test.mjs`, which imports `brometal` from a
+   broke `packages/demos/tests/shader/output-parity.test.mjs`, which imports `brometal` from a
    directory that is not itself a package and had always relied on hoisting. `npm dedupe` restored
    a single hoisted copy.
 2. **The patch script only ever patched the first copy it found.** Its two-candidate lookup assumed
@@ -126,7 +126,7 @@ antiky demos reported identical metrics afterwards.
 **Two problems the upgrade exposed, both fixed:**
 
 - npm stopped hoisting BroMetal and nested a copy into each of the 8 demo workspaces, which broke
-  `packages/demos/tests/shader-output-parity.test.mjs` — it imports `brometal` from a directory
+  `packages/demos/tests/shader/output-parity.test.mjs` — it imports `brometal` from a directory
   that is not a package and had always relied on hoisting. `npm dedupe` restored a single hoisted
   copy.
 - **The patch script only ever patched the first copy it found.** Its two-candidate lookup assumed

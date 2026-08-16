@@ -9,7 +9,7 @@
     "shaders": "brometal dev --once",
     "shaders:watch": "brometal dev",
     "shaders:prod": "brometal prod",
-    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts tests/visual/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

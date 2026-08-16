@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { parseGlb } from 'brometal';
 
-import { ENEMY_HULL_CONTRACTS, PLAYER_HULL_CONTRACT } from '../src/combat-hulls.ts';
+import { ENEMY_HULL_CONTRACTS, PLAYER_HULL_CONTRACT } from '../src/combat/hulls.ts';
 
 const selectedAssets = Object.freeze([
   'room-small.glb',

@@ -17,7 +17,7 @@ import {
   type AtlasLayout,
 } from '../src/town/art/atlas-layout.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
-import { TOWN_PROP_TILE_BY_TYPE, buildTownPropBatch } from '../src/town/art/town-dynamic-props.ts';
+import { TOWN_PROP_TILE_BY_TYPE, buildTownPropBatch } from '../src/town/art/town/dynamic-props.ts';
 
 /**
  * The seam between the packed atlas and everything that samples it.

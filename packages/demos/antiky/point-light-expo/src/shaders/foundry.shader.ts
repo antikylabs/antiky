@@ -304,7 +304,7 @@ const baseNormal = normalize(vNormal);
     // Ambient that knows which way the surface faces.
     //
     // This replaced a flat colour with a crude up-facing fudge bolted on. The nine coefficients come
-    // from a real sky, baked offline by `packages/demos/scripts/bake-sh9-irradiance.mjs`: nine
+    // from a real sky, baked offline by `packages/demos/scripts/bake/sh9-irradiance.mjs`: nine
     // multiply-adds, no texture fetch, and a genuine sky-to-ground hue shift rather than a scalar
     // lean toward brighter-if-upward.
     //

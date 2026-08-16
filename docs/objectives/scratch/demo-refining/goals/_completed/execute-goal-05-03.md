@@ -34,7 +34,7 @@ as if `installCatalogAsset` will do the fetching, and it will not — not becaus
 because it expects descriptors the catalog deliberately does not carry. Anything that needs bytes
 brings its own retrieval and its own verification, which is what the tool below does.
 
-### Unblocked — `packages/demos/scripts/install-poly-haven-material.mjs`
+### Unblocked — `packages/demos/scripts/install/poly-haven-material.mjs`
 
 Rather than wait on the catalog generator, this fetches the same descriptors from the API the
 generator should be reading (`https://api.polyhaven.com/files/<upstream.id>`, which returns `url`,

@@ -1,6 +1,6 @@
 import { mat4, type Mat4Array } from 'brometal';
 
-import { ARENA_RADIUS } from './combat-state.ts';
+import { ARENA_RADIUS } from './combat/state.ts';
 
 /**
  * The arena's one directional key light, and the shadow map it casts through.

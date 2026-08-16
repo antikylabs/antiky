@@ -134,7 +134,7 @@ other — plus one GLSL copy:
 | file:line | constants |
 |---|---|
 | `packages/demos/antiky/point-light-expo/src/simulation.ts:132` | `73.17, 41.73, 43_758.5453` |
-| `packages/demos/antiky/combat-arena/src/combat-state.ts:177` | `91.71, 37.13, 43758.5453` |
+| `packages/demos/antiky/combat-arena/src/combat/state.ts:177` | `91.71, 37.13, 43758.5453` |
 | `packages/demos/antiky/traversal-study/src/simulation.ts:174` | `73.91, 19.37, 41758.31` |
 | `packages/demos/antiky/traversal-study/src/renderer.ts:278` | `63.17, 17.53, 43147.19` |
 | `packages/demos/antiky/antiky-town/src/town/art/town.ts:2192` | `127.1, 311.7, 43758.5453` |
@@ -154,9 +154,9 @@ it does not breach `:39-41` (*"A system cannot read the system clock or hidden r
 nothing hidden is read.
 
 **Where it does bite — exactly one of the four demos.** `combat-arena`'s state digest hashes
-`enemy.phase` (`packages/demos/antiky/combat-arena/src/combat-digest.ts:112`), and `enemy.phase` is
+`enemy.phase` (`packages/demos/antiky/combat-arena/src/combat/digest.ts:112`), and `enemy.phase` is
 set from `seeded(index, 2) * Math.PI * 2`
-(`packages/demos/antiky/combat-arena/src/combat-state.ts:260`) [verified]. That digest reaches
+(`packages/demos/antiky/combat-arena/src/combat/state.ts:260`) [verified]. That digest reaches
 agents through `get_session_status` (`packages/cli/src/mcp/tools.ts:339-344` →
 `packages/cli/src/mcp/server.ts:404-417` → `packages/cli/src/development/observation.ts:236`), and
 it is the staleness fence for captures (`packages/cli/src/host/capture-action.ts:76-78`,
@@ -204,7 +204,7 @@ Two details worth carrying into W D.5 that the plan set does not yet state:
   `accumulatorSeconds` and `:4` declares `FIXED_STEP_SECONDS = 1 / 60`; a grep for
   `accumulatorSeconds` across `packages/demos/**` returns **zero hits**. Also unremarked by the
   plan: `combat-arena` already carries `projectile.previousX` / `previousZ`
-  (`packages/demos/antiky/combat-arena/src/combat-digest.ts:121-122`), so one demo has a
+  (`packages/demos/antiky/combat-arena/src/combat/digest.ts:121-122`), so one demo has a
   previous-state buffer for one entity class already.
 
 **Verdict: WORK.** No ADR, no AIP.
@@ -460,7 +460,7 @@ project. The game host will not select, import, or call a renderer."* Its conseq
 `packages/website/src/components/DemoStage.tsx:91` reads `findDemo(slug)?.requiresWebGpu ?? true`
 and `:106` branches `if (requiresWebGpu && !('gpu' in navigator))`. The flag is website-owned
 metadata (`packages/website/src/lib/demos.ts:23`, values at `:69`–`:216`), and a test pins the
-branch shape (`packages/website/tests/demo-delivery.test.mjs:81`).
+branch shape (`packages/website/tests/demo/delivery.test.mjs:81`).
 
 ADR 0020 `:55` requires *"A delivery target will supply a game host when it operates a compiled game
 module"*, and `:73` calls the game module interface *"a compatibility boundary"* — but no accepted

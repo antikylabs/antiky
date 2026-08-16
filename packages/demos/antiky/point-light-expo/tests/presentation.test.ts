@@ -4,8 +4,8 @@ import test from 'node:test';
 import { createCamera } from 'brometal';
 import { EXPO_LIGHT_DEFINITIONS } from '../src/lights.ts';
 import { RELAY_PRESENTATION } from '../src/presentation.ts';
-import { RELAY_SHRINE_PROFILES } from '../src/reliquary-model-layout.ts';
-import * as renderProfile from '../src/render-profile.ts';
+import { RELAY_SHRINE_PROFILES } from '../src/reliquary/model-layout.ts';
+import * as renderProfile from '../src/render/profile.ts';
 import { createShadeGeometry } from '../src/shade-geometry.ts';
 import {
   ARENA_HALF_EXTENTS,
@@ -277,7 +277,7 @@ test('contact shadows are unlit, soft, and blended without writing depth', async
 });
 
 test('the contact shadow quad is flat, so alpha is not applied twice', async () => {
-  const { groundQuad } = await import('../src/render-batches.ts');
+  const { groundQuad } = await import('../src/render/batches.ts');
   const geometry = groundQuad();
   for (let index = 1; index < geometry.positions.length; index += 3) {
     assert.equal(geometry.positions[index], 0, 'every shadow vertex must sit on the ground plane');
@@ -295,7 +295,7 @@ test('contact shadows have their own batch rather than sharing the lit orb slots
 
 test('every visual batch that gets drawn also gets its instance data uploaded', async () => {
   const { readFile } = await import('node:fs/promises');
-  const visuals = await readFile(new URL('../src/relay-visuals.ts', import.meta.url), 'utf8');
+  const visuals = await readFile(new URL('../src/relay/visuals.ts', import.meta.url), 'utf8');
   const renderer = await readFile(new URL('../src/renderer.ts', import.meta.url), 'utf8');
 
   // This guards a real regression that shipped: the contact-shadow batch was added, written to and

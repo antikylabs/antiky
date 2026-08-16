@@ -302,7 +302,7 @@ export default shader({
     // light arrives is a perturbed normal nobody can see.
     //
     // The nine coefficients come from a real sky, baked offline by
-    // `packages/demos/scripts/bake-sh9-irradiance.mjs`. Nine multiply-adds, no texture fetch.
+    // `packages/demos/scripts/bake/sh9-irradiance.mjs`. Nine multiply-adds, no texture fetch.
     //
     // What the bake decides and what it does not: it decides *direction* — which way is brighter,
     // and what colour the sky is against the ground bounce. It does not decide overall level. The

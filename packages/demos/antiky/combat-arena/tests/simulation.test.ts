@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { combatDigest } from '../src/combat-digest.ts';
-import { updateEnemyBehavior } from '../src/combat-ai.ts';
-import { updateCombatProjectiles } from '../src/combat-projectiles.ts';
-import { BLADE_EDGE_ALLOWANCE, PLAYER_HURT_RADIUS } from '../src/combat-hulls.ts';
-import { createCombatStatePools } from '../src/combat-state.ts';
+import { combatDigest } from '../src/combat/digest.ts';
+import { updateEnemyBehavior } from '../src/combat/ai.ts';
+import { updateCombatProjectiles } from '../src/combat/projectiles.ts';
+import { BLADE_EDGE_ALLOWANCE, PLAYER_HURT_RADIUS } from '../src/combat/hulls.ts';
+import { createCombatStatePools } from '../src/combat/state.ts';
 import { SHIP_FOOTPRINTS } from '../src/ship-footprints.gen.ts';
 import {
   createCombatSimulation,

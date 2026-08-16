@@ -30,6 +30,35 @@ test('test files live in a tests directory', async () => {
   assert.deepEqual(violations, []);
 });
 
+test('package domains use hierarchy instead of repeated filename prefixes', async () => {
+  const tracked = await git(['ls-files', 'packages']);
+  const prefixGroups = new Map();
+
+  for (const file of tracked.split('\n')) {
+    if (file.includes('/.agents/')) continue;
+    if (file.includes('.shader.')) continue;
+    if (file.includes('.gen.')) continue;
+
+    const extension = path.extname(file);
+    if (!['.ts', '.tsx', '.mjs'].includes(extension)) continue;
+
+    const stem = path.basename(file, extension).replace(/\.(?:test|spec)$/, '');
+    const separator = stem.indexOf('-');
+    if (separator < 0) continue;
+
+    const key = `${path.dirname(file)}/${stem.slice(0, separator)}`;
+    const group = prefixGroups.get(key) ?? [];
+    group.push(file);
+    prefixGroups.set(key, group);
+  }
+
+  const violations = Array.from(prefixGroups.values())
+    .filter((files) => files.length > 1)
+    .flat()
+    .sort();
+  assert.deepEqual(violations, []);
+});
+
 test('repository-level scripts stay within the owned allowlist', async () => {
   const tracked = await git(['ls-files', 'scripts']);
   assert.deepEqual(tracked.split('\n'), [

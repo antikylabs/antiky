@@ -36,17 +36,17 @@ import {
   createTownPropGeometry,
   uploadTownAwningBatch,
   uploadTownPropBatch,
-} from './art/town-dynamic-props.ts';
+} from './art/town/dynamic-props.ts';
 import {
   bindTownFoliageGeometry,
   buildTownFoliageRenderData,
   uploadTownFoliageInstances,
   type TownFoliageGeometry,
   type TownFoliageInstances,
-} from './art/town-foliage.ts';
+} from './art/town/foliage.ts';
 import { TOWN_SKY } from './ambient.ts';
 import { DETAIL_NORMAL_TEXTURE } from './detail-normal.ts';
-import { buildTownWaterFeatures } from './art/town-water-features.ts';
+import { buildTownWaterFeatures } from './art/town/water-features.ts';
 import {
   SpriteBatch,
   billboardBasis,

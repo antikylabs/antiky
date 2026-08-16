@@ -130,7 +130,7 @@ Source-level assertions that encode the exact defects this audit found, so they 
 - Within a single demo, all shaders declaring a sun/key direction agree on it, and all shaders
   declaring fog ranges agree on them. (Combat Arena currently violates both.)
 - Every `*.shader.ts` has a corresponding up-to-date `*.shader.gen.ts` — the repo already checks
-  shader output parity at `packages/demos/tests/shader-output-parity.test.mjs`; extend rather
+  shader output parity at `packages/demos/tests/shader/output-parity.test.mjs`; extend rather
   than duplicate it.
 
 ---

@@ -19,7 +19,7 @@ is a smooth analytic falloff. What they lack is *variation*, which is AC-V4's su
 
 ## The billboard texture is built and measured
 
-`packages/demos/scripts/build-vfx-billboard.mjs` generates `vfx-billboard-256.png` into the three
+`packages/demos/scripts/build/vfx-billboard.mjs` generates `vfx-billboard-256.png` into the three
 demos that have VFX. Measured: alpha reaches exactly 0 at the rim, max gradient **0.055** per pixel
 overall and **0.008** across the outer boundary, against AC-V1's ceiling of 0.10.
 

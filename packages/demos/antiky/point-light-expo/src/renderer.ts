@@ -13,20 +13,20 @@ import { createRelayFrameScratch, setCameraPosition } from './frame-scratch.ts';
 import { relayOnboardingOpacity } from './onboarding-cues.ts';
 import { createRelayOnboardingOverlay } from './onboarding.ts';
 import { RELAY_PRESENTATION } from './presentation.ts';
-import { populateRelayVisuals } from './relay-visuals.ts';
+import { populateRelayVisuals } from './relay/visuals.ts';
 import {
   createContactShadowBatch,
   createGlowBatch,
   createRingBatch,
   createSurfaceBatch,
-} from './render-batches.ts';
-import { RELAY_RENDER_PROFILE } from './render-profile.ts';
-import { setupReliquaryModels } from './reliquary-model-layout.ts';
+} from './render/batches.ts';
+import { RELAY_RENDER_PROFILE } from './render/profile.ts';
+import { setupReliquaryModels } from './reliquary/model-layout.ts';
 import {
   createReliquaryModelBatch,
   createRockModelBatch,
   createStumpModelBatch,
-} from './reliquary-models.ts';
+} from './reliquary/models.ts';
 import { createShadeGeometry } from './shade-geometry.ts';
 import {
   NOTHING_OCCLUDING,

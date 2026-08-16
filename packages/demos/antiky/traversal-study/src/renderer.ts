@@ -22,7 +22,7 @@ import {
   platformTop,
 } from './course.ts';
 import { hashUnit } from '@antiky/framework';
-import { groundTopAt } from './course-query.ts';
+import { groundTopAt } from './course/query.ts';
 import {
   GROUND_QUAD,
   createCatalogBatch,
@@ -32,7 +32,7 @@ import {
   writeVec3,
   type CatalogProgram,
   type Vec3,
-} from './course-batches.ts';
+} from './course/batches.ts';
 import {
   backgroundCompositionAt,
 } from './environment.ts';
@@ -44,9 +44,9 @@ import {
 } from '@antiky/framework';
 import { summarizeTraversalMeasurements } from './measurements.ts';
 import { COURSE_SKY } from './ambient.ts';
-import { loadKitMaterialMaps } from './kit-material-maps.ts';
+import { loadKitMaterialMaps } from './kit/material-maps.ts';
 import { createHudBatch } from './traversal-hud.ts';
-import { createKitMaterialLookup } from './kit-materials.ts';
+import { createKitMaterialLookup } from './kit/materials.ts';
 import { createLightingRamp } from './lighting-ramp.ts';
 import { loadVfxBillboard } from './vfx-billboard.ts';
 import { loadDetailNormal } from './detail-normal.ts';

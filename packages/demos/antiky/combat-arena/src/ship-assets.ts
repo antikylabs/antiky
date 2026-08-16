@@ -9,12 +9,12 @@ import {
   type Renderer,
 } from 'brometal';
 
-import { COMBAT_PALETTE, enemyVisualProfile } from './combat-visuals.ts';
+import { COMBAT_PALETTE, enemyVisualProfile } from './combat/visuals.ts';
 import {
   ENEMY_HULL_CONTRACTS,
   PLAYER_HULL_CONTRACT,
-} from './combat-hulls.ts';
-import type { CombatSnapshot } from './combat-state.ts';
+} from './combat/hulls.ts';
+import type { CombatSnapshot } from './combat/state.ts';
 import type { Vec3 } from './render-batches.ts';
 import { loadDetailNormal } from './detail-normal.ts';
 import { createDisposalScope } from '@antiky/framework';

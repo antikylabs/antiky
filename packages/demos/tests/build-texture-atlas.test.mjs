@@ -14,7 +14,7 @@ import {
   measureBorderError,
   pixelRects,
   sourceTileRect,
-} from '../scripts/build-texture-atlas.mjs';
+} from '../scripts/build/texture-atlas.mjs';
 
 /**
  * The slicer, checked on an atlas built to make bleeding obvious.

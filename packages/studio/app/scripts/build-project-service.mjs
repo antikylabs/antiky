@@ -7,7 +7,7 @@ import { build } from 'vite';
 const appDirectory = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = resolve(appDirectory, '../../..');
 const outputDirectory = resolve(repositoryRoot, 'packages/studio/tauri/resources');
-const entry = resolve(repositoryRoot, 'packages/cli/src/studio-worker.ts');
+const entry = resolve(repositoryRoot, 'packages/cli/src/studio/worker.ts');
 
 await mkdir(outputDirectory, { recursive: true });
 await build({
