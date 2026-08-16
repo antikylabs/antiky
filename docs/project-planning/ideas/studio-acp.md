@@ -1,8 +1,8 @@
 # An agent panel in Studio through ACP
 
-**Recorded:** 2026-08-16  
+**Recorded:** 2026-08-16
 **Status:** researched and plausible; prove one local-agent vertical slice before making it a Studio
-objective.  
+objective.
 **Origin:** use the Agent Client Protocol already supported by Zed and coding-agent adapters instead
 of creating an Antiky-specific conversation protocol.
 
@@ -60,7 +60,8 @@ This is no longer a protocol that Antiky would have to pioneer:
   stdio, and process integration. It powers Zed's external-agent support.
 - The official [`@agentclientprotocol/sdk` TypeScript
   package](https://agentclientprotocol.com/libraries/typescript) implements the same roles with
-  typed handlers. Both official SDKs reached 1.0 in June 2026.
+  typed handlers. [Both official SDKs reached
+  1.0](https://agentclientprotocol.com/announcements/sdk-1-0-releases) in June 2026.
 - The [ACP Registry](https://agentclientprotocol.com/get-started/registry) publishes installation
   metadata for authenticated agents. Its current catalog includes adapters or native support for
   Codex, Claude Agent, Gemini CLI, OpenCode, Copilot, Cursor, and others.
@@ -115,18 +116,19 @@ The first implementation should negotiate and run ACP v1. ACP v2 was published a
 by default in production. The SDK must own versioned protocol types so a later v2 path does not leak
 conditionals through the React panel.
 
-One v2 change reinforces the proposed boundary: v2 removes ACP's client filesystem and command
-execution methods and directs agents toward client-provided MCP servers for client-side tools. Do
-not build Studio implementations of v1 `fs/*` or `terminal/*` for the first slice. Agents can use
-their own coding tools, while Antiky operations remain behind Antiky MCP. Studio should initially
-advertise only capabilities it genuinely implements.
+One v2 change reinforces the proposed boundary: [v2 removes ACP's client filesystem and command
+execution methods](https://agentclientprotocol.com/protocol/v2/migration) and directs agents toward
+client-provided MCP servers for client-side tools. Do not build Studio implementations of v1
+`fs/*` or `terminal/*` for the first slice. Agents can use their own coding tools, while Antiky
+operations remain behind Antiky MCP. Studio should initially advertise only capabilities it
+genuinely implements.
 
 ## The smallest useful slice
 
 The first slice should support one user-configured, already installed agent, one connection, and one
 active session for the open project:
 
-1. The user selects an agent command, arguments, and an explicit environment allowlist.
+1. The user selects an agent command, arguments, and optional explicit environment overrides.
 2. The native host starts the agent over newline-delimited stdio, captures stderr separately, and
    performs ACP initialization and capability negotiation.
 3. Studio creates a session with the project directory and an Antiky MCP server configuration.
@@ -165,10 +167,11 @@ Keep three authorities visibly separate:
 | Whether the agent may execute arbitrary local commands or edit project files directly | The selected agent's own sandbox and permission model |
 
 The native host should resolve an explicit executable rather than invoke a shell, pass arguments as
-an array, start in the open project directory, use a minimal environment allowlist, cap protocol and
-stderr messages, reject incompatible messages, and kill the child on failed initialization or
-project close. Provider credentials remain agent-owned; Studio must not copy them into project
-files, ACP logs, MCP logs, or React state.
+an array, start in the open project directory, apply a documented and sanitized baseline
+environment plus explicit overrides, cap protocol and stderr messages, reject incompatible
+messages, and kill the child on failed initialization or project close. Provider credentials remain
+agent-owned. Studio should prefer the agent's native authentication and must not persist or surface
+credentials in project files, ACP logs, MCP logs, or React state.
 
 Registry support is a later supply-chain feature, not part of protocol support. A curated manifest
 can describe where an agent comes from and how to run it, but Studio still needs an explicit policy
