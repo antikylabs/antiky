@@ -3,18 +3,24 @@
 ```mermaid
 mindmap
   root((Antiky))
+
+
     Skills
       Game Dev
         General
         BroMetal
         Framework
       Game bible
+
+
     Assets
       Website resources page
         Game engines
       CC0 catalog
       Demo assets
       Shaders
+
+
     Demo work
       Refine existing demos
       Update website
@@ -29,6 +35,8 @@ mindmap
         Pokemon-style clone
         Minecraft-style clone
         Serene game
+
+
     Framework
       Sprite flipbook
       ECS
@@ -38,6 +46,8 @@ mindmap
         Flipbook speed
         Movement speed
         Additional properties TBD
+
+
     Studio
       Asset browser
       Mini-apps
@@ -53,3 +63,55 @@ mindmap
         Screenshot and tag
         Select asset or section
 ```
+
+## Glossary
+
+- `2D platformer`:
+- `2D top-down dungeon`:
+- `Add 2D demos`:
+- `Additional properties TBD`:
+- `Antiky`:
+- `Asset browser`:
+- `Assets`:
+- `BroMetal`:
+- `CC0 catalog`:
+- `Click to select asset`:
+- `Clip item`:
+- `Demo assets`:
+- `Demo work`:
+- `ECS`:
+- `Feedback system`:
+- `Fix project page`:
+- `Flipbook speed`:
+- `Framework`:
+- `Framework page`:
+- `Game Dev`:
+- `Game bible`:
+- `Game engines`:
+- `General`:
+- `Global illumination`:
+- `Gym system`:
+- `Improve BroMetal demos`:
+- `Integrate asset catalog`:
+- `Minecraft-style clone`:
+- `Mini-apps`:
+- `Model viewer`:
+- `Movement speed`:
+- `New demos`:
+- `Pokemon-style clone`:
+- `Port Three.js examples`:
+- `Project page`:
+- `Property system`:
+- `Refine existing demos`:
+- `Screenshot and tag`:
+- `Select asset or section`:
+- `Serene game`:
+- `Shaders`:
+- `Skills`:
+- `Sprite flipbook`:
+- `Sprite properties`:
+- `Studio`:
+- `Update website`:
+- `User-facing docs`:
+- `Voxel tool`:
+- `Website resources page`:
