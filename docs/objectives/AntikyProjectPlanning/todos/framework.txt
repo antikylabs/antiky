@@ -1,10 +1,7 @@
-# Framework
-
-- [ ] Add a first-class sprite flipbook.
-- [ ] Add entity-component-system support.
-- [ ] Add global illumination.
-- [ ] Support selecting an asset by clicking it.
-- [ ] Add sprite properties.
-  - [ ] Add flipbook speed.
-  - [ ] Add movement speed.
-  - [ ] Decide which additional sprite properties are needed.
+add a first-class sprite flipbook
+add entity-component-system support
+add global illumination
+support selecting an asset by clicking it
+sprite properties - add flipbook speed
+sprite properties - add movement speed
+sprite properties - decide which additional properties are needed

@@ -1,14 +1,11 @@
-# Demo work
-
-- [ ] Refine the existing demos.
-- [ ] Update the website framework page for the demos.
-- [ ] Add user-facing demo documentation to the website.
-- [ ] Port suitable Three.js examples.
-- [ ] Add 2D demos.
-- [ ] Improve the BroMetal demos.
-- [ ] Create new showcase demos:
-  - [ ] 2D platformer.
-  - [ ] 2D top-down dungeon.
-  - [ ] Pokemon-style clone.
-  - [ ] Minecraft-style clone.
-  - [ ] A serene game.
+refine the existing demos
+website - update the framework page for the demos
+website - add user-facing demo documentation
+port suitable Three.js examples
+add 2D demos
+improve the BroMetal demos
+new demos - create a 2D platformer
+new demos - create a 2D top-down dungeon
+new demos - create a Pokemon-style clone
+new demos - create a Minecraft-style clone
+new demos - create a serene game
