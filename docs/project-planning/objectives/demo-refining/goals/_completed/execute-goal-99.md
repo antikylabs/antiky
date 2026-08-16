@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- [Goals 00 through 15](_completed/) are complete. This goal needs their summaries because those
+- [Goals 00 through 15](./) are complete. This goal needs their summaries because those
   results replace the assumptions in the original register.
 - Goal 99 remains the final goal in this objective. If this goal identifies implementation that must
   stay in this objective, create a new numbered goal from 16 through 98 and complete it before Goal
@@ -110,16 +110,16 @@ These rows describe current work. Goal 99 decides and routes them. It does not i
 
 | IDs | Final disposition and evidence |
 |---|---|
-| A3, G5 | **Closed.** Goal 12 moved `point-light-expo` and `antiky-town` onto `BroMetalRenderDriver`, including the required 2.3D evidence. See [`summary-goal-12.md`](_completed/summary-goal-12.md). |
+| A3, G5 | **Closed.** Goal 12 moved `point-light-expo` and `antiky-town` onto `BroMetalRenderDriver`, including the required 2.3D evidence. See [`summary-goal-12.md`](summary-goal-12.md). |
 | A6, M1, M9, M14 | **Closed as a general budget dispute.** The owner-approved town floor is 7.5 and is green. The one remaining demo-specific decision is M12. |
-| A7 | **Withdrawn.** Goal 04 showed that the Quaternius courier uses authored palette/material colour; the asset pipeline did not destroy a rich character texture. See [`summary-goal-04.md`](_completed/summary-goal-04.md). |
-| A12 | **Closed.** Goal 06-04 measured peter-panning at 0.47 px and bounded frame-time impact. See [`summary-goal-06-04.md`](_completed/summary-goal-06-04.md). |
-| A15 | **Closed.** `sourceDigest` includes shared demo scripts by design; no build-output bug exists. See [`summary-goal-06-05.md`](_completed/summary-goal-06-05.md). |
+| A7 | **Withdrawn.** Goal 04 showed that the Quaternius courier uses authored palette/material colour; the asset pipeline did not destroy a rich character texture. See [`summary-goal-04.md`](summary-goal-04.md). |
+| A12 | **Closed.** Goal 06-04 measured peter-panning at 0.47 px and bounded frame-time impact. See [`summary-goal-06-04.md`](summary-goal-06-04.md). |
+| A15 | **Closed.** `sourceDigest` includes shared demo scripts by design; no build-output bug exists. See [`summary-goal-06-05.md`](summary-goal-06-05.md). |
 | M5 | **Closed.** The town's separate foliage sun was measured and retained because unifying it damaged the canopy. |
 | M7 | **Withdrawn as work; retained as a finding.** A metric moving in the preferred direction does not prove a visual improvement. |
 | M8 | **Withdrawn.** The proposed 3x normal-map target was not calibrated and the completed material work did not validate it. |
 | M10 | **Closed.** Test discovery was widened and the retired `town-study` colour defects no longer represent active work. |
-| U4 | **Closed.** Goals 14 and 15 reduced the atlas boundary measurement to zero. See [`summary-goal-14.md`](_completed/summary-goal-14.md) and [`summary-goal-15.md`](_completed/summary-goal-15.md). |
+| U4 | **Closed.** Goals 14 and 15 reduced the atlas boundary measurement to zero. See [`summary-goal-14.md`](summary-goal-14.md) and [`summary-goal-15.md`](summary-goal-15.md). |
 | R2 | **Closed.** Studio ADR 0007 now points readers to ADR 0021 for the framework-plus-BroMetal case. |
 | R3 | **Closed at `Emerging`.** Two of four Antiky demos use the driver. The public claim is accurate and must not move to `Current` without broader evidence. |
 | R4 | **Closed as the Goal 09 umbrella.** Its five questions were disposed. The surviving parallax detail is dormant N2, and the shared scope bug is active G4. |

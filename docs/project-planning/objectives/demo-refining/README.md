@@ -10,6 +10,18 @@ written while it was excluded, so they say otherwise — the goal files in `goal
 on scope. antiky-town gets the same treatment as the other demos, plus a facelift of its foliage
 (grass and trees) and water effects, which the owner has called out specifically.
 
+**Phase update (2026-08-16): the original remediation work and Goal 99 register are complete.**
+Four bounded follow-ons remain:
+
+- [Goal 16](goals/execute-goal-16.md) — BroMetal update, patches, upstream pull requests, and
+  retirement.
+- [Goal 17](goals/execute-goal-17.md) — ADR reconciliation and owner decision proposals.
+- [Goal 18](goals/execute-goal-18.md) — one observation for every completed fixed step.
+- [Goal 19](goals/execute-goal-19.md) — deterministic capture controls and live inspection tests.
+
+The [Goal 99 summary](goals/_completed/summary-goal-99.md) is the durable disposition of every old
+register ID. Do not use the older audit tables as a current backlog.
+
 ## Read in this order
 
 | Document | What it is |

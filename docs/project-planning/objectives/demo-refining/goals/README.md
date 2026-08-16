@@ -30,10 +30,9 @@ Run them with `/goal` in order. Where goals are parallel-safe, this document say
 3. Repoint any links to the moved file. Later goals reference earlier ones in their Prerequisites,
    so a move breaks links: `grep -rn "execute-goal-<num>"` and fix every hit.
 4. Mark the row Done in the sequence table below.
-5. **If the goal deferred anything, add a row to [`execute-goal-99.md`](execute-goal-99.md)** with
-   its trigger. A row costs a line; a forgotten deferral costs a rewrite. Goal 99 runs last and is
-   numbered 99 so new goals can be 14, 15, … without ever renumbering the one that must stay at
-   the end.
+5. **If Goals 16 through 19 defer anything, put it in that goal's summary with one observable
+   trigger and one durable location.** Goal 99 closed the historical register on 2026-08-16. Do not
+   reopen it or create a second miscellaneous register.
 
 `_completed/` keeps each completed goal beside its summary so that the contract and result remain
 together.
@@ -66,12 +65,16 @@ together.
 | **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything |
 | **14** | [Give Antiky a way to build and check texture atlases](_completed/execute-goal-14.md) | **Done** `bf2bd41` — [summary](_completed/summary-goal-14.md) | 04 | everything except 15 |
 | **15** | [Give BroMetal the texture capabilities WebGPU already has](_completed/execute-goal-15.md) | **Done** `01d856c` — [summary](_completed/summary-goal-15.md) | 14 | everything except 14 |
-| **99** | [Close the revisit register and route the remaining work](execute-goal-99.md) | Ready — all implementation goals are complete | all | — |
+| **16** | [Update BroMetal and close every local patch loop](execute-goal-16.md) | Ready after owner authorizes four upstream pull requests | 15, 99 | 17, 18 |
+| **17** | [Reconcile the architecture record and prepare owner decisions](execute-goal-17.md) | Ready — proposal work needs no prior owner decision | 99 | 16, 18 |
+| **18** | [Expose every completed simulation step to observers](execute-goal-18.md) | Ready | 99 | 16, 17 |
+| **19** | [Make demo inspection deterministic and keep its assertions live](execute-goal-19.md) | Waits for 18 and the BroMetal/sidecar file lock | 16, 18, 99 | 17 |
+| **99** | [Close the revisit register and route the remaining work](_completed/execute-goal-99.md) | **Done** — [summary](_completed/summary-goal-99.md); routed all current work into Goals 16–19 | 00–15 | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up:** execute Goal 99. Goals 00 through 15 are complete. Goal 99 reconciles their remaining
-owner decisions and routes current follow-up work without hiding it inside a miscellaneous final
-implementation pass.
+**Next up:** Goals 16, 17, and 18 can start independently after their stated input checks. Goal 19
+waits for Goal 18 and must not race Goal 16 on BroMetal, demo packages, or committed sidecars.
+Goal 99 is complete; its summary is the durable disposition of the historical register.
 
 **Goal 09 changed what is known about `antiky-town`.** Its inventory
 ([`13-ANTIKY-TOWN-COMPLEXITY.md`](../13-ANTIKY-TOWN-COMPLEXITY.md)) is the first audit that demo has
