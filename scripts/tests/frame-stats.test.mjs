@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import sharp from 'sharp';
 
-import { isUniformFrame, readFrameStats, readSequenceStats } from './frame-stats.mjs';
+import { isUniformFrame, readFrameStats, readSequenceStats } from '../frame-stats.mjs';
 
 /**
  * These tests need no GPU and no demo. They run against synthetic images with known

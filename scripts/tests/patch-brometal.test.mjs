@@ -9,7 +9,7 @@ import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 const execute = promisify(execFile);
-const repositoryRoot = path.resolve(import.meta.dirname, '..');
+const repositoryRoot = path.resolve(import.meta.dirname, '../..');
 const patchScript = path.join(repositoryRoot, 'scripts', 'patch-brometal.mjs');
 const EXPECTED_VERSION = '0.17.2';
 
@@ -385,7 +385,7 @@ test('a moved patch target is an error, never a silent no-op', async (t) => {
 test('every patch module on disk is registered in the runner', async () => {
   // A modular split introduces a failure mode a single file could not have: a patch that exists,
   // reads correctly, and is never applied because nobody imported it.
-  const { PATCHES } = await import('./patch-brometal.mjs');
+  const { PATCHES } = await import('../patch-brometal.mjs');
   const directory = path.join(repositoryRoot, 'scripts', 'patch-brometal');
   const onDisk = (await readdir(directory))
     .filter((entry) => entry.endsWith('.mjs'))

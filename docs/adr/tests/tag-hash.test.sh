@@ -3,7 +3,7 @@
 set -eu
 
 script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
-tag_hash="$script_dir/tag-hash.sh"
+tag_hash="$script_dir/../tag-hash.sh"
 test_dir=$(mktemp -d "${TMPDIR:-/tmp}/antiky-tag-hash.XXXXXX")
 adr_file="$test_dir/test-adr.md"
 

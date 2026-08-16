@@ -6,7 +6,7 @@ import test from 'node:test';
 import { promisify } from 'node:util';
 
 const execute = promisify(execFile);
-const repositoryRoot = path.resolve(import.meta.dirname, '..');
+const repositoryRoot = path.resolve(import.meta.dirname, '../..');
 
 async function git(args) {
   const { stdout } = await execute('git', args, { cwd: repositoryRoot });
@@ -21,16 +21,22 @@ test('objective run evidence is never tracked', async () => {
   assert.deepEqual(violations, []);
 });
 
+test('test files live in a tests directory', async () => {
+  const tracked = await git(['ls-files']);
+  const testFiles = tracked.split('\n').filter((file) => (
+    /(?:^|\/)[^/]+\.(?:test|spec)\.[^.]+$/.test(file)
+  ));
+  const violations = testFiles.filter((file) => !file.split('/').includes('tests'));
+  assert.deepEqual(violations, []);
+});
+
 test('repository-level scripts stay within the owned allowlist', async () => {
   const tracked = await git(['ls-files', 'scripts']);
   assert.deepEqual(tracked.split('\n'), [
     'scripts/dev.mjs',
     'scripts/frame-stats.mjs',
-    'scripts/frame-stats.test.mjs',
     'scripts/motion-stats.mjs',
-    'scripts/motion-stats.test.mjs',
     'scripts/patch-brometal.mjs',
-    'scripts/patch-brometal.test.mjs',
     'scripts/patch-brometal/attribute-buffer-defects.mjs',
     'scripts/patch-brometal/discard.mjs',
     'scripts/patch-brometal/offscreen-multisampling.mjs',
@@ -39,10 +45,13 @@ test('repository-level scripts stay within the owned allowlist', async () => {
     'scripts/patch-brometal/sampler-lod-clamp.mjs',
     'scripts/patch-brometal/texture-array-sampler.mjs',
     'scripts/port-release.mjs',
-    'scripts/port-release.test.mjs',
-    'scripts/repository-policy.test.mjs',
     'scripts/shoot-demos.mjs',
-    'scripts/shoot-demos.test.mjs',
+    'scripts/tests/frame-stats.test.mjs',
+    'scripts/tests/motion-stats.test.mjs',
+    'scripts/tests/patch-brometal.test.mjs',
+    'scripts/tests/port-release.test.mjs',
+    'scripts/tests/repository-policy.test.mjs',
+    'scripts/tests/shoot-demos.test.mjs',
   ]);
 });
 

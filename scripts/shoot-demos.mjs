@@ -300,7 +300,7 @@ export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, sou
  *
  * It cannot be made into one here, and the reason is worth stating rather than papering over.
  * Closing it would mean committing the captured frame so a budget could recompute its own numbers,
- * and `scripts/repository-policy.test.mjs` asserts that capture evidence is never tracked. So the
+ * and `scripts/tests/repository-policy.test.mjs` asserts that capture evidence is never tracked. So the
  * honest boundary is: the seal plus `source.digest` catch an edited measurement and a stale one.
  * Neither catches someone who captures legitimately, edits the number, and re-seals. If that
  * matters, the fix is a trusted capture step, not a longer hash.

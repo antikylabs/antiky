@@ -12,7 +12,7 @@ import {
   sparkline,
   spectralConcentration,
   strongestRepeat,
-} from './motion-stats.mjs';
+} from '../motion-stats.mjs';
 
 /**
  * Every case is a synthetic signal whose answer is known analytically. The instrument is verified

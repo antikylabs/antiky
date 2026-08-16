@@ -7,7 +7,7 @@ import path from 'node:path';
 import test from 'node:test';
 import sharp from 'sharp';
 
-import { readFrameStats } from './frame-stats.mjs';
+import { readFrameStats } from '../frame-stats.mjs';
 import {
   DEMOS,
   DEMO_PROBES,
@@ -17,11 +17,11 @@ import {
   resolveDemo,
   sealMetrics,
   sourceDigest,
-} from './shoot-demos.mjs';
+} from '../shoot-demos.mjs';
 
 /** These tests need no GPU, no browser, and no dev server. */
 
-const repositoryRoot = path.resolve(import.meta.dirname, '..');
+const repositoryRoot = path.resolve(import.meta.dirname, '../..');
 
 test('every registered demo manifest exists on disk', async () => {
   for (const [slug, manifest] of Object.entries(DEMOS)) {

@@ -7,7 +7,7 @@ import test from 'node:test';
 function runPortRelease(port) {
   const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   return spawnSync(npmCommand, ['run', 'portRelease', '--', port], {
-    cwd: fileURLToPath(new URL('../', import.meta.url)),
+    cwd: fileURLToPath(new URL('../../', import.meta.url)),
     encoding: 'utf8',
   });
 }
