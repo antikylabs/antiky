@@ -1,8 +1,8 @@
 # Demo Refining — Goal Sequence
 
 **Date:** 2026-08-10
-**Purpose:** this is the **contract**. The audit in `../` says what is wrong; these thirteen goals
-say what will actually get built. Review this file and the goal files before any code is written.
+**Purpose:** this is the **contract**. The audit in `../` says what is wrong; these goals say what
+will actually get built. Review this file and the goal files before any code is written.
 
 Run them with `/goal` in order. Where goals are parallel-safe, this document says so explicitly.
 
@@ -62,15 +62,16 @@ together.
 | **09** | [Remove scar tissue and within-demo divergence](_completed/execute-goal-09.md) | **Done** `19280ab` — [summary](_completed/summary-goal-09.md). Landed the [`antiky-town` complexity inventory](../13-ANTIKY-TOWN-COMPLEXITY.md). **Eight items with the owner**: the five reserved questions, plus town's pre-existing contrast floor, two never-run town test files, and a shared invariant whose scope argument is silently ignored | 06, 07 | 10, 11 |
 | **10** | [Fix how the work is presented](_completed/execute-goal-10.md) | **Done** `079c325` — [summary](_completed/summary-goal-10.md) | 01 | everything |
 | **11** | [Promote what has earned it into the framework](_completed/execute-goal-11.md) | **Done** `59d6664` — [summary](_completed/summary-goal-11.md). Six capabilities promoted, ~265 net lines out of the demos. **Three items with the owner** (a fourth, where the shared town code lives, was closed by retiring `town-study`): antiky-town's RNG grass shift, whether a paused session keeps painting, and the shared-test scope defect | 03, 06, 07 | 09, 10 |
-| **12** | [Extract the `BroMetalRenderDriver`](execute-goal-12.md) | **Partially complete — halted at its critical criterion** `8b6d485` — [summary](summary-goal-12.md). ADR verified, contract and driver built and tested, second driver proves portability, sprite test satisfies 0004, [backlog](../15-DRIVER-BACKLOG.md) checked. **No demo runs on it yet**, which the goal names as the acceptance criterion | 06, 07, 11 | 10 |
+| **12** | [Extract the `BroMetalRenderDriver`](_completed/execute-goal-12.md) | **Done** `4d02e97` — [summary](_completed/summary-goal-12.md). `point-light-expo` and `antiky-town` render through it, giving both 3D and 2.3D evidence. | 06, 07, 11 | 10 |
 | **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything |
-| **14** | [Give Antiky a way to build and check texture atlases](execute-goal-14.md) | Not started | 04 | everything except 15 |
-| **15** | [Give BroMetal the texture capabilities WebGPU already has](execute-goal-15.md) | Not started | 14 | everything except 14 |
-| **99** | [The revisit register — check what we deliberately deferred](execute-goal-99.md) | Not started | all | — |
+| **14** | [Give Antiky a way to build and check texture atlases](_completed/execute-goal-14.md) | **Done** `bf2bd41` — [summary](_completed/summary-goal-14.md) | 04 | everything except 15 |
+| **15** | [Give BroMetal the texture capabilities WebGPU already has](_completed/execute-goal-15.md) | **Done** `01d856c` — [summary](_completed/summary-goal-15.md) | 14 | everything except 14 |
+| **99** | [Close the revisit register and route the remaining work](execute-goal-99.md) | Ready — all implementation goals are complete | all | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up:** finish 12 — the driver exists and is tested; a demo has to actually run on it. 00–11 and 13 are done — 07, 08, 09 and 11 each carry owner items,
-listed first in their summaries, none blocking the next goal.
+**Next up:** execute Goal 99. Goals 00 through 15 are complete. Goal 99 reconciles their remaining
+owner decisions and routes current follow-up work without hiding it inside a miscellaneous final
+implementation pass.
 
 **Goal 09 changed what is known about `antiky-town`.** Its inventory
 ([`13-ANTIKY-TOWN-COMPLEXITY.md`](../13-ANTIKY-TOWN-COMPLEXITY.md)) is the first audit that demo has

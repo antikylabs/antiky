@@ -1,149 +1,201 @@
-# Execute goal 99: the revisit register — check the things we deliberately deferred
+# Execute goal 99: close the revisit register and route the remaining work
 
 ## Prerequisites
 
-- Every other goal in this sequence is in `_completed/`. This one runs **last**, on purpose.
-- Numbered `99` rather than `14` so new goals can be added as `14`, `15`, … without ever
-  renumbering the one that has to stay at the end.
+- [Goals 00 through 15](_completed/) are complete. This goal needs their summaries because those
+  results replace the assumptions in the original register.
+- Goal 99 remains the final goal in this objective. If this goal identifies implementation that must
+  stay in this objective, create a new numbered goal from 16 through 98 and complete it before Goal
+  99. Do not put that implementation into this closeout goal.
+- No other work may edit this file or `goals/README.md` at the same time. These two files are the
+  owned-file lock for this goal.
+
+### Needed from the owner before starting
+
+| # | What | Why it needs you |
+|---|---|---|
+| 1 | Choose whether `traversal-study` must change its composition to meet its current value targets, or whether its targets must be re-derived for an open-horizon side-scroller. | This is an art-direction decision. An agent must not change either the approved frame or a visual budget to get a green test. |
+| 2 | Choose whether the material-tone-map invariant applies only to Antiky demos, or whether the three framework-free BroMetal showcases must gain post-processing. | This decides whether U5 is a test-scope defect or product work. The current showcase fence is deliberate. |
+| 3 | Decide whether `antiky-town` can change its meadow layout when its remaining sine hash moves to the framework hash. | The code change moves authored grass patches and invalidates the current distribution baseline. |
+| 4 | Decide whether `antiky-town` must present a frame while its session is paused, stepped, or faulted. | The shared frame driver presents these frames, but the town's test enforces the old `ADVANCED`-only behaviour. |
+| 5 | Decide whether concave ambient occlusion and fountain particles remain desired art work. | The convex-rock bake has poor value, while the remaining concave and fountain work is optional visual scope. |
+| 6 | Authorise the two missing BroMetal pull requests and decide whether any general capability from closed PR #2 deserves a new focused pull request. | Opening pull requests changes external state. ADR 0021 requires one focused pull request for every local patch. |
+| 7 | Give an explicit instruction before any edit to accepted ADR 0021. | The STE audit found real issues, but `docs/adr/AGENTS.md` forbids an agent from rewriting an accepted `_H` ADR only for conformance. |
 
 ## `/goal` objective
 
-Revisit every decision this objective deliberately deferred, and either close it or record why it
-stays open.
+Close the historical register without turning it into a miscellaneous implementation goal. Verify
+each prior deferral against the completed work, preserve its final disposition, and give every item
+that is still current a durable home.
 
-**This goal is a register, not a plan.** It exists because a long objective accumulates choices
-that were correct at the time and are worth re-examining once everything has landed — a staging
-location, an unvalidated threshold, a patch waiting on someone else's merge. Left implicit, those
-quietly become permanent. Written down with a trigger, they get a decision.
+This goal applies the measurement critique in
+`docs/objectives/scratch/demo-refining/12-VISUAL-METRICS-CRITIQUE.md:32-63`, the deterministic
+capture protocol in `docs/objectives/scratch/demo-refining/07-TESTING-WITH-ANTIKY-MCP.md:137-152`,
+the upstream contribution rule in `docs/objectives/scratch/demo-refining/06-WORK-PACKETS.md:138-171`,
+the town work order in
+`docs/objectives/scratch/demo-refining/13-ANTIKY-TOWN-COMPLEXITY.md:458-476`, and the visual work
+and harness split in `docs/objectives/scratch/demo-refining/03-ART-DIRECTION-AND-VFX.md:936-994`.
 
-**Add to it as you go.** Any goal that defers something should append a row rather than trusting
-that someone will remember. A row costs a line; a forgotten deferral costs a rewrite.
+The register below is the verified starting point from the 2026-08-16 audit. Recheck facts that can
+change, such as package versions and pull-request states. Do not repeat investigations whose
+evidence is immutable in a completed goal summary.
 
 ## Required outcome
 
-When the work is complete, every row in the register below has one of three dispositions recorded
-against it:
+When the work is complete, the repository must have:
 
-1. **Closed** — done, with the commit;
-2. **Still open, deliberately** — with a restated trigger and where it now lives;
-3. **Withdrawn** — the idea was wrong, with the finding recorded rather than the row deleted.
+1. `_completed/summary-goal-99.md`, with a final disposition and evidence for every original ID
+   from A1 through G6 and every new N item below;
+2. an owner decision recorded for each item in the owner table, without an agent choosing art
+   direction, external publication, or accepted-record changes by implication;
+3. a durable home for every applicable-now item: a new goal contract, a named active objective, or
+   an explicit withdrawal approved by the owner;
+4. every dormant item recorded with one observable trigger and one durable location;
+5. `goals/README.md` showing goals 00 through 15 complete and Goal 99 as the only closeout goal;
+6. the current test, visual-verification, dependency, pull-request, ADR-audit, and link states in the
+   summary; and
+7. Goal 99 and its summary moved together into `_completed/` only after no active item depends on
+   this file as its sole record.
 
-No row may be silently dropped. A register that shrinks without explanation is worse than none.
+No original ID may disappear. A combined disposition is permitted only when the summary names every
+ID in that group.
 
-## The register
+## Applicable now — route before closeout
 
-### Architecture and placement
+These rows describe current work. Goal 99 decides and routes them. It does not implement them.
 
-| # | Item | Why deferred | Trigger to revisit |
-|---|---|---|---|
-| A1 | **Promote `frame-stats.mjs` and `motion-stats.mjs` from `scripts/` into the CLI inspection library.** They are pure functions staged in the wrong place on purpose. | The headline metric was already replaced once (`luminanceSpread` → `localContrastMedian`); promoting an unproven measurement behind an MCP tool would have versioned a mistake. | A second consumer outside this repository, an agent needing them through MCP (`get_motion_report`), or the budgets surviving goals 06–07 without another threshold rewrite. Detail in [`../../../ideas/executable-requirement-contracts.md`](../../../ideas/executable-requirement-contracts.md). Check `packages/cli/tests/development-import-boundary.test.mjs` first — `sharp` is a native module. |
-| A2 | **Executable requirement contracts.** Binding an owner's stated intent to a test an agent must satisfy. | One hand-written contract kind is not a pattern. `GOOD_ENGINEERING_H.md` on premature abstraction. | Three hand-written contract kinds exist — visual budget, motion assertion, simulation invariant — and they converge on a shape. |
-| A4 | **A per-step hook on `EngineSession`.** `advance` runs its whole batch of fixed steps with no way to observe each one, so three demos can only interpolate exactly when a frame ran exactly one step. `antiky-town`'s character motor shows the correct form. | Goal 03 needed it and worked around it; the framework is goal 11's tree, not goal 03's. | Goal 11. Detail in [`_completed/summary-goal-03.md`](_completed/summary-goal-03.md). |
-| A5 | **A shared sun/fog uniform per demo.** BroMetal's MVP cannot read a module-level constant from a shader body, so goal 03 used agreed literals guarded by `pipeline-invariants.test.mjs`. | Three lines of duplication against machinery for a runtime-varying sun nobody asked for. | The first demo that wants a sun that changes at runtime - a day cycle, a lighting transition. Also a candidate upstream BroMetal request. |
-| A6 | `antiky-town`'s local-contrast floor sits inside the capture noise — 8.50/8.50/8.46 on identical code against a 8.5 floor | When `demos:shoot` steps a paused simulation, or when the owner adjusts the floor | goal 05 |
-| A7 | `courier.glb` and its Quaternius siblings are reduced to 91-byte textures by goal 04's pipeline | Before any further material work on `traversal-study`'s characters | goal 05 |
-| A8 | `rock-boulder-dry` is installed and receipted for `antiky-town` but unused — its effect was inside the noise floor | When the capture instrument can resolve better than 0.05 local contrast | goal 05 || S3 | **The skill-library implementation plan** in `../../skill-research/`. | A parallel track, not a dependency of this objective. | Its own schedule. |
-| A9 | **`demos:shoot` never pins the simulation.** It fences on build and runtime revision, then waits `warmUpFrames` — it never calls `pause_simulation` / `step_simulation`, which goal 06's own capture protocol specifies. About 2.2% of point-light-expo's frame moves between two captures of identical code, so no before/after comparison can attribute a change to an animated object. | Fixing it re-shoots every demo and rewrites every committed sidecar, which is a repository-wide change of evidence, and goal 06-03 was scoped to one demo. Whole-frame comparisons remain sound without it. | **Goal 06-04**, which wants per-object evidence for a shadow map. Row A6 is the same defect seen from `antiky-town`'s side and closes with this one. Numbers in [`_completed/summary-goal-06-03.md`](_completed/summary-goal-06-03.md). |
-| A10 | **`point-light-expo/src/renderer.ts` is at 446 lines and still growing.** 06-04 adds a shadow pass and 06-06 a bloom chain. | `GOOD_ENGINEERING_H.md` wants a cohesion review at 500 and decomposition by 800, and splitting mid-goal would have broken 06-02's invariance comparison. | When it crosses 500, which 06-04 is likely to do. Split by responsibility, not to satisfy the count. |
-| A11 | **BroMetal's `mat4.perspective` emits OpenGL clip depth.** `m[10] = (far + near) / (near - far)` puts the near plane at `z = -w`, but WebGPU clips at `0 <= z <= w`, so the near half of every frustum built with it is discarded before it is drawn. `createCamera` uses it, so this is every demo. | Invisible at near 0.1 / far 1000 — depth crosses zero at 0.2 world units. It cost goal 06-04's shadow frustum **27%**, and was fixed inside that demo because the goal was scoped to one demo. | An upstream BroMetal patch, in the shape of `scripts/patch-brometal/`. The correct terms are `m[10] = far / (near - far)` and `m[14] = far * near / (near - far)`; the working version and its regression test are in `point-light-expo/src/sun.ts` and `tests/sun.test.ts`. Until then every BroMetal camera spends half its depth range on clipped geometry. |
-| A12 | **CLOSED — goal 06-04's two missing measurements were taken.** Peter-panning measures **0.47 px** against a 4 px bar, and frame time shows no measurable increase. | The first peter-panning metric was invalid: halving the bias moved it not at all. It was replaced with an aggregate one — boundary shift equals area change over perimeter, at two known biases — which needs no pixel-scale conversion and does respond. | Closed. The lesson is the row: **vary the cause and check the number responds** before trusting a measurement. Frame time is bounded rather than resolved, because the runtime is capped at the display refresh; that limit is stated in [`summary-goal-06-04.md`](_completed/summary-goal-06-04.md). |
-| A13 | **The rock models have no ambient occlusion, and the bake that would give them some is written but not wired.** `rock-moss`'s material image is one greyscale channel replicated across RGB — roughness, with no occlusion in it — so the shader gives those rocks `occlusion = 1`. | Adding the vertex attribute blanked the scene. Two causes were checked and eliminated (vertex counts match; BroMetal does support a single-float vertex attribute). It was reverted rather than debugged further because the baked rock measures only **3.9% darker at p10** — a set of convex boulders has little to occlude — and a build step plus 11 KB of data for a 4% effect is a poor trade. | Any concave static asset, or a decision that the rocks' deepest crevices (45%) are worth it. The tool is at `packages/demos/scripts/bake-vertex-occlusion.mjs`, deterministic and tested against shapes whose answer is known by inspection. Detail in [`summary-goal-06-05.md`](_completed/summary-goal-06-05.md). **Goal 07 hit the same gap twice more:** neither `combat-arena` nor `traversal-study` gained a baked AO term, so W B.4's inside-corner probe — ≥ 15% darker than a flat surface of the same material — has nothing to measure in either. Both cleared the hemispheric half. `antiky-town` has AO already and needs none of this. |
-| A14 | **`edges.hard` is confounded by scene contrast.** Re-derived twice for the same reason — 0.0085 to 0.0095 in 06-04, 0.0095 to 0.0115 in 06-06 — because a brighter or more contrasty frame has more neighbouring pixels separated by a quarter of the range, whatever their edges are made of. | Both rises were separated by evidence rather than assumed, and the metric still catches what it was built for: losing multisampling moved it 0.0068 to 0.0103 with the scene otherwise identical. | Goal 07, which carries this pipeline to three more demos and will hit the same confound three more times. A contrast-invariant formulation — normalising each step by the local dynamic range — would stop the ceiling needing re-derivation per lighting change. |
-| A15 | **CLOSED — misdiagnosed. `sourceDigest` was working as designed.** It walks the shared `packages/demos/scripts` directory on purpose, because a change there can alter what every capture shows. Goal 06-05 added `bake-vertex-occlusion.mjs` to that directory, which correctly invalidated all ten demos' sidecars at once. | The symptom — three demos going stale with no tracked change of their own — looked like the digest hashing build output, and it was registered on that guess without reading the walk. | Closed. Two things worth keeping: the digest is **wider than one demo folder** by design, so any shared-script change means a re-shoot; and adding an unused build tool to that folder invalidates every capture, which is over-broad but is the safe direction to err in. If it becomes a nuisance, narrow the walk to scripts the demos actually import. |
-| A16 | **The fountain's spray is still solid jet geometry.** Goal 08 deferred the particle system (billboard droplets + mist at two lifetimes): at the fountain's ~40 px screen size the DOF softening and the water shaders' foam terms carry the read, and the build could not be closed honestly in the remaining goal budget. | The criterion (AC-V1 on the jet boundary, AC-V2 timing) is recorded as not attempted rather than half-done. | Goal 08's follow-up, or whichever goal next touches the town's VFX. The glow-batch pattern in any of the three smaller demos is the template. |
-| A3 | **`BroMetalRenderDriver` needs 2.3D evidence.** Goal 12 extracts it from 3D demos. | ADR 0004 gives 2D, 3D and 2.3D equal support; a driver promoted on 3D-only evidence runs against it. | Goal 12. `antiky-town` is the only 2.3D artifact and is now in scope, so this is closeable. |
+| IDs | Current evidence | Required route |
+|---|---|---|
+| A4 | `EngineSession.advance` still completes its fixed-step batch without a per-step observer. Three demos still document that limitation. | A framework goal for a per-step observation point, with tests for zero, one, and multiple completed steps. |
+| A9, M15 | `scripts/shoot-demos.mjs` does not pause or step the simulation. It also cannot suppress scene geometry or apply the fixed camera offsets required by four Goal 08 criteria. | One capture-determinism goal. It must own the harness, re-shoot affected sidecars, and prove that repeated fixed-step captures are comparable. |
+| A11 | BroMetal's published `mat4.perspective` still uses OpenGL clip-depth terms. `point-light-expo` carries the correct WebGPU form locally. | A focused BroMetal defect patch and upstream pull request, or evidence that the target release fixed it. |
+| A13 | The convex-rock bake is not worth its measured 3.9% p10 change. The unresolved part is concave AO in `combat-arena` and `traversal-study`. | Withdraw the convex-rock work. Route the two concave cases only if the owner keeps them in visual scope. |
+| A16 | The town fountain still uses solid spray geometry. Goal 08 recorded the unbuilt billboard-droplet and mist design. | A separate town-VFX goal if the owner keeps it; otherwise withdraw it explicitly. |
+| M12 | `traversal-study` still fails its model-formation, p05, and dominant-hue targets under its current framing. | An owner-selected art goal or a measurement-contract goal. Do not combine both approaches without a new before/after baseline. |
+| M13 | Frame-time, bloom-halo, vignette, and some shadow probes were not measured consistently across the carried render slice. | A bounded measurement follow-up after A9/M15 supplies deterministic controls. Name each missing probe; do not reopen all of Goal 08. |
+| M16 | `packages/demos/tests/material-invariants.test.mjs` is outside the normal test scripts and fails four of seven direct tests because discovery, TypeScript loading, and old expectations have drifted. | A test-surface goal that repairs and registers live assertions, or moves them into `pipeline-invariants` and deletes the obsolete file. |
+| U1 | BroMetal PRs #3 through #7 remain open. The Goal 15 patches `sampler-lod-clamp` and `texture-array-sampler` have no pull-request URL. | Keep open patches. With owner authorisation, open one focused PR for each Goal 15 contribution and record its retirement steps. |
+| U2 | BroMetal PR #2 is closed without merge. Its orthographic matrix, shader-language helpers, instance-count convenience, and sprite demos did not all move into focused PRs. | Triage each capability against ADR 0021. Upstream only general renderer capabilities or defect fixes; withdraw Antiky convenience work. |
+| U3 | The repository pins BroMetal 0.17.2. A newer published version existed at audit time. | Run the BroMetal `update` workflow against the latest version, recheck every patch target and PR, and retire only fixes present in that release. |
+| U5 | Three framework-free BroMetal demos still tone-map in material shaders, so the global invariant remains red. | Apply the owner's scope decision from owner item 2. Do not add framework dependencies to showcase demos as a test workaround. |
+| R1 | The automated STE audit of ADR 0021 reported 37 errors, 11 warnings, and 6 informational findings. Some are parser noise, but several vocabulary and sentence-length findings are real. | Preserve the audit result. Change the accepted ADR only after explicit owner instruction and the ADR revision workflow. |
+| G2 | `antiky-town` still has one sine-based positional hash. Replacing it moves 74 meadow patch centres. | A town-art goal after owner item 3, including a re-derived behavioural distribution test and a capture. |
+| G3 | The town still renders only for `ADVANCED`, while the shared frame-driver behaviour and three other demos present non-advanced frames. | A small behaviour goal after owner item 4, with a failing test written against the selected behaviour first. |
+| G4 | `demoSources(slug)` still ignores `slug`, while its caller passes one and scans the full demo set twice. | A small regression fix in the next goal that owns `packages/demos/tests/pipeline-invariants.test.mjs`. |
+| N1 | `packages/demos/antiky/antiky-town/src/town/index.ts` is approximately 1,244 lines. Goal 09 unblocked decomposition, and Goal 12 left it as follow-up debt. | A town-cohesion goal that first replaces source-text test fences with behavioural protection, then splits by scene configuration, pipeline construction, and frame submission. |
 
-### Measurement not yet validated
+## Dormant — preserve the trigger, do not open work now
 
-| # | Item | Why deferred | Trigger to revisit |
-|---|---|---|---|
-| M1 | **The visual budget thresholds are the agent's proposal, not the owner's art direction.** Local contrast floor of 8.5, clipping ceiling of 2%. | 8.5 is defensible — `antiky-town` already clears it — but it is not a stated look. | After goals 06–08. **If a demo lands a look the owner is happy with and its budget still fails, the budget is wrong.** Changed by the owner, never by the agent failing it. |
-| M5 | **CLOSED — `antiky-town`'s foliage sun is load-bearing.** The owner confirmed nobody authored it deliberately, so it was unified onto `SUN_COLOR` at 2.65 and captured. The canopy turned yellow: a strongly orange key clips green leaves' red channel first, changing 8.3% of the frame. `SUN_COLOR` at 1.05 avoids the clip but drains the greens. Reverted, with the measurement written beside the values. | — | Closed. The reported "horrid" trees are a geometry and texture problem (flat alpha cards), not a lighting one — that belongs to the foliage and art-direction goals. |
-| M10 | **`town-study` shipped with no sRGB decode at all**, sampling an atlas byte-identical to `antiky-town`'s while its twin decoded it. Found only when test discovery widened past the `antiky` category. Fixed, along with the same 563:1 camera goal 03 corrected in its twin. | The invariants defaulted to one of three demo categories, so 16 of 44 shipped shaders were checked by nothing. | Closed. The lesson is the row: **a default argument scoped the entire verification surface**, and nothing said so. |
-| M11 | **The visual-metrics seal stops carelessness, not intent.** Re-sealing an edited number is one call to an exported function. | Closing it needs a committed capture to recompute from, and `repository-policy.test.mjs` forbids tracking capture evidence. | Only if measurements ever need to be trustworthy against a motivated editor. The fix is a trusted capture step, not a longer hash. The boundary is written at `sealMetrics`. |
-| M9 | **`antiky-town` still misses the 8.5 local-contrast floor at 7.98 after its exposure was re-derived.** Reaching 8.67 needs exposure 1.8, which puts the median frame luminance 29% above what the scene was authored at. | Clearing the floor would mean over-brightening the town to satisfy a threshold the agent proposed. | This is M1. The owner decides whether 8.5 is the right floor for a golden-hour scene, or whether the town's look is right and the number is wrong. |
-| M8 | **The normal-map probe target of 3x is not calibrated.** Goal 04 measured 1.46x on lit rock with a 0.000 noise floor, flat across triplanar scales 0.55-9.0. | The implementation is correct and the number is not reachable in that scene; lowering it to pass would have been fitting the target to the result. | Whoever sets budgets for goals 06-08. Either the probe needs a surface where the normal dominates, or the threshold needs deriving from a measurement. |
-| M7 | **A metric can move the wrong way.** The yellow canopy measured *higher* local contrast (9.25 against 8.63) while looking clearly worse. | Found while testing M5, and again in goal 04: the sRGB decode cost `antiky-town` 1.4 of local contrast while visibly improving the frame. | Feeds M1: a budget number rising is not on its own evidence that a change helped. Look at the frame. |
-| M6 | **Glass Garden's poster master is 14.7% brighter than a fresh runtime capture**, against a 10% budget. Clipping is within budget on both by ~200x. | The scene animates, so two frames differ by design; closing it means recapturing a 2560x1440 master, which is a media task. | Any poster refresh. Numbers in `packages/demos/threejs/glass-garden/poster-parity.json`. |
-| M2 | **Budgets exist only for the four antiky demos.** The other six have committed metrics and no bounds. | They are not targeted against a reference look. | If any of the six gets a stated visual target. |
-| M3 | **Motion proposals P4–P7 not built** — contact sheets, presentation frame ring, `get_motion_report`, spatiotemporal slice. | Explicit non-goals of goal 13. `get_motion_report` is ranked last and only after P1–P5. | When P1–P3 have been used in anger and a specific gap is felt, not before. |
-| M12 | **The local-contrast floor is framing-dependent, and `traversal-study` cannot meet it: 0.1655 against 8.5.** The metric is the *median* over 32-pixel tiles and **64.4% of that frame is flat sky**, so the median tile is a sky tile by construction and reads near zero whatever the subject looks like. | It is M1's question — a threshold the agent proposed — and goal 07 forbids loosening a bound to make a packet pass. The packet's own measurements (bloom, grade, vignette, clipping) all pass. | **The owner picks one of two fixes**, and the choice is about what the metric should mean: take the median over tiles that *contain subject*, discarding those under a dynamic-range threshold, which makes it framing-independent for every demo; or give this demo its own floor from its own captures. Detail in [`summary-goal-07.md`](_completed/summary-goal-07.md). |
-| M13 | **Goal 07 applied its probe set unevenly. Three acceptance criteria were never measured in any of the three demos:** frame-time cost (≤ 40% over W B.2, and `antiky-town` at both shadow resolutions), the bloom halo (≥ 20% at 20 px with monotonic falloff), and the vignette's 10–25% corner falloff. Peter-panning was measured only in the reference. | Not deferred deliberately — found while closing the goal. The budget-level bounds these feed (`clippedHigh`, local contrast, edges) are green in `combat-arena` and `antiky-town`, so nothing is known to be wrong; it is unmeasured rather than failing. | Whichever goal next touches these demos' post chain — goal 08. Row **A12** already records that frame time is capped at display refresh, so the cost bound may need a different instrument before it can be resolved at all. |
-| M14 | **`antiky-town`'s 8.5 local-contrast floor collides with the owner-requested tilt-shift.** The DOF re-tune passes all five of its own criteria and drops median tile contrast to 7.79 — blur zones lower tile variance by construction. | M1/M9's question in its sharpest form: the look is the requested one, the number is the agent's old proposal. | The owner picks the frame or the floor. Until then the town budget's contrast test is deliberately red. |
-| M15 | **Four goal-08 criteria are unmeasurable by the current capture harness**: AC-V1's VFX-only capture (no scene suppression), AC-L7 and item 18's shimmer pair (no camera control), and the tree-translucency control (A9's unpinned simulation lets wind sway swamp the term). | Each is an instrument gap, not a failed look; construction-level evidence recorded in the goal 08 summary and briefs. | If A9's fix is built, grow it to cover a scene-toggle and a camera offset; each criterion becomes measurable the day its control exists. |
-| M16 | **`material-invariants.test.mjs` has rotted**: 4 of its 7 tests fail identically at the goal-07 close commit — its GLB-shader discovery finds 1 shader where it demands ≥4. Not in `npm test` or `demos:verify`, so nothing noticed. | Pre-existing; measured at `01aa3e9` in a clean worktree during goal 08's close. Its AC-V3 test still passes and is the copy that matters. | Re-derive the discovery rules against the post-goal-07 shader layout, or fold its live assertions into `pipeline-invariants` and retire the file. |
-| M4 | **The 30 fps sequence-capture cap is a hard Nyquist wall** above ~15 Hz. Judder is invisible to the capture path. | Judder is measured from the simulation instead, which P1 does. | Only if a defect appears that the simulation cannot see. Raising the cap is not obviously worth it. |
+| IDs | Present trigger and durable home |
+|---|---|
+| A1 | Revisit measurement-module promotion only when a second consumer exists, an MCP consumer needs it, or the metrics survive another target revision. Keep it in the objective archive and `docs/objectives/ideas/executable-requirement-contracts.md`. |
+| A2 | Revisit executable requirement contracts only when visual, motion, and simulation contracts all exist and converge on one shape. Two kinds are not enough evidence. |
+| A5 | Revisit shared sun/fog bindings when a demo varies them at runtime. Literal agreement remains the smaller design today. |
+| A8 | Revisit `rock-boulder-dry` when a new town-material pass can resolve its effect or directly needs that material. Do not touch the town only to consume an installed receipt. |
+| A10 | Revisit `point-light-expo/src/renderer.ts` when it crosses 500 lines or a cohesion problem appears. It is approximately 462 lines after its shadow-pass split. |
+| A14 | Revisit `edges.hard` when it produces a false result under a lighting-only change. Preserve its documented contrast confound until then. |
+| M2 | Add visual targets to the five remaining non-Antiky demos only when one receives a stated reference look. `town-study` is retired, so the old count of six is obsolete. |
+| M3 | Build another motion representation only when P1 through P3 leave a named diagnostic gap for a real consumer. |
+| M4 | Revisit the 30 fps sequence limit only for a pixel-only defect above its approximately 15 Hz Nyquist limit that simulation evidence cannot resolve. |
+| M6 | Revisit the 14.7% Glass Garden poster difference during the next poster-master refresh. |
+| M11 | Strengthen the visual-metrics seal only if the threat model expands from accidental edits to a motivated editor. |
+| S2 | Write a measurement-tooling skill only after traversal targets and missing probes are settled. Do not teach unstable contracts. |
+| S3 | The skill-library implementation plan stays in `docs/objectives/scratch/skill-research/` and follows its own schedule. |
+| G6 | Revisit the framework's BroMetal dependency if the framework is published or a headless consumer cannot accept the optional render-driver subpath. |
+| N2 | Revisit traversal's ignored `_cameraX` parallax input and unused shader uniforms when the next traversal camera or shader goal owns those files. |
+| N3 | Keep `texture-array-sampler.mjs` as one contribution even though it is approximately 714 lines. Revisit only if the upstream contribution itself splits; one patch module must still map to one pull request. |
+| N4 | Revisit Goal 15's hand-written layer URL list and test-only `atlasGridUniform` when the atlas layer set changes or a replacement validator exists. |
 
-### Upstream and dependencies
+## Resolved baseline — record, then take no new action
 
-| # | Item | Why deferred | Trigger to revisit |
-|---|---|---|---|
-| U1 | **Retire local patches as their PRs land.** [#3](https://github.com/ericdrowell/brometal/pull/3)–[#7](https://github.com/ericdrowell/brometal/pull/7). | Not ours to schedule. | Each merge or release. Every module in `scripts/patch-brometal/` names its PR and the three places to edit. |
-| U2 | **PR #2 will be closed** in favour of the focused PRs. | Owner's call, and it carries work the five PRs do not: `mat4.orthographic`, `Swizzles<C>`, component-wise intrinsics, `draw({ instanceCount })`, and four sprite demos. | When #2 closes, decide whether any of that unmerged work is worth its own PR. |
-| U4 | **Atlas tile bleeding, and the BroMetal capability behind it.** Measured at 25.3% of samples taken across a tile boundary in `antiky-town`'s material atlas. | Split on a rule: asset packing and measurement are Antiky ([goal 14](execute-goal-14.md)), array textures and mip clamping are BroMetal ([goal 15](execute-goal-15.md)). | Both goals. Close this row when the measurement reads zero rather than "under budget". |
-| U5 | **The three `brometal/` demos still tone-map in their materials**, so `pipeline-invariants`' one-tone-map assertion reports them on every run — `luminous-reef`, `shader-study`'s aurora, and their siblings. | Goals 06 and 07 scoped the render slice to the four antiky demos, and a demo that never gained a post pass has nowhere else to put its tone-map. | The first goal that gives those demos a post pass, or a decision that they are showcases rather than products and the assertion should scope itself to antiky. Until then the failure is expected and its expectedness is written nowhere but here. |
-| U3 | **BroMetal version guard is pinned to 0.17.2.** | A version bump is a separate reviewed change. | Any upgrade. All 19 patch targets must be re-checked; the last upgrade also silently changed dependency placement. |
-
-### Records
-
-| # | Item | Why deferred | Trigger to revisit |
-|---|---|---|---|
-| R1 | **ASD-STE100 Issue 9 audit of ADR 0021, and four flagged terms.** | `docs/adr/AGENTS.md` forbids an agent claiming compliance without reading the standard, which was not read. | Owner, with the standard. Blocks nothing. |
-| R2 | **`studio/0007` may want a clarification** pointing at 0021 for the framework-plus-BroMetal case. | Done — clarification added in goal 00. Kept here only to confirm it still reads correctly once a driver exists. | Goal 12. |
-| R3 | **`PRODUCT.md` and three website pages** described a `RenderDriver` that does not exist. Corrected to Direction. | Corrected in goal 00. | When the driver ships, they move from Direction to Current. |
-| R4 | **Five open questions in `04-COMPLEXITY-REDUCTION.md`** were left unanswered rather than guessed. | They need owner intent about ambience filler, tint variation, `markedScale` and `relayMarkerCounts`. | Goal 09. |
-
-### Skills and knowledge
-
-| # | Item | Why deferred | Trigger to revisit |
-|---|---|---|---|
-| S1 | **`docs/objectives/ideas/skill-text.md` → a real skill.** Patching a dependency and upstreaming the fix. | Written from doing it once, across five PRs. | Owner intends to turn it into a skill. Worth a second run first to see what generalises. |
-| S2 | **Skills teaching agents to use the measurement tooling** — `demos:shoot`, `frame-stats`, `motion-stats`, `demos:verify`, and how to read a budget failure. | The tooling is days old and one metric has already been replaced. A skill teaching a wrong measurement is worse than none. | After goals 06–08, when the budgets have survived a real render slice. See [`../../../ideas/agent-legible-quality-measurement.md`](../../../ideas/agent-legible-quality-measurement.md). |
-| ~~G1~~ | ~~**Where the shared town code lives.**~~ **Closed 2026-08-14** by the owner: `town-study` is retired and `antiky-town` is the town that ships, growing into the game framework over time. The duplication is gone because the duplicate is gone — 12,931 lines removed, including the drift guard, which had nothing left to guard. | — | — |
-| G2 | **`antiky-town`'s fifth RNG copy.** The other four now use the framework's integer hash; the town's `fract(sin(...))` at `town.ts:2322` remains. | Swapping it moves the 74 meadow patch centres, and the demo's own distribution test then reports the feather rings non-monotonic (0.060 → 0.151 → 0.107). The gate itself measures *better* — 0.2038 against an authored 0.2 — so the ring statistic is confounded by plaza-distance falloff, not broken. Re-deriving it is art direction. | The owner decides whether to re-derive the distribution test or accept a different meadow. |
-| G3 | **Whether a paused or faulted session keeps painting.** Three demos now present on a non-`ADVANCED` frame, as goal 11 required. `antiky-town` renders only on `ADVANCED`, and `composition.test.ts:19` asserts that. | The goal wants the new behaviour; the demo's test asserts the old one. Rewriting a demo's assertion is the signal goal 11 says to stop on. | The owner rules on it; then wire `antiky-town`'s host to `createSessionFrameDriver`. |
-| G4 | **`demoSources(slug)` ignores its argument.** `packages/demos/tests/pipeline-invariants.test.mjs:425` names two demos and scans all ten, twice. | One line, in a file neither goal 09 nor goal 11 owns. Found twice now. | Any goal that owns `packages/demos/tests/`. |
-| G5 | **No demo runs on the render driver.** The driver, its contract, a second driver and a sprite test all exist and pass; `point-light-expo` and `antiky-town` still hand-write BroMetal. | Goal 12's critical acceptance criterion. Stopped rather than half-move a demo, which the goal itself prefers. | Finish goal 12. `15-DRIVER-BACKLOG.md` states nothing blocks it but size. |
-| G6 | **`@antiky/framework` now depends on `brometal`.** The driver lives in the framework by owner decision, reachable only as `@antiky/framework/render-driver` and never from the barrel. | Recorded so a future headless-install question has an answer already written. | If the framework is ever published or installed somewhere a WebGPU library must not go. |
-
+| IDs | Final disposition and evidence |
+|---|---|
+| A3, G5 | **Closed.** Goal 12 moved `point-light-expo` and `antiky-town` onto `BroMetalRenderDriver`, including the required 2.3D evidence. See [`summary-goal-12.md`](_completed/summary-goal-12.md). |
+| A6, M1, M9, M14 | **Closed as a general budget dispute.** The owner-approved town floor is 7.5 and is green. The one remaining demo-specific decision is M12. |
+| A7 | **Withdrawn.** Goal 04 showed that the Quaternius courier uses authored palette/material colour; the asset pipeline did not destroy a rich character texture. See [`summary-goal-04.md`](_completed/summary-goal-04.md). |
+| A12 | **Closed.** Goal 06-04 measured peter-panning at 0.47 px and bounded frame-time impact. See [`summary-goal-06-04.md`](_completed/summary-goal-06-04.md). |
+| A15 | **Closed.** `sourceDigest` includes shared demo scripts by design; no build-output bug exists. See [`summary-goal-06-05.md`](_completed/summary-goal-06-05.md). |
+| M5 | **Closed.** The town's separate foliage sun was measured and retained because unifying it damaged the canopy. |
+| M7 | **Withdrawn as work; retained as a finding.** A metric moving in the preferred direction does not prove a visual improvement. |
+| M8 | **Withdrawn.** The proposed 3x normal-map target was not calibrated and the completed material work did not validate it. |
+| M10 | **Closed.** Test discovery was widened and the retired `town-study` colour defects no longer represent active work. |
+| U4 | **Closed.** Goals 14 and 15 reduced the atlas boundary measurement to zero. See [`summary-goal-14.md`](_completed/summary-goal-14.md) and [`summary-goal-15.md`](_completed/summary-goal-15.md). |
+| R2 | **Closed.** Studio ADR 0007 now points readers to ADR 0021 for the framework-plus-BroMetal case. |
+| R3 | **Closed at `Emerging`.** Two of four Antiky demos use the driver. The public claim is accurate and must not move to `Current` without broader evidence. |
+| R4 | **Closed as the Goal 09 umbrella.** Its five questions were disposed. The surviving parallax detail is dormant N2, and the shared scope bug is active G4. |
+| S1 | **Closed.** `.agents/skills/team-brometal/` now carries the patch, PR, update, and retirement workflow. |
+| G1 | **Closed.** The owner retired `town-study`; no shared-town-code placement decision remains. |
 
 ## In scope
 
-- Walk every row. For each, state the disposition and the evidence.
-- Where a row closes, do the work if it is small, or open a goal if it is not.
-- Where a row stays open, restate the trigger in present tense and say where it now lives, so this
-  file does not become the only thing holding it.
-- Add rows discovered while walking the register. Finding a deferral nobody recorded is a result.
+- **Reconcile the register.** Re-run only the evidence that can change. Compare every original ID and
+  N item with the tables above, then put its final disposition in `summary-goal-99.md`.
+- **Record owner decisions.** Put each answer beside the affected IDs. If an answer creates work,
+  use the objective workflow to give that work a goal contract derived from an existing plan source.
+- **Repair the objective index.** Keep `goals/README.md` accurate, point all completed-goal links
+  into `_completed/`, and remove claims that Goals 12, 14, or 15 remain unfinished.
+- **Route current work.** An active row can live in a new goal in this objective, a named separate
+  objective, or an owner-approved withdrawal. “Later” and “backlog” without a path are not homes.
+- **Preserve history.** Do not edit completed goal files or summaries. Cite them as evidence.
 
 ## Required tests and evidence
 
-- `npm test` green.
-- `npm run demos:verify` reports its state, and every remaining failure is explained — either it is
-  a target not yet reached, or it is a row in this register.
-- Every local patch still under `scripts/patch-brometal/` names an open, unmerged PR. A patch whose
-  PR merged is a defect this goal catches.
-- Every link in this file resolves.
+At minimum, prove:
+
+- `npm test` exits zero;
+- `npm run demos:verify` reports its exact state, and every failure maps to M12 or U5 unless a new
+  failure is investigated and routed;
+- `node --test packages/demos/tests/material-invariants.test.mjs` records the current M16 state;
+- each module in `scripts/patch-brometal/` has an open pull-request URL or is named explicitly as an
+  ADR 0021 violation in U1;
+- every BroMetal pull request in U1 and U2 has a freshly checked state, and the latest published
+  BroMetal version is recorded before U3 is routed;
+- the STE linter result for ADR 0021 is recorded separately from the human judgment required by
+  `docs/adr/AGENTS.md`;
+- every relative Markdown link in this file and `goals/README.md` resolves;
+- the final summary contains each of `A1` through `A16`, `M1` through `M16`, `U1` through `U5`,
+  `R1` through `R4`, `S1` through `S3`, `G1` through `G6`, and `N1` through `N4`; and
+- `git diff --check` reports no whitespace errors.
 
 ## Explicit non-goals
 
-- Do not use this goal to do deferred work that deserves its own goal. Deciding is the job here;
-  a row that needs a week of work becomes a new goal, not a task inside this one.
-- Do not delete a row to make the register look finished.
-- Do not change a visual budget threshold. That is M1, and it is the owner's.
-- Do not promote `frame-stats`/`motion-stats` on the strength of this goal alone. A1 has a trigger;
-  check whether it fired.
+- Do not implement any active row inside Goal 99. Cut a bounded goal or route it elsewhere.
+- Do not change visual targets, scene composition, RNG-authored layout, or paused-frame behaviour
+  without the corresponding owner decision.
+- Do not edit accepted ADR 0021 without explicit owner instruction and the ADR revision workflow.
+- Do not open, close, or comment on an upstream pull request without owner authorisation.
+- Do not upgrade BroMetal as an incidental part of the register audit. U3 requires the full update
+  workflow and its own reviewable commits.
+- Do not promote measurement code or write a measurement skill while A1, A2, and S2 remain dormant.
+- Do not reopen or rewrite a completed goal to make its original prediction match the result.
+- Do not modify code merely to make `demos:verify` or the direct M16 test green during this goal.
 
 ## Engineering constraints
 
-- Tests are required for code changes (`AGENTS.md`).
-- Short one-line commit messages. No coauthor tags.
+- This is a documentation-only goal. If code must change, stop and cut a separate goal with failing
+  tests first, as required by `AGENTS.md`.
+- Use the `team-brometal` workflow for U1 through U3. Do not weaken a patch guard or retire a patch
+  because a pull request is merged but unreleased.
+- Use the ADR workflow and the Simplified Technical English skill if the owner authorises R1 work.
+- Use short one-line commit messages and no coauthor tags.
 - Preserve unrelated dirty worktree changes.
-- If a row's trigger has not fired, leaving it open is the correct outcome, not a failure.
+- Keep one durable record per item. Do not copy an active item into several backlogs with different
+  triggers.
 
 ## Completion definition
 
-Complete when every row has a recorded disposition, any row that closed has its commit, any row
-still open has a restated trigger, and the summary lists what is genuinely left over for the owner.
+The goal is complete only when all owner decisions are recorded, every original and new register ID
+has evidence and a final disposition, every applicable item has a durable home, every dormant item
+has one observable trigger, the objective index and links are accurate, the required verification
+states are recorded, and Goal 99 plus its summary are together in `_completed/`.
 
-If walking the register turns up more work than it closes, that is a successful run of this goal.
-Say so plainly rather than presenting a tidy list.
+If an owner decision is missing, a current failure cannot be reproduced, an external action is not
+authorised, or an active item has no acceptable home, stop and report that exact blocker. Do not
+invent a decision or mark the register closed to make the objective look complete.
+
+## Amendment note
+
+Rewritten on 2026-08-16 after Goals 12, 14, and 15 completed. The earlier register mixed resolved
+history, dormant triggers, and current implementation work; it also contained stale links and one
+malformed A8/S3 row. This version preserves every original ID, adds the unregistered N items found
+in the completed summaries, and limits Goal 99 to closeout and routing.
