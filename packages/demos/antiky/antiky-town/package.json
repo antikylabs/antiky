@@ -9,7 +9,7 @@
     "shaders": "brometal dev --once",
     "shaders:watch": "brometal dev",
     "shaders:prod": "brometal prod",
-    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/atlas-layout.test.ts tests/composition.test.ts tests/point-light-adapter.test.ts tests/render-interpolation.test.ts tests/renderer-construction.test.ts src/town/physics/character-motor.test.ts src/town/camera-relative-movement.test.ts src/town/practical-light-input.test.ts && vitest run src/town/art/town-validation.test.ts src/town/art/town-grass-distribution.test.ts",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts tests/town/*.test.ts tests/town/physics/*.test.ts && vitest run tests/town/art/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

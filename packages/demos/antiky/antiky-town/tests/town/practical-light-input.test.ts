@@ -6,7 +6,7 @@ import {
   commitTownSlotZeroPower,
   readTownSlotZeroPower,
   type TownSlotZeroPowerSource,
-} from './practical-light-input.ts';
+} from '../../src/town/practical-light-input.ts';
 
 test('a valid slot-zero replacement commits only after its frame succeeds', () => {
   const calls: string[] = [];

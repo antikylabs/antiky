@@ -12,7 +12,7 @@ import {
   type CharacterMotorConfig,
   type CharacterWorldAdapter,
   type GroundSurface,
-} from './character-motor.ts';
+} from '../../../src/town/physics/character-motor.ts';
 
 const TEST_CONFIG: Partial<CharacterMotorConfig> = {
   fixedDeltaSeconds: 1 / 60,

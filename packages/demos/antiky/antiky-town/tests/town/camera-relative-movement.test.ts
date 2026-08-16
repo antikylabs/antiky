@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { cameraRelativeMovement, type PlanarMovement } from './camera-relative-movement.ts';
+import { cameraRelativeMovement, type PlanarMovement } from '../../src/town/camera-relative-movement.ts';
 
 /** The interactive camera's offset from the hero, desktop and mobile. */
 const DESKTOP: readonly [number, number] = [20, 20];

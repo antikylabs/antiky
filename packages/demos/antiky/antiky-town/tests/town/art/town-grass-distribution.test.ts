@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 
-import { TOWN_TREE_PLACEMENTS, TOWN_TREE_SPECIES, VOXEL_SIZE, buildTownWorld, townGroundKindAt, townGroundHeightAt } from './town.ts';
+import { TOWN_TREE_PLACEMENTS, TOWN_TREE_SPECIES, VOXEL_SIZE, buildTownWorld, townGroundKindAt, townGroundHeightAt } from '../../../src/town/art/town.ts';
 
 /**
  * Goal 08's grass placement contract, measured over the generated instance list — no rendering.
