@@ -1,5 +1,5 @@
-website - break the resources page down by resource type
-website - add a game engines section to the resources page
++website - break the resources page down by resource type
++website - add a game engines section to the resources page
 continue the CC0 asset catalog
 add demo assets to the catalog
 add shader assets to the catalog
