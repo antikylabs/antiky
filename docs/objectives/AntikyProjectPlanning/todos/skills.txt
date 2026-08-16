@@ -1,0 +1,7 @@
+# Skills
+
+- [ ] Create Grove development skills.
+  - [ ] General development.
+  - [ ] BroMetal development.
+  - [ ] Framework development.
+- [ ] Create a game bible skill.

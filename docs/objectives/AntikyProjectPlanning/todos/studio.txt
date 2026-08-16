@@ -1,0 +1,14 @@
+# Studio
+
+- [ ] Add an asset browser.
+- [ ] Add mini-apps:
+  - [ ] Property system.
+  - [ ] Model viewer.
+  - [ ] Gym system.
+  - [ ] Voxel tool.
+- [ ] Fix the project page.
+- [ ] Integrate the project page with the asset catalog.
+- [ ] Add a feedback system:
+  - [ ] Clip an item.
+  - [ ] Capture a screenshot and tag it.
+  - [ ] Select an asset or section.

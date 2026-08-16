@@ -1,0 +1,7 @@
+# Assets
+
+- [ ] Break the website resources page down by resource type.
+  - [ ] Add a game engines section.
+- [ ] Continue the CC0 asset catalog.
+- [ ] Add demo assets to the catalog.
+- [ ] Add shader assets to the catalog.
