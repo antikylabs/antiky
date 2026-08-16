@@ -99,7 +99,7 @@ mindmap
 - `Movement speed`: A sprite or character property that controls how quickly it moves through the game world.
 - `New demos`: New runnable game slices that exercise planned Antiky features and present them at a useful quality bar.
 - `Pokemon-style clone`: A small top-down creature-adventure demo used to prove exploration, interaction, encounters, and sprite-based game systems without copying protected content.
-- `Port Three.js examples`: Rebuild suitable Three.js examples as Antiky or BroMetal demos to compare boundaries and prove equivalent capabilities.
+- `Port Three.js examples`: Find existing threejs examples and implement here so they can be opened in studio to show threejs compatibility with antiky studio and a .antiky project.
 - `Project page`: Studio's entry experience for creating, opening, and returning to Antiky projects.
 - `Property system`: A schema-backed way for Studio to inspect and edit entity, component, or asset properties through Framework commands.
 - `Refine existing demos`: Improve the current demos' presentation, usability, code quality, and value as evidence without replacing their intended technical boundaries.

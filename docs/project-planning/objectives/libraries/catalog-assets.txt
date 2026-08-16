@@ -1,3 +1,5 @@
+# List of repos / sites with assets that are sourced and their license.
+
 # Assets in this list are verified cc0 and handpicked.
 
 # Quality 0
