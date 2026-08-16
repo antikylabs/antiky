@@ -17,7 +17,7 @@ by the owner and completed — see *After the goal closed* below. No bug found h
 | Artifact | Change |
 |---|---|
 | `scripts/patch-brometal.mjs` | Two new patch sections, plus a rewrite of install discovery |
-| `scripts/patch-brometal.test.mjs` | New. Idempotency, version guard, moved-target guard, all-copies-patched |
+| `scripts/tests/patch-brometal.test.mjs` | New. Idempotency, version guard, moved-target guard, all-copies-patched |
 | `packages/demos/*/*/package.json` (8) | BroMetal `0.15.0` → `0.17.2` |
 | `packages/demos/tests/shader-output-parity.test.mjs` | Version contract updated to `0.17.2` |
 | `packages/demos/antiky/*/visual-metrics.json` | Re-captured twice — after the patches, and after the upgrade |

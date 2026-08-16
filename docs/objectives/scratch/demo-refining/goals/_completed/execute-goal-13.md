@@ -32,7 +32,7 @@ When the work is complete, the repository must have:
 1. `scripts/motion-stats.mjs` implementing the P1 surface from research §8: `deltas`, `holds`,
    `autocorrelation`, `spectrum`, `spectralConcentration`, `dominantFrequency`, `onsetShape`,
    `crossCorrelation`, `dutyCycle` and `sparkline` — pure, GPU-free, with no new dependency;
-2. `scripts/motion-stats.test.mjs` verifying each function against synthetic signals whose answers
+2. `scripts/tests/motion-stats.test.mjs` verifying each function against synthetic signals whose answers
    are known analytically, not against a demo;
 3. a **regression test that fails on the current `combat-arena` camera and passes after goal 03's
    fix**, asserting the three properties the owner reported: the frame translates rather than
@@ -123,7 +123,7 @@ the camera regression before any fix.
 - Tests are required for code changes (`AGENTS.md`). When fixing a reported bug, write the failing
   regression test first.
 - Adding files under `scripts/` requires updating **both** allowlists in
-  `scripts/repository-policy.test.mjs` and the root `test` script in `package.json`, in the same
+  `scripts/tests/repository-policy.test.mjs` and the root `test` script in `package.json`, in the same
   commit, or the suite goes red.
 - Use short one-line commit messages. Never add coauthor tags.
 - Capture PNGs are not committed. `.antiky/` is gitignored and `*.png` is tracked by Git LFS. The

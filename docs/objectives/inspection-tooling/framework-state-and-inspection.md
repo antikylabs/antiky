@@ -85,17 +85,17 @@ MCP, Studio, tests, and CLI project those services. BroMetal consumes render sta
 - **Verified:** systems run synchronously in declared order. A system or digest exception faults the
   session permanently and publishes only a stable fault source/system ID, not the thrown message
   ([`runtime.ts`](../../../packages/framework/src/sessions/engine-session/runtime.ts#L236),
-  [`engine-session.test.ts`](../../../packages/framework/src/sessions/engine-session/engine-session.test.ts#L434)).
+  [`engine-session.test.ts`](../../../packages/framework/tests/sessions/engine-session/engine-session.test.ts#L434)).
 - **Verified:** pause reasons are independent (`user`, `tool`, `visibility`). A paused single step
   requires the caller's expected completed-step count; a retry is rejected as
   `STALE_COMPLETED_STEP` and one accepted step requests one render
   ([`runtime.ts`](../../../packages/framework/src/sessions/engine-session/runtime.ts#L348),
-  [`engine-session.test.ts`](../../../packages/framework/src/sessions/engine-session/engine-session.test.ts#L153)).
+  [`engine-session.test.ts`](../../../packages/framework/tests/sessions/engine-session/engine-session.test.ts#L153)).
 - **Verified limitation:** systems mutate caller-owned closure state directly. If a system mutates
   state and then throws, that failed step does not increment `completedStepCount`, but the framework
   has no rollback mechanism for the mutation. Earlier systems or earlier steps in the same frame may
   also have committed. The failure test deliberately observes the mutation
-  ([`engine-session.test.ts`](../../../packages/framework/src/sessions/engine-session/engine-session.test.ts#L434)).
+  ([`engine-session.test.ts`](../../../packages/framework/tests/sessions/engine-session/engine-session.test.ts#L434)).
   Therefore a completed-step counter is not currently an atomic state-commit proof.
 - **Verified limitation:** the session exposes only the latest completed step. There is no input
   history, seed/random source, environment capture, checkpoint, rewind, replay, branch, or
@@ -172,7 +172,7 @@ MCP, Studio, tests, and CLI project those services. BroMetal consumes render sta
   and bounded JSON data. Entity revisions are non-negative integers; component type IDs are unique
   per retained entity. Output ordering is stable and deeply frozen
   ([`world.ts`](../../../packages/framework/src/inspection/world.ts#L210),
-  [`world.test.ts`](../../../packages/framework/src/inspection/world.test.ts#L93)).
+  [`world.test.ts`](../../../packages/framework/tests/inspection/world.test.ts#L93)).
 - **Verified:** `ChildOf` is the only relationship variant. Both endpoints must be present in the
   retained entity view, a child may have one parent, and cycles are rejected
   ([`world.ts`](../../../packages/framework/src/inspection/world.ts#L245),
@@ -248,7 +248,7 @@ MCP, Studio, tests, and CLI project those services. BroMetal consumes render sta
   ([`runtime.ts`](../../../packages/framework/src/sessions/engine-session/runtime.ts#L216)).
 - **Verified:** tests prove equal callbacks, inputs, and elapsed-frame sequence produce equal current
   demo step records/digests in one JS environment
-  ([`engine-session.test.ts`](../../../packages/framework/src/sessions/engine-session/engine-session.test.ts#L219)).
+  ([`engine-session.test.ts`](../../../packages/framework/tests/sessions/engine-session/engine-session.test.ts#L219)).
 - **Verified limitation:** the framework does not define digest algorithm, canonical bytes, included
   state, build/schema version, per-subsystem digests, or cross-platform promise. Combat and Traversal
   round a handful of fields and omit most state from their digest

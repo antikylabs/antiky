@@ -67,7 +67,7 @@ and its implementation in
 - explicit accepted and discarded elapsed time rather than hidden catch-up behavior.
 
 The focused
-[`engine-session.test.ts`](../../../packages/framework/src/sessions/engine-session/engine-session.test.ts)
+[`engine-session.test.ts`](../../../packages/framework/tests/sessions/engine-session/engine-session.test.ts)
 tests fixed-clock boundaries, long-frame discard, pause/resume/single-step, equal input/digest results,
 immutable input and system order, command sequencing, reentrancy, cleanup, counter bounds, and
 terminal fault behavior.
@@ -89,7 +89,7 @@ evidence receipts.
 
 **Current but narrow:** point-light commands demonstrate one complete authoring -> runtime -> render
 -> event -> inspection -> correction/replay path. The
-[`command-flow.test.ts`](../../../packages/framework/src/point-light/command-flow.test.ts) suite proves
+[`command-flow.test.ts`](../../../packages/framework/tests/point-light/command-flow.test.ts) suite proves
 idempotency, optimistic revision behavior, render acknowledgement, bounded history, correction, and
 ordered fact replay. That does not constitute whole-game input replay, checkpoint restoration, or a
 general save system.

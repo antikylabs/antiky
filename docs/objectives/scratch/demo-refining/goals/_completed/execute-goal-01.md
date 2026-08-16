@@ -53,13 +53,13 @@ When the work is complete, the repository must have:
   A managed cold start already has its own launch budget at
   `packages/cli/src/host/managed-capture-runtime.ts:385`. Separate the two, and keep a genuinely
   hung capture failing rather than hanging forever.
-- **W0.1b — get `npm test` green.** Owns `scripts/repository-policy.test.mjs`. The `skills/`
-  directory was deleted in commit `1062bd4` while `scripts/repository-policy.test.mjs:64-66` still
+- **W0.1b — get `npm test` green.** Owns `scripts/tests/repository-policy.test.mjs`. The `skills/`
+  directory was deleted in commit `1062bd4` while `scripts/tests/repository-policy.test.mjs:64-66` still
   calls `readdir` on it, so that test fails `ENOENT`. Verified: 4 pass, 1 fails. Land this before
   any other test in this goal, otherwise nobody can separate their own breakage from the existing
   failure.
-- **W0.2 — `demos:shoot`.** Owns `scripts/shoot-demos.mjs`, `scripts/shoot-demos.test.mjs`, root
-  `package.json`, `scripts/repository-policy.test.mjs` allowlists, and `scripts/dev.mjs`. The script
+- **W0.2 — `demos:shoot`.** Owns `scripts/shoot-demos.mjs`, `scripts/tests/shoot-demos.test.mjs`, root
+  `package.json`, `scripts/tests/repository-policy.test.mjs` allowlists, and `scripts/dev.mjs`. The script
   **wraps the existing MCP, it does not replace it with Playwright.** The verified working sequence
   is `get_latest_build` → `get_runtime_status` → `get_capture_capabilities` → `capture_frame`, with
   a retry on `CAPTURE_BUILD_STALE`, `CAPTURE_RUNTIME_STALE` and `CAPTURE_DIMENSIONS_MISMATCH`. The
@@ -69,14 +69,14 @@ When the work is complete, the repository must have:
   demos share `127.0.0.1:3010` and `:3011`. `target` must equal the manifest viewport (1280×720 for
   these demos) and `deviceScaleFactor` must be `1` — 1280×720 at scale factor 2 is rejected with
   `CAPTURE_DIMENSIONS_MISMATCH` even though it sits inside the reported limits.
-  `scripts/repository-policy.test.mjs:24-33` asserts an exact allowlist of tracked files under
+  `scripts/tests/repository-policy.test.mjs:24-33` asserts an exact allowlist of tracked files under
   `scripts/`, and `:35-54` asserts an exact list of root script keys, so both must change in the
   same commit as the new script or the suite goes red. The root `test` script at
   `package.json:27` enumerates test files by name, so every new `.test.mjs` must be added there too.
   `scripts/dev.mjs:11-20` is missing `combat-arena` and `traversal-study` from `demoProjects`; add
   both, pointing at `packages/demos/antiky/combat-arena/combat-arena.antiky` and
   `packages/demos/antiky/traversal-study/traversal-study.antiky`.
-- **W0.2b — frame statistics.** Owns `scripts/frame-stats.mjs` and `scripts/frame-stats.test.mjs`.
+- **W0.2b — frame statistics.** Owns `scripts/frame-stats.mjs` and `scripts/tests/frame-stats.test.mjs`.
   Compute from a PNG: mean luminance, the 5th, 50th and 95th luminance percentiles, the fraction of
   pixels clipped at 0 and at 1, mean saturation, and the value of a named probe rectangle. Luminance
   is `0.2126R + 0.7152G + 0.0722B` on linearised channels. Probe rectangles are addressed by name
@@ -152,7 +152,7 @@ At minimum, prove:
   committed artifact is the `visual-metrics.json` sidecar.
 - Preserve unrelated dirty worktree changes.
 - W0.1b lands first and alone. W0.2 and W0.2b own disjoint files and may run in parallel. W0.2 and
-  goal 02 both edit `scripts/repository-policy.test.mjs` and root `package.json`, so those two goals
+  goal 02 both edit `scripts/tests/repository-policy.test.mjs` and root `package.json`, so those two goals
   must not run their commits concurrently.
 - Keep each new script under 500 lines (`docs/GOOD_ENGINEERING_H.md`). Prefer one deterministic
   script plus fixture-driven unit tests over a plugin framework.

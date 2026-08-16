@@ -27,7 +27,7 @@ The strategy is based on current source boundaries, not only on the research sum
 | Planning claim | Current source evidence |
 | --- | --- |
 | Pointer input has click and drag but no wheel intent, and `pointerdown` does not take its own coordinate sample. | `packages/framework/src/game/contract.ts:20-29`; `packages/cli/src/host/game-server.ts:419-438`. |
-| Narrow copied demo contracts make a host-input addition a compatibility and test concern. | `packages/framework/src/game/contract.ts:9-17`; `packages/framework/src/game/contract.test.ts:100-151`. |
+| Narrow copied demo contracts make a host-input addition a compatibility and test concern. | `packages/framework/src/game/contract.ts:9-17`; `packages/framework/tests/game/contract.test.ts:100-151`. |
 | The base render driver is synchronous and BroMetal target state is private to its driver. | `packages/framework/src/render/render-contract.ts:140-153`; `packages/framework/src/render/brometal-driver.ts:130-137,274-305`. |
 | BroMetal `0.17.2` targets have no public read method. | `packages/framework/package.json:22-24`; `node_modules/brometal/dist/runtime/render-target.d.ts:42-50`. |
 | The semantic snapshot already crosses the host and CLI boundary. | `packages/cli/src/host/game-server.ts:144-177,343-371`; `packages/cli/src/development/types.ts:46-99`; `packages/cli/src/development/browser-client.ts:221-249`. |

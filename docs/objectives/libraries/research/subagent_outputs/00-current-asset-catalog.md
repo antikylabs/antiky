@@ -140,7 +140,7 @@ All 212 Kenney descriptions match the same count-and-license template. The title
 
 ### 5. Taxonomy exists, but some values are not usable search concepts
 
-**Established.** Tests require at least three tags per record (`packages/asset-catalog/src/catalog.test.ts:74-79`), and text search covers name, description, creator, provider, tags, and categories (`packages/asset-catalog/src/index.ts:82-100`).
+**Established.** Tests require at least three tags per record (`packages/asset-catalog/tests/catalog.test.ts:74-79`), and text search covers name, description, creator, provider, tags, and categories (`packages/asset-catalog/src/index.ts:82-100`).
 
 However, 59 of 82 Quaternius records have at least one tag or category value longer than 50 characters. Examples include:
 

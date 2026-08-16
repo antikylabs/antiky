@@ -81,7 +81,7 @@ double-counted through correlated metrics. Each of the 8 is now a distinct claim
 | `scripts/frame-stats.mjs` + test | Local contrast in CIE L\*, luminance percentiles, blown/crushed fractions, luminance-weighted saturation, named probes. GPU-free, 13 tests. |
 | `scripts/shoot-demos.mjs` + test | Drives the capture MCP, serially, with the fence-retry sequence. |
 | `scripts/dev.mjs` | `combat-arena` and `traversal-study` added; they could not be started before. |
-| `scripts/repository-policy.test.mjs` | Allowlists updated; the dead published-skills test removed. |
+| `scripts/tests/repository-policy.test.mjs` | Allowlists updated; the dead published-skills test removed. |
 | `packages/demos/*/*/visual-metrics.json` | Committed baseline for all ten demos. |
 | `packages/demos/antiky/*/tests/visual-budget.test.mjs` | Four per-demo budgets, failing on purpose. |
 | `packages/demos/tests/pipeline-invariants.test.mjs` | Five source-level invariants, failing on purpose. |

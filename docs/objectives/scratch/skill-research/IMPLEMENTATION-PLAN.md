@@ -399,7 +399,7 @@ the same failure with a different name. Three rules:
 Non-obvious facts any implementer — or any skill — must carry. Several will silently fail work that
 looks correct.
 
-**`scripts/repository-policy.test.mjs` asserts two exact allowlists.** Lines 24-33 assert the exact
+**`scripts/tests/repository-policy.test.mjs` asserts two exact allowlists.** Lines 24-33 assert the exact
 tracked contents of `scripts/` (only `dev.mjs`, `patch-brometal.mjs`, `port-release.mjs`,
 `port-release.test.mjs`, `repository-policy.test.mjs`). Lines 35-54 assert the exact sorted list of
 root `package.json` script keys. **Adding `scripts/shoot-demos.mjs` and `demos:shoot` fails both
@@ -548,7 +548,7 @@ file-disjoint and can run as five parallel subagents.
 | # | Item | Owner | Acceptance criteria |
 | --- | --- | --- | --- |
 | **A1** | Promote `01-RENDERING-VOCABULARY.md` and the diagnosis out of `scratch/` into stable references | docs | Both files exist at a non-scratch path; the committed `skill-research/README.md` report map links them; no content changed except the path; every inbound link in `demo-refining/` still resolves |
-| **A2** | `scripts/shoot-demos.mjs` + `npm run demos:shoot` | tooling | Runs for all 10 slugs sequentially, including `combat-arena` and `traversal-study`; writes one PNG per demo to the evidence-captures path and one `visual-metrics.json` per demo; fails with a clear message on `ANTIKY_PORT_BUSY` and on `CAPTURE_WEBGPU_UNAVAILABLE`; a `scripts/shoot-demos.test.mjs` covers slug resolution, fence assembly, and metrics computation against a fixture PNG with a known histogram; **both `repository-policy.test.mjs` allowlists updated in the same commit**; `npm test` green |
+| **A2** | `scripts/shoot-demos.mjs` + `npm run demos:shoot` | tooling | Runs for all 10 slugs sequentially, including `combat-arena` and `traversal-study`; writes one PNG per demo to the evidence-captures path and one `visual-metrics.json` per demo; fails with a clear message on `ANTIKY_PORT_BUSY` and on `CAPTURE_WEBGPU_UNAVAILABLE`; a `scripts/tests/shoot-demos.test.mjs` covers slug resolution, fence assembly, and metrics computation against a fixture PNG with a known histogram; **both `repository-policy.test.mjs` allowlists updated in the same commit**; `npm test` green |
 | **A3** | Guards G3 + G4 (static, no GPU) | tooling | Both live in `packages/demos/tests/`; each assertion carries a comment naming the `file:line` regression it prevents; **G3 fails against HEAD today** (per-material `tonemapACES` is present) and is landed either behind an allowlist that shrinks as S2 lands per demo, or after; G4 fails against `combat-arena` at HEAD; `npm test` green with the allowlist |
 | **A4** | Guard G5 + per-demo asset fidelity manifest | assets | A manifest exists for every shipped GLB recording attributes present, dropped-with-reason, texture dimensions, and unique-UV count; G5 **fails** against `traversal-study`'s 1×1 textures and against `gltf-pack-lib.mjs:89` today; declared exceptions require a reason string |
 | **A5** | `visual-target.json` schema + one filled instance per Antiky demo | art direction | Schema rejects unknown fields and unbounded text; each of the three files declares a value band (mean, p05, p95), palette, focal hierarchy, negative list, reference images, and a checkpoint tick; bands are authored from the reference targets, **not** back-fitted from current captures; each band's justification is one sentence in the file |

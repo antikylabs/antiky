@@ -51,7 +51,7 @@ export async function apply({ replace, replaceSection }) {
 ```
 
 Then register it in `PATCHES` in `scripts/patch-brometal.mjs`, and add the file to the `scripts/`
-allowlist in `scripts/repository-policy.test.mjs`, in the same commit.
+allowlist in `scripts/tests/repository-policy.test.mjs`, in the same commit.
 
 The header is not decoration. It is the only thing that lets a future reader decide whether the
 patch is still needed. Leave the upstream line as `**Upstream: (not yet opened)**` only if you are
@@ -86,7 +86,7 @@ because your patch is shaped differently.
 
 ## Required tests
 
-In `scripts/patch-brometal.test.mjs`, at minimum:
+In `scripts/tests/patch-brometal.test.mjs`, at minimum:
 
 - running the patch twice changes **no bytes** — checksum before and after the second run;
 - **and** the patched content is actually present. See the trap below;

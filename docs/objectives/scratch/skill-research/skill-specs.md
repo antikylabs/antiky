@@ -15,7 +15,7 @@ A proposal that cannot name one does not get built.
 
 ## Packaging rules for all of them
 
-Enforced by `scripts/repository-policy.test.mjs:64-75`:
+Enforced by `scripts/tests/repository-policy.test.mjs:64-75`:
 
 ```
 skills/<name>/SKILL.md          frontmatter is EXACTLY:

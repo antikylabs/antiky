@@ -107,13 +107,13 @@ Evidence for the top-level composition is `packages/studio/app/src/main.tsx:28-5
 
 - **Established:** Native project state uses separate pending, prepared, and active slots. Activation accepts only the exact prepared selection/path/revision (`packages/studio/tauri/src/project.rs:62-69`, `packages/studio/tauri/src/project.rs:122-170`).
 
-- **Established:** Invalid native candidates preserve the existing active project. The Rust test covers validation without activation and failed replacement (`packages/studio/tauri/src/project.rs:385-450`); the TypeScript manager test covers invalid JSON preserving the active project (`packages/studio/app/src/editor/projectManager.test.ts:92-146`).
+- **Established:** Invalid native candidates preserve the existing active project. The Rust test covers validation without activation and failed replacement (`packages/studio/tauri/src/project.rs:385-450`); the TypeScript manager test covers invalid JSON preserving the active project (`packages/studio/app/tests/editor/projectManager.test.ts:92-146`).
 
 - **Inferred:** Project switching depends on React effect cleanup to stop the old development service after native project activation and state publication. `project_activate` itself only changes project state and recents (`packages/studio/tauri/src/commands.rs:183-207`); the subsequent project-key change triggers development cleanup (`packages/studio/app/src/development/useStudioDevelopment.ts:91-97`). Module-global lifecycle serialization should order that stop before the new start (`packages/studio/app/src/development/native.ts:87-108`), but no packaged switch test proves the complete sequence.
 
 ### Workspace visibility and local state
 
-- **Established:** Settings is rendered over an inert but still-present workspace (`packages/studio/app/src/components/StudioShell.tsx:283-289`, `packages/studio/app/src/components/StudioShell.tsx:404-409`). The static render test asserts that all four surfaces, the iframe, and native terminal placeholder remain present (`packages/studio/app/src/components/StudioShell.test.tsx:258-282`).
+- **Established:** Settings is rendered over an inert but still-present workspace (`packages/studio/app/src/components/StudioShell.tsx:283-289`, `packages/studio/app/src/components/StudioShell.tsx:404-409`). The static render test asserts that all four surfaces, the iframe, and native terminal placeholder remain present (`packages/studio/app/tests/components/StudioShell.test.tsx:258-282`).
 
 - **Established:** Fullscreen changes CSS layout and hides the other panels; it does not conditionally remove them from the React tree (`packages/studio/app/src/styles.css:260-288`, `packages/studio/app/src/components/StudioShell.tsx:283-360`).
 
@@ -129,7 +129,7 @@ Evidence for the top-level composition is `packages/studio/app/src/main.tsx:28-5
 
 - **Established:** Controls are serialized against other control and lifecycle operations and trigger an immediate refresh after success (`packages/studio/app/src/development/coordinator.ts:224-261`).
 
-- **Established:** Connected Restart uses HTTP reload and does not replace the project service; stopped/disconnected Restart invokes the native restart callback (`packages/studio/app/src/development/coordinator.ts:263-314`). Tests cover both paths with injected fakes (`packages/studio/app/src/development/coordinator.test.ts:229-283`).
+- **Established:** Connected Restart uses HTTP reload and does not replace the project service; stopped/disconnected Restart invokes the native restart callback (`packages/studio/app/src/development/coordinator.ts:263-314`). Tests cover both paths with injected fakes (`packages/studio/app/tests/development/coordinator.test.ts:229-283`).
 
 - **Established:** The hook wires its polling “discovery” callback to `startNativeDevelopmentConnection`, while a passive `discoverNativeDevelopmentConnection` function exists but is unused by production Studio (`packages/studio/app/src/development/useStudioDevelopment.ts:79-87`, `packages/studio/app/src/development/native.ts:83-108`).
 
@@ -141,19 +141,19 @@ Evidence for the top-level composition is `packages/studio/app/src/main.tsx:28-5
 
 ### Real seams
 
-- **Established:** `EditorHost` is a narrow, fakeable project boundary (`packages/studio/app/src/editor/types.ts:47-56`). Its manager tests use a fake host rather than mocking manager internals (`packages/studio/app/src/editor/projectManager.test.ts:46-89`).
+- **Established:** `EditorHost` is a narrow, fakeable project boundary (`packages/studio/app/src/editor/types.ts:47-56`). Its manager tests use a fake host rather than mocking manager internals (`packages/studio/app/tests/editor/projectManager.test.ts:46-89`).
 
 - **Established:** `StudioDevelopmentCoordinator` is a strong service seam because connection discovery, client creation, native lifecycle, scheduling, and state publication are injected (`packages/studio/app/src/development/coordinator.ts:50-72`).
 
 - **Established:** The shared `DevelopmentClient` already supplies snapshots, captures, evidence, point lights, world/event queries, MCP logs, mutation commands, and simulation controls (`packages/cli/src/development/browser-client.ts:88-120`, `packages/cli/src/development/browser-client.ts:510-599`).
 
-- **Established:** Studio already defines a browser-safe `StudioCaptureClient` type for capture capabilities, frame capture, gameplay sequences, and render evidence (`packages/studio/app/src/development/coordinator.ts:40-46`). It is currently only checked as a type contract (`packages/studio/app/src/development/coordinator.test.ts:19-26`) and is not exposed by `useStudioDevelopment` (`packages/studio/app/src/development/useStudioDevelopment.ts:121-132`).
+- **Established:** Studio already defines a browser-safe `StudioCaptureClient` type for capture capabilities, frame capture, gameplay sequences, and render evidence (`packages/studio/app/src/development/coordinator.ts:40-46`). It is currently only checked as a type contract (`packages/studio/app/tests/development/coordinator.test.ts:19-26`) and is not exposed by `useStudioDevelopment` (`packages/studio/app/src/development/useStudioDevelopment.ts:121-132`).
 
 - **Established:** The inspection server has a bounded route set and validates host, origin, CORS, and session credentials before serving development data (`packages/cli/src/host/inspection-server.ts:95-149`, `packages/cli/src/host/inspection-server.ts:324-415`).
 
 ### Composition blockers
 
-- **Established:** A new panel currently requires changes to direct JSX composition, the closed workspace-area union, desktop grid CSS, responsive CSS, and corresponding layout assertions (`packages/studio/app/src/components/StudioShell.tsx:283-401`, `packages/studio/app/src/components/primitives.tsx:3-9`, `packages/studio/app/src/styles.css:245-258`, `packages/studio/app/src/responsive.css:46-59`, `packages/studio/app/src/components/StudioShell.test.tsx:181-205`).
+- **Established:** A new panel currently requires changes to direct JSX composition, the closed workspace-area union, desktop grid CSS, responsive CSS, and corresponding layout assertions (`packages/studio/app/src/components/StudioShell.tsx:283-401`, `packages/studio/app/src/components/primitives.tsx:3-9`, `packages/studio/app/src/styles.css:245-258`, `packages/studio/app/src/responsive.css:46-59`, `packages/studio/app/tests/components/StudioShell.test.tsx:181-205`).
 
 - **Established:** The Studio package is private and declares no package exports (`packages/studio/app/package.json:1-29`).
 
@@ -179,7 +179,7 @@ Evidence for the top-level composition is `packages/studio/app/src/main.tsx:28-5
 
 - **Established:** JavaScript invokes `development_restart`; Rust implements and registers the command (`packages/studio/app/src/development/native.ts:101-104`, `packages/studio/tauri/src/commands.rs:238-257`, `packages/studio/tauri/src/lib.rs:154-171`). However, `development_restart` is absent from the generated command manifest and main capability (`packages/studio/tauri/build.rs:3-19`, `packages/studio/tauri/capabilities/main.json:7-25`).
 
-- **Inferred:** Restart after Stop is likely denied at the packaged Tauri permission boundary. The JavaScript test mocks `invoke` (`packages/studio/app/src/development/native.test.ts:36-64`), while the capability test explicitly freezes a list without `allow-development-restart` (`packages/studio/tauri/tests/tauri-config.test.mjs:34-59`). A packaged IPC test is required to confirm the runtime failure.
+- **Inferred:** Restart after Stop is likely denied at the packaged Tauri permission boundary. The JavaScript test mocks `invoke` (`packages/studio/app/tests/development/native.test.ts:36-64`), while the capability test explicitly freezes a list without `allow-development-restart` (`packages/studio/tauri/tests/tauri-config.test.mjs:34-59`). A packaged IPC test is required to confirm the runtime failure.
 
 ### Process and cleanup boundary
 
@@ -221,7 +221,7 @@ Evidence for the top-level composition is `packages/studio/app/src/main.tsx:28-5
 | Browser/detached Studio | **Claimed:** The overview describes browser, local, separate, and headless forms plus an `EditorSession` (`docs/architecture/studio/overview_A.md:121-183`). | **Established:** Browser mode receives an initial disconnected state and no connection provider (`packages/studio/app/src/development/useStudioDevelopment.ts:63-77`). `rg -n "EditorSession" packages/studio packages/cli/src` returned no implementation match. |
 | Initial workspace | **Claimed and established:** The overview describes the Live, controls, hierarchy, stores, snapshot, diagnostics, events, MCP, and terminal workspace and says panels are read-only (`docs/architecture/studio/overview_A.md:227-245`). | The shell and two semantic panels implement that subset (`packages/studio/app/src/components/StudioShell.tsx:283-360`, `packages/studio/app/src/components/InspectionPanel.tsx:137-175`, `packages/studio/app/src/components/ActivityPanel.tsx:153-183`). |
 | Input ownership | **Claimed:** Studio shows the current input owner and separates editor and game cameras (`docs/architecture/studio/overview_A.md:217-225`). | **Established:** The game host owns current canvas focus/input (`packages/cli/src/host/game-server.ts:419-446`); the Studio status bar contains no input-owner or editor-camera state (`packages/studio/app/src/components/StudioShell.tsx:411-418`). |
-| Project metadata | **Claimed:** The projects guide says the workspace shows name, manifest path, schema version, and root (`docs/user-facing-docs/studio/projects.md:82-84`). | **Established:** The shell shows only the project name, and its test asserts that path/schema/root are absent (`packages/studio/app/src/components/StudioShell.test.tsx:227-256`). The getting-started guide describes the implemented behavior correctly (`docs/user-facing-docs/studio/getting-started.md:33-35`). |
+| Project metadata | **Claimed:** The projects guide says the workspace shows name, manifest path, schema version, and root (`docs/user-facing-docs/studio/projects.md:82-84`). | **Established:** The shell shows only the project name, and its test asserts that path/schema/root are absent (`packages/studio/app/tests/components/StudioShell.test.tsx:227-256`). The getting-started guide describes the implemented behavior correctly (`docs/user-facing-docs/studio/getting-started.md:33-35`). |
 | Project-switch shutdown order | **Claimed:** The guide says Studio closes the old terminal and development session as it activates a replacement (`docs/user-facing-docs/studio/getting-started.md:37-41`). | **Established:** Terminal close occurs before native activation; development stop follows state publication through effect cleanup (`packages/studio/app/src/editor/projectManager.ts:126-135`, `packages/studio/app/src/development/useStudioDevelopment.ts:91-97`). |
 | Restart after Stop | **Claimed:** Restart starts a fresh managed service after Stop (`docs/user-facing-docs/studio/getting-started.md:123-131`). | **Inferred risk:** Coordinator and Rust behavior exist, but packaged command permission appears incomplete. |
 | Terminal/engine separation | **Claimed:** The in-progress overview explicitly gives terminal and engine tools separate permissions (`docs/architecture/studio/overview_A.md:344-356`). | **Established mechanism:** Terminal IPC and development HTTP/IPC are separate code paths (`packages/studio/app/src/NativeTerminal.tsx:34-35`, `packages/studio/app/src/development/native.ts:95-108`). The exact permission-policy statement is not in accepted Studio ADR 0001. |
@@ -229,17 +229,17 @@ Evidence for the top-level composition is `packages/studio/app/src/main.tsx:28-5
 
 ## Test seams and limitations
 
-- **Established:** Project lifecycle has behavioral tests around an injected `EditorHost`, including cold and warm open, cancellation, invalid input, replacement, duplicate native events, recents, and creation (`packages/studio/app/src/editor/projectManager.test.ts:46-146`, `packages/studio/app/src/editor/projectManager.test.ts:199-245`).
+- **Established:** Project lifecycle has behavioral tests around an injected `EditorHost`, including cold and warm open, cancellation, invalid input, replacement, duplicate native events, recents, and creation (`packages/studio/app/tests/editor/projectManager.test.ts:46-146`, `packages/studio/app/tests/editor/projectManager.test.ts:199-245`).
 
-- **Established:** Coordinator tests cover one polling owner, atomic session replacement, stale recovery, connected reload, stop/fresh restart, and serialized controls (`packages/studio/app/src/development/coordinator.test.ts:132-207`, `packages/studio/app/src/development/coordinator.test.ts:229-285`).
+- **Established:** Coordinator tests cover one polling owner, atomic session replacement, stale recovery, connected reload, stop/fresh restart, and serialized controls (`packages/studio/app/tests/development/coordinator.test.ts:132-207`, `packages/studio/app/tests/development/coordinator.test.ts:229-285`).
 
 - **Established:** Native project and development hosts have unit tests for prepare/activate behavior and start/reuse/restart/stop behavior (`packages/studio/tauri/src/project.rs:385-467`, `packages/studio/tauri/src/development.rs:357-404`).
 
-- **Established:** JavaScript native-boundary parsers require exact bounded response shapes (`packages/studio/app/src/editor/tauriHost.ts:72-157`, `packages/studio/app/src/editor/tauriHost.test.ts:22-80`, `packages/studio/app/src/development/native.ts:42-80`).
+- **Established:** JavaScript native-boundary parsers require exact bounded response shapes (`packages/studio/app/src/editor/tauriHost.ts:72-157`, `packages/studio/app/tests/editor/tauriHost.test.ts:22-80`, `packages/studio/app/src/development/native.ts:42-80`).
 
-- **Established:** Workspace resizing is isolated into pure functions with boundary tests (`packages/studio/app/src/components/workspaceLayout.ts:10-49`, `packages/studio/app/src/components/workspaceLayout.test.ts:11-34`).
+- **Established:** Workspace resizing is isolated into pure functions with boundary tests (`packages/studio/app/src/components/workspaceLayout.ts:10-49`, `packages/studio/app/tests/components/workspaceLayout.test.ts:11-34`).
 
-- **Established:** `StudioShell` and `LiveGameFrame` tests use server-rendered markup and source inspection rather than a mounted browser (`packages/studio/app/src/components/StudioShell.test.tsx:1-17`, `packages/studio/app/src/components/LiveGameFrame.test.tsx:1-21`). The fullscreen test’s “without unmounting” assertion checks one static iframe plus source/CSS patterns; it does not perform a fullscreen transition (`packages/studio/app/src/components/StudioShell.test.tsx:380-400`).
+- **Established:** `StudioShell` and `LiveGameFrame` tests use server-rendered markup and source inspection rather than a mounted browser (`packages/studio/app/tests/components/StudioShell.test.tsx:1-17`, `packages/studio/app/tests/components/LiveGameFrame.test.tsx:1-21`). The fullscreen test’s “without unmounting” assertion checks one static iframe plus source/CSS patterns; it does not perform a fullscreen transition (`packages/studio/app/tests/components/StudioShell.test.tsx:380-400`).
 
 - **Established audit result:** Searching Studio app and Tauri tests for Playwright, WebDriver, jsdom, happy-dom, and Testing Library found only Playwright packaging for the CLI capture worker, not Studio UI end-to-end coverage (`packages/studio/app/scripts/build-project-service.mjs:22-50`, `packages/studio/tauri/tests/tauri-config.test.mjs:194-216`).
 

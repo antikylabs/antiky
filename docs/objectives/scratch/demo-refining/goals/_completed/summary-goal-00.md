@@ -53,7 +53,7 @@ governed a framework game using BroMetal. `0021` removes that ambiguity.
   `git show f403e4b:…/0006-…md` still prints `Accepted`, and so does `studio/0007` at that hash.
   `git cat-file -t f403e4b` resolves to a commit. This is the check that distinguishes a correctly
   ordered tag from a useless one.
-- `sh docs/adr/tag-hash.test.sh` passes.
+- `sh docs/adr/tests/tag-hash.test.sh` passes.
 - `0006` carries exactly one new revision entry (two total, was one). No ADR number reused —
   `framework/` holds exactly one `0021-` file and no duplicate numbers.
 - All eight local ADR links resolve, verified from each file's own directory.
@@ -70,7 +70,7 @@ governed a framework game using BroMetal. `0021` removes that ambiguity.
 | Repo-level chain | 16 pass / 1 fail | 16 pass / 1 fail |
 
 The single failure is pre-existing and unrelated: `published skills use valid, matching skill names`
-(`scripts/repository-policy.test.mjs:64`) fails `ENOENT` because `skills/` was deleted in `1062bd4`
+(`scripts/tests/repository-policy.test.mjs:64`) fails `ENOENT` because `skills/` was deleted in `1062bd4`
 while the test still reads it. **Goal 01 owns that fix.** Because `npm test` chains with `&&`, the
 workspace suites do not run at all until it is fixed — so no full-repo green baseline exists yet.
 

@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-11
 **Reviewer role:** external critic. Nothing here was written by the agent that built the system.
-**Scope:** `scripts/frame-stats.mjs`, `scripts/frame-stats.test.mjs`,
+**Scope:** `scripts/frame-stats.mjs`, `scripts/tests/frame-stats.test.mjs`,
 `packages/demos/antiky/*/tests/visual-budget.test.mjs`,
 `packages/demos/tests/pipeline-invariants.test.mjs`, `packages/demos/*/*/visual-metrics.json`,
 `scripts/shoot-demos.mjs`, and the goal-01 summary that draws conclusions from them.

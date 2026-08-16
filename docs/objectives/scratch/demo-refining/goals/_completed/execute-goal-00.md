@@ -83,7 +83,7 @@ When the work is complete, the repository must have:
 
 At minimum, prove:
 
-- `sh docs/adr/tag-hash.test.sh` passes, and `npm test` is no worse than it was before this goal
+- `sh docs/adr/tests/tag-hash.test.sh` passes, and `npm test` is no worse than it was before this goal
   started (it is red on `main` for an unrelated reason — see goal 01 — so record the before and
   after failure sets rather than claiming green);
 - `0006` contains exactly one new revision-history entry, its hash is 40 hexadecimal characters, and

@@ -49,7 +49,7 @@ a timeout and reasonably concluded it was broken.
 
 ### W0.1b — Get `npm test` green on `main`
 
-**Owns:** `scripts/repository-policy.test.mjs`.
+**Owns:** `scripts/tests/repository-policy.test.mjs`.
 **Depends on:** nothing. Do it before adding any other test.
 
 `skills/` was deleted in `1062bd4` while `repository-policy.test.mjs:64-66` still reads it.
@@ -60,8 +60,8 @@ Until this lands, nobody can distinguish their own breakage from the pre-existin
 
 ### W0.2 — `demos:shoot`, wrapping the MCP
 
-**Owns:** `scripts/shoot-demos.mjs`, `scripts/shoot-demos.test.mjs`, root `package.json`,
-`scripts/repository-policy.test.mjs` (allowlists).
+**Owns:** `scripts/shoot-demos.mjs`, `scripts/tests/shoot-demos.test.mjs`, root `package.json`,
+`scripts/tests/repository-policy.test.mjs` (allowlists).
 **Depends on:** W0.1, W0.1b.
 
 Drive the existing MCP: fence (`get_latest_build` → `get_runtime_status` →
@@ -88,7 +88,7 @@ Constraints established by testing, which the implementation must respect:
 
 ### W0.2b — Frame statistics and the visual assertion library
 
-**Owns:** `scripts/frame-stats.mjs`, `scripts/frame-stats.test.mjs`.
+**Owns:** `scripts/frame-stats.mjs`, `scripts/tests/frame-stats.test.mjs`.
 **Depends on:** W0.1b. Parallel-safe with W0.2 — disjoint files, and it needs no GPU, so it can
 be written and tested against fixture PNGs while the capture path is still being unblocked.
 
@@ -138,7 +138,7 @@ Source-level assertions that encode the exact defects this audit found, so they 
 ## Track A — BroMetal patches (blocks Track B's HDR packets)
 
 ### W A.1 — Linear filtering on render targets
-**Owns:** `scripts/patch-brometal.mjs` (section 1), `scripts/patch-brometal.test.mjs`.
+**Owns:** `scripts/patch-brometal.mjs` (section 1), `scripts/tests/patch-brometal.test.mjs`.
 **Depends on:** nothing.
 
 `dist/runtime/webgpu.js:761` hard-codes `magFilter: 'nearest', minFilter: 'nearest'` on every

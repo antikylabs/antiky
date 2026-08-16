@@ -53,14 +53,14 @@ A caller still has to supply the collection, lifecycle, updates, and queries. No
 ## Identity
 
 - **Established:** `EntityId` is a branded string; all supported IDs and factories/parsers are in `packages/framework/src/identity/ids.ts:5-21, 90-133`.
-- **Established:** Tests assert deterministic UUIDv7 creation and rejection of other UUID forms in `packages/framework/src/identity/ids.test.ts:23-79`.
+- **Established:** Tests assert deterministic UUIDv7 creation and rejection of other UUID forms in `packages/framework/tests/identity/ids.test.ts:23-79`.
 - **Claimed and corroborated:** Generated API docs describe `EntityId` as stable and expose `createEntityId`/`parseEntityId` from the package root in `docs/user-facing-docs/api/identity.md:6-23, 39-47, 131-137, 171-177`.
 - **Established decision:** Stable UUIDv7 public identity and lifetime-scoped numeric aliases are required by `docs/adr/framework/0011-stable-ids-and-runtime-aliases_H.md:21-42`.
 
 ## Transform records
 
 - **Established:** The only Framework transform shape is schema version plus optional/defaulted three-number position in `packages/framework/src/point-light/records.ts:1-15, 24-27, 97-126`.
-- **Established:** Tests cover origin defaults, immutable arrays, finite coordinates, dimensionality, and bounds in `packages/framework/src/point-light/records.test.ts:13-65`.
+- **Established:** Tests cover origin defaults, immutable arrays, finite coordinates, dimensionality, and bounds in `packages/framework/tests/point-light/records.test.ts:13-65`.
 - **Claimed and corroborated:** The public docs call it an immutable validated transform, but place it under “Point-light core API,” in `docs/user-facing-docs/api/point-light-core.md:6-16, 38-48, 98-108, 122-155, 170-187`.
 - **Established coupling:** Invalid transforms throw `PointLightValidationError`, not a neutral transform error, in `packages/framework/src/point-light/records.ts:36-46, 113-126`.
 
@@ -69,19 +69,19 @@ A caller still has to supply the collection, lifecycle, updates, and queries. No
 - **Established:** The authored record combines `worldId`, `entityId`, label, revision, transform, and point light; the complete service interface exposes point-light-specific reads and power mutations in `packages/framework/src/point-light/service.ts:53-93`.
 - **Established:** Service construction validates initial records into a private entity-keyed map, then exposes list/get reads in `packages/framework/src/point-light/service.ts:259-319`.
 - **Established:** The returned public surface contains only point-light operations in `packages/framework/src/point-light/service.ts:606-641`.
-- **Established:** A test explicitly asserts that the service exposes “no mutable map or generic writer” in `packages/framework/src/point-light/service.test.ts:80-115`.
-- **Established:** The service can independently read two initial lights by stable ID in `packages/framework/src/point-light/service.test.ts:27-50`.
+- **Established:** A test explicitly asserts that the service exposes “no mutable map or generic writer” in `packages/framework/tests/point-light/service.test.ts:80-115`.
+- **Established:** The service can independently read two initial lights by stable ID in `packages/framework/tests/point-light/service.test.ts:27-50`.
 - **Established:** Runtime and render point-light shapes contain ID, revision, power, and render slot, but no transform, in `packages/framework/src/point-light/projections.ts:10-46`.
 - **Established:** Projection construction copies power only in `packages/framework/src/point-light/projections.ts:138-184`.
-- **Established:** Accepted power changes reach the three state copies and one dirty slot exactly once in `packages/framework/src/point-light/command-flow.test.ts:98-119`; headless lights use the authoring/runtime path without a render binding in `packages/framework/src/point-light/command-flow.test.ts:205-217`.
+- **Established:** Accepted power changes reach the three state copies and one dirty slot exactly once in `packages/framework/tests/point-light/command-flow.test.ts:98-119`; headless lights use the authoring/runtime path without a render binding in `packages/framework/tests/point-light/command-flow.test.ts:205-217`.
 - **Established:** The inspection adapter exposes transform only in authoring entities/store entries; runtime/render stores contain revision and power in `packages/framework/src/point-light/world-inspection.ts:41-87`.
-- **Established:** The adapter’s three point-light stores and component summaries are tested in `packages/framework/src/point-light/world-inspection.test.ts:52-86`.
+- **Established:** The adapter’s three point-light stores and component summaries are tested in `packages/framework/tests/point-light/world-inspection.test.ts:52-86`.
 
 ## Generic inspection
 
 - **Established:** Generic inspection types model entity headers, versioned component summaries, `ChildOf`, and named authoring/runtime/render stores in `packages/framework/src/inspection/world.ts:14-117`.
 - **Established:** `createWorldInspection` validates and freezes input rather than acting as a mutable world in `packages/framework/src/inspection/world.ts:210-265, 267-415`.
-- **Established:** Tests verify stable ordering, cloning/freezing, hierarchy integrity, duplicate rejection, bounded incomplete views, and input limits in `packages/framework/src/inspection/world.test.ts:93-275`.
+- **Established:** Tests verify stable ordering, cloning/freezing, hierarchy integrity, duplicate rejection, bounded incomplete views, and input limits in `packages/framework/tests/inspection/world.test.ts:93-275`.
 - **Claimed and corroborated:** The docs explicitly call inspection a “read-only adapter boundary” and say world views do not expose mutable engine state in `docs/user-facing-docs/api/inspection.md:6-12, 287-290`.
 - **Claimed and corroborated:** The generated API describes `WorldInspectionEntity` as an immutable entity/component summary and `createWorldInspection` as a validating/copying/freezing operation in `docs/user-facing-docs/api/inspection.md:450-555`.
 - **Established:** `InspectionStore` supports only read, subscribe, and publish of complete snapshots in `packages/framework/src/inspection/snapshot.ts:121-135, 398-420`.
@@ -92,8 +92,8 @@ A caller still has to supply the collection, lifecycle, updates, and queries. No
 - **Established:** Session construction receives a `worldId`, systems, input capture, optional digest, and disposable services—not a `World` or entity/component store—in `packages/framework/src/sessions/engine-session/contract.ts:37-50`.
 - **Established:** Its public interface contains frame/control/command/status/disposal methods only in `packages/framework/src/sessions/engine-session/contract.ts:165-179`.
 - **Established:** `executeCommand` supplies command sequence and scalar world revision to caller-owned work; it does not mutate a Framework world in `packages/framework/src/sessions/engine-session/runtime.ts:421-475`.
-- **Established:** Tests implement simulation state as a local object captured by system callbacks in `packages/framework/src/sessions/engine-session/engine-session.test.ts:30-68`.
-- **Established:** Tests cover command ordering and world-revision increments, not entity behavior, in `packages/framework/src/sessions/engine-session/engine-session.test.ts:266-311`.
+- **Established:** Tests implement simulation state as a local object captured by system callbacks in `packages/framework/tests/sessions/engine-session/engine-session.test.ts:30-68`.
+- **Established:** Tests cover command ordering and world-revision increments, not entity behavior, in `packages/framework/tests/sessions/engine-session/engine-session.test.ts:266-311`.
 - **Claimed and corroborated:** The API docs describe the session as fixed-step orchestration and show game-owned `move(input)` logic in `docs/user-facing-docs/api/engine-session.md:6-30, 81-95, 216-230, 378-395`.
 
 ## Architecture versus implementation

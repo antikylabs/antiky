@@ -118,7 +118,7 @@ packet**, ahead of any script that consumes it.
 ## Two more things that will bite you
 
 - **`npm test` is red on `main` right now.** `skills/` was deleted in `1062bd4` ("sync") while
-  `scripts/repository-policy.test.mjs:64-66` still does `readdir(repositoryRoot/skills)`. It fails
+  `scripts/tests/repository-policy.test.mjs:64-66` still does `readdir(repositoryRoot/skills)`. It fails
   `ENOENT`. Verified by running it: 4 pass, 1 fail. Fix this before adding any test, or you will
   not be able to tell your own failure from the pre-existing one.
 - **Every demo manifest binds `127.0.0.1:3010`** (game) and `:3011` (inspection). Captures are

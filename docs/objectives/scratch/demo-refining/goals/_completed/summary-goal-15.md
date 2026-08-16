@@ -35,7 +35,7 @@
    gutter, so both routes are live in one demo.
 4. **The tile-boundary measurement is zero.** See below.
 5. **Two upstream pull requests — NOT DONE, deferred by owner instruction.** See owner item 1.
-6. **`scripts/patch-brometal.test.mjs` covers both**, 13/13 green, including the runner's own
+6. **`scripts/tests/patch-brometal.test.mjs` covers both**, 13/13 green, including the runner's own
    guarantees.
 
 ## The measurement

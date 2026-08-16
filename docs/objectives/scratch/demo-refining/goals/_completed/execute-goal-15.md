@@ -116,7 +116,7 @@ bundling them would repeat the mistake of PR #2.
    saying plainly if their code was not wrong, and closing by asking the author whether the approach
    is right. Branch each from current `upstream/main`, prove it in **their** harness, and tag the
    local patch module with the PR once open.
-6. **`scripts/patch-brometal.test.mjs` covering both.** The skill's `patch` reference lists the tests
+6. **`scripts/tests/patch-brometal.test.mjs` covering both.** The skill's `patch` reference lists the tests
    the mechanism itself requires — including that a second run reports no change *for the right
    reason* rather than because it crashed, and that a wrong version throws when exercised against a
    fixture package rather than by editing the installed copy. That failure mode has bitten this

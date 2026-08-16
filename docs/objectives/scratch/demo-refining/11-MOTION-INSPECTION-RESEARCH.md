@@ -1306,11 +1306,11 @@ criterion is mechanically checkable. "Feels better" never appears.
 
 ### W M.1 — `scripts/motion-stats.mjs`, the series analysis library
 
-**Owns:** `scripts/motion-stats.mjs`, `scripts/motion-stats.test.mjs`, root `package.json`,
-`scripts/repository-policy.test.mjs` (allowlists).
+**Owns:** `scripts/motion-stats.mjs`, `scripts/tests/motion-stats.test.mjs`, root `package.json`,
+`scripts/tests/repository-policy.test.mjs` (allowlists).
 **Depends on:** nothing. No GPU, no browser, no demo.
 
-> `scripts/repository-policy.test.mjs:24-37` asserts an exact allowlist of tracked files under
+> `scripts/tests/repository-policy.test.mjs:24-37` asserts an exact allowlist of tracked files under
 > `scripts/`, and `:39-59` asserts an exact allowlist of root script keys. Both must be updated in
 > the same commit or `npm test` goes red.
 
@@ -1368,7 +1368,7 @@ loop harness it needs. **Depends on:** W M.1. **Fails on purpose until W D.5 lan
 
 ### W M.4 — Sequence frame statistics
 
-**Owns:** `scripts/frame-stats.mjs`, `scripts/frame-stats.test.mjs`.
+**Owns:** `scripts/frame-stats.mjs`, `scripts/tests/frame-stats.test.mjs`.
 **Depends on:** nothing. Parallel-safe with W M.1 — different files, and no GPU.
 
 **Acceptance criteria**

@@ -32,9 +32,9 @@
 
 - **Established:** Responsive presentation does not mutate the two stored split values; it only stops using their CSS variables while the single-column media query applies. This is a useful precedent for treating responsive layout as an ephemeral projection, not as saved user intent.
 
-- **Established:** Settings deliberately overlays a still-mounted workspace. The workspace and simulation navigation become `inert` and `aria-hidden`, and the native terminal is hidden without being unmounted. Evidence: `packages/studio/app/src/components/StudioShell.tsx:206-217`, `packages/studio/app/src/components/StudioShell.tsx:283-288`, `packages/studio/app/src/components/StudioShell.tsx:339-352`, `packages/studio/app/src/components/StudioShell.tsx:404-409`; `packages/studio/app/src/components/StudioShell.test.tsx:258-282`; `packages/studio/app/src/NativeTerminal.test.ts:67-73`.
+- **Established:** Settings deliberately overlays a still-mounted workspace. The workspace and simulation navigation become `inert` and `aria-hidden`, and the native terminal is hidden without being unmounted. Evidence: `packages/studio/app/src/components/StudioShell.tsx:206-217`, `packages/studio/app/src/components/StudioShell.tsx:283-288`, `packages/studio/app/src/components/StudioShell.tsx:339-352`, `packages/studio/app/src/components/StudioShell.tsx:404-409`; `packages/studio/app/tests/components/StudioShell.test.tsx:258-282`; `packages/studio/app/tests/NativeTerminal.test.ts:67-73`.
 
-- **Established:** The live game is one sandboxed iframe with WebGPU, fullscreen, gamepad, autoplay, same-origin scripts, and pointer-lock permissions. Current tests preserve one stable iframe mount for fullscreen and Settings. Evidence: `packages/studio/app/src/components/LiveGameFrame.tsx:6-20`; `packages/studio/app/src/components/StudioShell.test.tsx:258-282`, `packages/studio/app/src/components/StudioShell.test.tsx:380-400`.
+- **Established:** The live game is one sandboxed iframe with WebGPU, fullscreen, gamepad, autoplay, same-origin scripts, and pointer-lock permissions. Current tests preserve one stable iframe mount for fullscreen and Settings. Evidence: `packages/studio/app/src/components/LiveGameFrame.tsx:6-20`; `packages/studio/app/tests/components/StudioShell.test.tsx:258-282`, `packages/studio/app/tests/components/StudioShell.test.tsx:380-400`.
 
 - **Established:** The native terminal is not ordinary DOM content. React measures a placeholder, clips it to the visible viewport, and sends geometry or `null` to the Tauri host. The host uses `null` to hide the AppKit view. Its minimum usable measured geometry is 80 by 40 CSS px. Evidence: `packages/studio/app/src/NativeTerminal.tsx:23-89`, `packages/studio/app/src/NativeTerminal.tsx:111-216`; `packages/studio/tauri/src/commands.rs:292-307`; `packages/studio/tauri/src/native/terminal_bridge.m:430-459`.
 
@@ -54,7 +54,7 @@
 
 - **Established:** Repository images `packages/website/public/media/antiky-studio-workspace.jpeg` and `packages/website/public/media/machinery/studio-workspace-wide-v1.webp` visibly show the current four-area, dark, compact workspace. Git records them as 2026-08-08 and 2026-08-09 artifacts. They are useful visual references, but they are static images rather than proof of the current runtime at different viewport sizes or states.
 
-- **Established:** Current Studio tests protect selected CSS dimensions and literal grid arrangements with source/SSR assertions. They do not perform rendered visual comparison. Evidence: `packages/studio/app/src/components/StudioShell.test.tsx:181-225`, `packages/studio/app/src/components/StudioShell.test.tsx:284-293`.
+- **Established:** Current Studio tests protect selected CSS dimensions and literal grid arrangements with source/SSR assertions. They do not perform rendered visual comparison. Evidence: `packages/studio/app/tests/components/StudioShell.test.tsx:181-225`, `packages/studio/app/tests/components/StudioShell.test.tsx:284-293`.
 
 - **Inferred:** A panel contribution should supply identity, title, content, actions, and capability metadata while Studio renders panel chrome and focus treatment. Allowing each app to supply unrestricted outer chrome or global CSS would bypass the only existing design-coherence boundary.
 
@@ -64,7 +64,7 @@
 
 #### Splitters
 
-- **Established:** Both current splitters are focusable `separator` widgets with accessible names, orientations, current/minimum/maximum values, pointer capture, visible focus treatment, and orientation-correct arrow-key behavior. Evidence: `packages/studio/app/src/components/StudioShell.tsx:362-401`; `packages/studio/app/src/styles.css:290-344`; `packages/studio/app/src/components/workspaceLayout.test.ts:11-34`.
+- **Established:** Both current splitters are focusable `separator` widgets with accessible names, orientations, current/minimum/maximum values, pointer capture, visible focus treatment, and orientation-correct arrow-key behavior. Evidence: `packages/studio/app/src/components/StudioShell.tsx:362-401`; `packages/studio/app/src/styles.css:290-344`; `packages/studio/app/tests/components/workspaceLayout.test.ts:11-34`.
 
 - **Established:** The WAI-ARIA Window Splitter pattern expects a focusable `separator`, `aria-valuenow/min/max`, a name matching its primary pane, `aria-controls` for that pane, orientation-correct arrows, optional Home/End bounds, and optional F6 pane cycling. The APG itself notes that this pattern still lacks a completed functional example, so it supplies semantics and conventions rather than implementation proof. Primary source: [WAI-ARIA APG Window Splitter pattern](https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/).
 
@@ -88,7 +88,7 @@
 
 - **Inferred:** Because inactive tabs have `tabIndex=-1` and no arrow-key path, keyboard users can reach only the initially active Hierarchy and Events tabs. Stores, Snapshot, MCP calls, and Diagnostics are pointer-only in the current primitive. This conflicts with WCAG 2.1.1’s keyboard requirement. Primary source: [WCAG 2.2 Understanding 2.1.1 Keyboard](https://www.w3.org/WAI/WCAG22/Understanding/keyboard).
 
-- **Established:** Existing tests verify tab labels and broad DOM order but do not exercise focus movement or selection behavior. Evidence: `packages/studio/app/src/App.test.tsx:14-30`; `packages/studio/app/src/components/StudioShell.test.tsx:512-535`.
+- **Established:** Existing tests verify tab labels and broad DOM order but do not exercise focus movement or selection behavior. Evidence: `packages/studio/app/tests/App.test.tsx:14-30`; `packages/studio/app/tests/components/StudioShell.test.tsx:512-535`.
 
 #### Modal Settings focus
 
@@ -102,7 +102,7 @@
 
 #### Focus order and competing input surfaces
 
-- **Established:** Wide visual order is row-major—Game, Inspection, Terminal, Activity—but DOM and sequential focus order are Game, Terminal, Inspection, Activity. Tests intentionally enforce that source order. Evidence: `packages/studio/app/src/components/StudioShell.tsx:283-360`; `packages/studio/app/src/styles.css:245-252`; `packages/studio/app/src/components/StudioShell.test.tsx:181-205`, `packages/studio/app/src/components/StudioShell.test.tsx:512-535`.
+- **Established:** Wide visual order is row-major—Game, Inspection, Terminal, Activity—but DOM and sequential focus order are Game, Terminal, Inspection, Activity. Tests intentionally enforce that source order. Evidence: `packages/studio/app/src/components/StudioShell.tsx:283-360`; `packages/studio/app/src/styles.css:245-252`; `packages/studio/app/tests/components/StudioShell.test.tsx:181-205`, `packages/studio/app/tests/components/StudioShell.test.tsx:512-535`.
 
 - **Established:** WCAG allows focus order to differ from visual order when meaning and operation remain understandable, while recommending that focus reinforce implied visual order. Primary sources: [WCAG 2.2 Understanding 2.4.3 Focus Order](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html), [W3C C27 DOM order technique](https://www.w3.org/WAI/WCAG22/Techniques/css/C27).
 
@@ -120,7 +120,7 @@
 
 - **Established:** WCAG 2.2 AA expects non-exempt content to reflow to 320 CSS px without two-dimensional scrolling. Games, maps, and interfaces that must keep toolbars visible can qualify for bounded exceptions, but text inside surrounding panels still needs reflow. Primary source: [WCAG 2.2 Understanding 1.4.10 Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow).
 
-- **Established:** The current single-column fallback is structurally aligned with reflow, but repository tests inspect CSS strings rather than rendering at 320 CSS px, 400% zoom, text zoom, or inside independently narrow docked panes. Evidence: `packages/studio/app/src/responsive.css:1-90`; `packages/studio/app/src/components/StudioShell.test.tsx:181-225`.
+- **Established:** The current single-column fallback is structurally aligned with reflow, but repository tests inspect CSS strings rather than rendering at 320 CSS px, 400% zoom, text zoom, or inside independently narrow docked panes. Evidence: `packages/studio/app/src/responsive.css:1-90`; `packages/studio/app/tests/components/StudioShell.test.tsx:181-225`.
 
 - **Inferred:** Viewport media queries are insufficient once a panel can be docked into a narrow region of a wide window. Panel content must tolerate its container width, or the layout host must expose a narrow state without destructively changing saved layout.
 

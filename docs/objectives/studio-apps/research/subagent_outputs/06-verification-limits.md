@@ -6,11 +6,11 @@
 
 - **Established.** Studio has no extension registration seam. `PanelProps.workspaceArea` is a fixed four-value union (`packages/studio/app/src/components/primitives.tsx:3-9`), and `StudioShell` directly mounts the game, terminal, inspection, and activity surfaces (`packages/studio/app/src/components/StudioShell.tsx:290-360`).
 
-- **Established.** Studio UI tests run Vitest without a browser configuration or browser-testing dependency (`packages/studio/app/package.json:6-11`, `packages/studio/app/package.json:22-28`, `packages/studio/app/vite.config.ts:1-10`). Existing shell evidence is primarily server-rendered HTML, source text, CSS regexes, and pure layout functions (`packages/studio/app/src/components/StudioShell.test.tsx:181-224`, `packages/studio/app/src/components/StudioShell.test.tsx:284-293`, `packages/studio/app/src/components/workspaceLayout.test.ts:11-34`). It does not prove layout, focus, accessibility-tree, pointer, native-overlay, or visual behavior in a running browser.
+- **Established.** Studio UI tests run Vitest without a browser configuration or browser-testing dependency (`packages/studio/app/package.json:6-11`, `packages/studio/app/package.json:22-28`, `packages/studio/app/vite.config.ts:1-10`). Existing shell evidence is primarily server-rendered HTML, source text, CSS regexes, and pure layout functions (`packages/studio/app/tests/components/StudioShell.test.tsx:181-224`, `packages/studio/app/tests/components/StudioShell.test.tsx:284-293`, `packages/studio/app/tests/components/workspaceLayout.test.ts:11-34`). It does not prove layout, focus, accessibility-tree, pointer, native-overlay, or visual behavior in a running browser.
 
 - **Inferred.** A first extension seam is not verified by type tests alone. It needs one actual built-in app mounted through the seam in a browser while the current game workspace remains observably unchanged. This follows the repository preference for working proofs and integration tests at system cut-points (`docs/GOOD_ENGINEERING_H.md:12-16`, `docs/GOOD_ENGINEERING_H.md:57-61`).
 
-- **Established.** Current project switching validates a prospective project, awaits `beforeProjectSwitch`, activates it in the host, and only then publishes it (`packages/studio/app/src/editor/projectManager.ts:111-140`). Its test counts switch callbacks and retains the prior project after invalid input (`packages/studio/app/src/editor/projectManager.test.ts:92-146`), but does not prove extension disposal order, failed-disposal behavior, rollback, or reactivation of the prior project.
+- **Established.** Current project switching validates a prospective project, awaits `beforeProjectSwitch`, activates it in the host, and only then publishes it (`packages/studio/app/src/editor/projectManager.ts:111-140`). Its test counts switch callbacks and retains the prior project after invalid input (`packages/studio/app/tests/editor/projectManager.test.ts:92-146`), but does not prove extension disposal order, failed-disposal behavior, rollback, or reactivation of the prior project.
 
 - **Inferred, high risk.** If old resources are disposed and new host activation then fails, the current manager retains the old project in state even though some old resources may already be closed. Extension verification must therefore prove a truthful failure state or a real rollback; “old project still named in state” is insufficient evidence that it remains operational.
 
@@ -18,7 +18,7 @@
 
 - **Established.** Strong lifecycle precedents already exist outside an extension seam:
 
-  - Native terminal setup removes listeners, observers, animation frames, and closes its host resource (`packages/studio/app/src/NativeTerminal.tsx:111-212`), although its teardown tests inspect source instead of executing Effects (`packages/studio/app/src/NativeTerminal.test.ts:67-81`, `packages/studio/app/src/NativeTerminal.test.ts:109-116`).
+  - Native terminal setup removes listeners, observers, animation frames, and closes its host resource (`packages/studio/app/src/NativeTerminal.tsx:111-212`), although its teardown tests inspect source instead of executing Effects (`packages/studio/app/tests/NativeTerminal.test.ts:67-81`, `packages/studio/app/tests/NativeTerminal.test.ts:109-116`).
   - The CLI attempts every cleanup operation with `Promise.allSettled`, reports each failure, and returns a failure count (`packages/cli/src/host/session.ts:540-609`; exercised at `packages/cli/tests/development-session.test.ts:766-825`).
   - The native development host stops before replacement, clears all stored state, supports repeated stop, and kills the child on drop (`packages/studio/tauri/src/development.rs:236-344`; real worker test at `packages/studio/tauri/src/development.rs:357-404`).
 
@@ -26,7 +26,7 @@
 
 - **Established.** Studio’s current accessibility evidence is incomplete:
 
-  - The “keyboard order” test compares substring positions in server-rendered HTML, not focus movement (`packages/studio/app/src/components/StudioShell.test.tsx:512-535`).
+  - The “keyboard order” test compares substring positions in server-rendered HTML, not focus movement (`packages/studio/app/tests/components/StudioShell.test.tsx:512-535`).
   - Tabs give only the active tab `tabIndex=0`, give inactive tabs `-1`, and have no arrow-key handler or tabpanel relationships (`packages/studio/app/src/components/primitives.tsx:37-65`).
   - Splitters expose role, orientation, values, labels, pointer drag, arrow keys, and Home reset (`packages/studio/app/src/components/StudioShell.tsx:362-401`), but no `aria-controls` or Enter collapse behavior.
   - Focus outlines exist in CSS (`packages/studio/app/src/styles.css:48-57`), but no browser test proves visibility, focus order, or freedom from a keyboard trap.
@@ -45,8 +45,8 @@
 
 - **Established.** Existing boundary validation rejects incompatible and oversized values:
 
-  - Native project records use exact keys, schema version 1, bounded strings, and a 64 KiB source limit (`packages/studio/app/src/editor/tauriHost.ts:20-90`; tests at `packages/studio/app/src/editor/tauriHost.test.ts:22-65`).
-  - Native development connections require an exact loopback shape and serialized lifecycle commands (`packages/studio/app/src/development/native.ts:23-108`; tests at `packages/studio/app/src/development/native.test.ts:14-65`).
+  - Native project records use exact keys, schema version 1, bounded strings, and a 64 KiB source limit (`packages/studio/app/src/editor/tauriHost.ts:20-90`; tests at `packages/studio/app/tests/editor/tauriHost.test.ts:22-65`).
+  - Native development connections require an exact loopback shape and serialized lifecycle commands (`packages/studio/app/src/development/native.ts:23-108`; tests at `packages/studio/app/tests/development/native.test.ts:14-65`).
   - Browser messages reject unauthorized, wrong-origin, malformed, oversized, stale, and semantically invalid data (`packages/cli/tests/development-session.test.ts:1541-1648`).
 
 - **Inferred.** An internal, compiled contribution should remain a typed in-process value rather than being serialized merely to imitate a plugin protocol. Runtime registration must still reject minimum-invalid states such as missing IDs, duplicate IDs, unsupported contribution kinds, and throwing factories. Exact-key rejection is justified only at a real serialized or trust boundary (`docs/adr/framework/0010-serialize-at-boundaries_H.md:18-48`).
@@ -106,7 +106,7 @@ These are established values, not automatic budgets for extensions.
 
 3. **Inferred rule:** Introduce `schemaVersion` only for persisted workspace/app state or a later external contribution boundary. Unsupported versions must fail with a stable diagnostic rather than being silently coerced or partially loaded.
 
-4. **Established constraint:** Current exact-key validators reject additive fields within an existing version (`packages/studio/app/src/editor/tauriHost.ts:29-35`, `packages/studio/app/src/editor/tauriHost.test.ts:51-65`). Therefore, if extension state copies this policy, adding a field is not automatically backward compatible; version dispatch and migration must be explicit.
+4. **Established constraint:** Current exact-key validators reject additive fields within an existing version (`packages/studio/app/src/editor/tauriHost.ts:29-35`, `packages/studio/app/tests/editor/tauriHost.test.ts:51-65`). Therefore, if extension state copies this policy, adding a field is not automatically backward compatible; version dispatch and migration must be explicit.
 
 5. **Inferred rule:** Persist stable app and contribution identities, not display labels or activation-instance IDs. A label rename must not silently discard a saved layout. The exact ID format is unresolved; the framework’s UUIDv7 rule should not be applied automatically to app IDs without an ownership decision.
 

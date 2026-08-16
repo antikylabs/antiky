@@ -38,7 +38,7 @@ change someone squints at.
 | `packages/cli/src/host/capture-sequence-service.ts` | P2. Per-frame observation stamps. |
 | `packages/cli/src/development/capture-sequence.ts` | P2. `cadence.frames` in the contract, strictly validated both ways. |
 | `scripts/frame-stats.mjs` + test | P3. `readSequenceStats` with ITU-T P.910 Temporal Information. |
-| `package.json`, `scripts/repository-policy.test.mjs` | Registration and allowlists. |
+| `package.json`, `scripts/tests/repository-policy.test.mjs` | Registration and allowlists. |
 
 ## Why this landed in `scripts/` and not in the CLI inspection library
 

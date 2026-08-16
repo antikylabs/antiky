@@ -80,7 +80,7 @@ function createFaultHarness(failureStage: string | null, disposalFailure: string
  * It used to build two programs and three textures and own their disposal, and the three tests this
  * replaces injected fakes to prove a failed construction released what it had already made. That
  * responsibility moved to the render driver, which owns every program and texture and is asserted
- * against the same failures in `packages/framework/src/render/brometal-driver.test.ts`.
+ * against the same failures in `packages/framework/tests/render/brometal-driver.test.ts`.
  *
  * What is still this module's job, and what these assert: it paints its canvases and describes what
  * it needs. A canvas it fails to paint is a blank panel, and nothing else would catch that.

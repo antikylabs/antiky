@@ -52,8 +52,8 @@ The same guide explicitly says the first canvas-selection method remains undecid
 - `packages/cli/src/host/game-server.ts:431-438` — pointer capture and click/down state; no button filter or coordinate update on down.
 - `packages/cli/src/host/game-server.ts:462-474` — mutable pointer passed to the game.
 - `packages/cli/src/host/game-server.ts:481-506` — click and drag deltas reset after presentation.
-- `packages/framework/src/game/contract.test.ts:91-109` — tests the pointer’s required fields.
-- `packages/framework/src/game/contract.test.ts:125-152` — proves five surviving copied contracts expose only `x` and `y`.
+- `packages/framework/tests/game/contract.test.ts:91-109` — tests the pointer’s required fields.
+- `packages/framework/tests/game/contract.test.ts:125-152` — proves five surviving copied contracts expose only `x` and `y`.
 - `packages/cli/tests/development-session.test.ts:245-271` — host test checks canvas/script availability and syntax, not pointer conversion.
 - `packages/cli/tests/managed-capture-runtime.test.ts:63-81` — automation can move/press/release and observe changed pixels, but no picked identity is asserted.
 
@@ -77,10 +77,10 @@ The same guide explicitly says the first canvas-selection method remains undecid
 - `packages/framework/src/render/brometal-driver.ts:122-128` — BroMetal-specific extensions only register/load resources.
 - `packages/framework/src/render/brometal-driver.ts:203-234` — target creation; no format/readback and filtering is fixed to linear.
 - `packages/framework/src/render/brometal-driver.ts:236-264` — draw submission has no semantic identity or result.
-- `packages/framework/src/render/render-contract.test.ts:93-118` — alternate driver and backend-handle-free contract.
-- `packages/framework/src/render/render-contract.test.ts:121-145` — sprite and mesh are deliberately indistinguishable pipeline/instance descriptions.
-- `packages/framework/src/render/frame-shape.test.ts:12-24` — the tested full frame is a contract proof, not a migrated demo.
-- `packages/framework/src/render/brometal-driver.test.ts:108-129,228-245` — tests pass order and instance upload, not selection/readback.
+- `packages/framework/tests/render/render-contract.test.ts:93-118` — alternate driver and backend-handle-free contract.
+- `packages/framework/tests/render/render-contract.test.ts:121-145` — sprite and mesh are deliberately indistinguishable pipeline/instance descriptions.
+- `packages/framework/tests/render/frame-shape.test.ts:12-24` — the tested full frame is a contract proof, not a migrated demo.
+- `packages/framework/tests/render/brometal-driver.test.ts:108-129,228-245` — tests pass order and instance upload, not selection/readback.
 - `packages/framework/src/identity/ids.ts:1-21,83-100,120-126` — branded canonical UUIDv7 `EntityId`.
 - `packages/framework/src/point-light/projections.ts:10-26,95-135` — feature-specific stable entity ↔ temporary render-slot mapping.
 - `packages/framework/src/point-light/world-inspection.ts:41-87` — point-light authoring/runtime/render projections retain the stable ID.
@@ -105,7 +105,7 @@ The same guide explicitly says the first canvas-selection method remains undecid
 - `packages/cli/src/mcp/server.ts:390-444` — corresponding dispatch paths.
 - `packages/cli/tests/mcp-server.test.ts:567-635` — exact MCP tool list enforced by tests.
 - `packages/cli/tests/mcp-server.test.ts:675-693` — stable point-light lookup and whole-world read are covered.
-- `packages/studio/app/src/components/StudioShell.test.tsx:342-378` — connected Studio test covers read-only semantic surfaces, not selection.
+- `packages/studio/app/tests/components/StudioShell.test.tsx:342-378` — connected Studio test covers read-only semantic surfaces, not selection.
 
 ### Installed BroMetal
 

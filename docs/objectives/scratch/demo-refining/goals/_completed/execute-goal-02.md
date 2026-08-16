@@ -7,7 +7,7 @@
   green (W0.1b) before this goal adds a test file.
 - [Execute goal 00](_completed/execute-goal-00.md) is complete, or the owner has released this goal ahead of
   it. ADR 0021 carries the contribution practice that the upstream pull requests here follow.
-- No commit from goal 01 is in flight. Both goals edit `scripts/repository-policy.test.mjs` and root
+- No commit from goal 01 is in flight. Both goals edit `scripts/tests/repository-policy.test.mjs` and root
   `package.json`, so they must not commit concurrently.
 
 ## `/goal` objective
@@ -40,8 +40,8 @@ When the work is complete, the repository must have:
    `scripts/patch-brometal.mjs:27-33`;
 4. both patches behind the existing version guard at `scripts/patch-brometal.mjs:23-25`, which
    throws when the installed BroMetal is not `0.15.0`;
-5. `scripts/patch-brometal.test.mjs`, registered in the `scripts/` allowlist at
-   `scripts/repository-policy.test.mjs:24-33` and in the root `test` script at `package.json:27`, in
+5. `scripts/tests/patch-brometal.test.mjs`, registered in the `scripts/` allowlist at
+   `scripts/tests/repository-policy.test.mjs:24-33` and in the root `test` script at `package.json:27`, in
    the same commit; and
 6. one focused upstream pull request prepared per patch, each standing on its own, so that an
    accepted pull request removes the need for that patch.
@@ -49,7 +49,7 @@ When the work is complete, the repository must have:
 ## In scope
 
 - **W A.1 — linear filtering on render targets.** Owns `scripts/patch-brometal.mjs` (section 1) and
-  `scripts/patch-brometal.test.mjs`. `webgpu.js:761` creates every render target's sampler with
+  `scripts/tests/patch-brometal.test.mjs`. `webgpu.js:761` creates every render target's sampler with
   `magFilter: 'nearest', minFilter: 'nearest'`. A bloom downsample chain built on point sampling
   produces blocky, crawling glow. Read the comment directly above that line before changing it, but
   **check it against the code**: the comment cites `rgba32float`, which is not filterable without an
@@ -102,7 +102,7 @@ At minimum, prove:
   it. Record both runs;
 - **W A.2 no regression:** the three antiky demos' captures show no increase in aliased edge pixel
   count against the pre-goal baseline, measured through the goal 01 frame statistics;
-- `npm test` is green, including the new `scripts/patch-brometal.test.mjs`, with both the `scripts/`
+- `npm test` is green, including the new `scripts/tests/patch-brometal.test.mjs`, with both the `scripts/`
   allowlist and the root `test` script updated in the same commit; and
 - each upstream pull request is recorded in the handoff with its URL, the BroMetal source file it
   changes, and the local patch section it retires when accepted.

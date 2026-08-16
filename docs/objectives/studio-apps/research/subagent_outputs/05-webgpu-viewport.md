@@ -108,10 +108,10 @@ Evidence:
 - The temporary host advances the session and renders only an advanced frame: `packages/demos/antiky/antiky-town/src/gameplay/game-host.ts:48-74`.
 - A reusable Framework session-frame driver already exists, but Antiky Town has not adopted it: `packages/framework/src/sessions/session-frame-driver.ts:34-99`.
 - `EngineSession` exposes simulation/control/status/disposal, not canvas or GPU operations: `packages/framework/src/sessions/engine-session/contract.ts:37-50`, `packages/framework/src/sessions/engine-session/contract.ts:165-179`.
-- Session disposal releases services in reverse order and continues after failures: `packages/framework/src/sessions/engine-session/runtime.ts:508-523`; tests at `packages/framework/src/sessions/engine-session/engine-session.test.ts:333-369`.
+- Session disposal releases services in reverse order and continues after failures: `packages/framework/src/sessions/engine-session/runtime.ts:508-523`; tests at `packages/framework/tests/sessions/engine-session/engine-session.test.ts:333-369`.
 - The driver takes an existing `Renderer`: `packages/framework/src/render/brometal-driver.ts:83-105`.
 - It owns programs/textures/targets through a disposal scope: `packages/framework/src/render/brometal-driver.ts:130-179`.
-- It derives scaled targets from `renderer.canvas`, replaces changed targets, and leaves fixed-size targets alone: `packages/framework/src/render/brometal-driver.ts:208-243`; tests at `packages/framework/src/render/brometal-driver.test.ts:158-178`, `packages/framework/src/render/brometal-driver.test.ts:412-427`.
+- It derives scaled targets from `renderer.canvas`, replaces changed targets, and leaves fixed-size targets alone: `packages/framework/src/render/brometal-driver.ts:208-243`; tests at `packages/framework/tests/render/brometal-driver.test.ts:158-178`, `packages/framework/tests/render/brometal-driver.test.ts:412-427`.
 - Driver disposal releases its targets and adopted resources, not `options.renderer`: `packages/framework/src/render/brometal-driver.ts:274-305`.
 - The Town runtime calls `driver.dispose()`: `packages/demos/antiky/antiky-town/src/town/index.ts:1179-1190`.
 

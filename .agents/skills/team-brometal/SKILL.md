@@ -46,7 +46,7 @@ with no upstream pull request violates ADR 0021 and becomes permanent by default
 
 ```
 scripts/patch-brometal.mjs           the runner: version guard, install discovery, PATCHES registry
-scripts/patch-brometal.test.mjs      tests for the mechanism itself
+scripts/tests/patch-brometal.test.mjs      tests for the mechanism itself
 scripts/patch-brometal/
   <contribution-name>.mjs            one module per upstream pull request
 ```

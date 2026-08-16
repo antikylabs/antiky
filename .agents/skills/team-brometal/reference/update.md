@@ -78,7 +78,7 @@ For each patch whose fix is in the new version, three deletions in one commit:
 
 1. delete `scripts/patch-brometal/<name>.mjs`;
 2. remove it from `PATCHES` in `scripts/patch-brometal.mjs`;
-3. remove it from the `scripts/` allowlist in `scripts/repository-policy.test.mjs`.
+3. remove it from the `scripts/` allowlist in `scripts/tests/repository-policy.test.mjs`.
 
 The module header states these three steps precisely so this is mechanical. If the header says
 something different, follow the header — it was written by whoever knew the patch.
