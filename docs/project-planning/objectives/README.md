@@ -20,6 +20,7 @@ Before planning or implementing work, read:
 | --- | --- | --- |
 | [BroMetal request](brometal-request/README.md) | [Research summary](brometal-request/research/README.md) | Determines how Antiky should respond to the needs in BroMetal issue #8. |
 | [Libraries](libraries/README.md) | [Research summary](libraries/research/README.md) | Explores semantic asset-pack enrichment and an owned, agent-usable BroMetal shader recipe library. |
+| [Studio ACP](studio-acp/README.md) | [Research summary](studio-acp/research/README.md) | Adds a native ACP agent panel and automatic, revisioned selection-context handoff. |
 | [Studio apps](studio-apps/README.md) | [Research summary](studio-apps/research/README.md) | Defines the first-party Studio app seam, composable workspace, and reusable WebGPU viewport boundaries. |
 
 ## Archived objectives
