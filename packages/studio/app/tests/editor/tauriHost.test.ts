@@ -8,7 +8,7 @@ import {
   parseNativeRecentProjects,
   parseNativeProjectSource,
   parseValidatedProjectBoundary,
-} from './tauriHost.ts';
+} from '../../src/editor/tauriHost.ts';
 
 const source = {
   schemaVersion: 1,

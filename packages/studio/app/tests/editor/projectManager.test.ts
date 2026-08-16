@@ -9,14 +9,14 @@ import { test } from 'vitest';
 import {
   createProjectManager,
   type EditorProjectState,
-} from './projectManager.ts';
+} from '../../src/editor/projectManager.ts';
 import type {
   EditorHost,
   NativeProjectEvent,
   NativeProjectSource,
   ProjectActivationRequest,
   ProjectValidationRequest,
-} from './types.ts';
+} from '../../src/editor/types.ts';
 
 const manifest = (name: string) => `${JSON.stringify({
   schemaVersion: 1,

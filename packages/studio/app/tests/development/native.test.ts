@@ -7,7 +7,7 @@ import {
   restartNativeDevelopmentConnection,
   startNativeDevelopmentConnection,
   stopNativeDevelopmentConnection,
-} from './native.ts';
+} from '../../src/development/native.ts';
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 

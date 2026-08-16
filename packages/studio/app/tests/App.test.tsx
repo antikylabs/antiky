@@ -4,12 +4,12 @@ import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { test } from 'vitest';
 
-import { App, resolveInitialStudioPage, studioPageHref } from './App.tsx';
-import { ProjectLauncher } from './components/ProjectLauncher.tsx';
-import { createStudioInitialState } from './development/coordinator.ts';
-import { developmentStateForProject } from './development/useStudioDevelopment.ts';
+import { App, resolveInitialStudioPage, studioPageHref } from '../src/App.tsx';
+import { ProjectLauncher } from '../src/components/ProjectLauncher.tsx';
+import { createStudioInitialState } from '../src/development/coordinator.ts';
+import { developmentStateForProject } from '../src/development/useStudioDevelopment.ts';
 
-const launcherStyles = readFileSync(new URL('./launcher.css', import.meta.url), 'utf8');
+const launcherStyles = readFileSync(new URL('../src/launcher.css', import.meta.url), 'utf8');
 
 test('browser Studio shell exposes the complete read-only workspace with an honest terminal state', () => {
   const html = renderToStaticMarkup(<App platform="browser" />);

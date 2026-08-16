@@ -14,7 +14,7 @@ import {
   createStudioCoordinator,
   type StudioCaptureClient,
   type StudioDevelopmentClient,
-} from './coordinator.ts';
+} from '../../src/development/coordinator.ts';
 
 test('Studio capture types are the shared browser-safe development contracts', () => {
   expectTypeOf<StudioCaptureClient>().toEqualTypeOf<Pick<DevelopmentClient,

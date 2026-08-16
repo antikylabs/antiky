@@ -5,10 +5,10 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { test } from 'vitest';
 
-import { displayError, NativeTerminal, terminalBoundsForRect } from './NativeTerminal.tsx';
+import { displayError, NativeTerminal, terminalBoundsForRect } from '../src/NativeTerminal.tsx';
 
-const terminalStyles = readFileSync(new URL('./terminal.css', import.meta.url), 'utf8');
-const terminalSource = readFileSync(new URL('./NativeTerminal.tsx', import.meta.url), 'utf8');
+const terminalStyles = readFileSync(new URL('../src/terminal.css', import.meta.url), 'utf8');
+const terminalSource = readFileSync(new URL('../src/NativeTerminal.tsx', import.meta.url), 'utf8');
 
 test('native terminal bounds preserve viewport CSS-pixel geometry', () => {
   assert.deepEqual(terminalBoundsForRect({

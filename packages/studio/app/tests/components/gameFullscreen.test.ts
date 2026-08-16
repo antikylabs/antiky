@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import { test } from 'vitest';
 
-import { changeGameFullscreen } from './gameFullscreen.ts';
+import { changeGameFullscreen } from '../../src/components/gameFullscreen.ts';
 
 test('native fullscreen uses the Tauri window when the webview has no fullscreen API', async () => {
   const windowChanges: boolean[] = [];

@@ -6,15 +6,15 @@ import { test } from 'vitest';
 
 import type { DevelopmentSnapshotV2 } from '@antiky/cli/development';
 
-import type { StudioDevelopmentState } from '../development/coordinator.ts';
-import { StudioShell } from './StudioShell.tsx';
+import type { StudioDevelopmentState } from '../../src/development/coordinator.ts';
+import { StudioShell } from '../../src/components/StudioShell.tsx';
 
 const shellStyles = [
-  readFileSync(new URL('../styles.css', import.meta.url), 'utf8'),
-  readFileSync(new URL('../responsive.css', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../src/styles.css', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../src/responsive.css', import.meta.url), 'utf8'),
 ].join('\n');
-const studioShellSource = readFileSync(new URL('./StudioShell.tsx', import.meta.url), 'utf8');
-const gameFullscreenSource = readFileSync(new URL('./gameFullscreen.ts', import.meta.url), 'utf8');
+const studioShellSource = readFileSync(new URL('../../src/components/StudioShell.tsx', import.meta.url), 'utf8');
+const gameFullscreenSource = readFileSync(new URL('../../src/components/gameFullscreen.ts', import.meta.url), 'utf8');
 
 const ROOT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abc';
 const LIGHT_ID = '018f0f3a-7b2c-7a1d-8e2f-123456789abd';

@@ -6,7 +6,7 @@ import {
   DEFAULT_WORKSPACE_SPLITS,
   resizeWorkspaceSplit,
   stepWorkspaceSplit,
-} from './workspaceLayout.ts';
+} from '../../src/components/workspaceLayout.ts';
 
 test('pointer resizing maps each separator to its workspace axis', () => {
   const bounds = { height: 500, left: 100, top: 50, width: 1000 };

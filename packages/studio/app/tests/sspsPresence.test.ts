@@ -11,7 +11,7 @@ import {
   SSPS_VISITOR_STORAGE_KEY,
   startSspsPresence,
   writeSspsPresenceEnabled,
-} from './sspsPresence.ts';
+} from '../src/sspsPresence.ts';
 
 type TestStorage = Pick<Storage, 'getItem' | 'removeItem' | 'setItem'> & {
   values: Map<string, string>;

@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { test } from 'vitest';
 
-import { LiveGameFrame } from './LiveGameFrame.tsx';
+import { LiveGameFrame } from '../../src/components/LiveGameFrame.tsx';
 
-const source = readFileSync(new URL('./LiveGameFrame.tsx', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../../src/components/LiveGameFrame.tsx', import.meta.url), 'utf8');
 
 test('the live game frame has one stable mount for a development session', () => {
   const html = renderToStaticMarkup(
