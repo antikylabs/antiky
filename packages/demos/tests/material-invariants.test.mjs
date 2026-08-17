@@ -82,7 +82,7 @@ async function glbDrawingShaders(demo) {
 }
 
 test('AC-M3: every shader that draws GLB geometry samples a normal map that survives to the output', async () => {
-  const demos = await discoverDemos(['antiky']);
+  const demos = await discoverDemos();
   assert.ok(demos.length >= 4, `expected the four Antiky demos, found ${demos.length}`);
 
   const missing = [];
@@ -152,7 +152,7 @@ test('AC-V3: a time-driven pulse varies its rate per instance, not just its phas
    */
   const offenders = [];
   let checked = 0;
-  for (const demo of await discoverDemos(['antiky'])) {
+  for (const demo of await discoverDemos()) {
     for (const shader of await discoverShaders(demo)) {
       // `(uTime * <rate>` inside a trig call, with the rate captured.
       // Assignments into anything alpha-shaped, whether a varying or the fragment's output.
@@ -332,7 +332,7 @@ test('every instanced batch that is written is also uploaded and drawn', async (
    * and a batch uploaded but never `draw()`n.
    */
   const { readdir, readFile } = await import('node:fs/promises');
-  const demos = await discoverDemos(['antiky']);
+  const demos = await discoverDemos();
   const problems = [];
   let checked = 0;
 
@@ -378,7 +378,7 @@ test('combat-arena has no vignette and no depth-of-field blur', async () => {
    *
    * Reads compiled WGSL: the shipped program, with no comments to hide an assertion in.
    */
-  const [demo] = (await discoverDemos(['antiky'])).filter((entry) => entry.slug === 'combat-arena');
+  const [demo] = (await discoverDemos()).filter((entry) => entry.slug === 'combat-arena');
   assert.ok(demo, 'combat-arena is missing');
 
   const found = [];

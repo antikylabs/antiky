@@ -5,8 +5,8 @@ import test from 'node:test';
 
 import {
   demosRoot,
+  demoSources,
   discoverAssetScripts,
-  discoverDemoSources,
   discoverDemos,
   discoverShaders,
 } from './shader/graph.mjs';
@@ -114,14 +114,14 @@ const SAMPLER_EXCEPTIONS = Object.freeze({
   // Hand-painted pixel art with its shading already in the paint: median luminance 45 against
   // 80/69/83 for the demo's three material atlases. Decoding treats appearance as reflectance and
   // crushes every townsperson to orange-brown.
-  'antiky/antiky-town/src/town/shaders/town-sprite.shader.gen.ts': { uAtlas: 'authored' },
+  'antiky-town/src/town/shaders/town-sprite.shader.gen.ts': { uAtlas: 'authored' },
   // Shadow passes read alpha for the cut-out test. town-sprite-shadow also compares .xyz against a
   // colour key, which must stay in the space the key was authored in.
-  'antiky/antiky-town/src/town/shaders/town-sprite-shadow.shader.gen.ts': { uAtlas: 'mask' },
-  'antiky/antiky-town/src/town/shaders/town-prop-shadow.shader.gen.ts': { uAtlas: 'mask' },
-  'antiky/antiky-town/src/town/shaders/town-foliage-shadow.shader.gen.ts': { uAtlas: 'mask' },
+  'antiky-town/src/town/shaders/town-sprite-shadow.shader.gen.ts': { uAtlas: 'mask' },
+  'antiky-town/src/town/shaders/town-prop-shadow.shader.gen.ts': { uAtlas: 'mask' },
+  'antiky-town/src/town/shaders/town-foliage-shadow.shader.gen.ts': { uAtlas: 'mask' },
   // UI drawn over the scene and shown as authored, not lit.
-  'antiky/point-light-expo/src/shaders/onboarding.shader.gen.ts': { uAtlas: 'authored' },
+  'point-light-expo/src/shaders/onboarding.shader.gen.ts': { uAtlas: 'authored' },
 });
 
 function roleOf(shader, texture) {
@@ -224,10 +224,10 @@ async function assetScripts() {
 }
 
 /** Every TypeScript module across every demo. */
-async function demoSources() {
+async function allDemoSources() {
   const sources = [];
   for (const demo of demos) {
-    for (const source of await discoverDemoSources(demo)) sources.push({ ...source, demo: demo.slug });
+    for (const source of await demoSources(demo.slug)) sources.push({ ...source, demo: demo.slug });
   }
   assert.ok(sources.length >= 80, `expected to find the demo sources, found ${sources.length}`);
   return sources;
@@ -241,7 +241,7 @@ async function demoSources() {
  */
 async function farConstants() {
   const constants = {};
-  for (const source of await demoSources()) {
+  for (const source of await allDemoSources()) {
     for (const [, name, value] of source.text.matchAll(/^export const ([A-Z_][A-Z0-9_]*) = ([\d.]+)\s*;/gm)) {
       constants[name] = Number(value);
     }
@@ -346,7 +346,7 @@ test('no camera wastes depth precision on an extreme far/near ratio', async () =
   const offenders = [];
   let camerasSeen = 0;
   {
-    for (const source of await demoSources()) {
+    for (const source of await allDemoSources()) {
       const constants = new Map(Object.entries(shared));
       for (const match of source.text.matchAll(/^\s*(?:export\s+)?const\s+([A-Z_][A-Z0-9_]*)\s*=\s*([\d.]+)\s*;/gm)) {
         constants.set(match[1], Number(match[2]));
@@ -401,7 +401,7 @@ test('the dead code this objective deleted has not come back', async () => {
   const offenders = [];
   let scanned = 0;
   {
-    for (const source of await demoSources()) {
+    for (const source of await allDemoSources()) {
       scanned += 1;
       for (const { name, why } of DELETED_NAMES) {
         if (new RegExp(`\\b${name}\\b`).test(source.text)) {
@@ -922,7 +922,7 @@ test('no point-light-expo shader still uses the distribution-only specular term'
   // `specGGX` is BroMetal's own helper and other demos still call it — that is goal 07's problem,
   // not this one. Inside this demo it is gone, and this stops it coming back through a copied block.
   const offenders = (await allShaders())
-    .filter((shader) => shader.relative.startsWith('antiky/point-light-expo/'))
+    .filter((shader) => shader.relative.startsWith('point-light-expo/'))
     .filter((shader) => shader.calls('specGGX'))
     .map((shader) => shader.relative);
   assert.deepEqual(offenders, []);

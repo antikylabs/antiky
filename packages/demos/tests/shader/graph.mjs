@@ -19,7 +19,7 @@ import path from 'node:path';
  * asserting on it is asserting on the shipped program.
  */
 
-const demosRoot = path.resolve(import.meta.dirname, '..');
+const demosRoot = path.resolve(import.meta.dirname, '..', '..', 'antiky');
 
 async function walk(directory, accept) {
   const results = [];
@@ -44,31 +44,55 @@ async function walk(directory, accept) {
  * A demo is a directory holding a `*.antiky` file — the same thing the CLI and the website use to
  * identify one, so a demo cannot exist for the runtime and not for these tests.
  */
-export async function discoverDemos(categories = ['antiky', 'brometal', 'threejs']) {
-  const demos = [];
-  for (const category of categories) {
-    const root = path.join(demosRoot, category);
+export function createDemoGraph(rawRoot = demosRoot) {
+  const root = path.resolve(rawRoot);
+
+  async function discoverDemos() {
+    if (path.basename(root) !== 'antiky') {
+      throw new Error(`Demo graph root ${root} is outside the Antiky demo category.`);
+    }
+    const demos = [];
     let entries;
     try {
       entries = await readdir(root, { withFileTypes: true });
     } catch {
-      continue;
+      throw new Error(`No Antiky demos found under ${root}.`);
     }
     for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
       if (!entry.isDirectory()) continue;
       const directory = path.join(root, entry.name);
-      const manifests = (await readdir(directory)).filter((name) => name.endsWith('.antiky'));
+      const manifests = (await readdir(directory, { withFileTypes: true }))
+        .filter((manifest) => manifest.isFile() && manifest.name.endsWith('.antiky'))
+        .map((manifest) => manifest.name);
       if (manifests.length === 0) continue;
-      demos.push({
+      if (manifests.length > 1) {
+        throw new Error(`Antiky demo "${entry.name}" has more than one project manifest.`);
+      }
+      demos.push(Object.freeze({
         slug: entry.name,
-        category,
+        category: 'antiky',
         directory,
         manifest: path.join(directory, manifests[0]),
-      });
+      }));
     }
+    if (demos.length === 0) throw new Error(`No Antiky demos found under ${root}.`);
+    return Object.freeze(demos);
   }
-  return demos;
+
+  async function demoSources(slug) {
+    const demos = await discoverDemos();
+    const selected = demos.find((demo) => demo.slug === slug);
+    if (selected === undefined) throw new Error(`Unknown Antiky demo "${slug}".`);
+    return discoverDemoSources(selected);
+  }
+
+  return Object.freeze({ root, discoverDemos, demoSources });
 }
+
+const defaultGraph = createDemoGraph();
+
+export const discoverDemos = defaultGraph.discoverDemos;
+export const demoSources = defaultGraph.demoSources;
 
 /** Strips WGSL string literals so a texture name inside one cannot be mistaken for a call. */
 function code(wgsl) {
@@ -334,7 +358,7 @@ export async function discoverShaders(demo) {
   const files = await walk(demo.directory, (name) => name.endsWith('.shader.gen.ts'));
   const shaders = [];
   for (const file of files) {
-    const relative = path.relative(demosRoot, file);
+    const relative = path.relative(path.dirname(demo.directory), file);
     shaders.push(parseGeneratedShader(relative, await readFile(file, 'utf8')));
   }
   return shaders;
@@ -349,7 +373,7 @@ export async function discoverShaderSources(demo) {
   const sources = [];
   for (const file of files) {
     sources.push({
-      relative: path.relative(demosRoot, file),
+      relative: path.relative(path.dirname(demo.directory), file),
       text: await readFile(file, 'utf8'),
     });
   }
@@ -365,7 +389,7 @@ export async function discoverDemoSources(demo) {
   const sources = [];
   for (const file of files) {
     sources.push({
-      relative: path.relative(demosRoot, file),
+      relative: path.relative(path.dirname(demo.directory), file),
       text: await readFile(file, 'utf8'),
     });
   }
@@ -379,7 +403,7 @@ export async function discoverAssetScripts(demos) {
     for (const file of await walk(path.join(demo.directory, 'scripts'), (name) => name.endsWith('.mjs'))) {
       const text = await readFile(file, 'utf8');
       scripts.push({
-        relative: path.relative(demosRoot, file),
+        relative: path.relative(path.dirname(demo.directory), file),
         demo: demo.slug,
         text,
         // Comments stripped: a script that only mentions a rule in prose does not follow it, and a
