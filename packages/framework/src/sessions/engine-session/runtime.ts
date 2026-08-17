@@ -98,13 +98,19 @@ function isImmutableInput(value: unknown): boolean {
   const visit = (current: unknown, depth: number): boolean => {
     valueCount += 1;
     if (valueCount > MAX_INPUT_VALUES || depth > MAX_INPUT_DEPTH) return false;
+    if (typeof current === 'function') return false;
     if (current === null || typeof current !== 'object') return true;
     if (seen.has(current)) return false;
     if (!Object.isFrozen(current)) return false;
     seen.add(current);
-    if (Array.isArray(current)) return current.every((item) => visit(item, depth + 1));
-    if (Object.getPrototypeOf(current) !== Object.prototype) return false;
-    return Object.values(current).every((item) => visit(item, depth + 1));
+    const expectedPrototype = Array.isArray(current) ? Array.prototype : Object.prototype;
+    if (Object.getPrototypeOf(current) !== expectedPrototype) return false;
+    for (const key of Reflect.ownKeys(current)) {
+      const descriptor = Object.getOwnPropertyDescriptor(current, key);
+      if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return false;
+      if (!visit(descriptor.value, depth + 1)) return false;
+    }
+    return true;
   };
   return visit(value, 0);
 }

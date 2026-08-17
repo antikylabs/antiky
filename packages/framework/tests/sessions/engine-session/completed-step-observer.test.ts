@@ -61,6 +61,44 @@ function createObserverHarness(
   return { session, state, observed };
 }
 
+function assertUnsafeCapturedInputIsRejected<Input>(
+  input: Readonly<Input>,
+  readMarker: (input: Readonly<Input>) => number,
+  mutateMarker: (input: Readonly<Input>) => void,
+): void {
+  const markers: number[] = [];
+  let observerCalls = 0;
+  const session = createEngineSession<Input>({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    runtimeInstanceId: 'runtime-reject-unsafe-captured-input',
+    systems: [{
+      id: 'read-hidden-mutable-state',
+      run(step) {
+        markers.push(readMarker(step.input));
+      },
+    }],
+    captureInput: () => input,
+    onCompletedStep(step) {
+      observerCalls += 1;
+      mutateMarker(step.input);
+    },
+  });
+
+  const result = session.advance(MAX_FRAME_ELAPSED_SECONDS, input);
+
+  assert.deepEqual(markers, []);
+  assert.equal(result.code, 'SESSION_FAULTED');
+  assert.equal(result.completedSteps, 0);
+  assert.equal(observerCalls, 0);
+  assert.equal(session.readStatus().clock.completedStepCount, 0);
+  assert.deepEqual(session.readStatus().fault, {
+    code: 'ENGINE_CALLBACK_FAILED',
+    source: 'input-capture',
+    systemId: null,
+  });
+}
+
 test('zero-step frames do not notify the completed-step observer', () => {
   const { session, observed } = createObserverHarness();
 
@@ -347,4 +385,78 @@ test('the observer can inspect its committed identity but cannot reenter session
     controlRevision: 0,
     worldRevision: 0,
   });
+});
+
+test('captured input rejects a nested callable leaf before an observer can mutate later steps', () => {
+  const action = Object.assign(() => undefined, { marker: 0 });
+  const input = Object.freeze({ nested: Object.freeze({ action }) });
+
+  assertUnsafeCapturedInputIsRejected(
+    input,
+    (captured) => captured.nested.action.marker,
+    (captured) => { captured.nested.action.marker = 1; },
+  );
+});
+
+test('captured input rejects a frozen nested callable with mutable closure state', () => {
+  let marker = 0;
+  const action = Object.freeze(() => { marker += 1; });
+  const input = Object.freeze({ nested: Object.freeze({ action }) });
+
+  assertUnsafeCapturedInputIsRejected(
+    input,
+    () => marker,
+    (captured) => { captured.nested.action(); },
+  );
+});
+
+test('captured input rejects a frozen accessor before its setter can mutate later steps', () => {
+  let marker = 0;
+  const accessor = Object.freeze({
+    get marker() { return marker; },
+    set marker(value: number) { marker = value; },
+  });
+  const input = Object.freeze({ accessor });
+
+  assertUnsafeCapturedInputIsRejected(
+    input,
+    (captured) => captured.accessor.marker,
+    (captured) => { Reflect.set(captured.accessor, 'marker', 1); },
+  );
+});
+
+test('captured input inspects symbol own data properties', () => {
+  const symbolKey = Symbol('mutable-symbol-input');
+  const symbolState = { marker: 0 };
+  const input = Object.freeze({ [symbolKey]: symbolState });
+
+  assertUnsafeCapturedInputIsRejected(
+    input,
+    (captured) => captured[symbolKey].marker,
+    (captured) => { captured[symbolKey].marker = 1; },
+  );
+});
+
+test('captured input inspects non-enumerable own data properties', () => {
+  const nonEnumerableState = { marker: 0 };
+  const input = { nonEnumerable: nonEnumerableState };
+  Object.defineProperty(input, 'nonEnumerable', { enumerable: false });
+  Object.freeze(input);
+
+  assertUnsafeCapturedInputIsRejected(
+    input,
+    (captured) => captured.nonEnumerable.marker,
+    (captured) => { captured.nonEnumerable.marker = 1; },
+  );
+});
+
+test('captured input inspects custom array data properties', () => {
+  const metadata = { marker: 0 };
+  const input = Object.freeze(Object.assign([0], { metadata }));
+
+  assertUnsafeCapturedInputIsRejected(
+    input,
+    (captured) => captured.metadata.marker,
+    (captured) => { captured.metadata.marker = 1; },
+  );
 });

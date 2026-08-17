@@ -47,6 +47,11 @@ The system order is fixed when you create the session. Every fixed step runs eac
 that order. The optional state digest gives tests and inspection tools a compact way to compare
 the latest completed state; it is not a save file or event log.
 
+A captured input snapshot can contain primitives, frozen plain objects, and frozen arrays. Every
+own data property, including symbol and non-enumerable properties, must lead to another valid
+snapshot value. Do not include functions, accessor properties, class instances, or mutable nested
+values. A frozen container does not make a function's closure or an accessor's setter immutable.
+
 ## Drive it from your game host
 
 Your browser, native window, server process, or test harness supplies elapsed time and semantic
@@ -149,9 +154,9 @@ captureInput(input: { movementX: number }) {
 The frame or single-step operation then returns `INVALID_INPUT`. The session stays usable and does
 not change its clock or game state.
 
-Throwing from `captureInput` means that input capture itself failed. Returning a mutable or otherwise
-unsafe snapshot is also a capture failure. These failures are different from rejecting expected
-invalid input.
+Throwing from `captureInput` means that input capture itself failed. Returning a mutable snapshot,
+a callable or accessor, or another unsupported input shape is also a capture failure. These
+failures are different from rejecting expected invalid input.
 
 The session enters `faulted` mode when input capture, an engine system, the state digest, the
 completed-step observer, or a command operation fails unexpectedly. The operation returns
