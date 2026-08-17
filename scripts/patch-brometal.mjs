@@ -30,6 +30,10 @@ import {
   name as attributeBufferDefects,
   apply as applyAttributeBufferDefects,
 } from './patch-brometal/attribute-buffer-defects.mjs';
+import {
+  name as webgpuPerspectiveDepth,
+  apply as applyWebgpuPerspectiveDepth,
+} from './patch-brometal/webgpu-perspective-depth.mjs';
 
 const EXPECTED_VERSION = '0.18.0';
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
@@ -43,6 +47,7 @@ export const PATCHES = Object.freeze([
   { name: attributeBufferDefects, apply: applyAttributeBufferDefects },
   { name: samplerLodClamp, apply: applySamplerLodClamp },
   { name: textureArraySampler, apply: applyTextureArraySampler },
+  { name: webgpuPerspectiveDepth, apply: applyWebgpuPerspectiveDepth },
 ]);
 
 /**
