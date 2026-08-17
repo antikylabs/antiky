@@ -81,6 +81,7 @@ export default shader({
     uBloom: 'sampler2D',
     uBloomStrength: 'float',
     uExposure: 'float',
+    uVignetteStrength: 'float',
     /**
      * Item 17's offset map: red and green carry a screen-space nudge written by the ripple pass.
      * Warping the *lookup* rather than the scene is the whole trick — an impact bends the already
@@ -98,7 +99,7 @@ export default shader({
     return vec4(aPosition.x, aPosition.y, 0, 1);
   },
 
-  fragment({ uScene, uBloom, uBloomStrength, uExposure, uDistortion }, { vUv }) {
+  fragment({ uScene, uBloom, uBloomStrength, uExposure, uVignetteStrength, uDistortion }, { vUv }) {
     const ripple = texture(uDistortion, vUv).xy;
     const warped = vec2(vUv.x + ripple.x, vUv.y + ripple.y);
     const scene = texture(uScene, warped).xyz;
@@ -122,7 +123,7 @@ export default shader({
     // is distance from centre; the corner sits at 0.707 and lands 10-25% down, which is the band the
     // goal calls restrained.
     const centred = vUv.sub(vec2(0.5, 0.5));
-    const vignette = 1 - smoothstep(0.28, 0.78, length(centred)) * 0.2;
+    const vignette = 1 - smoothstep(0.28, 0.78, length(centred)) * uVignetteStrength;
 
     return vec4(encodeSrgb(tonemapACES(graded.scale(vignette))), 1);
   },

@@ -81,6 +81,7 @@ export default shader({
     uLightDir: 'vec3',
     uSunColor: 'vec3',
     uSunIntensity: 'float',
+    uTransmissionStrength: 'float',
     uSkyColor: 'vec3',
     uSkyIntensity: 'float',
     uGroundColor: 'vec3',
@@ -182,6 +183,7 @@ export default shader({
       uLightDir,
       uSunColor,
       uSunIntensity,
+      uTransmissionStrength,
       uSkyColor,
       uSkyIntensity,
       uGroundColor,
@@ -258,7 +260,9 @@ export default shader({
     // hue, which is what the acceptance criterion measures.
     const transmission = max(0 - dot(normal, light), 0) * cardWeight;
     const backScatter = pow(max(0 - dot(view, light), 0), 5) * cardWeight;
-    const transmitted = uSunColor.scale(uSunIntensity * (transmission * 0.4 + backScatter * 0.5) * shadow);
+    const transmitted = uSunColor.scale(
+      uSunIntensity * (transmission * 0.4 + backScatter * 0.5) * shadow * uTransmissionStrength,
+    );
     // Rim on the canopy: the band just inside a backlit silhouette catches the sun the criterion's
     // 1.6x bar asks for. Gated by the same back-scatter so an unlit crown stays matte.
     const canopyRim = pow(1 - max(dot(normal, view), 0), 3) * cardWeight * (0.3 + backScatter * 1.3);
@@ -266,7 +270,7 @@ export default shader({
     const halfVector = normalize(light.add(view));
     const specular = pow(max(dot(normal, halfVector), 0), mix(18, 8, clamp(vKind, 0, 1)));
     let color = baseColor.mul(sky.add(ground).add(direct).add(transmitted)).scale(vRootAo);
-    color = color.add(uSunColor.scale(canopyRim * 0.75 * shadow));
+    color = color.add(uSunColor.scale(canopyRim * 0.75 * shadow * uTransmissionStrength));
     color = color.add(uSunColor.scale(specular * mix(0.06, 0.025, clamp(vKind, 0, 1)) * shadow));
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);

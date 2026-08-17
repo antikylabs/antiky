@@ -11,6 +11,7 @@ import {
   type BroMetalTexture,
   type Renderer,
 } from 'brometal';
+import type { CaptureFixtureState } from '@antiky/framework/game';
 
 import {
   COURSE_CHECKPOINTS,
@@ -92,7 +93,14 @@ export type TraversalRenderer = Readonly<{
   dispose(): void;
 }>;
 
-export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promise<TraversalRenderer> {
+export async function createTraversalRenderer(
+  canvas: HTMLCanvasElement,
+  readCaptureFixture: () => CaptureFixtureState = () => ({
+    sceneVisibility: { 'scene-geometry': true },
+    variants: { bloom: true, shadows: true, vignette: true },
+    cameraTranslation: { x: 0, y: 0, z: 0 },
+  }),
+): Promise<TraversalRenderer> {
   // Back-face culling: the course geometry is closed, so every back face drawn was fragment work
   // thrown away. If a specific mesh ever needs double-siding, draw that mesh in its own pass rather
   // than reverting this for the whole demo.
@@ -182,14 +190,17 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       skyProgram.setIndices(dome.indices);
     }
 
+    let captureState = readCaptureFixture();
     const drawScene = (): void => {
-      skyProgram.draw();
-      cloudLarge.draw(); cloudSmall.draw();
-      coastalCliffs.draw(); relayTowers.draw(); coastalTrees.draw(); trees.draw();
-      grass.draw(); overhang.draw(); moving.draw();
-      contactShadow.draw();
-      spikes.draw(); flags.draw(); coins.draw();
-      effects.draw(); emissives.draw(); courier.draw(); trail.draw(); hud.draw();
+      if (captureState.sceneVisibility['scene-geometry']) {
+        skyProgram.draw();
+        cloudLarge.draw(); cloudSmall.draw();
+        coastalCliffs.draw(); relayTowers.draw(); coastalTrees.draw(); trees.draw();
+        grass.draw(); overhang.draw(); moving.draw();
+        if (captureState.variants.shadows) contactShadow.draw();
+        spikes.draw(); flags.draw(); coins.draw(); courier.draw();
+      }
+      effects.draw(); emissives.draw(); trail.draw(); hud.draw();
     };
 
     /**
@@ -319,7 +330,11 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       // then reads as nearer and shadows what is behind it. `drawTo`'s default of transparent black
       // would say every texel holds something at the light's own eye and drop the course into
       // shadow entirely.
-      renderer.drawTo(shadowTarget, drawCasters, { clear: [1, 1, 1, 1] });
+      renderer.drawTo(
+        shadowTarget,
+        captureState.variants.shadows ? drawCasters : () => {},
+        { clear: [1, 1, 1, 1] },
+      );
       const scene = ensureSceneTarget();
       renderer.drawTo(scene, drawScene, { clear: LINEAR_CLEAR });
       // Extract, blur across, blur down — three quarter-resolution passes over a drawn scene.
@@ -339,8 +354,11 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
 
       postProgram.uniforms.uScene!.set(scene.texture);
       postProgram.uniforms.uBloom!.set(bloomA.texture);
-      postProgram.uniforms.uBloomStrength!.set(TRAVERSAL_BLOOM.strength);
+      postProgram.uniforms.uBloomStrength!.set(
+        captureState.variants.bloom ? TRAVERSAL_BLOOM.strength : 0,
+      );
       postProgram.uniforms.uExposure!.set(TRAVERSAL_EXPOSURE);
+      postProgram.uniforms.uVignetteStrength!.set(captureState.variants.vignette ? 0.16 : 0);
       postProgram.draw();
     };
 
@@ -474,9 +492,19 @@ export async function createTraversalRenderer(canvas: HTMLCanvasElement): Promis
       emissives.upload();
 
       const cameraFrame = cameraRig.update(renderer.aspect, state, pointer, deltaSeconds);
-      cameraPosition.set(cameraFrame.position);
+      captureState = readCaptureFixture();
+      const translation = captureState.cameraTranslation;
+      cameraPosition.set([
+        cameraFrame.position[0] + translation.x,
+        cameraFrame.position[1] + translation.y,
+        cameraFrame.position[2] + translation.z,
+      ]);
       camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
-      camera.lookAt(cameraFrame.target[0], cameraFrame.target[1], cameraFrame.target[2]);
+      camera.lookAt(
+        cameraFrame.target[0] + translation.x,
+        cameraFrame.target[1] + translation.y,
+        cameraFrame.target[2] + translation.z,
+      );
       // Re-aim the shadow map at the slice the camera is showing. This is the per-frame half of the
       // camera-following design in `src/sun.ts`; everything else about the pass is fixed.
       const sun = createCourseSunShadow(cameraFrame.target[0]);

@@ -1,4 +1,7 @@
 import {
+  createCombatCaptureFixture,
+} from './capture-fixture.ts';
+import {
   FIXED_STEP_SECONDS,
   createEngineSession,
   createInspectionSnapshot,
@@ -78,7 +81,8 @@ function capturedInput(
 }
 
 const game: GameModuleEntry = async (context) => {
-  const combatRenderer = await createCombatRenderer(context.canvas);
+  const captureFixture = createCombatCaptureFixture();
+  const combatRenderer = await createCombatRenderer(context.canvas, captureFixture.read);
   try {
     const inspectionModel = createCombatInspectionModel(context.runtimeInstanceId);
     const simulation = createCombatSimulation((event) => inspectionModel.record(event));
@@ -166,6 +170,11 @@ const game: GameModuleEntry = async (context) => {
         action.consume(result.code === 'STEPPED' ? 1 : 0);
         render();
         return Object.freeze({ result, session: session.readStatus() });
+      },
+      applyCaptureFixture(request) {
+        const result = captureFixture.apply(request);
+        render();
+        return result;
       },
     });
 

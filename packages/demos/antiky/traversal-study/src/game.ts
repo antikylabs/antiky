@@ -12,6 +12,7 @@ import {
 } from '@antiky/framework/game';
 
 import { TRAVERSAL_WORLD_ID, createTraversalInspectionModel } from './inspection.ts';
+import { createTraversalCaptureFixture } from './capture-fixture.ts';
 import {
   createTraversalInputBuffer,
   createTraversalSessionInputCapture,
@@ -57,7 +58,8 @@ function captureInput(context: Parameters<GameModuleEntry>[0], target: MutableTr
 }
 
 const game: GameModuleEntry = async (context) => {
-  const presentation = await createTraversalRenderer(context.canvas);
+  const captureFixture = createTraversalCaptureFixture();
+  const presentation = await createTraversalRenderer(context.canvas, captureFixture.read);
   try {
     const inspectionModel = createTraversalInspectionModel(context.runtimeInstanceId);
     const simulation = createTraversalSimulation((event) => inspectionModel.record(event));
@@ -137,6 +139,11 @@ const game: GameModuleEntry = async (context) => {
         if (result.renderRequested) driver.presentStep(result);
         else driver.resetClock();
         return Object.freeze({ result, session: session.readStatus() });
+      },
+      applyCaptureFixture(request) {
+        const result = captureFixture.apply(request);
+        render(0);
+        return result;
       },
     });
 

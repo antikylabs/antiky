@@ -14,6 +14,7 @@ import {
 } from '@antiky/framework/game';
 
 import { createRelayInspectionModel } from './inspection.ts';
+import { createRelayCaptureFixture } from './capture-fixture.ts';
 import { createRelayInteractionBuffer } from './input-buffer.ts';
 import { EXPO_LIGHT_IDS, EXPO_WORLD_ID, createExpoLightService } from './lights.ts';
 import { createPresentedView } from './presented-view.ts';
@@ -51,6 +52,7 @@ function presentationAlpha(
 }
 
 const game: GameModuleEntry = async (context) => {
+  const captureFixture = createRelayCaptureFixture();
   const renderer = await createRenderer(context.canvas, {
     clearColor: RELAY_PRESENTATION.clearColor,
     cull: 'back',
@@ -63,7 +65,7 @@ const game: GameModuleEntry = async (context) => {
       if (record === undefined) throw new Error(`Blackout Relay is missing authored light ${entityId}.`);
       return record;
     });
-    relayRenderer = await createRelayRenderer(renderer, lightRecords);
+    relayRenderer = await createRelayRenderer(renderer, lightRecords, captureFixture.read);
     const powers: [number, number, number] = [0, 0, 0];
     const inspectionModel = createRelayInspectionModel(context.runtimeInstanceId);
     const simulation = createBlackoutRelaySimulation((event) => inspectionModel.record(event));
@@ -167,6 +169,11 @@ const game: GameModuleEntry = async (context) => {
         interaction.consume(result.code === 'STEPPED' ? 1 : 0);
         relayRenderer?.render(presentedView.present(1), powers, context.pointer);
         return Object.freeze({ result, session: session.readStatus() });
+      },
+      applyCaptureFixture(request) {
+        const result = captureFixture.apply(request);
+        relayRenderer?.render(presentedView.present(1), powers, context.pointer);
+        return result;
       },
     });
 

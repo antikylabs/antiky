@@ -2,13 +2,15 @@ import { createRenderer } from 'brometal';
 import type { GameModuleEntry } from '@antiky/framework/game';
 import { createTownRuntimeFactory } from './town/index.ts';
 import { createAntikyTownDemoFactory } from './composition.ts';
+import { createTownCaptureFixture } from './capture-fixture.ts';
 
 const factory = createAntikyTownDemoFactory(createTownRuntimeFactory);
 
 const game: GameModuleEntry = async (context) => {
   const renderer = await createRenderer(context.canvas, { cull: 'back' });
+  const captureFixture = createTownCaptureFixture();
   try {
-    const instance = await factory({ ...context, renderer });
+    const instance = await factory({ ...context, captureFixture, renderer });
     let disposed = false;
     return Object.freeze({
       ...(instance.inspection === undefined ? {} : { inspection: instance.inspection }),

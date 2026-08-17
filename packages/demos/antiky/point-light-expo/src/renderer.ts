@@ -1,5 +1,5 @@
 import { createCamera, createCone, createPlane, createSphere, type Renderer } from 'brometal';
-import type { GamePointerInput } from '@antiky/framework/game';
+import type { CaptureFixtureState, GamePointerInput } from '@antiky/framework/game';
 import type { RenderFrame, TargetRequest, UniformValue } from '@antiky/framework';
 import {
   createBroMetalRenderDriver,
@@ -108,6 +108,11 @@ const ATMOSPHERE: Readonly<Record<string, UniformValue>> = Object.freeze({
 export async function createRelayRenderer(
   renderer: Renderer,
   lights: readonly PresentationLight[],
+  readCaptureFixture: () => CaptureFixtureState = () => ({
+    sceneVisibility: { 'scene-geometry': true },
+    variants: {},
+    cameraTranslation: { x: 0, y: 0, z: 0 },
+  }),
 ): Promise<RelayRenderer> {
   /**
    * Where each relay stands, what colour it burns and how far it reaches.
@@ -261,17 +266,21 @@ export async function createRelayRenderer(
   ): void => {
     populateRelayVisuals(visualBatches, state, powers);
     void pointer;
+    const captureState = readCaptureFixture();
+    const translation = captureState.cameraTranslation;
     const dangerTrauma = Math.max(0, state.dangerPulse - RELAY_PRESENTATION.camera.dangerShakeThreshold);
     const shake = Math.min(RELAY_PRESENTATION.camera.maximumShake, dangerTrauma * 0.08);
-    const cameraX = RELAY_PRESENTATION.camera.position[0] + Math.sin(state.time * 24) * shake;
-    const cameraY = RELAY_PRESENTATION.camera.position[1];
-    const cameraZ = RELAY_PRESENTATION.camera.position[2] + Math.cos(state.time * 21) * shake;
+    const cameraX = RELAY_PRESENTATION.camera.position[0] + Math.sin(state.time * 24) * shake
+      + translation.x;
+    const cameraY = RELAY_PRESENTATION.camera.position[1] + translation.y;
+    const cameraZ = RELAY_PRESENTATION.camera.position[2] + Math.cos(state.time * 21) * shake
+      + translation.z;
     setCameraPosition(frameScratch, cameraX, cameraY, cameraZ);
     camera.setPosition(cameraX, cameraY, cameraZ);
     camera.lookAt(
-      RELAY_PRESENTATION.camera.target[0],
-      RELAY_PRESENTATION.camera.target[1],
-      RELAY_PRESENTATION.camera.target[2],
+      RELAY_PRESENTATION.camera.target[0] + translation.x,
+      RELAY_PRESENTATION.camera.target[1] + translation.y,
+      RELAY_PRESENTATION.camera.target[2] + translation.z,
     );
     const viewProjection = Array.from(camera.viewProjection(renderer.aspect));
     const eye = Array.from(cameraPosition);
@@ -307,14 +316,14 @@ export async function createRelayRenderer(
         {
           target: 'shadow',
           clear: NOTHING_OCCLUDING,
-          draws: [
+          draws: captureState.sceneVisibility['scene-geometry'] ? [
             casterDraw('organic-depth', organic),
             casterDraw('rocks-depth', rocks),
             casterDraw('stumps-depth', stumps),
             casterDraw('forms-depth', forms),
             casterDraw('creatures-depth', creatures),
             casterDraw('orbs-depth', orbs),
-          ],
+          ] : [],
         },
         {
           target: 'scene',
@@ -322,6 +331,7 @@ export async function createRelayRenderer(
           // the frame — everything outside the floor — from the authored void colour to pure black.
           clear: LINEAR_CLEAR,
           draws: [
+            ...(captureState.sceneVisibility['scene-geometry'] ? [
             { pipeline: 'backdrop', uniforms: { uViewProj: viewProjection, uCameraPosition: eye, uTime: state.time } },
             {
               pipeline: 'floor',
@@ -342,6 +352,7 @@ export async function createRelayRenderer(
             litDraw('forms', forms, { uDetailNormal: { texture: 'detail-normal' } }),
             litDraw('creatures', creatures, { uDetailNormal: { texture: 'detail-normal' } }),
             litDraw('orbs', orbs, { uDetailNormal: { texture: 'detail-normal' } }),
+            ] : []),
             // Blended, so they run once every opaque surface has written depth. The rings sit
             // between the contact shadows and the glows: under the shadows would dim them, over the
             // glows would double them.

@@ -72,6 +72,7 @@ import type {
   TownRuntime,
   TownRuntimeFactory,
 } from './town-runtime.ts';
+import { createTownCaptureFixture } from '../capture-fixture.ts';
 import postShader from './shaders/town-post.shader.gen.ts';
 import awningShadowShader from './shaders/town-awning-shadow.shader.gen.ts';
 import awningShader from './shaders/town-awning.shader.gen.ts';
@@ -281,9 +282,10 @@ function cameraPose(mode: GameHostMode, aspect: number) {
 }
 
 async function createTownRuntime(
-  { renderer, mode, report }: TownGameSetup,
+  { captureFixture: suppliedCaptureFixture, renderer, mode, report }: TownGameSetup,
   options: TownDemoOptions,
 ): Promise<TownRuntime> {
+  const captureFixture = suppliedCaptureFixture ?? createTownCaptureFixture();
   const world = buildTownWorld();
   const shadowResolution = renderer.canvas.width < 700 ? 1024 : 2048;
   const shadowTexel = [1 / shadowResolution, 1 / shadowResolution] as const;
@@ -439,6 +441,7 @@ async function createTownRuntime(
         // looking considerably worse.
         uSunColor: [1, 0.82, 0.58],
         uSunIntensity: 1.05,
+        uTransmissionStrength: 1,
         ...HEMISPHERE,
         uCutoff: 0.35,
         uWindDirection: [0.92, 0.38],
@@ -945,6 +948,7 @@ async function createTownRuntime(
     },
 
     render() {
+      const captureState = captureFixture.read();
       const dt = pendingPresentationSeconds;
       pendingPresentationSeconds = 0;
       const pose = cameraPose(mode, renderer.aspect);
@@ -1065,7 +1069,7 @@ async function createTownRuntime(
           {
             target: 'shadow',
             clear: SHADOW_CLEAR,
-            draws: [
+            draws: captureState.variants.shadows ? [
               { pipeline: 'world-shadow' },
               {
                 pipeline: 'foliage-trunk-shadow',
@@ -1093,7 +1097,7 @@ async function createTownRuntime(
                 uniforms: { uRight: right, uUp: up, uAtlas: { texture: 'actor-atlas' } },
                 instanceData: actorInstances,
               },
-            ],
+            ] : [],
           },
           {
             target: 'scene',
@@ -1103,12 +1107,22 @@ async function createTownRuntime(
               {
                 pipeline: 'foliage-trunk',
                 instances: foliage.trunks.count,
-                uniforms: { ...scene, ...vegetation, ...wind },
+                uniforms: {
+                  ...scene,
+                  ...vegetation,
+                  ...wind,
+                  uTransmissionStrength: captureState.variants['tree-translucency'] ? 1 : 0,
+                },
               },
               {
                 pipeline: 'foliage-card',
                 instances: foliage.cards.count,
-                uniforms: { ...scene, ...vegetation, ...wind },
+                uniforms: {
+                  ...scene,
+                  ...vegetation,
+                  ...wind,
+                  uTransmissionStrength: captureState.variants['tree-translucency'] ? 1 : 0,
+                },
               },
               {
                 pipeline: 'water',
@@ -1177,6 +1191,12 @@ async function createTownRuntime(
                   1 / Math.max(1, renderer.canvas.height),
                 ],
                 uFocus: focusDistance,
+                uBloomStrength: captureState.variants.bloom
+                  ? (mode === 'ambient' ? 0.075 : 0.05)
+                  : 0,
+                uVignette: captureState.variants.vignette
+                  ? (mode === 'ambient' ? 0.24 : 0.2)
+                  : 0,
                 // Goal 08's re-tune, with the goal's own arithmetic as the reason: the shipped values
                 // gave coc = 0.075 x 0.45 = a maximum blur radius of 0.034 px — three hundredths of a
                 // pixel, arithmetically incapable of being visible, and the focus band covered the
@@ -1241,4 +1261,3 @@ function buildWaterGrid(
   }
   return { positions: new Float32Array(positions), indices: new Uint16Array(indices) };
 }
-

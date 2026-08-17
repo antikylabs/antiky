@@ -1,4 +1,5 @@
 import type { BroMetalTexture } from 'brometal';
+import type { CaptureFixtureState } from '@antiky/framework/game';
 import { loadVfxBillboard } from './vfx-billboard.ts';
 import {
   createCamera,
@@ -232,6 +233,11 @@ const COMBAT_RENDERER_DEPENDENCIES: CombatRendererDependencies = Object.freeze({
 export async function createCombatRendererWith(
   canvas: HTMLCanvasElement,
   dependencies: CombatRendererDependencies,
+  readCaptureFixture: () => CaptureFixtureState = () => ({
+    sceneVisibility: { 'scene-geometry': true },
+    variants: { bloom: true, shadows: true, vignette: true },
+    cameraTranslation: { x: 0, y: 0, z: 0 },
+  }),
 ): Promise<CombatRenderer> {
   const renderer = await dependencies.createRenderer(canvas);
   const disposables = createDisposalScope();
@@ -354,19 +360,22 @@ export async function createCombatRendererWith(
     postProgram.attributes.aPosition!.set(fullscreenQuad.positions);
     postProgram.setIndices(fullscreenQuad.indices);
 
+    let captureState = readCaptureFixture();
     const drawScene = (): void => {
-      backdrop.draw();
-      catalog.room.program.draw();
-      catalog.walls.program.draw();
-      catalog.wallDetails.program.draw();
-      catalog.floorTiles.program.draw();
-      projection.drawSurface();
-      catalog.grenades.program.draw();
-      catalog.targets.program.draw();
-      ships.draw();
+      if (captureState.sceneVisibility['scene-geometry']) {
+        backdrop.draw();
+        catalog.room.program.draw();
+        catalog.walls.program.draw();
+        catalog.wallDetails.program.draw();
+        catalog.floorTiles.program.draw();
+        projection.drawSurface();
+        catalog.grenades.program.draw();
+        catalog.targets.program.draw();
+        ships.draw();
+      }
       // Blended passes last, once every opaque surface has written depth. Shadows before glows so
       // a glow reads as light sitting on top of the shadow rather than under it.
-      projection.drawShadows();
+      if (captureState.variants.shadows) projection.drawShadows();
       projection.drawEnergy();
       projection.drawHud();
     };
@@ -383,7 +392,7 @@ export async function createCombatRendererWith(
     const draw = (): void => {
       // Before the scene, because the scene reads what this writes. `drawTo` finishes and submits
       // its own encoder, so the two passes are ordered by the queue rather than by hope.
-      shadows.render(drawCasters);
+      shadows.render(captureState.variants.shadows ? drawCasters : () => {});
       // The deck's mirror: ships and their glow, seen through the floor plane. The same programs
       // draw both passes — BroMetal's uniform ring gives every draw its own snapshot, so setting
       // the mirrored matrices, drawing, and setting the real ones back is safe within one frame.
@@ -401,9 +410,11 @@ export async function createCombatRendererWith(
         // The rim structure is here for its emissive trim: the ships' undersides are dark — a
         // physically honest mirror shows a belly, not a beauty pass — and the rail is the bright
         // thing this arena owns. Its smear down the deck is the Rocket League tell AC-L5 measures.
-        catalog.walls.program.draw();
-        catalog.wallDetails.program.draw();
-        ships.draw();
+        if (captureState.sceneVisibility['scene-geometry']) {
+          catalog.walls.program.draw();
+          catalog.wallDetails.program.draw();
+          ships.draw();
+        }
         projection.drawEnergy();
       }, { clear: [0, 0, 0, 0] });
       ships.frame(frameViewProjection, cameraPosition, frameTime);
@@ -438,8 +449,11 @@ export async function createCombatRendererWith(
       postProgram.uniforms.uScene!.set(scene.texture);
       postProgram.uniforms.uDistortion!.set(distortion.texture);
       postProgram.uniforms.uBloom!.set(bloomA.texture);
-      postProgram.uniforms.uBloomStrength!.set(COMBAT_BLOOM.strength);
+      postProgram.uniforms.uBloomStrength!.set(
+        captureState.variants.bloom ? COMBAT_BLOOM.strength : 0,
+      );
       postProgram.uniforms.uExposure!.set(COMBAT_EXPOSURE);
+      postProgram.uniforms.uVignetteStrength!.set(captureState.variants.vignette ? 0.2 : 0);
       postProgram.draw();
     };
 
@@ -450,9 +464,19 @@ export async function createCombatRendererWith(
       projection.project(state);
 
       const cameraFrame = cameraProjector.project(renderer.aspect, state, pointer);
-      cameraPosition.set(cameraFrame.position);
+      captureState = readCaptureFixture();
+      const translation = captureState.cameraTranslation;
+      cameraPosition.set([
+        cameraFrame.position[0] + translation.x,
+        cameraFrame.position[1] + translation.y,
+        cameraFrame.position[2] + translation.z,
+      ]);
       camera.setPosition(cameraPosition[0]!, cameraPosition[1]!, cameraPosition[2]!);
-      camera.lookAt(...cameraFrame.target);
+      camera.lookAt(
+        cameraFrame.target[0] + translation.x,
+        cameraFrame.target[1] + translation.y,
+        cameraFrame.target[2] + translation.z,
+      );
       const viewProjection = camera.viewProjection(renderer.aspect);
       frameViewProjection = viewProjection;
       frameTime = state.time;
@@ -491,6 +515,9 @@ export async function createCombatRendererWith(
   }
 }
 
-export function createCombatRenderer(canvas: HTMLCanvasElement): Promise<CombatRenderer> {
-  return createCombatRendererWith(canvas, COMBAT_RENDERER_DEPENDENCIES);
+export function createCombatRenderer(
+  canvas: HTMLCanvasElement,
+  readCaptureFixture?: () => CaptureFixtureState,
+): Promise<CombatRenderer> {
+  return createCombatRendererWith(canvas, COMBAT_RENDERER_DEPENDENCIES, readCaptureFixture);
 }

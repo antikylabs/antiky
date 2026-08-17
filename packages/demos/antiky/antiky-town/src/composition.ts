@@ -26,6 +26,7 @@ import {
   type TownSemanticInput,
 } from './gameplay/game-host.ts';
 import { createTownPointLightAdapter } from './render/point-light-adapter.ts';
+import { createTownCaptureFixture } from './capture-fixture.ts';
 
 export type AntikyTownCompositionOptions = Readonly<{
   createSessionId?: () => SessionId;
@@ -87,12 +88,13 @@ export function createAntikyTownDemoFactory(
   options: AntikyTownCompositionOptions = {},
 ): AntikyTownGameFactory {
   return async (setup) => {
+    const captureFixture = setup.captureFixture ?? createTownCaptureFixture();
     const service = createAntikyTownPointLightService(setup.runtimeInstanceId);
     let town: TownRuntime | null = null;
     let session: EngineSession<TownSemanticInput> | null = null;
     try {
       const pointLightAdapter = createTownPointLightAdapter(service);
-      town = await buildTown({ slotZeroPower: pointLightAdapter })(setup);
+      town = await buildTown({ slotZeroPower: pointLightAdapter })({ ...setup, captureFixture });
       const ownedTown = town;
       session = createEngineSession<TownSemanticInput>({
         sessionId: (options.createSessionId ?? createSessionId)(),
@@ -140,6 +142,11 @@ export function createAntikyTownDemoFactory(
         stepSimulation(expectedCompletedStepCount) {
           const result = host.step(expectedCompletedStepCount);
           return Object.freeze({ result, session: host.readStatus() });
+        },
+        applyCaptureFixture(request) {
+          const result = captureFixture.apply(request);
+          host.renderFixture();
+          return result;
         },
       });
       let disposed = false;

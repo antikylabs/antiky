@@ -22,6 +22,7 @@ export type AntikyTownGameHost = Readonly<{
   pause(reason: EnginePauseReason): EngineControlResult;
   resume(reason: EnginePauseReason): EngineControlResult;
   step(expectedCompletedStepCount: number): EngineControlResult;
+  renderFixture(): void;
   readStatus(): EngineSessionStatus;
 }>;
 
@@ -99,6 +100,7 @@ export function createAntikyTownGameHost(
     pause,
     resume,
     step,
+    renderFixture: render,
     readStatus: () => session.readStatus(),
   });
 }

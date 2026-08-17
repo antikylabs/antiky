@@ -78,6 +78,7 @@ export default shader({
     uBloom: 'sampler2D',
     uBloomStrength: 'float',
     uExposure: 'float',
+    uVignetteStrength: 'float',
   },
   varyings: { vUv: 'vec2' },
 
@@ -88,7 +89,7 @@ export default shader({
     return vec4(aPosition.x, aPosition.y, 0, 1);
   },
 
-  fragment({ uScene, uBloom, uBloomStrength, uExposure }, { vUv }) {
+  fragment({ uScene, uBloom, uBloomStrength, uExposure, uVignetteStrength }, { vUv }) {
     const scene = texture(uScene, vUv).xyz;
     // Added in linear light, before exposure, because that is the space it was extracted in.
     const withBloom = scene.add(texture(uBloom, vUv).xyz.scale(uBloomStrength));
@@ -105,7 +106,7 @@ export default shader({
     // The vignette. Restrained at 0.16 rather than the other demos' 0.20-0.22: this frame is mostly
     // open sky, and a heavier corner falloff reads as a lens artefact rather than as depth.
     const centred = vUv.sub(vec2(0.5, 0.5));
-    const vignette = 1 - smoothstep(0.30, 0.80, length(centred)) * 0.16;
+    const vignette = 1 - smoothstep(0.30, 0.80, length(centred)) * uVignetteStrength;
 
     return vec4(encodeSrgb(tonemapACES(graded.scale(vignette))), 1);
   },
