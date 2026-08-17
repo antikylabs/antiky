@@ -62,8 +62,22 @@ async function runPatch(brometalRoot) {
   return execute(process.execPath, [patchScript], { cwd: repositoryRoot, env: environment });
 }
 
-async function checksum(file) {
-  return createHash('sha256').update(await readFile(file)).digest('hex');
+async function packageChecksum(directory) {
+  const hash = createHash('sha256');
+  const visit = async (current, relative = '') => {
+    for (const entry of (await readdir(current, { withFileTypes: true }))
+      .sort((left, right) => left.name.localeCompare(right.name))) {
+      const childRelative = path.join(relative, entry.name);
+      if (entry.isDirectory()) {
+        await visit(path.join(current, entry.name), childRelative);
+      } else if (entry.isFile()) {
+        hash.update(childRelative);
+        hash.update(await readFile(path.join(current, entry.name)));
+      }
+    }
+  };
+  await visit(directory);
+  return hash.digest('hex');
 }
 
 /** A fixture package carrying only what a given assertion needs to reach its throw. */
@@ -81,12 +95,40 @@ async function writeFixture(directory, { version, files = {} }) {
 
 test('patching twice changes no bytes', async () => {
   // The postinstall hook runs on every install, so a patch that is not idempotent corrupts the
-  // package the second time it is applied.
-  const runtime = await findInstalledRuntime();
+  // package the second time it is applied. Hash the whole published payload: two patches can touch
+  // the same declaration while leaving the runtime file unchanged.
+  const packageRoot = await findInstalledPackage();
   await runPatch();
-  const before = await checksum(runtime);
+  const before = await packageChecksum(path.join(packageRoot, 'dist'));
   await runPatch();
-  assert.equal(await checksum(runtime), before);
+  assert.equal(await packageChecksum(path.join(packageRoot, 'dist')), before);
+});
+
+test('perspective maps the WebGPU near and far planes to zero and one', async () => {
+  await runPatch();
+  const { mat4 } = await importInstalled('dist/math/mat4.js');
+  const near = 0.25;
+  const far = 400;
+  const matrix = mat4.perspective(Math.PI / 3, 16 / 9, near, far);
+  const projectedDepth = (viewZ) => (
+    (matrix[10] * viewZ + matrix[14]) / (matrix[11] * viewZ + matrix[15])
+  );
+
+  assert.ok(Math.abs(projectedDepth(-near)) < 1e-6, `near=${projectedDepth(-near)}`);
+  assert.ok(Math.abs(projectedDepth(-far) - 1) < 1e-6, `far=${projectedDepth(-far)}`);
+});
+
+test('render targets expose bounded asynchronous pixel readback', async () => {
+  await runPatch();
+  const declarations = await readFile(
+    path.join(await findInstalledPackage(), 'dist', 'runtime', 'render-target.d.ts'),
+    'utf8',
+  );
+
+  assert.match(
+    declarations,
+    /readPixel\(x: number, y: number\): Promise<readonly \[number, number, number, number\]>;/,
+  );
 });
 
 test('every installed copy is patched, not just the first one found', async () => {
