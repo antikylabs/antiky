@@ -45,9 +45,10 @@ export type EngineSessionOptions<Input> = Readonly<{
   runtimeInstanceId: unknown;
   systems: readonly EngineSystem<Input>[];
   /**
-   * Copy semantic input into a deeply immutable graph of primitives, frozen plain objects, and
-   * frozen arrays. Functions and accessor properties are rejected even when their container is
-   * frozen because they can retain mutable closure state.
+   * Return semantic input as a deeply immutable graph of primitives, frozen plain objects, and
+   * frozen arrays. The session validates and copies that graph before systems run. Functions and
+   * accessor properties are rejected even when their container is frozen because they can retain
+   * mutable closure state.
    */
   captureInput(input: Input): Readonly<Input> | null;
   getStateDigest?: () => string;

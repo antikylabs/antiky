@@ -460,3 +460,104 @@ test('captured input inspects custom array data properties', () => {
     (captured) => { captured.metadata.marker = 1; },
   );
 });
+
+test('captured input does not expose a frozen proxy that can change later reads', () => {
+  let marker = 0;
+  const markers: unknown[] = [];
+  const observerInputs: object[] = [];
+  const setResults: boolean[] = [];
+  const input = new Proxy(Object.freeze({}), {
+    get(target, key, receiver) {
+      if (key === 'marker') return marker;
+      return Reflect.get(target, key, receiver);
+    },
+    set(_target, key, value) {
+      if (key === 'marker') marker = Number(value);
+      return true;
+    },
+  });
+  const session = createEngineSession({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    runtimeInstanceId: 'runtime-canonical-proxy-input',
+    systems: [{
+      id: 'read-proxy-marker',
+      run(step) {
+        markers.push(Reflect.get(step.input, 'marker'));
+      },
+    }],
+    captureInput: () => input,
+    onCompletedStep(step) {
+      observerInputs.push(step.input);
+      setResults.push(Reflect.set(step.input, 'marker', 1));
+    },
+  });
+
+  const result = session.advance(MAX_FRAME_ELAPSED_SECONDS, input);
+
+  assert.deepEqual(markers, [undefined, undefined, undefined]);
+  assert.deepEqual(setResults, [false, false, false]);
+  assert.equal(marker, 0);
+  assert.equal(result.code, 'ADVANCED');
+  assert.equal(result.completedSteps, MAX_STEPS_PER_FRAME);
+  assert.ok(observerInputs.every((captured) => captured !== input));
+  assert.ok(observerInputs.every(Object.isFrozen));
+  assert.equal(new Set(observerInputs).size, 1);
+});
+
+test('canonical input preserves ordinary record and array data-property semantics', () => {
+  const symbolKey = Symbol('semantic-symbol-input');
+  const values = Object.freeze(Object.assign([2, 3], {
+    metadata: Object.freeze({ label: 'movement' }),
+  }));
+  const input = {
+    name: 'player',
+    values,
+    hidden: Object.freeze({ enabled: true }),
+    [symbolKey]: 'symbol-value',
+  };
+  Object.defineProperty(input, 'hidden', { enumerable: false });
+  Object.freeze(input);
+  const systemInputs: Readonly<typeof input>[] = [];
+  const observerInputs: Readonly<typeof input>[] = [];
+  const semantics: string[] = [];
+  const session = createEngineSession<typeof input>({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    runtimeInstanceId: 'runtime-canonical-ordinary-input',
+    systems: [{
+      id: 'read-ordinary-input',
+      run(step) {
+        systemInputs.push(step.input);
+        semantics.push([
+          step.input.name,
+          step.input.values.join('+'),
+          step.input.values.metadata.label,
+          step.input.hidden.enabled,
+          step.input[symbolKey],
+        ].join(':'));
+      },
+    }],
+    captureInput: () => input,
+    onCompletedStep: (step) => observerInputs.push(step.input),
+  });
+
+  assert.equal(session.advance(FIXED_STEP_SECONDS, input).code, 'ADVANCED');
+  assert.deepEqual(semantics, ['player:2+3:movement:true:symbol-value']);
+  assert.equal(systemInputs.length, 1);
+  assert.equal(systemInputs[0], observerInputs[0]);
+  assert.notEqual(systemInputs[0], input);
+  assert.notEqual(systemInputs[0]!.values, input.values);
+  assert.notEqual(systemInputs[0]!.hidden, input.hidden);
+  assert.equal(Object.getPrototypeOf(systemInputs[0]), Object.prototype);
+  assert.equal(Object.getPrototypeOf(systemInputs[0]!.values), Array.prototype);
+  assert.equal(
+    Object.getOwnPropertyDescriptor(systemInputs[0], 'hidden')?.enumerable,
+    false,
+  );
+  assert.ok(Reflect.ownKeys(systemInputs[0]!).includes(symbolKey));
+  assert.ok(Object.isFrozen(systemInputs[0]));
+  assert.ok(Object.isFrozen(systemInputs[0]!.values));
+  assert.ok(Object.isFrozen(systemInputs[0]!.values.metadata));
+  assert.ok(Object.isFrozen(systemInputs[0]!.hidden));
+});

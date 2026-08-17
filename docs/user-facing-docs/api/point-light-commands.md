@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:9ec2987cdb594177
+frameworkSource: sha256:505b681cf8627a4d
 ---
 
 # Point-light command API

@@ -51,6 +51,9 @@ A captured input snapshot can contain primitives, frozen plain objects, and froz
 own data property, including symbol and non-enumerable properties, must lead to another valid
 snapshot value. Do not include functions, accessor properties, class instances, or mutable nested
 values. A frozen container does not make a function's closure or an accessor's setter immutable.
+The session enforces this policy by copying accepted data into a fresh frozen graph before systems
+run. The copy keeps normal object and array prototypes plus every own data property's key, value,
+and enumerability.
 
 ## Drive it from your game host
 

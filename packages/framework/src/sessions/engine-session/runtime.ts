@@ -6,6 +6,10 @@ import {
   type WorldId,
 } from '../../identity/ids.ts';
 import {
+  INVALID_CAPTURED_INPUT,
+  canonicalizeCapturedInput,
+} from './captured-input.ts';
+import {
   ENGINE_SESSION_SCHEMA_VERSION,
   FIXED_STEP_SECONDS,
   MAX_ENGINE_SYSTEMS,
@@ -42,9 +46,6 @@ import {
   readSafeCount,
   sortedPauseReasons,
 } from './validation.ts';
-
-const MAX_INPUT_DEPTH = 32;
-const MAX_INPUT_VALUES = 4_096;
 
 function readSystems<Input>(value: unknown): readonly EngineSystem<Input>[] {
   if (!Array.isArray(value) || value.length === 0) {
@@ -90,29 +91,6 @@ function readServices(value: unknown): readonly EngineSessionOwnedService[] {
     seen.add(candidate);
     return candidate as EngineSessionOwnedService;
   }));
-}
-
-function isImmutableInput(value: unknown): boolean {
-  const seen = new Set<object>();
-  let valueCount = 0;
-  const visit = (current: unknown, depth: number): boolean => {
-    valueCount += 1;
-    if (valueCount > MAX_INPUT_VALUES || depth > MAX_INPUT_DEPTH) return false;
-    if (typeof current === 'function') return false;
-    if (current === null || typeof current !== 'object') return true;
-    if (seen.has(current)) return false;
-    if (!Object.isFrozen(current)) return false;
-    seen.add(current);
-    const expectedPrototype = Array.isArray(current) ? Array.prototype : Object.prototype;
-    if (Object.getPrototypeOf(current) !== expectedPrototype) return false;
-    for (const key of Reflect.ownKeys(current)) {
-      const descriptor = Object.getOwnPropertyDescriptor(current, key);
-      if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return false;
-      if (!visit(descriptor.value, depth + 1)) return false;
-    }
-    return true;
-  };
-  return visit(value, 0);
 }
 
 export function createEngineSession<Input>(
@@ -214,8 +192,11 @@ export function createEngineSession<Input>(
     try {
       const captured = captureInput(input);
       if (captured === null) return Object.freeze({ kind: 'rejected' });
-      if (!isImmutableInput(captured)) return Object.freeze({ kind: 'failed' });
-      return Object.freeze({ kind: 'captured', input: captured });
+      const canonicalInput = canonicalizeCapturedInput(captured);
+      if (canonicalInput === INVALID_CAPTURED_INPUT) {
+        return Object.freeze({ kind: 'failed' });
+      }
+      return Object.freeze({ kind: 'captured', input: canonicalInput });
     } catch {
       return Object.freeze({ kind: 'failed' });
     } finally {
