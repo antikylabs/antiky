@@ -113,6 +113,7 @@ test('one fixed step is observed after its systems and digest with immutable exa
     input,
     stateDigest: 'total:4',
   }]);
+  assert.equal(observed[0], session.readLastCompletedStep());
   assert.equal(statusesDuringObservation[0]?.clock.completedStepCount, 1);
   assert.equal(statusesDuringObservation[0]?.clock.inputSequence, 1);
   assert.deepEqual(statusesDuringObservation[0]?.lastCompletedStep, {
@@ -308,4 +309,42 @@ test('construction rejects a non-function completed-step observer', () => {
       && error.path === '$.onCompletedStep'
     ),
   );
+});
+
+test('the observer can inspect its committed identity but cannot reenter session authority', () => {
+  const reentrantCodes: string[] = [];
+  let observedStepCount = 0;
+  let session!: EngineSession<TestInput>;
+  session = createEngineSession<TestInput>({
+    sessionId: SESSION_ID,
+    worldId: WORLD_ID,
+    runtimeInstanceId: 'runtime-observer-read-only',
+    systems: [{ id: 'only-system', run: () => undefined }],
+    captureInput: (input) => immutableInput(input.amount),
+    onCompletedStep() {
+      observedStepCount = session.readStatus().clock.completedStepCount;
+      reentrantCodes.push(
+        session.advance(FIXED_STEP_SECONDS, immutableInput(2)).code,
+        session.pause('tool').code,
+        session.step(observedStepCount, immutableInput(2)).code,
+        session.executeCommand(() => ({ result: null, authoringChanged: true })).code,
+      );
+    },
+  });
+
+  assert.equal(session.advance(FIXED_STEP_SECONDS, immutableInput(1)).code, 'ADVANCED');
+  assert.equal(observedStepCount, 1);
+  assert.deepEqual(reentrantCodes, [
+    'SESSION_BUSY',
+    'SESSION_BUSY',
+    'SESSION_BUSY',
+    'SESSION_BUSY',
+  ]);
+  assert.equal(session.readStatus().mode, 'running');
+  assert.equal(session.readStatus().clock.completedStepCount, 1);
+  assert.deepEqual(session.readStatus().revisions, {
+    commandSequence: 0,
+    controlRevision: 0,
+    worldRevision: 0,
+  });
 });

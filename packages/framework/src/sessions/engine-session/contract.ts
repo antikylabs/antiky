@@ -49,9 +49,10 @@ export type EngineSessionOptions<Input> = Readonly<{
   /**
    * Observe each completed step once, after its systems and state digest succeed.
    *
-   * The session calls this observer in completed-step order while its writer is busy. A thrown
-   * error faults the session as `completed-step-observer`, but the step remains completed and
-   * later steps in the same frame do not run. The session does not retain observed steps.
+   * The session calls this observer in completed-step order while its writer is busy. The observer
+   * receives no session or world authority and must not mutate game state. A thrown error faults
+   * the session as `completed-step-observer`, but the step remains completed and later steps in the
+   * same frame do not run. The session does not retain observed steps.
    */
   onCompletedStep?: (step: CompletedEngineStep<Input>) => void;
   services?: readonly EngineSessionOwnedService[];

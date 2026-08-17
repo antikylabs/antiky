@@ -104,13 +104,11 @@ Use `onCompletedStep` when a test, capture adapter, or diagnostic needs the iden
 that the session completes:
 
 ```ts
-const completedSteps = [];
-
 const session = createEngineSession({
   // IDs, systems, and input capture omitted here.
-  getStateDigest: () => readWorldDigest(),
+  getStateDigest: () => `player:${player.x}:${player.z}`,
   onCompletedStep(step) {
-    completedSteps.push({
+    console.log({
       completedStepId: step.completedStepId,
       inputSequence: step.inputSequence,
       source: step.source,
@@ -126,7 +124,8 @@ steps does not call it. An explicit single-step call reports `source: 'single-st
 
 The completed-step record and its captured input are deeply immutable. The observer runs while the
 session writer is busy, so it can copy the record or request read-only inspection but cannot
-reenter simulation or command work. If the observer throws, that step remains completed, later
+reenter simulation or command work. Do not mutate game state from this observer. If the observer
+throws, that step remains completed, later
 steps in the same frame do not run, and the session enters `faulted` mode with source
 `completed-step-observer`.
 
