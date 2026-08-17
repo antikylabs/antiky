@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:505b681cf8627a4d
+frameworkSource: sha256:67d0ebbc1f5eea28
 ---
 
 # Game host API
@@ -157,6 +157,7 @@ type GameInspectionPort = Readonly<{
     pauseSimulation?(): GameSessionControlResult | Promise<GameSessionControlResult>;
     resumeSimulation?(): GameSessionControlResult | Promise<GameSessionControlResult>;
     stepSimulation?(expectedCompletedStepCount: number): GameSessionControlResult | Promise<GameSessionControlResult>;
+    applyCaptureFixture?(request: CaptureFixtureRequest): CaptureFixtureResult | Promise<CaptureFixtureResult>;
 }>;
 ```
 
@@ -182,4 +183,115 @@ The default game-module function that creates one game instance from a host cont
 
 ```ts
 type GameModuleEntry = (context: GameHostContext) => GameInstance | Promise<GameInstance>;
+```
+
+## Capture fixture contract
+
+Validate bounded game-owned presentation controls for deterministic visual evidence.
+
+### `CaptureFixtureControl`
+
+One declared scene-visibility, camera-translation, or named presentation-variant control.
+
+```ts
+type CaptureFixtureControl = CaptureFixtureSceneVisibilityControl | CaptureFixtureCameraTranslationControl | CaptureFixtureVariantControl;
+```
+
+### `CaptureFixtureRequest`
+
+A bounded semantic fixture request addressed to one game-owned fixture surface.
+
+```ts
+type CaptureFixtureRequest = Readonly<{
+    schemaVersion: typeof CAPTURE_FIXTURE_SCHEMA_VERSION;
+    fixtureName: string;
+    controls: readonly CaptureFixtureControl[];
+}>;
+```
+
+### `CaptureFixtureResult`
+
+The exact semantic controls a game accepted and applied for a capture.
+
+```ts
+type CaptureFixtureResult = Readonly<{
+    schemaVersion: typeof CAPTURE_FIXTURE_SCHEMA_VERSION;
+    fixtureName: string;
+    appliedControls: readonly CaptureFixtureControl[];
+}>;
+```
+
+### `CaptureFixtureState`
+
+The current presentation-only scene, variant, and camera values owned by one game.
+
+```ts
+type CaptureFixtureState = Readonly<{
+    sceneVisibility: Readonly<Record<string, boolean>>;
+    variants: Readonly<Record<string, boolean>>;
+    cameraTranslation: Readonly<{
+        x: number;
+        y: number;
+        z: number;
+    }>;
+}>;
+```
+
+### `CaptureFixtureDeclaration`
+
+The fixture name, semantic controls, defaults, and camera bound one game declares.
+
+```ts
+type CaptureFixtureDeclaration = Readonly<{
+    fixtureName: string;
+    sceneGroups?: Readonly<Record<string, boolean>>;
+    variants?: Readonly<Record<string, boolean>>;
+    maximumCameraTranslation?: number;
+}>;
+```
+
+### `CaptureFixtureController`
+
+Validates and applies a game declaration without exposing renderer or simulation objects.
+
+```ts
+type CaptureFixtureController = Readonly<{
+    apply(request: CaptureFixtureRequest): CaptureFixtureResult;
+    read(): CaptureFixtureState;
+}>;
+```
+
+### `CaptureFixtureValidationError`
+
+Thrown for invalid or undeclared capture controls with a stable code and path.
+
+```ts
+class CaptureFixtureValidationError extends Error {
+    readonly code = 'INVALID_CAPTURE_FIXTURE';
+    constructor(message: string, readonly path: string);
+}
+```
+
+### `parseCaptureFixtureRequest`
+
+Validates, copies, and freezes a bounded semantic capture-fixture request.
+
+```ts
+function parseCaptureFixtureRequest(value: unknown): CaptureFixtureRequest;
+```
+
+### `parseCaptureFixtureResult`
+
+Validates an applied fixture result and can require an exact request echo.
+
+```ts
+function parseCaptureFixtureResult(value: unknown, expected?: CaptureFixtureRequest): CaptureFixtureResult;
+```
+
+### `createCaptureFixtureController`
+
+Creates a presentation-only controller from one game-owned fixture declaration.
+
+```ts
+function createCaptureFixtureController(declaration: CaptureFixtureDeclaration): CaptureFixtureController;
 ```

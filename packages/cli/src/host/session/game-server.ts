@@ -257,6 +257,14 @@ async function handleAction(action) {
     return false;
   }
   if (action.kind === 'capture') {
+    let fixtureResult;
+    if (action.fixture !== undefined) {
+      const operation = instance?.inspection?.applyCaptureFixture;
+      if (typeof operation !== 'function') {
+        throw new Error('The game does not provide capture fixtures.');
+      }
+      fixtureResult = await operation.call(instance.inspection, action.fixture);
+    }
     const warmUpFrames = Number.isSafeInteger(action.warmUpFrames)
       && action.warmUpFrames >= 0
       && action.warmUpFrames <= 300
@@ -275,6 +283,7 @@ async function handleAction(action) {
       canvasWidth: canvas.width,
       canvasHeight: canvas.height,
       dataBase64: dataUrl.slice(prefix.length),
+      ...(fixtureResult === undefined ? {} : { fixtureResult }),
     }, snapshot);
     return true;
   }

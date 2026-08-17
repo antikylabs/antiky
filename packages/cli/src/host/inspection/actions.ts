@@ -14,6 +14,7 @@ import {
   type PointLightCommandResult,
   type SetPointLightPowerCommand,
 } from '@antiky/framework';
+import { parseCaptureFixtureResult } from '@antiky/framework/game';
 
 import type {
   DevelopmentReloadResult,
@@ -78,6 +79,7 @@ export type BrowserDevelopmentAction =
     evidenceId?: string;
     target?: CaptureFrameRequestV2['target'];
     warmUpFrames?: number;
+    fixture?: CaptureFrameRequestV2['fixture'];
   }>)
   | (BrowserDevelopmentActionBase & Readonly<{
     kind: 'set-point-light-power';
@@ -104,6 +106,7 @@ export type CaptureActionInput = Readonly<{
   canvasWidth: number;
   canvasHeight: number;
   dataBase64: string;
+  fixtureResult?: unknown;
 }>;
 
 export type PointLightActionResultInput = Readonly<{
@@ -317,7 +320,12 @@ export function createDevelopmentActionBroker(
       const evidenceId = `evidence-${randomUUID()}`;
       return createPending<DevelopmentCaptureResultV2>(
         'capture',
-        { evidenceId, target: request.target, warmUpFrames: request.warmUpFrames },
+        {
+          evidenceId,
+          target: request.target,
+          warmUpFrames: request.warmUpFrames,
+          ...(request.fixture === undefined ? {} : { fixture: request.fixture }),
+        },
         runtimeContext,
         Object.freeze({ request, evidenceId, source }),
       );
@@ -415,6 +423,24 @@ export function createDevelopmentActionBroker(
       }
       if (active.captureV2) {
         const { request, evidenceId, source } = active.captureV2;
+        let fixture;
+        try {
+          if (request.fixture === undefined && input.fixtureResult !== undefined) {
+            throw new AntikyCliError('CAPTURE_TRACE_INVALID', 'The runtime returned an unrequested fixture.');
+          }
+          if (request.fixture !== undefined) {
+            if (input.fixtureResult === undefined) {
+              throw new AntikyCliError('CAPTURE_TRACE_INVALID', 'The runtime omitted the requested fixture.');
+            }
+            fixture = parseCaptureFixtureResult(input.fixtureResult, request.fixture);
+          }
+        } catch (cause: unknown) {
+          const error = cause instanceof AntikyCliError
+            ? cause
+            : new AntikyCliError('CAPTURE_TRACE_INVALID', 'The runtime returned an invalid fixture.');
+          rejectPending(active, error);
+          throw error;
+        }
         let observation: ObservationRefV1;
         try {
           observation = validateCaptureObservation(request, options.readRuntimeContext(), source);
@@ -475,6 +501,7 @@ export function createDevelopmentActionBroker(
           observation,
           deviceScaleFactor: request.target.deviceScaleFactor,
           artifact,
+          ...(fixture === undefined ? {} : { fixture }),
         });
         if (!resolvePending(active, result)) throw staleCaptureError();
         return;

@@ -192,8 +192,26 @@ test('capture requests are strict, bounded, and immutable', () => {
   const retainedManaged = parseCaptureFrameRequestV3({
     ...managed,
     expected: { ...managed.expected, currentRuntimeInstanceId: observation.runtimeInstanceId },
+    fixture: {
+      schemaVersion: 1,
+      fixtureName: 'goal-19-evidence',
+      controls: [
+        { kind: 'scene-visibility', group: 'effects', visible: false },
+        { kind: 'camera-translation', delta: { x: 1, y: 0, z: 0 } },
+      ],
+    },
   });
   assert.equal(retainedManaged.expected.currentRuntimeInstanceId, observation.runtimeInstanceId);
+  assert.ok(Object.isFrozen(retainedManaged.fixture));
+  assert.ok(Object.isFrozen(retainedManaged.fixture?.controls));
+  assert.throws(() => parseCaptureFrameRequestV3({
+    ...managed,
+    fixture: {
+      schemaVersion: 1,
+      fixtureName: 'goal-19-evidence',
+      controls: [{ kind: 'renderer-call', name: 'draw' }],
+    },
+  }));
 });
 
 test('capture fences reject unavailable, wrong-session, stale-step, and unpaused observations safely', async () => {
@@ -333,6 +351,11 @@ test('a fenced capture returns path-safe private evidence for the exact observat
       target: { width: 1, height: 1, deviceScaleFactor: 1 },
       warmUpFrames: 0,
       idempotencyKey: 'capture-fixture-001',
+      fixture: {
+        schemaVersion: 1,
+        fixtureName: 'goal-19-evidence',
+        controls: [{ kind: 'variant', name: 'bloom', enabled: false }],
+      },
     });
     const action = broker.nextAction(observation.runtimeInstanceId);
     assert.ok(action && action.kind === 'capture');
@@ -346,6 +369,11 @@ test('a fenced capture returns path-safe private evidence for the exact observat
       canvasWidth: 1,
       canvasHeight: 1,
       dataBase64: PNG.toString('base64'),
+      fixtureResult: {
+        schemaVersion: 1,
+        fixtureName: 'goal-19-evidence',
+        appliedControls: [{ kind: 'variant', name: 'bloom', enabled: false }],
+      },
     });
     const result = await pending;
     assert.equal(result.schemaVersion, 2);
@@ -353,6 +381,11 @@ test('a fenced capture returns path-safe private evidence for the exact observat
     assert.equal(result.artifact.width, 1);
     assert.equal(result.artifact.height, 1);
     assert.equal(result.artifact.reviewState, 'private-unreviewed');
+    assert.deepEqual(result.fixture, {
+      schemaVersion: 1,
+      fixtureName: 'goal-19-evidence',
+      appliedControls: [{ kind: 'variant', name: 'bloom', enabled: false }],
+    });
     assert.doesNotMatch(JSON.stringify(result), /path|\/Users\/|\.antiky|credential|pid/i);
     const retrieved = await evidenceStore.read({
       evidenceId: result.artifact.evidenceId,

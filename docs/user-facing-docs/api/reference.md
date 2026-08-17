@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:505b681cf8627a4d
+frameworkSource: sha256:67d0ebbc1f5eea28
 ---
 
 # Framework API reference
 
-This is the complete public API exported by the Antiky Framework package. It covers all 234 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
+This is the complete public API exported by the Antiky Framework package. It covers all 244 public symbols and links each exact TypeScript signature to the workflow that explains why you would use it.
 
 Import from the package root or from a public entry listed on an API-area page. Other submodule paths are implementation details.
 
@@ -72,7 +72,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 
 ### Game host API
 
-[`GamePointerInput`](game-host.md#gamepointerinput) · [`GameMovementInput`](game-host.md#gamemovementinput) · [`GameHostMode`](game-host.md#gamehostmode) · [`GameMeasurements`](game-host.md#gamemeasurements) · [`GameHostContext`](game-host.md#gamehostcontext) · [`GameHostInspectionState`](game-host.md#gamehostinspectionstate) · [`GameInspectionDetails`](game-host.md#gameinspectiondetails) · [`GameSessionControlResult`](game-host.md#gamesessioncontrolresult) · [`GameInspectionPort`](game-host.md#gameinspectionport) · [`createGameInspectionSnapshot`](game-host.md#creategameinspectionsnapshot) · [`GameInstance`](game-host.md#gameinstance) · [`GameModuleEntry`](game-host.md#gamemoduleentry)
+[`GamePointerInput`](game-host.md#gamepointerinput) · [`GameMovementInput`](game-host.md#gamemovementinput) · [`GameHostMode`](game-host.md#gamehostmode) · [`GameMeasurements`](game-host.md#gamemeasurements) · [`GameHostContext`](game-host.md#gamehostcontext) · [`GameHostInspectionState`](game-host.md#gamehostinspectionstate) · [`GameInspectionDetails`](game-host.md#gameinspectiondetails) · [`GameSessionControlResult`](game-host.md#gamesessioncontrolresult) · [`GameInspectionPort`](game-host.md#gameinspectionport) · [`createGameInspectionSnapshot`](game-host.md#creategameinspectionsnapshot) · [`GameInstance`](game-host.md#gameinstance) · [`GameModuleEntry`](game-host.md#gamemoduleentry) · [`CaptureFixtureControl`](game-host.md#capturefixturecontrol) · [`CaptureFixtureRequest`](game-host.md#capturefixturerequest) · [`CaptureFixtureResult`](game-host.md#capturefixtureresult) · [`CaptureFixtureState`](game-host.md#capturefixturestate) · [`CaptureFixtureDeclaration`](game-host.md#capturefixturedeclaration) · [`CaptureFixtureController`](game-host.md#capturefixturecontroller) · [`CaptureFixtureValidationError`](game-host.md#capturefixturevalidationerror) · [`parseCaptureFixtureRequest`](game-host.md#parsecapturefixturerequest) · [`parseCaptureFixtureResult`](game-host.md#parsecapturefixtureresult) · [`createCaptureFixtureController`](game-host.md#createcapturefixturecontroller)
 
 ### Resource disposal API
 

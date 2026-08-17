@@ -128,6 +128,7 @@ function toRuntimeRequest(
     target: request.target,
     warmUpFrames: request.warmUpFrames,
     idempotencyKey: request.idempotencyKey,
+    ...(request.fixture === undefined ? {} : { fixture: request.fixture }),
   });
 }
 

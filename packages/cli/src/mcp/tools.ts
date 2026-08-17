@@ -128,6 +128,66 @@ const captureExpectedV3Schema = Object.freeze({
   additionalProperties: false,
 } as const);
 
+const captureFixtureInputSchema = Object.freeze({
+  type: 'object',
+  properties: {
+    schemaVersion: { const: 1 },
+    fixtureName: {
+      type: 'string',
+      pattern: '^[a-z][a-z0-9-]{0,63}$',
+    },
+    controls: {
+      type: 'array',
+      minItems: 1,
+      maxItems: 8,
+      items: {
+        oneOf: [
+          {
+            type: 'object',
+            properties: {
+              kind: { const: 'scene-visibility' },
+              group: { type: 'string', pattern: '^[a-z][a-z0-9-]{0,63}$' },
+              visible: { type: 'boolean' },
+            },
+            required: ['kind', 'group', 'visible'],
+            additionalProperties: false,
+          },
+          {
+            type: 'object',
+            properties: {
+              kind: { const: 'camera-translation' },
+              delta: {
+                type: 'object',
+                properties: {
+                  x: { type: 'number', minimum: -100, maximum: 100 },
+                  y: { type: 'number', minimum: -100, maximum: 100 },
+                  z: { type: 'number', minimum: -100, maximum: 100 },
+                },
+                required: ['x', 'y', 'z'],
+                additionalProperties: false,
+              },
+            },
+            required: ['kind', 'delta'],
+            additionalProperties: false,
+          },
+          {
+            type: 'object',
+            properties: {
+              kind: { const: 'variant' },
+              name: { type: 'string', pattern: '^[a-z][a-z0-9-]{0,63}$' },
+              enabled: { type: 'boolean' },
+            },
+            required: ['kind', 'name', 'enabled'],
+            additionalProperties: false,
+          },
+        ],
+      },
+    },
+  },
+  required: ['schemaVersion', 'fixtureName', 'controls'],
+  additionalProperties: false,
+} as const);
+
 const captureFrameInputSchema = Object.freeze({
   type: 'object',
   properties: {
@@ -146,6 +206,7 @@ const captureFrameInputSchema = Object.freeze({
     },
     warmUpFrames: { type: 'integer', minimum: 0, maximum: 300 },
     idempotencyKey: { type: 'string', minLength: 1, maxLength: 128 },
+    fixture: captureFixtureInputSchema,
   },
   required: [
     'schemaVersion', 'expected', 'runtimePolicy', 'target', 'warmUpFrames', 'idempotencyKey',
@@ -374,7 +435,7 @@ export const MCP_TOOL_DEFINITIONS = Object.freeze([
   },
   {
     name: 'capture_frame',
-    description: 'Call when you need exact pixels from the game canvas after reading the version-two runtime observation and render dimensions. Fence the development session, accepted build, runtime, and any exact paused step; choose the current or managed runtime policy; and provide bounded target dimensions plus an idempotency key. It returns private path-safe evidence metadata and an MCP image block. Use get_render_stats for renderer measurements.',
+    description: 'Call when you need exact pixels from the game canvas after reading the version-two runtime observation and render dimensions. Fence the development session, accepted build, runtime, and any exact paused step; choose the current or managed runtime policy; and provide bounded target dimensions plus an idempotency key. An optional semantic game-owned fixture can change declared presentation controls without exposing renderer objects or changing simulation state. It returns private path-safe evidence metadata and an MCP image block. Use get_render_stats for renderer measurements.',
     inputSchema: captureFrameInputSchema,
     annotations: actionToolAnnotations,
   },

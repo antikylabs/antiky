@@ -7,6 +7,13 @@ import {
   type ObservationRefV1,
 } from '../observation.ts';
 import { AntikyCliError } from '../../errors.ts';
+import {
+  CaptureFixtureValidationError,
+  parseCaptureFixtureRequest,
+  parseCaptureFixtureResult,
+  type CaptureFixtureRequest,
+  type CaptureFixtureResult,
+} from '@antiky/framework/game';
 
 export const CAPTURE_MAX_WIDTH = 2560;
 export const CAPTURE_MAX_HEIGHT = 1440;
@@ -35,6 +42,7 @@ export type CaptureFrameRequestV2 = Readonly<{
   }>;
   warmUpFrames: number;
   idempotencyKey: string;
+  fixture?: CaptureFixtureRequest;
 }>;
 
 export type DevelopmentCaptureResultV2 = Readonly<{
@@ -45,6 +53,7 @@ export type DevelopmentCaptureResultV2 = Readonly<{
   observation: ObservationRefV1;
   deviceScaleFactor: number;
   artifact: EvidenceArtifactRefV1;
+  fixture?: CaptureFixtureResult;
 }>;
 
 export type CaptureExpectedRuntimeV3 = Readonly<{
@@ -63,6 +72,7 @@ export type CaptureFrameRequestV3 = Readonly<{
   target: CaptureFrameRequestV2['target'];
   warmUpFrames: number;
   idempotencyKey: string;
+  fixture?: CaptureFixtureRequest;
 }>;
 
 export type DevelopmentCaptureResultV3 = Readonly<
@@ -119,7 +129,7 @@ export function parseCaptureFrameRequestV2(value: unknown): CaptureFrameRequestV
   const record = object(value, '$');
   exactKeys(record, [
     'schemaVersion', 'expected', 'runtimePolicy', 'target', 'warmUpFrames', 'idempotencyKey',
-  ], [], '$');
+  ], ['fixture'], '$');
   if (record.schemaVersion !== 2) invalid('Unsupported capture request version.', '$.schemaVersion');
   if (record.runtimePolicy !== 'current-or-managed' && record.runtimePolicy !== 'managed-only') {
     invalid('Unknown capture runtime policy.', '$.runtimePolicy');
@@ -177,6 +187,9 @@ export function parseCaptureFrameRequestV2(value: unknown): CaptureFrameRequestV
     }),
     warmUpFrames: count(record.warmUpFrames, '$.warmUpFrames', CAPTURE_MAX_WARM_UP_FRAMES),
     idempotencyKey: string(record.idempotencyKey, '$.idempotencyKey'),
+    ...(record.fixture === undefined ? {} : {
+      fixture: parseFixture(record.fixture, '$.fixture'),
+    }),
   });
 }
 
@@ -184,7 +197,7 @@ export function parseCaptureFrameRequestV3(value: unknown): CaptureFrameRequestV
   const record = object(value, '$');
   exactKeys(record, [
     'schemaVersion', 'expected', 'runtimePolicy', 'target', 'warmUpFrames', 'idempotencyKey',
-  ], [], '$');
+  ], ['fixture'], '$');
   if (record.schemaVersion !== 3) invalid('Unsupported capture request version.', '$.schemaVersion');
   if (record.runtimePolicy !== 'current-or-managed' && record.runtimePolicy !== 'managed-only') {
     invalid('Unknown capture runtime policy.', '$.runtimePolicy');
@@ -248,7 +261,21 @@ export function parseCaptureFrameRequestV3(value: unknown): CaptureFrameRequestV
     }),
     warmUpFrames: count(record.warmUpFrames, '$.warmUpFrames', CAPTURE_MAX_WARM_UP_FRAMES),
     idempotencyKey: string(record.idempotencyKey, '$.idempotencyKey'),
+    ...(record.fixture === undefined ? {} : {
+      fixture: parseFixture(record.fixture, '$.fixture'),
+    }),
   });
+}
+
+function parseFixture(value: unknown, path: string): CaptureFixtureRequest {
+  try {
+    return parseCaptureFixtureRequest(value);
+  } catch (cause: unknown) {
+    if (cause instanceof CaptureFixtureValidationError) {
+      invalid(cause.message, path);
+    }
+    throw cause;
+  }
 }
 
 export function parseDevelopmentCaptureResultV2(value: unknown): DevelopmentCaptureResultV2 {
@@ -256,7 +283,7 @@ export function parseDevelopmentCaptureResultV2(value: unknown): DevelopmentCapt
   exactKeys(record, [
     'schemaVersion', 'actionId', 'captureId', 'source', 'observation',
     'deviceScaleFactor', 'artifact',
-  ], [], '$');
+  ], ['fixture'], '$');
   if (record.schemaVersion !== 2) invalid('Unsupported capture result version.', '$.schemaVersion');
   if (record.source !== 'interactive-runtime' && record.source !== 'managed-runtime') {
     invalid('Unknown capture source.', '$.source');
@@ -285,6 +312,9 @@ export function parseDevelopmentCaptureResultV2(value: unknown): DevelopmentCapt
     observation,
     deviceScaleFactor,
     artifact,
+    ...(record.fixture === undefined ? {} : {
+      fixture: parseCaptureFixtureResult(record.fixture),
+    }),
   });
 }
 

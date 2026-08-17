@@ -17,6 +17,22 @@ import type {
   EngineControlResult,
   EngineSessionStatus,
 } from '../sessions/engine-session/contract.ts';
+export {
+  CaptureFixtureValidationError,
+  createCaptureFixtureController,
+  parseCaptureFixtureRequest,
+  parseCaptureFixtureResult,
+  type CaptureFixtureControl,
+  type CaptureFixtureController,
+  type CaptureFixtureDeclaration,
+  type CaptureFixtureRequest,
+  type CaptureFixtureResult,
+  type CaptureFixtureState,
+} from './capture-fixture.ts';
+import type {
+  CaptureFixtureRequest,
+  CaptureFixtureResult,
+} from './capture-fixture.ts';
 
 export type {
   GamePointerInput,
@@ -71,6 +87,9 @@ export type GameInspectionPort = Readonly<{
   stepSimulation?(
     expectedCompletedStepCount: number,
   ): GameSessionControlResult | Promise<GameSessionControlResult>;
+  applyCaptureFixture?(
+    request: CaptureFixtureRequest,
+  ): CaptureFixtureResult | Promise<CaptureFixtureResult>;
 }>;
 
 function sessionLifecycle(

@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:505b681cf8627a4d
+frameworkSource: sha256:67d0ebbc1f5eea28
 ---
 
 # Identity API

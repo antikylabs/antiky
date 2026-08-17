@@ -5,6 +5,10 @@ import {
   InspectionValidationError,
   type InspectionSnapshot,
 } from '@antiky/framework';
+import {
+  CaptureFixtureValidationError,
+  parseCaptureFixtureResult,
+} from '@antiky/framework/game';
 
 import type {
   CaptureActionInput,
@@ -161,9 +165,14 @@ export function readBrowserActionResultEnvelope(
       'kind', 'mimeType', 'canvasWidth', 'canvasHeight', 'dataBase64',
     ];
     const observedKeys = [...legacyKeys, 'publicationSequence', 'snapshot'];
-    const hasObservation = hasExactKeys(result, observedKeys);
+    const fixtureKeys = [...legacyKeys, 'fixtureResult'];
+    const observedFixtureKeys = [...observedKeys, 'fixtureResult'];
+    const hasObservation = hasExactKeys(result, observedKeys)
+      || hasExactKeys(result, observedFixtureKeys);
+    const hasFixture = hasExactKeys(result, fixtureKeys)
+      || hasExactKeys(result, observedFixtureKeys);
     if (
-      (!hasExactKeys(result, legacyKeys) && !hasObservation)
+      (!hasExactKeys(result, legacyKeys) && !hasObservation && !hasFixture)
       || result.mimeType !== 'image/png'
       || typeof result.dataBase64 !== 'string'
     ) {
@@ -187,6 +196,17 @@ export function readBrowserActionResultEnvelope(
         fail(409, 'ANTIKY_RUNTIME_STALE', 'Capture observation runtime is stale.');
       }
     }
+    let fixtureResult;
+    if (hasFixture) {
+      try {
+        fixtureResult = parseCaptureFixtureResult(result.fixtureResult);
+      } catch (cause: unknown) {
+        if (cause instanceof CaptureFixtureValidationError) {
+          fail(400, cause.code, cause.message);
+        }
+        throw cause;
+      }
+    }
     return Object.freeze({
       kind: 'capture',
       input: Object.freeze({
@@ -197,6 +217,7 @@ export function readBrowserActionResultEnvelope(
         canvasWidth: result.canvasWidth as number,
         canvasHeight: result.canvasHeight as number,
         dataBase64: result.dataBase64,
+        ...(fixtureResult === undefined ? {} : { fixtureResult }),
       }),
       snapshot,
       publicationSequence,

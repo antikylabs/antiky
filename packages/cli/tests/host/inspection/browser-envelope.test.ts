@@ -80,6 +80,11 @@ test('browser envelopes return typed snapshots, disconnects, and action results'
       dataBase64: 'capture-bytes-stay-in-the-envelope',
       publicationSequence: 2,
       snapshot: inspection,
+      fixtureResult: {
+        schemaVersion: 1,
+        fixtureName: 'goal-19-evidence',
+        appliedControls: [{ kind: 'variant', name: 'bloom', enabled: false }],
+      },
     },
   }, DEVELOPMENT_SESSION_ID), {
     kind: 'capture',
@@ -91,6 +96,11 @@ test('browser envelopes return typed snapshots, disconnects, and action results'
       canvasWidth: 1,
       canvasHeight: 1,
       dataBase64: 'capture-bytes-stay-in-the-envelope',
+      fixtureResult: {
+        schemaVersion: 1,
+        fixtureName: 'goal-19-evidence',
+        appliedControls: [{ kind: 'variant', name: 'bloom', enabled: false }],
+      },
     },
     snapshot: inspection,
     publicationSequence: 2,
