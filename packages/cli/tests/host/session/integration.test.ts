@@ -288,7 +288,6 @@ test('public demo manifests mount their compiled module in the CLI-owned host', 
     ['antiky', 'combat-arena'],
     ['antiky', 'point-light-expo'],
     ['antiky', 'traversal-study'],
-    ['brometal', 'shader-study'],
   ] as const) {
     const projectPath = join(repositoryRoot, 'packages', 'demos', category, slug, `${slug}.antiky`);
     const config = await loadAntikyProject(projectPath);

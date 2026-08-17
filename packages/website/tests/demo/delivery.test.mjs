@@ -70,7 +70,7 @@ test('website game host owns activation, input, presentation, visibility, and cl
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
-test('the website catalog exposes all renderer families and gates only WebGPU demos', async () => {
+test('the website catalog exposes only the four Antiky demos', async () => {
   const catalog = await readFile(new URL('../../src/lib/demos.ts', import.meta.url), 'utf8');
   const host = await readFile(new URL('../../src/components/DemoStage.tsx', import.meta.url), 'utf8');
   for (const slug of [
@@ -78,15 +78,10 @@ test('the website catalog exposes all renderer families and gates only WebGPU de
     'traversal-study',
     'antiky-town',
     'point-light-expo',
-    'shader-study',
-    'solar-forge',
-    'luminous-reef',
-    'orbital-atlas',
-    'glass-garden',
   ]) assert.match(catalog, new RegExp(`slug: '${slug}'`));
   assert.match(catalog, /pillar: 'Framework'/);
-  assert.match(catalog, /pillar: 'BroMetal'/);
-  assert.match(catalog, /pillar: 'Three\.js'/);
+  assert.doesNotMatch(catalog, /pillar: 'BroMetal'/);
+  assert.doesNotMatch(catalog, /pillar: 'Three\.js'/);
   // The support check lives in one helper so the render path and the activation path cannot drift.
   assert.match(host, /function webGpuAvailable\(\)/);
   assert.match(host, /'gpu' in navigator/);
@@ -96,7 +91,7 @@ test('the website catalog exposes all renderer families and gates only WebGPU de
   assert.match(host, /prefers-reduced-motion/);
 });
 
-test('every published demo has a distinct real poster and the catalog groups all renderer families', async () => {
+test('every published demo has a distinct real poster in the Antiky group', async () => {
   const publication = JSON.parse(await readFile(new URL('../../demo-publication.json', import.meta.url), 'utf8'));
   const catalogPage = await readFile(new URL('../../.next/server/app/demos.html', import.meta.url), 'utf8');
   const digests = new Set();
@@ -120,8 +115,6 @@ test('every published demo has a distinct real poster and the catalog groups all
   assert.equal(digests.size, publication.demos.length, 'Demo posters must not reuse the same image');
   const groups = [
     ['framework-demos', 'Antiky Framework', ['combat-arena', 'traversal-study', 'antiky-town', 'point-light-expo']],
-    ['brometal-demos', 'BroMetal', ['shader-study', 'solar-forge', 'luminous-reef']],
-    ['threejs-demos', 'Three.js', ['orbital-atlas', 'glass-garden']],
   ];
   const groupStarts = groups.map(([id, heading]) => {
     const marker = `<h2 id="${id}">${heading}</h2>`;
@@ -342,33 +335,12 @@ test('mobile posters are fitted rather than cropped past their subject', async (
   assert.ok(visibleWidthWithCover < 0.7, 'this test is meaningless if cover would already fit');
 });
 
-test('the town is not billed as a shader study', async () => {
+test('the public catalog has one Antiky Framework group', async () => {
   const { DEMOS, DEMO_GROUPS } = await import('../../src/lib/demos.ts');
 
-  // Antiky Town is ~11,700 lines: a voxel surface mesher, a sprite batcher, a tested character
-  // motor, and a real post pass. The three BroMetal studies are fullscreen quads. One group for
-  // both would read as a claim that a quad is this engine's ceiling.
   const antikyTown = DEMOS.find((demo) => demo.slug === 'antiky-town');
   assert.equal(antikyTown?.pillar, 'Framework', 'the town belongs with the Framework demos');
-  for (const slug of ['shader-study', 'solar-forge', 'luminous-reef']) {
-    assert.equal(DEMOS.find((demo) => demo.slug === slug)?.tier, 'shader-study');
-  }
-
-  const groups = DEMO_GROUPS.filter((group) => group.pillar === 'BroMetal');
-  assert.equal(groups.length, 2, 'the BroMetal pillar must present two clearly separated groups');
-  assert.deepEqual(groups.map((group) => group.id).sort(), ['brometal-demos', 'brometal-shader-demos']);
+  assert.ok(DEMOS.every((demo) => demo.pillar === 'Framework'));
+  assert.deepEqual(DEMO_GROUPS.map((group) => group.id), ['framework-demos']);
   assert.equal(new Set(DEMO_GROUPS.map((group) => group.id)).size, DEMO_GROUPS.length);
-});
-
-test('Solar Forge copy describes what its shader implements', async () => {
-  const { DEMOS } = await import('../../src/lib/demos.ts');
-  const solarForge = DEMOS.find((demo) => demo.slug === 'solar-forge');
-
-  // The shader implements a photon ring, an accretion disk and relativistic Doppler beaming. Calling
-  // that "a turbulent procedural eclipse" with "a black-hot core" undersold its own content.
-  const copy = `${solarForge?.tagline} ${solarForge?.notes}`;
-  assert.ok(!/eclipse/i.test(copy), 'the shader does not implement an eclipse');
-  assert.match(copy, /photon ring/i);
-  assert.match(copy, /accretion disk/i);
-  assert.match(copy, /doppler/i);
 });

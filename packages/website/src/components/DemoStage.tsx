@@ -23,7 +23,7 @@ import {
   type DemoSlug,
 } from '@/lib/demos';
 
-/** Safari and Firefox do not expose `navigator.gpu` today, which is what gates seven of nine demos. */
+/** A browser without `navigator.gpu` shows the verified poster for each current demo. */
 function webGpuAvailable(): boolean {
   return typeof navigator !== 'undefined' && 'gpu' in navigator;
 }

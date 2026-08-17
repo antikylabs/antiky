@@ -110,8 +110,8 @@ The website must label status in text. Color may reinforce status but cannot rep
 - MCP and typed inspection/tool adapters for the same local development session.
 - A native Studio workspace with project launch, running game, terminal, simulation controls,
   hierarchy, stores, snapshots, events, MCP calls, and diagnostics.
-- Four current Antiky Framework studies, four pure BroMetal studies, and two pure Three.js studies in
-  one portable website-owned game host.
+- Four current Antiky Framework studies rendered through BroMetal in one portable website-owned
+  game host.
 - Combat Arena as the strongest immediate motion proof, Traversal Study as a distinct movement proof,
   and Antiky Town as the broadest current authored-world proof.
 
@@ -172,7 +172,7 @@ presenting it as the Antiky Labs identity.
 - **Games (`/games`)** — connect Antiky Town, focused studies, and Emberwyrd to the game-led method.
 - **Research (`/research`)** — maintain the boundary between runnable evidence, direction, and open
   questions.
-- **Demos (`/demos`)** — let visitors run nine approved artifacts and understand what each does and
+- **Demos (`/demos`)** — let visitors run four approved artifacts and understand what each does and
   does not show.
 - **Docs (`/docs`)** — publish exact current Framework, CLI, MCP, Studio, and API behavior.
 

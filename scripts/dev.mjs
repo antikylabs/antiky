@@ -13,11 +13,6 @@ const demoProjects = {
   'combat-arena': 'packages/demos/antiky/combat-arena/combat-arena.antiky',
   'point-light-expo': 'packages/demos/antiky/point-light-expo/point-light-expo.antiky',
   'traversal-study': 'packages/demos/antiky/traversal-study/traversal-study.antiky',
-  'shader-study': 'packages/demos/brometal/shader-study/shader-study.antiky',
-  'solar-forge': 'packages/demos/brometal/solar-forge/solar-forge.antiky',
-  'luminous-reef': 'packages/demos/brometal/luminous-reef/luminous-reef.antiky',
-  'orbital-atlas': 'packages/demos/threejs/orbital-atlas/orbital-atlas.antiky',
-  'glass-garden': 'packages/demos/threejs/glass-garden/glass-garden.antiky',
 };
 
 if (!target || (!(target in workspaces) && target !== 'demos')) {

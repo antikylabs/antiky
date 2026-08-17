@@ -2,30 +2,14 @@ export type DemoSlug =
   | 'combat-arena'
   | 'traversal-study'
   | 'antiky-town'
-  | 'point-light-expo'
-  | 'shader-study'
-  | 'solar-forge'
-  | 'luminous-reef'
-  | 'orbital-atlas'
-  | 'glass-garden';
+  | 'point-light-expo';
 
-export type DemoPillar = 'Framework' | 'BroMetal' | 'Three.js';
-
-/**
- * Splits the BroMetal pillar by what a study actually is.
- *
- * Town Study is roughly nine thousand lines: a voxel surface mesher, a sprite batcher, a tested
- * character motor, and twelve shader pairs including dedicated shadow passes and a post pass. The
- * other three are fullscreen quads. Billing them identically read as a claim that a fullscreen
- * quad is the ceiling of what BroMetal does, which is the opposite of the point.
- */
-export type DemoTier = 'engine' | 'shader-study';
+export type DemoPillar = 'Framework';
 
 export type DemoMeta = Readonly<{
   slug: DemoSlug;
   title: string;
   pillar: DemoPillar;
-  tier?: DemoTier;
   tagline: string;
   notes: string;
   proves: readonly string[];
@@ -38,7 +22,6 @@ export type DemoMeta = Readonly<{
 export const DEMO_GROUPS: readonly Readonly<{
   id: string;
   pillar: DemoPillar;
-  tier?: DemoTier;
   title: string;
   description: string;
 }>[] = [
@@ -47,26 +30,6 @@ export const DEMO_GROUPS: readonly Readonly<{
     pillar: 'Framework',
     title: 'Antiky Framework',
     description: 'Framework-owned game state and live authoring, rendered through BroMetal.',
-  },
-  {
-    id: 'brometal-demos',
-    pillar: 'BroMetal',
-    tier: 'engine',
-    title: 'BroMetal',
-    description: 'Pure WebGPU projects that use BroMetal without an Antiky Framework dependency.',
-  },
-  {
-    id: 'brometal-shader-demos',
-    pillar: 'BroMetal',
-    tier: 'shader-study',
-    title: 'BroMetal shader studies',
-    description: 'Single-quad studies, each isolating one property of the typed shader compiler rather than a whole scene.',
-  },
-  {
-    id: 'threejs-demos',
-    pillar: 'Three.js',
-    title: 'Three.js',
-    description: 'Pure WebGL projects that prove the same portable game host can mount another renderer.',
   },
 ];
 
@@ -138,88 +101,6 @@ export const DEMOS: readonly DemoMeta[] = [
     tags: ['Antiky Framework', 'point lights', 'custom shader'],
     requiresWebGpu: true,
     controls: 'Move the pointer to shift the gallery camera',
-  },
-  {
-    slug: 'shader-study',
-    title: 'Shader Study',
-    pillar: 'BroMetal',
-    tier: 'shader-study',
-    tagline: 'One typed aurora shader compiled ahead of time for WebGPU.',
-    notes:
-      'Shader Study isolates one useful property of BroMetal: typed shader source compiles ahead of time to WGSL. The website runs only the generated game artifact.',
-    proves: [
-      'Typed TypeScript becomes browser-ready shader code at build time',
-      'No shader compiler ships to the browser',
-      'A pure BroMetal module works in the same Studio host',
-    ],
-    tags: ['BroMetal', 'WGSL', 'aurora'],
-    requiresWebGpu: true,
-  },
-  {
-    slug: 'solar-forge',
-    title: 'Solar Forge',
-    pillar: 'BroMetal',
-    tier: 'shader-study',
-    tagline: 'A black hole with a photon ring and a Doppler-beamed accretion disk, in one draw call.',
-    notes:
-      'A gravitationally lensed photon ring, an accretion disk with relativistic Doppler beaming, layered noise and orbiting sparks — one draw call, no textures.',
-    proves: [
-      'A custom pure BroMetal shader rather than a prebuilt effect',
-      'Layered procedural detail with one compact draw call',
-      'Pointer-responsive composition in a portable game module',
-    ],
-    tags: ['BroMetal', 'procedural', 'one draw call'],
-    requiresWebGpu: true,
-    controls: 'Move the pointer to bend the view around the black hole',
-  },
-  {
-    slug: 'luminous-reef',
-    title: 'Luminous Reef',
-    pillar: 'BroMetal',
-    tier: 'shader-study',
-    tagline: 'Bioluminescent life and caustic water in one custom shader.',
-    notes:
-      'A procedural seascape layers drifting water, cellular caustics, jelly forms, coral silhouettes, and responsive parallax without texture assets.',
-    proves: [
-      'Typed noise and Voronoi helpers composed into original material',
-      'Animated organic forms without model or texture downloads',
-      'A Framework-free BroMetal project inspectable at the host boundary',
-    ],
-    tags: ['BroMetal', 'caustics', 'bioluminescence'],
-    requiresWebGpu: true,
-    controls: 'Move the pointer to drift through the water',
-  },
-  {
-    slug: 'orbital-atlas',
-    title: 'Orbital Atlas',
-    pillar: 'Three.js',
-    tagline: 'A kinetic solar sculpture wrapped in hundreds of animated orbital shards.',
-    notes:
-      'Planets, moons, rings, a deterministic star field, and a dynamically updated instance field use native Three.js APIs while the same Studio host supplies timing and lifecycle.',
-    proves: [
-      'Hierarchical animation through native Three.js scene groups',
-      'Per-frame instance transforms and colors in one dynamic instanced draw',
-      'A WebGL game module with no BroMetal or Framework dependency',
-    ],
-    tags: ['Three.js', 'dynamic instancing', 'WebGL'],
-    requiresWebGpu: false,
-    controls: 'Move the pointer to orbit the camera',
-  },
-  {
-    slug: 'glass-garden',
-    title: 'Glass Garden',
-    pillar: 'Three.js',
-    tagline: 'A bioluminescent crystal conservatory rooted in noise-sculpted terrain.',
-    notes:
-      'Transmission materials, animated crystal cores, procedural terrain, moving practical lights, and bloom composition show a polished Three.js scene running through Studio’s renderer-neutral contract.',
-    proves: [
-      'Three.js physical transmission over procedural ImprovedNoise terrain',
-      'EffectComposer bloom, moving point lights, and shadowed geometry',
-      'The same Studio lifecycle works without WebGPU',
-    ],
-    tags: ['Three.js', 'physical materials', 'WebGL'],
-    requiresWebGpu: false,
-    controls: 'Move the pointer to circle the conservatory',
   },
 ];
 

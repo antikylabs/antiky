@@ -67,9 +67,8 @@ not require one model provider.
 - `@antiky/framework` supplies the fixed-step `EngineSession`, stable UUIDv7 identities, immutable
   runtime inspection snapshots, and the first framework-owned point-light command and correction
   flow.
-- Antiky Town uses that framework path while the original BroMetal town remains available as its
-  visual and behavioral reference.
-- Eight browser studies separate Antiky Framework, pure BroMetal, and pure Three.js projects.
+- Four browser demos use that Framework path while BroMetal remains the rendering layer beneath
+  their game rules.
 
 ## How the pieces fit
 
@@ -129,20 +128,18 @@ security boundary.
 | Run type checks and tests | `npm run check` |
 | Build the production website | `npm run build` |
 
-Use `antiky-town`, `point-light-expo`, `shader-study`, `solar-forge`,
-`luminous-reef`, `orbital-atlas`, or `glass-garden` as a focused demo slug. The
-[Antiky](packages/demos/antiky/README.md), [BroMetal](packages/demos/brometal/README.md), and
-[Three.js](packages/demos/threejs/README.md) guides describe each group.
+Use `antiky-town`, `combat-arena`, `point-light-expo`, or `traversal-study` as a focused demo slug.
+The [Antiky demo guide](packages/demos/antiky/README.md) describes the catalog.
 
 ## Workspace packages
 
-The repository contains core product workspaces plus eight self-contained demo workspaces:
+The repository contains core product workspaces plus four self-contained Antiky demo workspaces:
 
 | Package | Path | Role |
 | --- | --- | --- |
 | `@antiky/framework` | [`packages/framework`](packages/framework) | Headless engine sessions, identities, inspection contracts, and reusable game systems |
 | `@antiky/cli` | [`packages/cli`](packages/cli) | The `antiky` command, development-session host, typed development client, inspection transport, and MCP adapters |
-| Demo workspaces | [`packages/demos`](packages/demos) | Two Antiky Framework, four pure BroMetal, and two pure Three.js game modules |
+| Demo workspaces | [`packages/demos/antiky`](packages/demos/antiky) | Four Antiky Framework game modules rendered through BroMetal |
 | `@antiky/website` | [`packages/website`](packages/website) | The Antiky Labs website and public presentation of runnable demos |
 | `@antiky/studio-app` and `@antiky/studio-tauri` | [`packages/studio`](packages/studio) | Studio webview, native application host, project service, and terminal integration |
 
@@ -152,8 +149,6 @@ The current package dependencies are:
 
 ```text
 Antiky demos ----------> @antiky/framework + BroMetal
-Pure BroMetal demos ---> BroMetal
-Three.js demos --------> Three.js
 @antiky/website -------> @antiky/framework
 @antiky/cli -----------> @antiky/framework
 @antiky/studio-app ----> @antiky/cli

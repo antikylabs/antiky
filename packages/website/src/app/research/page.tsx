@@ -15,7 +15,7 @@ const AREAS = [
     status: 'Current evidence',
     evidenceStatus: 'current',
     title: 'Rendering and portable game hosts',
-    body: 'Eight runnable studies compare Framework, pure BroMetal, and Three.js projects through one website-owned host. Each artifact answers a narrow question.',
+    body: 'Four runnable Antiky Framework demos share one website-owned host. Each artifact answers a narrow question about game state, rendering, or authoring.',
   },
   {
     status: 'Direction to test',

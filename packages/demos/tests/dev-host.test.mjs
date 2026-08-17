@@ -8,11 +8,6 @@ const showcase = Object.freeze([
   { category: 'antiky', slug: 'combat-arena', renderer: 'brometal', framework: true },
   { category: 'antiky', slug: 'point-light-expo', renderer: 'brometal', framework: true },
   { category: 'antiky', slug: 'traversal-study', renderer: 'brometal', framework: true },
-  { category: 'brometal', slug: 'shader-study', renderer: 'brometal', framework: false },
-  { category: 'brometal', slug: 'solar-forge', renderer: 'brometal', framework: false },
-  { category: 'brometal', slug: 'luminous-reef', renderer: 'brometal', framework: false },
-  { category: 'threejs', slug: 'orbital-atlas', renderer: 'three', framework: false },
-  { category: 'threejs', slug: 'glass-garden', renderer: 'three', framework: false },
 ]);
 
 function demoDirectory(demo) {
@@ -32,8 +27,6 @@ async function sourceFiles(directory) {
 test('the showcase has the approved category and project matrix', async () => {
   const expected = {
     antiky: ['antiky-town', 'combat-arena', 'point-light-expo', 'traversal-study'],
-    brometal: ['luminous-reef', 'shader-study', 'solar-forge'],
-    threejs: ['glass-garden', 'orbital-atlas'],
   };
   for (const [category, slugs] of Object.entries(expected)) {
     await access(new URL(`${category}/README.md`, demosDirectory));
@@ -64,20 +57,13 @@ test('every public demo is one manifest-owned game project', async () => {
   }
 });
 
-test('demo dependency boundaries identify Framework, BroMetal, and Three.js projects', async () => {
+test('Antiky demo dependency boundaries identify Framework and BroMetal projects', async () => {
   for (const demo of showcase) {
     const metadata = JSON.parse(await readFile(new URL('package.json', demoDirectory(demo)), 'utf8'));
     const dependencies = metadata.dependencies ?? {};
     assert.equal('@antiky/framework' in dependencies, demo.framework, `${demo.slug} Framework boundary`);
     assert.equal('brometal' in dependencies, demo.renderer === 'brometal', `${demo.slug} BroMetal boundary`);
-    assert.equal('three' in dependencies, demo.renderer === 'three', `${demo.slug} Three.js boundary`);
-  }
-});
-
-test('Three.js showcase frames remain available to the host capture tool', async () => {
-  for (const demo of showcase.filter((entry) => entry.renderer === 'three')) {
-    const source = await readFile(new URL('src/game.ts', demoDirectory(demo)), 'utf8');
-    assert.match(source, /new WebGLRenderer\(\{[^}]*preserveDrawingBuffer:\s*true[^}]*\}\)/s);
+    assert.equal('three' in dependencies, false, `${demo.slug} Three.js boundary`);
   }
 });
 
@@ -100,7 +86,7 @@ test('game projects contain no delivery host or sibling-demo source imports', as
     assert.doesNotMatch(source, /(?:node:http|node:net|createServer\s*\()/);
     assert.doesNotMatch(source, /packages\/demos|\.\.\/\.\.\/(?:antiky|brometal|threejs)\//);
     assert.doesNotMatch(source, /(?:\bReact\b|createRoot|<canvas|document\.body\.appendChild)/);
-    if (!demo.framework) assert.doesNotMatch(source, /@antiky\/framework/);
+    assert.match(source, /@antiky\/framework/);
   }
   await assert.rejects(() => access(new URL('dev-host/', demosDirectory)));
   await assert.rejects(() => access(new URL('package.json', demosDirectory)));

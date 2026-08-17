@@ -12,17 +12,12 @@ const repositoryRoot = path.resolve(import.meta.dirname, '../../../..');
 const publication = JSON.parse(await readFile(new URL('../../demo-publication.json', import.meta.url), 'utf8'));
 const demos = publication.demos;
 
-test('publication includes the complete renderer showcase', () => {
+test('publication includes the complete Antiky demo catalog', () => {
   assert.deepEqual(demos.map(({ slug, renderer }) => ({ slug, renderer })), [
     { slug: 'combat-arena', renderer: 'antiky' },
     { slug: 'traversal-study', renderer: 'antiky' },
     { slug: 'antiky-town', renderer: 'antiky' },
     { slug: 'point-light-expo', renderer: 'antiky' },
-    { slug: 'shader-study', renderer: 'brometal' },
-    { slug: 'solar-forge', renderer: 'brometal' },
-    { slug: 'luminous-reef', renderer: 'brometal' },
-    { slug: 'orbital-atlas', renderer: 'threejs' },
-    { slug: 'glass-garden', renderer: 'threejs' },
   ]);
 });
 
@@ -49,7 +44,7 @@ test('every demo build describes a bounded portable game artifact', async () => 
       assert.equal(manifest.gameModuleContractVersion, 1);
       assert.equal(manifest.slug, demo.slug);
       assert.equal(manifest.entry, 'antiky.game.js');
-      assert.equal(manifest.requirements.webgpu, demo.renderer !== 'threejs');
+      assert.equal(manifest.requirements.webgpu, true);
       assert.match(manifest.sourceRevision, /^sha256:[a-f0-9]{64}$/);
       assert.doesNotMatch(manifestSource, /(?:createdAt|timestamp|credential|\.antiky\/|\/Users\/)/i);
 
@@ -70,13 +65,13 @@ test('every demo build describes a bounded portable game artifact', async () => 
 });
 
 test('rebuilding the same source produces the same artifact manifest and bytes', async () => {
-  const demo = demos.find((candidate) => candidate.slug === 'shader-study');
+  const demo = demos.find((candidate) => candidate.slug === 'combat-arena');
   assert.ok(demo);
   const dist = path.join(repositoryRoot, demo.projectDirectory, 'dist');
-  await buildDemo('shader-study');
+  await buildDemo('combat-arena');
   const firstManifest = await readFile(path.join(dist, 'antiky-artifact.json'));
   const firstEntry = await readFile(path.join(dist, 'antiky.game.js'));
-  await buildDemo('shader-study');
+  await buildDemo('combat-arena');
   assert.deepEqual(await readFile(path.join(dist, 'antiky-artifact.json')), firstManifest);
   assert.deepEqual(await readFile(path.join(dist, 'antiky.game.js')), firstEntry);
 });
@@ -106,10 +101,9 @@ test('every demo vite config pins a relative base', async () => {
   // The guard above only catches a demo that already ships assets. This one catches the next demo
   // to add its first `new URL(...)` asset, which is when the defect would otherwise reappear.
   const offenders = [];
-  for (const { slug, renderer } of demos) {
-    const family = renderer === 'antiky' ? 'antiky' : renderer;
+  for (const { slug } of demos) {
     const config = await readFile(
-      new URL(`../../../demos/${family}/${slug}/vite.config.ts`, import.meta.url),
+      new URL(`../../../demos/antiky/${slug}/vite.config.ts`, import.meta.url),
       'utf8',
     );
     if (!/base:\s*'\.\/'/.test(config)) offenders.push(`${slug}`);

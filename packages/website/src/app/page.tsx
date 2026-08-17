@@ -191,12 +191,11 @@ export default function HomePage() {
           <p className="lead">2D, 3D, and 2.3D are creative possibilities, not product boundaries.</p>
           <p>
             BroMetal is where Antiky&apos;s rendering work began and the renderer our Framework games
-            use today. Pure BroMetal and Three.js studies also run through the portable game host. The
-            research can follow the needs of the games without turning one rendering style or
-            library into the identity of the lab.
+            use today. The research can follow the needs of the games without turning one rendering
+            style or library into the identity of the lab.
           </p>
           <div className="thesis-links">
-            <Link className="text-link" href="/demos">Explore all nine studies <ArrowRight /></Link>
+            <Link className="text-link" href="/demos">Explore all four studies <ArrowRight /></Link>
             <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">
               Visit BroMetal <ArrowUpRight />
             </a>

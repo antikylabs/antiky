@@ -199,7 +199,8 @@ test('product and research pages expose status boundaries without stale primary 
   assert.doesNotMatch(research, /Training and adapting models|Generated voxel assets/);
   assert.match(games, /data-evidence-status="current"/);
   assert.match(games, /data-evidence-status="direction"/);
-  assert.match(demos.replaceAll('<!-- -->', ''), /four Antiky Framework studies, four BroMetal 0\.14\.0 studies/);
+  assert.match(demos.replaceAll('<!-- -->', ''), /Four live studies/);
+  assert.match(demos.replaceAll('<!-- -->', ''), /live Antiky Framework modules/);
   assert.match(demo, /What it does not show/);
 });
 

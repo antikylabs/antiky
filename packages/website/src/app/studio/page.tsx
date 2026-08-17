@@ -35,7 +35,7 @@ const CAPABILITIES = [
   {
     number: '05',
     title: 'Keep renderer choice in the game',
-    body: 'The shared game host can run Antiky Framework, pure BroMetal, Three.js, or other browser renderers that follow the game-module contract.',
+    body: 'The shared game host runs Antiky Framework modules while each game keeps its rendering implementation behind the game-module contract.',
   },
 ] as const;
 
