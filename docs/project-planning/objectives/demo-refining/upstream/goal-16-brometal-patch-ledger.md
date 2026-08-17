@@ -47,7 +47,7 @@ ledger does not close ADR 0021's upstream-contribution obligation.
 | Perspective plane mapping | Near maps to 0 and far maps to 1 within `1e-6` |
 | Bounded readback unit behavior | 6/6 pass: row alignment, submit-before-map completion, binary16 values, bounds, active/disposed targets, concurrency, and cleanup |
 | Patch runner contract | Full `dist/` digest is unchanged after a second pass; wrong version, moved target, missing registration, and unpatched installed copy checks pass |
-| Real GPU tier | 4/4 pass on repository Node 22: known-pixel readback plus array binding, layer selection, and coarse per-layer mip separation |
+| Real GPU tier | 4/4 pass with mise Node 22.14.0: known-pixel readback plus array binding, layer selection, and coarse per-layer mip separation |
 
 The first full-payload idempotence check found a defect in the old patch set. `discard` and
 `texture-array-sampler` both replaced the same declaration anchor, so each repeated install added
@@ -60,19 +60,19 @@ hashes every file under `dist/`.
 From the repository root:
 
 ```sh
-npm ci
-npm run postinstall
-node --test scripts/tests/brometal-readback.test.mjs \
+mise exec node@22.14.0 -- npm ci
+mise exec node@22.14.0 -- npm run postinstall
+mise exec node@22.14.0 -- node --test scripts/tests/brometal-readback.test.mjs \
   scripts/tests/patch-brometal.test.mjs \
   scripts/tests/runtime-patches.test.mjs \
   packages/demos/tests/shader/output-parity.test.mjs
-npm run test:gpu
-npm ls brometal --all
+mise exec node@22.14.0 -- npm run test:gpu
+mise exec node@22.14.0 -- npm ls brometal --all
 ```
 
-Run `npm run test:gpu` with the repository's Node 22 toolchain. On this audit machine, Node 25.9.0
-aborts inside the Playwright/Chromium native launch before a test result; Node 22.15.0 completes the
-same real-GPU tests against the Apple adapter.
+Use the exact mise invocation above on this audit machine. Node 25.9.0 aborts inside the
+Playwright/Chromium native launch before a test result; mise Node 22.14.0 completes the same
+real-GPU tests against the Apple adapter.
 
 To inspect a future clean release without running Antiky's patch hook:
 

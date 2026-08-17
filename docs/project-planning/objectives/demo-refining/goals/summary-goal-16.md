@@ -1,11 +1,11 @@
 # Summary — goal 16: update BroMetal and verify every local patch
 
-**Status:** implementation complete; final repository and recapture evidence is pending the
-concurrent Goal 18 Framework source digest.
+**Status:** complete
 
-**Completed:** not yet
+**Completed:** 2026-08-16
 **Commits:** `4c649c5`, `4743a35` (shared Goal 16 and Goal 18 delivery), `b089f3f`, `6e274f1`,
-`1521875`, `398d204`, `0857a9e`, `2d2ecf2`
+`1521875`, `398d204`, `0857a9e`, `2d2ecf2`, `58ea299`, `b6eb2f1`, `97574ab` (shared
+planning and capture delivery)
 **Goal file:** [`execute-goal-16.md`](execute-goal-16.md)
 **Patch ledger:**
 [`goal-16-brometal-patch-ledger.md`](../upstream/goal-16-brometal-patch-ledger.md)
@@ -41,6 +41,8 @@ upstream work.
    device checks and the new known-pixel target readback check together.
 7. The current dependency identity, clean-package results, upstream states, reproduction commands,
    and retirement procedure now live in the Goal 16 patch ledger.
+8. All four Antiky demos were rebuilt, captured, inspected, and resealed against Goal 18's final
+   Framework source. Their visual budgets pass.
 
 ## What I got wrong
 
@@ -62,21 +64,21 @@ repository-policy failure proved the command allowlist also had to recognize it.
 
 ## Traps worth knowing
 
-- Run the GPU and capture tiers with the repository's Node 22 toolchain. Node 25.9.0 aborts inside
-  the Playwright/Chromium native launch on this machine before a test result. Node 22.15.0 reaches
-  the Apple GPU and passes the same four checks.
-- Run Node 22 through `nvm exec`, not only by invoking npm's JavaScript entry point with a Node 22
-  binary. npm child scripts otherwise find the Node 25 executable first and package it as Studio's
-  project-service sidecar.
+- Run the GPU, capture, and repository tiers with `mise exec node@22.14.0 -- npm ...`. Node 25.9.0
+  aborts inside the Playwright/Chromium native launch on this machine before a test result. The
+  mise command also keeps npm child scripts on Node 22, which prevents Studio from packaging the
+  wrong project-service executable.
 - The first authoritative repository run found a stale 43.3 GiB Cargo target whose generated Tauri
   permissions named the old `emberwyrd/antikySite` checkout. A scoped `cargo clean` of
   `packages/studio/tauri/target` removed only generated artifacts; the rebuilt Node 22 native gate
   passes.
 - A Framework source change invalidates all four Antiky demo sidecars. Goal 16 and Goal 18 ran in
-  parallel, so captures were held or discarded until Goal 18's final source and generated API
-  digest settled.
-- `CAPTURE_RUNTIME_TIMEOUT` can occur while Combat Arena's managed runtime cold-starts. No sidecar
-  is written on that failure; release ports 3010 and 3011, then retry the same fenced capture.
+  parallel, so final captures waited for Goal 18 commit `d4f790e`.
+- Combat Arena and Traversal Study initially timed out because each passed a template expression to
+  `new URL`. Vite compiled the lookup through an empty object, so the demos asked BroMetal to load
+  `/undefined` and never published a runtime. Static literal URLs fixed both Antiky-side defects;
+  production-bundle tests now prove both material maps resolve in each demo. Do not widen the
+  managed-runtime timeout for this failure mode.
 - The anti-slop structure checker no longer reports either GPU test as uncollected. Its whole-repo
   run still reports 154 other findings because its selected root-package oracle does not understand
   the workspace test commands. Those findings were not presented as a clean result or changed in
@@ -92,16 +94,24 @@ repository-policy failure proved the command allowlist also had to recognize it.
 | Test-first readback | 6/6 failed with `readPixel is not a function` before the module; 6/6 pass after it. |
 | Patched behavior and runner | 30/30 pass across readback, patch lifecycle, retained runtime behavior, and shader parity. |
 | Clean install | `node_modules` removed, `npm install` applied all nine modules, a second `npm run postinstall` changed no bytes, and `npm ls brometal --all` reports one deduplicated 0.18.0 copy. |
-| Real GPU tier | 4/4 pass on Node 22: readback, array binding, distinct layer selection, and coarse per-layer mip separation. |
+| Real GPU tier | `mise exec node@22.14.0 -- npm run test:gpu` — 4/4 pass: readback, array binding, distinct layer selection, and coarse per-layer mip separation. |
 | Studio native cache repair | JavaScript 25/25, Rust unit 11/11, and native contract 7/7 pass after the scoped generated-target cleanup. |
-| Final repository `npm test` | Pending final Goal 18 source digest. |
-| `npm run demos:verify` | Pending final Goal 18 source digest and recapture. |
+| Final repository gate | `mise exec node@22.14.0 -- npm test` exits 0. Root 106/106, camera 10/10, CLI 144/144, Framework 172/172, website and every workspace pass; Studio app is 58/58 and the native counts are 25/25, 11/11, and 7/7. |
+| Demo verification | `mise exec node@22.14.0 -- npm run demos:verify` reports 32/33. Every sidecar budget passes. The sole failure is Goal 99 M12: `shader/graph.mjs` resolves the demos root one directory too shallow and discovers no demos. Goal 19 owns that pre-existing infrastructure defect. |
 
 ## Capture evidence
 
-All four Antiky sidecars and retained PNG paths will be recorded here after the final Goal 18 source
-digest settles. Standalone BroMetal and Three.js demos are outside this pass under the owner's
-revised Goal 19 scope.
+All four frames contain their intended populated scene with no blank frame, error surface, or
+obvious missing texture. The Goal 16 agent and the coordinating agent inspected them independently.
+Standalone BroMetal and Three.js demos are outside this pass under the owner's revised Goal 19
+scope.
+
+| Demo | Source digest / seal | p95 / local contrast / saturation | Retained PNG |
+|---|---|---|---|
+| Antiky Town | `25944c1cdeed0a9f` / `bf55868a11bd5b7e` | 0.362 / 7.75 / 0.320 | `/tmp/antiky-goal16-captures/antiky-town-run-1.png` |
+| Combat Arena | `857ff27ee97d7f1c` / `5f0b1ada37d935d7` | 0.756 / 11.40 / 0.148 | `/tmp/antiky-goal16-captures/combat-arena-run-1.png` |
+| Point Light Expo | `2766dfc75ea03be9` / `ec57803da0c0be9b` | 0.645 / 8.63 / 0.247 | `/tmp/antiky-goal16-captures/point-light-expo-run-1.png` |
+| Traversal Study | `406769e82c74abe7` / `b292d9f8b87e7962` | 0.576 / 0.58 / 0.281 | `/tmp/antiky-goal16-captures/traversal-study-run-1.png` |
 
 ## What this unblocks
 
@@ -112,9 +122,7 @@ revised Goal 19 scope.
 - A future BroMetal release audit has one ledger that names each behavior, current upstream state,
   and exact retirement sequence.
 
-## What remains blocked
+## Deferred debt
 
-- Final whole-repository and four-demo evidence waits only for Goal 18 to release its final
-  Framework source digest.
-- U1 and U2 remain dormant by owner instruction. They do not block this local dependency update,
-  but ADR 0021's upstream lifecycle remains incomplete.
+Nothing blocks Goal 16. U1 and U2 remain dormant by owner instruction. They do not block this local
+dependency update, but ADR 0021's upstream lifecycle remains incomplete.
