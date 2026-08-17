@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
+import { register } from 'node:module';
 import test from 'node:test';
 
 /**
@@ -9,16 +9,10 @@ import test from 'node:test';
  */
 const BROMETAL_STUB = new URL('../support/brometal-stub.ts', import.meta.url).href;
 
-registerHooks({
-  resolve(specifier, context, next) {
-    if (specifier.startsWith('virtual:')) {
-      return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
-    }
-    // The stub re-exports the real package, so it must not be redirected into itself.
-    if (specifier === 'brometal' && context.parentURL !== BROMETAL_STUB) {
-      return { url: BROMETAL_STUB, shortCircuit: true };
-    }
-    return next(specifier, context);
+register(new URL('../../../../tests/support/renderer-construction-loader.mjs', import.meta.url), {
+  data: {
+    brometalStub: BROMETAL_STUB,
+    resolveVirtualModules: true,
   },
 });
 
