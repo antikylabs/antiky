@@ -16,17 +16,30 @@ agent guidance, and AI-native game-development questions in public.
 
 Canonical: `/research`
 
+## Link destinations
+
+| Action | Destination |
+| --- | --- |
+| Explore the research repository | `https://github.com/antikylabs/research` |
+| Run the current Framework studies | `/demos` |
+| Read the shader compilation report | research repository index until its README and report filename agree |
+| Inspect the experiment source | `https://github.com/antikylabs/research` |
+| Explore the skills library | `/resources/skills` |
+| See what is planned on the roadmap | `/roadmap` |
+| Challenge a question on Discord | `https://discord.gg/3Qs2uejUf9` |
+
 ## Hero
 
-Status: One completed study · active experiments · open questions
+Status: Completed study · active experiments · open questions
 
 Headline: Evidence before adjectives.
 
 Lead:
 
-Antiky Labs uses focused research gyms to test one game-development question at a time. A gym is a
-standalone experiment or game build with a narrow problem, a runnable artifact, and a path for
-useful findings to return to Framework, Studio, CLI, or the games.
+Antiky Labs uses focused research gyms to test one game-development question at a time. Each gym is
+a standalone experiment or game build with a narrow problem, a runnable artifact, and enough public
+context for you to inspect what was tried, what failed, and what can return to Framework, Studio,
+command-line tools, or the games.
 
 Primary action: Explore the research repository
 
@@ -70,7 +83,7 @@ Primary action: Read the shader compilation report
 
 Supporting action: Inspect the experiment source
 
-Media option: a real chart or report page exported from the completed study
+Media: a real chart or report page exported from the completed study
 
 Alt text: Results from the Antiky Labs ahead-of-time shader compilation comparison, with the tested
 approaches and measurement labels visible.
@@ -82,7 +95,7 @@ in `reports/`. Fix that source link or point this action at the repository index
 
 ## Active research
 
-Headline: Three questions are being worked now.
+Headline: Current questions, worked in public.
 
 Status: Active
 
@@ -194,8 +207,8 @@ Headline: Research can change the roadmap without becoming the roadmap.
 Body:
 
 A gym can reveal a reusable system, disprove an assumption, improve a skill, or show that a product
-boundary is wrong. The finding returns to the relevant Framework, Studio, CLI, library, or game plan
-with its evidence attached.
+boundary is wrong. The finding returns to the relevant Framework, Studio, command-line interface
+(CLI), library, or game plan with its evidence attached.
 
 Promotion is a separate decision. The product still needs a real use case, an owned interface,
 tests, documentation, and a release boundary. That separation lets research stay candid without

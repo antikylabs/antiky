@@ -16,6 +16,20 @@ inspect and change one game through explicit interfaces.
 
 Canonical: `/framework`
 
+## Link destinations
+
+| Action | Destination |
+| --- | --- |
+| Read the Framework docs | `/docs/framework/engine-sessions` |
+| Run the Framework studies | `/demos` |
+| Inspect the Framework source | `https://github.com/antikylabs/antiky/tree/main/packages/framework` |
+| Inspect the current API | `/docs/api/reference` |
+| Explore BroMetal | `https://brometal.dev` |
+| Read how the development session works | `/docs/cli/development` |
+| See the games and studies | `/games` |
+| See the same session in Studio | `/studio` |
+| Run Combat Arena | `/demos/combat-arena` |
+
 ## Hero
 
 Status: Pre-release · open source · working foundation
@@ -24,15 +38,13 @@ Headline: Build games that can explain themselves.
 
 Lead:
 
-Antiky Framework is an open-source, headless TypeScript game framework for building games that
-people and software agents can inspect, run, test, and change through the same explicit interfaces.
-It is the foundation beneath Antiky Studio, the CLI, MCP tools, and Antiky Labs games.
+Antiky Framework is an open-source TypeScript game framework that runs without Studio. It lets you
+and software agents inspect, run, test, and change the same game through explicit interfaces. It
+powers Antiky Studio, command-line tools, agent tools, and Antiky Labs games.
 
 Primary action: Read the Framework docs
 
 Secondary action: Run the Framework studies
-
-Tertiary action: View the source
 
 Media: current Antiky Town capture
 
@@ -112,10 +124,12 @@ access does not become write access by accident.
 
 Capability: Portable game modules
 
-Copy: Keep game rules, systems, shaders, and assets separate from the browser, Studio, CLI, and
-website hosts that provide canvas and platform lifecycle.
+Copy: Keep game rules, systems, shaders, and assets separate from the browser, Studio, the
+command-line interface (CLI), and website hosts that provide canvas and platform lifecycle.
 
 Supporting action: Inspect the current API
+
+Source action: Inspect the Framework source
 
 ## TypeScript through the stack
 
@@ -131,9 +145,10 @@ at the level the problem requires: use Framework systems, write game code, or ad
 where the Framework does not yet reach.
 
 BroMetal carries the same idea onto the GPU. Shader programs are written with a typed TypeScript
-DSL and compiled to WGSL before the game runs. WebGPU still creates the graphics pipelines at
-runtime. The distinction matters: ahead-of-time shader generation does not, by itself, decide
-whether a subsystem belongs on the CPU or GPU, and it is not a performance claim.
+domain-specific language and compiled to WebGPU Shading Language (WGSL) before the game runs.
+WebGPU still creates the graphics pipelines at runtime. The distinction matters: ahead-of-time
+shader generation does not, by itself, decide whether a subsystem belongs on the CPU or GPU, and it
+is not a performance claim.
 
 Framework's own render path targets WebGPU. A portable game module can still own a different browser
 renderer when it stays behind the game-module contract.
@@ -148,13 +163,14 @@ Headline: Every client meets the same game.
 
 Body:
 
-Humans, agents, Studio, CLI, project services, and tests should not receive separate versions of
-the engine. They meet the game through the same commands, queries, events, diagnostics, and visual
-captures.
+Humans, agents, Studio, the CLI, project services, and tests should not receive separate versions
+of the engine. They meet the game through the same commands, queries, events, diagnostics, and
+visual captures.
 
-MCP translates that contract into tools an agent can use to launch, control, observe, and inspect a
-development session. MCP is an adapter, not a second engine. Studio and typed clients use the same
-project-service authority instead of rebuilding the truth in their own interfaces.
+Model Context Protocol (MCP) translates that contract into tools an agent can use to launch,
+control, observe, and inspect a development session. MCP is an adapter, not a second engine. Studio
+and typed clients use the same project-service authority instead of rebuilding the truth in their
+own interfaces.
 
 Read access is not change authority. Inspection stays read-only. Changes cross validated commands,
 expected revisions, and narrow grants. The broader sandbox and promotion model is still direction.

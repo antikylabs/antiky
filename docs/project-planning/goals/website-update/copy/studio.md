@@ -16,6 +16,18 @@ inspecting live game state, and directing human-agent development.
 
 Canonical: `/studio`
 
+## Link destinations
+
+| Action | Destination |
+| --- | --- |
+| Run Studio from source | `/docs/studio/getting-started` |
+| Download Studio | `https://github.com/antikylabs/antiky/releases` |
+| Read the Studio docs | `/docs/studio/getting-started` |
+| Get help on Discord | `https://discord.gg/3Qs2uejUf9` |
+| Follow the current Studio guide | `/docs/studio/getting-started` |
+| See how Studio connects | `/docs/studio/development-connection` |
+| Join the Studio discussion | `https://discord.gg/3Qs2uejUf9` |
+
 ## Hero
 
 Status before packaged release: Current macOS source build · packaged downloads are not public yet
@@ -28,16 +40,14 @@ Lead:
 
 Antiky Studio is the native visual workspace for Antiky development. It keeps project launch, the
 running game, a native terminal, simulation controls, structured inspection, and development
-activity together—so a person can see what is happening while the shared project services do the
-work underneath.
+activity together—so you can see what is happening, direct the next change, and keep the shared
+project state in view.
 
 Primary action before packaged release: Run Studio from source
 
 Primary action after release gate: Download Studio
 
 Secondary action: Read the Studio docs
-
-Tertiary action: Get help on Discord
 
 Hero media: `studio/workspace-overview.webp`
 
@@ -47,7 +57,7 @@ structured inspection on the right, and development activity along the bottom.
 Caption: Current source build · one project workspace with the game, terminal, inspection, and
 activity visible together.
 
-## The working loop today
+## What Studio does today
 
 Section label: Current
 
@@ -55,8 +65,8 @@ Headline: Open a project and work beside the running game.
 
 Intro:
 
-Studio is already a working macOS Tauri application with a portable React interface. The current
-workspace is early and fixed, but its core development loop is real.
+Studio already runs as a working macOS app. The current workspace is early and fixed, but its core
+development loop is real.
 
 Step: Start with the project
 
@@ -72,9 +82,9 @@ Caption: Current launcher · create, open, or return to one validated Antiky pro
 
 Step: See the game and terminal together
 
-Copy: Studio starts the same local project services used by the CLI. The configured game runs in
-the workspace beside a native terminal with a compact prompt that does not expose the user or
-machine name.
+Copy: Studio starts the same local project services used by the command-line interface (CLI). The
+configured game runs in the workspace beside a native terminal with a compact prompt that does not
+expose the user or machine name.
 
 Step: Control simulation time
 
@@ -91,9 +101,9 @@ stepping.
 
 Step: Inspect what the game publishes
 
-Copy: Use Hierarchy, Stores, and Snapshot views for semantic game state. Review Events, MCP calls,
-and Diagnostics in the activity panel. Inspector views are read-only; approved controls and
-commands cross separate change boundaries.
+Copy: Use Hierarchy, Stores, and Snapshot views for semantic game state. Review Events, Model
+Context Protocol (MCP) calls, and Diagnostics in the activity panel. Inspector views are read-only;
+approved controls and commands cross separate change boundaries.
 
 Media: `studio/inspection-activity.webp`
 
@@ -161,18 +171,19 @@ target are direction. They are not present in the current workspace.
 
 ## Bring the agent you already use
 
-Section label: Direction · ACP conversation
+Section label: Direction · agent conversation
 
 Headline: Studio is not another coding agent.
 
 Body:
 
 Studio is intended to connect to compatible coding agents people already use, with their existing
-provider, account, and plan. ACP is the conversation layer: it can carry a streaming exchange and
-the structured context a person chooses to attach. A terminal remains useful for terminal-shaped
-work, but it cannot carry the visual and semantic context Studio understands on its own.
+provider, account, and plan. Agent Client Protocol (ACP) is the conversation layer: it can carry a
+streaming exchange and the structured context a person chooses to attach. A terminal remains useful
+for terminal-shaped work, but it cannot carry the visual and semantic context Studio understands on
+its own.
 
-MCP has a different job. MCP is the agent-to-engine API for launching, controlling, observing, and
+MCP has a different job. It is the agent-to-engine API for launching, controlling, observing, and
 inspecting a game session. ACP carries the conversation between the person and the agent. Neither
 one bypasses Framework commands, grants, or revision checks.
 

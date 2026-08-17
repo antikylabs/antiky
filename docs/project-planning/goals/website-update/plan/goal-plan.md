@@ -60,11 +60,137 @@ Home (/)
 `-- Roadmap (/roadmap)
 ```
 
-The ordered header navigation is **Thesis, Studio, Framework, Games, Resources, Research, Docs**.
-This replaces the current top-level Assets link with Resources and keeps the header at seven items.
-Demos and Roadmap belong in the footer, Resources hub, and relevant page copy instead of expanding
-the primary navigation. The mobile navigation must expose the same primary set plus Demos, Roadmap,
-Discord, and the release-aware Studio action.
+The ordered header navigation is **Thesis, Framework, Games, Resources, Research, Docs**. Studio is
+the separate release-aware action described in `DESIGN.md`; it must not also consume a primary
+navigation slot. This replaces the current top-level Assets link with Resources and keeps the
+header at six destinations plus one product action. Demos and Roadmap belong in the footer,
+Resources hub, and relevant page copy instead of expanding the primary navigation. The mobile
+navigation must expose the same primary set plus Demos, Discord, and the release-aware Studio
+action.
+
+### Visual sitemap
+
+```mermaid
+graph TD
+    HOME["Home (/)"] --> THESIS["Thesis (/thesis)"]
+    HOME --> STUDIO["Studio (/studio)"]
+    HOME --> FRAMEWORK["Framework (/framework)"]
+    HOME --> GAMES["Games (/games)"]
+    GAMES --> DEMOS["Framework studies (/demos)"]
+    DEMOS --> DEMO["Study detail (/demos/:slug)"]
+    HOME --> RESOURCES["Resources (/resources)"]
+    RESOURCES --> ASSETS["CC0 assets (/assets)"]
+    ASSETS --> ASSET["Asset detail (/assets/:provider/:slug)"]
+    RESOURCES --> SHADERS["Shaders (/resources/shaders)"]
+    RESOURCES --> PROJECTS["Projects (/resources/projects)"]
+    RESOURCES --> SKILLS["Skills (/resources/skills)"]
+    HOME --> RESEARCH["Research (/research)"]
+    HOME --> DOCS["Documentation (/docs)"]
+    DOCS --> DOC_PAGE["Guide or API page (/docs/:section/:page)"]
+    DOCS --> SKILLS_DOCS["Skills documentation (/docs/skills/:page)"]
+    HOME --> ROADMAP["Roadmap (/roadmap)"]
+```
+
+### URL map
+
+| Page | URL | Parent | Navigation | Priority |
+| --- | --- | --- | --- | --- |
+| Home | `/` | — | logo | High |
+| Thesis | `/thesis` | Home | header | High |
+| Studio | `/studio` | Home | release-aware header action | High |
+| Framework | `/framework` | Home | header | High |
+| Games | `/games` | Home | header | High |
+| Framework studies | `/demos` | Games | footer and contextual links | High |
+| Study detail | `/demos/:slug` | Framework studies | study cards and contextual links | Medium |
+| Resources | `/resources` | Home | header | High |
+| CC0 asset library | `/assets` | Resources | Resources hub | High |
+| Asset detail | `/assets/:provider/:slug` | CC0 asset library | catalog results | Medium |
+| Shader library | `/resources/shaders` | Resources | Resources hub | Medium |
+| Project library | `/resources/projects` | Resources | Resources hub | Medium |
+| Skills library | `/resources/skills` | Resources | Resources hub and Research | High |
+| Research | `/research` | Home | header | High |
+| Documentation | `/docs` | Home | header | High |
+| Skills documentation | `/docs/skills/:page` | Documentation | docs navigation and Skills library | High |
+| Roadmap | `/roadmap` | Home | footer, Resources, and contextual links | Medium |
+
+### Navigation specification
+
+- Keep six crawlable HTML links in the desktop header, in the order already named. Do not add a
+  mega menu; the Resources hub carries the new library choices without increasing header load.
+- Keep the release-aware Studio action separate from navigation. Its label and destination change
+  only through the existing release gate.
+- Give mobile the same six primary links, followed by Demos, Discord, and the same Studio
+  action. Keep every row at least 48px high and preserve a visible current-page state.
+- Keep the footer editorial rather than turning it into a sitemap dump. Order its links as product
+  and proof (Studio, Framework, Games, Demos), open work (Resources, Research, Roadmap), then
+  documentation and community destinations.
+- Do not add global breadcrumbs to this shallow editorial site. Docs keeps its existing section
+  navigation. Resource children include one descriptive parent link back to Resources. `/assets`
+  remains a standalone canonical route, so do not display a breadcrumb that implies a false
+  `/resources/assets` URL.
+
+### Internal linking plan
+
+| Source | Required descriptive destinations |
+| --- | --- |
+| Home | Framework, Studio, Games, Resources, Research, Docs, and one current study |
+| Framework | Framework docs, current studies, Studio, BroMetal source, and Games |
+| Studio | Studio docs, Framework, the release-aware action, and Discord |
+| Games | the four study details, Demos index, Framework, and Emberwyrd direction |
+| Resources | all four libraries, Roadmap, Docs, and Research |
+| Skills library | skills docs, reviewed source snapshot, install commands, and Research |
+| Research | completed report or repository index, active skills work, current studies, and Roadmap |
+| Roadmap | Framework, Studio, Resources, Docs, and the current proving studies |
+
+Every new route needs at least one maintained inbound link and one useful onward link. Use the action
+labels in the approved copy decks as anchors; do not add “click here” or generic “learn more” links.
+
+### Search and agent-readable contract
+
+| Page | Primary question answered in the first paragraph | Evidence or next action |
+| --- | --- | --- |
+| Framework | What is an AI-native TypeScript game framework? | current Framework docs and studies |
+| Studio | What does Antiky Studio do today? | current Studio guide and release-aware action |
+| Research | What is an Antiky research gym? | public report, experiment source, and current studies |
+| Resources | What reusable Antiky material is available now? | Assets and Skills, with honest coming-soon libraries |
+| Roadmap | What is Antiky building next, without invented dates? | the editable roadmap source and linked proving work |
+
+- Render each definition, evidence-status label, and primary action in the initial server HTML. Do
+  not hide the answer behind client activation or copy written only for an AI crawler.
+- Expand command-line interface (CLI), Model Context Protocol (MCP), and Agent Client Protocol (ACP)
+  on first use on every page. Each page must work when retrieved without its neighboring pages.
+- Make Current claims self-contained and link them to first-party docs, source, captures, releases,
+  or reports. Do not add third-party statistics, testimonials, or comparison claims without a dated
+  primary source and claim-ledger entry.
+- Preserve the current crawl baseline in `robots.ts`, which allows ordinary crawling. Add a focused
+  test that no rule accidentally blocks major search or user-triggered citation agents. Any future
+  decision to block training-only crawlers is an owner policy decision, not an incidental code edit.
+- Add Framework, Studio, Research, Resources, Skills, and Roadmap links with direct definitions to
+  `llms.txt`. Keep `llms-full.txt` grounded in the public docs and reviewed catalog data; do not
+  create separate AI-only product copy or claim the files influence Google ranking.
+- Show a maintained review date where current technical facts can decay. Set it from the
+  implementation claim review, not from the date this plan was written.
+- Do not add FAQ or schema blocks merely to target extraction. Add a question only when it answers a
+  real visitor objection that the explanation page does not already resolve.
+
+### Positioning and copy contract
+
+| Page | Familiar category first | Status quo or alternative | Antiky-specific value | Primary reader | Primary action |
+| --- | --- | --- | --- | --- | --- |
+| Framework | open-source TypeScript game framework | engines and tools make people reconstruct runtime truth for agents | people and agents inspect and change the same game through explicit interfaces | technically skeptical game builder | read current docs |
+| Studio | native visual development workspace | editors, terminals, running games, and agent context are separated | keep the running game, shared state, and development activity in view together | game builder evaluating the current workspace | run or download through the release gate |
+| Research | public game-technology research | showcase demos and roadmap claims omit method and limits | bounded gyms publish the question, artifact, method, result, and boundary | technically skeptical builder | inspect public evidence |
+
+- Lead with the familiar product or research category, then explain the distinctive Antiky idea.
+  Do not require the reader to understand “AI-native” before they understand what the thing is.
+- Write to one reader as “you.” Put the practical benefit before the implementation mechanism and
+  keep one main idea in each section.
+- Give each hero one primary action and at most one secondary action. Move source, community, and
+  other useful links beside the section where they answer the reader's next question.
+- Place the exact first-party destination beside every technical proof claim. A generic repository
+  link is acceptable only when the named report or artifact does not yet have one truthful URL.
+- Keep editorial notes, unresolved alternatives, and evidence requests in the handoff deck. They
+  must not appear in public page copy.
 
 ## Source ownership
 
