@@ -72,6 +72,7 @@ test('repository-level scripts stay within the owned allowlist', async () => {
     'scripts/patch-brometal/present.mjs',
     'scripts/patch-brometal/render-target-filtering.mjs',
     'scripts/patch-brometal/sampler-lod-clamp.mjs',
+    'scripts/patch-brometal/target-readback.mjs',
     'scripts/patch-brometal/texture-array-sampler.mjs',
     'scripts/patch-brometal/webgpu-perspective-depth.mjs',
     'scripts/port-release.mjs',
@@ -82,6 +83,7 @@ test('repository-level scripts stay within the owned allowlist', async () => {
     'scripts/tests/patch-brometal.test.mjs',
     'scripts/tests/port-release.test.mjs',
     'scripts/tests/repository-policy.test.mjs',
+    'scripts/tests/runtime-patches.test.mjs',
     'scripts/tests/shoot-demos.test.mjs',
   ]);
 });

@@ -19,6 +19,9 @@ const EXPECTED_VERSION = '0.18.0';
  * workspace. A test that hard-codes one location breaks on a layout change rather than on a defect.
  */
 async function findInstalledPackage() {
+  if (process.env.ANTIKY_BROMETAL_TEST_ROOT !== undefined) {
+    return process.env.ANTIKY_BROMETAL_TEST_ROOT;
+  }
   const roots = [path.join(repositoryRoot, 'node_modules/brometal')];
   const demosRoot = path.join(repositoryRoot, 'packages/demos');
   for (const category of await readdir(demosRoot, { withFileTypes: true })) {

@@ -34,6 +34,10 @@ import {
   name as webgpuPerspectiveDepth,
   apply as applyWebgpuPerspectiveDepth,
 } from './patch-brometal/webgpu-perspective-depth.mjs';
+import {
+  name as targetReadback,
+  apply as applyTargetReadback,
+} from './patch-brometal/target-readback.mjs';
 
 const EXPECTED_VERSION = '0.18.0';
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
@@ -48,6 +52,7 @@ export const PATCHES = Object.freeze([
   { name: samplerLodClamp, apply: applySamplerLodClamp },
   { name: textureArraySampler, apply: applyTextureArraySampler },
   { name: webgpuPerspectiveDepth, apply: applyWebgpuPerspectiveDepth },
+  { name: targetReadback, apply: applyTargetReadback },
 ]);
 
 /**

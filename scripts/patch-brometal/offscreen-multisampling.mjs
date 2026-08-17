@@ -32,8 +32,8 @@ export async function apply({ replace, replaceSection }) {
   );
   await replace(
     'dist/runtime/webgpu.js',
-    '        dispose() {\n            texture.destroy();\n            depthTexture?.destroy();\n        },',
-    '        dispose() {\n            texture.destroy();\n            depthTexture?.destroy();\n            msaaTexture?.destroy();\n        },',
+    '            depthTexture?.destroy();\n        },',
+    '            depthTexture?.destroy();\n            msaaTexture?.destroy();\n        },',
   );
   await replace(
     'dist/runtime/webgpu.js',
