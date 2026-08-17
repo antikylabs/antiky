@@ -1,17 +1,18 @@
 /**
  * Add discard() to the shader DSL.
  *
- * BroMetal 0.17.2 has no way to kill a fragment. Alpha-cut foliage, decals and any cut-out
+ * Clean BroMetal 0.18.0 has no way to kill a fragment. Alpha-cut foliage, decals and any cut-out
  * material need one. This threads discard() through the builtins, the public surface, the
  * analyzer, the WGSL emitter and the optimizer, and makes calling it as an expression an error
  * rather than silently producing a value.
  *
- * **Upstream: https://github.com/ericdrowell/brometal/pull/5**
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/5 — open on 2026-08-16.**
  * shader dsl: add discard() for cut-out fragments
  *
- * Retire this file when #5 is merged or released. Nothing else needs changing —
- * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
- * scripts/ allowlist in ../repository-policy.test.mjs.
+ * Retire only after Antiky installs a published BroMetal release that contains this behavior and
+ * the clean-package behavior test passes without this patch. Then remove this module, drop it from
+ * PATCHES in ../patch-brometal.mjs and the scripts allowlist in
+ * ../tests/repository-policy.test.mjs, clean-install, and rerun the BroMetal behavior and full tests.
  */
 export const name = 'discard';
 
@@ -23,8 +24,8 @@ export async function apply({ replace, replaceSection }) {
   );
   await replace(
     'dist/dsl/builtins.d.ts',
-    'export declare function texture(sampler: Sampler3D, uvw: Vec3): Vec4;\n',
-    'export declare function texture(sampler: Sampler3D, uvw: Vec3): Vec4;\nexport declare function discard(): void;\n',
+    'export declare function texture(sampler: Sampler2D, uv: Vec2): Vec4;\n',
+    'export declare function texture(sampler: Sampler2D, uv: Vec2): Vec4;\nexport declare function discard(): void;\n',
   );
   await replace(
     'dist/index.js',

@@ -13,12 +13,13 @@
  *
  * Both are reachable from one program that uploads more than once per frame.
  *
- * **Upstream: https://github.com/ericdrowell/brometal/pull/7**
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/7 — open on 2026-08-16.**
  * webgpu: correct two defects in per-frame attribute buffer handling
  *
- * Retire this file when #7 is merged or released. Nothing else needs changing —
- * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
- * scripts/ allowlist in ../repository-policy.test.mjs.
+ * Retire only after Antiky installs a published BroMetal release that contains this behavior and
+ * the clean-package behavior test passes without this patch. Then remove this module, drop it from
+ * PATCHES in ../patch-brometal.mjs and the scripts allowlist in
+ * ../tests/repository-policy.test.mjs, clean-install, and rerun the BroMetal behavior and full tests.
  */
 export const name = 'attribute-buffer-defects';
 

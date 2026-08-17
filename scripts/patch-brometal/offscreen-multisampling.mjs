@@ -9,12 +9,13 @@
  * resolve into the single-sampled one, and give the depth attachment the same sample count. The
  * target texture stays single-sampled, so sampling it afterwards is unchanged.
  *
- * **Upstream: https://github.com/ericdrowell/brometal/pull/4**
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/4 — open on 2026-08-16.**
  * render target: allow an off-screen pass to keep multisampling
  *
- * Retire this file when #4 is merged or released. Nothing else needs changing —
- * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
- * scripts/ allowlist in ../repository-policy.test.mjs.
+ * Retire only after Antiky installs a published BroMetal release that contains this behavior and
+ * the clean-package behavior test passes without this patch. Then remove this module, drop it from
+ * PATCHES in ../patch-brometal.mjs and the scripts allowlist in
+ * ../tests/repository-policy.test.mjs, clean-install, and rerun the BroMetal behavior and full tests.
  */
 export const name = 'offscreen-multisampling';
 

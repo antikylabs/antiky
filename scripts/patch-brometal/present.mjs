@@ -5,12 +5,13 @@
  * own frame loop cannot use it, and capture needs to draw exactly one frame on demand. present()
  * is loop()'s body without the scheduling.
  *
- * **Upstream: https://github.com/ericdrowell/brometal/pull/6**
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/6 — open on 2026-08-16.**
  * renderer: add present() for a single explicit frame
  *
- * Retire this file when #6 is merged or released. Nothing else needs changing —
- * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
- * scripts/ allowlist in ../repository-policy.test.mjs.
+ * Retire only after Antiky installs a published BroMetal release that contains this behavior and
+ * the clean-package behavior test passes without this patch. Then remove this module, drop it from
+ * PATCHES in ../patch-brometal.mjs and the scripts allowlist in
+ * ../tests/repository-policy.test.mjs, clean-install, and rerun the BroMetal behavior and full tests.
  */
 export const name = 'present';
 

@@ -4,7 +4,7 @@
  * WGSL has had `texture_2d_array<f32>` and `textureSample(t, s, uv, layer)` since 1.0, WebGPU has
  * `depthOrArrayLayers` on `GPUTextureDescriptor` and `'2d-array'` on `GPUTextureBindingLayout`, and
  * `copyExternalImageToTexture` takes a `z` origin. Every piece of this already exists in the
- * platform; BroMetal 0.17.2 simply has no type that reaches it. Its sampler types are `sampler2D`
+ * platform; clean BroMetal 0.18.0 simply has no type that reaches it. Its sampler types are `sampler2D`
  * and `sampler3D`, the runtime creates textures as `size: [width, height]`, and the bind group
  * layout hard-codes `viewDimension: entry.type === 'sampler3D' ? '3d' : '2d'`.
  *
@@ -71,9 +71,11 @@
  * first, so neither module may depend on the other's text. Unset stays undefined, which WebGPU
  * treats as omitted.
  *
- * **Upstream: not yet submitted.** The owner asked for local patches only on this pass.
- * Retire this file when an upstream pull request lands — remove the module, drop it from PATCHES in
- * ../patch-brometal.mjs, and from the scripts/ allowlist in ../repository-policy.test.mjs.
+ * **Upstream: not submitted.** The owner deferred upstream submission for this pass.
+ * Retire only after a future focused pull request is merged, Antiky installs a published BroMetal
+ * release containing this behavior, and the clean-package behavior test passes without this patch.
+ * Then remove this module, drop it from PATCHES in ../patch-brometal.mjs and the scripts allowlist
+ * in ../tests/repository-policy.test.mjs, clean-install, and rerun the behavior and full tests.
  */
 export const name = 'texture-array-sampler';
 

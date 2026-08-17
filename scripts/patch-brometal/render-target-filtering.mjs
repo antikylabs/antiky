@@ -9,12 +9,13 @@
  * per-target choice that still defaults to nearest, and only an image target such as a bloom
  * downsample chain opts into linear.
  *
- * **Upstream: https://github.com/ericdrowell/brometal/pull/3**
+ * **Upstream: https://github.com/ericdrowell/brometal/pull/3 — open on 2026-08-16.**
  * render target: allow linear filtering, keep nearest as the default
  *
- * Retire this file when #3 is merged or released. Nothing else needs changing —
- * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
- * scripts/ allowlist in ../repository-policy.test.mjs.
+ * Retire only after Antiky installs a published BroMetal release that contains this behavior and
+ * the clean-package behavior test passes without this patch. Then remove this module, drop it from
+ * PATCHES in ../patch-brometal.mjs and the scripts allowlist in
+ * ../tests/repository-policy.test.mjs, clean-install, and rerun the BroMetal behavior and full tests.
  */
 export const name = 'render-target-filtering';
 

@@ -2,7 +2,7 @@
  * Let a texture cap the mip range it resolves to.
  *
  * `lodMinClamp` and `lodMaxClamp` are standard `GPUSamplerDescriptor` fields — this exposes an
- * existing WebGPU capability rather than inventing one. BroMetal 0.17.2 builds its 2D sampler with
+ * existing WebGPU capability rather than inventing one. Clean BroMetal 0.18.0 builds its 2D sampler with
  * `magFilter`, `minFilter`, `mipmapFilter`, `addressModeU/V` and `maxAnisotropy`, so a caller can
  * choose *how* to filter but not *how far down the chain* to go, and there is no way to ask at all.
  *
@@ -15,9 +15,11 @@
  * dictionary member is the same as omitting it, so an unset clamp leaves WebGPU's own defaults
  * (0 and 32) in place rather than this patch inventing a policy.
  *
- * **Upstream: not yet submitted.** The owner asked for local patches only on this pass.
- * Retire this file when an upstream pull request lands — remove the module, drop it from PATCHES in
- * ../patch-brometal.mjs, and from the scripts/ allowlist in ../repository-policy.test.mjs.
+ * **Upstream: not submitted.** The owner deferred upstream submission for this pass.
+ * Retire only after a future focused pull request is merged, Antiky installs a published BroMetal
+ * release containing this behavior, and the clean-package behavior test passes without this patch.
+ * Then remove this module, drop it from PATCHES in ../patch-brometal.mjs and the scripts allowlist
+ * in ../tests/repository-policy.test.mjs, clean-install, and rerun the behavior and full tests.
  */
 export const name = 'sampler-lod-clamp';
 
