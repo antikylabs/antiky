@@ -5,7 +5,7 @@ Important direction that is missing or under-specified in `direction-framework.m
 ```text
 Framework direction gaps
 |-- Product boundary [Vision; Framework ADRs 0003-0005]
-|   |-- State that Framework runs headless and does not require Studio.
+|   |-- State that Framework runs headless and does not require Studio. But is immensely benefited from studio control and visual feedback.
 |   |-- Name Antiky Labs games as the primary customer and outside reuse as a benefit.
 |   |-- Give 2D, 3D, and 2.3D equal support instead of framing only one game shape.
 |   `-- Grow reusable systems from complete game slices instead of designing a broad engine first.
