@@ -409,7 +409,7 @@ export async function createRelayRenderer(
             },
             // After the post pass, on purpose. The overlay is authored display-space UI; inside the
             // target it would be exposed and tone-mapped along with the scene.
-            {
+            ...(captureState.sceneVisibility['scene-geometry'] ? [{
               pipeline: 'onboarding',
               uniforms: {
                 uAtlas: { texture: 'onboarding-legend' },
@@ -419,7 +419,7 @@ export async function createRelayRenderer(
             {
               pipeline: 'onboarding-status',
               uniforms: (onboarding.statusUniforms(state.status, state.time) ?? {}) as Record<string, UniformValue>,
-            },
+            }] : []),
           ],
         },
       ],

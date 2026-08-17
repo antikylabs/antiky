@@ -1,25 +1,25 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "demo": "combat-arena",
-  "capturedAt": "2026-08-17T04:04:36.313Z",
+  "capturedAt": "2026-08-17T05:19:32.972Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "857ff27ee97d7f1c",
-    "fileCount": 134
+    "digest": "5b47fe72e28051e5",
+    "fileCount": 136
   },
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.204097,
+    "mean": 0.203144,
     "p05": 0.002126,
-    "p50": 0.081258,
+    "p50": 0.078675,
     "p95": 0.755795,
     "spread": 0.753669
   },
   "localContrast": {
-    "median": 11.4015,
+    "median": 11.535,
     "p10": 0.5332
   },
   "clipping": {
@@ -27,34 +27,629 @@
     "low": 0
   },
   "saturation": {
-    "mean": 0.147541
+    "mean": 0.146855
   },
   "encodedLuma": {
     "p05": 0.027467,
-    "p50": 0.312339,
+    "p50": 0.307305,
     "p95": 0.883789,
     "spread": 0.856322,
     "clipped": 0.006318
   },
   "hue": {
     "clusters": 4,
-    "dominantShare": 0.439297,
-    "chromaticFraction": 0.336178
+    "dominantShare": 0.43008,
+    "chromaticFraction": 0.336375
   },
   "edges": {
-    "hard": 0.02223
+    "hard": 0.022355
   },
   "probes": {
     "sunShadow": {
-      "meanLuminance": 0.075408,
-      "standardDeviation": 0.07248,
+      "meanLuminance": 0.050343,
+      "standardDeviation": 0.044923,
       "pixels": 1024
     },
     "sunLit": {
-      "meanLuminance": 0.269524,
-      "standardDeviation": 0.084877,
+      "meanLuminance": 0.276025,
+      "standardDeviation": 0.084061,
       "pixels": 1024
     }
   },
-  "seal": "5f0b1ada37d935d7"
+  "inspection": {
+    "observation": {
+      "schemaVersion": 1,
+      "developmentSessionId": "08087096-04df-47c3-aeb5-f2d1061310ec",
+      "acceptedBuildRevision": 1,
+      "runtimeInstanceId": "4f8849c1-1401-43e6-9fa9-483781834b34",
+      "publicationSequence": 34,
+      "publishedAt": "2026-08-17T05:19:32.969Z",
+      "connectionState": "connected",
+      "freshness": "current",
+      "session": {
+        "sessionId": "01a00e29-0a16-79f7-b4bc-586016fbee24",
+        "worldId": "01991d00-1000-7000-8000-000000000001",
+        "mode": "paused",
+        "completedStepCount": 54,
+        "controlRevision": 2,
+        "worldRevision": 0,
+        "stateDigest": "starbreaker-v1:1ee0f03f303af7b3daaa22e5a2c5f70f"
+      },
+      "world": {
+        "worldId": "01991d00-1000-7000-8000-000000000001",
+        "revision": 55,
+        "eventSequence": 2
+      }
+    },
+    "fixture": {
+      "schemaVersion": 1,
+      "fixtureName": "goal-19-evidence",
+      "appliedControls": [
+        {
+          "kind": "scene-visibility",
+          "group": "scene-geometry",
+          "visible": true
+        },
+        {
+          "kind": "camera-translation",
+          "delta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "kind": "variant",
+          "name": "bloom",
+          "enabled": true
+        },
+        {
+          "kind": "variant",
+          "name": "shadows",
+          "enabled": true
+        },
+        {
+          "kind": "variant",
+          "name": "vignette",
+          "enabled": true
+        }
+      ]
+    },
+    "comparableIdentity": {
+      "developmentSessionId": "08087096-04df-47c3-aeb5-f2d1061310ec",
+      "acceptedBuildRevision": 1,
+      "runtimeInstanceId": "4f8849c1-1401-43e6-9fa9-483781834b34",
+      "sessionId": "01a00e29-0a16-79f7-b4bc-586016fbee24",
+      "completedStepCount": 54,
+      "stateDigest": "starbreaker-v1:1ee0f03f303af7b3daaa22e5a2c5f70f"
+    },
+    "repeatability": {
+      "comparedPixels": 921600,
+      "meanAbsoluteLuminanceDifference": 0,
+      "p99AbsoluteLuminanceDifference": 0,
+      "maximumAbsoluteLuminanceDifference": 0,
+      "declaredP99Bound": 0.01
+    },
+    "criteria": {
+      "ac-v1-vfx-only": {
+        "kind": "vfx-boundary",
+        "region": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 720
+        },
+        "outcome": "fail",
+        "measurement": {
+          "pixels": 921600,
+          "controlMeanLuminance": 0.36730625,
+          "treatmentMeanLuminance": 0.02240505,
+          "controlToTreatmentRatio": 16.393905,
+          "changedPixelFraction": 0.99917535,
+          "p99AbsoluteLuminanceDifference": 0.97198272,
+          "measuredBoundaryPixels": 80632,
+          "p99LuminanceGradientPerPixel": 0.25562118,
+          "minimumFalloffPixelsAtP99": 3.912,
+          "declaredMaximumGradientPerPixel": 0.1,
+          "declaredChangedPixelMinimum": 0.0001
+        },
+        "artifacts": {
+          "control": {
+            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
+            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+          },
+          "treatment": {
+            "artifactId": "artifact-f58362e30c65879b74c01cb7e620078b4087ec5646b5f254b073f930f2c1c605",
+            "sha256": "f58362e30c65879b74c01cb7e620078b4087ec5646b5f254b073f930f2c1c605"
+          }
+        },
+        "fixtures": {
+          "control": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          },
+          "treatment": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": false
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          }
+        }
+      },
+      "ac-l7-camera-translation": {
+        "kind": "camera-registration",
+        "region": {
+          "x": 340,
+          "y": 270,
+          "width": 600,
+          "height": 340
+        },
+        "outcome": "fail",
+        "measurement": {
+          "knownWorldDelta": {
+            "x": 0.5,
+            "y": 0,
+            "z": 0
+          },
+          "registeredPixelOffset": {
+            "x": -28,
+            "y": 0
+          },
+          "comparedPixels": 12155,
+          "p99AbsoluteLuminanceDifference": 0.40392157,
+          "declaredP99Bound": 0.1
+        },
+        "artifacts": {
+          "control": {
+            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
+            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+          },
+          "treatment": {
+            "artifactId": "artifact-3d543a3695eb5c70cbd1a2d3d6ae1fac5f97ab78c5f00af35b1cb30de6050672",
+            "sha256": "3d543a3695eb5c70cbd1a2d3d6ae1fac5f97ab78c5f00af35b1cb30de6050672"
+          }
+        },
+        "fixtures": {
+          "control": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          },
+          "treatment": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0.5,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          }
+        }
+      },
+      "m13-bloom-halo": {
+        "kind": "bloom",
+        "region": {
+          "x": 0,
+          "y": 270,
+          "width": 160,
+          "height": 270
+        },
+        "outcome": "fail",
+        "measurement": {
+          "pixels": 43200,
+          "controlMeanLuminance": 0.67480367,
+          "treatmentMeanLuminance": 0.56869247,
+          "controlToTreatmentRatio": 1.186588,
+          "changedPixelFraction": 0.55393519,
+          "p99AbsoluteLuminanceDifference": 0.86416548
+        },
+        "artifacts": {
+          "control": {
+            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
+            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+          },
+          "treatment": {
+            "artifactId": "artifact-7d90da2fd52ec5eb2efd51228975b38647767ed2cfea46864263fc40e83e5daa",
+            "sha256": "7d90da2fd52ec5eb2efd51228975b38647767ed2cfea46864263fc40e83e5daa"
+          }
+        },
+        "fixtures": {
+          "control": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          },
+          "treatment": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": false
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          }
+        }
+      },
+      "m13-vignette-corner": {
+        "kind": "vignette",
+        "region": {
+          "x": 0,
+          "y": 0,
+          "width": 160,
+          "height": 90
+        },
+        "outcome": "pass",
+        "measurement": {
+          "pixels": 14400,
+          "controlMeanLuminance": 0.04964513,
+          "treatmentMeanLuminance": 0.06034993,
+          "controlToTreatmentRatio": 0.822621,
+          "changedPixelFraction": 1,
+          "p99AbsoluteLuminanceDifference": 0.01568628,
+          "centerRegion": {
+            "x": 560,
+            "y": 315,
+            "width": 160,
+            "height": 90
+          },
+          "cornerAttenuation": 0.177379,
+          "declaredAttenuationRange": [
+            0.1,
+            0.25
+          ]
+        },
+        "artifacts": {
+          "control": {
+            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
+            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+          },
+          "treatment": {
+            "artifactId": "artifact-79ca0c40938bb9784b55608187f3a1b591bad7016334ae2e22e3b41ae790129e",
+            "sha256": "79ca0c40938bb9784b55608187f3a1b591bad7016334ae2e22e3b41ae790129e"
+          }
+        },
+        "fixtures": {
+          "control": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          },
+          "treatment": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": false
+              }
+            ]
+          }
+        }
+      },
+      "m13-shadow": {
+        "kind": "shadow",
+        "region": {
+          "x": 656,
+          "y": 378,
+          "width": 32,
+          "height": 32
+        },
+        "outcome": "pass",
+        "measurement": {
+          "pixels": 1024,
+          "controlMeanLuminance": 0.21413476,
+          "treatmentMeanLuminance": 0.32356302,
+          "controlToTreatmentRatio": 0.661802,
+          "changedPixelFraction": 0.62890625,
+          "p99AbsoluteLuminanceDifference": 0.3467702
+        },
+        "artifacts": {
+          "control": {
+            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
+            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+          },
+          "treatment": {
+            "artifactId": "artifact-3ee9f2e1a6e7fa309b1ae2f1c78cccc4ffb0b6549b3d9c0c175d407be1e9e8cf",
+            "sha256": "3ee9f2e1a6e7fa309b1ae2f1c78cccc4ffb0b6549b3d9c0c175d407be1e9e8cf"
+          }
+        },
+        "fixtures": {
+          "control": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          },
+          "treatment": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "kind": "variant",
+                "name": "bloom",
+                "enabled": true
+              },
+              {
+                "kind": "variant",
+                "name": "shadows",
+                "enabled": false
+              },
+              {
+                "kind": "variant",
+                "name": "vignette",
+                "enabled": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "frameTime": {
+      "supported": "upper-bound-only",
+      "framesPerSecond": 120,
+      "frameTimeUpperBoundMilliseconds": 8.333333,
+      "limitation": "The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval."
+    }
+  },
+  "seal": "ac04c7aea2312526"
 }

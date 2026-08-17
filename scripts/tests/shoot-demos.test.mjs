@@ -11,9 +11,16 @@ import { readFrameStats } from '../frame-stats.mjs';
 import {
   DEMOS,
   DEMO_PROBES,
+  CAPTURE_FIXTURES,
+  CAPTURE_PAIRS,
   buildCaptureInput,
   buildMetricsSidecar,
+  comparableCaptureIdentity,
   evidencePngPath,
+  evaluateControlPair,
+  measurePixelDrift,
+  measureControlPair,
+  pauseAndAdvanceToStep,
   resolveDemo,
   sealMetrics,
   sourceDigest,
@@ -27,6 +34,32 @@ test('every registered demo manifest exists on disk', async () => {
   for (const [slug, manifest] of Object.entries(DEMOS)) {
     await access(path.join(repositoryRoot, manifest));
     assert.ok(manifest.endsWith('.antiky'), `${slug} must point at a manifest`);
+  }
+});
+
+test('every Antiky demo declares its bounded Goal 19 evidence pairs', () => {
+  assert.deepEqual(Object.keys(CAPTURE_PAIRS).sort(), Object.keys(DEMOS).sort());
+  assert.deepEqual(
+    CAPTURE_PAIRS['combat-arena'].map((entry) => entry.name),
+    [
+      'ac-v1-vfx-only',
+      'ac-l7-camera-translation',
+      'm13-bloom-halo',
+      'm13-vignette-corner',
+      'm13-shadow',
+    ],
+  );
+  assert.deepEqual(
+    CAPTURE_PAIRS['antiky-town'].map((entry) => entry.name),
+    ['tree-translucency', 'm13-bloom-halo', 'm13-vignette-corner', 'm13-shadow'],
+  );
+  for (const [slug, pairs] of Object.entries(CAPTURE_PAIRS)) {
+    assert.ok(pairs.length > 0, `${slug} must not pass through empty evidence discovery`);
+    for (const pair of pairs) {
+      assert.equal(pair.treatment.fixtureName, 'goal-19-evidence');
+      assert.ok(pair.treatment.controls.length > 0);
+      assert.ok(pair.roi.width > 0 && pair.roi.height > 0);
+    }
   }
 });
 
@@ -54,20 +87,101 @@ test('resolving a demo yields its manifest and directory', () => {
 });
 
 test('the capture fence carries the identities the tool requires', () => {
+  const sessionStatus = {
+    session: {
+      sessionId: 'game-session-1',
+      clock: { completedStepCount: 12 },
+      lastCompletedStep: { stateDigest: 'digest-12' },
+    },
+  };
   const input = buildCaptureInput({
     build: { developmentSessionId: 'session-1', acceptedBuildRevision: 7 },
     runtime: { observation: { runtimeInstanceId: 'runtime-1' } },
     capabilities: { target: { configuredWidth: 1280, configuredHeight: 720 } },
     warmUpFrames: 60,
     idempotencyKey: 'key-1',
+    sessionStatus,
+    fixture: CAPTURE_FIXTURES['combat-arena'].baseline,
   });
 
   assert.equal(input.schemaVersion, 3);
   assert.equal(input.expected.developmentSessionId, 'session-1');
   assert.equal(input.expected.acceptedBuildRevision, 7);
   assert.equal(input.expected.currentRuntimeInstanceId, 'runtime-1');
+  assert.equal(input.expected.sessionId, 'game-session-1');
+  assert.equal(input.expected.completedStepCount, 12);
+  assert.equal(input.expected.stateDigest, 'digest-12');
+  assert.equal(input.fixture.fixtureName, 'goal-19-evidence');
   assert.equal(input.runtimePolicy, 'managed-only');
   assert.deepEqual(input.target, { width: 1280, height: 720, deviceScaleFactor: 1 });
+});
+
+test('pause plus exact step reaches one requested paused identity without replaying a step', async () => {
+  let completedStepCount = 7;
+  const calls = [];
+  const status = () => ({
+    schemaVersion: 2,
+    observation: { runtimeInstanceId: 'runtime-1' },
+    session: {
+      sessionId: 'game-session-1',
+      mode: 'paused',
+      clock: { completedStepCount },
+      lastCompletedStep: { stateDigest: `digest-${completedStepCount}` },
+    },
+  });
+  const settled = await pauseAndAdvanceToStep({
+    manifest: 'demo.antiky',
+    targetCompletedStepCount: 9,
+    async callTool(name, input) {
+      calls.push([name, input]);
+      if (name === 'pause_simulation') return { result: { code: 'PAUSED' } };
+      if (name === 'get_session_status') return status();
+      assert.equal(input.expectedCompletedStepCount, completedStepCount);
+      completedStepCount += 1;
+      return { result: { code: 'STEPPED' }, session: status().session };
+    },
+  });
+  assert.equal(settled.session.clock.completedStepCount, 9);
+  assert.equal(settled.session.lastCompletedStep.stateDigest, 'digest-9');
+  assert.deepEqual(
+    calls.filter(([name]) => name === 'step_simulation').map(([, input]) => input),
+    [{ expectedCompletedStepCount: 7 }, { expectedCompletedStepCount: 8 }],
+  );
+});
+
+test('comparable capture identity ignores publication churn but keeps every capture fence', () => {
+  const observation = {
+    developmentSessionId: 'dev-1',
+    acceptedBuildRevision: 4,
+    runtimeInstanceId: 'runtime-1',
+    publicationSequence: 20,
+    publishedAt: '2026-08-16T00:00:00.000Z',
+    session: { sessionId: 'session-1', completedStepCount: 9, stateDigest: 'digest-9' },
+  };
+  assert.deepEqual(comparableCaptureIdentity(observation), {
+    developmentSessionId: 'dev-1',
+    acceptedBuildRevision: 4,
+    runtimeInstanceId: 'runtime-1',
+    sessionId: 'session-1',
+    completedStepCount: 9,
+    stateDigest: 'digest-9',
+  });
+  assert.deepEqual(comparableCaptureIdentity({
+    ...observation,
+    publicationSequence: 21,
+    publishedAt: '2026-08-16T00:00:01.000Z',
+  }), comparableCaptureIdentity(observation));
+});
+
+test('exact stepping rejects a target behind the live session', async () => {
+  await assert.rejects(() => pauseAndAdvanceToStep({
+    manifest: 'demo.antiky',
+    targetCompletedStepCount: 3,
+    async callTool(name) {
+      if (name === 'pause_simulation') return { result: { code: 'NO_OP' } };
+      return { session: { mode: 'paused', clock: { completedStepCount: 4 } } };
+    },
+  }), /behind current step 4/);
 });
 
 test('the fence tolerates no attached runtime', () => {
@@ -138,7 +252,7 @@ test('the metrics sidecar records the numbers the budgets assert against', async
     source: { digest: 'abc123', fileCount: 7 },
   });
 
-  assert.equal(sidecar.schemaVersion, 4);
+  assert.equal(sidecar.schemaVersion, 5);
   // The digest is what stops a budget judging a capture taken from different code.
   assert.deepEqual(sidecar.source, { digest: 'abc123', fileCount: 7 });
   // Sealed, so a hand-edited measurement stops matching.
@@ -173,6 +287,76 @@ test('the metrics sidecar records the numbers the budgets assert against', async
   assert.deepEqual(sidecar.probes, {});
   // The sidecar is committed, so it must serialise cleanly and stay diff-friendly.
   assert.equal(typeof JSON.parse(JSON.stringify(sidecar)).luminance.mean, 'number');
+});
+
+test('repeatability reports bounded pixel drift over equal captured frames', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-repeatability-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const width = 16;
+  const height = 8;
+  const first = Buffer.alloc(width * height * 3, 64);
+  const second = Buffer.from(first);
+  second[0] = 65;
+  const firstPath = path.join(directory, 'first.png');
+  const secondPath = path.join(directory, 'second.png');
+  await sharp(first, { raw: { width, height, channels: 3 } }).png().toFile(firstPath);
+  await sharp(second, { raw: { width, height, channels: 3 } }).png().toFile(secondPath);
+  const drift = await measurePixelDrift(firstPath, secondPath);
+  assert.equal(drift.comparedPixels, width * height);
+  assert.ok(drift.meanAbsoluteLuminanceDifference > 0);
+  assert.ok(drift.p99AbsoluteLuminanceDifference <= drift.declaredP99Bound);
+});
+
+test('control-pair measurement reports a non-vacuous named VFX boundary', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-control-pair-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const width = 32;
+  const height = 32;
+  const control = Buffer.alloc(width * height * 3, 0);
+  const treatment = Buffer.alloc(width * height * 3, 0);
+  for (let y = 8; y < 24; y += 1) {
+    for (let x = 8; x < 24; x += 1) {
+      const value = Math.max(0, 255 - Math.round(Math.hypot(x - 16, y - 16) * 24));
+      const offset = (y * width + x) * 3;
+      treatment.fill(value, offset, offset + 3);
+    }
+  }
+  const controlPath = path.join(directory, 'control.png');
+  const treatmentPath = path.join(directory, 'treatment.png');
+  await sharp(control, { raw: { width, height, channels: 3 } }).png().toFile(controlPath);
+  await sharp(treatment, { raw: { width, height, channels: 3 } }).png().toFile(treatmentPath);
+  const measurement = await measureControlPair(controlPath, treatmentPath, {
+    kind: 'vfx-boundary',
+    roi: { x: 0, y: 0, width, height },
+  });
+  assert.ok(measurement.changedPixelFraction > measurement.declaredChangedPixelMinimum);
+  assert.ok(measurement.measuredBoundaryPixels > 0);
+  assert.ok(measurement.p99LuminanceGradientPerPixel > 0);
+  assert.equal(evaluateControlPair('vfx-boundary', measurement), 'fail');
+});
+
+test('control-pair outcomes preserve target failures as data', () => {
+  assert.equal(evaluateControlPair('camera-registration', {
+    comparedPixels: 100,
+    p99AbsoluteLuminanceDifference: 0.05,
+    declaredP99Bound: 0.1,
+  }), 'pass');
+  assert.equal(evaluateControlPair('bloom', {
+    changedPixelFraction: 0,
+    controlToTreatmentRatio: 1,
+  }), 'fail');
+  assert.equal(evaluateControlPair('translucency', {
+    changedPixelFraction: 0.2,
+    controlToTreatmentRatio: 1.1,
+  }), 'fail');
+  assert.equal(evaluateControlPair('vignette', {
+    cornerAttenuation: 0.15,
+    declaredAttenuationRange: [0.1, 0.25],
+  }), 'pass');
+  assert.equal(evaluateControlPair('shadow', {
+    changedPixelFraction: 0.4,
+    controlToTreatmentRatio: 0.7,
+  }), 'pass');
 });
 
 test('the source digest changes when the demo changes and not otherwise', async (t) => {

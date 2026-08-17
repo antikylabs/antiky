@@ -377,7 +377,7 @@ export async function createCombatRendererWith(
       // a glow reads as light sitting on top of the shadow rather than under it.
       if (captureState.variants.shadows) projection.drawShadows();
       projection.drawEnergy();
-      projection.drawHud();
+      if (captureState.sceneVisibility['scene-geometry']) projection.drawHud();
     };
 
     // Everything solid enough to block the sun. The blended passes are absent on purpose: contact

@@ -200,7 +200,8 @@ export async function createTraversalRenderer(
         if (captureState.variants.shadows) contactShadow.draw();
         spikes.draw(); flags.draw(); coins.draw(); courier.draw();
       }
-      effects.draw(); emissives.draw(); trail.draw(); hud.draw();
+      effects.draw(); emissives.draw(); trail.draw();
+      if (captureState.sceneVisibility['scene-geometry']) hud.draw();
     };
 
     /**

@@ -22,22 +22,30 @@ import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-
 import { isUniformFrame, readFrameStats } from './frame-stats.mjs';
+import {
+  CAPTURE_FIXTURES,
+  CAPTURE_PAIRS,
+  DEMOS,
+} from './demo-capture-config.mjs';
+import {
+  evaluateControlPair,
+  measureControlPair,
+  measurePixelDrift,
+} from './demo-visual-evidence.mjs';
+
+export {
+  evaluateControlPair,
+  measureControlPair,
+  measurePixelDrift,
+} from './demo-visual-evidence.mjs';
+export {
+  CAPTURE_FIXTURES,
+  CAPTURE_PAIRS,
+  DEMOS,
+} from './demo-capture-config.mjs';
 
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
-
-/**
- * Every demo, with the manifest that owns its ports and viewport.
- * `scripts/dev.mjs` carries the same set for its own purposes, and a test asserts the two agree
- * with the manifests actually on disk.
- */
-export const DEMOS = Object.freeze({
-  'antiky-town': 'packages/demos/antiky/antiky-town/antiky-town.antiky',
-  'combat-arena': 'packages/demos/antiky/combat-arena/combat-arena.antiky',
-  'point-light-expo': 'packages/demos/antiky/point-light-expo/point-light-expo.antiky',
-  'traversal-study': 'packages/demos/antiky/traversal-study/traversal-study.antiky',
-});
 
 /**
  * Named rectangles a demo wants measured on top of the whole-frame numbers.
@@ -124,13 +132,27 @@ export function resolveDemo(slug) {
  * device scale factor must be 1. Asking for the configured size at a scale factor of 2 is rejected
  * with CAPTURE_DIMENSIONS_MISMATCH even though the result is inside the stated maximums.
  */
-export function buildCaptureInput({ build, runtime, capabilities, warmUpFrames, idempotencyKey }) {
+export function buildCaptureInput({
+  build,
+  runtime,
+  capabilities,
+  warmUpFrames,
+  idempotencyKey,
+  sessionStatus,
+  fixture: captureFixture,
+}) {
+  const session = sessionStatus?.session;
   return {
     schemaVersion: 3,
     expected: {
       developmentSessionId: build.developmentSessionId,
       acceptedBuildRevision: build.acceptedBuildRevision,
       currentRuntimeInstanceId: runtime.observation?.runtimeInstanceId ?? null,
+      ...(session === undefined ? {} : {
+        sessionId: session.sessionId,
+        completedStepCount: session.clock.completedStepCount,
+        stateDigest: session.lastCompletedStep?.stateDigest ?? null,
+      }),
     },
     runtimePolicy: 'managed-only',
     target: {
@@ -140,7 +162,65 @@ export function buildCaptureInput({ build, runtime, capabilities, warmUpFrames, 
     },
     warmUpFrames,
     idempotencyKey,
+    ...(captureFixture === undefined ? {} : { fixture: captureFixture }),
   };
+}
+
+/** Pause one live game and advance it to one exact fixed-step identity. */
+export async function pauseAndAdvanceToStep({
+  manifest,
+  targetCompletedStepCount,
+  advanceSteps = 1,
+  callTool = runAntikyTool,
+}) {
+  const paused = await callTool('pause_simulation', undefined, manifest);
+  if (paused.error !== undefined) {
+    throw new Error(`pause_simulation failed: ${paused.error.code} — ${paused.error.message}`);
+  }
+  if (paused.result?.code !== 'PAUSED' && paused.result?.code !== 'NO_OP') {
+    throw new Error(`pause_simulation did not pause the session (${paused.result?.code ?? 'missing'}).`);
+  }
+  let status = await callTool('get_session_status', undefined, manifest);
+  if (status.error !== undefined) {
+    throw new Error(`get_session_status failed: ${status.error.code} — ${status.error.message}`);
+  }
+  const initialCount = status.session.clock.completedStepCount;
+  const target = targetCompletedStepCount ?? initialCount + advanceSteps;
+  if (!Number.isSafeInteger(target) || target < initialCount) {
+    throw new Error(`Requested completed step ${target} is behind current step ${initialCount}.`);
+  }
+  while (status.session.clock.completedStepCount < target) {
+    const expectedCompletedStepCount = status.session.clock.completedStepCount;
+    const stepped = await callTool(
+      'step_simulation',
+      { expectedCompletedStepCount },
+      manifest,
+    );
+    if (stepped.error !== undefined) {
+      throw new Error(`step_simulation failed: ${stepped.error.code} — ${stepped.error.message}`);
+    }
+    if (
+      stepped.result?.code !== 'STEPPED'
+      || stepped.session?.clock?.completedStepCount !== expectedCompletedStepCount + 1
+    ) throw new Error('step_simulation did not advance exactly one fixed step.');
+    status = await callTool('get_session_status', undefined, manifest);
+  }
+  if (status.session.mode !== 'paused' || status.session.clock.completedStepCount !== target) {
+    throw new Error('The exact paused capture identity did not settle.');
+  }
+  return status;
+}
+
+/** Stable simulation/build identity shared by captures; publication timestamps may legitimately move. */
+export function comparableCaptureIdentity(observation) {
+  return Object.freeze({
+    developmentSessionId: observation.developmentSessionId,
+    acceptedBuildRevision: observation.acceptedBuildRevision,
+    runtimeInstanceId: observation.runtimeInstanceId,
+    sessionId: observation.session?.sessionId ?? null,
+    completedStepCount: observation.session?.completedStepCount ?? null,
+    stateDigest: observation.session?.stateDigest ?? null,
+  });
 }
 
 /**
@@ -216,11 +296,11 @@ export async function sourceDigest(rawDirectory) {
 }
 
 /** The committed record of what a demo looked like on a given run. */
-export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, source }) {
+export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, source, inspection }) {
   const sidecar = {
     // 4 added `encodedLuma` and `hue` for the §7.1 frame-level value targets, which are written
     // against the delivered bytes rather than linear light.
-    schemaVersion: 4,
+    schemaVersion: 5,
     demo: slug,
     capturedAt,
     warmUpFrames,
@@ -272,6 +352,7 @@ export function buildMetricsSidecar({ slug, stats, capturedAt, warmUpFrames, sou
       standardDeviation: Number(probe.luminanceStandardDeviation.toFixed(6)),
       pixels: probe.pixels,
     }])),
+    ...(inspection === undefined ? {} : { inspection }),
   };
   // Sealed against editing. The budgets are read from this file, so without a seal the way to pass
   // one is to open it and type a bigger number — which was demonstrated, and passed.
@@ -359,7 +440,13 @@ async function waitForGameServer(url, timeoutMilliseconds = 120_000) {
   throw new Error(`The dev server at ${url} did not start within ${timeoutMilliseconds}ms.`);
 }
 
-async function captureWithFence({ manifest, warmUpFrames, idempotencyKey }) {
+async function captureWithFence({
+  manifest,
+  warmUpFrames,
+  idempotencyKey,
+  sessionStatus,
+  fixture: captureFixture,
+}) {
   for (let attempt = 1; attempt <= MAX_FENCE_ATTEMPTS; attempt += 1) {
     const build = await runAntikyTool('get_latest_build', undefined, manifest);
     const runtime = await runAntikyTool('get_runtime_status', undefined, manifest);
@@ -389,6 +476,8 @@ async function captureWithFence({ manifest, warmUpFrames, idempotencyKey }) {
       capabilities,
       warmUpFrames,
       idempotencyKey: `${idempotencyKey}-${attempt}`,
+      sessionStatus,
+      fixture: captureFixture,
     });
     const result = await runAntikyTool('capture_frame', input, manifest);
     if (result.error === undefined) return { result, build };
@@ -401,24 +490,48 @@ async function captureWithFence({ manifest, warmUpFrames, idempotencyKey }) {
   throw new Error('capture_frame did not settle within the retry budget.');
 }
 
-async function shootDemo(slug, { warmUpFrames, runs, keep }) {
+async function shootDemo(slug, { warmUpFrames, runs, keep, evidence }) {
   const { manifest, directory } = resolveDemo(slug);
   const demoDirectory = path.join(repositoryRoot, directory);
-  const server = spawn('npm', ['run', 'antiky', '--', 'dev', '--project', manifest], {
+  const server = spawn(process.execPath, [
+    '--experimental-strip-types',
+    '--experimental-transform-types',
+    'packages/cli/src/bin.ts',
+    'dev',
+    '--project',
+    manifest,
+  ], {
     cwd: repositoryRoot,
-    stdio: 'ignore',
+    stdio: ['ignore', 'ignore', 'pipe'],
+    detached: process.platform !== 'win32',
   });
+  let serverStderr = '';
+  server.stderr.on('data', (chunk) => { serverStderr += chunk; });
 
   try {
     await waitForGameServer('http://127.0.0.1:3010/');
     await delay(2_000);
 
+    // The first capture establishes the managed runtime. Only after it exists can the shared
+    // pause/step authority produce a session identity for deterministic evidence.
+    await captureWithFence({
+      manifest,
+      warmUpFrames: 0,
+      idempotencyKey: `shoot-${slug}-bootstrap`,
+      fixture: CAPTURE_FIXTURES[slug].baseline,
+    });
+    const sessionStatus = await pauseAndAdvanceToStep({ manifest });
+
     let sidecar;
+    const observations = [];
+    const capturePaths = [];
     for (let run = 1; run <= runs; run += 1) {
       const { result, build } = await captureWithFence({
         manifest,
         warmUpFrames,
         idempotencyKey: `shoot-${slug}-run-${run}`,
+        sessionStatus,
+        fixture: CAPTURE_FIXTURES[slug].baseline,
       });
       const pngPath = evidencePngPath({
         demoDirectory,
@@ -432,6 +545,8 @@ async function shootDemo(slug, { warmUpFrames, runs, keep }) {
       if (await isUniformFrame(pngPath)) {
         throw new Error('The captured frame is a single flat colour, which means nothing rendered.');
       }
+      observations.push(result.observation);
+      capturePaths.push(pngPath);
       // Evidence is session-scoped and the store clears it on teardown, so a frame nobody copies
       // out cannot be looked at afterwards. `--keep` writes it somewhere durable, which is what
       // makes "the frames were actually looked at" a thing a person can do rather than a claim.
@@ -448,6 +563,10 @@ async function shootDemo(slug, { warmUpFrames, runs, keep }) {
         capturedAt: result.artifact.createdAt,
         warmUpFrames,
         source: await sourceDigest(directory),
+        inspection: {
+          observation: result.observation,
+          fixture: result.fixture,
+        },
       });
       process.stdout.write(
         `  run ${run}/${runs}: p95 ${sidecar.luminance.p95.toFixed(3)}`
@@ -456,27 +575,136 @@ async function shootDemo(slug, { warmUpFrames, runs, keep }) {
       );
     }
 
+    if (observations.length > 1) {
+      const identity = comparableCaptureIdentity(observations[0]);
+      const canonical = JSON.stringify(identity);
+      if (observations.some((entry) => JSON.stringify(comparableCaptureIdentity(entry)) !== canonical)) {
+        throw new Error('Repeated captures did not preserve one build, runtime, session, step, and digest.');
+      }
+      sidecar = {
+        ...sidecar,
+        inspection: {
+          ...sidecar.inspection,
+          comparableIdentity: identity,
+          repeatability: await measurePixelDrift(capturePaths[0], capturePaths[1]),
+        },
+      };
+      sidecar = { ...sidecar, seal: sealMetrics(sidecar) };
+    }
+
+    if (evidence) {
+      const identity = comparableCaptureIdentity(observations[0]);
+      const criteria = {};
+      for (const declaration of CAPTURE_PAIRS[slug]) {
+        const take = async (role, captureFixture) => {
+          const { result, build } = await captureWithFence({
+            manifest,
+            warmUpFrames: 2,
+            idempotencyKey: `shoot-${slug}-${declaration.name}-${role}`,
+            sessionStatus,
+            fixture: captureFixture,
+          });
+          if (
+            JSON.stringify(comparableCaptureIdentity(result.observation))
+            !== JSON.stringify(identity)
+          ) throw new Error(`${declaration.name} moved the authoritative capture identity.`);
+          const pngPath = evidencePngPath({
+            demoDirectory,
+            developmentSessionId: build.developmentSessionId,
+            evidenceId: result.artifact.evidenceId,
+            artifactId: result.artifact.artifactId,
+          });
+          if (!existsSync(pngPath) || await isUniformFrame(pngPath)) {
+            throw new Error(`${declaration.name} ${role} did not produce a rendered frame.`);
+          }
+          if (keep !== undefined) {
+            await mkdir(keep, { recursive: true });
+            await copyFile(pngPath, path.join(keep, `${slug}-${declaration.name}-${role}.png`));
+          }
+          return { result, pngPath };
+        };
+        const control = await take('control', CAPTURE_FIXTURES[slug].baseline);
+        const treatment = await take('treatment', declaration.treatment);
+        const measurement = await measureControlPair(
+          control.pngPath,
+          treatment.pngPath,
+          declaration,
+        );
+        criteria[declaration.name] = {
+          kind: declaration.kind,
+          region: declaration.roi,
+          outcome: evaluateControlPair(declaration.kind, measurement),
+          measurement,
+          artifacts: {
+            control: {
+              artifactId: control.result.artifact.artifactId,
+              sha256: control.result.artifact.sha256,
+            },
+            treatment: {
+              artifactId: treatment.result.artifact.artifactId,
+              sha256: treatment.result.artifact.sha256,
+            },
+          },
+          fixtures: {
+            control: control.result.fixture,
+            treatment: treatment.result.fixture,
+          },
+        };
+        process.stdout.write(`  ${declaration.name}: measured ${declaration.roi.width}x${declaration.roi.height}\n`);
+      }
+      const renderStats = await runAntikyTool('get_render_stats', undefined, manifest);
+      const framesPerSecond = renderStats.runtime?.framesPerSecond ?? null;
+      sidecar = {
+        ...sidecar,
+        inspection: {
+          ...sidecar.inspection,
+          criteria,
+          frameTime: framesPerSecond === null || framesPerSecond <= 0 ? {
+            supported: false,
+            limitation: 'The Framework runtime did not publish a positive frame-rate sample.',
+          } : {
+            supported: 'upper-bound-only',
+            framesPerSecond,
+            frameTimeUpperBoundMilliseconds: Number((1000 / framesPerSecond).toFixed(6)),
+            limitation: 'The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval.',
+          },
+        },
+      };
+      sidecar = { ...sidecar, seal: sealMetrics(sidecar) };
+    }
+
     const sidecarPath = path.join(demoDirectory, 'visual-metrics.json');
     await mkdir(path.dirname(sidecarPath), { recursive: true });
     await writeFile(sidecarPath, `${JSON.stringify(sidecar, null, 2)}\n`);
     return { slug, ok: true, sidecarPath };
   } catch (cause) {
-    return { slug, ok: false, reason: cause.message };
+    const diagnostic = serverStderr.trim().slice(-600);
+    return {
+      slug,
+      ok: false,
+      reason: `${cause.message}${diagnostic === '' ? '' : ` Server: ${diagnostic}`}`,
+    };
   } finally {
-    server.kill('SIGTERM');
+    try {
+      if (server.pid && process.platform !== 'win32') process.kill(-server.pid, 'SIGINT');
+      else server.kill('SIGINT');
+    } catch (cause) {
+      if (cause.code !== 'ESRCH') throw cause;
+    }
     // The dev server owns 3010 and 3011. The next demo cannot bind them until it exits.
     await delay(3_000);
   }
 }
 
 function parseArguments(argv) {
-  const options = { demo: undefined, runs: 1, warmUpFrames: 60, keep: undefined };
+  const options = { demo: undefined, runs: 2, warmUpFrames: 60, keep: undefined, evidence: false };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === '--demo') options.demo = argv[index += 1];
     else if (argument === '--runs') options.runs = Number(argv[index += 1]);
     else if (argument === '--warm-up') options.warmUpFrames = Number(argv[index += 1]);
     else if (argument === '--keep') options.keep = argv[index += 1];
+    else if (argument === '--evidence') options.evidence = true;
     else throw new Error(`Unknown argument "${argument}".`);
   }
   if (!Number.isSafeInteger(options.runs) || options.runs < 1) {
