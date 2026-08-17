@@ -6,7 +6,7 @@ the shipped quality well short of the AAA-stylised targets they were commissione
 platformer).
 
 **Scope update (2026-08-16): the packaged demo catalog is Antiky-only.** [Goal
-19](goals/execute-goal-19.md) deletes the standalone `packages/demos/brometal` and
+19](goals/_completed/execute-goal-19.md) deleted the standalone `packages/demos/brometal` and
 `packages/demos/threejs` families and removes them from the website, scripts, tests, lockfile, and
 user documentation. Antiky demos may remain hybrid Antiky/BroMetal projects while framework
 capabilities grow. Historical audit sections about standalone demos remain evidence, not backlog.
@@ -16,12 +16,12 @@ written while it was excluded, so they say otherwise — the goal files in `goal
 on scope. antiky-town gets the same treatment as the other demos, plus a facelift of its foliage
 (grass and trees) and water effects, which the owner has called out specifically.
 
-**Phase update (2026-08-16): the original remediation work, Goal 99 register, Goal 16, and Goal 18
-are complete.** One bounded implementation follow-on remains:
+**Phase update (2026-08-17): all implementation goals are complete.** The objective is ready to
+archive. Its last implementation follow-on was:
 
-- [Goal 19](goals/execute-goal-19.md) — remove standalone demos, then make Antiky capture and
-  inspection deterministic and live. Its [Goal 16](goals/_completed/summary-goal-16.md) dependency
-  update and [Goal 18](goals/_completed/summary-goal-18.md) completed-step observer are complete.
+- [Goal 19](goals/_completed/execute-goal-19.md) — removed standalone demos, then made Antiky
+  capture and inspection deterministic and live. Its [summary](goals/_completed/summary-goal-19.md)
+  records the measured visual debt carried out of this objective.
 
 [Goal 17 and its ADR evidence](../_deferred/demo-refine-goal-17-adrs/README.md) are deferred as
 acceptable architecture debt. They do not block the remaining implementation or objective closeout.
@@ -49,8 +49,8 @@ register ID. Do not use the older audit tables as a current backlog.
 
 ## Before you start: the architecture record and the code disagree
 
-Seven accepted ADRs (framework/0006, 0008, 0009, 0016, 0019, 0020 and studio/0007) are load-bearing
-on a `RenderDriver` component that **does not exist in the codebase**. And framework/0006:25 ("Only
+Seven accepted ADRs (framework/0006, 0008, 0009, 0016, 0019, 0020 and studio/0007) depend on a
+`RenderDriver` component that **does not exist in the codebase**. And framework/0006:25 ("Only
 an Antiky-owned `RenderDriver` will use BroMetal directly") sits against the *later accepted*
 studio/0007:41-42, which says the game module "initializes and resizes the renderer" and "disposes
 its renderer resources" — written across all four renderer choices, including Antiky Framework with

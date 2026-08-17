@@ -23,7 +23,7 @@ Goal 99 was replaced as a working register by four bounded contracts:
    architecture debt with its source audits and restart procedure intact.
 3. [Goal 18](execute-goal-18.md) adds the one missing Framework seam: an observation after every
    completed fixed step.
-4. [Goal 19](../execute-goal-19.md) repairs demo discovery and the live material-test surface, then
+4. [Goal 19](execute-goal-19.md) repairs demo discovery and the live material-test surface, then
    adds fixed-step, camera, and scene-control capture evidence.
 
 The owner's instruction to produce these four contracts changes Goal 99's old sequencing premise.

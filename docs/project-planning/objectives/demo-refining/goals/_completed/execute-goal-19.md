@@ -2,11 +2,11 @@
 
 ## Prerequisites
 
-- [Goal 99](_completed/execute-goal-99.md) is complete. This goal delivers A9, M13, M15, M16, U5,
-  and G4 from its [summary](_completed/summary-goal-99.md).
-- [Goal 18](_completed/execute-goal-18.md) is complete. This goal needs one observation for every
+- [Goal 99](execute-goal-99.md) is complete. This goal delivers A9, M13, M15, M16, U5,
+  and G4 from its [summary](summary-goal-99.md).
+- [Goal 18](execute-goal-18.md) is complete. This goal needs one observation for every
   completed fixed step.
-- [Goal 16](_completed/execute-goal-16.md) is complete. Its BroMetal, dependency-lock, demo-package,
+- [Goal 16](execute-goal-16.md) is complete. Its BroMetal, dependency-lock, demo-package,
   capture, and committed-sidecar file lock is free.
 - Reuse the existing CLI development authority, managed capture runtime, evidence store, pause/step
   actions, and capture identities. Do not create a second browser or evidence service.
@@ -28,9 +28,9 @@ root, so `demos:verify` discovers no demos and the standalone material suite pas
 seven tests.
 
 This goal delivers the capture and test-surface routes in
-[`execute-goal-99.md:70-80`](_completed/execute-goal-99.md), the missing probes at
-[`execute-goal-99.md:75-76`](_completed/execute-goal-99.md), and the capture protocols from
-[`execute-goal-08.md:290-349`](_completed/execute-goal-08.md).
+[`execute-goal-99.md:70-80`](execute-goal-99.md), the missing probes at
+[`execute-goal-99.md:75-76`](execute-goal-99.md), and the capture protocols from
+[`execute-goal-08.md:290-349`](execute-goal-08.md).
 
 ## Required outcome
 

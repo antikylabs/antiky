@@ -68,13 +68,13 @@ together.
 | **16** | [Update BroMetal and verify every local patch](_completed/execute-goal-16.md) | **Done** `a4aa2d5` — [summary](_completed/summary-goal-16.md); upstream submissions remain deferred | 15, 99 | 18 |
 | **17** | [Reconcile the architecture record and submit owner-approved decisions](../../_deferred/demo-refine-goal-17-adrs/execute-goal-17.md) | **Deferred as acceptable debt** — [restart summary](../../_deferred/demo-refine-goal-17-adrs/README.md) | 99 | — |
 | **18** | [Expose every completed simulation step to observers](_completed/execute-goal-18.md) | **Done** `d4f790e` — [summary](_completed/summary-goal-18.md) | 99 | 16 |
-| **19** | [Make Antiky demo inspection deterministic and keep its assertions live](execute-goal-19.md) | Ready — delete standalone BroMetal/Three.js demos, then work only on Antiky demos | 16, 18, 99 | — |
+| **19** | [Make Antiky demo inspection deterministic and keep its assertions live](_completed/execute-goal-19.md) | **Done** `3cb24a3` — [summary](_completed/summary-goal-19.md); remaining visual misses are measured deferred debt | 16, 18, 99 | — |
 | **99** | [Close the revisit register and route the remaining work](_completed/execute-goal-99.md) | **Done** — [summary](_completed/summary-goal-99.md); routed all current work into Goals 16–19 | 00–15 | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up:** Goal 19 is ready. Goals 16 and 18 are complete, and the BroMetal/demo sidecar file lock
-is free. Goal 17 is deferred and does not block this sequence. Goal 99 is complete; its summary is
-the durable disposition of the historical register.
+**All implementation goals are complete.** Goal 17 is preserved separately as accepted deferred
+architecture debt. Goal 19 leaves only measured Antiky visual-target debt in its committed sidecars,
+so this objective is ready to archive.
 
 **Goal 09 changed what is known about `antiky-town`.** Its inventory
 ([`13-ANTIKY-TOWN-COMPLEXITY.md`](../13-ANTIKY-TOWN-COMPLEXITY.md)) is the first audit that demo has
