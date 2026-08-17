@@ -15,6 +15,11 @@ const selectedAssets = Object.freeze([
   'grenade-a.glb',
 ]);
 
+const materialMapSources = Object.freeze([
+  new URL('../assets/poly-haven/metal-plate/metal-plate_diff_1k.jpg', import.meta.url),
+  new URL('../assets/poly-haven/metal-plate/metal-plate_rough_1k.jpg', import.meta.url),
+]);
+
 const sourceUrls = Object.freeze([
   new URL('../assets/kenney/modular-space-kit/room-small.glb', import.meta.url),
   new URL('../assets/kenney/modular-space-kit/template-floor-layer.glb', import.meta.url),
@@ -166,4 +171,15 @@ test('production build ships every selected GLB as a non-inlined asset', async (
     );
   }
   assert.ok(!shipped.some((fileName) => fileName.startsWith('craft_') && fileName.endsWith('.glb')));
+});
+
+test('production build resolves every plated material map to a bundled URL', async () => {
+  const bundle = await readFile(new URL('../dist/antiky.game.js', import.meta.url), 'utf8');
+  for (const sourceUrl of materialMapSources) {
+    const encoded = (await readFile(sourceUrl)).toString('base64');
+    assert.ok(
+      bundle.includes(`data:image/jpeg;base64,${encoded}`),
+      `${fileURLToPath(sourceUrl)} was not resolved into the production bundle`,
+    );
+  }
 });

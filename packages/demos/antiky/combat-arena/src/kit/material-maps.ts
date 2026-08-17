@@ -1,7 +1,11 @@
 import { loadTexture, type BroMetalTexture, type Renderer } from 'brometal';
 
-const map = (name: string): string => new URL(
-  `../assets/poly-haven/metal-plate/metal-plate_${name}_1k.jpg`,
+const DIFFUSE_MAP_URL = new URL(
+  '../../assets/poly-haven/metal-plate/metal-plate_diff_1k.jpg',
+  import.meta.url,
+).href;
+const ROUGHNESS_MAP_URL = new URL(
+  '../../assets/poly-haven/metal-plate/metal-plate_rough_1k.jpg',
   import.meta.url,
 ).href;
 
@@ -21,8 +25,8 @@ export async function loadKitMaterialMaps(renderer: Renderer): Promise<Readonly<
 }>> {
   const options = { wrap: 'repeat', filter: 'smooth', anisotropy: 8, flipY: false } as const;
   const [diffuse, roughness] = await Promise.all([
-    loadTexture(renderer, map('diff'), options),
-    loadTexture(renderer, map('rough'), options),
+    loadTexture(renderer, DIFFUSE_MAP_URL, options),
+    loadTexture(renderer, ROUGHNESS_MAP_URL, options),
   ]);
   return Object.freeze({ diffuse, roughness });
 }
