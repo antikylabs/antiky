@@ -14,6 +14,10 @@ import { TRAVERSAL_CATALOG_DRAW_CALLS } from '../src/render-plan.ts';
 import { createDeterministicSelectionZip } from '../scripts/build-quaternius-selection.mjs';
 
 const root = new URL('../', import.meta.url);
+const materialMapSources = Object.freeze([
+  new URL('assets/poly-haven/plywood/plywood_diff_1k.jpg', root),
+  new URL('assets/poly-haven/plywood/plywood_rough_1k.jpg', root),
+]);
 
 test('every catalog GLB parses with indexed geometry and an embedded image', async () => {
   const manifest = JSON.parse(await readFile(new URL('assets/antiky-assets.json', root), 'utf8'));
@@ -136,5 +140,16 @@ test('the production bundle ships every referenced GLB as a non-inlined asset', 
     const bundledName = shipped.find((name) => name.startsWith(`${stem}-`) && name.endsWith('.glb'));
     assert.ok(bundledName, `${asset.fileName} was not emitted to dist/assets`);
     assert.match(bundle, new RegExp(bundledName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+});
+
+test('the production bundle resolves every plywood material map to a bundled URL', async () => {
+  const bundle = await readFile(new URL('dist/antiky.game.js', root), 'utf8');
+  for (const sourceUrl of materialMapSources) {
+    const encoded = (await readFile(sourceUrl)).toString('base64');
+    assert.ok(
+      bundle.includes(`data:image/jpeg;base64,${encoded}`),
+      `${sourceUrl.href} was not resolved into the production bundle`,
+    );
   }
 });
