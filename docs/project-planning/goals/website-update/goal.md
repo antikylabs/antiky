@@ -1,6 +1,6 @@
 # Website update.
 
-AC:
+We will be working on the website to prepare it for launch! Below are the acceptance criteria:
 
 1. The website is updated with the latest content.
 2. Framework page is updated with framework direction/content
