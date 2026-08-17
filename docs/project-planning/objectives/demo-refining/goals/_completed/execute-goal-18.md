@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- [Goal 99](_completed/execute-goal-99.md) is complete. This goal delivers A4 from its
-  [summary](_completed/summary-goal-99.md).
+- [Goal 99](execute-goal-99.md) is complete. This goal delivers A4 from its
+  [summary](summary-goal-99.md).
 - Preserve the fixed-step, input, fault, and authority rules in Framework ADRs 0008, 0013, 0017,
   and 0020.
 - This goal can run beside Goals 16 and 17. Goal 19 waits for this goal because deterministic
@@ -21,8 +21,8 @@ Add one bounded Framework observation point after each successful fixed simulati
 last step. A capture or diagnostic consumer therefore cannot correlate evidence with each state the
 simulation actually completed.
 
-This goal delivers A4 from [`execute-goal-99.md:69`](_completed/execute-goal-99.md) and applies the
-inspection requirement in [`07-TESTING-WITH-ANTIKY-MCP.md:137-152`](../07-TESTING-WITH-ANTIKY-MCP.md).
+This goal delivers A4 from [`execute-goal-99.md:69`](execute-goal-99.md) and applies the inspection
+requirement in [`07-TESTING-WITH-ANTIKY-MCP.md:137-152`](../../07-TESTING-WITH-ANTIKY-MCP.md).
 
 ## Required outcome
 

@@ -2,13 +2,13 @@
 
 ## Prerequisites
 
-- [Goal 99](_completed/execute-goal-99.md) is complete. This goal needs the routed BroMetal items
+- [Goal 99](execute-goal-99.md) is complete. This goal needs the routed BroMetal items
   A11, U3, N3, and N4 from its
-  [summary](_completed/summary-goal-99.md).
-- [Goal 15](_completed/execute-goal-15.md) is complete. Keep its texture-array and mip-clamp
+  [summary](summary-goal-99.md).
+- [Goal 15](execute-goal-15.md) is complete. Keep its texture-array and mip-clamp
   behavior and its real-GPU evidence.
 - The readback contribution follows
-  [`brometal-request/07-UPSTREAM-DELIVERY-AND-DECISIONS.md`](../../brometal-request/07-UPSTREAM-DELIVERY-AND-DECISIONS.md).
+  [`brometal-request/07-UPSTREAM-DELIVERY-AND-DECISIONS.md`](../../../brometal-request/07-UPSTREAM-DELIVERY-AND-DECISIONS.md).
 - Run this goal before Goal 19. Both goals can invalidate the committed demo sidecars and must not
   recapture or commit them concurrently.
 
@@ -25,8 +25,8 @@ patch lifecycle.
 
 Bring Antiky's whole BroMetal patch set onto the current published release, prove which existing
 patches are still necessary, and add the two missing local patches. This goal delivers A11 and U3
-from [`execute-goal-99.md:71-80`](_completed/execute-goal-99.md) and the local readback prerequisite from
-[`brometal-request/07-UPSTREAM-DELIVERY-AND-DECISIONS.md:27-47`](../../brometal-request/07-UPSTREAM-DELIVERY-AND-DECISIONS.md).
+from [`execute-goal-99.md:71-80`](execute-goal-99.md) and the local readback prerequisite from
+[`brometal-request/07-UPSTREAM-DELIVERY-AND-DECISIONS.md:27-47`](../../../brometal-request/07-UPSTREAM-DELIVERY-AND-DECISIONS.md).
 
 The verified 2026-08-16 baseline is BroMetal 0.18.0 on npm while Antiky pins 0.17.2. Pull requests
 3 through 7 are open and pull request 2 is closed without merge. BroMetal 0.18.0 still lacks all

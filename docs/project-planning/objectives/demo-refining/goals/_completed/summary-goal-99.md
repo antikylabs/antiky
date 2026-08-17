@@ -17,11 +17,11 @@ or fountain effect during this closeout.
 
 Goal 99 was replaced as a working register by four bounded contracts:
 
-1. [Goal 16](../execute-goal-16.md) owns the BroMetal update, patch necessity checks, two missing
+1. [Goal 16](execute-goal-16.md) owns the BroMetal update, patch necessity checks, two missing
    local patches, and retirement evidence. Upstream submission is deferred.
 2. [Goal 17](../../../_deferred/demo-refine-goal-17-adrs/README.md) is deferred as acceptable
    architecture debt with its source audits and restart procedure intact.
-3. [Goal 18](../execute-goal-18.md) adds the one missing Framework seam: an observation after every
+3. [Goal 18](execute-goal-18.md) adds the one missing Framework seam: an observation after every
    completed fixed step.
 4. [Goal 19](../execute-goal-19.md) repairs demo discovery and the live material-test surface, then
    adds fixed-step, camera, and scene-control capture evidence.
@@ -131,11 +131,10 @@ to Goal 19 rather than described as M12 or U5.
 
 ## What this unblocks
 
-- Goals 16 and 18 can start independently after their stated owner/input checks.
-- Goal 19 can start after Goal 18 and after the BroMetal/demo sidecar file lock is free.
+- Goals 16 and 18 are complete.
+- Goal 19 can start; the completed-step seam exists and the BroMetal/demo sidecar file lock is free.
 - The demo-refining objective no longer needs Goal 99 as an unbounded live backlog.
 
 ## What remains blocked
 
-None by an owner decision. Goal 19 still waits for its stated Goal 18 dependency and shared-file
-locks.
+None. Goal 19's Goal 16 and Goal 18 prerequisites are complete.

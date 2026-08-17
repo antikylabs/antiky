@@ -1,17 +1,15 @@
 # Summary — goal 18: expose every completed simulation step to observers
 
-**Status:** implementation and affected suites complete; the repository completion gate is blocked
-by the independent Studio Tauri native-cache failure described below.
+**Status:** complete
 
-**Completed:** not yet
+**Completed:** 2026-08-16
 **Commits:** `4743a35` (shared Goal 16 and Goal 18 delivery commit), `733eeae`, `c4375c6`,
-`d4f790e`
+`d4f790e`, `97574ab` (shared planning and capture delivery)
 **Goal file:** [`execute-goal-18.md`](execute-goal-18.md)
 
 ## Action needed from the owner
 
-Nothing in this summary needs you. The observer is an optional Framework callback on the existing
-session authority. It adds no product, art-direction, publication, or architecture decision.
+None.
 
 ## What was delivered
 
@@ -64,7 +62,7 @@ array properties, and normal prototypes.
 
 The shared Git index also defeated the intended focused commit boundary. Goal 18 files were staged
 while Goal 16 committed its explicit path set, so Git included both staged sets in `4743a35`. The
-commit contains the complete Goal 18 implementation and the Goal 16 dependency update. Neither
+commit contains the initial Goal 18 implementation and the Goal 16 dependency update. Neither
 agent rewrote the shared branch because that would risk the other goal's delivered work.
 
 ## Traps worth knowing
@@ -84,6 +82,9 @@ agent rewrote the shared branch because that would risk the other goal's deliver
 - The anti-slop structure checker reported the new test as uncollected, but the Framework package
   command executed it by name and reported all 18 cases. The checker selected the wrong test oracle
   for this npm workspace; its finding is contradicted by the runner output.
+- The first repository gate found 43.3 GiB of stale generated Cargo state carrying an old checkout
+  path. A scoped cleanup removed only rebuildable `packages/studio/tauri/target` artifacts. The
+  rebuilt Studio native gate and final repository suite pass.
 
 ## Evidence
 
@@ -103,8 +104,7 @@ agent rewrote the shared branch because that would risk the other goal's deliver
 | CLI adapter audit | `projectDevelopmentSessionStatus` parses the shared Framework status; session controls and capture use the existing typed identity and fences. No adapter or MCP tool added. |
 | Documentation audit | How-to guide remains task-oriented and now states the accepted captured-input graph. Public names and fault behavior match source. Anti-slop prose check reports 0 findings. |
 | Anti-slop code and structure review | Manual code/test review found no disabled or tautological tests, placeholders, swallowed failures, or unexplained suppressions in the correction. The repository has no installed Oxlint anti-slop plugin. The structure checker selected a wrong monorepo test oracle and reported executed tests as uncollected; Framework 172/172 and CLI 143/143 contradict that finding. |
-| Repository `npm test` under repository Node 22 | Root 106/106, camera 10/10, Framework 170/170, CLI, and all other JavaScript, web, and demo workspaces pass. The overall command exits 1 only after Studio Tauri's 25/25 JavaScript tests, when `cargo test` reads a stale generated permissions path under the old `emberwyrd/antikySite` checkout. No Goal 18 behavior fails. |
-| Repository typecheck | All TypeScript workspaces pass. The independent Studio Tauri native check still stops on its stale generated permissions path under the old `emberwyrd/antikySite` checkout. |
+| Repository `npm test` under mise Node 22.14.0 | Exits 0. Root 106/106, camera 10/10, Framework 172/172, CLI 143/143, every demo workspace, website, Studio app 58/58, Studio Tauri JavaScript 25/25, Rust unit 11/11, and native contract 7/7 pass. |
 
 ## What this unblocks
 
@@ -113,10 +113,7 @@ agent rewrote the shared branch because that would risk the other goal's deliver
 - A capture adapter can correlate the current Framework status with the exact immutable step record
   before another catch-up step begins.
 
-## What remains blocked
+## Deferred debt
 
-- Goal 18 cannot satisfy the repository-exit-zero completion clause until the independent Studio
-  Tauri generated-permissions cache stops referring to the old `emberwyrd/antikySite` checkout.
-  Fixing Studio's native build cache is outside Goal 18's owned Framework, CLI protocol, and
-  documentation files.
-- Goal 19 still waits for Goal 16's BroMetal/demo file lock in addition to this Goal 18 completion.
+Nothing blocks Goal 18. It intentionally adds no retained history, replay, subscription, durable
+delivery, or presentation coupling. Goal 19 now has the completed observation prerequisite.

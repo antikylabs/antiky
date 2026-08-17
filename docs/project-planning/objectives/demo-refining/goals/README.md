@@ -65,17 +65,16 @@ together.
 | **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything |
 | **14** | [Give Antiky a way to build and check texture atlases](_completed/execute-goal-14.md) | **Done** `bf2bd41` — [summary](_completed/summary-goal-14.md) | 04 | everything except 15 |
 | **15** | [Give BroMetal the texture capabilities WebGPU already has](_completed/execute-goal-15.md) | **Done** `01d856c` — [summary](_completed/summary-goal-15.md) | 14 | everything except 14 |
-| **16** | [Update BroMetal and verify every local patch](execute-goal-16.md) | Ready — upstream submissions are explicitly deferred | 15, 99 | 18 |
+| **16** | [Update BroMetal and verify every local patch](_completed/execute-goal-16.md) | **Done** `a4aa2d5` — [summary](_completed/summary-goal-16.md); upstream submissions remain deferred | 15, 99 | 18 |
 | **17** | [Reconcile the architecture record and submit owner-approved decisions](../../_deferred/demo-refine-goal-17-adrs/execute-goal-17.md) | **Deferred as acceptable debt** — [restart summary](../../_deferred/demo-refine-goal-17-adrs/README.md) | 99 | — |
-| **18** | [Expose every completed simulation step to observers](execute-goal-18.md) | Ready | 99 | 16 |
-| **19** | [Make Antiky demo inspection deterministic and keep its assertions live](execute-goal-19.md) | Owner scope resolved: delete standalone BroMetal/Three.js demos; waits for 18 and the BroMetal/sidecar file lock | 16, 18, 99 | — |
+| **18** | [Expose every completed simulation step to observers](_completed/execute-goal-18.md) | **Done** `d4f790e` — [summary](_completed/summary-goal-18.md) | 99 | 16 |
+| **19** | [Make Antiky demo inspection deterministic and keep its assertions live](execute-goal-19.md) | Ready — delete standalone BroMetal/Three.js demos, then work only on Antiky demos | 16, 18, 99 | — |
 | **99** | [Close the revisit register and route the remaining work](_completed/execute-goal-99.md) | **Done** — [summary](_completed/summary-goal-99.md); routed all current work into Goals 16–19 | 00–15 | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up:** Goals 16 and 18 can start independently after their stated input checks. Goal 19
-waits for Goal 18 and must not race Goal 16 on BroMetal, demo packages, or committed sidecars.
-Goal 17 is deferred and does not block this sequence. Goal 99 is complete; its summary is the
-durable disposition of the historical register.
+**Next up:** Goal 19 is ready. Goals 16 and 18 are complete, and the BroMetal/demo sidecar file lock
+is free. Goal 17 is deferred and does not block this sequence. Goal 99 is complete; its summary is
+the durable disposition of the historical register.
 
 **Goal 09 changed what is known about `antiky-town`.** Its inventory
 ([`13-ANTIKY-TOWN-COMPLEXITY.md`](../13-ANTIKY-TOWN-COMPLEXITY.md)) is the first audit that demo has

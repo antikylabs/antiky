@@ -5,20 +5,14 @@
 **Completed:** 2026-08-16
 **Commits:** `4c649c5`, `4743a35` (shared Goal 16 and Goal 18 delivery), `b089f3f`, `6e274f1`,
 `1521875`, `398d204`, `0857a9e`, `2d2ecf2`, `58ea299`, `b6eb2f1`, `97574ab` (shared
-planning and capture delivery)
+planning and capture delivery), `a4aa2d5`
 **Goal file:** [`execute-goal-16.md`](execute-goal-16.md)
 **Patch ledger:**
-[`goal-16-brometal-patch-ledger.md`](../upstream/goal-16-brometal-patch-ledger.md)
+[`goal-16-brometal-patch-ledger.md`](../../upstream/goal-16-brometal-patch-ledger.md)
 
 ## Action needed from the owner
 
-Nothing is needed now. You deferred upstream publication, and this goal made no external change.
-
-Four retained modules have no pull request: `sampler-lod-clamp`, `texture-array-sampler`,
-`webgpu-perspective-depth`, and `target-readback`. ADR 0021 still requires one focused upstream
-contribution per local patch. Goal 99 keeps submission dormant as U1 and keeps the unmerged pull
-request 2 convenience triage dormant as U2. Resume those only when you choose to reopen BroMetal
-upstream work.
+None.
 
 ## What was delivered
 
@@ -55,8 +49,12 @@ patches now have independent anchors, and the test hashes every file under `dist
 The first attempt to commit the 0.18.0 manifest and lockfile update collided with Goal 18's staged
 Framework work in the shared Git index. Commit `4743a35` therefore contains both goals even though
 only Goal 16 paths were added in that command. Both owners audited the commit and preserved it
-instead of rewriting shared history. Later commits inspect `git diff --cached --name-only` before
-committing.
+instead of rewriting shared history.
+
+A later evidence commit repeated the shared-index problem. Commit `97574ab` includes the four
+sidecars and Goal 16 documents together with already-staged planning work, including the owner's
+Goal 17 deferral. It lost no work, but it is not a focused Goal 16 commit. The final evidence commit
+`a4aa2d5` followed a cached-path audit and contains only this summary and the patch ledger.
 
 The new GPU test was initially runnable only by its direct path. The repository structure audit
 correctly exposed that collection gap. Commit `2d2ecf2` adds the declared GPU tier; the follow-up
@@ -80,7 +78,7 @@ repository-policy failure proved the command allowlist also had to recognize it.
   production-bundle tests now prove both material maps resolve in each demo. Do not widen the
   managed-runtime timeout for this failure mode.
 - The anti-slop structure checker no longer reports either GPU test as uncollected. Its whole-repo
-  run still reports 154 other findings because its selected root-package oracle does not understand
+  run still reports 151 other findings because its selected root-package oracle does not understand
   the workspace test commands. Those findings were not presented as a clean result or changed in
   this goal.
 
@@ -96,7 +94,7 @@ repository-policy failure proved the command allowlist also had to recognize it.
 | Clean install | `node_modules` removed, `npm install` applied all nine modules, a second `npm run postinstall` changed no bytes, and `npm ls brometal --all` reports one deduplicated 0.18.0 copy. |
 | Real GPU tier | `mise exec node@22.14.0 -- npm run test:gpu` — 4/4 pass: readback, array binding, distinct layer selection, and coarse per-layer mip separation. |
 | Studio native cache repair | JavaScript 25/25, Rust unit 11/11, and native contract 7/7 pass after the scoped generated-target cleanup. |
-| Final repository gate | `mise exec node@22.14.0 -- npm test` exits 0. Root 106/106, camera 10/10, CLI 144/144, Framework 172/172, website and every workspace pass; Studio app is 58/58 and the native counts are 25/25, 11/11, and 7/7. |
+| Final repository gate | `mise exec node@22.14.0 -- npm test` exits 0. Root 106/106, camera 10/10, CLI 143/143, Framework 172/172, website and every workspace pass; Studio app is 58/58 and the native counts are 25/25, 11/11, and 7/7. |
 | Demo verification | `mise exec node@22.14.0 -- npm run demos:verify` reports 32/33. Every sidecar budget passes. The sole failure is Goal 99 M12: `shader/graph.mjs` resolves the demos root one directory too shallow and discovers no demos. Goal 19 owns that pre-existing infrastructure defect. |
 
 ## Capture evidence
@@ -125,4 +123,8 @@ scope.
 ## Deferred debt
 
 Nothing blocks Goal 16. U1 and U2 remain dormant by owner instruction. They do not block this local
-dependency update, but ADR 0021's upstream lifecycle remains incomplete.
+dependency update, but ADR 0021's upstream lifecycle remains incomplete. Reopen this debt when the
+owner explicitly resumes upstream submission or when npm publishes a new BroMetal release that can
+retire a patch. The durable state and retirement procedure are in the
+[patch ledger](../../upstream/goal-16-brometal-patch-ledger.md); Goal 99 keeps the disposition in
+[U1 and U2](summary-goal-99.md).

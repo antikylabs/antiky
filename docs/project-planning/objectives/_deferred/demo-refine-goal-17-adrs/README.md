@@ -100,7 +100,7 @@ refreshing it. Start a current architecture objective and use this packet as his
 
 ## Effect on demo-refining
 
-Goal 17 is removed from the active demo-refining sequence. Goals 16 and 18 can proceed independently,
-and Goal 19 still depends only on its existing Goal 16 file lock and Goal 18 observation seam.
-Architecture reconciliation is not a completion condition for those goals or for closing the
-demo-refining objective.
+Goal 17 is removed from the active demo-refining sequence. Goals 16 and 18 are complete, so Goal
+19's BroMetal file lock is free and its completed-step observation prerequisite exists. Architecture
+reconciliation is not a completion condition for those goals or for closing the demo-refining
+objective.

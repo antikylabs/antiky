@@ -16,14 +16,12 @@ written while it was excluded, so they say otherwise — the goal files in `goal
 on scope. antiky-town gets the same treatment as the other demos, plus a facelift of its foliage
 (grass and trees) and water effects, which the owner has called out specifically.
 
-**Phase update (2026-08-16): the original remediation work and Goal 99 register are complete.**
-Three bounded implementation follow-ons remain:
+**Phase update (2026-08-16): the original remediation work, Goal 99 register, Goal 16, and Goal 18
+are complete.** One bounded implementation follow-on remains:
 
-- [Goal 16](goals/execute-goal-16.md) — BroMetal update, patch necessity checks, and two missing
-  local patches.
-- [Goal 18](goals/execute-goal-18.md) — one observation for every completed fixed step.
 - [Goal 19](goals/execute-goal-19.md) — remove standalone demos, then make Antiky capture and
-  inspection deterministic and live.
+  inspection deterministic and live. Its [Goal 16](goals/_completed/summary-goal-16.md) dependency
+  update and [Goal 18](goals/_completed/summary-goal-18.md) completed-step observer are complete.
 
 [Goal 17 and its ADR evidence](../_deferred/demo-refine-goal-17-adrs/README.md) are deferred as
 acceptable architecture debt. They do not block the remaining implementation or objective closeout.
