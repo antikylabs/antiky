@@ -1,8 +1,8 @@
 # Executable requirement contracts
 
 **Recorded:** 2026-08-11
-**Status:** too early. Revisit once the demo-refining goals have landed and the visual harness has
-been used in anger for a while.
+**Status:** deferred. The demo-refining objective is complete, but this generalization still needs
+evidence from another real consumer.
 **Origin:** owner observation while reviewing the goal 01 visual budget tests.
 
 ## The idea
@@ -38,8 +38,9 @@ structure") bound to an assertion that fails until it is true.
 
 - **The hand-written version has to prove itself.** The four `visual-budget.test.mjs` files and the
   five pipeline invariants are the manual precedent. If they turn out to measure the wrong things,
-  a system for generating more of them faster makes the problem worse, not better. The critique in
-  `../scratch/demo-refining/12-VISUAL-METRICS-CRITIQUE.md` is the first check on that.
+  a system for generating more of them faster makes the problem worse, not better. The
+  [demo-refining archive](../objectives/_archives/demo-refining-summary.md) records the first
+  instrument correction and the accepted measurement limits.
 - **Thresholds have to be owner-owned in practice, not just in policy.** The whole value is that an
   agent cannot loosen a contract to pass it. That rule currently exists as prose in a dispatch
   guide. It would need to be structural.
@@ -74,9 +75,7 @@ have needed a migration. The thresholds are still unvalidated by the owner.
 **Trigger to move them.** Any one of:
 
 - a second consumer outside this repository — another Antiky project, or Studio;
-- an agent needing them through MCP rather than as a script, which is `get_motion_report`, ranked
-  **last** in `../scratch/demo-refining/11-MOTION-INSPECTION-RESEARCH.md` and explicitly "only
-  after P1–P5";
+- an agent needing them through MCP rather than as a script;
 - the visual budgets surviving a full render slice (goals 06 and 07) without their thresholds
   needing another rewrite.
 
@@ -110,7 +109,7 @@ wrong and this file should be deleted with that finding recorded.
 
 ## Related
 
-- `../scratch/demo-refining/goals/_completed/summary-goal-01.md` — the hand-written precedent
-- `../scratch/demo-refining/06-WORK-PACKETS.md` — bounded acceptance criteria as a working practice
+- [Demo-refining archive](../objectives/_archives/demo-refining-summary.md) — the hand-written
+  precedent and bounded acceptance practice
 - `../scratch/skill-research/IMPLEMENTATION-PLAN.md` — the self-verification loop this would harden
 - `../../adr/framework/0003-agent-native_H.md` — one engine API for humans and agents

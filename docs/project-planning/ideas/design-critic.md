@@ -33,7 +33,7 @@ by the time a budget exists, the decision it measures has already been made.
 
 ## Why the existing critics do not cover it
 
-The critic launched against the visual metrics (`../scratch/demo-refining/12-VISUAL-METRICS-CRITIQUE.md`)
+The critic recorded in the [demo-refining archive](../objectives/_archives/demo-refining-summary.md)
 judged **whether a measurement measured what it claimed**. It caught a real error —
 `luminanceSpread` tracked peak brightness rather than contrast. That is a critic for *instruments*.
 
@@ -68,7 +68,7 @@ and third by hand before building anything that generates them.
 
 ## Related
 
-- `../scratch/demo-refining/goals/_completed/summary-goal-03.md` — the three rounds in detail
+- [Demo-refining archive](../objectives/_archives/demo-refining-summary.md) — the completed
+  measurement and correction history
 - `agent-legible-quality-measurement.md` — what the measurement side can and cannot do
-- `../scratch/demo-refining/12-VISUAL-METRICS-CRITIQUE.md` — a critic for instruments, not intent
 - `executable-requirement-contracts.md` — where a design rule would bind if it became checkable

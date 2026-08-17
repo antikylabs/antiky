@@ -4,7 +4,10 @@
 
 **Verdict — Inferred from established code:** Antiky has camera ingredients, not a reusable 2D camera. BroMetal 0.17.2 provides a reusable, CPU-only perspective pose/lens/matrix primitive. Antiky supplies normalized pointer input, resize handling, generic render uniforms, and several independently authored follow/damping implementations. No public module composes those parts into orthographic projection, pan, anchored zoom, follow, bounds, and viewport/world conversion.
 
-A previous extraction audit reached the same conclusion: the camera implementations shared idioms but had not converged into one module. It explicitly rejected promoting them at that time. `docs/objectives/scratch/demo-refining/goals/_completed/execute-goal-11.md:159-169`
+A previous extraction audit reached the same conclusion: the camera implementations shared idioms
+but had not converged into one module. It explicitly rejected promoting them at that time. The
+[demo-refining archive](../../../_archives/demo-refining-summary.md) preserves that extraction
+boundary.
 
 Status labels below mean:
 

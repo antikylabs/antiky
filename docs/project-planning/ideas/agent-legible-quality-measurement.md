@@ -1,8 +1,9 @@
 # Agent-legible quality measurement
 
 **Recorded:** 2026-08-11
-**Status:** the capability exists and is days old. The *skills* that would teach it are deferred —
-see S2 in `../scratch/demo-refining/goals/execute-goal-99.md`.
+**Status:** the capability exists. The *skills* that would teach it remain deferred; the
+[demo-refining archive](../objectives/_archives/demo-refining-summary.md) records the completed
+measurement boundary.
 **Origin:** owner observation after goal 13 — "no other game engine is providing this, and this is
 prime skill material."
 
@@ -77,8 +78,6 @@ already describes.
 
 ## Related
 
-- `../scratch/demo-refining/goals/_completed/summary-goal-01.md` — the harness
-- `../scratch/demo-refining/goals/_completed/summary-goal-13.md` — motion
-- `../scratch/demo-refining/12-VISUAL-METRICS-CRITIQUE.md` — why the first metric was wrong
-- `../scratch/demo-refining/11-MOTION-INSPECTION-RESEARCH.md` — the prior-art sweep
+- [Demo-refining archive](../objectives/_archives/demo-refining-summary.md) — the harness, motion,
+  and corrected visual-measurement conclusions
 - `executable-requirement-contracts.md` — where this goes if it generalises

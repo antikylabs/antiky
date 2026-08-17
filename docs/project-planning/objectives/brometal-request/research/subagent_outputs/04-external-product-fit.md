@@ -114,19 +114,18 @@ The issue author explicitly wants a standalone layer that does not touch the ren
 - `packages/framework/src/render/brometal-driver.ts:1-12`
 - `packages/framework/src/render/render-contract.ts:1-19`
 
-However:
+At the time of this research:
 
 - no demo imports or runs `createBroMetalRenderDriver`;
 - the prior objective records the critical demo-migration criterion as unmet;
 - the public product taxonomy correctly keeps the driver a Direction claim;
 - no remote branch currently contains the driver’s first commit.
 
-Evidence:
+Historical evidence:
 
-- `docs/objectives/scratch/demo-refining/goals/summary-goal-12.md:13-16`
-- `docs/objectives/scratch/demo-refining/goals/summary-goal-12.md:33-52`
-- `docs/objectives/scratch/demo-refining/goals/summary-goal-12.md:133-143`
-- `docs/objectives/scratch/demo-refining/15-DRIVER-BACKLOG.md:112-119`
+- The [demo-refining archive](../../../_archives/demo-refining-summary.md) records the later driver
+  delivery and the valid hybrid Antiky/BroMetal boundary. It supersedes this research snapshot's
+  unmet demo-migration premise.
 - `packages/website/PRODUCT.md:84-96`
 - `git branch -r --contains 49fd76b` returned no branch.
 

@@ -12,8 +12,8 @@
  * backend's pipelines when it is constructed, which is driver-specific setup rather than frame data.
  *
  * Extracted from the two demos that had already built this, rather than designed from zero — they
- * are named in `docs/objectives/scratch/demo-refining/14-DRIVER-HOME.md`, because a test keeps demo
- * names out of framework source and that is the right rule. Both had independently arrived at the
+ * are recorded as the extraction basis in the archived demo-refining summary, while a test keeps
+ * demo names out of framework source. Both had independently arrived at the
  * same frame shape: cast shadows into a depth target, draw the scene into a floating-point target,
  * reduce that target through a bloom chain, then resolve everything to the canvas in one pass that
  * owns exposure and tone mapping. The vocabulary below is that shape, named.

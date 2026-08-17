@@ -27,6 +27,7 @@ Before planning or implementing work, read:
 
 | Objective | Summary |
 | --- | --- |
+| [Demo refining](_archives/demo-refining-summary.md) | Records the Antiky-only demo scope, rendering and capture boundaries, verified evidence, and accepted visual debt. |
 | [Asset catalog](_archives/asset-catalog-summary.md) | Records the shipped static catalog, research conclusions, source posture, and durable admission rules. |
 | [Antiky Studio](_archives/studio-summary.md) | Records the shipped Studio workspace, project model, shared development services, and durable boundaries. |
 | [Antiky Town (legacy)](_archives/antiky-town-summary.md) | Records the first three shipped Town slices, the superseded plans, and the current restart boundary. |

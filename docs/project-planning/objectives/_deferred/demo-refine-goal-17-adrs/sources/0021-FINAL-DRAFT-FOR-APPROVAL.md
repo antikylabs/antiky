@@ -4,11 +4,11 @@
 > record of what was approved and on what basis. The live record is
 > `docs/adr/framework/0021-brometal-render-driver-ownership_H.md`; if the two ever differ, the ADR
 > wins. Kept because section 1 carries the language audit and the four terms still awaiting owner
-> approval — see
-> [`summary-goal-00.md`](../../../demo-refining/goals/_completed/summary-goal-00.md).
+> approval. The [demo-refining archive](../../../_archives/demo-refining-summary.md) records the
+> durable decision boundary.
 
 The text below was presented before placement. Per
-`goals/_completed/execute-goal-00.md:149-152`, a half-placed supersession is worse than no change,
+the original Goal 00 contract, a half-placed supersession is worse than no change,
 so nothing was written to `docs/adr/` until the owner approved both this text and the `studio/0007`
 question.
 
@@ -80,7 +80,8 @@ Path: `docs/adr/framework/0021-brometal-render-driver-ownership_H.md`
 
 Accepted
 
-Supersedes [0006: Keep BroMetal inside the Antiky render driver](0006-brometal-render-driver_H.md).
+Supersedes [0006: Keep BroMetal inside the Antiky render
+driver](../../../../../adr/framework/0006-brometal-render-driver_H.md).
 
 ## Context
 
@@ -96,7 +97,7 @@ Different games in this repository do not agree about basic scene values. An exa
 direction of the key light.
 
 ADR 0006 gives all direct use of BroMetal to one Antiky-owned render driver. The later ADR
-[studio/0007](../studio/0007-framework-first-allow-others_H.md) gives renderer initialization and
+[studio/0007](../../../../../adr/studio/0007-framework-first-allow-others_H.md) gives renderer initialization and
 resource disposal to the game module. A reader cannot see which record controls a framework game
 that uses BroMetal. This record removes that conflict.
 

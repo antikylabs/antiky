@@ -6,9 +6,8 @@
 
 ## Prerequisites
 
-- [Goal 99](../../demo-refining/goals/_completed/execute-goal-99.md) is complete. This goal needs R1
-  and the resolved R2 through R4 findings from its
-  [summary](../../demo-refining/goals/_completed/summary-goal-99.md).
+- The [demo-refining objective](../../_archives/demo-refining-summary.md) is complete and archived.
+  Refresh the retained candidate evidence in this packet before using it.
 - Read all accepted Framework, CLI, and Studio ADRs, not only the records named by the older audits.
 - Read [`08-ADR-IMPACT.md`](sources/08-ADR-IMPACT.md),
   [`recent-architecture-learnings-2026-08-10.md`](sources/recent-architecture-learnings-2026-08-10.md),
@@ -28,9 +27,9 @@ record that now exists. The packet must separate already-resolved decisions, imp
 clarifications, and genuinely missing architecture decisions. After the owner decides the packet,
 submit each approved new ADR and make only the explicitly authorized accepted-record changes.
 
-This goal delivers the ADR reconciliation requested by Goal 99 R1 at
-[`execute-goal-99.md:81`](../../demo-refining/goals/_completed/execute-goal-99.md), the candidate set
-in [`recent-architecture-learnings-2026-08-10.md:10-23`](sources/recent-architecture-learnings-2026-08-10.md),
+This goal delivers the deferred ADR reconciliation preserved from the archived objective, the
+candidate set in
+[`recent-architecture-learnings-2026-08-10.md:10-23`](sources/recent-architecture-learnings-2026-08-10.md),
 and the older candidate analysis in [`08-ADR-IMPACT.md:307-486`](sources/08-ADR-IMPACT.md).
 
 ## Required outcome

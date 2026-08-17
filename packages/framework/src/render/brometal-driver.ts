@@ -9,13 +9,13 @@
  * This is the single file `import-boundary.test.mjs` permits to import BroMetal, and a test asserts
  * it stays single. It is reachable only as `@antiky/framework/render-driver` and deliberately not
  * from the package barrel, so a server importing the framework does not pull a WebGPU library in
- * behind it. The reasoning is in `docs/objectives/scratch/demo-refining/14-DRIVER-HOME.md`.
+ * behind it. The reasoning is summarized in
+ * `docs/project-planning/objectives/_archives/demo-refining-summary.md`.
  *
  * The frame shape here was extracted from two working implementations that had independently
  * converged on it — both cast shadows into a depth target, draw the scene into a floating-point
  * target, reduce it through a bloom chain and resolve everything in one final pass. Neither was
- * designed from this; this was read off both. They are named in the design note cited above, because
- * a test keeps demo names out of framework source.
+ * designed from this; this was read off both. A test keeps demo names out of framework source.
  */
 import {
   createProgram,

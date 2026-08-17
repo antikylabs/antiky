@@ -13,8 +13,8 @@ changing the version guard, then remove only behavior that the installed release
 | npm tarball SHA-1 | `b4dc5885b0456dc389b8e465c780a04331c275d7` |
 | lockfile integrity | `sha512-6SdkWaHUj+ogxY/VFDaQANJr6QlH7kX2gSUduqTOALc7QUSdkHfxop0RsDx4dA3X9R82iKz2rCyOyuowVhBZ9Q==` |
 | Published git head | `12089302f6be36f4c72b8eee7ec9154a52ee3dae` |
-| Antiky pin | Exact `0.18.0` in Framework, four Antiky demos, and three standalone BroMetal demos |
-| Installed layout | One root copy, deduplicated for all eight consumers |
+| Antiky pin | Exact `0.18.0` in Framework and four Antiky demos |
+| Installed layout | One root copy, deduplicated for all five consumers |
 
 The clean npm package still lacks all nine retained behaviors. Every old replacement anchor still
 matches 0.18.0, so no patch needed a source retarget. The audit did not open, update, close, or
