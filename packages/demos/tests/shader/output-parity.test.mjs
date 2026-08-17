@@ -6,6 +6,8 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
+import { discoverDemos } from './graph.mjs';
+
 const execute = promisify(execFile);
 /**
  * Every package that ships generated shaders, discovered rather than listed.
@@ -16,22 +18,15 @@ const execute = promisify(execFile);
  */
 async function discoverShaderPackages() {
   const packages = [];
-  for (const category of ['antiky', 'brometal', 'threejs']) {
-    const root = fileURLToPath(new URL(`../../${category}/`, import.meta.url));
-    let entries;
-    try {
-      entries = await readdir(root, { withFileTypes: true });
-    } catch {
-      continue;
-    }
-    for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
-      if (!entry.isDirectory()) continue;
-      const packageDirectory = path.join(root, entry.name);
-      const sourceDirectory = new URL(`../../${category}/${entry.name}/src/`, import.meta.url);
-      const generated = await generatedFiles(sourceDirectory);
-      if (generated.length === 0) continue;
-      packages.push({ slug: entry.name, packageDirectory, sourceDirectory });
-    }
+  const root = fileURLToPath(new URL('../../antiky/', import.meta.url));
+  const entries = await readdir(root, { withFileTypes: true });
+  for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
+    if (!entry.isDirectory()) continue;
+    const packageDirectory = path.join(root, entry.name);
+    const sourceDirectory = new URL(`../../antiky/${entry.name}/src/`, import.meta.url);
+    const generated = await generatedFiles(sourceDirectory);
+    if (generated.length === 0) continue;
+    packages.push({ slug: entry.name, packageDirectory, sourceDirectory });
   }
   return packages;
 }
@@ -144,11 +139,10 @@ test('the committed shader output is what the compiler actually produces', async
    */
   let checked = 0;
   const shaderPackages = await discoverShaderPackages();
-  assert.ok(
-    // Seven since `town-study` was retired: it was `antiky-town`'s Framework-free twin and shipped
-    // byte-identical copies of twelve of these shaders.
-    shaderPackages.length >= 7,
-    `expected to discover every package with generated shaders, found ${shaderPackages.length}`,
+  assert.deepEqual(
+    shaderPackages.map(({ slug }) => slug),
+    (await discoverDemos()).map(({ slug }) => slug),
+    'every manifest-owned Antiky demo must participate in generated shader verification',
   );
   for (const shaderPackage of shaderPackages) {
     const paths = await generatedFiles(shaderPackage.sourceDirectory);

@@ -62,6 +62,8 @@ test('package domains use hierarchy instead of repeated filename prefixes', asyn
 test('repository-level scripts stay within the owned allowlist', async () => {
   const tracked = await git(['ls-files', 'scripts']);
   assert.deepEqual(tracked.split('\n'), [
+    'scripts/demo-capture-config.mjs',
+    'scripts/demo-visual-evidence.mjs',
     'scripts/dev.mjs',
     'scripts/frame-stats.mjs',
     'scripts/motion-stats.mjs',
