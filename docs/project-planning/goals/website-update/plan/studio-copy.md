@@ -1,1 +1,1 @@
-use the seo/marking/copywriter skills found in website package for this.
+The implementation-ready Studio page copy is in `../copy/studio.md`.

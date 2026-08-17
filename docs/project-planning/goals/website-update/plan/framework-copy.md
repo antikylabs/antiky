@@ -1,1 +1,1 @@
-use the seo/marking/copywriter skills found in website package for this.
+The implementation-ready Framework page copy is in `../copy/framework.md`.
