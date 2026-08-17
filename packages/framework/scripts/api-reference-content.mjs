@@ -21,7 +21,7 @@ const worldId = parseWorldId(savedWorldId);`,
   {
     slug: 'engine-session',
     title: 'Engine session API',
-    summary: 'Run deterministic fixed-step systems and expose safe pause, resume, single-step, command, and disposal controls.',
+    summary: 'Run deterministic fixed-step systems, observe completed steps live, and expose safe pause, resume, single-step, command, and disposal controls.',
     useWhen: 'Use one session as the authority for a running world when simulation timing must stay independent from display timing.',
     guide: { href: '../framework/engine-sessions.md', label: 'Run a fixed-step game session' },
     exampleDescription: '`sessionId` and `worldId` are stable IDs. `move` is game logic; the host supplies elapsed time and current input each frame.',
@@ -460,7 +460,7 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   parseSessionId: 'Validates unknown input and returns it as a `SessionId`.',
 
   // Engine sessions
-  createEngineSession: 'Creates the authoritative fixed-step session and validates its IDs, systems, input capture, and owned services.',
+  createEngineSession: 'Creates the authoritative fixed-step session and validates its IDs, systems, input capture, completed-step observer, and owned services.',
   ENGINE_SESSION_SCHEMA_VERSION: 'The schema version emitted in engine-session status records.',
   FIXED_STEP_SECONDS: 'The simulation duration accepted by every completed fixed step.',
   MAX_FRAME_ELAPSED_SECONDS: 'The most wall-clock time one frame can add to the fixed-step accumulator.',
@@ -474,8 +474,8 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   EngineStepContext: 'The immutable input and clock data passed to each ordered system for one step.',
   EngineSystem: 'A stable system ID and its fixed-step callback.',
   EngineSessionOwnedService: 'A disposable service whose lifetime is owned by the session.',
-  EngineSessionOptions: 'Construction options for IDs, ordered systems, immutable input capture, digesting, and owned services.',
-  CompletedEngineStep: 'The last completed step, including captured input and an optional state digest.',
+  EngineSessionOptions: 'Construction options for IDs, ordered systems, immutable input capture, digesting, live completed-step observation, and owned services.',
+  CompletedEngineStep: 'One completed step, including captured input and an optional state digest.',
   EngineSessionStatus: 'Serializable inspection state for identity, mode, clocks, pause reasons, order, and revisions.',
   EngineFrameResultCode: 'Stable outcomes from `EngineSession.advance`.',
   EngineFrameResult: 'Counts accepted, discarded, accumulated, and completed frame work.',

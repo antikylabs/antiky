@@ -90,7 +90,7 @@ test('the human CLI gives bounded MCP action tools the full action deadline', as
 });
 
 const runningSession = {
-  schemaVersion: 2 as const,
+  schemaVersion: 3 as const,
   sessionId: SESSION_ID,
   worldId: WORLD_ID,
   runtimeInstanceId: 'runtime-mcp-001',

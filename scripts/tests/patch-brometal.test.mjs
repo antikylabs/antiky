@@ -11,7 +11,7 @@ import { promisify } from 'node:util';
 const execute = promisify(execFile);
 const repositoryRoot = path.resolve(import.meta.dirname, '../..');
 const patchScript = path.join(repositoryRoot, 'scripts', 'patch-brometal.mjs');
-const EXPECTED_VERSION = '0.17.2';
+const EXPECTED_VERSION = '0.18.0';
 
 /**
  * Find an installed BroMetal. npm places it wherever hoisting allows, and that has changed with the
@@ -400,7 +400,7 @@ test('a different BroMetal version stops the patch rather than applying it blind
   await assert.rejects(
     runPatch(directory),
     (error) => {
-      assert.match(error.stderr, /Expected BroMetal 0\.17\.2, found 0\.16\.0/);
+      assert.match(error.stderr, /Expected BroMetal 0\.18\.0, found 0\.16\.0/);
       return true;
     },
   );

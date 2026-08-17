@@ -31,7 +31,7 @@ import {
   apply as applyAttributeBufferDefects,
 } from './patch-brometal/attribute-buffer-defects.mjs';
 
-const EXPECTED_VERSION = '0.17.2';
+const EXPECTED_VERSION = '0.18.0';
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
 
 /** Applied in order. Order matters only where two patches touch the same lines; none do today. */

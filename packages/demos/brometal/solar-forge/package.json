@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "brometal": "0.17.2"
+    "brometal": "0.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",

@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:611ae942b71fd3d4
+frameworkSource: sha256:32e611e5c79719d0
 ---
 
 # Framework API reference
@@ -22,7 +22,7 @@ Start with a task guide when you are building a feature. Use the pages below whe
 | Area | Use it for | Workflow |
 | --- | --- | --- |
 | [Identity API](identity.md) | Create and validate stable UUIDv7 identities for worlds, entities, commands, and sessions. | [Point lights: Keep IDs stable](../framework/point-lights.md#keep-ids-stable) |
-| [Engine session API](engine-session.md) | Run deterministic fixed-step systems and expose safe pause, resume, single-step, command, and disposal controls. | [Run a fixed-step game session](../framework/engine-sessions.md) |
+| [Engine session API](engine-session.md) | Run deterministic fixed-step systems, observe completed steps live, and expose safe pause, resume, single-step, command, and disposal controls. | [Run a fixed-step game session](../framework/engine-sessions.md) |
 | [Inspection API](inspection.md) | Publish immutable runtime snapshots, bounded world views, and declared event history to development tools. | [Publish runtime inspection](../framework/inspection.md) |
 | [Point-light core API](point-light-core.md) | Validate point-light records and manage the authoritative lights for one world. | [Add point lights](../framework/point-lights.md) |
 | [Point-light command API](point-light-commands.md) | Validate versioned power-change commands, trusted execution context, results, and accepted facts. | [Point lights: Change power](../framework/point-lights.md#change-power-while-the-game-runs) |

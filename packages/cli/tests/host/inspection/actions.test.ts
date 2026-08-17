@@ -87,7 +87,7 @@ function createBroker() {
 }
 
 const pausedSessionStatus: EngineSessionStatus = Object.freeze({
-  schemaVersion: 2,
+  schemaVersion: 3,
   sessionId: SESSION_ID,
   worldId: WORLD_ID,
   runtimeInstanceId: 'runtime-actions-001',

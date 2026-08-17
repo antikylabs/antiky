@@ -1,6 +1,6 @@
 import type { SessionId, WorldId } from '../../identity/ids.ts';
 
-export const ENGINE_SESSION_SCHEMA_VERSION = 2 as const;
+export const ENGINE_SESSION_SCHEMA_VERSION = 3 as const;
 export const FIXED_STEP_SECONDS = 1 / 60;
 export const MAX_FRAME_ELAPSED_SECONDS = 0.05;
 export const MAX_STEPS_PER_FRAME = 3;
@@ -13,6 +13,7 @@ export type EngineSessionFaultSource =
   | 'input-capture'
   | 'system'
   | 'state-digest'
+  | 'completed-step-observer'
   | 'command';
 
 export type EngineSessionFault = Readonly<{
@@ -45,6 +46,14 @@ export type EngineSessionOptions<Input> = Readonly<{
   systems: readonly EngineSystem<Input>[];
   captureInput(input: Input): Readonly<Input> | null;
   getStateDigest?: () => string;
+  /**
+   * Observe each completed step once, after its systems and state digest succeed.
+   *
+   * The session calls this observer in completed-step order while its writer is busy. A thrown
+   * error faults the session as `completed-step-observer`, but the step remains completed and
+   * later steps in the same frame do not run. The session does not retain observed steps.
+   */
+  onCompletedStep?: (step: CompletedEngineStep<Input>) => void;
   services?: readonly EngineSessionOwnedService[];
   initialCompletedStepCount?: number;
 }>;

@@ -55,7 +55,7 @@ function eventHistory(runtimeInstanceId = 'runtime-001', worldId = WORLD_ID) {
 
 function sessionStatus(runtimeInstanceId = 'runtime-001') {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     sessionId: '018f0f3a-7b2c-7a1d-8e2f-123456789ab0',
     worldId: '018f0f3a-7b2c-7a1d-8e2f-123456789abc',
     runtimeInstanceId,

@@ -138,8 +138,12 @@ export function createEngineSession<Input>(
   if (options.getStateDigest !== undefined && typeof options.getStateDigest !== 'function') {
     fail('Expected a state-digest function', '$.getStateDigest');
   }
+  if (options.onCompletedStep !== undefined && typeof options.onCompletedStep !== 'function') {
+    fail('Expected a completed-step observer', '$.onCompletedStep');
+  }
   const captureInput = options.captureInput;
   const getStateDigest = options.getStateDigest;
+  const onCompletedStep = options.onCompletedStep;
   const services = readServices(options.services);
 
   let mode: EngineSessionMode = 'running';
@@ -233,6 +237,12 @@ export function createEngineSession<Input>(
       systemId: string | null;
     }>;
 
+  type StepFailure = Extract<StepResult, { kind: 'failed' }> | Readonly<{
+    kind: 'failed';
+    source: 'completed-step-observer';
+    systemId: null;
+  }>;
+
   const runStep = (
     completedStepId: number,
     currentInputSequence: number,
@@ -296,15 +306,16 @@ export function createEngineSession<Input>(
       availableSeconds - (plannedSteps + excessSteps) * FIXED_STEP_SECONDS,
     );
     const nextInputSequence = inputSequence + 1;
+    const initialCompletedStepCount = completedStepCount;
 
     busy = true;
     let latestStep = lastCompletedStep;
     let successfulSteps = 0;
-    let stepFailure: Extract<StepResult, { kind: 'failed' }> | null = null;
+    let stepFailure: StepFailure | null = null;
     try {
       for (let index = 0; index < plannedSteps; index += 1) {
         const stepResult = runStep(
-          completedStepCount + index + 1,
+          initialCompletedStepCount + index + 1,
           nextInputSequence,
           captureResult.input,
           'frame',
@@ -315,17 +326,34 @@ export function createEngineSession<Input>(
         }
         latestStep = stepResult.step;
         successfulSteps += 1;
+        if (onCompletedStep !== undefined) {
+          inputSequence = nextInputSequence;
+          completedStepCount = initialCompletedStepCount + successfulSteps;
+          lastCompletedStep = latestStep;
+          try {
+            onCompletedStep(stepResult.step);
+          } catch {
+            stepFailure = Object.freeze({
+              kind: 'failed',
+              source: 'completed-step-observer',
+              systemId: null,
+            });
+            break;
+          }
+        }
       }
     } finally {
       busy = false;
     }
 
     inputSequence = nextInputSequence;
-    completedStepCount += successfulSteps;
+    if (onCompletedStep === undefined) {
+      completedStepCount += successfulSteps;
+      lastCompletedStep = latestStep;
+    }
     accumulatorSeconds = nextAccumulator < FIXED_STEP_SECONDS ? nextAccumulator : 0;
     totalAcceptedElapsedSeconds += acceptedElapsedSeconds;
     totalDiscardedSeconds += discardedElapsedSeconds;
-    lastCompletedStep = latestStep;
     if (stepFailure !== null) {
       enterFault(stepFailure.source, stepFailure.systemId);
       return frameResult('SESSION_FAULTED', {
@@ -397,6 +425,7 @@ export function createEngineSession<Input>(
     const nextInputSequence = inputSequence + 1;
     busy = true;
     let stepResult: StepResult;
+    let observerFailed = false;
     try {
       stepResult = runStep(
         completedStepCount + 1,
@@ -404,6 +433,17 @@ export function createEngineSession<Input>(
         captureResult.input,
         'single-step',
       );
+      if (stepResult.kind === 'completed') {
+        inputSequence = nextInputSequence;
+        completedStepCount += 1;
+        controlRevision += 1;
+        lastCompletedStep = stepResult.step;
+        try {
+          onCompletedStep?.(stepResult.step);
+        } catch {
+          observerFailed = true;
+        }
+      }
     } finally {
       busy = false;
     }
@@ -412,9 +452,10 @@ export function createEngineSession<Input>(
       enterFault(stepResult.source, stepResult.systemId);
       return controlResult('SESSION_FAULTED');
     }
-    completedStepCount += 1;
-    controlRevision += 1;
-    lastCompletedStep = stepResult.step;
+    if (observerFailed) {
+      enterFault('completed-step-observer');
+      return controlResult('SESSION_FAULTED');
+    }
     return controlResult('STEPPED', true);
   };
 

@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:611ae942b71fd3d4
+frameworkSource: sha256:32e611e5c79719d0
 ---
 
 # Latched input API

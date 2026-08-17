@@ -98,6 +98,43 @@ The session captures one semantic input value for each call to `advance`. If a d
 several catch-up steps, those steps use the same captured input with different completed-step IDs.
 Do not let a system read keys, pointers, sockets, or wall-clock time directly.
 
+## Observe completed steps live
+
+Use `onCompletedStep` when a test, capture adapter, or diagnostic needs the identity of every state
+that the session completes:
+
+```ts
+const completedSteps = [];
+
+const session = createEngineSession({
+  // IDs, systems, and input capture omitted here.
+  getStateDigest: () => readWorldDigest(),
+  onCompletedStep(step) {
+    completedSteps.push({
+      completedStepId: step.completedStepId,
+      inputSequence: step.inputSequence,
+      source: step.source,
+      stateDigest: step.stateDigest,
+    });
+  },
+});
+```
+
+The session calls the observer once after the systems and state digest succeed for a step. Calls
+follow completed-step order, including each step in a catch-up frame. A frame that completes no
+steps does not call it. An explicit single-step call reports `source: 'single-step'`.
+
+The completed-step record and its captured input are deeply immutable. The observer runs while the
+session writer is busy, so it can copy the record or request read-only inspection but cannot
+reenter simulation or command work. If the observer throws, that step remains completed, later
+steps in the same frame do not run, and the session enters `faulted` mode with source
+`completed-step-observer`.
+
+This callback is live observation only. `EngineSession` does not retain an observed-step list,
+publish a subscription, save checkpoints, create a replay, or promise durable delivery. A consumer
+that needs history or durability must copy the records into storage that it owns. The callback does
+not request rendering; the host still presents at most once for each display frame.
+
 ## Reject input or stop after a fault
 
 Return `null` from `captureInput` when the caller supplies invalid input that the game can reject
@@ -117,14 +154,15 @@ Throwing from `captureInput` means that input capture itself failed. Returning a
 unsafe snapshot is also a capture failure. These failures are different from rejecting expected
 invalid input.
 
-The session enters `faulted` mode when input capture, an engine system, the state digest, or a command
-operation fails unexpectedly. The operation returns `SESSION_FAULTED`, and all later frames,
-single-step controls, and commands return the same code without running more game code. This
-fail-closed behavior prevents a partially changed world from being changed again.
+The session enters `faulted` mode when input capture, an engine system, the state digest, the
+completed-step observer, or a command operation fails unexpectedly. The operation returns
+`SESSION_FAULTED`, and all later frames, single-step controls, and commands return the same code
+without running more game code. This fail-closed behavior prevents a partially changed world from
+being changed again.
 
 `readStatus()` remains available in faulted mode. Its `fault` field contains only a stable code, the
 failure source, and the system ID when a system failed. It does not copy the thrown message, stack,
-input, or command data across the inspection boundary. Engine-session status uses `schemaVersion: 2`
+input, or command data across the inspection boundary. Engine-session status uses `schemaVersion: 3`
 for this contract.
 
 After you record the diagnostics you need, call `dispose()` and create a new session. A faulted

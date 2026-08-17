@@ -6,7 +6,13 @@ import {
 
 export const PAUSE_REASONS = ['user', 'tool', 'visibility'] as const;
 export const SESSION_MODES = ['running', 'paused', 'faulted', 'disposed'] as const;
-export const FAULT_SOURCES = ['input-capture', 'system', 'state-digest', 'command'] as const;
+export const FAULT_SOURCES = [
+  'input-capture',
+  'system',
+  'state-digest',
+  'completed-step-observer',
+  'command',
+] as const;
 export const SYSTEM_ID_PATTERN = /^[a-z][a-z0-9.-]{0,63}$/;
 export const MAX_RUNTIME_ID_LENGTH = 128;
 export const MAX_DIGEST_LENGTH = 256;

@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:611ae942b71fd3d4
+frameworkSource: sha256:32e611e5c79719d0
 ---
 
 # Engine session API
 
-Run deterministic fixed-step systems and expose safe pause, resume, single-step, command, and disposal controls.
+Run deterministic fixed-step systems, observe completed steps live, and expose safe pause, resume, single-step, command, and disposal controls.
 
 Use one session as the authority for a running world when simulation timing must stay independent from display timing.
 
@@ -84,7 +84,7 @@ Create the stateful session once, then drive it through the returned `EngineSess
 
 ### `createEngineSession`
 
-Creates the authoritative fixed-step session and validates its IDs, systems, input capture, and owned services.
+Creates the authoritative fixed-step session and validates its IDs, systems, input capture, completed-step observer, and owned services.
 
 ```ts
 function createEngineSession<Input>(options: EngineSessionOptions<Input>): EngineSession<Input>;
@@ -99,7 +99,7 @@ Use these records and result codes to integrate game systems, controls, commands
 The schema version emitted in engine-session status records.
 
 ```ts
-const ENGINE_SESSION_SCHEMA_VERSION = 2 as const;
+const ENGINE_SESSION_SCHEMA_VERSION = 3 as const;
 ```
 
 ### `FIXED_STEP_SECONDS`
@@ -163,7 +163,7 @@ type EngineStepSource = 'frame' | 'single-step';
 The callback boundary that caused a terminal session fault.
 
 ```ts
-type EngineSessionFaultSource = 'input-capture' | 'system' | 'state-digest' | 'command';
+type EngineSessionFaultSource = 'input-capture' | 'system' | 'state-digest' | 'completed-step-observer' | 'command';
 ```
 
 ### `EngineSessionFault`
@@ -215,7 +215,7 @@ type EngineSessionOwnedService = Readonly<{
 
 ### `EngineSessionOptions`
 
-Construction options for IDs, ordered systems, immutable input capture, digesting, and owned services.
+Construction options for IDs, ordered systems, immutable input capture, digesting, live completed-step observation, and owned services.
 
 ```ts
 type EngineSessionOptions<Input> = Readonly<{
@@ -225,6 +225,7 @@ type EngineSessionOptions<Input> = Readonly<{
     systems: readonly EngineSystem<Input>[];
     captureInput(input: Input): Readonly<Input> | null;
     getStateDigest?: () => string;
+    onCompletedStep?: (step: CompletedEngineStep<Input>) => void;
     services?: readonly EngineSessionOwnedService[];
     initialCompletedStepCount?: number;
 }>;
@@ -232,7 +233,7 @@ type EngineSessionOptions<Input> = Readonly<{
 
 ### `CompletedEngineStep`
 
-The last completed step, including captured input and an optional state digest.
+One completed step, including captured input and an optional state digest.
 
 ```ts
 type CompletedEngineStep<Input> = Readonly<{

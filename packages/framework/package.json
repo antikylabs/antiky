@@ -20,6 +20,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "brometal": "0.17.2"
+    "brometal": "0.18.0"
   }
 }
