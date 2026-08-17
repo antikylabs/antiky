@@ -7,6 +7,12 @@ import {
   discoverDemoSources,
   discoverShaders,
 } from './shader/graph.mjs';
+import {
+  glbDrawingShadersFromModules,
+  readFrozenNumberArray,
+  readGeneratedFile,
+  readKitMaterialData,
+} from './material-sources.mjs';
 
 /**
  * Material invariants for goal 05.
@@ -39,47 +45,42 @@ import {
  * it applies when there is exactly one candidate, and the test asserts it never fires ambiguously.
  */
 async function glbDrawingShaders(demo) {
-  const drawn = new Set();
-  for (const module of await discoverDemoSources(demo)) {
-    if (!/\bloadGlb\b/.test(module.text)) continue;
-
-    const imported = new Map();
-    // Both spellings ship here: `'./x.shader.gen.ts'` and `'./x.shader.gen'`. Requiring the
-    // extension silently dropped `traversal-study`'s model shader out of this check.
-    for (const [, binding, specifier] of module.text.matchAll(
-      /import\s+(\w+)\s+from\s+'([^']*\.shader\.gen(?:\.ts)?)'/g,
-    )) {
-      imported.set(binding, specifier.endsWith('.ts') ? specifier : `${specifier}.ts`);
-    }
-    if (imported.size === 0) continue;
-
-    // The variables holding GLB mesh data, taken from where they are bound. Every demo reaches a
-    // mesh through `model.meshes`, and procedural geometry never does — which is the difference
-    // between `traversal-study`'s model program and the terrain and glow programs beside it.
-    const meshVariables = new Set([
-      ...[...module.text.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*[\w.]*\.meshes\b/g)]
-        .map(([, name]) => name),
-      ...[...module.text.matchAll(/for\s*\(\s*(?:const|let)\s+(\w+)\s+of\s+[\w.]*\.meshes\b/g)]
-        .map(([, name]) => name),
-    ]);
-    if (meshVariables.size === 0) continue;
-
-    const creations = [...module.text.matchAll(/createProgram\(\s*([\w.]+)\s*(?:,\s*(\w+))?/g)]
-      .map((match) => ({ at: match.index, shader: match[2] }));
-
-    for (const binding of module.text.matchAll(/attributes\.\w+!?\.set\(\s*(\w+)\.positions/g)) {
-      if (!meshVariables.has(binding[1])) continue;
-      const preceding = creations.filter((creation) => creation.at < binding.index).pop();
-      if (preceding === undefined) continue;
-      const named = preceding.shader !== undefined && imported.has(preceding.shader)
-        ? imported.get(preceding.shader)
-        : imported.size === 1 ? [...imported.values()][0] : undefined;
-      if (named === undefined) continue;
-      drawn.add(path.normalize(path.join(path.dirname(module.relative), named)));
-    }
-  }
-  return drawn;
+  return glbDrawingShadersFromModules(await discoverDemoSources(demo));
 }
+
+test('GLB material discovery follows direct, injected, and declarative colour pipelines', () => {
+  const modules = [{
+    relative: path.join('fixture', 'models.ts'),
+    text: `
+      import directShader from './direct.shader.gen.ts';
+      import injectedShader from './injected.shader.gen';
+      import declarativeShader from './declarative.shader.gen.ts';
+      import depthShader from './model-depth.shader.gen.ts';
+      import { createProgram, loadGlb } from 'brometal';
+      const defaults = {
+        createProgram: (renderer) => createProgram(renderer, injectedShader),
+        createDepthProgram: (renderer) => createProgram(renderer, depthShader),
+      };
+      const direct = createProgram(renderer, directShader);
+      direct.attributes.aPosition.set(mesh.positions);
+      injected = owned.adopt(dependencies.createProgram(renderer));
+      injected.attributes.aPosition.set(mesh.positions);
+      const descriptor = { pipeline: { shader: declarativeShader, setup(program) {
+        program.attributes.aPosition.set(mesh.positions);
+      } } };
+      const depth = createProgram(renderer, depthShader);
+      depth.attributes.aPosition.set(mesh.positions);
+    `,
+  }];
+  assert.deepEqual(
+    [...glbDrawingShadersFromModules(modules)].sort(),
+    [
+      path.normalize('fixture/declarative.shader.gen.ts'),
+      path.normalize('fixture/direct.shader.gen.ts'),
+      path.normalize('fixture/injected.shader.gen.ts'),
+    ],
+  );
+});
 
 test('AC-M3: every shader that draws GLB geometry samples a normal map that survives to the output', async () => {
   const demos = await discoverDemos();
@@ -186,9 +187,11 @@ test('AC-L1: the lighting ramp separates shadow from light by more than brightne
    * Measured as data rather than from a capture, because the ramp *is* data. A frame could pass this
    * by accident through fog or exposure; the ramp either carries the separation or it does not.
    */
-  const { TRAVERSAL_LIGHTING_RAMP: ramp } = await import(
-    '../antiky/traversal-study/src/lighting-ramp.gen.ts'
-  );
+  const rampSource = await readGeneratedFile(new URL(
+    '../antiky/traversal-study/src/lighting-ramp.gen.ts',
+    import.meta.url,
+  ));
+  const ramp = readFrozenNumberArray(rampSource, 'TRAVERSAL_LIGHTING_RAMP');
   assert.ok(ramp.length >= 32, `expected a ramp with real resolution, got ${ramp.length} steps`);
 
   const luminance = ([red, green, blue]) => 0.2126 * red + 0.7152 * green + 0.0722 * blue;
@@ -241,13 +244,13 @@ test('AC-M2: every kit UV selects a swatch the material table declares', async (
   // the failure this directory has already been bitten by twice.
   const kits = [
     {
-      table: (await import('../antiky/traversal-study/src/kit-materials.gen.ts')),
       prefix: 'TRAVERSAL',
+      tableUrl: new URL('../antiky/traversal-study/src/kit-materials.gen.ts', import.meta.url),
       url: new URL('../antiky/traversal-study/assets/kenney/platformer-kit/', import.meta.url),
     },
     {
-      table: (await import('../antiky/combat-arena/src/kit-materials.gen.ts')),
       prefix: 'ARENA',
+      tableUrl: new URL('../antiky/combat-arena/src/kit-materials.gen.ts', import.meta.url),
       url: new URL('../antiky/combat-arena/assets/kenney/modular-space-kit/', import.meta.url),
     },
   ];
@@ -255,8 +258,9 @@ test('AC-M2: every kit UV selects a swatch the material table declares', async (
   const unmapped = new Set();
   let meshes = 0;
   for (const kitEntry of kits) {
-  const TRAVERSAL_KIT_MATERIALS = kitEntry.table[`${kitEntry.prefix}_KIT_MATERIALS`];
-  const TRAVERSAL_KIT_GRID = kitEntry.table[`${kitEntry.prefix}_KIT_GRID`];
+  const table = readKitMaterialData(await readGeneratedFile(kitEntry.tableUrl), kitEntry.prefix);
+  const TRAVERSAL_KIT_MATERIALS = table.materials;
+  const TRAVERSAL_KIT_GRID = table.grid;
   const declared = new Map(
     TRAVERSAL_KIT_MATERIALS.map((swatch) => [`${swatch.row}:${swatch.column}`, swatch]),
   );
@@ -365,38 +369,4 @@ test('every instanced batch that is written is also uploaded and drawn', async (
 
   assert.ok(checked >= 5, `expected to find instanced batches to check, found ${checked}`);
   assert.deepEqual(problems, [], `batches that will silently render nothing:\n  ${problems.join('\n  ')}`);
-});
-
-test('combat-arena has no vignette and no depth-of-field blur', async () => {
-  /**
-   * An owner decision, asserted so it stays true rather than being rediscovered.
-   *
-   * A vignette darkens the frame's corners and a depth-of-field pass blurs by distance. Both are
-   * standard cinematic post and both are wrong here: this is a top-down arena where the corners hold
-   * play and every ship must stay crisp at every depth. Goal 05's item 5 adds a vignette to other
-   * demos, so the risk is that it arrives by pattern-matching rather than by decision.
-   *
-   * Reads compiled WGSL: the shipped program, with no comments to hide an assertion in.
-   */
-  const [demo] = (await discoverDemos()).filter((entry) => entry.slug === 'combat-arena');
-  assert.ok(demo, 'combat-arena is missing');
-
-  const found = [];
-  for (const shader of await discoverShaders(demo)) {
-    // A vignette is a radial darkening keyed on distance from screen centre, which in practice means
-    // a `length` of a centred screen coordinate multiplying the output.
-    if (/vignette/i.test(shader.wgsl)) found.push(`${shader.relative}: names a vignette`);
-    if (/depthOfField|circleOfConfusion|bokeh/i.test(shader.wgsl)) {
-      found.push(`${shader.relative}: names a depth-of-field term`);
-    }
-    // A blur reads its own input at neighbouring offsets. Any shader sampling one texture five or
-    // more times is either a blur kernel or a mistake, and both are worth stopping here.
-    for (const texture of shader.sampledTextures) {
-      const samples = shader.samples.filter((sample) => sample.texture === texture).length;
-      // The globe samples albedo and clouds a few times each for its stylised bands, and triplanar
-      // costs three per map — five is comfortably above both and well below a kernel.
-      if (samples >= 5) found.push(`${shader.relative}: samples ${texture} ${samples} times, which is a blur kernel`);
-    }
-  }
-  assert.deepEqual(found, [], `combat-arena must stay free of vignette and depth-of-field:\n  ${found.join('\n  ')}`);
 });

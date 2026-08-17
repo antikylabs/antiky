@@ -15,7 +15,7 @@
     "portRelease": "node scripts/port-release.mjs",
     "postinstall": "node scripts/patch-brometal.mjs",
     "demos:shoot": "node scripts/shoot-demos.mjs",
-    "demos:verify": "node --experimental-strip-types --experimental-transform-types --test packages/demos/antiky/*/tests/visual-budget.test.mjs packages/demos/antiky/combat-arena/tests/camera-shake.test.mjs packages/demos/tests/pipeline-invariants.test.mjs",
+    "demos:verify": "node --experimental-strip-types --experimental-transform-types --test packages/demos/antiky/*/tests/visual-budget.test.mjs packages/demos/antiky/combat-arena/tests/camera-shake.test.mjs packages/demos/tests/shader/graph.test.mjs packages/demos/tests/pipeline-invariants.test.mjs packages/demos/tests/material-invariants.test.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:website": "node scripts/dev.mjs website",
     "dev:framework": "node scripts/dev.mjs framework",
