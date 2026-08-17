@@ -1,15 +1,12 @@
 /**
  * Owning a list of things that need releasing, and releasing them in the right order.
  *
- * Seven implementations of this existed before it lived here: three in the Antiky demos, two
- * two-array patterns in the Three.js demos, one hand-ordered list of twenty-two `dispose()` calls,
- * and the framework's own — which was the worst of them, because `EngineSessionDisposalError`
- * counted its failures and threw every cause away. This is `traversal-study`'s version, which had
- * already got it right, moved rather than redesigned.
+ * Several implementations existed before it lived here. The framework's copy counted failures and
+ * threw every cause away. This is `traversal-study`'s version, which already had the required
+ * release behavior, moved rather than redesigned.
  *
- * It types on `{ dispose(): void }` and nothing else. One of the consumers holds five unrelated
- * Three.js types in a single stack, so anything narrower would not fit, and nothing here needs to
- * know what a resource *is* to release it.
+ * It types on `{ dispose(): void }` and nothing else. Nothing here needs to know what a resource is
+ * to release it.
  *
  * Two rules the copies disagreed on, settled here:
  *

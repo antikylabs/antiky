@@ -6,15 +6,8 @@
  * inspection and the engine-session contract — so a demo that wanted only the shape of a game
  * module had to drag the entire point-light service type graph in behind it.
  *
- * Six demos responded by hand-copying the contract into a local `studio-game.ts` instead, five of
- * them byte-identical. Those copies then drifted: they declare `pointer: { x, y }` where the real
- * `GamePointerInput` has seven fields, so those demos cannot see `clicked`, `down`, `active`,
- * `dragX` or `dragY`, cannot see `movement` at all, and cannot see `mode` — which means neither
- * Three.js demo can degrade for thumbnail mode even though the host sets it.
- *
- * Splitting the types out does not by itself let the framework-free demos import them: the fence at
- * `packages/demos/tests/dev-host.test.mjs:72,95` proves BroMetal and Three.js work standalone, and
- * opening it is the owner's decision, not this module's.
+ * Keeping these platform-only types separate lets Antiky games depend on the host contract without
+ * importing the inspection, point-light, or engine-session implementation graph.
  */
 
 /** Semantic pointer state that a game reads from an Antiky host. */
