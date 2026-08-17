@@ -33,7 +33,7 @@ written so that those old plans cannot be mistaken for current direction.
 - Added Framework-owned generation for world, entity, command, and session IDs. The CLI generator
   delegates to that Framework capability.
 - Kept the current implementation and its maintained guidance outside this archive. Antiky Town now
-  lives at [`packages/demos/antiky/antiky-town`](../../../packages/demos/antiky/antiky-town/README.md),
+  lives at [`packages/demos/antiky/antiky-town`](../../../../packages/demos/antiky/antiky-town/README.md),
   and the current Framework and CLI documentation is authoritative.
 
 ## Verification record
@@ -65,7 +65,7 @@ their current form.
 
 - Game code and game hosts live in different modules. The game project owns rules, state, systems,
   render data, shaders, assets, and its game-module entry. Delivery hosts own canvas and platform
-  work. See [Framework ADR 0020](../../adr/framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md).
+  work. See [Framework ADR 0020](../../../adr/framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md).
 - `EngineSession` owns fixed simulation time, ordered work, world authority, and lifecycle. Hosts
   supply platform time and semantic input. Rendering does not decide simulation state.
 - External world changes use validated commands. Important accepted changes can become domain
@@ -75,12 +75,12 @@ their current form.
   indexes are temporary implementation aliases.
 - The BroMetal render driver is the default owner of BroMetal programs and GPU resources. Direct
   BroMetal use in a game module is an explicit exception. See
-  [Framework ADR 0021](../../adr/framework/0021-brometal-render-driver-ownership_H.md).
+  [Framework ADR 0021](../../../adr/framework/0021-brometal-render-driver-ownership_H.md).
 - Physics authority and execution device are separate choices. Rapier is the selected CPU physics
   engine and Nexus is the selected GPU physics engine, each behind a private adapter. A Nexus and
   BroMetal path still requires qualification. See
-  [Framework ADR 0018](../../adr/framework/0018-select-physics-authority-and-execution-independently_H.md)
-  and [Framework ADR 0019](../../adr/framework/0019-use-rapier-for-cpu-physics-and-nexus-for-gpu-physics_H.md).
+  [Framework ADR 0018](../../../adr/framework/0018-select-physics-authority-and-execution-independently_H.md)
+  and [Framework ADR 0019](../../../adr/framework/0019-use-rapier-for-cpu-physics-and-nexus-for-gpu-physics_H.md).
 
 ## What was learned
 

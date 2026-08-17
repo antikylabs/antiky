@@ -4,7 +4,7 @@
 > record of what was approved and on what basis. The live record is
 > `docs/adr/framework/0021-brometal-render-driver-ownership_H.md`; if the two ever differ, the ADR
 > wins. Kept because section 1 carries the language audit and the four terms still awaiting owner
-> approval. The [demo-refining archive](../../../_archives/demo-refining-summary.md) records the
+> approval. The [demo-refining archive](../../../_archives/2026-08-17-demo-refining-summary.md) records the
 > durable decision boundary.
 
 The text below was presented before placement. Per

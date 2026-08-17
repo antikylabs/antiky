@@ -10,7 +10,7 @@
  * it stays single. It is reachable only as `@antiky/framework/render-driver` and deliberately not
  * from the package barrel, so a server importing the framework does not pull a WebGPU library in
  * behind it. The reasoning is summarized in
- * `docs/project-planning/objectives/_archives/demo-refining-summary.md`.
+ * `docs/project-planning/objectives/_archives/2026-08-17-demo-refining-summary.md`.
  *
  * The frame shape here was extracted from two working implementations that had independently
  * converged on it — both cast shadows into a depth target, draw the scene into a floating-point

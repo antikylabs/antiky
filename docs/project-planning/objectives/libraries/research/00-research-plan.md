@@ -49,7 +49,7 @@ or create executable goals.
 - Scope: Inspect the current catalog schema, generated records, source clients, documentation, and
   archived objective summary. Quantify present metadata, pack granularity, and representative gaps.
 - Sources: `packages/asset-catalog/`, `docs/user-facing-docs/assets/`, relevant tests, generated
-  snapshots, and `docs/objectives/_archives/asset-catalog-summary.md`.
+  snapshots, and `docs/project-planning/objectives/_archives/2026-08-10-asset-catalog-summary.md`.
 - Return: Findings with file or command evidence, a gap matrix, representative examples, and
   explicit unknowns. Do not change files.
 

@@ -6,7 +6,7 @@ This was a read-only inspection of:
 
 - `packages/asset-catalog/src/`, `data/`, `tests/`, `dist/v1/`, and preview assets
 - `docs/user-facing-docs/assets/catalog.md`
-- `docs/objectives/_archives/asset-catalog-summary.md`
+- `docs/project-planning/objectives/_archives/2026-08-10-asset-catalog-summary.md`
 - the website’s catalog presentation and filtering code where needed to determine what users can see
 
 I did not refresh providers or download archives. I did not run `npm test`, because the package test starts with a build that removes and rewrites `dist/`. I inspected the tests and ran read-only imports and snapshot queries instead.
@@ -45,7 +45,10 @@ The main provider distribution is:
 
 The 1,466 total is the archived 1,453-record six-source baseline plus 13 new handpicked records. `packages/asset-catalog/data/handpicked-sources.generated.json` contains 13 new assets from 19 reviewed sources; six of those sources alias existing records and adjust their quality rather than add records.
 
-**Established drift.** `docs/user-facing-docs/assets/catalog.md:11` and `docs/objectives/_archives/asset-catalog-summary.md:20-22` still state 1,453. The current static-output test expects 1,466 at `packages/asset-catalog/tests/static-output.test.mjs:27-29`.
+**Established drift.** `docs/user-facing-docs/assets/catalog.md:11` and
+`docs/project-planning/objectives/_archives/2026-08-10-asset-catalog-summary.md` still state 1,453.
+The current static-output test expects 1,466 at
+`packages/asset-catalog/tests/static-output.test.mjs:27-29`.
 
 **Unknown.** I did not verify the production website or API over the network, so this proves source and local generated-output state, not deployed state.
 

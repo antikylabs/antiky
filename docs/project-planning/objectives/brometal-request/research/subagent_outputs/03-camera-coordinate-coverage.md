@@ -6,7 +6,7 @@
 
 A previous extraction audit reached the same conclusion: the camera implementations shared idioms
 but had not converged into one module. It explicitly rejected promoting them at that time. The
-[demo-refining archive](../../../_archives/demo-refining-summary.md) preserves that extraction
+[demo-refining archive](../../../_archives/2026-08-17-demo-refining-summary.md) preserves that extraction
 boundary.
 
 Status labels below mean:

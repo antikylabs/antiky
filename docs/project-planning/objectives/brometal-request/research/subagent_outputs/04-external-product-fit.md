@@ -123,7 +123,7 @@ At the time of this research:
 
 Historical evidence:
 
-- The [demo-refining archive](../../../_archives/demo-refining-summary.md) records the later driver
+- The [demo-refining archive](../../../_archives/2026-08-17-demo-refining-summary.md) records the later driver
   delivery and the valid hybrid Antiky/BroMetal boundary. It supersedes this research snapshot's
   unmet demo-migration premise.
 - `packages/website/PRODUCT.md:84-96`

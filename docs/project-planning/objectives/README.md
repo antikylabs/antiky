@@ -27,10 +27,10 @@ Before planning or implementing work, read:
 
 | Objective | Summary |
 | --- | --- |
-| [Demo refining](_archives/demo-refining-summary.md) | Records the Antiky-only demo scope, rendering and capture boundaries, verified evidence, and accepted visual debt. |
-| [Asset catalog](_archives/asset-catalog-summary.md) | Records the shipped static catalog, research conclusions, source posture, and durable admission rules. |
-| [Antiky Studio](_archives/studio-summary.md) | Records the shipped Studio workspace, project model, shared development services, and durable boundaries. |
-| [Antiky Town (legacy)](_archives/antiky-town-summary.md) | Records the first three shipped Town slices, the superseded plans, and the current restart boundary. |
+| [Demo refining](_archives/2026-08-17-demo-refining-summary.md) | Records the Antiky-only demo scope, rendering and capture boundaries, verified evidence, and accepted visual debt. |
+| [Antiky Town (legacy)](_archives/2026-08-14-antiky-town-summary.md) | Records the first three shipped Town slices, the superseded plans, and the current restart boundary. |
+| [Asset catalog](_archives/2026-08-10-asset-catalog-summary.md) | Records the shipped static catalog, research conclusions, source posture, and durable admission rules. |
+| [Antiky Studio](_archives/2026-08-10-studio-summary.md) | Records the shipped Studio workspace, project model, shared development services, and durable boundaries. |
 
 ## Deferred work
 
@@ -45,9 +45,10 @@ Use this method when the owner confirms that an entire objective is complete:
 1. Read the full objective folder, its closeout summaries, maintained product documentation, and
    relevant repository history. Treat shipped behavior and current durable documentation as
    authoritative when old plan statuses are stale or an approach was superseded.
-2. Write `_archives/<objective-name>-summary.md`. Record the delivered outcome, durable decisions and
-   boundaries, important verification results and evidence limitations, work intentionally excluded,
-   and the conditions under which future work should reopen the subject.
+2. Write `_archives/YYYY-MM-DD-<objective-name>-summary.md`, using the completion date so archive
+   files sort by completion. Record the delivered outcome, durable decisions and boundaries,
+   important verification results and evidence limitations, work intentionally excluded, and the
+   conditions under which future work should reopen the subject.
 3. Keep the summary useful for future planning, but do not copy the working folder into the archive.
    Omit raw feedback, task ordering, temporary evidence paths, obsolete commands, and plan-by-plan
    detail unless a fact remains necessary to understand the shipped system.

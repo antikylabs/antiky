@@ -39,7 +39,7 @@ structure") bound to an assertion that fails until it is true.
 - **The hand-written version has to prove itself.** The four `visual-budget.test.mjs` files and the
   five pipeline invariants are the manual precedent. If they turn out to measure the wrong things,
   a system for generating more of them faster makes the problem worse, not better. The
-  [demo-refining archive](../objectives/_archives/demo-refining-summary.md) records the first
+  [demo-refining archive](../objectives/_archives/2026-08-17-demo-refining-summary.md) records the first
   instrument correction and the accepted measurement limits.
 - **Thresholds have to be owner-owned in practice, not just in policy.** The whole value is that an
   agent cannot loosen a contract to pass it. That rule currently exists as prose in a dispatch
@@ -109,7 +109,7 @@ wrong and this file should be deleted with that finding recorded.
 
 ## Related
 
-- [Demo-refining archive](../objectives/_archives/demo-refining-summary.md) — the hand-written
+- [Demo-refining archive](../objectives/_archives/2026-08-17-demo-refining-summary.md) — the hand-written
   precedent and bounded acceptance practice
 - `../scratch/skill-research/IMPLEMENTATION-PLAN.md` — the self-verification loop this would harden
 - `../../adr/framework/0003-agent-native_H.md` — one engine API for humans and agents

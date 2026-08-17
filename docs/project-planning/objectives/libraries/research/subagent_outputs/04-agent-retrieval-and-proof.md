@@ -20,7 +20,7 @@ Research date: 2026-08-12. This report is read-only.
   ([`docs/objectives/skill-research/skills/AGENTS.md:1`](docs/objectives/skill-research/skills/AGENTS.md:1)).
 
 **Inference.** Keep that split and add one small, task-oriented retrieval contract shared by the package, Studio, CLI, and—only if measured client demand warrants it—an optional local MCP adapter. Do not create a hosted catalog MCP server merely to wrap public JSON. This matches the archived catalog decision
-([`docs/objectives/_archives/asset-catalog-summary.md:79`](docs/objectives/_archives/asset-catalog-summary.md:79)).
+([archived asset-catalog objective](../../../_archives/2026-08-10-asset-catalog-summary.md)).
 
 The leading workflow should be:
 
@@ -274,4 +274,4 @@ Shader evaluation needs a matrix of representative geometry, material inputs, li
 7. Which visual claims require human approval, and which can use deterministic thresholds or image comparisons?
 8. What publication and retention rules apply to shader preview captures, especially when third-party assets or game-rendered text are present?
 9. Should public media and software/shader records share only search envelopes, or also a catalog package? The archived objective requires distinct licenses, dependencies, versions, notices, and build/render evidence
-   ([`docs/objectives/_archives/asset-catalog-summary.md:39`](docs/objectives/_archives/asset-catalog-summary.md:39)).
+   ([archived asset-catalog objective](../../../_archives/2026-08-10-asset-catalog-summary.md)).

@@ -50,7 +50,9 @@
 
 - **Claimed:** The owner considers the project page visually inconsistent with the main and Settings pages and explicitly wants to prevent generic-looking apps. Evidence: `docs/objectives/studio-apps/objective.md:36-46`.
 
-- **Claimed:** The archived Studio objective says the current workspace was aligned to the website’s compact, game-first language. Evidence: `docs/objectives/_archives/studio-summary.md:31-34`.
+- **Claimed:** The archived Studio objective says the current workspace was aligned to the website's
+  compact, game-first language. Evidence:
+  `docs/project-planning/objectives/_archives/2026-08-10-studio-summary.md`.
 
 - **Established:** Repository images `packages/website/public/media/antiky-studio-workspace.jpeg` and `packages/website/public/media/machinery/studio-workspace-wide-v1.webp` visibly show the current four-area, dark, compact workspace. Git records them as 2026-08-08 and 2026-08-09 artifacts. They are useful visual references, but they are static images rather than proof of the current runtime at different viewport sizes or states.
 

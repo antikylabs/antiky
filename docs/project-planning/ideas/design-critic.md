@@ -33,7 +33,7 @@ by the time a budget exists, the decision it measures has already been made.
 
 ## Why the existing critics do not cover it
 
-The critic recorded in the [demo-refining archive](../objectives/_archives/demo-refining-summary.md)
+The critic recorded in the [demo-refining archive](../objectives/_archives/2026-08-17-demo-refining-summary.md)
 judged **whether a measurement measured what it claimed**. It caught a real error —
 `luminanceSpread` tracked peak brightness rather than contrast. That is a critic for *instruments*.
 
@@ -68,7 +68,7 @@ and third by hand before building anything that generates them.
 
 ## Related
 
-- [Demo-refining archive](../objectives/_archives/demo-refining-summary.md) — the completed
+- [Demo-refining archive](../objectives/_archives/2026-08-17-demo-refining-summary.md) — the completed
   measurement and correction history
 - `agent-legible-quality-measurement.md` — what the measurement side can and cannot do
 - `executable-requirement-contracts.md` — where a design rule would bind if it became checkable

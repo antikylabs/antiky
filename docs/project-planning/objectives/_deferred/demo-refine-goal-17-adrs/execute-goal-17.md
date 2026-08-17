@@ -6,7 +6,7 @@
 
 ## Prerequisites
 
-- The [demo-refining objective](../../_archives/demo-refining-summary.md) is complete and archived.
+- The [demo-refining objective](../../_archives/2026-08-17-demo-refining-summary.md) is complete and archived.
   Refresh the retained candidate evidence in this packet before using it.
 - Read all accepted Framework, CLI, and Studio ADRs, not only the records named by the older audits.
 - Read [`08-ADR-IMPACT.md`](sources/08-ADR-IMPACT.md),

@@ -2,7 +2,7 @@
 
 **Recorded:** 2026-08-11
 **Status:** the capability exists. The *skills* that would teach it remain deferred; the
-[demo-refining archive](../objectives/_archives/demo-refining-summary.md) records the completed
+[demo-refining archive](../objectives/_archives/2026-08-17-demo-refining-summary.md) records the completed
 measurement boundary.
 **Origin:** owner observation after goal 13 — "no other game engine is providing this, and this is
 prime skill material."
@@ -78,6 +78,6 @@ already describes.
 
 ## Related
 
-- [Demo-refining archive](../objectives/_archives/demo-refining-summary.md) — the harness, motion,
+- [Demo-refining archive](../objectives/_archives/2026-08-17-demo-refining-summary.md) — the harness, motion,
   and corrected visual-measurement conclusions
 - `executable-requirement-contracts.md` — where this goes if it generalises
