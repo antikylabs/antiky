@@ -20,7 +20,7 @@ Two recent patterns do not need a new ADR now:
 
 - Dynamic Studio ports are private allocation details of the CLI development authority.
 - Website demo publication is already tracked by open candidate 16 in
-  [`docs/adr/UNDER_REVIEW_A.md`](../../adr/UNDER_REVIEW_A.md).
+  [`docs/adr/UNDER_REVIEW_A.md`](../../../../../adr/UNDER_REVIEW_A.md).
 
 ## 1. Visual evidence is a development service
 

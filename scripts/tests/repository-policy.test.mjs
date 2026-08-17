@@ -107,6 +107,7 @@ test('root package commands stay within the cross-workspace allowlist', async ()
     'portRelease',
     'postinstall',
     'test',
+    'test:gpu',
     'typecheck',
   ]);
 });

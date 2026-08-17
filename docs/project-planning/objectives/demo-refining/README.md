@@ -1,9 +1,15 @@
 # Demo Refining
 
-Audit and remediation plan for the antiky, BroMetal and three.js demos, after the owner judged
+Audit and remediation plan for the Antiky, BroMetal and Three.js demos, after the owner judged
 the shipped quality well short of the AAA-stylised targets they were commissioned against
 (League of Legends for the lighting expo, Rocket League for the arena, LittleBigPlanet for the
 platformer).
+
+**Scope update (2026-08-16): the packaged demo catalog is Antiky-only.** [Goal
+19](goals/execute-goal-19.md) deletes the standalone `packages/demos/brometal` and
+`packages/demos/threejs` families and removes them from the website, scripts, tests, lockfile, and
+user documentation. Antiky demos may remain hybrid Antiky/BroMetal projects while framework
+capabilities grow. Historical audit sections about standalone demos remain evidence, not backlog.
 
 **Scope update (2026-08-10): `antiky-town` is now in scope.** The audit documents below were
 written while it was excluded, so they say otherwise — the goal files in `goals/` are authoritative
@@ -11,13 +17,16 @@ on scope. antiky-town gets the same treatment as the other demos, plus a facelif
 (grass and trees) and water effects, which the owner has called out specifically.
 
 **Phase update (2026-08-16): the original remediation work and Goal 99 register are complete.**
-Four bounded follow-ons remain:
+Three bounded implementation follow-ons remain:
 
-- [Goal 16](goals/execute-goal-16.md) — BroMetal update, patches, upstream pull requests, and
-  retirement.
-- [Goal 17](goals/execute-goal-17.md) — ADR reconciliation and owner decision proposals.
+- [Goal 16](goals/execute-goal-16.md) — BroMetal update, patch necessity checks, and two missing
+  local patches.
 - [Goal 18](goals/execute-goal-18.md) — one observation for every completed fixed step.
-- [Goal 19](goals/execute-goal-19.md) — deterministic capture controls and live inspection tests.
+- [Goal 19](goals/execute-goal-19.md) — remove standalone demos, then make Antiky capture and
+  inspection deterministic and live.
+
+[Goal 17 and its ADR evidence](../_deferred/demo-refine-goal-17-adrs/README.md) are deferred as
+acceptable architecture debt. They do not block the remaining implementation or objective closeout.
 
 The [Goal 99 summary](goals/_completed/summary-goal-99.md) is the durable disposition of every old
 register ID. Do not use the older audit tables as a current backlog.
@@ -34,7 +43,7 @@ register ID. Do not use the older audit tables as a current backlog.
 | [`05-FRAMEWORK-EASY-WINS.md`](05-FRAMEWORK-EASY-WINS.md) | What has earned promotion into `@antiky/framework`, and what has not. |
 | [`06-WORK-PACKETS.md`](06-WORK-PACKETS.md) | **The executable backlog.** Independently dispatchable packets with owned-file locks, dependencies, and bounded testable acceptance criteria. Hand subagents packets from here. |
 | [`07-TESTING-WITH-ANTIKY-MCP.md`](07-TESTING-WITH-ANTIKY-MCP.md) | How to actually see and inspect what you build, using the capture/inspection MCP the repo already ships. Every command verified against a live server. **Read before touching a shader.** |
-| [`08-ADR-IMPACT.md`](08-ADR-IMPACT.md) | ADR compliance gaps and the records this plan needs. **Read before starting Track A or Track B.** |
+| [`08-ADR-IMPACT.md`](../_deferred/demo-refine-goal-17-adrs/sources/08-ADR-IMPACT.md) | Historical ADR compliance audit, now retained with the deferred Goal 17 packet. Current accepted ADRs are authoritative. |
 | [`09-RENDER-DRIVER-DECISION.md`](09-RENDER-DRIVER-DECISION.md) | The owner's `BroMetalRenderDriver` decision and the reasoning. The draft ADR it carried is now **placed** as `docs/adr/framework/0021`. |
 | [`10-ADR-0013-SEED-GAP.md`](10-ADR-0013-SEED-GAP.md) | Recorded compliance gap: ADR 0013 requires explicit random seeds and none exist. Recorded by goal 00, implemented by goal 11. |
 | [`11-MOTION-INSPECTION-RESEARCH.md`](11-MOTION-INSPECTION-RESEARCH.md) | How to judge motion — shake, judder, VFX timing, traversal feel — with a model that cannot watch video. Ranked proposals, prior art, and bounded acceptance criteria. **Read before W D.5 or W D.6.** |

@@ -7,11 +7,11 @@ a shared objective task queue or an automated agent loop.
 
 Before planning or implementing work, read:
 
-- [`../VISION_DIRECTION_H.md`](../VISION_DIRECTION_H.md) for human-owned product direction.
-- [`../GOOD_ENGINEERING_H.md`](../GOOD_ENGINEERING_H.md) before making design or architecture
+- [`../../VISION_DIRECTION_H.md`](../../VISION_DIRECTION_H.md) for human-owned product direction.
+- [`../../GOOD_ENGINEERING_H.md`](../../GOOD_ENGINEERING_H.md) before making design or architecture
   decisions.
-- [`../README.md`](../README.md) for document ownership.
-- The relevant records in [`../adr/`](../adr/README.md) and [`../aip/`](../aip/README.md). A plan
+- [`../../README.md`](../../README.md) for document ownership.
+- The relevant records in [`../../adr/`](../../adr/README.md) and [`../../aip/`](../../aip/README.md). A plan
   applies accepted direction and decisions. It does not replace them.
 
 ## Active objectives
@@ -30,6 +30,12 @@ Before planning or implementing work, read:
 | [Asset catalog](_archives/asset-catalog-summary.md) | Records the shipped static catalog, research conclusions, source posture, and durable admission rules. |
 | [Antiky Studio](_archives/studio-summary.md) | Records the shipped Studio workspace, project model, shared development services, and durable boundaries. |
 | [Antiky Town (legacy)](_archives/antiky-town-summary.md) | Records the first three shipped Town slices, the superseded plans, and the current restart boundary. |
+
+## Deferred work
+
+| Work | Restart packet | Reason |
+| --- | --- | --- |
+| Demo-refining ADR reconciliation | [Goal 17 packet](_deferred/demo-refine-goal-17-adrs/README.md) | Accepted architecture debt. Current ADRs remain authoritative; reopen only when a recorded trigger occurs. |
 
 ## Objective closeout and archive method
 

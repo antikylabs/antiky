@@ -6,13 +6,8 @@
 
 ## Action needed from the owner
 
-Three later actions. None blocks closing Goal 99 because each is explicit in its follow-on goal.
-
-| # | What | Why it needs you | Blocks |
-|---|---|---|---|
-| 1 | Authorize the four new BroMetal pull requests listed in [Goal 16](../execute-goal-16.md). | Opening external pull requests changes upstream state. | Completion of Goal 16. |
-| 2 | Review the decision packet that [Goal 17](../execute-goal-17.md) will produce, then explicitly instruct any accepted-record edit. | ADRs are human-owned and accepted records cannot be changed by implication. | Filing or clarifying ADRs, not the audit. |
-| 3 | Choose the tone-map invariant's scope in [Goal 19](../execute-goal-19.md). | Extending it to framework-free showcases is a product-scope choice, not a test repair. | Completion of Goal 19. |
+None. On 2026-08-16, the owner chose an Antiky-only packaged demo catalog. Goal 19 now removes the
+standalone BroMetal and Three.js demos and applies the tone-map invariant only to Antiky demos.
 
 The prior art-direction questions are not immediate engineering work. Their triggers remain below.
 No agent selected a new frame, visual target, meadow layout, paused-frame behavior, concave AO pass,
@@ -22,10 +17,10 @@ or fountain effect during this closeout.
 
 Goal 99 was replaced as a working register by four bounded contracts:
 
-1. [Goal 16](../execute-goal-16.md) owns the BroMetal update, patch set, upstream pull requests, and
-   retirement evidence.
-2. [Goal 17](../execute-goal-17.md) reconciles the accepted ADRs, the older demo audit, the recent
-   architecture note, and the under-review list without manufacturing an accepted decision.
+1. [Goal 16](../execute-goal-16.md) owns the BroMetal update, patch necessity checks, two missing
+   local patches, and retirement evidence. Upstream submission is deferred.
+2. [Goal 17](../../../_deferred/demo-refine-goal-17-adrs/README.md) is deferred as acceptable
+   architecture debt with its source audits and restart procedure intact.
 3. [Goal 18](../execute-goal-18.md) adds the one missing Framework seam: an observation after every
    completed fixed step.
 4. [Goal 19](../execute-goal-19.md) repairs demo discovery and the live material-test surface, then
@@ -37,14 +32,14 @@ remain hidden inside this closeout goal.
 
 ## Final register disposition
 
-### Routed to the four follow-on goals
+### Final active and deferred routes
 
 | IDs | Final durable route |
 |---|---|
 | A4 | Goal 18. Add one ordered completed-step observer with zero-, one-, multi-, partial-, and single-step tests. |
-| A9, M13, M15, M16, U5, G4 | Goal 19. Repair discovery and the registered invariant surface, then add observation-fenced fixed-step and declared camera/scene capture controls. |
-| A11, U1, U2, U3 | Goal 16. Update from the current pin, revalidate every patch, add perspective and readback patches, split the remaining useful PR 2 work, and give every local patch an upstream URL. |
-| R1 | Goal 17. Preserve the 37-error/11-warning/6-info machine result, do the human judgment audit, and prepare an owner-controlled clarification path. |
+| A9, M13, M15, M16, U5, G4 | Goal 19. Remove the standalone demo families, repair Antiky-only discovery and the registered invariant surface, then add observation-fenced fixed-step and declared camera/scene capture controls. |
+| A11, U3 | Goal 16. Update from the current pin, prove whether every patch remains necessary, and add local perspective and readback patches when the current release still lacks them. |
+| R1 | [Deferred Goal 17 packet](../../../_deferred/demo-refine-goal-17-adrs/README.md). Preserve the 37-error/11-warning/6-info machine result and reopen only through an owner-controlled architecture review. |
 
 ### Dormant with one observable trigger and one durable location
 
@@ -58,12 +53,12 @@ remain hidden inside this closeout goal.
 | A13 | The convex-rock bake stays withdrawn. Reopen concave AO only when the owner commissions it for Combat Arena or Traversal Study. Keep the finding in this summary and their art-direction briefs. |
 | A14 | Reopen `edges.hard` when a lighting-only change produces a false result. Keep its contrast confound in the existing visual-budget comments. |
 | A16 | Reopen fountain particles only when the owner commissions Town fountain VFX. Keep the design in Goal 08's summary and the Town art-direction brief. |
-| M2 | Add targets to a framework-free demo only when it receives a stated reference look. Keep the trigger in this summary. |
 | M3 | Add another motion representation only when P1 through P3 leave a named diagnostic gap for a real consumer. Keep the trigger in this summary. |
 | M4 | Revisit the 30 fps sequence limit for a named pixel-only defect above its approximately 15 Hz Nyquist limit. Keep the trigger in this summary. |
-| M6 | Revisit the Glass Garden poster difference during the next poster-master refresh. Keep the trigger in this summary. |
 | M11 | Strengthen the metrics seal only if the threat model expands beyond accidental edits. Keep the trigger in this summary. |
 | M12 | Reopen Traversal Study composition or its value contract only when the owner selects one of those directions. Keep the measured conflict in Goal 08's summary and this summary. |
+| U1 | Reopen upstream submission when the owner asks to resume BroMetal contributions. Preserve existing pull-request URLs and keep every unsubmitted patch marked honestly until then. |
+| U2 | Reopen closed pull request 2 triage only when upstream submission resumes or a current consumer demonstrates a need for one of its remaining general capabilities. Keep this disposition in the Goal 99 summary. |
 | S2 | Write a measurement-tooling skill only after Goal 19 settles the capture controls and missing probes. Keep the trigger in this summary. |
 | S3 | The skill-library plan remains in `docs/project-planning/objectives/scratch/skill-research/`. It follows that plan's schedule. |
 | G2 | Replace Town's final sine hash when the owner permits the resulting meadow-layout change or a new Town art baseline is commissioned. Keep the trigger in this summary. |
@@ -71,7 +66,7 @@ remain hidden inside this closeout goal.
 | G6 | Revisit Framework's BroMetal dependency if Framework is published or a headless consumer cannot accept the optional render-driver subpath. Keep the trigger in this summary. |
 | N1 | Split `town/index.ts` when the next functional change owns that file or an explicit Town-cohesion objective starts. Preserve behavioral fences before the split. |
 | N2 | Revisit Traversal Study's ignored parallax input and unused uniforms when a camera or shader goal next owns those files. Keep the trigger in this summary. |
-| N3 | Keep the texture-array patch as one contribution unless its upstream pull request splits. Goal 16 applies this as a patch-ownership constraint. |
+| N3 | Keep the texture-array patch as one contribution unless a future upstream contribution splits. Goal 16 applies this as a patch-ownership constraint. |
 | N4 | Revisit the hand-written layer URL list or test-only `atlasGridUniform` only when the atlas layer set changes or a replacement validator exists. Keep the trigger in this summary. |
 
 ### Resolved or withdrawn; no new action
@@ -84,6 +79,7 @@ remain hidden inside this closeout goal.
 | A12 | Closed. Goal 06-04 measured peter-panning at 0.47 px and bounded frame-time cost. |
 | A15 | Closed. `sourceDigest` includes shared demo scripts by design. |
 | M5 | Closed. The separate Town foliage sun was measured and retained. |
+| M2, M6 | Withdrawn. Goal 19 removes the framework-free demo catalog and Glass Garden rather than maintaining visual targets for either. |
 | M7 | Withdrawn as work. A metric moving in the preferred direction is not visual proof. |
 | M8 | Withdrawn. The proposed normal-map target was not calibrated. |
 | M10 | Closed. Test discovery was widened and the retired `town-study` defects are not active work. |
@@ -135,12 +131,11 @@ to Goal 19 rather than described as M12 or U5.
 
 ## What this unblocks
 
-- Goals 16, 17, and 18 can start independently after their stated owner/input checks.
+- Goals 16 and 18 can start independently after their stated owner/input checks.
 - Goal 19 can start after Goal 18 and after the BroMetal/demo sidecar file lock is free.
 - The demo-refining objective no longer needs Goal 99 as an unbounded live backlog.
 
 ## What remains blocked
 
-- Goal 16 cannot complete without permission to open its four upstream pull requests.
-- Goal 17 can prepare proposals, but only the owner can decide or authorize accepted ADR changes.
-- Goal 19 cannot settle U5 until the owner selects the tone-map invariant's product scope.
+None by an owner decision. Goal 19 still waits for its stated Goal 18 dependency and shared-file
+locks.

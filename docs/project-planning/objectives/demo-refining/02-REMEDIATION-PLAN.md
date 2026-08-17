@@ -14,7 +14,7 @@ existing assets with real PBR materials, stylised lighting, and VFX),
 [`04-COMPLEXITY-REDUCTION.md`](04-COMPLEXITY-REDUCTION.md),
 [`05-FRAMEWORK-EASY-WINS.md`](05-FRAMEWORK-EASY-WINS.md),
 [`07-TESTING-WITH-ANTIKY-MCP.md`](07-TESTING-WITH-ANTIKY-MCP.md), and
-[`08-ADR-IMPACT.md`](08-ADR-IMPACT.md).
+[`08-ADR-IMPACT.md`](../_deferred/demo-refine-goal-17-adrs/sources/08-ADR-IMPACT.md).
 
 > **Decided 2026-08-10 — the promotion target now has a name.** The framework will own a
 > `BroMetalRenderDriver`: BroMetal-specific, no backend abstraction, no plugin seam. Game modules

@@ -65,16 +65,17 @@ together.
 | **13** | [Measure motion, so feel can be judged instead of guessed](_completed/execute-goal-13.md) | **Done** `d241cf6` — [summary](_completed/summary-goal-13.md) | 01 | everything |
 | **14** | [Give Antiky a way to build and check texture atlases](_completed/execute-goal-14.md) | **Done** `bf2bd41` — [summary](_completed/summary-goal-14.md) | 04 | everything except 15 |
 | **15** | [Give BroMetal the texture capabilities WebGPU already has](_completed/execute-goal-15.md) | **Done** `01d856c` — [summary](_completed/summary-goal-15.md) | 14 | everything except 14 |
-| **16** | [Update BroMetal and close every local patch loop](execute-goal-16.md) | Ready after owner authorizes four upstream pull requests | 15, 99 | 17, 18 |
-| **17** | [Reconcile the architecture record and prepare owner decisions](execute-goal-17.md) | Ready — proposal work needs no prior owner decision | 99 | 16, 18 |
-| **18** | [Expose every completed simulation step to observers](execute-goal-18.md) | Ready | 99 | 16, 17 |
-| **19** | [Make demo inspection deterministic and keep its assertions live](execute-goal-19.md) | Waits for 18 and the BroMetal/sidecar file lock | 16, 18, 99 | 17 |
+| **16** | [Update BroMetal and verify every local patch](execute-goal-16.md) | Ready — upstream submissions are explicitly deferred | 15, 99 | 18 |
+| **17** | [Reconcile the architecture record and submit owner-approved decisions](../../_deferred/demo-refine-goal-17-adrs/execute-goal-17.md) | **Deferred as acceptable debt** — [restart summary](../../_deferred/demo-refine-goal-17-adrs/README.md) | 99 | — |
+| **18** | [Expose every completed simulation step to observers](execute-goal-18.md) | Ready | 99 | 16 |
+| **19** | [Make Antiky demo inspection deterministic and keep its assertions live](execute-goal-19.md) | Owner scope resolved: delete standalone BroMetal/Three.js demos; waits for 18 and the BroMetal/sidecar file lock | 16, 18, 99 | — |
 | **99** | [Close the revisit register and route the remaining work](_completed/execute-goal-99.md) | **Done** — [summary](_completed/summary-goal-99.md); routed all current work into Goals 16–19 | 00–15 | — |
 
 **Critical path:** `00 → 01 → 02 → 06 → 07 → 11 → 12`.
-**Next up:** Goals 16, 17, and 18 can start independently after their stated input checks. Goal 19
+**Next up:** Goals 16 and 18 can start independently after their stated input checks. Goal 19
 waits for Goal 18 and must not race Goal 16 on BroMetal, demo packages, or committed sidecars.
-Goal 99 is complete; its summary is the durable disposition of the historical register.
+Goal 17 is deferred and does not block this sequence. Goal 99 is complete; its summary is the
+durable disposition of the historical register.
 
 **Goal 09 changed what is known about `antiky-town`.** Its inventory
 ([`13-ANTIKY-TOWN-COMPLEXITY.md`](../13-ANTIKY-TOWN-COMPLEXITY.md)) is the first audit that demo has
@@ -151,15 +152,15 @@ If a finding is not in this table, it is not being fixed, and that is a gap to r
 | Orbital Atlas per-frame `setSize` perf bug | `04-baseline-demos-and-presentation` | 10 |
 | Reef plankton squares, Shader Study crater squares | `04-baseline-demos-and-presentation` | 10 |
 | Mobile thumbnails hover-only; posters cropped | `04-baseline-demos-and-presentation` | 10 |
-| No seed anywhere (**ADR 0013 compliance gap**) | `05`, `08-ADR-IMPACT.md` | 11 (recorded in 00) |
+| No seed anywhere (**ADR 0013 compliance gap**) | `05`, [deferred ADR impact audit](../../_deferred/demo-refine-goal-17-adrs/sources/08-ADR-IMPACT.md) | 11 (recorded in 00) |
 | Disposal scope reimplemented 7× | `05-FRAMEWORK-EASY-WINS.md` | 11 |
 | Input buffer 3×, with an unpropagated bug fix | `05-FRAMEWORK-EASY-WINS.md` | 11 |
 | Event recorder 3× byte-identical | `05-FRAMEWORK-EASY-WINS.md` | 11 |
 | `advance()` result codes silently dropped everywhere | `05-FRAMEWORK-EASY-WINS.md` | 11 |
 | 1,286 duplicated broadphase lines, no agreement test | `05-FRAMEWORK-EASY-WINS.md` | 11 |
-| ADR 0006 vs studio/0007 contradiction | `08-ADR-IMPACT.md` | 00 |
-| Seven ADRs load-bearing on a nonexistent `RenderDriver` | `08-ADR-IMPACT.md` | 00, 12 |
-| `PRODUCT.md` ships a Direction claim as Current | `08-ADR-IMPACT.md` | 00 |
+| ADR 0006 vs studio/0007 contradiction | [deferred ADR impact audit](../../_deferred/demo-refine-goal-17-adrs/sources/08-ADR-IMPACT.md) | 00 |
+| Seven ADRs load-bearing on a nonexistent `RenderDriver` | [deferred ADR impact audit](../../_deferred/demo-refine-goal-17-adrs/sources/08-ADR-IMPACT.md) | 00, 12 |
+| `PRODUCT.md` ships a Direction claim as Current | [deferred ADR impact audit](../../_deferred/demo-refine-goal-17-adrs/sources/08-ADR-IMPACT.md) | 00 |
 | `capture_frame` times out on every asset-heavy demo | `07-TESTING-WITH-ANTIKY-MCP.md` | 01 |
 | `npm test` red on `main` | `07-TESTING-WITH-ANTIKY-MCP.md` | 01 |
 | `combat-arena`/`traversal-study` missing from `dev.mjs` | `07-TESTING-WITH-ANTIKY-MCP.md` | 01 |

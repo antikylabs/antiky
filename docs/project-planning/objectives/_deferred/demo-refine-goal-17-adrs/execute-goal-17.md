@@ -1,31 +1,37 @@
-# Execute goal 17: reconcile the architecture record and prepare owner decisions
+# Execute goal 17: reconcile the architecture record and submit owner-approved decisions
+
+> **Status: deferred on 2026-08-16 as accepted architecture debt.** Do not execute this goal from
+> the demo-refining sequence. Read the [deferred summary](README.md) and refresh every volatile fact
+> before reopening the work.
 
 ## Prerequisites
 
-- [Goal 99](_completed/execute-goal-99.md) is complete. This goal needs R1 and the resolved R2 through
-  R4 findings from its [summary](_completed/summary-goal-99.md).
+- [Goal 99](../../demo-refining/goals/_completed/execute-goal-99.md) is complete. This goal needs R1
+  and the resolved R2 through R4 findings from its
+  [summary](../../demo-refining/goals/_completed/summary-goal-99.md).
 - Read all accepted Framework, CLI, and Studio ADRs, not only the records named by the older audits.
-- Read [`08-ADR-IMPACT.md`](../08-ADR-IMPACT.md),
-  [`recent-architecture-learnings-2026-08-10.md`](../../scratch/recent-architecture-learnings-2026-08-10.md),
+- Read [`08-ADR-IMPACT.md`](sources/08-ADR-IMPACT.md),
+  [`recent-architecture-learnings-2026-08-10.md`](sources/recent-architecture-learnings-2026-08-10.md),
   and [`UNDER_REVIEW_A.md`](../../../../adr/UNDER_REVIEW_A.md) as proposals, not authority.
 - This goal can run beside Goals 16 and 18. It does not own their code or dependency files.
 
 ### Needed from the owner before starting
 
-Nothing. This goal can audit the record, update proposal material, and prepare decision-ready drafts.
-It must stop before it changes an accepted `_H` record or files a new accepted ADR without the
-owner's explicit decision and instruction.
+Nothing. This goal can complete the reconciliation and prepare decision-ready drafts. It has a
+mandatory owner checkpoint before it assigns an ADR number, submits a new record, or changes an
+accepted `_H` record.
 
 ## `/goal` objective
 
 Produce one current architecture decision packet from the two overlapping audits and the accepted
 record that now exists. The packet must separate already-resolved decisions, implementation work,
-owner-approved clarifications, and genuinely missing architecture decisions.
+clarifications, and genuinely missing architecture decisions. After the owner decides the packet,
+submit each approved new ADR and make only the explicitly authorized accepted-record changes.
 
 This goal delivers the ADR reconciliation requested by Goal 99 R1 at
-[`execute-goal-99.md:81`](_completed/execute-goal-99.md), the candidate set in
-[`recent-architecture-learnings-2026-08-10.md:10-23`](../../scratch/recent-architecture-learnings-2026-08-10.md),
-and the older candidate analysis in [`08-ADR-IMPACT.md:307-486`](../08-ADR-IMPACT.md).
+[`execute-goal-99.md:81`](../../demo-refining/goals/_completed/execute-goal-99.md), the candidate set
+in [`recent-architecture-learnings-2026-08-10.md:10-23`](sources/recent-architecture-learnings-2026-08-10.md),
+and the older candidate analysis in [`08-ADR-IMPACT.md:307-486`](sources/08-ADR-IMPACT.md).
 
 ## Required outcome
 
@@ -35,15 +41,19 @@ When the work is complete, the repository must have:
    one disposition: accepted record, implementation work, proposed decision, clarification needing
    owner instruction, dormant trigger, or withdrawn duplication;
 2. `17-ADR-PROPOSALS.md`, outside `docs/adr/`, containing decision-ready draft proposals for each
-   genuinely missing decision, with the four-part `write-adrs suggest` analysis;
+   genuinely missing decision, with the four-part `write-adrs suggest` analysis and an owner
+   disposition beside every proposal;
 3. `docs/adr/UNDER_REVIEW_A.md` updated so its open candidates agree with the current accepted ADRs
    and consolidate overlapping asset and presentation candidates;
 4. an explicit reconciliation of these five likely missing decisions: reproducible visual evidence,
    general asset provenance and derivation, native Studio command routing, game-owned presentation
    projection and GPU-resource lifetime, and the linear-color transfer boundary;
 5. a separate proposed clarification packet for CLI ADR 0001's frozen tool enumeration and Framework
-   ADR 0021's verified STE defects, with the owner action and `tag-hash.sh` sequence named; and
-6. an explicit no-action result for resolved or rejected candidates, including render-driver
+   ADR 0021's verified STE defects, with the owner action and `tag-hash.sh` sequence named;
+6. each owner-approved new decision submitted through the ADR workflow, and each authorized
+   clarification applied with its old text, approval, tag-hash commands, and new integrity tag
+   recorded; and
+7. an explicit no-action result for resolved or rejected candidates, including render-driver
    ownership, explicit random seeds, local BroMetal patching, renderer selection, dynamic ports,
    one-command launch, and private website publication details.
 
@@ -58,8 +68,13 @@ When the work is complete, the repository must have:
   projection framework.
 - **New candidates.** Add proposal entries for visual-evidence authority, native Studio commands,
   and linear color only if no accepted record already decides them.
-- **Clarifications.** Preserve the exact current text before any future owner-approved edit to CLI
-  ADR 0001 or Framework ADR 0021. This goal documents the edits; it does not perform them.
+- **Owner checkpoint and submission.** Present the reconciliation matrix, draft records, and exact
+  clarification diffs together. Record the owner's accept, revise, defer, or reject decision for
+  each. Then submit only the accepted new records and perform only the explicitly instructed
+  clarification edits.
+- **Clarifications.** Preserve the exact current text before any owner-approved edit to CLI ADR
+  0001 or Framework ADR 0021. Use `tag-hash.sh verify`, apply the instructed change, create the new
+  tag, and verify it again.
 - **Terminology and STE.** List necessary technical nouns and verbs, audit draft ADR text against
   ASD-STE100 Issue 9, and report machine checks separately from human judgment.
 
@@ -80,14 +95,19 @@ At minimum, prove:
 - the Studio proposal preserves the portable `EditorHost` boundary and CLI project authority;
 - the presentation proposal preserves separate authoring, runtime, render, and GPU-resource state
   and does not require a premature shared projection framework;
+- every submitted record matches an explicit owner disposition, uses the next available number in
+  its owning ADR series, and appears in the ADR index;
+- every changed accepted record has the owner's instruction and a successful old/new tag-hash audit;
 - all relative links in the two new planning documents and `UNDER_REVIEW_A.md` resolve;
 - the STE machine report and the judgment audit are recorded separately; and
 - `git diff --check` exits zero.
 
 ## Explicit non-goals
 
-- Do not create or modify an accepted `_H` ADR without a later explicit owner instruction.
-- Do not assign an ADR number to a proposal or put a draft inside `docs/adr/`.
+- Do not create or modify an accepted `_H` ADR without an explicit owner instruction at the
+  checkpoint in this goal.
+- Do not assign an ADR number to a proposal or put a draft inside `docs/adr/` before the owner
+  accepts it for submission.
 - Do not cite Goal 99, either architecture-learning note, or an objective as authority inside draft
   ADR text. Use them only to find current facts and accepted constraints.
 - Do not turn implementation details such as dynamic ports, browser revisions, pixel limits,
@@ -110,9 +130,9 @@ At minimum, prove:
 ## Completion definition
 
 The goal is complete only when the two audits, the under-review list, current code, and accepted ADRs
-agree in one traceable matrix; every genuinely missing decision has a reviewable proposal; every
-resolved or non-architectural item is withdrawn explicitly; and the owner can decide the remaining
-items without first repeating this investigation.
+agree in one traceable matrix; the owner has disposed every genuine proposal and clarification;
+every approved record or change is submitted through the ADR workflow; every rejection or deferral
+is explicit; and no candidate remains ambiguous.
 
 If evidence does not establish that a decision is missing, withdraw the candidate. If a proposal
 would change an accepted decision, stop at the proposal and name the supersession path instead of

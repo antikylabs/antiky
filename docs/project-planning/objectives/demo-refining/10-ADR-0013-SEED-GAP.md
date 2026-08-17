@@ -25,8 +25,8 @@ The verb is "will receive". This is a requirement on the simulation, not a permi
 simulation. Six demos hand-roll their own random number generation with six different sets of magic
 constants, and none of them is an explicit simulation input.
 
-Evidence: `08-ADR-IMPACT.md:116-147`, and `05-FRAMEWORK-EASY-WINS.md` on the six divergent
-implementations.
+Evidence: `../_deferred/demo-refine-goal-17-adrs/sources/08-ADR-IMPACT.md:116-147`, and
+`05-FRAMEWORK-EASY-WINS.md` on the six divergent implementations.
 
 ## Why it is worse than a tidiness problem
 

@@ -4,7 +4,8 @@
 > record of what was approved and on what basis. The live record is
 > `docs/adr/framework/0021-brometal-render-driver-ownership_H.md`; if the two ever differ, the ADR
 > wins. Kept because section 1 carries the language audit and the four terms still awaiting owner
-> approval — see [`goals/_completed/summary-goal-00.md`](goals/_completed/summary-goal-00.md).
+> approval — see
+> [`summary-goal-00.md`](../../../demo-refining/goals/_completed/summary-goal-00.md).
 
 The text below was presented before placement. Per
 `goals/_completed/execute-goal-00.md:149-152`, a half-placed supersession is worse than no change,

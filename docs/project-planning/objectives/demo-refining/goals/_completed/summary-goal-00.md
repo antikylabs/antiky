@@ -10,7 +10,7 @@ One item. It does not block any later goal — ADR 0021 is placed, accepted, and
 
 | # | What | Why it needs you | Blocks |
 |---|---|---|---|
-| 1 | **Complete the ASD-STE100 Issue 9 audit of ADR 0021, and approve or reject four terms.** The terms are `graphics processing unit (GPU)`, `engineering effort`, `BroMetalRenderDriver`, `pre-1.0`, with reasoning in [`../../0021-FINAL-DRAFT-FOR-APPROVAL.md`](../../0021-FINAL-DRAFT-FOR-APPROVAL.md). | `docs/adr/AGENTS.md` forbids an agent claiming Issue 9 compliance without reading the official standard, which I did not. The hand checklist passes; the controlled-dictionary validation — the substantive half — was not done. Only a human with the standard can close this. | Nothing |
+| 1 | **Complete the ASD-STE100 Issue 9 audit of ADR 0021, and approve or reject four terms.** The terms are `graphics processing unit (GPU)`, `engineering effort`, `BroMetalRenderDriver`, `pre-1.0`, with reasoning in the [deferred approval record](../../../_deferred/demo-refine-goal-17-adrs/sources/0021-FINAL-DRAFT-FOR-APPROVAL.md). | `docs/adr/AGENTS.md` forbids an agent claiming Issue 9 compliance without reading the official standard, which I did not. The hand checklist passes; the controlled-dictionary validation — the substantive half — was not done. Only a human with the standard can close this. | Nothing |
 
 **No bugs were found in this goal**, and no other item needs you. Everything else below is a record
 of what was placed and why.
@@ -99,7 +99,7 @@ vertical-list lead-ins, no synonyms for variety, no technical noun used as a ver
 speech and word form for each. That is the substantive half of the standard.
 
 **Four terms await owner approval**, listed with reasoning in
-[`../../0021-FINAL-DRAFT-FOR-APPROVAL.md`](../../0021-FINAL-DRAFT-FOR-APPROVAL.md):
+[the deferred approval record](../../../_deferred/demo-refine-goal-17-adrs/sources/0021-FINAL-DRAFT-FOR-APPROVAL.md):
 `graphics processing unit (GPU)`, `engineering effort`, `BroMetalRenderDriver`, `pre-1.0`.
 
 ## What this unblocks

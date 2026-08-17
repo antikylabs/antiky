@@ -23,9 +23,11 @@ this file or any other document in `docs/objectives/`.
    BroMetal use is an escape hatch for work the driver cannot yet do — and when a game reaches for
    it, that is a signal the driver is missing a feature, not that the game chose well. Such a
    module owns its own resources, gets no driver features, and inherits no later improvements.
-4. **Other renderers stay compatible, not funded.** A Three.js game opens in Studio, and the MCP
-   talks to it, if it is wrapped in a host the CLI understands. Engineering effort goes to
-   BroMetal. Porting later is accepted as cheap.
+4. **Other renderers stay compatible, not funded or demoed.** A third-party Three.js game can open
+   in Studio, and the MCP can talk to it, if it is wrapped in a host the CLI understands. The
+   packaged demo catalog contains only Antiky demos. Those demos may use BroMetal internally while
+   framework rendering grows. Compatibility does not require Antiky to maintain standalone
+   Three.js or BroMetal showcases.
 5. **Local BroMetal patches are fine, and temporary.** Patch what we need. Send a focused upstream
    pull request for each patch so it can be retired. No separate record is needed for the
    `postinstall` patch step — it is normal practice with a stated exit.
@@ -193,7 +195,8 @@ promotion target now has a name.
   `point-light-expo` first, then a second demo. Extracting a driver from two working
   implementations is the slice process working as intended. Building the driver from zero would
   abstract from one implementation, which is the failure this decision avoids.
-- **The `08-ADR-IMPACT.md` gate on Track B is now resolved.** Work may proceed once `0021` is
+- **The deferred `../_deferred/demo-refine-goal-17-adrs/sources/08-ADR-IMPACT.md` gate on Track B is
+  now resolved.** Work may proceed once `0021` is
   placed, because game-module BroMetal ownership becomes explicitly permitted rather than
   ambiguous.
 - **Track E gains a destination.** "Promote to the framework when the slice is ready" now means

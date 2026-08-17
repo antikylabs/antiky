@@ -1,5 +1,9 @@
 # Goal 02 handoff — BroMetal render-pipeline patches
 
+> Current dependency and patch status: see the
+> [Goal 16 BroMetal 0.18.0 patch ledger](goal-16-brometal-patch-ledger.md). This page preserves the
+> original Goal 02 delivery record.
+
 **Date:** 2026-08-11
 **Commits:** `1e5ce13` (patches), `3203a82` (re-capture), `9118e47` (PR drafts)
 
