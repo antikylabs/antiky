@@ -82,8 +82,8 @@ test('an unknown slug names the demos that do exist', () => {
 
 test('resolving a demo yields its manifest and directory', () => {
   const resolved = resolveDemo('combat-arena');
-  assert.equal(resolved.manifest, 'packages/demos/antiky/combat-arena/combat-arena.antiky');
-  assert.equal(resolved.directory, 'packages/demos/antiky/combat-arena');
+  assert.equal(resolved.manifest, 'packages/demos/combat-arena/combat-arena.antiky');
+  assert.equal(resolved.directory, 'packages/demos/combat-arena');
 });
 
 test('the capture fence carries the identities the tool requires', () => {
@@ -213,14 +213,14 @@ test('the evidence path follows the store layout', () => {
   const sessionId = 'session-abc';
   const expectedKey = createHash('sha256').update(sessionId).digest('hex');
   const resolved = evidencePngPath({
-    demoDirectory: '/repo/packages/demos/antiky/combat-arena',
+    demoDirectory: '/repo/packages/demos/combat-arena',
     developmentSessionId: sessionId,
     evidenceId: 'evidence-1',
     artifactId: 'artifact-2',
   });
   assert.equal(
     resolved,
-    `/repo/packages/demos/antiky/combat-arena/.antiky/evidence/${expectedKey}/evidence-1/artifact-2.png`,
+    `/repo/packages/demos/combat-arena/.antiky/evidence/${expectedKey}/evidence-1/artifact-2.png`,
   );
 });
 

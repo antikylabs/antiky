@@ -59,7 +59,7 @@ const validManifest = {
 } as const;
 
 const repositoryManifest = fileURLToPath(
-  new URL('../../../demos/antiky/antiky-town/antiky-town.antiky', import.meta.url),
+  new URL('../../../demos/antiky-town/antiky-town.antiky', import.meta.url),
 );
 
 async function projectDirectory(prefix = 'antiky-project-'): Promise<string> {

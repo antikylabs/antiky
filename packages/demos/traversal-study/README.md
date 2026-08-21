@@ -14,7 +14,7 @@ platforms, six visible spike hazards, one collectible golden courier seal, and a
 From the repository root:
 
 ```sh
-npm run antiky -- dev --open --project packages/demos/antiky/traversal-study/traversal-study.antiky
+npm run antiky -- dev --open --project packages/demos/traversal-study/traversal-study.antiky
 ```
 
 Antiky opens `http://127.0.0.1:3010/`. Omit `--open` for agent/headless work and open that URL
@@ -156,11 +156,11 @@ session and inspect the authoritative course, individual platforms/hazards/check
 current act/control/checkpoint/seals/storm/progress/outcome, accepted events, and renderer counts:
 
 ```sh
-npm run antiky -- tool get_dev_status --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool get_session_status --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool get_world_inspection --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool get_event_log --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool get_render_stats --project packages/demos/antiky/traversal-study/traversal-study.antiky
+npm run antiky -- tool get_dev_status --project packages/demos/traversal-study/traversal-study.antiky
+npm run antiky -- tool get_session_status --project packages/demos/traversal-study/traversal-study.antiky
+npm run antiky -- tool get_world_inspection --project packages/demos/traversal-study/traversal-study.antiky
+npm run antiky -- tool get_event_log --project packages/demos/traversal-study/traversal-study.antiky
+npm run antiky -- tool get_render_stats --project packages/demos/traversal-study/traversal-study.antiky
 ```
 
 Pause the fixed-step session, read `session.clock.completedStepCount` from the returned status, and
@@ -168,17 +168,17 @@ pass that exact value in place of `42` for one guarded step. A repeated request 
 changes nothing:
 
 ```sh
-npm run antiky -- tool pause_simulation --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool get_session_status --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool step_simulation '{"expectedCompletedStepCount":42}' --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool resume_simulation --project packages/demos/antiky/traversal-study/traversal-study.antiky
+npm run antiky -- tool pause_simulation --project packages/demos/traversal-study/traversal-study.antiky
+npm run antiky -- tool get_session_status --project packages/demos/traversal-study/traversal-study.antiky
+npm run antiky -- tool step_simulation '{"expectedCompletedStepCount":42}' --project packages/demos/traversal-study/traversal-study.antiky
+npm run antiky -- tool resume_simulation --project packages/demos/traversal-study/traversal-study.antiky
 ```
 
 Discover the managed canvas-capture formats and limits before requesting private evidence:
 
 ```sh
-npm run antiky -- tool get_capture_capabilities --project packages/demos/antiky/traversal-study/traversal-study.antiky
-npm run antiky -- tool get_runtime_status --project packages/demos/antiky/traversal-study/traversal-study.antiky
+npm run antiky -- tool get_capture_capabilities --project packages/demos/traversal-study/traversal-study.antiky
+npm run antiky -- tool get_runtime_status --project packages/demos/traversal-study/traversal-study.antiky
 ```
 
 `capture_frame` schema 3 can cold-launch Antiky's isolated managed Chromium. Use a three-to-six

@@ -11,7 +11,7 @@ import {
   onsetShape,
   spectralConcentration,
   strongestRepeat,
-} from '../../../../../scripts/motion-stats.mjs';
+} from '../../../../scripts/motion-stats.mjs';
 
 /**
  * The camera shake, measured rather than judged by eye.

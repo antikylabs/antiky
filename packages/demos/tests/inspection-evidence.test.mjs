@@ -14,7 +14,7 @@ const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
 
 for (const [slug, declarations] of Object.entries(CAPTURE_PAIRS)) {
   test(`${slug} retains sealed exact-step inspection evidence`, async () => {
-    const directory = path.join(repositoryRoot, 'packages', 'demos', 'antiky', slug);
+    const directory = path.join(repositoryRoot, 'packages', 'demos', slug);
     const sidecar = JSON.parse(await readFile(path.join(directory, 'visual-metrics.json'), 'utf8'));
     assert.equal(sidecar.schemaVersion, 5);
     assert.equal(sidecar.seal, sealMetrics(sidecar));

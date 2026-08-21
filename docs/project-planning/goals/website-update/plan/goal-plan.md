@@ -284,7 +284,7 @@ no documented operator, and no checked output. Do not retain them as “possibly
 Exit evidence:
 
 - `npm install`
-- `rg -n "packages/demos/antiky|demos/antiky" package.json package-lock.json README.md scripts packages`
+- `rg -n 'packages/demos/antiky(?:/|$)|demos/antiky(?:/|$)' package.json package-lock.json README.md scripts packages`
   has no current-path hits
 - `npm run demos:verify`
 - `node --test scripts/tests/*.test.mjs packages/demos/tests/build-texture-atlas.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader/output-parity.test.mjs`

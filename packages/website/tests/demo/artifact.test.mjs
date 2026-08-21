@@ -103,7 +103,7 @@ test('every demo vite config pins a relative base', async () => {
   const offenders = [];
   for (const { slug } of demos) {
     const config = await readFile(
-      new URL(`../../../demos/antiky/${slug}/vite.config.ts`, import.meta.url),
+      new URL(`../../../demos/${slug}/vite.config.ts`, import.meta.url),
       'utf8',
     );
     if (!/base:\s*'\.\/'/.test(config)) offenders.push(`${slug}`);

@@ -11,7 +11,7 @@ finish a target by itself.
 From the repository root:
 
 ```sh
-npm run antiky -- dev --open --project packages/demos/antiky/combat-arena/combat-arena.antiky
+npm run antiky -- dev --open --project packages/demos/combat-arena/combat-arena.antiky
 ```
 
 Antiky opens `http://127.0.0.1:3010/`. Omit `--open` for agent/headless work and open that URL
@@ -161,12 +161,12 @@ Keep the development command running. In a second repository-root terminal, insp
 development snapshot and the connected Framework views:
 
 ```sh
-npm run antiky -- inspect --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool get_dev_status --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool get_session_status --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool get_world_inspection --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool get_event_log --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool get_render_stats --project packages/demos/antiky/combat-arena/combat-arena.antiky
+npm run antiky -- inspect --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool get_dev_status --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool get_session_status --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool get_world_inspection --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool get_event_log --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool get_render_stats --project packages/demos/combat-arena/combat-arena.antiky
 ```
 
 `get_world_inspection` exposes the Starbreaker, hostile roles/states, hull/drive, round/phase,
@@ -185,10 +185,10 @@ Pause the fixed-step session, read `session.clock.completedStepCount` from the r
 pass that exact value in place of `42` for one guarded tick:
 
 ```sh
-npm run antiky -- tool pause_simulation --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool get_session_status --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool step_simulation '{"expectedCompletedStepCount":42}' --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool resume_simulation --project packages/demos/antiky/combat-arena/combat-arena.antiky
+npm run antiky -- tool pause_simulation --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool get_session_status --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool step_simulation '{"expectedCompletedStepCount":42}' --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool resume_simulation --project packages/demos/combat-arena/combat-arena.antiky
 ```
 
 An accepted step advances and renders exactly one fixed tick. Reusing the stale count returns
@@ -196,8 +196,8 @@ An accepted step advances and renders exactly one fixed tick. Reusing the stale 
 canvas evidence:
 
 ```sh
-npm run antiky -- tool get_capture_capabilities --project packages/demos/antiky/combat-arena/combat-arena.antiky
-npm run antiky -- tool get_runtime_status --project packages/demos/antiky/combat-arena/combat-arena.antiky
+npm run antiky -- tool get_capture_capabilities --project packages/demos/combat-arena/combat-arena.antiky
+npm run antiky -- tool get_runtime_status --project packages/demos/combat-arena/combat-arena.antiky
 ```
 
 `capture_frame` schema 3 can launch Antiky's isolated managed Chromium when

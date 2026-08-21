@@ -61,7 +61,7 @@ for (let step = 0; step < STEPS; step += 1) {
 
 const destination = path.join(
   fileURLToPath(new URL('../..', import.meta.url)),
-  'antiky/traversal-study/src/lighting-ramp.gen.ts',
+  'traversal-study/src/lighting-ramp.gen.ts',
 );
 await writeFile(destination, `/**
  * The lighting ramp, ${STEPS} steps from full shadow to full light, in linear RGB.

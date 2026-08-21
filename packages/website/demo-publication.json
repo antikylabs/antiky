@@ -6,11 +6,11 @@
       "projectName": "Combat Arena",
       "renderer": "antiky",
       "workspace": "@antiky/demo-combat-arena",
-      "projectDirectory": "packages/demos/antiky/combat-arena",
+      "projectDirectory": "packages/demos/combat-arena",
       "sources": [
         {
           "label": "project",
-          "path": "packages/demos/antiky/combat-arena"
+          "path": "packages/demos/combat-arena"
         },
         {
           "label": "artifact-builder",
@@ -23,11 +23,11 @@
       "projectName": "Traversal Study",
       "renderer": "antiky",
       "workspace": "@antiky/demo-traversal-study",
-      "projectDirectory": "packages/demos/antiky/traversal-study",
+      "projectDirectory": "packages/demos/traversal-study",
       "sources": [
         {
           "label": "project",
-          "path": "packages/demos/antiky/traversal-study"
+          "path": "packages/demos/traversal-study"
         },
         {
           "label": "artifact-builder",
@@ -40,11 +40,11 @@
       "projectName": "Antiky Town",
       "renderer": "antiky",
       "workspace": "@antiky/demo-antiky-town",
-      "projectDirectory": "packages/demos/antiky/antiky-town",
+      "projectDirectory": "packages/demos/antiky-town",
       "sources": [
         {
           "label": "project",
-          "path": "packages/demos/antiky/antiky-town"
+          "path": "packages/demos/antiky-town"
         },
         {
           "label": "artifact-builder",
@@ -57,11 +57,11 @@
       "projectName": "Point Light Expo",
       "renderer": "antiky",
       "workspace": "@antiky/demo-point-light-expo",
-      "projectDirectory": "packages/demos/antiky/point-light-expo",
+      "projectDirectory": "packages/demos/point-light-expo",
       "sources": [
         {
           "label": "project",
-          "path": "packages/demos/antiky/point-light-expo"
+          "path": "packages/demos/point-light-expo"
         },
         {
           "label": "artifact-builder",

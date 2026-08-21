@@ -4,14 +4,14 @@ import test from 'node:test';
 
 const demosDirectory = new URL('../', import.meta.url);
 const showcase = Object.freeze([
-  { category: 'antiky', slug: 'antiky-town', renderer: 'brometal', framework: true },
-  { category: 'antiky', slug: 'combat-arena', renderer: 'brometal', framework: true },
-  { category: 'antiky', slug: 'point-light-expo', renderer: 'brometal', framework: true },
-  { category: 'antiky', slug: 'traversal-study', renderer: 'brometal', framework: true },
+  { slug: 'antiky-town', renderer: 'brometal', framework: true },
+  { slug: 'combat-arena', renderer: 'brometal', framework: true },
+  { slug: 'point-light-expo', renderer: 'brometal', framework: true },
+  { slug: 'traversal-study', renderer: 'brometal', framework: true },
 ]);
 
 function demoDirectory(demo) {
-  return new URL(`${demo.category}/${demo.slug}/`, demosDirectory);
+  return new URL(`${demo.slug}/`, demosDirectory);
 }
 
 async function sourceFiles(directory) {
@@ -24,18 +24,10 @@ async function sourceFiles(directory) {
   return files;
 }
 
-test('the showcase has the approved category and project matrix', async () => {
-  const expected = {
-    antiky: ['antiky-town', 'combat-arena', 'point-light-expo', 'traversal-study'],
-  };
-  for (const [category, slugs] of Object.entries(expected)) {
-    await access(new URL(`${category}/README.md`, demosDirectory));
-    const entries = await readdir(new URL(`${category}/`, demosDirectory), { withFileTypes: true });
-    assert.deepEqual(
-      entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort(),
-      slugs,
-    );
-  }
+test('the showcase has the approved flat project matrix', async () => {
+  await access(new URL('README.md', demosDirectory));
+  await assert.rejects(() => access(new URL('antiky/', demosDirectory)));
+  for (const demo of showcase) await access(new URL(`${demo.slug}.antiky`, demoDirectory(demo)));
 });
 
 test('every public demo is one manifest-owned game project', async () => {

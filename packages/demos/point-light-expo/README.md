@@ -113,7 +113,7 @@ From the repository root, start the complete game host, shader watcher, inspecti
 loopback MCP endpoint:
 
 ```sh
-npm run antiky -- dev --open --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
+npm run antiky -- dev --open --project packages/demos/point-light-expo/point-light-expo.antiky
 ```
 
 The configured game canvas is `http://127.0.0.1:3010/`; Streamable HTTP MCP is
@@ -134,7 +134,7 @@ checked-in generated modules remain in parity, with:
 ```sh
 npm run assets:build --workspace @antiky/demo-point-light-expo
 npm run shaders:prod --workspace @antiky/demo-point-light-expo
-git diff --exit-code -- packages/demos/antiky/point-light-expo/src/shaders/*.shader.gen.ts
+git diff --exit-code -- packages/demos/point-light-expo/src/shaders/*.shader.gen.ts
 ```
 
 `npm run assets:intake --workspace @antiky/demo-point-light-expo` intentionally performs the
@@ -150,13 +150,13 @@ First orient to the live runtime and read its game rules, event history, rendere
 stable lights:
 
 ```sh
-npm run antiky -- tool get_dev_status --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool get_session_status --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool get_world_inspection --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool get_event_log --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool get_render_stats --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool list_point_lights --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool get_point_light '{"entityId":"0197f27e-1000-7000-8000-000000000002"}' --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool get_dev_status --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool get_session_status --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool get_world_inspection --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool get_event_log --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool get_render_stats --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool list_point_lights --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool get_point_light '{"entityId":"0197f27e-1000-7000-8000-000000000002"}' --project packages/demos/point-light-expo/point-light-expo.antiky
 ```
 
 This one-time example sets the amber relay from revision 1 to power 0.8, then submits a correction
@@ -166,8 +166,8 @@ The two command IDs are valid UUIDv7 examples and must be replaced with newly ge
 have already been accepted in the current runtime:
 
 ```sh
-npm run antiky -- tool set_point_light_power '{"commandId":"0197f27e-3000-7000-8000-000000000001","worldId":"0197f27e-1000-7000-8000-000000000001","entityId":"0197f27e-1000-7000-8000-000000000002","expectedRevision":1,"power":0.8}' --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool correct_point_light_power '{"commandId":"0197f27e-3000-7000-8000-000000000002","correctedCommandId":"0197f27e-3000-7000-8000-000000000001","expectedRevision":2}' --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool set_point_light_power '{"commandId":"0197f27e-3000-7000-8000-000000000001","worldId":"0197f27e-1000-7000-8000-000000000001","entityId":"0197f27e-1000-7000-8000-000000000002","expectedRevision":1,"power":0.8}' --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool correct_point_light_power '{"commandId":"0197f27e-3000-7000-8000-000000000002","correctedCommandId":"0197f27e-3000-7000-8000-000000000001","expectedRevision":2}' --project packages/demos/point-light-expo/point-light-expo.antiky
 ```
 
 For later edits, generate each new command identity with
@@ -178,17 +178,17 @@ Pause and single-step the deterministic rules by passing the exact
 `session.clock.completedStepCount` returned by `get_session_status` or `pause_simulation`:
 
 ```sh
-npm run antiky -- tool pause_simulation --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool step_simulation '{"expectedCompletedStepCount":42}' --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool resume_simulation --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool pause_simulation --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool step_simulation '{"expectedCompletedStepCount":42}' --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool resume_simulation --project packages/demos/point-light-expo/point-light-expo.antiky
 ```
 
 Replace `42` with the returned count. Discover the managed canvas-capture formats and limits before
 requesting private evidence:
 
 ```sh
-npm run antiky -- tool get_capture_capabilities --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
-npm run antiky -- tool get_runtime_status --project packages/demos/antiky/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool get_capture_capabilities --project packages/demos/point-light-expo/point-light-expo.antiky
+npm run antiky -- tool get_runtime_status --project packages/demos/point-light-expo/point-light-expo.antiky
 ```
 
 `capture_frame` schema 3 can cold-launch Antiky's isolated managed Chromium. A

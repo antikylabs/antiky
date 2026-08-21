@@ -4,9 +4,9 @@ import path from 'node:path';
 import test from 'node:test';
 
 /**
- * Visual budget for traversal-study.
+ * Visual budget for combat-arena.
  *
- * Reference look — LittleBigPlanet: warm daylight, tactile materials, a real sky.
+ * Reference look — Rocket League: a bright arena, glossy surfaces reflecting stadium light.
  *
  * Run with `npm run demos:verify` after `npm run demos:shoot`. Deliberately not part of
  * `npm test`, which stays green as a regression gate.
@@ -29,7 +29,7 @@ import test from 'node:test';
 const LOCAL_CONTRAST_FLOOR = 8.5;
 const CLIPPING_CEILING = 0.02;
 
-const metricsPath = path.join(import.meta.dirname, '../..', 'visual-metrics.json');
+const metricsPath = path.join(import.meta.dirname, '..', 'visual-metrics.json');
 
 async function readMetrics() {
   const metrics = JSON.parse(await readFile(metricsPath, 'utf8'));
@@ -41,7 +41,7 @@ async function readMetrics() {
   // `sourceDigest` hashes the demo's whole `src` tree and the capture records it. A mismatch means
   // the numbers below describe code that no longer exists, which is not a pass — it is an unanswered
   // question.
-  const { sealMetrics, sourceDigest } = await import('../../../../../../scripts/shoot-demos.mjs');
+  const { sealMetrics, sourceDigest } = await import('../../../../scripts/shoot-demos.mjs');
 
   // The numbers below are read from a committed file, so the cheapest way to pass a budget is to
   // open it and type a bigger one. That was demonstrated and it worked. The seal makes editing a
@@ -50,7 +50,7 @@ async function readMetrics() {
     metrics.seal,
     sealMetrics(metrics),
     'visual-metrics.json does not match its own seal — a measured value was edited by hand. '
-    + 'Re-run `npm run demos:shoot -- --demo traversal-study` rather than changing the number.',
+    + 'Re-run `npm run demos:shoot -- --demo combat-arena` rather than changing the number.',
   );
 
   const current = await sourceDigest(path.join(import.meta.dirname, '..'));
@@ -59,12 +59,12 @@ async function readMetrics() {
     current.digest,
     'visual-metrics.json was captured from different source than is present now '
     + `(recorded ${metrics.source?.digest ?? 'nothing'}, current ${current.digest}). `
-    + 'Re-run `npm run demos:shoot -- --demo traversal-study` and commit the sidecar.',
+    + 'Re-run `npm run demos:shoot -- --demo combat-arena` and commit the sidecar.',
   );
   return metrics;
 }
 
-test('traversal-study models form across its surfaces', async () => {
+test('combat-arena models form across its surfaces', async () => {
   const metrics = await readMetrics();
   assert.ok(
     metrics.localContrast.median >= LOCAL_CONTRAST_FLOOR,
@@ -73,7 +73,7 @@ test('traversal-study models form across its surfaces', async () => {
   );
 });
 
-test('traversal-study does not blow out its highlights', async () => {
+test('combat-arena does not blow out its highlights', async () => {
   const metrics = await readMetrics();
   assert.ok(
     metrics.clipping.high <= CLIPPING_CEILING,
@@ -82,7 +82,7 @@ test('traversal-study does not blow out its highlights', async () => {
   );
 });
 
-test('traversal-study keeps recoverable detail in its darks', async () => {
+test('combat-arena keeps recoverable detail in its darks', async () => {
   const metrics = await readMetrics();
   assert.ok(
     metrics.clipping.low <= CLIPPING_CEILING,
@@ -91,18 +91,51 @@ test('traversal-study keeps recoverable detail in its darks', async () => {
   );
 });
 
+/** Goal 07 W B.3: deck in shadow against deck in key light, on the same material. */
+const SHADOW_DARKENING_FLOOR = 0.25;
+
+test('combat-arena casts a shadow that reads on the deck', async () => {
+  const metrics = await readMetrics();
+  const shadow = metrics.probes?.sunShadow;
+  const lit = metrics.probes?.sunLit;
+  assert.ok(shadow !== undefined && lit !== undefined, 'the capture recorded no sun probes');
+  const darkening = 1 - shadow.meanLuminance / lit.meanLuminance;
+  assert.ok(
+    darkening >= SHADOW_DARKENING_FLOOR,
+    `deck in shadow is ${(darkening * 100).toFixed(1)}% darker than deck in key light, floor is `
+    + `${SHADOW_DARKENING_FLOOR * 100}%. Both probes sit on the same deck 186 px apart, so a low `
+    + 'number is a shadow that is not arriving rather than two different patches of floor.',
+  );
+});
+
+test('combat-arena does not stripe its lit deck with shadow acne', async () => {
+  const metrics = await readMetrics();
+  const lit = metrics.probes?.sunLit;
+  assert.ok(lit !== undefined, 'the capture recorded no lit probe');
+  // Not the goal's "standard deviation below 0.02" — the arena deck is diamond plate, and at goal
+  // 08's low camera the lit probe measures 0.097 with the shadow term switched off entirely, so
+  // that bar is unreachable for a reason unrelated to acne. Acne is variance the *shadow* adds,
+  // and the control shows the shadow *lowering* it (0.097 -> 0.081). The ceiling is the plate's
+  // own no-shadow figure with room to move, and it fails if striping ever appears on top of it.
+  assert.ok(
+    lit.standardDeviation <= 0.11,
+    `lit deck spreads ${lit.standardDeviation}, above the plate's own no-shadow 0.097. Stripes at `
+    + 'the shadow-map texel scale are the thing to look for.',
+  );
+});
+
 /**
  * The §7.1 frame-level value targets (goal 08), in the space that table is written in: Rec. 709
  * luma of the delivered sRGB bytes. The linear percentiles above answer a light-transport
  * question; these answer "what does the delivered frame's value structure look like".
  */
-const ENCODED_P05_CEILING = 0.12;
-const ENCODED_P50_RANGE = [0.38, 0.52];
-const ENCODED_P95_FLOOR = 0.9;
-const ENCODED_SPREAD_FLOOR = 0.72;
-const ENCODED_CLIPPED_CEILING = 0.015;
+const ENCODED_P05_CEILING = 0.04;
+const ENCODED_P50_RANGE = [0.2, 0.34];
+const ENCODED_P95_FLOOR = 0.88;
+const ENCODED_SPREAD_FLOOR = 0.8;
+const ENCODED_CLIPPED_CEILING = 0.025;
 
-test('traversal-study hits its 7.1 value structure', async () => {
+test('combat-arena hits its 7.1 value structure', async () => {
   const metrics = await readMetrics();
   const luma = metrics.encodedLuma;
   assert.ok(luma !== undefined, 'the sidecar predates the encoded-luma measurement; re-shoot');
@@ -129,7 +162,7 @@ test('traversal-study hits its 7.1 value structure', async () => {
   );
 });
 
-test('traversal-study carries at least three distinguishable hues, none dominant', async () => {
+test('combat-arena carries at least three distinguishable hues, none dominant', async () => {
   const metrics = await readMetrics();
   const hue = metrics.hue;
   assert.ok(hue !== undefined, 'the sidecar predates the hue measurement; re-shoot');

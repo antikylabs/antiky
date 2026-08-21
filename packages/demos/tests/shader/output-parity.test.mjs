@@ -18,12 +18,16 @@ const execute = promisify(execFile);
  */
 async function discoverShaderPackages() {
   const packages = [];
-  const root = fileURLToPath(new URL('../../antiky/', import.meta.url));
+  const root = fileURLToPath(new URL('../../', import.meta.url));
   const entries = await readdir(root, { withFileTypes: true });
   for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
     if (!entry.isDirectory()) continue;
     const packageDirectory = path.join(root, entry.name);
-    const sourceDirectory = new URL(`../../antiky/${entry.name}/src/`, import.meta.url);
+    const packageEntries = await readdir(packageDirectory, { withFileTypes: true });
+    if (!packageEntries.some((candidate) => (
+      candidate.isFile() && candidate.name === `${entry.name}.antiky`
+    ))) continue;
+    const sourceDirectory = new URL(`../../${entry.name}/src/`, import.meta.url);
     const generated = await generatedFiles(sourceDirectory);
     if (generated.length === 0) continue;
     packages.push({ slug: entry.name, packageDirectory, sourceDirectory });

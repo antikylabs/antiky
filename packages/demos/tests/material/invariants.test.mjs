@@ -188,7 +188,7 @@ test('AC-L1: the lighting ramp separates shadow from light by more than brightne
    * by accident through fog or exposure; the ramp either carries the separation or it does not.
    */
   const rampSource = await readGeneratedFile(new URL(
-    '../../antiky/traversal-study/src/lighting-ramp.gen.ts',
+    '../../traversal-study/src/lighting-ramp.gen.ts',
     import.meta.url,
   ));
   const ramp = readFrozenNumberArray(rampSource, 'TRAVERSAL_LIGHTING_RAMP');
@@ -245,13 +245,13 @@ test('AC-M2: every kit UV selects a swatch the material table declares', async (
   const kits = [
     {
       prefix: 'TRAVERSAL',
-      tableUrl: new URL('../../antiky/traversal-study/src/kit-materials.gen.ts', import.meta.url),
-      url: new URL('../../antiky/traversal-study/assets/kenney/platformer-kit/', import.meta.url),
+      tableUrl: new URL('../../traversal-study/src/kit-materials.gen.ts', import.meta.url),
+      url: new URL('../../traversal-study/assets/kenney/platformer-kit/', import.meta.url),
     },
     {
       prefix: 'ARENA',
-      tableUrl: new URL('../../antiky/combat-arena/src/kit-materials.gen.ts', import.meta.url),
-      url: new URL('../../antiky/combat-arena/assets/kenney/modular-space-kit/', import.meta.url),
+      tableUrl: new URL('../../combat-arena/src/kit-materials.gen.ts', import.meta.url),
+      url: new URL('../../combat-arena/assets/kenney/modular-space-kit/', import.meta.url),
     },
   ];
 
@@ -305,7 +305,7 @@ test('AC-M4: an installed material set carries all four maps, hash-verified', as
    * on disk is exactly the shape of rot a receipt is supposed to prevent.
    */
   const { readFile, stat } = await import('node:fs/promises');
-  const demoRoot = new URL('../../antiky/traversal-study/', import.meta.url);
+  const demoRoot = new URL('../../traversal-study/', import.meta.url);
   const receipts = JSON.parse(await readFile(new URL('assets/antiky-assets.json', demoRoot), 'utf8'));
   const textures = receipts.assets.filter((asset) => asset.kind === 'texture');
   assert.ok(textures.length >= 1, 'expected at least one Poly Haven texture receipt');

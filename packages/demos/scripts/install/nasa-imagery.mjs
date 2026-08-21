@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const demosRoot = fileURLToPath(new URL('../..', import.meta.url));
-const directory = path.join(demosRoot, 'antiky/combat-arena/assets/nasa');
+const directory = path.join(demosRoot, 'combat-arena/assets/nasa');
 
 const SOURCES = [
   {

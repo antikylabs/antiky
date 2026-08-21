@@ -9,10 +9,10 @@ const workspaces = {
 };
 
 const demoProjects = {
-  'antiky-town': 'packages/demos/antiky/antiky-town/antiky-town.antiky',
-  'combat-arena': 'packages/demos/antiky/combat-arena/combat-arena.antiky',
-  'point-light-expo': 'packages/demos/antiky/point-light-expo/point-light-expo.antiky',
-  'traversal-study': 'packages/demos/antiky/traversal-study/traversal-study.antiky',
+  'antiky-town': 'packages/demos/antiky-town/antiky-town.antiky',
+  'combat-arena': 'packages/demos/combat-arena/combat-arena.antiky',
+  'point-light-expo': 'packages/demos/point-light-expo/point-light-expo.antiky',
+  'traversal-study': 'packages/demos/traversal-study/traversal-study.antiky',
 };
 
 if (!target || (!(target in workspaces) && target !== 'demos')) {

@@ -19,7 +19,7 @@ import path from 'node:path';
  * asserting on it is asserting on the shipped program.
  */
 
-const demosRoot = path.resolve(import.meta.dirname, '..', '..', 'antiky');
+const demosRoot = path.resolve(import.meta.dirname, '..', '..');
 
 async function walk(directory, accept) {
   const results = [];
@@ -48,8 +48,8 @@ export function createDemoGraph(rawRoot = demosRoot) {
   const root = path.resolve(rawRoot);
 
   async function discoverDemos() {
-    if (path.basename(root) !== 'antiky') {
-      throw new Error(`Demo graph root ${root} is outside the Antiky demo category.`);
+    if (path.basename(root) !== 'demos') {
+      throw new Error(`Demo graph root ${root} is outside the demo package root.`);
     }
     const demos = [];
     let entries;
@@ -70,7 +70,6 @@ export function createDemoGraph(rawRoot = demosRoot) {
       }
       demos.push(Object.freeze({
         slug: entry.name,
-        category: 'antiky',
         directory,
         manifest: path.join(directory, manifests[0]),
       }));

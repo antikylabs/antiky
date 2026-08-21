@@ -1,4 +1,4 @@
-import { checkFidelity } from '../../../scripts/asset-fidelity-policy.mjs';
+import { checkFidelity } from '../../scripts/asset-fidelity-policy.mjs';
 
 function uriPaths(value, path = '', results = []) {
   if (Array.isArray(value)) {

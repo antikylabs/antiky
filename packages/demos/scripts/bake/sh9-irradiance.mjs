@@ -237,7 +237,7 @@ ${rows}
 ] as const);
 `;
 
-  const destination = path.join(demosRoot, 'antiky', options.demo, 'src', 'sh9-irradiance.gen.ts');
+  const destination = path.join(demosRoot, options.demo, 'src', 'sh9-irradiance.gen.ts');
   await writeFile(destination, source);
   process.stdout.write(
     `${options.slug} → ${path.relative(demosRoot, destination)}\n`

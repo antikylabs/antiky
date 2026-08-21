@@ -170,7 +170,7 @@ test('discard compiles as a fragment statement and emits WGSL discard', async ()
   const { compileShaderSource } = await importPackage('dist/compiler/compile.js');
   const shaderPath = path.join(
     repositoryRoot,
-    'packages/demos/antiky/antiky-town/src/town/shaders/town-sprite-shadow.shader.ts',
+    'packages/demos/antiky-town/src/town/shaders/town-sprite-shadow.shader.ts',
   );
   const compiled = compileShaderSource(shaderPath, await readFile(shaderPath, 'utf8'));
 

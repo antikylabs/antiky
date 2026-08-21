@@ -283,13 +283,13 @@ test('development session owns the game host when the project command only watch
 });
 
 test('public demo manifests mount their compiled module in the CLI-owned host', async () => {
-  for (const [category, slug] of [
-    ['antiky', 'antiky-town'],
-    ['antiky', 'combat-arena'],
-    ['antiky', 'point-light-expo'],
-    ['antiky', 'traversal-study'],
+  for (const slug of [
+    'antiky-town',
+    'combat-arena',
+    'point-light-expo',
+    'traversal-study',
   ] as const) {
-    const projectPath = join(repositoryRoot, 'packages', 'demos', category, slug, `${slug}.antiky`);
+    const projectPath = join(repositoryRoot, 'packages', 'demos', slug, `${slug}.antiky`);
     const config = await loadAntikyProject(projectPath);
     const session = await startDevelopmentSession(config, { writeOutput: () => {} });
     try {

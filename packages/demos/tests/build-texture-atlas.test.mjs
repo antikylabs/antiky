@@ -351,7 +351,7 @@ test("the town's material atlas measures zero as layers", async () => {
   // through a sampler2DArray, one layer per material, and this is the number that says the binding
   // is right: a layer that had picked up any part of its neighbour would not read zero.
   const layersDirectory = new URL(
-    '../antiky/antiky-town/assets/textures/town-material-atlas-v1-layers/',
+    '../antiky-town/assets/textures/town-material-atlas-v1-layers/',
     import.meta.url,
   );
   const manifest = JSON.parse(await readFile(new URL('layers.json', layersDirectory), 'utf8'));

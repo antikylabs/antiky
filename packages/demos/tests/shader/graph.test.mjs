@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 
 import * as graph from './graph.mjs';
 
-const expectedRoot = path.resolve(import.meta.dirname, '..', '..', 'antiky');
+const expectedRoot = path.resolve(import.meta.dirname, '..', '..');
 const expectedSlugs = [
   'antiky-town',
   'combat-arena',
@@ -14,7 +14,7 @@ const expectedSlugs = [
   'traversal-study',
 ];
 
-test('the shared demo graph is rooted at the Antiky demo category', () => {
+test('the shared demo graph is rooted at the flat demo package directory', () => {
   assert.equal(graph.demosRoot, expectedRoot);
 });
 
@@ -49,12 +49,12 @@ test('demoSources rejects an unknown Antiky demo by name', async () => {
 test('a deliberately wrong graph root fails instead of returning an empty success', async () => {
   assert.equal(typeof graph.createDemoGraph, 'function');
   const wrong = graph.createDemoGraph(path.resolve(import.meta.dirname, '..'));
-  await assert.rejects(wrong.discoverDemos(), /outside the Antiky demo category/);
+  await assert.rejects(wrong.discoverDemos(), /outside the demo package root/);
 });
 
-test('an out-of-scope standalone category cannot become the Antiky graph', async () => {
-  const outOfScope = graph.createDemoGraph(path.resolve(expectedRoot, '..', 'brometal'));
-  await assert.rejects(outOfScope.discoverDemos(), /outside the Antiky demo category/);
+test('an out-of-scope directory cannot become the Antiky graph', async () => {
+  const outOfScope = graph.createDemoGraph(path.resolve(expectedRoot, '..', 'website'));
+  await assert.rejects(outOfScope.discoverDemos(), /outside the demo package root/);
 });
 
 test('discovery has the same result from a nested test process', () => {

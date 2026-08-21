@@ -1,84 +1,73 @@
 {
   "schemaVersion": 5,
-  "demo": "combat-arena",
-  "capturedAt": "2026-08-17T05:19:32.972Z",
+  "demo": "traversal-study",
+  "capturedAt": "2026-08-17T05:20:30.860Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "5b47fe72e28051e5",
-    "fileCount": 136
+    "digest": "acee0539e4152439",
+    "fileCount": 118
   },
   "frame": {
     "width": 1280,
     "height": 720
   },
   "luminance": {
-    "mean": 0.203144,
-    "p05": 0.002126,
-    "p50": 0.078675,
-    "p95": 0.755795,
-    "spread": 0.753669
+    "mean": 0.267561,
+    "p05": 0.129788,
+    "p50": 0.182509,
+    "p95": 0.575742,
+    "spread": 0.445954
   },
   "localContrast": {
-    "median": 11.535,
-    "p10": 0.5332
+    "median": 0.5836,
+    "p10": 0.0337
   },
   "clipping": {
-    "high": 0.004996,
-    "low": 0
+    "high": 0,
+    "low": 0.000003
   },
   "saturation": {
-    "mean": 0.146855
+    "mean": 0.281353
   },
   "encodedLuma": {
-    "p05": 0.027467,
-    "p50": 0.307305,
-    "p95": 0.883789,
-    "spread": 0.856322,
-    "clipped": 0.006318
+    "p05": 0.384224,
+    "p50": 0.45775,
+    "p95": 0.782249,
+    "spread": 0.398024,
+    "clipped": 0
   },
   "hue": {
-    "clusters": 4,
-    "dominantShare": 0.43008,
-    "chromaticFraction": 0.336375
+    "clusters": 5,
+    "dominantShare": 0.777556,
+    "chromaticFraction": 0.80636
   },
   "edges": {
-    "hard": 0.022355
+    "hard": 0.003558
   },
-  "probes": {
-    "sunShadow": {
-      "meanLuminance": 0.050343,
-      "standardDeviation": 0.044923,
-      "pixels": 1024
-    },
-    "sunLit": {
-      "meanLuminance": 0.276025,
-      "standardDeviation": 0.084061,
-      "pixels": 1024
-    }
-  },
+  "probes": {},
   "inspection": {
     "observation": {
       "schemaVersion": 1,
-      "developmentSessionId": "08087096-04df-47c3-aeb5-f2d1061310ec",
+      "developmentSessionId": "e189d2d9-549b-4af7-9ea6-c96b6f80d9df",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "4f8849c1-1401-43e6-9fa9-483781834b34",
+      "runtimeInstanceId": "db29c569-00cc-478a-8c2e-bcb59d32a316",
       "publicationSequence": 34,
-      "publishedAt": "2026-08-17T05:19:32.969Z",
+      "publishedAt": "2026-08-17T05:20:30.859Z",
       "connectionState": "connected",
       "freshness": "current",
       "session": {
-        "sessionId": "01a00e29-0a16-79f7-b4bc-586016fbee24",
-        "worldId": "01991d00-1000-7000-8000-000000000001",
+        "sessionId": "01a00e29-ec3b-7089-97cb-1e11fedbedb9",
+        "worldId": "01991e00-1000-7000-8000-000000000001",
         "mode": "paused",
-        "completedStepCount": 54,
+        "completedStepCount": 50,
         "controlRevision": 2,
         "worldRevision": 0,
-        "stateDigest": "starbreaker-v1:1ee0f03f303af7b3daaa22e5a2c5f70f"
+        "stateDigest": "51:1:running:idle:1:2.000:0.430:0.000:0.000:0:3:0:48.000:0:0:0"
       },
       "world": {
-        "worldId": "01991d00-1000-7000-8000-000000000001",
-        "revision": 55,
-        "eventSequence": 2
+        "worldId": "01991e00-1000-7000-8000-000000000001",
+        "revision": 51,
+        "eventSequence": 0
       }
     },
     "fixture": {
@@ -116,12 +105,12 @@
       ]
     },
     "comparableIdentity": {
-      "developmentSessionId": "08087096-04df-47c3-aeb5-f2d1061310ec",
+      "developmentSessionId": "e189d2d9-549b-4af7-9ea6-c96b6f80d9df",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "4f8849c1-1401-43e6-9fa9-483781834b34",
-      "sessionId": "01a00e29-0a16-79f7-b4bc-586016fbee24",
-      "completedStepCount": 54,
-      "stateDigest": "starbreaker-v1:1ee0f03f303af7b3daaa22e5a2c5f70f"
+      "runtimeInstanceId": "db29c569-00cc-478a-8c2e-bcb59d32a316",
+      "sessionId": "01a00e29-ec3b-7089-97cb-1e11fedbedb9",
+      "completedStepCount": 50,
+      "stateDigest": "51:1:running:idle:1:2.000:0.430:0.000:0.000:0:3:0:48.000:0:0:0"
     },
     "repeatability": {
       "comparedPixels": 921600,
@@ -139,28 +128,28 @@
           "width": 1280,
           "height": 720
         },
-        "outcome": "fail",
+        "outcome": "pass",
         "measurement": {
           "pixels": 921600,
-          "controlMeanLuminance": 0.36730625,
-          "treatmentMeanLuminance": 0.02240505,
-          "controlToTreatmentRatio": 16.393905,
-          "changedPixelFraction": 0.99917535,
-          "p99AbsoluteLuminanceDifference": 0.97198272,
-          "measuredBoundaryPixels": 80632,
-          "p99LuminanceGradientPerPixel": 0.25562118,
-          "minimumFalloffPixelsAtP99": 3.912,
+          "controlMeanLuminance": 0.52783776,
+          "treatmentMeanLuminance": 0.52599447,
+          "controlToTreatmentRatio": 1.003504,
+          "changedPixelFraction": 0.99196181,
+          "p99AbsoluteLuminanceDifference": 0.33390823,
+          "measuredBoundaryPixels": 24973,
+          "p99LuminanceGradientPerPixel": 0.09029255,
+          "minimumFalloffPixelsAtP99": 11.0751,
           "declaredMaximumGradientPerPixel": 0.1,
           "declaredChangedPixelMinimum": 0.0001
         },
         "artifacts": {
           "control": {
-            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
-            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+            "artifactId": "artifact-5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3",
+            "sha256": "5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3"
           },
           "treatment": {
-            "artifactId": "artifact-f58362e30c65879b74c01cb7e620078b4087ec5646b5f254b073f930f2c1c605",
-            "sha256": "f58362e30c65879b74c01cb7e620078b4087ec5646b5f254b073f930f2c1c605"
+            "artifactId": "artifact-cc07dd0792b2c1ea152f1f2088d953742236335c09b4519d41766a2c97f87e95",
+            "sha256": "cc07dd0792b2c1ea152f1f2088d953742236335c09b4519d41766a2c97f87e95"
           }
         },
         "fixtures": {
@@ -237,10 +226,10 @@
       "ac-l7-camera-translation": {
         "kind": "camera-registration",
         "region": {
-          "x": 340,
-          "y": 270,
-          "width": 600,
-          "height": 340
+          "x": 100,
+          "y": 220,
+          "width": 1080,
+          "height": 400
         },
         "outcome": "fail",
         "measurement": {
@@ -251,20 +240,20 @@
           },
           "registeredPixelOffset": {
             "x": -28,
-            "y": 0
+            "y": -4
           },
-          "comparedPixels": 12155,
-          "p99AbsoluteLuminanceDifference": 0.40392157,
+          "comparedPixels": 26037,
+          "p99AbsoluteLuminanceDifference": 0.20392157,
           "declaredP99Bound": 0.1
         },
         "artifacts": {
           "control": {
-            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
-            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+            "artifactId": "artifact-5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3",
+            "sha256": "5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3"
           },
           "treatment": {
-            "artifactId": "artifact-3d543a3695eb5c70cbd1a2d3d6ae1fac5f97ab78c5f00af35b1cb30de6050672",
-            "sha256": "3d543a3695eb5c70cbd1a2d3d6ae1fac5f97ab78c5f00af35b1cb30de6050672"
+            "artifactId": "artifact-c6300d701a0c78762aa5ebeb504401fd52ab78c7058999b7622dac12ceda6f37",
+            "sha256": "c6300d701a0c78762aa5ebeb504401fd52ab78c7058999b7622dac12ceda6f37"
           }
         },
         "fixtures": {
@@ -341,28 +330,28 @@
       "m13-bloom-halo": {
         "kind": "bloom",
         "region": {
-          "x": 0,
-          "y": 270,
-          "width": 160,
-          "height": 270
+          "x": 480,
+          "y": 260,
+          "width": 320,
+          "height": 260
         },
         "outcome": "fail",
         "measurement": {
-          "pixels": 43200,
-          "controlMeanLuminance": 0.67480367,
-          "treatmentMeanLuminance": 0.56869247,
-          "controlToTreatmentRatio": 1.186588,
-          "changedPixelFraction": 0.55393519,
-          "p99AbsoluteLuminanceDifference": 0.86416548
+          "pixels": 83200,
+          "controlMeanLuminance": 0.51369736,
+          "treatmentMeanLuminance": 0.51369736,
+          "controlToTreatmentRatio": 1,
+          "changedPixelFraction": 0,
+          "p99AbsoluteLuminanceDifference": 0
         },
         "artifacts": {
           "control": {
-            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
-            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+            "artifactId": "artifact-5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3",
+            "sha256": "5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3"
           },
           "treatment": {
-            "artifactId": "artifact-7d90da2fd52ec5eb2efd51228975b38647767ed2cfea46864263fc40e83e5daa",
-            "sha256": "7d90da2fd52ec5eb2efd51228975b38647767ed2cfea46864263fc40e83e5daa"
+            "artifactId": "artifact-5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3",
+            "sha256": "5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3"
           }
         },
         "fixtures": {
@@ -444,21 +433,21 @@
           "width": 160,
           "height": 90
         },
-        "outcome": "pass",
+        "outcome": "fail",
         "measurement": {
           "pixels": 14400,
-          "controlMeanLuminance": 0.04964513,
-          "treatmentMeanLuminance": 0.06034993,
-          "controlToTreatmentRatio": 0.822621,
+          "controlMeanLuminance": 0.68963685,
+          "treatmentMeanLuminance": 0.71686916,
+          "controlToTreatmentRatio": 0.962012,
           "changedPixelFraction": 1,
-          "p99AbsoluteLuminanceDifference": 0.01568628,
+          "p99AbsoluteLuminanceDifference": 0.03389412,
           "centerRegion": {
             "x": 560,
             "y": 315,
             "width": 160,
             "height": 90
           },
-          "cornerAttenuation": 0.177379,
+          "cornerAttenuation": 0.037988,
           "declaredAttenuationRange": [
             0.1,
             0.25
@@ -466,12 +455,12 @@
         },
         "artifacts": {
           "control": {
-            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
-            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+            "artifactId": "artifact-5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3",
+            "sha256": "5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3"
           },
           "treatment": {
-            "artifactId": "artifact-79ca0c40938bb9784b55608187f3a1b591bad7016334ae2e22e3b41ae790129e",
-            "sha256": "79ca0c40938bb9784b55608187f3a1b591bad7016334ae2e22e3b41ae790129e"
+            "artifactId": "artifact-0f0372d2ae3aade7d0581c081b3d1f2e85e9f1b2875ac5408dbcfc4e22573e02",
+            "sha256": "0f0372d2ae3aade7d0581c081b3d1f2e85e9f1b2875ac5408dbcfc4e22573e02"
           }
         },
         "fixtures": {
@@ -548,28 +537,28 @@
       "m13-shadow": {
         "kind": "shadow",
         "region": {
-          "x": 656,
-          "y": 378,
-          "width": 32,
-          "height": 32
+          "x": 500,
+          "y": 430,
+          "width": 96,
+          "height": 64
         },
-        "outcome": "pass",
+        "outcome": "fail",
         "measurement": {
-          "pixels": 1024,
-          "controlMeanLuminance": 0.21413476,
-          "treatmentMeanLuminance": 0.32356302,
-          "controlToTreatmentRatio": 0.661802,
-          "changedPixelFraction": 0.62890625,
-          "p99AbsoluteLuminanceDifference": 0.3467702
+          "pixels": 6144,
+          "controlMeanLuminance": 0.63665375,
+          "treatmentMeanLuminance": 0.63870687,
+          "controlToTreatmentRatio": 0.996786,
+          "changedPixelFraction": 0.09765625,
+          "p99AbsoluteLuminanceDifference": 0.04031686
         },
         "artifacts": {
           "control": {
-            "artifactId": "artifact-a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c",
-            "sha256": "a1713d11b538dc43aea82dd585e78efe65ece62bf394142f43679011208b627c"
+            "artifactId": "artifact-5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3",
+            "sha256": "5dcbaed57ef3182787b209c659fa9983e41c5b0e72dd7bc269d1d732bb0fb6f3"
           },
           "treatment": {
-            "artifactId": "artifact-3ee9f2e1a6e7fa309b1ae2f1c78cccc4ffb0b6549b3d9c0c175d407be1e9e8cf",
-            "sha256": "3ee9f2e1a6e7fa309b1ae2f1c78cccc4ffb0b6549b3d9c0c175d407be1e9e8cf"
+            "artifactId": "artifact-f5ca0b04902871aaf3fa0275d2d292afebbda00038df5e76799c9b48ffb2957e",
+            "sha256": "f5ca0b04902871aaf3fa0275d2d292afebbda00038df5e76799c9b48ffb2957e"
           }
         },
         "fixtures": {
@@ -651,5 +640,5 @@
       "limitation": "The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval."
     }
   },
-  "seal": "ac04c7aea2312526"
+  "seal": "0c976cb7291c18ab"
 }

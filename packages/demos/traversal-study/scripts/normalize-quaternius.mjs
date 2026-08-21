@@ -1,7 +1,7 @@
 import { deflateSync } from 'node:zlib';
 import { readFile, writeFile } from 'node:fs/promises';
 import { basename } from 'node:path';
-import { checkFidelity } from '../../../scripts/asset-fidelity-policy.mjs';
+import { checkFidelity } from '../../scripts/asset-fidelity-policy.mjs';
 
 const COMPONENT = Object.freeze({ 5121: Uint8Array, 5123: Uint16Array, 5125: Uint32Array, 5126: Float32Array });
 const COMPONENT_BYTES = Object.freeze({ 5121: 1, 5123: 2, 5125: 4, 5126: 4 });

@@ -58,7 +58,7 @@ const bytes = Buffer.from(await (await fetch(zipUrl)).arrayBuffer());
 await writeFile(archive, bytes);
 await run('unzip', ['-o', '-q', archive, '-d', staging]);
 
-const destination = path.join(demosRoot, 'antiky', options.demo, 'assets', 'kenney', options.slug);
+const destination = path.join(demosRoot, options.demo, 'assets', 'kenney', options.slug);
 await mkdir(destination, { recursive: true });
 
 /** Find a named model anywhere in the extracted tree — kit layouts differ between releases. */
@@ -87,7 +87,7 @@ for (const model of options.models) {
   process.stdout.write(`${model}.glb — ${(data.byteLength / 1024).toFixed(0)} kB\n`);
 }
 
-const receiptPath = path.join(demosRoot, 'antiky', options.demo, 'assets', 'antiky-assets.json');
+const receiptPath = path.join(demosRoot, options.demo, 'assets', 'antiky-assets.json');
 const receipts = JSON.parse(await readFile(receiptPath, 'utf8'));
 receipts.assets = receipts.assets.filter((asset) => asset.catalogId !== entry.id);
 receipts.assets.push({

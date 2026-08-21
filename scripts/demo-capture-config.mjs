@@ -4,10 +4,10 @@
  * with the manifests actually on disk.
  */
 export const DEMOS = Object.freeze({
-  'antiky-town': 'packages/demos/antiky/antiky-town/antiky-town.antiky',
-  'combat-arena': 'packages/demos/antiky/combat-arena/combat-arena.antiky',
-  'point-light-expo': 'packages/demos/antiky/point-light-expo/point-light-expo.antiky',
-  'traversal-study': 'packages/demos/antiky/traversal-study/traversal-study.antiky',
+  'antiky-town': 'packages/demos/antiky-town/antiky-town.antiky',
+  'combat-arena': 'packages/demos/combat-arena/combat-arena.antiky',
+  'point-light-expo': 'packages/demos/point-light-expo/point-light-expo.antiky',
+  'traversal-study': 'packages/demos/traversal-study/traversal-study.antiky',
 });
 
 const fixture = (controls) => Object.freeze({

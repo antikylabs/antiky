@@ -86,10 +86,10 @@ You need Node.js 22 or newer, npm, and a WebGPU-capable browser for the rendered
 git clone https://github.com/antikylabs/site.git
 cd site
 npm install
-npm run antiky -- dev --project packages/demos/antiky/antiky-town/antiky-town.antiky
+npm run antiky -- dev --project packages/demos/antiky-town/antiky-town.antiky
 ```
 
-The selected [Antiky Town project](packages/demos/antiky/antiky-town/antiky-town.antiky) starts the
+The selected [Antiky Town project](packages/demos/antiky-town/antiky-town.antiky) starts the
 focused game host, shader watcher, inspection service, and Streamable HTTP MCP endpoint. The CLI
 prints the game, inspection, and MCP URLs after startup.
 
@@ -129,7 +129,7 @@ security boundary.
 | Build the production website | `npm run build` |
 
 Use `antiky-town`, `combat-arena`, `point-light-expo`, or `traversal-study` as a focused demo slug.
-The [Antiky demo guide](packages/demos/antiky/README.md) describes the catalog.
+The [Antiky demo guide](packages/demos/README.md) describes the catalog and maintained asset tools.
 
 ## Workspace packages
 
@@ -139,7 +139,7 @@ The repository contains core product workspaces plus four self-contained Antiky 
 | --- | --- | --- |
 | `@antiky/framework` | [`packages/framework`](packages/framework) | Headless engine sessions, identities, inspection contracts, and reusable game systems |
 | `@antiky/cli` | [`packages/cli`](packages/cli) | The `antiky` command, development-session host, typed development client, inspection transport, and MCP adapters |
-| Demo workspaces | [`packages/demos/antiky`](packages/demos/antiky) | Four Antiky Framework game modules rendered through BroMetal |
+| Demo workspaces | [`packages/demos`](packages/demos) | Four flat Antiky Framework game modules rendered through BroMetal |
 | `@antiky/website` | [`packages/website`](packages/website) | The Antiky Labs website and public presentation of runnable demos |
 | `@antiky/studio-app` and `@antiky/studio-tauri` | [`packages/studio`](packages/studio) | Studio webview, native application host, project service, and terminal integration |
 

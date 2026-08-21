@@ -7,7 +7,7 @@ canvas, platform input, timing, and development services.
 Open `antiky-town.antiky` in Studio, or run:
 
 ```sh
-npm run antiky -- dev --project packages/demos/antiky/antiky-town/antiky-town.antiky
+npm run antiky -- dev --project packages/demos/antiky-town/antiky-town.antiky
 ```
 
 `npm run build` compiles the portable module to `dist/antiky.game.js`.

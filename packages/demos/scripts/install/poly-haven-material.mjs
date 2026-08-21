@@ -57,7 +57,7 @@ async function main() {
   if (!listing.ok) throw new Error(`Poly Haven files API returned ${listing.status} for ${entry.upstream.id}`);
   const files = await listing.json();
 
-  const directory = path.join(demosRoot, 'antiky', options.demo, 'assets', 'poly-haven', options.slug);
+  const directory = path.join(demosRoot, options.demo, 'assets', 'poly-haven', options.slug);
   await mkdir(directory, { recursive: true });
 
   const installed = [];
@@ -93,7 +93,7 @@ async function main() {
   // Two receipt conventions live in this repository: most demos keep one `antiky-assets.json`
   // manifest, and `antiky-town` keeps a JSON file beside each asset. Write whichever the demo
   // already uses rather than imposing one — a receipt nobody reads is worse than no receipt.
-  const manifestPath = path.join(demosRoot, 'antiky', options.demo, 'assets', 'antiky-assets.json');
+  const manifestPath = path.join(demosRoot, options.demo, 'assets', 'antiky-assets.json');
   const hasManifest = existsSync(manifestPath);
   const receiptPath = hasManifest
     ? manifestPath
