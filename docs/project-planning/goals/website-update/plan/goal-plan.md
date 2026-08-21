@@ -20,6 +20,10 @@ This plan treats the public product pages as explanations: a visitor should leav
 model of what Antiky is, why it is different, what works now, and what to try next. Procedures and
 complete API facts stay in user-facing documentation.
 
+Every screenshot and product or research capture is evidence from the implementation commit. Media
+created with ImageGen is illustrative marketing material: it can establish mood or carry a launch
+campaign, but it cannot replace, alter, or imply current product evidence.
+
 ## Non-negotiable boundaries
 
 - Use the labels **Current**, **Emerging**, **Direction**, and **Research question** in visible text.
@@ -35,7 +39,12 @@ complete API facts stay in user-facing documentation.
 - Do not claim completed agent workflows, selection, mini apps, feedback storage, sandboxes, physics,
   online play, trained models, or model-efficiency results before their public evidence exists.
 - Use one evidence-bearing image or media field at a time. Avoid feature-card walls, concept art
-  presented as proof, decorative terminal language, and generic AI imagery.
+  presented as proof, decorative terminal language, and generic AI imagery. Generated art can
+  support an approved secondary marketing placement, but it cannot occupy a proof slot or depict
+  invented gameplay, Studio UI, research output, or technical results.
+- Use ImageGen for the launch marketing image set after the owner approves the media matrix and one
+  creative direction. Keep generated images text-free by default; render product names, status,
+  claims, and calls to action as accessible site or campaign typography rather than generated pixels.
 - Preserve `/assets` as the canonical asset-catalog route. The Resources hub links to it; the work
   does not break existing asset URLs or create a duplicate catalog under `/resources/assets`.
 - Keep the Studio release action gated by `NEXT_PUBLIC_STUDIO_RELEASES_READY`. A source build cannot
@@ -204,7 +213,8 @@ labels in the approved copy decks as anchors; do not add “click here” or gen
 | Framework API reference | Framework source plus `packages/framework/scripts/api-reference-content.mjs` | generated files in `docs/user-facing-docs/api/` |
 | Demo catalog | `packages/website/src/lib/demos.ts` and `packages/website/demo-publication.json` | demo index, detail pages, staged builds, sitemap |
 | Skills catalog facts | a reviewed snapshot of `https://github.com/antikylabs/skills` | `/resources/skills` and `docs/user-facing-docs/skills/` |
-| Delivery media | masters plus `packages/website/media-publication.json` | optimized files under `packages/website/public/media/` |
+| Evidence media | current capture masters plus `packages/website/media-publication.json` | optimized files under `packages/website/public/media/` |
+| Marketing media | approved ImageGen masters and prompt sidecars plus `packages/website/media-publication.json` | optimized files under `packages/website/public/media/marketing/` and approved launch material |
 
 Seed `packages/website/content/roadmap.txt` from `plan/roadmap.txt`; do not make a goal-directory path
 a production build dependency. The public copy decks are implementation handoffs, not runtime
@@ -283,7 +293,34 @@ Exit evidence:
 
 Commit this move separately so path churn does not hide website behavior changes.
 
-### 3. Replace media with reproducible current captures
+### 3. Capture current evidence and generate launch marketing media
+
+Before capturing or generating anything, create a route-by-route media matrix for Home, Framework,
+Studio, Games, Demos, Research, Resources, and the external launch placements the owner intends to
+use. For each slot, record:
+
+- the claim or communication job the image performs;
+- whether it is **Evidence capture** or **Illustrative marketing image**;
+- the source application, demo, report, or approved ImageGen creative brief;
+- master aspect ratio, required desktop/mobile crops, focal safe area, caption, and alt-text intent;
+- the owning route or launch deliverable and the person who approves it.
+
+Resolve the matrix against the copy decks and the `DESIGN.md` one-stage rule. One asset cannot be
+classified as both evidence and illustration. Prefer a current capture whenever the communication
+job is to show what Antiky does; reserve ImageGen for mood, campaign identity, and supporting
+editorial material.
+
+#### Capture coverage and freshness
+
+Capture a fresh launch set from the implementation commit. An existing filename or visually similar
+old image does not establish freshness. A prior capture may remain only when its recorded source
+revision and state match the implementation baseline and the owner explicitly approves it.
+
+The minimum evidence set is the four approved demo posters, the four distinct Studio states below,
+the current Framework hero evidence, a completed-research chart or report view, and the active
+voxel-research capture. Home, Games, Demos, and Framework may reuse an approved capture when it proves
+the same claim; do not make near-duplicate screenshots merely to fill layout slots. Record the exact
+state and fixture before capture so a later operator can reproduce it.
 
 #### Demo captures
 
@@ -320,19 +357,64 @@ Use only current output from the research repository for research imagery. A cur
 capture can illustrate the active gym; a chart or report page can illustrate completed shader
 research. Label both by status. Do not generate research “results” as decorative artwork.
 
+Use approved captures—not generated substitutes—for Framework proof, demo posters, Studio product
+views, and any current claim elsewhere on the site. If a capture contains local UI, use a clean,
+purpose-built fixture and crop; do not use ImageGen to repair, redraw, or enhance product evidence.
+
+#### ImageGen marketing imagery and material
+
+Use the built-in ImageGen workflow to create the illustrative launch set from the approved matrix.
+The set must cover the launch key art, the share/announcement crops that will actually be published,
+and any secondary editorial illustration explicitly selected for the implemented pages. Do not add
+generated art to a page solely to fill empty space, and do not replace the real evidence field in the
+first viewport.
+
+Write one short creative brief before generation. It must derive its palette, restraint, composition,
+and negative-space rules from `packages/website/DESIGN.md`; name the audience and placement; and say
+how the image supports the Antiky thesis without depicting a fictional feature. Translate each
+approved slot into an `ads-marketing` prompt with the asset type, scene, subject, framing, mood,
+palette, and explicit constraints. The constraints must prohibit generated copy, logos, watermarks,
+terminal decoration, fake interfaces, fake gameplay, fake charts, and unapproved brand motifs.
+
+Generate each distinct asset or crop as its own request. If a real capture is supplied as a visual
+reference, label its role and require that the result remain illustrative; do not present generated
+or altered pixels as a screenshot. Review the first round together, select one direction, and iterate
+with one targeted change at a time. Owner approval is required before a generated asset enters the
+site or launch kit.
+
+Store selected masters under `packages/website/media-masters/marketing/`, with a neighboring prompt
+sidecar that preserves the final prompt, input-reference roles, generation method, generation date,
+and approval. Publish bounded derivatives under `packages/website/public/media/marketing/`. Never
+leave a project-bound generated asset only in ImageGen's default output location, and never overwrite
+an approved master while exploring a revision.
+
+Inspect every selected image at its final desktop and mobile crops. Reject output with accidental
+text, invented UI, recognizable third-party marks, watermarks, misleading product affordances,
+brand drift, unusable negative space, or a focal subject lost by responsive cropping. Mark the image
+**Illustrative** in adjacent text when a reasonable visitor could otherwise mistake it for product,
+gameplay, or research evidence.
+
+#### Publication and cleanup
+
 Delete superseded derivatives and masters after all references move, including retired
 `town-study`, `depth-study`, old `worlds/` captures, and obsolete Studio machinery files. Keep a file
 only when a live route, documentation page, Open Graph record, or explicit historical artifact owns
 it. Add a test that every entry in `media-publication.json` exists, meets its dimension/size contract,
-and is referenced, and that every production media reference is declared.
+and is referenced, and that every production media reference is declared. Give each manifest entry
+a source kind and public role. Capture entries require source revision and fixture/state provenance;
+generated entries require the prompt sidecar, generation provenance, **Illustrative** role, and owner
+approval. Tests must enforce the fields appropriate to each kind instead of applying capture-digest
+rules to generated assets.
 
 Exit evidence:
 
 - `npm run demos:shoot -- --runs 3`
 - `npm run demos:verify`
+- an owner-approved media matrix, capture shot list, ImageGen creative brief, and final prompt records
 - media-manifest contract tests demonstrate failure for a stale source digest, missing file, reused
-  image, and oversized derivative
-- desktop and mobile screenshot review of every page that uses new media
+  evidence image, missing generated-image provenance or approval, and oversized derivative
+- desktop and mobile review of every page and launch crop that uses new media, with each asset checked
+  against its Evidence or Illustrative role
 
 ### 4. Implement the content model and roadmap
 
@@ -358,8 +440,9 @@ Add parser fixtures that prove:
 ### 5. Update the core explanation pages
 
 Apply the approved copy decks to Framework, Studio, and Research. Preserve the established dark,
-editorial design and its one-stage rule; this is a content and evidence update, not a visual-world
-replacement.
+editorial design and its one-stage rule. Generated marketing art from phase 3 may appear only in an
+approved secondary illustrative slot; it cannot replace the opening evidence field or turn this into
+a visual-world replacement.
 
 #### Framework
 
@@ -513,12 +596,17 @@ Add or update tests for:
   44px minimum mobile controls, and reduced-motion behavior;
 - metadata and direct first-paragraph definitions for Framework, Studio, Research, Resources, Skills,
   and Roadmap;
+- every generated production image is declared Illustrative and has prompt and approval provenance;
+  the media-slot audit confirms that no Current claim uses one as evidence;
 - no `town-study`, `depth-study`, stale study counts, old demo paths, concept-art proof, or unsupported
   current claims in production output.
 
 Run a bounded visual review at 1440px desktop and 390px mobile for Home, Framework, Studio, Games,
 Demos index, one demo detail, Research, Resources, each library page, Roadmap, Docs home, and one
-Skills guide. Fix the complete first-round defect list in one batch, then run one confirmation pass.
+Skills guide. Save the first-round and confirmation captures with the implementation handoff so the
+updated site itself has a dated launch screenshot record. Fix the complete first-round defect list in
+one batch, then run one confirmation pass. Also review every generated launch crop at its actual
+delivery dimensions; a full-size master review does not approve a derived marketing asset.
 
 Final commands:
 
@@ -551,11 +639,13 @@ platform, installation steps, release notes, limitations, and the expected downl
 | 12. Skills docs | phases 7, 8 | docs navigation, Markdown, search, sitemap, llms surfaces |
 | 13. Flattened demos and useful scripts | phase 2 | no current old paths, script ledger, focused/full tests |
 | 14. Current real media | phases 3, 9 | media manifest, capture provenance, stale-media rejection, visual QA |
+| Added launch media requirement: ImageGen marketing imagery and material | phases 3, 5, 9 | approved media matrix and creative direction, prompt/provenance sidecars, published derivatives, responsive visual QA |
 
 ## Definition of done
 
-The implementation is complete only when all fourteen acceptance rows have linked evidence, every
+The implementation is complete only when every acceptance-map row has linked evidence, every
 focused and full verification command passes in both Studio-release states, the visual review has no
-unresolved blocker, and no production copy relies on an unlabeled future capability. A green build
-alone is not completion; the media provenance, documentation audit, demo activation behavior, and
+unresolved blocker, every required fresh capture and approved marketing derivative exists, and no
+production copy relies on an unlabeled future capability. A green build alone is not completion; the
+media matrix, evidence and ImageGen provenance, documentation audit, demo activation behavior, and
 release gate are part of the product contract.
