@@ -9,10 +9,10 @@ const mediaPublication = JSON.parse(await readFile(new URL('../media-publication
 const EXPLANATIONS = [
   ['framework.html', '/framework', /Antiky Framework is an open-source TypeScript game framework/, ['Current', 'Emerging', 'Direction']],
   ['studio.html', '/studio', /Antiky Studio is the native visual workspace/, ['Current', 'Emerging', 'Planned', 'Exploring']],
-  ['research.html', '/research', /Antiky Labs runs focused experiments/, ['Completed study', 'Active gym', 'Research question']],
+  ['research.html', '/research', /Explore Antiky Labs experiments/, ['Completed study', 'Active gym', 'Research question']],
   ['resources.html', '/resources', /Browse CC0 assets and installable agent skills today/, ['Current', 'Coming soon']],
   ['resources/skills.html', '/resources/skills', /An agent skill is a small, independently installable/, ['Current', 'Available skills']],
-  ['roadmap.html', '/roadmap', /We are building one complete loop/, ['Planned', 'no release dates']],
+  ['roadmap.html', '/roadmap', /See what Antiky can do today/, ['Planned', 'no release dates']],
 ];
 
 function mainContent(source) {
@@ -43,22 +43,38 @@ test('core explanation pages answer their question in server HTML with metadata 
 
 test('header, mobile, and footer navigation keep the approved order and route parity', async () => {
   const source = await readFile(new URL('framework.html', outputRoot), 'utf8');
-  const expectedPrimary = ['/thesis', '/framework', '/games', '/resources', '/research', '/docs'];
   const desktop = source.slice(source.indexOf('<nav class="desktop-nav"'), source.indexOf('</nav>', source.indexOf('<nav class="desktop-nav"')));
   const mobileStart = source.indexOf('<nav aria-label="Mobile navigation"');
   const mobile = source.slice(mobileStart, source.indexOf('</nav>', mobileStart));
   const footerStart = source.indexOf('<nav aria-label="Footer navigation"');
   const footer = source.slice(footerStart, source.indexOf('</nav>', footerStart));
 
-  assert.deepEqual(anchors(desktop), expectedPrimary);
-  assert.deepEqual(anchors(mobile).slice(0, 7), [...expectedPrimary, '/demos']);
+  const expectedPrimary = ['/thesis', '/framework', '/studio', '/games', '/resources', '/research', '/docs'];
+  for (const navigation of [desktop, mobile]) {
+    const positions = expectedPrimary.map((href) => {
+      const position = navigation.indexOf(`href="${href}"`);
+      assert.ok(position >= 0, `navigation is missing ${href}`);
+      return position;
+    });
+    assert.deepEqual([...positions].sort((left, right) => left - right), positions);
+    assert.match(navigation, /<summary[^>]*>Resources<\/summary>/);
+    for (const href of ['/assets', '/resources/skills', '/resources/shaders', '/resources/projects']) {
+      assert.ok(navigation.includes(`href="${href}"`), `Resources navigation is missing ${href}`);
+    }
+  }
+
+  const headerActionsStart = source.indexOf('<div class="header-actions"');
+  const headerActions = source.slice(headerActionsStart, source.indexOf('</div>', headerActionsStart));
+  assert.deepEqual(anchors(headerActions), ['/assets', 'https://discord.gg/3Qs2uejUf9']);
+  assert.match(headerActions, /Get free game assets/);
+  assert.match(headerActions, /Join Discord/);
   assert.deepEqual(
     anchors(footer).filter((href) => href.startsWith('/')).slice(0, 8),
     ['/studio', '/framework', '/games', '/demos', '/resources', '/research', '/roadmap', '/docs'],
   );
 });
 
-test('production images have descriptive alt text and Current proof never uses generated pixels', async () => {
+test('production images have descriptive alt text and generated research visuals are clearly illustrative', async () => {
   const entriesByUrl = new Map(mediaPublication.entries.map((entry) => [entry.delivery.publicUrl, entry]));
   for (const file of ['index.html', 'framework.html', 'studio.html', 'games.html', 'demos.html', 'research.html']) {
     const source = await readFile(new URL(file, outputRoot), 'utf8');
@@ -78,10 +94,29 @@ test('production images have descriptive alt text and Current proof never uses g
     for (const url of mediaUrls) {
       const entry = entriesByUrl.get(url);
       assert.ok(entry, `${file} uses undeclared production media ${url}`);
-      assert.equal(entry.publicRole, 'Evidence', `${file} uses ${url} as page proof even though it is ${entry.publicRole}`);
+      if (entry.publicRole === 'Evidence') continue;
+      assert.equal(file, 'research.html', `${file} uses non-evidence media ${url}`);
+      assert.equal(entry.publicRole, 'Illustrative', `${file} uses unsupported media role ${entry.publicRole}`);
+      assert.ok(
+        main.includes(`data-media-role="illustrative" data-media-url="${url}"`),
+        `${url} must be visibly separated from research evidence`,
+      );
     }
     assert.doesNotMatch(main, /media\/marketing\//);
   }
+});
+
+test('research presents the declarative scene DSL with its exact reference visuals', async () => {
+  const research = mainContent(await readFile(new URL('research.html', outputRoot), 'utf8'));
+
+  assert.match(research, /Declarative scene DSL/);
+  assert.match(research, /Research in progress/);
+  for (const image of [
+    'blue-winter-grove-reference-01-clearing-v4.webp',
+    'blue-winter-grove-reference-02-frozen-creek-v4.webp',
+    'blue-winter-grove-reference-03-frost-tree-detail-v4.webp',
+  ]) assert.ok(research.includes(image), `research is missing ${image}`);
+  assert.match(research, /These images show the intended result; they do not show a shipped Framework feature/);
 });
 
 test('agent-readable discovery and crawler policy include the new public explanations', async () => {

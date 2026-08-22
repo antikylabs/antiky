@@ -15,7 +15,7 @@ export default function SiteFooter() {
       <div className="wrap footer-main">
         <div>
           <Link className="footer-brand" href="/">{SITE_NAME}</Link>
-          <p>A game technology lab building games and an AI-native development system around human creative authority.</p>
+          <p>Games and tools for creators working with coding agents.</p>
         </div>
         <nav aria-label="Footer navigation">
           <Link href="/studio">Studio</Link>
@@ -42,7 +42,7 @@ export default function SiteFooter() {
             <span><span id="ssps-live-count">…</span> active now</span>
           </span>
         )}
-        <span>Three technical studies are public. The larger game and system are still being built.</span>
+        <span>Three playable demos are public. Framework and Studio are pre-release.</span>
       </div>
     </footer>
   );

@@ -3,6 +3,15 @@
 Antiky gives you a game framework, a local development command, and shared tools for people,
 agents, and Studio. Start with the task you want to complete.
 
+## Getting started
+
+Follow these tutorials in order:
+
+1. [Run Antiky Town from source](getting-started/framework.md) and inspect its live development
+   session.
+2. [Open Antiky Town in Studio](getting-started/studio.md) and use the visual workspace.
+3. [Inspect Antiky Town with development tools](getting-started/tools.md) and connect an MCP client.
+
 ## Assets
 
 - [Find and use game assets](assets/catalog.md) with explicit CC0 licensing, source links, useful

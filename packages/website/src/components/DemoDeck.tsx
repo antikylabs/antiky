@@ -15,7 +15,7 @@ type Props = {
 };
 
 const DEMO_LIMITS: Record<DemoMeta['pillar'], string> = {
-  Framework: 'This working slice does not represent a complete engine or the full creator-agent workflow.',
+  Framework: 'This demo shows one focused part of Framework, not a complete game engine.',
 };
 
 export default function DemoDeck({ demo, prev, next, index }: Props) {
@@ -47,20 +47,20 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
           <p className="status-line"><span className="status-dot status-live" /> Live demo · {demo.pillar}</p>
           <p>{demo.tagline}</p>
         </div>
-        <Link className="text-link" href="/demos">All studies <ArrowUpRight /></Link>
+        <Link className="text-link" href="/demos">All demos <ArrowUpRight /></Link>
       </section>
 
       <div className="deck-stage wrap">
         <DemoStage
           key={demo.slug}
           slug={demo.slug}
-          label={`${demo.title}: interactive live study`}
+          label={`${demo.title}: interactive demo`}
           controlMode={demo.controlMode}
         />
       </div>
 
       <p className="demo-poster-caption wrap">
-        Current verified capture · Select <strong>Play {demo.title}</strong> to request and start the interactive module.
+        Preview image · Select <strong>Play {demo.title}</strong> to start the interactive demo.
       </p>
 
       <div className="demo-meta wrap">
@@ -74,7 +74,7 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
 
       <section className="content-section wrap demo-notes">
         <div>
-          <p className="section-label">About the study</p>
+          <p className="section-label">About the demo</p>
           <p className="lead">{demo.notes}</p>
         </div>
         <div>

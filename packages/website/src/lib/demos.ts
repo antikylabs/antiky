@@ -28,7 +28,7 @@ export const DEMO_GROUPS: readonly Readonly<{
     id: 'framework-demos',
     pillar: 'Framework',
     title: 'Antiky Framework',
-    description: 'Framework-owned game state and live authoring, rendered through BroMetal.',
+    description: 'Three small games that show movement, authored worlds, inspection, and live lighting tools.',
   },
 ];
 
@@ -40,11 +40,11 @@ export const DEMOS: readonly DemoMeta[] = [
     pillar: 'Framework',
     tagline: 'A living town with Framework-owned light authoring.',
     notes:
-      'Explore the golden-hour market while Antiky Framework owns the identity, authoring state, runtime projection, and render update for a visible lamp.',
+      'Walk through a golden-hour market, then inspect or change a visible lamp through Antiky development tools.',
     proves: [
-      'One stable light identity from authored content through rendering',
-      'Live command changes without a reload or renderer rebuild',
-      'Structured runtime state through the same game module used by Studio',
+      'An authored town that you can explore',
+      'A lamp that can change while the game keeps running',
+      'Live game state that Studio and agent tools can inspect',
     ],
     tags: ['Antiky Framework', 'BroMetal', 'live authoring'],
     requiresWebGpu: true,
@@ -57,11 +57,11 @@ export const DEMOS: readonly DemoMeta[] = [
     pillar: 'Framework',
     tagline: 'A kinetic floating-platform course with checkpoints, hazards, and an attract loop.',
     notes:
-      'The side-on course runs by itself and accepts manual steering and jumps. Framework owns fixed-step traversal, moving platforms, hazards, checkpoints, particles, and the event trail Studio can inspect.',
+      'Watch the side-on course run by itself or take control. The demo includes moving platforms, hazards, checkpoints, particles, and events that Studio can inspect.',
     proves: [
-      'Deterministic platform movement, collision, checkpoints, and hazard recovery',
-      'An immediate attract loop that communicates motion without requiring input',
-      'Published traversal entities, runtime stores, and events beside the rendered result',
+      'Platform movement, collision, checkpoints, and hazard recovery',
+      'A self-running preview that starts without input',
+      'Traversal objects, game state, and events available to development tools',
     ],
     tags: ['Antiky Framework', 'platforming', 'attract loop'],
     requiresWebGpu: true,
@@ -74,11 +74,11 @@ export const DEMOS: readonly DemoMeta[] = [
     pillar: 'Framework',
     tagline: 'Three inspectable practical lights inside a prismatic foundry.',
     notes:
-      'A focused Antiky Framework showcase: three stable light entities drive a custom BroMetal material, and their power can be inspected or changed through the same service Studio gives agents.',
+      'Three colored lights illuminate a custom BroMetal material. Studio, the CLI, or agent tools can inspect each light and change its power.',
     proves: [
-      'Framework-authored RGB point lights with stable world and entity identities',
-      'Live renderer updates from agent-accessible light commands',
-      'A custom typed shader compiled ahead of time to WGSL',
+      'Three RGB point lights that Framework can identify',
+      'Lighting changes that appear without restarting the game',
+      'A typed shader compiled to WGSL before the game runs',
     ],
     tags: ['Antiky Framework', 'point lights', 'custom shader'],
     requiresWebGpu: true,

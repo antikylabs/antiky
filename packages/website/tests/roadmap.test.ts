@@ -20,16 +20,16 @@ test('the production roadmap parses every seeded delivery in source order', asyn
   assert.deepEqual(
     roadmap.deliveries.map((delivery) => delivery.title),
     [
-      "v0.1. Put the foundation in people's hands",
-      'v0.2. Make the game part of the conversation',
-      'v0.3. Grow the game-making core',
-      'v0.4. Turn Studio into a creator workspace',
-      'Beyond. Build a creative library agents can understand',
-      'The destination. Ship games that prove the idea',
+      'v0.1. First public release',
+      'v0.2. Bring the game into agent conversations',
+      'v0.3. Add core game-making systems',
+      'v0.4. Add focused Studio tools',
+      'Beyond. Expand the platform',
+      'Long term. Ship complete games',
     ],
   );
   assert.equal(roadmap.deliveries[0]?.subitems[0]?.title, 'Framework and agent tools');
-  assert.equal(roadmap.deliveries.at(-1)?.subitems.at(-1)?.title, 'Release evidence');
+  assert.equal(roadmap.deliveries.at(-1)?.subitems.at(-1)?.title, 'Reliable releases');
 });
 
 test('field and item descriptions preserve colons after their first delimiter', () => {

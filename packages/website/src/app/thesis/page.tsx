@@ -24,16 +24,15 @@ export default function ThesisPage() {
         <h1>The Antiky Thesis</h1>
         <p className="page-lead">
           Game development is becoming collaboration between human creators and software agents.
-          The systems supporting that collaboration should be designed around shared understanding
-          and human authority from the beginning, then tested by building real games.
+          We are building tools that help them understand the same game while keeping the creator
+          in control.
         </p>
       </header>
 
       <section className="thesis-intro wrap" aria-labelledby="assumption-changed">
         <p className="section-label">The assumption that changed</p>
         <h2 id="assumption-changed">
-          Game development tools were built for a world where humans were the only intelligent
-          participants in the creative process.
+          Most game-development tools assume that a person will gather and interpret all the context.
         </h2>
         <p>That world is changing.</p>
       </section>
@@ -80,7 +79,7 @@ export default function ThesisPage() {
       <section className="thesis-chapter wrap" aria-labelledby="architecture">
         <div>
           <p className="section-label">02 · AI-native</p>
-          <h2 id="architecture">AI-native is architectural.</h2>
+          <h2 id="architecture">Agents need more than a chat box.</h2>
         </div>
         <div className="thesis-prose">
           <p className="lead">
@@ -88,15 +87,13 @@ export default function ThesisPage() {
             It does not give people and agents a shared understanding of a living game.
           </p>
           <p>
-            Antiky&apos;s current foundation gives Studio, the CLI, MCP tools, and direct typed clients
-            access to the same local project services. A fixed-step session owns game time and state.
-            Inspection publishes validated snapshots. Commands provide bounded ways to change the
-            narrow authoring surfaces that exist today.
+            Studio, the CLI, MCP tools, and tests connect to the same local project session. They can
+            read the same build status, running game state, diagnostics, and captures. Checked
+            commands handle the editing tools that exist today.
           </p>
           <p>
-            That is an early foundation, not the complete creator-agent workflow. General sandboxes,
-            contextual feedback, broad editor commands, and richer permission systems remain work
-            ahead.
+            This is still an early foundation. Broader editing, selected-object context, and direct
+            agent conversations are not available yet.
           </p>
           <div className="thesis-links">
             <Link className="text-link" href="/docs/framework/engine-sessions">Engine sessions <ArrowRight /></Link>
@@ -109,7 +106,7 @@ export default function ThesisPage() {
       <section className="thesis-chapter wrap" aria-labelledby="shared-context">
         <div>
           <p className="section-label">03 · Shared context</p>
-          <h2 id="shared-context">One game. One source of truth.</h2>
+          <h2 id="shared-context">Everyone should see the same game state.</h2>
         </div>
         <div className="thesis-prose">
           <p className="lead">
@@ -117,9 +114,8 @@ export default function ThesisPage() {
             reality.
           </p>
           <p>
-            A capture shows what the game looks like. Structured state explains what the game is
-            doing: which runtime is alive, what entities and stores a game publishes, which events
-            occurred, what diagnostics exist, and which revision a tool observed.
+            A capture shows what the game looks like. Inspection shows what it is doing: which game
+            is running, what entities and stores it publishes, which events occurred, and what went wrong.
           </p>
           <p>
             Pixels should complement understanding, not substitute for it. Stable identities,
@@ -132,29 +128,24 @@ export default function ThesisPage() {
       <section className="thesis-chapter wrap" aria-labelledby="authority">
         <div>
           <p className="section-label">04 · Authority</p>
-          <h2 id="authority">Read access is not change authority.</h2>
+          <h2 id="authority">Agents can inspect without having unrestricted control.</h2>
         </div>
         <div className="thesis-prose">
           <p className="lead">
             A capable collaborator needs room to investigate without receiving unchecked control.
           </p>
           <p>
-            Current inspection snapshots are immutable, and Studio&apos;s inspector views are read-only.
-            The authoring operations that exist today cross explicit command boundaries. The target
-            architecture goes further: agents should be able to test bounded changes away from
-            primary state, present evidence, and ask a person or authorized system to apply them.
+            Studio&apos;s inspector is read-only. Editing tools use checked commands. In the future, an
+            agent should be able to try a change safely, show the result, and wait for approval before
+            it changes the creator&apos;s game.
           </p>
-          <blockquote>
-            A successful experiment is evidence for a change. It is not permission to make that
-            change.
-          </blockquote>
         </div>
       </section>
 
       <section className="thesis-chapter wrap" aria-labelledby="environment">
         <div>
           <p className="section-label">05 · The environment</p>
-          <h2 id="environment">The environment matters as much as the model.</h2>
+          <h2 id="environment">Better tools can help agents do better work.</h2>
         </div>
         <div className="thesis-prose">
           <p className="lead">
@@ -162,46 +153,24 @@ export default function ThesisPage() {
             agent must infer.
           </p>
           <p>
-            We are researching whether that environment can help smaller or local coding models do
-            useful game-development work with less waste. It is a question, not a result. Antiky has
-            not yet published the task evaluations, baselines, or model evidence required to claim
-            that outcome.
-          </p>
-        </div>
-      </section>
-
-      <section className="thesis-chapter wrap" aria-labelledby="typescript">
-        <div>
-          <p className="section-label">06 · A practical language</p>
-          <h2 id="typescript">TypeScript keeps the current stack close together.</h2>
-        </div>
-        <div className="thesis-prose">
-          <p className="lead">
-            Framework, CLI, Studio, game modules, development clients, and the website can share
-            types and run across the browser and local development environment.
-          </p>
-          <p>
-            That makes TypeScript a practical implementation choice for Antiky today. It is not a
-            claim that one language is universally best, or that TypeScript alone makes agents more
-            capable. The value comes from fewer boundaries and interfaces the whole system can
-            validate.
+            We are testing whether better context and narrower tools help smaller or local models do
+            useful game-development work. We do not have a published result yet.
           </p>
         </div>
       </section>
 
       <section className="thesis-chapter wrap" aria-labelledby="rendering">
         <div>
-          <p className="section-label">07 · Creative range</p>
-          <h2 id="rendering">Rendering is research, not identity.</h2>
+          <p className="section-label">06 · Creative range</p>
+          <h2 id="rendering">Choose the visual style the game needs.</h2>
         </div>
         <div className="thesis-prose">
           <p className="lead">
-            2D, 3D, and 2.3D are creative possibilities, not the boundaries of Antiky.
+            Antiky is meant for 2D, 3D, and everything between them.
           </p>
           <p>
-            BroMetal is where Antiky&apos;s rendering work began and remains the renderer our Framework
-            games use. The game-module boundary keeps renderer choice separate from the broader
-            questions about game state, development services, and human-agent collaboration.
+            Our current games render through BroMetal. Framework keeps rendering separate from game
+            rules so a game is not defined by one renderer or visual style.
           </p>
           <Link className="text-link" href="/demos">Run the rendering studies <ArrowRight /></Link>
         </div>
@@ -213,9 +182,8 @@ export default function ThesisPage() {
           <div>
             <p className="lead">The creative idea should lead. The engine should follow.</p>
             <p>
-              The game creates real problems. We solve them. When a solution proves reusable, it can
-              become part of Antiky. Working software teaches us more than speculative architecture.
-              Playable experiments teach us more than promises.
+              Building games tells us which tools are actually useful. Antiky Town and the other
+              browser demos let you play the work today.
             </p>
             <Link className="text-link" href="/demos/antiky-town">Run Antiky Town <ArrowRight /></Link>
           </div>
@@ -224,7 +192,7 @@ export default function ThesisPage() {
 
       <section className="thesis-chapter thesis-bet wrap" aria-labelledby="bet">
         <div>
-          <p className="section-label">08 · The bet</p>
+          <p className="section-label">07 · The bet</p>
           <h2 id="bet">Build the future by testing it in public.</h2>
         </div>
         <div className="thesis-prose">

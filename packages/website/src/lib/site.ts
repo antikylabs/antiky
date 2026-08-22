@@ -3,7 +3,7 @@ import frameworkPackage from '../../../framework/package.json';
 export const SITE_NAME = 'Antiky Labs';
 export const SITE_TAGLINE = 'Build the world in your mind.';
 export const SITE_DESCRIPTION =
-  'Antiky Labs is a game technology lab building games and an AI-native development system around human creative authority.';
+  'Antiky Labs builds games, an open-source TypeScript framework, and a visual workspace for creators working with coding agents.';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
 
 export const GITHUB_URL = 'https://github.com/antikylabs/antiky';
@@ -21,10 +21,19 @@ export type NavLink = { href: string; label: string };
 export const NAV: NavLink[] = [
   { href: '/thesis', label: 'Thesis' },
   { href: '/framework', label: 'Framework' },
+  { href: '/studio', label: 'Studio' },
   { href: '/games', label: 'Games' },
   { href: '/resources', label: 'Resources' },
   { href: '/research', label: 'Research' },
   { href: '/docs', label: 'Docs' },
+];
+
+export const RESOURCE_NAV: NavLink[] = [
+  { href: '/resources', label: 'Resources overview' },
+  { href: '/assets', label: 'Get free game assets' },
+  { href: '/resources/skills', label: 'Agent skills' },
+  { href: '/resources/shaders', label: 'Shader library' },
+  { href: '/resources/projects', label: 'Project library' },
 ];
 
 export function canonical(path: string): string {

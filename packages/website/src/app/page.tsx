@@ -12,28 +12,28 @@ const SYSTEM = [
     status: 'Current foundation · pre-release',
     evidenceStatus: 'current',
     title: 'Framework',
-    body: 'Build portable games with fixed-step sessions, stable identities, structured inspection, and controlled live editing.',
+    body: 'Build games with predictable simulation, live inspection, and tools that work from the CLI, Studio, or a coding agent.',
   },
   {
     href: '/studio',
     status: 'Current workspace · early',
     evidenceStatus: 'current',
     title: 'Antiky Studio',
-    body: 'The running game, native terminal, simulation controls, and live structured state in one visual workspace.',
+    body: 'Keep the running game, native terminal, simulation controls, and live inspection in one window.',
   },
   {
     href: '/docs/cli/development',
     status: 'Current services · pre-release',
     evidenceStatus: 'current',
     title: 'CLI and project services',
-    body: 'Start the game, build watcher, inspection service, and MCP tools from one local command.',
+    body: 'Start the game, build watcher, inspection, and MCP tools with one local command.',
   },
   {
     href: '/docs/mcp/overview',
     status: 'Current tools · more ahead',
     evidenceStatus: 'emerging',
     title: 'Agents',
-    body: 'Let compatible coding agents inspect the running game and use approved development tools.',
+    body: 'Let compatible coding agents inspect the running game and use its development tools.',
   },
 ] as const;
 
@@ -48,15 +48,13 @@ export default function HomePage() {
         <div className="home-hero-copy">
           <h1>Build the world in your mind.<br />Stay in the director&apos;s chair.</h1>
           <p>
-            Antiky Labs explores game development where human creators and software agents are both
-            first-class participants, and the human remains the creative authority.
+            Antiky Labs builds games and tools for creators working with coding agents. You choose
+            the direction. Agents help you make, inspect, and test the game.
           </p>
           <div className="actions">
             <StudioPrimaryAction className="button button-primary" />
+            <Link className="button button-secondary" href="/assets">Get free game assets <ArrowRight /></Link>
             <Link className="text-link" href="/thesis">Read the Thesis <ArrowRight /></Link>
-            <a className="text-link" href={DISCORD_URL} target="_blank" rel="noreferrer">
-              Join Discord <ArrowUpRight />
-            </a>
           </div>
         </div>
         <p className="media-caption"><span>Playable now · Antiky Town</span> Live Framework world, light authoring, and BroMetal rendering</p>
@@ -70,12 +68,12 @@ export default function HomePage() {
           </div>
           <div className="prose">
             <p className="lead">
-              Existing game tools are powerful. Most were designed for people who interpret the
-              editor, project, runtime, and debugging environment themselves.
+              Most game tools expect a person to gather context from the editor, project files,
+              running game, and debugger.
             </p>
             <p>
-              Antiky asks what changes when software agents can work through context the system
-              exposes directly, not only fragments they must assemble.
+              Antiky gives people and coding agents shared game state, commands, diagnostics, and
+              captures so they can work from the same information.
             </p>
             <Link className="text-link section-link" href="/thesis">Follow the full argument <ArrowRight /></Link>
           </div>
@@ -101,16 +99,15 @@ export default function HomePage() {
         <div className="wrap split-heading">
           <div>
             <p className="section-label">How it works today</p>
-            <h2>One game. One source of truth.</h2>
+            <h2>One game. Shared live context.</h2>
           </div>
           <div className="prose">
             <p className="lead">
-              Studio, the CLI, MCP tools, and direct typed clients use the same local project
-              services and observe the same running session.
+              Studio, the CLI, MCP tools, and tests connect to the same local project session.
             </p>
             <p>
-              Inspection is read-only. Simulation controls and approved commands make deliberate
-              changes without giving every connected tool unrestricted access.
+              They see the same build, game state, diagnostics, and captures. Read-only inspection
+              stays separate from commands that change the game.
             </p>
             <div className="thesis-links">
               <Link className="text-link" href="/studio">See it in Studio <ArrowRight /></Link>
@@ -122,10 +119,9 @@ export default function HomePage() {
 
       <section className="work-index wrap" id="system">
         <header className="section-intro">
-          <h2>One development model.</h2>
+          <h2>Everything around the same game.</h2>
           <p>
-            Framework, Studio, project services, and agent tools are different views and
-            responsibilities around the same game, not four unrelated products.
+            Framework, Studio, project services, and agent tools work together during development.
           </p>
         </header>
         <div className="editorial-list">
@@ -151,11 +147,10 @@ export default function HomePage() {
             <h2>We will build games, not just technology.</h2>
           </div>
           <div className="prose">
-            <p className="lead">The game creates real problems. Reusable solutions become Antiky.</p>
+            <p className="lead">Play the Framework demos now and follow Emberwyrd as it develops.</p>
             <p>
               Antiky Town, Traversal Study, and Point Light Expo are the three public technical
-              studies running today. Emberwyrd is the larger game Antiky Labs is building. It is
-              not playable yet.
+              studies running today. Emberwyrd is our larger game in development and is not playable yet.
             </p>
             <div className="thesis-links">
               <Link className="button button-primary" href="/demos/antiky-town">Run Antiky Town <ArrowUpRight /></Link>
@@ -168,14 +163,12 @@ export default function HomePage() {
 
       <section className="statement-band" id="research">
         <div className="wrap statement-grid">
-          <h2>Evidence before adjectives.</h2>
+          <h2>See what we are learning.</h2>
           <div>
-            <p className="lead">Antiky is a lab because the important questions still need testing.</p>
+            <p className="lead">We publish experiments in rendering, game tools, asset pipelines, and agent workflows.</p>
             <p>
-              Can better context reduce guessing? Can a creator give feedback to an exact target?
-              Can agents test ideas without taking control away from the creator? Can a
-              better environment help smaller models do meaningful work? We publish what works,
-              what fails, and what we learn.
+              Read completed reports, follow work in progress, and inspect the code and reference
+              material behind each experiment.
             </p>
             <div className="thesis-links">
               <Link className="text-link" href="/research">Explore the research <ArrowRight /></Link>
@@ -187,15 +180,14 @@ export default function HomePage() {
 
       <section className="content-section wrap split-heading" id="creative-range">
         <div>
-          <p className="section-label">Creative range</p>
-          <h2>The idea should choose the form.</h2>
+          <p className="section-label">Rendering</p>
+          <h2>Build in the style your game needs.</h2>
         </div>
         <div className="prose">
           <p className="lead">Build in 2D, 3D, or anywhere between them.</p>
           <p>
-            BroMetal is where Antiky&apos;s rendering work began and the renderer our Framework games
-            use today. The research can follow the needs of the games without turning one rendering
-            style or library into the identity of the lab.
+            Antiky&apos;s current games render through BroMetal. The Framework&apos;s game-module host keeps
+            rendering separate so the game is not limited to one visual style.
           </p>
           <div className="thesis-links">
             <Link className="text-link" href="/demos">Explore all three studies <ArrowRight /></Link>
@@ -210,15 +202,14 @@ export default function HomePage() {
         <div className="wrap split-heading">
           <div>
             <p className="section-label">Explore it together</p>
-            <h2>Bring questions. Bring work. Bring disagreement.</h2>
+            <h2>Build and learn with us.</h2>
           </div>
           <div className="prose">
             <p className="lead">
               Meet builders exploring human-agent game development and share what you are making.
             </p>
             <p>
-              Ask for Studio help, share what you are building, challenge the thesis, compare
-              approaches, and help turn open questions into useful evidence.
+              Ask for help, share what you are building, compare approaches, and challenge our ideas.
             </p>
             <a className="button button-primary section-button" href={DISCORD_URL} target="_blank" rel="noreferrer">
               Join the Antiky Discord <ArrowUpRight />

@@ -35,6 +35,36 @@ test('user-facing documentation has valid local links', async () => {
   }));
 });
 
+test('getting-started tutorials cover one runnable path through Framework, Studio, and MCP tools', async () => {
+  const [index, framework, studio, tools] = await Promise.all([
+    readFile(new URL('../../../../docs/user-facing-docs/README.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../../docs/user-facing-docs/getting-started/framework.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../../docs/user-facing-docs/getting-started/studio.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../../docs/user-facing-docs/getting-started/tools.md', import.meta.url), 'utf8'),
+  ]);
+
+  assert.ok(index.indexOf('## Getting started') < index.indexOf('## Assets'));
+  for (const link of [
+    'getting-started/framework.md',
+    'getting-started/studio.md',
+    'getting-started/tools.md',
+  ]) assert.ok(index.includes(`(${link})`), `documentation index is missing ${link}`);
+
+  assert.match(framework, /Node\.js 22 or\s+newer/);
+  assert.match(framework, /npm run antiky -- dev --open --project packages\/demos\/antiky-town\/antiky-town\.antiky/);
+  assert.match(framework, /npm run antiky -- inspect --project packages\/demos\/antiky-town\/antiky-town\.antiky/);
+  assert.match(framework, /WASD or the arrow keys/);
+
+  assert.match(studio, /npm run dev:studio/);
+  assert.match(studio, /packages\/demos\/antiky-town\/antiky-town\.antiky/);
+  assert.match(studio, /\*\*Pause\*\*.*\*\*Step\*\*.*one simulation step/is);
+  assert.match(studio, /Do not start\s+`antiky dev` in the embedded terminal/i);
+
+  assert.match(tools, /npm run antiky -- tool get_dev_status --project packages\/demos\/antiky-town\/antiky-town\.antiky/);
+  assert.match(tools, /http:\/\/127\.0\.0\.1:3011\/mcp/);
+  assert.match(tools, /same MCP tool that an agent can use/);
+});
+
 test('the asset guide documents discovery, honest verification states, and agent access', async () => {
   const [source, index] = await Promise.all([
     readFile(new URL('../../../../docs/user-facing-docs/assets/catalog.md', import.meta.url), 'utf8'),
@@ -279,5 +309,5 @@ test('the skills guides define the supported CLI workflows and public snapshot b
     'write-objectives',
   ]);
   assert.match(reference, /wait-what.*human-invoked only/i);
-  assert.match(reference, /nine Ready skills and no internal or frontmatter-only stub entries/i);
+  assert.match(reference, /contains nine public skills.*excludes internal skills and\s+frontmatter-only placeholders/is);
 });

@@ -304,7 +304,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
       {phase === 'gated' ? (
         <p className="stage-badge">Static capture: this study needs WebGPU</p>
       ) : phase === 'loading' ? (
-        <div className="stage-status">Loading verified game artifact…</div>
+        <div className="stage-status">Loading game…</div>
       ) : phase === 'error' ? (
         <div className="stage-fallback" role="alert">
           <span>{error}</span>

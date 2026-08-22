@@ -3,14 +3,16 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CopyMarkdownButton from '@/components/CopyMarkdownButton';
 import DocsSearch from '@/components/DocsSearch';
+import DocsTableOfContents from '@/components/DocsTableOfContents';
 import {
   getDocsEntries,
   getDocsEntry,
   getDocsNavigation,
+  getDocsNavigationGroups,
   getDocsSearchRecords,
   renderDocsMarkdown,
   type DocsEntry,
-  type DocsNavigationSection,
+  type DocsNavigationGroup,
 } from '@/lib/docs';
 
 type DocsPageProps = {
@@ -44,73 +46,95 @@ export default async function DocsPage({ params }: DocsPageProps) {
 
   if (!entry) notFound();
 
+  const groups = getDocsNavigationGroups(navigation);
+  const activeGroup = groups.find((group) => (
+    entry.href === '/docs' ? group.id === 'start' : entry.section && group.sectionIds.includes(entry.section)
+  )) ?? groups[0]!;
   const orderedEntries = [
     entries.find((candidate) => candidate.slug.length === 0)!,
-    ...navigation.flatMap((section) => section.pages),
+    ...groups.flatMap((group) => group.sections.flatMap((section) => section.pages)),
   ];
   const currentIndex = orderedEntries.findIndex((candidate) => candidate.href === entry.href);
   const previous = currentIndex > 0 ? orderedEntries[currentIndex - 1] : undefined;
   const next = currentIndex < orderedEntries.length - 1 ? orderedEntries[currentIndex + 1] : undefined;
   const searchRecords = getDocsSearchRecords(entries);
+  const sectionLabel = activeGroup.sections.find((section) => section.id === entry.section)?.label;
 
   return (
-    <div className="docs-layout wrap">
-      <aside className="docs-sidebar" aria-label="Documentation navigation">
-        <DocsSearch records={searchRecords} />
-        <DocsNavigation activeHref={entry.href} navigation={navigation} />
-      </aside>
-
-      <div className="docs-main">
-        <details className="docs-mobile-navigation">
-          <summary>Browse documentation</summary>
+    <div className="docs-shell wrap">
+      <DocsTabs activeGroup={activeGroup} groups={groups} />
+      <div className="docs-layout">
+        <aside className="docs-sidebar" aria-label={`${activeGroup.label} documentation navigation`}>
           <DocsSearch records={searchRecords} />
-          <DocsNavigation activeHref={entry.href} navigation={navigation} />
-        </details>
+          <DocsNavigation activeHref={entry.href} group={activeGroup} />
+        </aside>
 
-        <div className="docs-page-tools">
-          <p className="docs-breadcrumb">
-            <Link href="/docs">Docs</Link>
-            {entry.section && <><span>/</span><span>{entry.section}</span></>}
-          </p>
-          <div className="docs-page-actions">
-            <CopyMarkdownButton markdown={entry.source} />
-            <a className="docs-markdown-link" href={entry.markdownHref}>View Markdown</a>
+        <div className="docs-main">
+          <details className="docs-mobile-navigation">
+            <summary>Browse {activeGroup.label.toLowerCase()} docs</summary>
+            <DocsSearch records={searchRecords} />
+            <DocsNavigation activeHref={entry.href} group={activeGroup} />
+          </details>
+
+          <div className="docs-page-tools">
+            <p className="docs-breadcrumb">
+              <Link href="/docs">Docs</Link>
+              {sectionLabel && <><span>/</span><span>{sectionLabel}</span></>}
+            </p>
+            <div className="docs-page-actions">
+              <CopyMarkdownButton markdown={entry.source} />
+              <a className="docs-markdown-link" href={entry.markdownHref}>View Markdown</a>
+            </div>
           </div>
+          <article
+            className="docs-prose"
+            dangerouslySetInnerHTML={{ __html: renderDocsMarkdown(entry) }}
+          />
+          <DocsPager previous={previous} next={next} />
         </div>
-        <article
-          className="docs-prose"
-          dangerouslySetInnerHTML={{ __html: renderDocsMarkdown(entry) }}
-        />
-        <DocsPager previous={previous} next={next} />
-      </div>
 
-      <aside className="docs-toc" aria-label="On this page">
-        <p>On this page</p>
-        <nav>
-          {entry.headings.map((heading) => (
-            <a className={heading.depth === 3 ? 'nested' : undefined} href={`#${heading.id}`} key={heading.id}>
-              {heading.title}
-            </a>
-          ))}
-        </nav>
-      </aside>
+        <aside className="docs-toc" aria-label="On this page">
+          <p>On this page</p>
+          <DocsTableOfContents headings={entry.headings} />
+        </aside>
+      </div>
     </div>
+  );
+}
+
+function DocsTabs({
+  activeGroup,
+  groups,
+}: {
+  activeGroup: DocsNavigationGroup;
+  groups: DocsNavigationGroup[];
+}) {
+  return (
+    <nav className="docs-tabs" aria-label="Documentation sections">
+      {groups.map((group) => (
+        <Link className={activeGroup.id === group.id ? 'active' : undefined} href={group.href} aria-current={activeGroup.id === group.id ? 'page' : undefined} key={group.id}>
+          {group.label}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
 function DocsNavigation({
   activeHref,
-  navigation,
+  group,
 }: {
   activeHref: string;
-  navigation: DocsNavigationSection[];
+  group: DocsNavigationGroup;
 }) {
   return (
     <nav>
-      <Link className={activeHref === '/docs' ? 'active' : undefined} href="/docs" aria-current={activeHref === '/docs' ? 'page' : undefined}>
-        Overview
-      </Link>
-      {navigation.map((section) => (
+      {group.id === 'start' && (
+        <Link className={activeHref === '/docs' ? 'active' : undefined} href="/docs" aria-current={activeHref === '/docs' ? 'page' : undefined}>
+          Overview
+        </Link>
+      )}
+      {group.sections.map((section) => (
         <section key={section.label}>
           <h2>{section.label}</h2>
           {section.pages.map((page) => (

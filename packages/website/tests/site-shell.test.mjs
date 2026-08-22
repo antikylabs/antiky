@@ -146,20 +146,26 @@ test('homepage follows the why-first evidence-to-participation sequence', async 
   assert.doesNotMatch(home, /Tools for making worlds|<h1>2D character|emerging 2\.3D framework/);
 });
 
-test('production navigation exposes the public architecture and release-aware Studio action', async () => {
+test('production navigation exposes Studio, free assets, and the Discord community action', async () => {
   for (const page of ['index.html', 'framework.html', 'studio.html', 'games.html']) {
     const output = await readFile(new URL(page, outputRoot), 'utf8');
     for (const route of ['/thesis', '/studio', '/framework', '/games', '/resources', '/research', '/docs']) {
       assert.ok(output.includes(`href="${route}"`), `${page} is missing ${route}`);
     }
     assert.ok(output.includes(`href="${discordUrl}"`), `${page} is missing Discord`);
+    assert.match(output, /<div class="header-actions">[\s\S]*href="\/assets"[\s\S]*Get free game assets/);
+    assert.match(output, /<div class="header-actions">[\s\S]*Join Discord/);
     assert.doesNotMatch(output, /href="\/worlds(?:[\/#"])/);
+  }
+
+  for (const page of ['index.html', 'studio.html']) {
+    const output = await readFile(new URL(page, outputRoot), 'utf8');
     if (studioReleasesReady) {
       assert.ok(output.includes(`href="${studioReleasesUrl}"`), `${page} is missing Studio releases`);
-      assert.match(output, /aria-label="Mobile navigation"[\s\S]*Download Studio/);
+      assert.match(output, /Download Studio/);
     } else {
       assert.doesNotMatch(output, /Download Studio/);
-      assert.match(output, /aria-label="Mobile navigation"[\s\S]*Explore Studio/);
+      assert.match(output, /(?:Explore Studio|Run Studio from source)/);
     }
   }
 });
@@ -210,8 +216,8 @@ test('product and research pages expose status boundaries without stale primary 
   assert.doesNotMatch(research, /Training and adapting models|Generated voxel assets/);
   assert.match(games, /data-evidence-status="current"/);
   assert.match(games, /data-evidence-status="direction"/);
-  assert.match(demos.replaceAll('<!-- -->', ''), /Three live studies/);
-  assert.match(demos.replaceAll('<!-- -->', ''), /live Antiky Framework modules/);
+  assert.match(demos.replaceAll('<!-- -->', ''), /Three playable demos/);
+  assert.match(demos.replaceAll('<!-- -->', ''), /real Antiky Framework game module/);
   assert.match(demo, /What it does not show/);
 });
 
@@ -221,7 +227,7 @@ test('core page metadata uses the lab positioning and canonical routes', async (
   const games = await readFile(new URL('games.html', outputRoot), 'utf8');
   const thesis = await readFile(new URL('thesis.html', outputRoot), 'utf8');
 
-  assert.match(home, /<meta name="description" content="Antiky Labs is a game technology lab/);
+  assert.match(home, /<meta name="description" content="Antiky Labs builds games/);
   assert.doesNotMatch(home, /<meta name="description" content="[^"]*2\.3D/);
   assert.doesNotMatch(framework, /<meta name="description" content="[^"]*2\.3D/);
   assert.match(games, /<link rel="canonical" href="https:\/\/antikylabs\.com\/games"/);

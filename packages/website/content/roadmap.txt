@@ -1,34 +1,32 @@
 title: Antiky Labs roadmap
-intro: We are building one complete loop: agents can understand and change a game, people can see and direct the work, and every new capability is proven in something playable.
-notice: This roadmap describes release scope, not dates. Work beyond v0.4 earns a release number only after it has a plan and a concrete proving case.
+intro: See what Antiky can do today and what we plan to add next across Framework, Studio, games, tools, and resources.
+notice: The stages are ordered, but they do not have estimated release dates.
 stages:
-  - v0.1. Put the foundation in people's hands: Release a coherent first version of Framework, Studio, agent tools, demos, documentation, and the website. Make it open, understandable, and ready to try.
-    - Framework and agent tools: Fixed-step sessions, stable entity IDs, point-light authoring and correction, bounded inspection and capture, and CLI/MCP project and session controls.
-    - Studio: A macOS app with project launch, live game view, native terminal, simulation controls, inspection, and activity history.
-    - Demos and website: Antiky Town, Point Light Expo, and Traversal Study with current screenshots and click-to-play builds; Emberwyrd remains separate from the technical demos.
-    - Docs and release: Current product, API, and skills documentation; a resource hub for the CC0 asset and skills libraries; shader and project libraries marked as coming soon; and versioned release and packaging automation after pointer input, terminal exit handling, and terminal crashes are fixed in Studio.
-  - v0.2. Make the game part of the conversation: Click something in a running game, carry its exact identity and context into the coding agent you already use, and turn human feedback into a safe, inspectable change.
-    - 2D selection proof: Reusable position and camera behavior plus GPU picking from a displayed pixel to a stable Framework entity selected in Studio, proven by a checked-in Antiky/BroMetal example.
-    - Agent conversation: A native ACP v1 panel for one installed compatible coding agent. The selected entity's bounded project, world, hierarchy, component, render, and asset context can follow it into the conversation; Antiky MCP remains the agent-to-engine connection.
-    - Studio workflow: Rearrangeable panels, attached and detached modes, and click-to-comment feedback on a running scene.
-    - Agent tooling: MCP code mode, interpretation of motion measurements, and the first Antiky, BroMetal, game-development, Studio, and MCP skills.
-  - v0.3. Grow the game-making core: Build input, movement, sprite animation, camera and presentation controls, and the first mini-app foundation through real game slices in 2D, 3D, and everything in between.
-    - Input: Captured game input and reusable controls.
-    - Animation: First-class sprite flipbooks with animation and character-movement timing.
-    - Presentation: Field-of-view and vignette controls.
-    - Studio extensions: Mini apps for complete workspaces and gadgets for focused panel additions.
-  - v0.4. Turn Studio into a creator workspace: Use the mini-app foundation to add focused tools for assets, sprites, flipbooks, and properties, so Studio changes to fit the work instead of becoming one enormous editor.
-    - Asset browser: Find catalog assets and bring them into the project workflow.
+  - v0.1. First public release: Publish the working source experience as a coherent release that new users can install, understand, and try.
+    - Framework and agent tools: Fixed-step sessions, stable IDs, runtime inspection, captures, point-light editing, and local CLI and MCP tools.
+    - Studio: A macOS workspace with project launch, a live game, native terminal, simulation controls, inspection, and activity history.
+    - Playable demos: Antiky Town, Point Light Expo, and Traversal Study in the browser. Emberwyrd remains separate until it is ready to show.
+    - Docs and resources: Getting-started tutorials, API reference, free game assets, agent skills, and clear source-build instructions.
+  - v0.2. Bring the game into agent conversations: Select something in a running game, share its context with a compatible coding agent, and keep feedback attached to the selected object.
+    - Visual selection: Select a visible game object and resolve it to a stable Framework entity.
+    - Agent conversations: Talk to an installed compatible coding agent from Studio while Antiky MCP provides the game tools.
+    - Contextual feedback: Attach comments and review material to the game state and object you meant.
+  - v0.3. Add core game-making systems: Expand Framework with reusable input, movement, animation, camera, and presentation tools built through playable game work.
+    - Input and movement: Reusable controls and captured game input.
+    - Animation: Sprite flipbooks and movement-aware animation timing.
+    - Presentation: Camera field of view, vignette, and other game-facing controls.
+    - Studio extensions: A foundation for focused mini apps and smaller panel tools.
+  - v0.4. Add focused Studio tools: Turn the Studio extension foundation into practical tools for common game-development tasks.
+    - Asset browser: Find free catalog assets and add them to a project.
     - Sprite editor: Inspect and edit sprite content.
     - Flipbook editor: Assemble and tune frame-based animation.
-    - Object properties: Inspect and edit object settings through Framework-owned commands.
-  - Beyond. Build a creative library agents can understand: Grow the CC0 asset catalog alongside shader, project, and skills libraries, giving people and agents trusted building blocks they can actually find, understand, and reuse. These items are not assigned to a release yet.
-    - Tutorials: Getting-started and build-a-game tutorials.
-    - Asset and shader libraries: Semantic inventories inside asset packs and a large BroMetal shader catalog with a smaller supported core.
-    - Project and skills libraries: A project library and an expanded skills library for Antiky, BroMetal, Studio, MCP, and game development.
-    - Physics: Rapier CPU physics, Nexus GPU physics, and the Nexus-to-BroMetal render path.
-    - Examples: Selected open-source Three.js and BroMetal games rebuilt as Antiky examples.
-  - The destination. Ship games that prove the idea: Use Antiky to create complete, memorable games, and let those games earn the reusable systems, production tooling, performance evidence, and online capabilities the platform needs next.
-    - Independent games: Complete games that build, run, and ship without Studio.
-    - Game-earned systems: Reusable abilities, physics, rendering, asset, and online systems extracted from working game slices instead of designed from a feature checklist.
-    - Release evidence: Repeatable scenarios, performance budgets, build artifacts, and release evidence tied to the exact game version they prove.
+    - Object properties: Inspect and edit supported object settings.
+  - Beyond. Expand the platform: Grow the creative libraries, engine integrations, examples, and platform support after the first four releases.
+    - Resource libraries: Expand game assets and agent skills, then add shader and starter-project libraries.
+    - Physics and rendering: Add supported physics options and more renderer integrations.
+    - Examples: Rebuild selected open-source games as practical Antiky examples.
+    - Platforms: Improve accessibility and support beyond macOS.
+  - Long term. Ship complete games: Use Antiky to create memorable independent games and let those games guide the systems the platform needs.
+    - Independent games: Games that build, run, and ship without Studio.
+    - Reusable systems: Move useful abilities, physics, rendering, asset, and online systems into Framework when more than one game needs them.
+    - Reliable releases: Tie builds, performance checks, and release notes to the exact version of each game.

@@ -10,6 +10,7 @@ import { canonical } from '@/lib/site';
 const DOCS_ROOT = resolve(process.cwd(), '../../docs/user-facing-docs');
 
 const PRODUCT_DOCS_SECTIONS = [
+  { directory: 'getting-started', label: 'Getting Started' },
   { directory: 'framework', label: 'Framework' },
   { directory: 'cli', label: 'CLI' },
   { directory: 'mcp', label: 'MCP' },
@@ -27,12 +28,12 @@ const CONTRIBUTOR_PAGE = {
 };
 
 const PUBLIC_EXPLANATIONS = [
-  ['Antiky Framework', '/framework', 'Open-source, headless TypeScript game framework where people, agents, tools, and tests meet one game through explicit interfaces.'],
-  ['Antiky Studio', '/studio', 'Native visual workspace for launching a project, running its game, controlling simulation, and inspecting published state.'],
-  ['Antiky Research', '/research', 'Focused research gyms that publish a bounded question, artifact, method, result, and limitation.'],
-  ['Antiky Resources', '/resources', 'Current game assets and agent skills, with shader and project libraries clearly marked as direction.'],
-  ['Antiky Skills', '/resources/skills', 'Reviewed portable task instructions and tools for compatible coding agents.'],
-  ['Antiky Roadmap', '/roadmap', 'Ordered release scope and proving work without invented dates or progress estimates.'],
+  ['Antiky Framework', '/framework', 'Open-source TypeScript game framework for running, testing, inspecting, and editing a game.'],
+  ['Antiky Studio', '/studio', 'Native workspace with a running game, terminal, simulation controls, inspection, and development activity.'],
+  ['Antiky Research', '/research', 'Public experiments in rendering, asset pipelines, agent tools, and ways to describe game worlds.'],
+  ['Antiky Resources', '/resources', 'Free game assets and installable skills, with shader and project libraries coming later.'],
+  ['Antiky Skills', '/resources/skills', 'Installable instructions and tools for compatible coding agents.'],
+  ['Antiky Roadmap', '/roadmap', 'The planned order for upcoming Antiky releases, without estimated dates.'],
 ] as const;
 
 export type DocsHeading = {
@@ -62,9 +63,27 @@ export type DocsSearchRecord = {
 };
 
 export type DocsNavigationSection = {
+  id: string;
   label: string;
   pages: DocsEntry[];
 };
+
+export type DocsNavigationGroup = {
+  href: string;
+  id: string;
+  label: string;
+  sectionIds: string[];
+  sections: DocsNavigationSection[];
+};
+
+const DOCS_GROUPS = [
+  { id: 'start', label: 'Start', href: '/docs', sectionIds: ['getting-started'] },
+  { id: 'framework', label: 'Framework', href: '/docs/framework/game-modules', sectionIds: ['framework'] },
+  { id: 'tools', label: 'Tools', href: '/docs/cli/development', sectionIds: ['cli', 'mcp'] },
+  { id: 'studio', label: 'Studio', href: '/docs/studio/getting-started', sectionIds: ['studio'] },
+  { id: 'resources', label: 'Resources', href: '/docs/assets/catalog', sectionIds: ['assets', 'skills'] },
+  { id: 'api', label: 'API', href: '/docs/api/reference', sectionIds: ['api'] },
+] as const;
 
 function docsHref(slug: string[]): string {
   return slug.length === 0 ? '/docs' : `/docs/${slug.join('/')}`;
@@ -79,7 +98,7 @@ function sourcePathToSlug(relativePath: string): string[] | null {
   if (normalizedPath === 'README.md') return [];
   if (normalizedPath === CONTRIBUTOR_PAGE.relativePath) return CONTRIBUTOR_PAGE.slug;
 
-  const match = normalizedPath.match(/^(framework|cli|mcp|studio|assets|skills|api)\/(.+)\.md$/);
+  const match = normalizedPath.match(/^(getting-started|framework|cli|mcp|studio|assets|skills|api)\/(.+)\.md$/);
   return match ? [match[1]!, match[2]!] : null;
 }
 
@@ -220,19 +239,32 @@ export async function getDocsNavigation(): Promise<DocsNavigationSection[]> {
 
   return [
     ...PRODUCT_DOCS_SECTIONS.map(({ directory, label }) => ({
+      id: directory,
       label,
       pages: ordered(entries.filter((entry) => entry.section === directory)),
     })),
     {
+      id: 'contributing',
       label: 'Contributing',
       pages: ordered(entries.filter((entry) => entry.slug[0] === 'contributing')),
     },
     {
+      id: API_DOCS_SECTION.directory,
       label: API_DOCS_SECTION.label,
       pages: ordered(entries.filter((entry) => entry.section === API_DOCS_SECTION.directory)),
     },
   ]
     .filter((section) => section.pages.length > 0);
+}
+
+export function getDocsNavigationGroups(navigation: DocsNavigationSection[]): DocsNavigationGroup[] {
+  return DOCS_GROUPS.map((group) => ({
+    ...group,
+    sectionIds: [...group.sectionIds],
+    sections: group.sectionIds.flatMap((sectionId) => (
+      navigation.filter((section) => section.id === sectionId)
+    )),
+  }));
 }
 
 export function getDocsSearchRecords(entries: DocsEntry[]): DocsSearchRecord[] {

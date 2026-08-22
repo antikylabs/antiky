@@ -1,3 +1,41 @@
+.docs-shell {
+  min-height: calc(100vh - 68px);
+}
+
+.docs-tabs {
+  position: sticky;
+  z-index: 55;
+  top: 68px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 14px 0 0;
+  border-bottom: 1px solid var(--line);
+  background: rgba(5, 5, 6, .96);
+  scrollbar-width: thin;
+}
+
+.docs-tabs a {
+  min-height: 44px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 560;
+}
+
+.docs-tabs a:hover {
+  color: var(--text);
+}
+
+.docs-tabs a.active {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
 .docs-layout {
   display: grid;
   grid-template-columns: minmax(190px, 230px) minmax(0, 780px) minmax(150px, 190px);
@@ -268,6 +306,11 @@
   color: var(--text);
 }
 
+.docs-toc a.active {
+  color: var(--accent-hover);
+  font-weight: 600;
+}
+
 .docs-toc a.nested {
   padding-left: 10px;
 }
@@ -320,6 +363,13 @@
 }
 
 @media (max-width: 760px) {
+  .docs-tabs {
+    top: 62px;
+    margin-inline: -18px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
   .docs-layout {
     display: block;
   }

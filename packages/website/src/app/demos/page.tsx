@@ -6,7 +6,7 @@ import { BROMETAL_VERSION } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Demos',
-  description: 'Three public Antiky Framework studies, each showing a narrow piece of current work.',
+  description: 'Play three Antiky Framework demos in your browser: Antiky Town, Traversal Study, and Point Light Expo.',
   alternates: { canonical: '/demos' },
 };
 
@@ -14,11 +14,11 @@ export default function DemosPage() {
   return (
     <>
       <section className="page-hero wrap demos-intro">
-        <h1>Run the work.</h1>
-        <p className="status-line"><span className="status-dot status-live" /> Three live studies</p>
+        <h1>Play the Framework demos.</h1>
+        <p className="status-line"><span className="status-dot status-live" /> Three playable demos</p>
         <p className="page-lead">
-          These are live Antiky Framework modules, not trailers. Each is rendered through BroMetal{' '}
-          {BROMETAL_VERSION}. Try the movement, world, and lighting studies directly in your browser.
+          Explore an authored town, a movement course, and live point-light editing. Each demo is a
+          real Antiky Framework game module rendered through BroMetal {BROMETAL_VERSION}.
         </p>
       </section>
 
@@ -38,7 +38,7 @@ export default function DemosPage() {
                     <DemoPoster demo={demo} />
                   </div>
                   <div className="demo-entry-copy">
-                    <p>{demo.pillar} · Current technical study</p>
+                    <p>{demo.pillar} · Playable demo</p>
                     <h3><Link href={`/demos/${demo.slug}`}>{demo.title}</Link></h3>
                     <p>{demo.tagline}</p>
                     <div className="tag-list">{demo.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>

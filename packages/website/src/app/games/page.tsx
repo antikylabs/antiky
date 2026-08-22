@@ -6,7 +6,7 @@ import { DEMOS } from '@/lib/demos';
 
 export const metadata: Metadata = {
   title: 'Games',
-  description: 'Three public Antiky Framework technical studies today, with Emberwyrd kept separate as the larger game in development.',
+  description: 'Play Antiky Town and two Framework demos, then learn about Emberwyrd, the larger game in development.',
   alternates: { canonical: '/games' },
 };
 
@@ -20,12 +20,11 @@ export default function GamesPage() {
   return (
     <>
       <section className="page-hero games-hero wrap">
-        <h1>Games create the questions.</h1>
+        <h1>Play what we are building.</h1>
         <p className="status-line"><span className="status-dot status-planned" /> Emberwyrd in development</p>
         <p className="page-lead">
-          Antiky Labs builds technology in service of games. Three public Framework studies show
-          traversal, authored worlds, and live light editing today. Emberwyrd is the larger
-          creative and technical test ahead.
+          Explore Antiky Town and two focused Framework demos in your browser. Emberwyrd is our
+          larger fantasy action RPG in development.
         </p>
       </section>
 
@@ -33,7 +32,7 @@ export default function GamesPage() {
         <div className="wrap split-heading">
           <div>
             <p className="section-label">Playable now</p>
-            <h2>{DEMOS.length} different game problems run today.</h2>
+            <h2>{DEMOS.length} playable Framework demos.</h2>
           </div>
           <div className="prose">
             <p className="lead">Play three Framework studies in your browser.</p>
@@ -42,7 +41,7 @@ export default function GamesPage() {
               Light Expo lets you edit lighting while the scene runs.
             </p>
             <Link className="text-link section-link" href="/demos">
-              Run all current studies <ArrowRight />
+              Play all demos <ArrowRight />
             </Link>
           </div>
         </div>
@@ -52,7 +51,7 @@ export default function GamesPage() {
               <div className="game-proof-media">
                 <DemoPoster demo={demo} />
               </div>
-              <p>Current Framework study</p>
+              <p>Playable Framework demo</p>
               <h3><Link href={`/demos/${demo.slug}`}>{demo.title}</Link></h3>
               <p>{demo.tagline}</p>
             </article>
@@ -62,7 +61,7 @@ export default function GamesPage() {
 
       <section className="world-title" id="emberwyrd" data-evidence-status="direction">
         <div className="wrap">
-          <p>The larger test</p>
+          <p>Our game in development</p>
           <h2>Emberwyrd</h2>
           <span>In development · no playable release today</span>
         </div>
@@ -70,15 +69,15 @@ export default function GamesPage() {
 
       <section className="content-section wrap split-heading">
         <div>
-          <h2>The game leads. The engine follows.</h2>
+          <h2>A fantasy world built with Antiky.</h2>
         </div>
         <div className="prose">
           <p className="lead">
-            Emberwyrd is the larger game in development and the reason Antiky exists.
+            Emberwyrd is a character-first fantasy action RPG about story, travel, risk, and consequence.
           </p>
           <p>
-            The game creates real creative and technical problems. When a solution proves reusable,
-            it can become part of Antiky.
+            It is still early and has no public build. We use the work to shape the Framework and
+            Studio around the needs of a real game.
           </p>
         </div>
       </section>
@@ -94,8 +93,8 @@ export default function GamesPage() {
       </section>
 
       <section className="closing-cta wrap">
-        <p>Want to see what runs now?</p>
-        <Link href="/demos/antiky-town">Run Antiky Town <ArrowRight /></Link>
+        <p>Start with our best playable demo.</p>
+        <Link href="/demos/antiky-town">Play Antiky Town <ArrowRight /></Link>
       </section>
     </>
   );

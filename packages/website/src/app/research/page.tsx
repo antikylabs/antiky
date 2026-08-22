@@ -11,41 +11,28 @@ export const metadata: Metadata = {
 };
 
 const RESEARCH_URL = 'https://github.com/antikylabs/research';
+const DSL_RESEARCH_URL = `${RESEARCH_URL}/tree/main/experiments/asset-generation-contract/docs/dsl-testing`;
 
 const FUTURE_GYMS = [
-  ['Voxel editor', 'Which editing, selection, preview, and validation tools make voxel authoring useful to both a person and an agent?'],
-  ['Model viewer', 'What semantic inspection, material information, provenance, and capture tools make a 3D model understandable inside the development loop?'],
-  ['Terrain generator', 'How should generation inputs, repeatability, editing, and evidence work when terrain is created for a real game rather than a showcase image?'],
-  ['Sprite generator', 'Can an image-to-video-to-slicer workflow produce usable sprite animation while preserving continuity, provenance, review, and human art direction?'],
+  ['Voxel editor', 'Create, select, preview, and check voxel scenes from a focused visual workspace.'],
+  ['Model viewer', 'Inspect a model, its materials, its source, and a useful preview in one place.'],
+  ['Terrain generator', 'Create repeatable terrain that remains editable after generation.'],
+  ['Sprite generator', 'Create coherent sprite animation while keeping a person in charge of the art direction.'],
 ] as const;
 
 export default function ResearchPage() {
   return (
     <>
       <section className="page-hero wrap">
-        <p className="status-line"><span className="status-dot status-active" /> Completed study · active experiments · open questions</p>
-        <h1>Evidence before adjectives.</h1>
+        <p className="status-line"><span className="status-dot status-active" /> Completed reports and open research</p>
+        <h1>Research for better game-making tools.</h1>
         <p className="page-lead">
-          Antiky Labs runs focused experiments in rendering, asset pipelines, agent guidance, and
-          game-development tools. Read the reports, inspect the code, and try the runnable work.
+          Explore Antiky Labs experiments in rendering, asset pipelines, agent tools, and ways to
+          describe game worlds.
         </p>
         <div className="actions">
           <a className="button button-primary" href={RESEARCH_URL} target="_blank" rel="noreferrer">Explore the research repository <ArrowUpRight /></a>
           <Link className="text-link" href="/demos">Run the current Framework studies <ArrowRight /></Link>
-        </div>
-        <p className="review-date">Research sources reviewed at <a href={`${RESEARCH_URL}/tree/cc98e0059016417ccab848457e309eae9f77ed12`}>cc98e0059016</a> on 2026-08-21</p>
-      </section>
-
-      <section className="content-section wrap split-heading">
-        <div><p className="section-label">Method</p><h2>Isolate the question. Keep the result connected to real work.</h2></div>
-        <div className="prose">
-          <p className="lead">A research gym creates enough space to investigate one idea without turning the main product into an experiment.</p>
-          <p>
-            It can move quickly, fail clearly, and preserve the conditions that produced the result.
-            Gyms use Framework's game host and project setup when that serves the question. A
-            useful result can inform the product; it does not become a Framework feature automatically.
-          </p>
-          <blockquote>Focused enough to answer one question. Real enough to teach the product something.</blockquote>
         </div>
       </section>
 
@@ -67,21 +54,70 @@ export default function ResearchPage() {
         </figure>
       </section>
 
+      <section className="content-section wrap research-dsl" data-evidence-status="research-question">
+        <div className="split-heading">
+          <div>
+            <p className="section-label">Research in progress</p>
+            <h2>Declarative scene DSL.</h2>
+          </div>
+          <div className="prose">
+            <p className="lead">
+              We are testing a typed TypeScript language for describing a scene in creative terms.
+            </p>
+            <p>
+              An author describes the experience, visual direction, gameplay, important things,
+              relationships, and rules. A compiler would turn that direction into engine-ready data.
+            </p>
+            <p>
+              The goal is to make a game world easier for creators and coding agents to discuss and
+              revise without asking either one to hand-write low-level entity data.
+            </p>
+            <a className="text-link section-link" href={DSL_RESEARCH_URL} target="_blank" rel="noreferrer">
+              Read the DSL experiment <ArrowUpRight />
+            </a>
+          </div>
+        </div>
+
+        <pre className="research-dsl-sample" aria-label="Short declarative scene example"><code>{`scene({
+  experience: { feel: ['quiet', 'cold', 'slightly mysterious'] },
+  visual: { language: 'rich, dense voxel diorama' },
+  gameplay: { purpose: 'quiet exploration and close observation' },
+});`}</code></pre>
+
+        <div className="research-reference-grid">
+          <figure className="evidence-figure" data-media-role="illustrative" data-media-url="/media/research/blue-winter-grove-reference-01-clearing-v4.webp">
+            <Image src="/media/research/blue-winter-grove-reference-01-clearing-v4.webp" alt="Generated Blue Winter Grove clearing reference with three pixel-art travelers in a snowy voxel forest." width={1536} height={1024} sizes="(max-width: 760px) 100vw, 62vw" />
+            <figcaption>Generated illustration · clearing composition reference</figcaption>
+          </figure>
+          <figure className="evidence-figure" data-media-role="illustrative" data-media-url="/media/research/blue-winter-grove-reference-02-frozen-creek-v4.webp">
+            <Image src="/media/research/blue-winter-grove-reference-02-frozen-creek-v4.webp" alt="Generated Blue Winter Grove reference with three pixel-art travelers beside a frozen creek." width={1536} height={1024} sizes="(max-width: 760px) 100vw, 42vw" />
+            <figcaption>Generated illustration · frozen-creek reference</figcaption>
+          </figure>
+          <figure className="evidence-figure" data-media-role="illustrative" data-media-url="/media/research/blue-winter-grove-reference-03-frost-tree-detail-v4.webp">
+            <Image src="/media/research/blue-winter-grove-reference-03-frost-tree-detail-v4.webp" alt="Generated Blue Winter Grove reference with three pixel-art travelers studying a frost-bent voxel tree." width={1536} height={1024} sizes="(max-width: 760px) 100vw, 68vw" />
+            <figcaption>Generated illustration · frost-tree detail reference</figcaption>
+          </figure>
+        </div>
+        <p className="research-illustration-note">
+          These images show the intended result; they do not show a shipped Framework feature.
+        </p>
+      </section>
+
       <section className="content-section wrap">
-        <header className="section-intro compact"><h2>Current questions, worked in public.</h2><p>Follow the experiments as they develop.</p></header>
+        <header className="section-intro compact"><h2>More work in progress.</h2><p>Follow the experiments as they develop.</p></header>
         <div className="editorial-list">
           <Link className="editorial-row" data-evidence-status="current" href="/resources/skills">
             <span className="row-status">Active</span>
-            <span className="row-copy"><strong>Skills that give agents better guidance</strong><span>Compact instructions, references, deterministic tools, and evaluation cases for more reliable engineering and game-development work.</span></span>
+            <span className="row-copy"><strong>Skills for coding agents</strong><span>Reusable instructions and tools for common engineering and game-development tasks.</span></span>
             <ArrowRight className="row-arrow" />
           </Link>
           <div className="editorial-row static" data-evidence-status="current">
             <span className="row-status">Active</span>
-            <span className="row-copy"><strong>An AI-native game-development pipeline</strong><span>Map the loop from human intent through implementation, runtime observation, feedback, verification, and approval.</span></span>
+            <span className="row-copy"><strong>A creator-and-agent development loop</strong><span>Connect creative direction, implementation, a running game, feedback, and approval.</span></span>
           </div>
           <div className="editorial-row static" data-evidence-status="current">
             <span className="row-status">Active gym</span>
-            <span className="row-copy"><strong>High-quality voxel rendering for a Studio mini app</strong><span>Test voxel-rendering techniques in a standalone editor that could later fit inside Studio.</span></span>
+            <span className="row-copy"><strong>Voxel rendering tools</strong><span>Test voxel scenes in a small editor that could later become part of Studio.</span></span>
           </div>
         </div>
         <figure className="evidence-figure research-voxel-figure">
@@ -94,7 +130,7 @@ export default function ResearchPage() {
         <header className="section-intro compact">
           <p className="section-label">Future questions</p>
           <h2>What we want to test next.</h2>
-          <p>These are open research questions, not release commitments.</p>
+          <p>These ideas are being explored and are not available as products yet.</p>
         </header>
         <div className="editorial-list">
           {FUTURE_GYMS.map(([title, question]) => (
@@ -105,11 +141,11 @@ export default function ResearchPage() {
           ))}
           <div className="editorial-row static" data-evidence-status="research-question">
             <span className="row-status">Research question</span>
-            <span className="row-copy"><strong>Models trained on BroMetal shaders</strong><span>Test shader work against a published task set and baseline.</span></span>
+            <span className="row-copy"><strong>Models trained on BroMetal shaders</strong><span>Measure whether focused training helps with real shader tasks.</span></span>
           </div>
           <div className="editorial-row static" data-evidence-status="research-question">
             <span className="row-status">Research question</span>
-            <span className="row-copy"><strong>Models trained on Antiky Framework</strong><span>Compare focused adaptation with the same model using current documentation and tools.</span></span>
+            <span className="row-copy"><strong>Models trained on Antiky Framework</strong><span>Measure whether focused training helps with real Framework tasks.</span></span>
           </div>
         </div>
       </section>

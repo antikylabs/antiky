@@ -288,6 +288,123 @@
       }
     },
     {
+      "id": "research-blue-winter-grove-clearing",
+      "sourceKind": "generated",
+      "publicRole": "Illustrative",
+      "master": {
+        "path": "packages/website/media-masters/research/blue-winter-grove-reference-01-clearing-v4.png",
+        "sha256": "2e7b8db169ac7af42ac9fb3343046523ef7106f6b8a954033289267da4e65bb3",
+        "width": 1536,
+        "height": 1024
+      },
+      "delivery": {
+        "path": "packages/website/public/media/research/blue-winter-grove-reference-01-clearing-v4.webp",
+        "publicUrl": "/media/research/blue-winter-grove-reference-01-clearing-v4.webp",
+        "sha256": "fa7ce1a0bf3ce5d0a36eb53e5061ed120cbb9762108cdf0e2f4983c11fd5d0e5",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 140970,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/research"],
+      "generation": {
+        "method": "built-in ImageGen with referenced images and precise object edits",
+        "generatedAt": "2026-08-21",
+        "promptSidecar": "packages/website/media-masters/research/blue-winter-grove.prompt.md",
+        "references": [
+          {
+            "path": "packages/website/media-masters/research/reference-snapshots/blue-winter-grove-party-sprite-anchor-v1.png",
+            "sha256": "af9be366dbcd82b50f2f4d429a20204f84ca88262f41ffb9de5d96d69b9cf3e6",
+            "role": "character identity and pixel-craft reference used for the final scene edit"
+          }
+        ],
+        "approval": {
+          "status": "approved",
+          "approvedBy": "Antiky Labs owner through direct website feedback",
+          "approvedAt": "2026-08-21",
+          "basis": "The owner explicitly requested that the DSL experiment reference assets be used on the website."
+        }
+      }
+    },
+    {
+      "id": "research-blue-winter-grove-creek",
+      "sourceKind": "generated",
+      "publicRole": "Illustrative",
+      "master": {
+        "path": "packages/website/media-masters/research/blue-winter-grove-reference-02-frozen-creek-v4.png",
+        "sha256": "e15fa1b3a2399e0f55e5b72259a242c70d0171227f9a570a0681105601036019",
+        "width": 1536,
+        "height": 1024
+      },
+      "delivery": {
+        "path": "packages/website/public/media/research/blue-winter-grove-reference-02-frozen-creek-v4.webp",
+        "publicUrl": "/media/research/blue-winter-grove-reference-02-frozen-creek-v4.webp",
+        "sha256": "ba7daea038905acea879908c9a42dd3cff2be550d169d7b9702a76935603fffe",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 178762,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/research"],
+      "generation": {
+        "method": "built-in ImageGen with referenced images and precise object edits",
+        "generatedAt": "2026-08-21",
+        "promptSidecar": "packages/website/media-masters/research/blue-winter-grove.prompt.md",
+        "references": [
+          {
+            "path": "packages/website/media-masters/research/reference-snapshots/blue-winter-grove-party-sprite-anchor-v1.png",
+            "sha256": "af9be366dbcd82b50f2f4d429a20204f84ca88262f41ffb9de5d96d69b9cf3e6",
+            "role": "character identity and pixel-craft reference used for the final scene edit"
+          }
+        ],
+        "approval": {
+          "status": "approved",
+          "approvedBy": "Antiky Labs owner through direct website feedback",
+          "approvedAt": "2026-08-21",
+          "basis": "The owner explicitly requested that the DSL experiment reference assets be used on the website."
+        }
+      }
+    },
+    {
+      "id": "research-blue-winter-grove-tree",
+      "sourceKind": "generated",
+      "publicRole": "Illustrative",
+      "master": {
+        "path": "packages/website/media-masters/research/blue-winter-grove-reference-03-frost-tree-detail-v4.png",
+        "sha256": "d69d7ffeb4ec5d61f37b810fc9dd01d97dfd2a84eba2ba6403282ac8fb46f6c1",
+        "width": 1536,
+        "height": 1024
+      },
+      "delivery": {
+        "path": "packages/website/public/media/research/blue-winter-grove-reference-03-frost-tree-detail-v4.webp",
+        "publicUrl": "/media/research/blue-winter-grove-reference-03-frost-tree-detail-v4.webp",
+        "sha256": "84d92af97d70de3d157864cd052de92626bafc05e8e5a0dd427d7e304eb6bb03",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 119348,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/research"],
+      "generation": {
+        "method": "built-in ImageGen with referenced images and precise object edits",
+        "generatedAt": "2026-08-21",
+        "promptSidecar": "packages/website/media-masters/research/blue-winter-grove.prompt.md",
+        "references": [
+          {
+            "path": "packages/website/media-masters/research/reference-snapshots/blue-winter-grove-party-sprite-anchor-v1.png",
+            "sha256": "af9be366dbcd82b50f2f4d429a20204f84ca88262f41ffb9de5d96d69b9cf3e6",
+            "role": "character identity and pixel-craft reference used for the final scene edit"
+          }
+        ],
+        "approval": {
+          "status": "approved",
+          "approvedBy": "Antiky Labs owner through direct website feedback",
+          "approvedAt": "2026-08-21",
+          "basis": "The owner explicitly requested that the DSL experiment reference assets be used on the website."
+        }
+      }
+    },
+    {
       "id": "marketing-launch-key-art",
       "sourceKind": "generated",
       "publicRole": "Illustrative",
@@ -306,7 +423,7 @@
         "bytes": 95664,
         "maxBytes": 600000
       },
-      "usedBy": ["/", "launch-kit:landscape"],
+      "usedBy": ["launch-kit:landscape"],
       "generation": {
         "method": "built-in ImageGen with referenced_image_paths",
         "generatedAt": "2026-08-21",
