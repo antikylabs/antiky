@@ -191,6 +191,7 @@ test('the Studio terminal theme is a complete visual-only Ghostty profile', asyn
   assert.doesNotMatch(profile, /(?:command|input|keybind|font-family|working-directory|config-file)\s*=/);
   assert.deepEqual(config.bundle.resources, {
     'resources/node': 'project-service/node',
+    'resources/node-LICENSE': 'project-service/node-LICENSE',
     'resources/node_modules/playwright': 'project-service/node_modules/playwright',
     'resources/node_modules/playwright-core': 'project-service/node_modules/playwright-core',
     'resources/project-service.mjs': 'project-service/project-service.mjs',
@@ -245,6 +246,17 @@ test('the packaged runtime can execute the bundled project-service worker', asyn
       message: 'The Studio project service needs one project manifest path.',
     },
   });
+});
+
+test('the packaged Node runtime includes its upstream license', async () => {
+  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
+  const licensePath = resolve(packageDirectory, 'resources/node-LICENSE');
+
+  assert.equal(
+    config.bundle.resources['resources/node-LICENSE'],
+    'project-service/node-LICENSE',
+  );
+  assert.match(await readFile(licensePath, 'utf8'), /Node\.js is licensed for use as follows:/);
 });
 
 test('the bundled project service can initialize a Studio project', async () => {

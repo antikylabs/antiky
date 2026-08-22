@@ -1,4 +1,4 @@
-import { chmod, copyFile, cp, mkdir, rm } from 'node:fs/promises';
+import { cp, mkdir, rm } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -48,7 +48,3 @@ await Promise.all([
     { recursive: true },
   ),
 ]);
-
-const runtime = resolve(outputDirectory, 'node');
-await copyFile(process.execPath, runtime);
-await chmod(runtime, 0o755);
