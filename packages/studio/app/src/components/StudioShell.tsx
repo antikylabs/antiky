@@ -44,7 +44,10 @@ type StudioShellProps = Readonly<{
   actions: StudioShellActions;
   initialPage?: 'settings' | 'workspace';
   page?: 'settings' | 'workspace';
-  project?: Pick<AntikyProject, 'manifestPath' | 'projectRoot' | 'schemaVersion'> | null;
+  project?: (
+    Pick<AntikyProject, 'manifestPath' | 'projectRoot' | 'schemaVersion'>
+    & Partial<Pick<AntikyProject, 'revision'>>
+  ) | null;
   projectIssue?: NativeProjectError | null;
   projectOpening?: boolean;
   onOpenProject?(): void;
@@ -343,7 +346,12 @@ export function StudioShell({
           workspaceArea="terminal"
         >
           <div className="terminal-surface" data-terminal-platform={platform}>
-            {platform === 'native' ? <NativeTerminal visible={!settingsOpen} /> : (
+            {platform === 'native' ? (
+              <NativeTerminal
+                key={`${project?.manifestPath ?? ''}:${project?.revision ?? ''}`}
+                visible={!settingsOpen}
+              />
+            ) : (
               <EmptyState title="Native terminal unavailable">
                 Open this project in the desktop app to use the embedded terminal.
               </EmptyState>

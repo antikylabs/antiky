@@ -127,6 +127,58 @@ test('terminal teardown frees the Ghostty surface without requesting an interact
   assert.equal(teardown.match(/ghostty_surface_free\(surface\);/g)?.length, 1);
 });
 
+test('terminal teardown keeps the originating native view alive until Ghostty is finished with it', async () => {
+  const source = await bridgeSource;
+  const teardown = source.match(
+    /void antiky_terminal_close\(void\) \{[\s\S]*?\n\}\n\nantiky_terminal_status_s/,
+  )?.[0];
+
+  assert.ok(teardown, 'native terminal teardown must remain explicit and inspectable');
+  assert.match(
+    teardown,
+    /__attribute__\(\(objc_precise_lifetime\)\) AntikyGhosttyView \*view = antiky_view;/,
+  );
+  assert.match(teardown, /ghostty_surface_t surface = view\.surface;/);
+  assert.match(teardown, /view\.surface = NULL;/);
+});
+
+test('deferred Ghostty callbacks can mutate only the surface that emitted them', async () => {
+  const source = await bridgeSource;
+  const action = source.match(
+    /static bool runtime_action\([\s\S]*?\n\}/,
+  )?.[0];
+  const clipboard = source.match(
+    /static bool runtime_read_clipboard\([\s\S]*?\n\}/,
+  )?.[0];
+  const closeSurface = source.match(
+    /static void runtime_close_surface\([\s\S]*?\n\}/,
+  )?.[0];
+
+  assert.ok(action, 'Ghostty action routing must remain inspectable');
+  assert.ok(clipboard, 'clipboard routing must remain inspectable');
+  assert.ok(closeSurface, 'surface-close routing must remain inspectable');
+  assert.equal(
+    action.match(/antiky_view\.surface == surface/g)?.length,
+    3,
+    'render, child-exit, and renderer-health actions must verify their source surface',
+  );
+  assert.match(clipboard, /AntikyGhosttyView \*view = terminal_view\(userdata\);/);
+  assert.doesNotMatch(clipboard, /antiky_view\.surface/);
+  assert.match(closeSurface, /AntikyGhosttyView \*view = terminal_view\(userdata\);/);
+  assert.match(closeSurface, /antiky_view == view && view\.surface != NULL/);
+});
+
+test('opening a terminal replaces an exited shell instead of laying out its dead surface', async () => {
+  const source = await bridgeSource;
+  const open = source.match(
+    /int32_t antiky_terminal_open\([\s\S]*?\n\}\n\nint32_t antiky_terminal_layout/,
+  )?.[0];
+
+  assert.ok(open, 'native terminal open must remain explicit and inspectable');
+  assert.match(open, /ghostty_surface_process_exited\(antiky_view\.surface\)/);
+  assert.match(open, /antiky_terminal_close\(\);/);
+});
+
 test('the focused native terminal owns Control-key equivalents', async () => {
   const source = await bridgeSource;
   const view = source.match(

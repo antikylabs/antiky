@@ -1,16 +1,14 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useRef, useState } from 'react';
 
+import {
+  createNativeTerminalSession,
+  type TerminalBounds,
+} from './nativeTerminalSession.ts';
+
 type RectLike = Readonly<{
   left: number;
   top: number;
-  width: number;
-  height: number;
-}>;
-
-type TerminalBounds = Readonly<{
-  x: number;
-  y: number;
   width: number;
   height: number;
 }>;
@@ -24,15 +22,15 @@ const MINIMUM_WIDTH = 80;
 const MINIMUM_HEIGHT = 40;
 const MAXIMUM_GEOMETRY = 16_384;
 
-let nativeCommandQueue = Promise.resolve();
-
-function enqueueNativeCommand(operation: () => Promise<void>) {
-  nativeCommandQueue = nativeCommandQueue.then(operation, operation);
-  return nativeCommandQueue;
-}
+const nativeTerminalSession = createNativeTerminalSession(
+  <T,>(command: string, arguments_?: unknown) => invoke<T>(
+    command,
+    arguments_ as Record<string, unknown> | undefined,
+  ),
+);
 
 export function closeNativeTerminal() {
-  return enqueueNativeCommand(() => invoke('terminal_close'));
+  return nativeTerminalSession.close();
 }
 
 export function displayError(reason: unknown) {
@@ -88,14 +86,6 @@ export function terminalBoundsForRect(
   };
 }
 
-function sameBounds(left: TerminalBounds | null | undefined, right: TerminalBounds | null) {
-  if (left === null || left === undefined || right === null) return left === right;
-  return left.x === right.x
-    && left.y === right.y
-    && left.width === right.width
-    && left.height === right.height;
-}
-
 type NativeTerminalProps = Readonly<{
   visible?: boolean;
 }>;
@@ -104,6 +94,8 @@ export function NativeTerminal({ visible = true }: NativeTerminalProps) {
   const viewport = useRef<HTMLDivElement>(null);
   const visibilityRef = useRef(visible);
   const synchronizeRef = useRef<(() => void) | null>(null);
+  const readBoundsRef = useRef<(() => TerminalBounds | null) | null>(null);
+  const lastSubmittedBoundsRef = useRef<TerminalBounds | null | undefined>(undefined);
   const [failure, setFailure] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   visibilityRef.current = visible;
@@ -113,10 +105,7 @@ export function NativeTerminal({ visible = true }: NativeTerminalProps) {
     if (!element) return undefined;
 
     let active = true;
-    let opened = false;
-    let opening = false;
     let animationFrame: number | null = null;
-    let lastSubmittedBounds: TerminalBounds | null | undefined;
 
     const readBounds = () => visibilityRef.current
       ? terminalBoundsForRect(
@@ -132,50 +121,20 @@ export function NativeTerminal({ visible = true }: NativeTerminalProps) {
       }
     };
 
-    const submitLayout = (bounds: TerminalBounds | null) => {
-      if (sameBounds(lastSubmittedBounds, bounds)) return;
-      const submittedBounds = bounds;
-      lastSubmittedBounds = submittedBounds;
-      void enqueueNativeCommand(async () => {
-        await invoke('terminal_layout', { bounds: submittedBounds });
-        if (active) {
-          setReady(true);
-          setFailure(null);
-        }
-      }).catch((reason) => {
-        lastSubmittedBounds = undefined;
-        reportFailure(reason);
-      });
-    };
-
     const synchronize = () => {
       animationFrame = null;
       if (!active) return;
-      const bounds = readBounds();
-      if (opened) {
-        submitLayout(bounds);
-        return;
-      }
-      if (opening || !bounds) return;
-      opening = true;
-      void enqueueNativeCommand(async () => {
-        await invoke('terminal_open', { bounds });
-        opened = true;
-        opening = false;
-        if (!active) {
-          await invoke('terminal_close');
-          opened = false;
-          return;
-        }
-        const currentBounds = readBounds();
-        await invoke('terminal_layout', { bounds: currentBounds });
-        lastSubmittedBounds = currentBounds;
+      void nativeTerminalSession.synchronize(
+        readBounds,
+        lastSubmittedBoundsRef.current,
+      ).then((result) => {
+        lastSubmittedBoundsRef.current = result.bounds;
         if (active) {
-          setReady(true);
+          setReady(result.ready);
           setFailure(null);
         }
       }).catch((reason) => {
-        opening = false;
+        lastSubmittedBoundsRef.current = undefined;
         reportFailure(reason);
       });
     };
@@ -185,6 +144,7 @@ export function NativeTerminal({ visible = true }: NativeTerminalProps) {
       animationFrame = window.requestAnimationFrame(synchronize);
     };
     synchronizeRef.current = scheduleSynchronization;
+    readBoundsRef.current = readBounds;
 
     const observer = new ResizeObserver(scheduleSynchronization);
     const visualViewport = window.visualViewport;
@@ -193,6 +153,7 @@ export function NativeTerminal({ visible = true }: NativeTerminalProps) {
     document.addEventListener('scroll', scheduleSynchronization, true);
     visualViewport?.addEventListener('resize', scheduleSynchronization);
     visualViewport?.addEventListener('scroll', scheduleSynchronization);
+    const statusPoll = window.setInterval(scheduleSynchronization, 1_000);
     scheduleSynchronization();
 
     return () => {
@@ -202,12 +163,12 @@ export function NativeTerminal({ visible = true }: NativeTerminalProps) {
       document.removeEventListener('scroll', scheduleSynchronization, true);
       visualViewport?.removeEventListener('resize', scheduleSynchronization);
       visualViewport?.removeEventListener('scroll', scheduleSynchronization);
+      window.clearInterval(statusPoll);
       if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
       synchronizeRef.current = null;
-      if (opened) {
-        opened = false;
-        void closeNativeTerminal();
-      }
+      readBoundsRef.current = null;
+      lastSubmittedBoundsRef.current = undefined;
+      void closeNativeTerminal();
     };
   }, []);
 
@@ -216,7 +177,17 @@ export function NativeTerminal({ visible = true }: NativeTerminalProps) {
   }, [visible]);
 
   const focusTerminal = () => {
-    void enqueueNativeCommand(() => invoke('terminal_focus')).catch((reason) => {
+    const readBounds = readBoundsRef.current;
+    if (!readBounds) return;
+    void nativeTerminalSession.focus(
+      readBounds,
+      lastSubmittedBoundsRef.current,
+    ).then((result) => {
+      lastSubmittedBoundsRef.current = result.bounds;
+      setReady(result.ready);
+      setFailure(null);
+    }).catch((reason) => {
+      lastSubmittedBoundsRef.current = undefined;
       setFailure(displayError(reason));
     });
   };

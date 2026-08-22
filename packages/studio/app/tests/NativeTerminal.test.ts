@@ -69,7 +69,7 @@ test('Settings hides the native surface without unmounting or closing its sessio
 
   assert.match(html, /data-terminal-visible="false"/);
   assert.match(terminalSource, /visibilityRef/);
-  assert.match(terminalSource, /terminal_layout/);
+  assert.match(terminalSource, /nativeTerminalSession\.synchronize/);
 });
 
 test('native terminal resynchronizes after element, viewport, and scroll geometry changes', () => {
@@ -110,7 +110,15 @@ test('native terminal teardown is reusable by preference reloads', () => {
   assert.match(terminalSource, /export function closeNativeTerminal\(\)/);
   assert.match(
     terminalSource,
-    /return enqueueNativeCommand\(\(\) => invoke\('terminal_close'\)\)/,
+    /return nativeTerminalSession\.close\(\)/,
   );
-  assert.match(terminalSource, /if \(opened\) \{[\s\S]*void closeNativeTerminal\(\)/);
+  assert.match(terminalSource, /return \(\) => \{[\s\S]*void closeNativeTerminal\(\)/);
+});
+
+test('native terminal polls native process state so an exited shell can be replaced', () => {
+  assert.match(
+    terminalSource,
+    /window\.setInterval\(scheduleSynchronization, 1_000\)/,
+  );
+  assert.match(terminalSource, /window\.clearInterval\(statusPoll\)/);
 });
