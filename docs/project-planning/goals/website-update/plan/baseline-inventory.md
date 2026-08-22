@@ -34,9 +34,9 @@ The baseline catalog and publication manifest exposed four studies: Combat Arena
 Antiky Town, and Point Light Expo. Demo projects were nested under `packages/demos/antiky/`.
 
 The launch decision is now three public studies, ordered Antiky Town, Traversal Study, and Point
-Light Expo. Combat Arena remains runnable source and internal capture evidence, but it is absent
-from the public catalog, static route parameters, staged artifacts, website copy, sitemap, and public
-media directory.
+Light Expo. Combat Arena remains runnable source and internal capture evidence. Games lists it as
+in development, but it is absent from the public catalog, static route parameters, staged artifacts,
+sitemap, and public media directory.
 
 ## Media and claim state
 

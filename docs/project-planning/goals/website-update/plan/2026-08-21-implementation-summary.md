@@ -36,7 +36,8 @@ material. It does not replace Antiky Town or any other Current evidence capture.
 - Kept Combat Arena source and internal capture data so the project remains runnable and the exact
   historical ImageGen input can be reproduced.
 - Removed Combat Arena from the public catalog, static route parameters, staged build manifest,
-  sitemap, copy, public media, and visual-review route set.
+  sitemap, public media, and visual-review route set. Games now lists it as in development without a
+  poster or demo link.
 - Made the demo index, Games page, and summary placements static and poster-first. Only a demo detail
   page exposes one explicit **Play [name]** action.
 - Verified that `antiky.game.js` is not requested before Play and is requested after Play.
@@ -78,7 +79,8 @@ ledger below.
 ### Evidence capture and media publication
 
 - Re-shot all four runnable demos with three managed runs each. Antiky Town, Traversal Study, and
-  Point Light Expo became public posters; Combat Arena stayed internal.
+  Point Light Expo became public posters; the Combat Arena capture stayed internal while Games uses
+  a text-only in-development listing.
 - Captured four separate Studio source-build states: launcher, full workspace, paused simulation,
   and inspection/activity detail.
 - Published one completed shader-research artifact and one active voxel-rendering capture.
@@ -176,7 +178,7 @@ shader declarations.
 | Roadblock or correction | Resolution |
 | --- | --- |
 | Generated work did not match the references closely enough | Rejected it; reran three distinct ImageGen requests with all four exact files in `referenced_image_paths`; saved reference hashes and prompt sidecars |
-| Antiky Town needed to replace Combat Arena as the public key art | Reordered every public proof surface around Antiky Town and removed Combat Arena from public delivery while retaining internal source and provenance |
+| Antiky Town needed to replace Combat Arena as the public key art | Reordered every public proof surface around Antiky Town and limited Combat Arena to a text-only Games listing while retaining internal source and provenance |
 | The previous Antiky Town poster did not represent the final current capture | Re-shot every demo with three managed runs and republished bounded derivatives |
 | The first capture command invocation discarded detailed evidence sidecars | Added a failing default-behavior test, made evidence retention the default, added `--no-evidence`, and captured again |
 | One Studio source file had JPEG bytes under a `.png` name | Normalized the master to a real PNG before publication and validation |

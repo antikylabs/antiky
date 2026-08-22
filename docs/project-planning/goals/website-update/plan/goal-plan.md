@@ -11,9 +11,9 @@ Public product truth: `packages/website/PRODUCT.md`
 Visual authority: `packages/website/DESIGN.md`
 
 Owner direction recorded 2026-08-21: Antiky Town is the primary public key art and first demo
-action. Combat Arena remains an internal runnable project and capture source, but it must not be
-listed, linked, staged, or published on visitor-facing website surfaces until the owner promotes it.
-Its exact capture master remains only where required for historical ImageGen input provenance.
+action. List Combat Arena on Games as an in-development project, but do not link, stage, or publish
+its demo route, artifact, or poster until the owner promotes it to a playable public demo. Its exact
+capture master remains only where required for historical ImageGen input provenance.
 
 ## Objective
 
@@ -232,7 +232,7 @@ content files.
 ### 1. Establish the claim and route baseline
 
 1. Record the implementation commit, the current package versions, the three approved public demo
-   slugs, the withheld internal Combat Arena project, and whether Studio release assets exist.
+   slugs, the text-only Combat Arena listing, and whether Studio release assets exist.
 2. Build the current website in both Studio-release states and save the failing/passing baseline for
    the focused tests. Do not change `NEXT_PUBLIC_STUDIO_RELEASES_READY` merely to make copy pass.
 3. Create a short claim ledger in the implementation PR description. Each changed claim names one
@@ -326,9 +326,10 @@ revision and state match the implementation baseline and the owner explicitly ap
 The minimum public evidence set is the three approved demo posters, the four distinct Studio states
 below, the current Framework hero evidence, a completed-research chart or report view, and the active
 voxel-research capture. Keep the current Combat Arena capture internal for reproducibility and exact
-ImageGen input provenance. Home, Games, Demos, and Framework may reuse an approved capture when it
-proves the same claim; do not make near-duplicate screenshots merely to fill layout slots. Record the
-exact state and fixture before capture so a later operator can reproduce it.
+ImageGen input provenance; Games may carry only its in-development text listing. Home, Games, Demos,
+and Framework may reuse an approved capture when it proves the same claim; do not make
+near-duplicate screenshots merely to fill layout slots. Record the exact state and fixture before
+capture so a later operator can reproduce it.
 
 #### Demo captures
 

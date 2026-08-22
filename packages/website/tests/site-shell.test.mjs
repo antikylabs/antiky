@@ -85,7 +85,9 @@ test('home, Games, and Framework use current Evidence media and a code-native di
   assert.doesNotMatch(home, /Combat Arena|combat-arena/);
   assert.doesNotMatch(home, /studio-(?:pause|step|point-light-workflow)-wide-v1\.webp|studio-point-light-workflow-v2/);
   assert.doesNotMatch(home, /href="\/demos\/town-study">Explore Town Study/);
-  assert.doesNotMatch(games, /Combat Arena|combat-arena/);
+  assert.match(games, /id="combat-arena"[^>]*data-evidence-status="direction"/);
+  assert.match(games, /Combat Arena/);
+  assert.doesNotMatch(games, /href="\/demos\/combat-arena"/);
   assert.match(games, /href="\/demos\/traversal-study"/);
   assert.match(games, /href="\/demos\/antiky-town"/);
   assert.doesNotMatch(games, /antiky-town-traversal-wide-v1\.webp/);

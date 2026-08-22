@@ -49,6 +49,6 @@ received the same four exact files through `referenced_image_paths`:
 4. `packages/website/media-masters/demos/point-light-expo.png`
 
 The Antiky Town snapshot preserves the generation-time bytes because its live evidence master was
-recaptured later. Combat Arena remains in this historical input record only; it is not approved for
-public website presentation. The authoritative structured record is
-`packages/website/media-publication.json`.
+recaptured later. Combat Arena remains in this historical media input record only; a text-only Games
+listing is approved, but the image is not approved for public website presentation. The
+authoritative structured record is `packages/website/media-publication.json`.

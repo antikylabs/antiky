@@ -114,8 +114,8 @@ The website must label status in text. Color may reinforce status but cannot rep
   game host.
 - Antiky Town as the primary public key art and broadest current authored-world proof, Traversal
   Study as a distinct movement proof, and Point Light Expo as the bounded light-authoring proof.
-- Combat Arena remains internal until the owner promotes it. Do not list, link, stage, or publish
-  its route, artifact, poster, or copy on visitor-facing website surfaces.
+- Combat Arena is listed on Games as an in-development project. Its demo route, artifact, and
+  poster remain internal until the owner promotes it to a playable public demo.
 
 All current packages remain early and pre-release. Current behavior does not imply stable APIs or a
 complete general-purpose game engine.

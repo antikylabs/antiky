@@ -44,7 +44,8 @@ later asset that changes the roles, claims, or creative direction recorded here.
 
 - Home and Framework intentionally reuse Antiky Town because both slots prove the same current
   Framework output. Games, Demos, and demo detail routes reuse the same three public verified
-  captures. Combat Arena remains an internal capture and historical ImageGen reference only.
+  captures. Combat Arena has a text-only Games listing; its capture remains an internal historical
+  ImageGen reference.
 - Studio states are not interchangeable: each of the four files has a distinct evidentiary job.
 - Research imagery comes only from checked research artifacts. ImageGen is excluded from both
   research rows.

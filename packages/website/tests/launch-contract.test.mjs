@@ -184,8 +184,12 @@ test('launch production output excludes stale media, stale counts, and unsupport
     'resources/skills.html',
     'roadmap.html',
   ];
-  const source = (await Promise.all(files.map((file) => readFile(new URL(file, outputRoot), 'utf8')))).join('\n');
+  const sources = await Promise.all(files.map((file) => readFile(new URL(file, outputRoot), 'utf8')));
+  const source = sources.join('\n');
+  const nonGamesSource = sources.filter((_, index) => files[index] !== 'games.html').join('\n');
   assert.doesNotMatch(source, /(?:town-study|depth-study|media\/worlds|media\/machinery|seven focused browser studies|four technical studies)/i);
-  assert.doesNotMatch(source, /Combat Arena|combat-arena/i);
+  assert.doesNotMatch(nonGamesSource, /Combat Arena|combat-arena/i);
+  assert.match(sources[files.indexOf('games.html')], /Combat Arena/);
+  assert.doesNotMatch(sources[files.indexOf('games.html')], /href="\/demos\/combat-arena"/);
   assert.doesNotMatch(source, /(?:trained model result|completed selection workflow|durable feedback is current|online play is current)/i);
 });

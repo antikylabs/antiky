@@ -6,7 +6,7 @@ import { DEMOS } from '@/lib/demos';
 
 export const metadata: Metadata = {
   title: 'Games',
-  description: 'Play Antiky Town and two Framework demos, then learn about Emberwyrd, the larger game in development.',
+  description: 'Play Antiky Town and two Framework demos, then follow Combat Arena and Emberwyrd in development.',
   alternates: { canonical: '/games' },
 };
 
@@ -21,10 +21,10 @@ export default function GamesPage() {
     <>
       <section className="page-hero games-hero wrap">
         <h1>Play what we are building.</h1>
-        <p className="status-line"><span className="status-dot status-planned" /> Emberwyrd in development</p>
+        <p className="status-line"><span className="status-dot status-planned" /> Three playable demos · two games in development</p>
         <p className="page-lead">
-          Explore Antiky Town and two focused Framework demos in your browser. Emberwyrd is our
-          larger fantasy action RPG in development.
+          Play Antiky Town and two focused Framework demos in your browser. Combat Arena and
+          Emberwyrd are in development.
         </p>
       </section>
 
@@ -56,6 +56,24 @@ export default function GamesPage() {
               <p>{demo.tagline}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section
+        className="content-section wrap split-heading"
+        id="combat-arena"
+        data-evidence-status="direction"
+      >
+        <div>
+          <p className="section-label">In development</p>
+          <h2>Combat Arena</h2>
+        </div>
+        <div className="prose">
+          <p className="lead">A top-down space-combat prototype built with Antiky Framework.</p>
+          <p>
+            Dash through marked enemies, deflect incoming fire, and clear three authored rounds.
+            There is no public browser build yet.
+          </p>
         </div>
       </section>
 

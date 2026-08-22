@@ -49,8 +49,9 @@ and then captured the page. All evidence images appear in the confirmation set.
 
 - Antiky Town is the opening homepage image, first Games study, first Demos study, Framework proof,
   and first demo action at both widths.
-- Combat Arena has no poster, card, link, staged artifact, public media file, or static demo entry.
-  A direct `/demos/combat-arena` request returned HTTP 404.
+- Combat Arena has a text-only, in-development listing on Games. It has no poster, demo link, staged
+  artifact, public media file, or static demo entry. A direct `/demos/combat-arena` request returned
+  HTTP 404.
 - All new Studio and Research evidence is visible, uncropped, and legible at both widths.
 - Header, mobile menu, footer, status labels, calls to action, docs navigation, and library maturity
   boundaries remain readable without horizontal overflow.

@@ -314,7 +314,7 @@ test('mobile posters are fitted rather than cropped past their subject', async (
   assert.ok(visibleWidthWithCover < 0.7, 'this test is meaningless if cover would already fit');
 });
 
-test('demo index and Games render linked posters without activating a runtime', async () => {
+test('demo index and Games render only approved linked posters without activating a runtime', async () => {
   const [index, games, detail, indexSource] = await Promise.all([
     readFile(new URL('../../.next/server/app/demos.html', import.meta.url), 'utf8'),
     readFile(new URL('../../.next/server/app/games.html', import.meta.url), 'utf8'),
@@ -332,8 +332,10 @@ test('demo index and Games render linked posters without activating a runtime', 
       assert.match(source, new RegExp(`href="/demos/${slug}"`));
       assert.match(source, new RegExp(`media(?:%2F|/)demos(?:%2F|/)${slug}\\.webp`, 'i'));
     }
-    assert.doesNotMatch(source, /combat-arena|Combat Arena/);
   }
+  assert.doesNotMatch(indexMain, /combat-arena|Combat Arena/);
+  assert.match(gamesMain, /id="combat-arena"[^>]*data-evidence-status="direction"/);
+  assert.doesNotMatch(gamesMain, /href="\/demos\/combat-arena"|media(?:%2F|\/)demos(?:%2F|\/)combat-arena/i);
 
   assert.equal((detailMain.match(/<button class="stage-activate"/g) ?? []).length, 1);
   assert.match(detailMain.replaceAll('<!-- -->', ''), /Play Antiky Town/);

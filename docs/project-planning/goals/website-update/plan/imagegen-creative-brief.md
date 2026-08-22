@@ -45,8 +45,9 @@ name their roles in the prompt:
    material-response reference only; do not copy or alter the scene.
 
 These are generation references, not edit targets. No output may be called product evidence.
-Combat Arena was withheld from the public website after generation; its master remains here only to
-preserve the exact input record for the completed calls. It is not approved public key art or proof.
+Combat Arena's image and demo were withheld from public delivery after generation; its master
+remains here only to preserve the exact input record for the completed calls. Games may name the
+project as in development, but this image is not approved public key art or proof.
 
 ## Shared constraints
 
