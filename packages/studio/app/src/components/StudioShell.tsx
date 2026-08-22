@@ -372,6 +372,7 @@ export function StudioShell({
             column: DEFAULT_WORKSPACE_SPLITS.column,
           }))}
           onKeyDown={(event) => handleWorkspaceResizeKey('column', event)}
+          onLostPointerCapture={finishWorkspaceResize}
           onPointerCancel={finishWorkspaceResize}
           onPointerDown={(event) => beginWorkspaceResize('column', event)}
           onPointerMove={(event) => continueWorkspaceResize('column', event)}
@@ -392,6 +393,7 @@ export function StudioShell({
             row: DEFAULT_WORKSPACE_SPLITS.row,
           }))}
           onKeyDown={(event) => handleWorkspaceResizeKey('row', event)}
+          onLostPointerCapture={finishWorkspaceResize}
           onPointerCancel={finishWorkspaceResize}
           onPointerDown={(event) => beginWorkspaceResize('row', event)}
           onPointerMove={(event) => continueWorkspaceResize('row', event)}

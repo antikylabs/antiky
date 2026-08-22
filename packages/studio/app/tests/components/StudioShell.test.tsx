@@ -224,6 +224,17 @@ test('workspace panels expose bounded pointer and keyboard resize controls', () 
   assert.match(shellStyles, /@media \(max-width: 760px\)[\s\S]*\.workspace-resizer\s*\{[^}]*display:\s*none/s);
 });
 
+test('losing pointer capture always ends workspace resizing', () => {
+  assert.equal(
+    (studioShellSource.match(/onLostPointerCapture=\{finishWorkspaceResize\}/g) ?? []).length,
+    2,
+  );
+  assert.match(
+    shellStyles,
+    /\.workspace\.is-resizing-column iframe,[\s\S]*\.workspace\.is-resizing-row iframe\s*\{\s*pointer-events:\s*none;/,
+  );
+});
+
 test('native workspace names the active project without spending a row on manifest metadata', () => {
   const html = renderToStaticMarkup(
     <StudioShell
