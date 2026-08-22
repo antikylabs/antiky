@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
-const websiteRoot = path.resolve(import.meta.dirname, '../..');
+const websiteRoot = path.resolve(import.meta.dirname, '../../..');
 const MASTER_WIDTH = 2560;
 const MASTER_HEIGHT = 1440;
 const DELIVERY_LIMIT = 1_200_000;

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import sharp from 'sharp';
-import { publishDemoPoster } from '../../scripts/media/publish-demo-poster.mjs';
+import { publishDemoPoster } from '../../scripts/media/publish/demo-poster.mjs';
 
 test('demo poster promotion accepts only an approved managed capture and writes bounded launch files', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'antiky-poster-publish-'));
