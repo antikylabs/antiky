@@ -41,16 +41,16 @@ answer and usually is not.
 
 Say all three:
 
-1. **What you understood it to say** — from step 1, so the author can see where it diverged;
+1. **What you understood it to say** - from step 1, so the author can see where it diverged;
 2. **Which failure it is** and the evidence, quoting the file;
 3. **Which skill takes it from here**, and what you would ask that skill to do.
 
-Then stop. Do not run the other skill in the same breath unless asked — the author may disagree
+Then stop. Do not run the other skill in the same breath unless asked - the author may disagree
 with the diagnosis, and that disagreement is cheap now and expensive after an edit.
 
 ## Do not
 
-- Do not edit the file. Not even the obvious typo — an edit signals the diagnosis was accepted.
+- Do not edit the file. Not even the obvious typo - an edit signals the diagnosis was accepted.
 - Do not reach for the writing skill first because prose is visible and structure is not.
 - Do not produce a list of every small thing. One diagnosis: the one the others follow from.
 - Do not say "this could be clearer". That is the complaint, not the diagnosis.

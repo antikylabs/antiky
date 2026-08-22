@@ -63,7 +63,7 @@ Headline: The agent is a user of the engine.
 Body:
 
 Most game engines were designed around a person interpreting an editor, a project, a running game,
-and a debugger. An agent usually arrives later, with files, terminal output, and screenshots—and is
+and a debugger. An agent usually arrives later, with files, terminal output, and screenshots, and is
 asked to reconstruct the rest.
 
 Antiky starts from a different requirement: the game must be able to tell an agent what is true.
@@ -237,7 +237,7 @@ game easier to understand and direct, but Studio never becomes the engine or the
 
 Supporting action: See the same session in Studio
 
-## What is current—and what is not
+## What is current, and what is not
 
 Headline: The boundary stays visible as the Framework grows.
 
@@ -295,8 +295,8 @@ These are deliberate alternatives, not additional headings to ship.
 
 CTA alternatives:
 
-- **Inspect the current API** — use beside technical proof, not as the hero's main action.
-- **Run the current proof** — use when the destination is the complete demo index rather than one
+- **Inspect the current API** - use beside technical proof, not as the hero's main action.
+- **Run the current proof** - use when the destination is the complete demo index rather than one
   named study.
 
 ## Editorial notes

@@ -51,7 +51,7 @@ State the phase you detected and the evidence for it before acting.
 
 ## What each file is for
 
-**`objective.md`** is the owner's. It holds raw intent — what they want, why, what they are worried
+**`objective.md`** is the owner's. It holds raw intent - what they want, why, what they are worried
 about, what "done" might look like. It is unstructured on purpose. Never rewrite it, never tidy it,
 and never generate it with content the owner did not supply. `init` creates it with prompts and
 leaves it to them.
@@ -64,7 +64,7 @@ not being done. They are numbered so later documents can supersede earlier ones 
 them.
 
 **`research/`** holds compiled findings. **`research/subagent_outputs/`** holds the raw output each
-subagent returned, kept even when the compiled document supersedes it — the compiled version is an
+subagent returned, kept even when the compiled document supersedes it - the compiled version is an
 interpretation, and the raw output is the evidence for it.
 
 **`goals/`** holds contracts. Open goals sit at the top level; a goal and its summary move into
@@ -77,7 +77,7 @@ starts and when it is archived. An objective missing from the index is invisible
 
 ## Reading before planning
 
-Before planning or cutting goals, read the project's own direction and decision records — whatever
+Before planning or cutting goals, read the project's own direction and decision records - whatever
 they are called. A plan **applies** accepted direction; it does not replace it, and it cannot
 overrule an accepted decision record.
 

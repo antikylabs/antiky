@@ -29,9 +29,9 @@ Antiky skills follow the [Agent Skills specification](https://agentskills.io/spe
 the open [`skills` command-line interface](https://github.com/vercel-labs/skills) for discovery and
 installation. The receiving agent must support that format or provide a compatible adapter.
 
-A skill marked Ready has usable instructions at the reviewed source snapshot. Ready does not mean
-that every coding agent will make the same judgment, or that the skill replaces project-specific
-review. Internal and frontmatter-only stub skills are not included in the public catalog.
+The public catalog includes reviewed skills with usable instructions. It excludes internal skills
+and frontmatter-only placeholders. A skill provides a procedure, but it does not replace
+project-specific review or guarantee that every coding agent will make the same judgment.
 
 ## Source and review point
 
@@ -43,5 +43,5 @@ Use the repository for newer changes and each skill's complete instructions.
 ## Related documentation
 
 - [Install and manage Antiky skills](install.md).
-- Use the [Ready skills reference](reference.md) while choosing a skill or subcommand.
+- Use the [Antiky skills reference](reference.md) while choosing a skill or subcommand.
 - Browse the [public Skills library](/resources/skills) for the reviewed catalog.

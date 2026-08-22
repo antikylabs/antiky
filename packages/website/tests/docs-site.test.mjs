@@ -157,7 +157,7 @@ test('skills guides reach every agent-readable docs surface', async () => {
   const guides = [
     ['overview', 'Understand Antiky agent skills'],
     ['install', 'Install and manage Antiky skills'],
-    ['reference', 'Ready skills reference'],
+    ['reference', 'Antiky skills reference'],
   ];
 
   for (const [slug, title] of guides) {

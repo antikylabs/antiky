@@ -143,8 +143,8 @@ fragment.
 
 ### Proposed rights record
 
-For each component—metadata, description, source, generated output, preview, dependency, and sample
-asset—record:
+For each component - metadata, description, source, generated output, preview, dependency, and sample
+asset - record:
 
 - intended actions: index, remote display, mirror, redistribute, adapt;
 - declared and concluded license, using `NOASSERTION` when evidence is incomplete;

@@ -32,12 +32,12 @@ safely delete, and six months later nobody knows whether it is still needed.
 
 Routing:
 
-- **Explicit command** — load its reference and follow it.
-- **"BroMetal is broken / missing X"** — `patch`, after confirming the defect still exists in the
+- **Explicit command** - load its reference and follow it.
+- **"BroMetal is broken / missing X"** - `patch`, after confirming the defect still exists in the
   latest published version. We have been four releases behind while writing a patch for something
   already fixed.
-- **"Can we upgrade BroMetal?"** — `update`.
-- **"Send this upstream"** — `pr`.
+- **"Can we upgrade BroMetal?"** - `update`.
+- **"Send this upstream"** - `pr`.
 
 The normal order is `patch` → `pr` → (later) `update` retires it. Do not skip `pr`: a local patch
 with no upstream pull request violates ADR 0021 and becomes permanent by default.

@@ -1,4 +1,4 @@
-# `prose` — assertions a document cannot support
+# `prose` - assertions a document cannot support
 
 Read-only. Reports findings and writes nothing.
 
@@ -14,15 +14,15 @@ still checked.
 
 ## The two rules
 
-### `no-unsupported-claim` — warning
+### `no-unsupported-claim` - warning
 
 A sentence fires when it does all three of these and none of the fourth:
 
-1. names a **quality attribute** — `robust`, `scalable`, `maintainable`, `performant`, `secure`,
+1. names a **quality attribute** - `robust`, `scalable`, `maintainable`, `performant`, `secure`,
    `seamless`, and similar;
-2. uses an **assertion verb** — `is`, `ensures`, `guarantees`, `provides`, `improves`, `enables`…;
-3. has an **artifact subject** — `this`, `our`, `the system`, `the architecture`, `the design`…;
-4. contains **no referent** — no digit, no link, no `ADR-nnnn`, no URL, and no evidence token
+2. uses an **assertion verb** - `is`, `ensures`, `guarantees`, `provides`, `improves`, `enables`…;
+3. has an **artifact subject** - `this`, `our`, `the system`, `the architecture`, `the design`…;
+4. contains **no referent** - no digit, no link, no `ADR-nnnn`, no URL, and no evidence token
    (`measured`, `benchmark`, `profiled`, `p99`, `throughput`).
 
 Sentences opening with an imperative or definitional word are excluded, because instructional prose
@@ -30,7 +30,7 @@ legitimately uses these adjectives without asserting anything. "Prefer a modular
 boundary is obvious" is advice; "our design is modular" is a claim.
 
 All four conditions are required. Removing any one of them produces false positives on ordinary
-technical writing — the constraint that matters most is the artifact subject, without which the rule
+technical writing - the constraint that matters most is the artifact subject, without which the rule
 fires on every definition and word-mention in the document.
 
 **What this catches.** The defect in an AI-written architecture document is not vocabulary. It is
@@ -41,7 +41,7 @@ confident assertion with no referent. Nothing else checks this: `proselint` has 
 Do not hedge it. "Reasonably robust" is the same sentence with less courage and it still tells the
 reader nothing.
 
-### `no-time-estimate` — error
+### `no-time-estimate` - error
 
 A duration offered as a prediction. Fires only when a duration and an estimate cue appear in the
 same sentence, so "the request timed out after 30 seconds" and "cache entries expire after seven
@@ -56,7 +56,7 @@ feature, or objective. State what is done, what is left, and what blocks it.
 property: an assertion with no referent. A human writes these too, and an AI often does not.
 
 This distinction decides whether the rule is fair. Tools that classify authorship misfire badly on writing by people
-whose first language is not English — one study of seven commercial detectors found a mean false
+whose first language is not English - one study of seven commercial detectors found a mean false
 positive rate above 60% on non-native essays. A structural check for "this sentence carries no
 referent" makes a narrower claim and levels no accusation at anyone.
 
@@ -76,5 +76,5 @@ property. Report it that way.
 
 ## What this does not check
 
-Whether the claim is *true* — only whether the sentence offers anything to check it against. A
+Whether the claim is *true* - only whether the sentence offers anything to check it against. A
 sentence can carry a number and still be wrong. Say so when reporting.

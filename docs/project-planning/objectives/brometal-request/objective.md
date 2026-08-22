@@ -9,7 +9,7 @@
 > person requested, whether we already cover them, and whether we should plan implementation for
 > their need."
 >
-> — Owner, 2026-08-14
+> - Owner, 2026-08-14
 
 ## Why now
 
@@ -21,7 +21,7 @@ Someone is asking for these features on top of brometal providing. we can provid
 ## What good looks like
 
 <!-- How would you recognise success? A demo you would show someone, a number that moves,
-     a class of bug that stops happening? Vague is fine — "it should feel less janky" is
+     a class of bug that stops happening? Vague is fine - "it should feel less janky" is
      a real answer and research can sharpen it. -->
 
 Will know better after we research.
@@ -29,14 +29,14 @@ Will know better after we research.
 ## What worries me
 
 <!-- The parts you expect to go wrong, the decisions you are unsure about, the thing you
-     suspect is harder than it looks. This is the most useful section for research —
+     suspect is harder than it looks. This is the most useful section for research -
      it points at what to investigate. -->
 
 That our framework isn't a good fit, that we've already diverged from a path of this, etc.
 
 ## Constraints
 
-<!-- What must not change? What is fixed — deadlines, platforms, existing decisions,
+<!-- What must not change? What is fixed - deadlines, platforms, existing decisions,
      other work in flight, people's availability? -->
 
 ## Explicitly not this

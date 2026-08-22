@@ -1,14 +1,14 @@
-# 05 — Reusable WebGPU viewport and render ownership
+# 05 - Reusable WebGPU viewport and render ownership
 
 **Research date:** 2026-08-14
 **Scope:** Current Antiky code and accepted ADRs, current WebGPU/HTML documentation, official MagicaVoxel sources, and source inspection of WebGPU-.vox. No external project was installed or executed.
 
 ## Evidence labels
 
-- **Established** — verified in repository code, an accepted ADR, or a primary specification/source.
-- **Claimed** — stated by project documentation or a third party but not independently verified.
-- **Inferred** — conclusion drawn from established evidence.
-- **Unverifiable** — the required implementation or runtime evidence was unavailable.
+- **Established** - verified in repository code, an accepted ADR, or a primary specification/source.
+- **Claimed** - stated by project documentation or a third party but not independently verified.
+- **Inferred** - conclusion drawn from established evidence.
+- **Unverifiable** - the required implementation or runtime evidence was unavailable.
 
 ## Findings
 
@@ -331,17 +331,17 @@ These are source-derived allocation sizes, not measured browser memory. They spa
 
 ## Gaps
 
-1. **Unverifiable — BroMetal root internals.** The repository pins BroMetal 0.17.2 (`package-lock.json:1502-1505`) but has no installed/source copy available. It is unknown at this layer whether `createRenderer()` owns a device per renderer, can accept a shared device, reconfigures on resize, calls `unconfigure()`, handles device loss, or destroys the device. Inspecting the exact pinned source would answer this without running it.
-2. **Unverifiable — iframe `webgpu` permission token.** The attribute is present and snapshot-tested, but this research found no authoritative WebGPU Permissions Policy definition confirming the token’s current effect. A target-browser test is required.
-3. **Gap — no app viewport implementation exists.** The only established viewport is the CLI game-host document. Same-realm Studio apps, bundled apps, and isolated apps may need different ownership shapes.
-4. **Gap — device policy.** There is no owner decision between a shared device, dedicated per-app devices, or continued isolated host documents.
-5. **Gap — target runtime capabilities.** WebGPU and `devicePixelContentBoxSize` remain fast-moving/limited-availability surfaces. The actual Tauri WebView and managed capture browser need a focused capability proof.
-6. **Gap — physical-pixel budget.** No maximum DPR, render scale, per-panel pixel count, GPU-memory quota, or resize-churn budget exists.
-7. **Gap — loss/recovery diagnostics.** The current Antiky layer has no visible device-loss or uncaptured-WebGPU-error path.
-8. **Gap — capture semantics.** Final-canvas PNG capture exists, but HDR, alpha, color-space, depth/object-ID, and oversized export behavior are unspecified.
-9. **Gap — asynchronous rendering contract.** `GameInstance.frame()` is synchronous. Progressive or upload-heavy Studio apps may need invalidation and asynchronous completion without changing the existing game-module compatibility boundary.
-10. **Gap — `.vox` conformance.** Official format documents, the current exporter, and community parsers do not constitute a tested corpus. Animation, materials, rotations, layers, unknown chunks, malformed sizes, and newer metadata need explicit coverage.
-11. **Gap — session ownership wording.** ADR 0008 permits an `EngineSession` to own an optional render driver, while the current implementation owns the Town runtime as a generic disposable service and calls rendering outside the session. A future viewport must not assume a direct session render API that does not exist.
+1. **Unverifiable - BroMetal root internals.** The repository pins BroMetal 0.17.2 (`package-lock.json:1502-1505`) but has no installed/source copy available. It is unknown at this layer whether `createRenderer()` owns a device per renderer, can accept a shared device, reconfigures on resize, calls `unconfigure()`, handles device loss, or destroys the device. Inspecting the exact pinned source would answer this without running it.
+2. **Unverifiable - iframe `webgpu` permission token.** The attribute is present and snapshot-tested, but this research found no authoritative WebGPU Permissions Policy definition confirming the token’s current effect. A target-browser test is required.
+3. **Gap - no app viewport implementation exists.** The only established viewport is the CLI game-host document. Same-realm Studio apps, bundled apps, and isolated apps may need different ownership shapes.
+4. **Gap - device policy.** There is no owner decision between a shared device, dedicated per-app devices, or continued isolated host documents.
+5. **Gap - target runtime capabilities.** WebGPU and `devicePixelContentBoxSize` remain fast-moving/limited-availability surfaces. The actual Tauri WebView and managed capture browser need a focused capability proof.
+6. **Gap - physical-pixel budget.** No maximum DPR, render scale, per-panel pixel count, GPU-memory quota, or resize-churn budget exists.
+7. **Gap - loss/recovery diagnostics.** The current Antiky layer has no visible device-loss or uncaptured-WebGPU-error path.
+8. **Gap - capture semantics.** Final-canvas PNG capture exists, but HDR, alpha, color-space, depth/object-ID, and oversized export behavior are unspecified.
+9. **Gap - asynchronous rendering contract.** `GameInstance.frame()` is synchronous. Progressive or upload-heavy Studio apps may need invalidation and asynchronous completion without changing the existing game-module compatibility boundary.
+10. **Gap - `.vox` conformance.** Official format documents, the current exporter, and community parsers do not constitute a tested corpus. Animation, materials, rotations, layers, unknown chunks, malformed sizes, and newer metadata need explicit coverage.
+11. **Gap - session ownership wording.** ADR 0008 permits an `EngineSession` to own an optional render driver, while the current implementation owns the Town runtime as a generic disposable service and calls rendering outside the session. A future viewport must not assume a direct session render API that does not exist.
 
 ## Planning implications
 
@@ -352,6 +352,6 @@ These are source-derived allocation sizes, not measured browser memory. They spa
 - If a device is shared, the contract needs one root owner, per-app disposal scopes, resource/size budgets, feature negotiation, coordinated errors, and all-consumer loss notification. If devices are dedicated, the contract needs per-app capability/init/failure reporting.
 - Keep raw WebGPU and BroMetal objects private. App-facing data should use IDs, descriptors, typed updates, transferable binary assets where appropriate, structured status, and capture/export results.
 - Include one continuous real-time renderer and one invalidate/progressive renderer in a later proof. This tests scheduling breadth without automatically widening the existing synchronous game-module contract.
-- Use the voxel case to prove resize-triggered resource replacement, large asynchronous upload cancellation, malformed-source rejection, progressive reset, capture/export separation, and complete disposal—not to make voxel data the viewport or framework model.
+- Use the voxel case to prove resize-triggered resource replacement, large asynchronous upload cancellation, malformed-source rejection, progressive reset, capture/export separation, and complete disposal - not to make voxel data the viewport or framework model.
 - Treat device loss, frame failure, app replacement during initialization, resize churn, hidden panels, and disposal failure as required lifecycle evidence.
 - Any choice that changes renderer selection, exposes renderer objects to Studio, moves platform work out of the host, or establishes the VOX runtime contract requires owner/ADR review rather than being buried in implementation.

@@ -20,12 +20,12 @@ test('the production roadmap parses every seeded delivery in source order', asyn
   assert.deepEqual(
     roadmap.deliveries.map((delivery) => delivery.title),
     [
-      "v0.1 — Put the foundation in people's hands",
-      'v0.2 — Make the game part of the conversation',
-      'v0.3 — Grow the game-making core',
-      'v0.4 — Turn Studio into a creator workspace',
-      'Beyond — Build a creative library agents can understand',
-      'The destination — Ship games that prove the idea',
+      "v0.1. Put the foundation in people's hands",
+      'v0.2. Make the game part of the conversation',
+      'v0.3. Grow the game-making core',
+      'v0.4. Turn Studio into a creator workspace',
+      'Beyond. Build a creative library agents can understand',
+      'The destination. Ship games that prove the idea',
     ],
   );
   assert.equal(roadmap.deliveries[0]?.subitems[0]?.title, 'Framework and agent tools');

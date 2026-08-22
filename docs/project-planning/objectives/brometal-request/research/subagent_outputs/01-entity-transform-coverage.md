@@ -89,7 +89,7 @@ A caller still has to supply the collection, lifecycle, updates, and queries. No
 
 ## Engine session
 
-- **Established:** Session construction receives a `worldId`, systems, input capture, optional digest, and disposable services—not a `World` or entity/component store—in `packages/framework/src/sessions/engine-session/contract.ts:37-50`.
+- **Established:** Session construction receives a `worldId`, systems, input capture, optional digest, and disposable services - not a `World` or entity/component store - in `packages/framework/src/sessions/engine-session/contract.ts:37-50`.
 - **Established:** Its public interface contains frame/control/command/status/disposal methods only in `packages/framework/src/sessions/engine-session/contract.ts:165-179`.
 - **Established:** `executeCommand` supplies command sequence and scalar world revision to caller-owned work; it does not mutate a Framework world in `packages/framework/src/sessions/engine-session/runtime.ts:421-475`.
 - **Established:** Tests implement simulation state as a local object captured by system callbacks in `packages/framework/tests/sessions/engine-session/engine-session.test.ts:30-68`.
@@ -112,7 +112,7 @@ A caller still has to supply the collection, lifecycle, updates, and queries. No
 - **Established:** The package is currently private, and its only explicit subpaths are game, contract, and render driver in `packages/framework/package.json:2-10`.
 - **Claimed and corroborated:** The generated reference calls itself the complete public API and directs users to package-root or declared public entries in `docs/user-facing-docs/api/reference.md:6-18`.
 - **Established:** Boundary tests forbid BroMetal and browser-global imports from Framework runtime code except the single BroMetal driver in `packages/framework/tests/import-boundary.test.mjs:5-13, 27-65, 79-90`.
-- **Inferred absence:** An exhaustive production-source search for entity/world exports and entity CRUD found only ID types/factories, inspection DTOs, and point-light world-view adapters—no `World`, entity store, transform store, `createEntity`, `addEntity`, `removeEntity`, `setTransform`, or query implementation.
+- **Inferred absence:** An exhaustive production-source search for entity/world exports and entity CRUD found only ID types/factories, inspection DTOs, and point-light world-view adapters - no `World`, entity store, transform store, `createEntity`, `addEntity`, `removeEntity`, `setTransform`, or query implementation.
 
 # Gaps
 

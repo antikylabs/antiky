@@ -1,6 +1,6 @@
-# Research line C — Semantic asset enrichment methods
+# Research line C - Semantic asset enrichment methods
 
-Research date: 2026-08-12  
+Research date: 2026-08-12
 Scope: External primary-source research only. No files changed.
 
 ## Headline conclusion
@@ -87,7 +87,7 @@ Store these as `provider_asserted` fields with provider, endpoint, provider ID, 
 
 ### 6. Signed provenance authenticates attribution, not semantic correctness
 
-C2PA 2.4, released April 2026, defines signed claims, assertions, ingredient relationships, content bindings, and validation results. It explicitly says validation should establish that assertions are associated with the asset, correctly formed, and untampered—not judge them “good” or “bad.” [C2PA 2.4 specification](https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html)
+C2PA 2.4, released April 2026, defines signed claims, assertions, ingredient relationships, content bindings, and validation results. It explicitly says validation should establish that assertions are associated with the asset, correctly formed, and untampered - not judge them “good” or “bad.” [C2PA 2.4 specification](https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html)
 
 Therefore:
 

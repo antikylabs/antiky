@@ -160,8 +160,8 @@ state; it does not tint whole sections, headings, borders, shadows, or decorativ
 
 ## Typography
 
-**Display Font:** Space Grotesk Variable (sans-serif fallback)  
-**Body Font:** Inter Variable (sans-serif fallback)  
+**Display Font:** Space Grotesk Variable (sans-serif fallback)
+**Body Font:** Inter Variable (sans-serif fallback)
 **Technical Font:** IBM Plex Mono (monospace fallback)
 
 Space Grotesk gives headlines a broad, blunt silhouette. Inter keeps editorial prose and controls
@@ -284,7 +284,7 @@ moves above the title and description, preserving a direct reading sequence.
 
 Use direct state labels that resolve to **Current**, **Emerging**, **Direction**, or **Research
 question**. More specific labels such as **Live study** or **Pre-release** can clarify those states.
-State is written as text and may be reinforced—never replaced—by green, violet, amber, or gray. A
+State is written as text and may be reinforced - never replaced - by green, violet, amber, or gray. A
 directional capability must not receive the same visual treatment as a running study.
 
 ### Technical Readouts and Source Panes

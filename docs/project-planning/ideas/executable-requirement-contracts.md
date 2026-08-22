@@ -7,14 +7,14 @@ evidence from another real consumer.
 
 ## The idea
 
-Antiky is an AI-native framework. Today that mostly means agents can *drive* the engine — the CLI
+Antiky is an AI-native framework. Today that mostly means agents can *drive* the engine - the CLI
 and MCP give them the run, inspect, capture and replay surfaces. It does not yet mean agents can be
 *held to* what a human intended.
 
 The opportunity: give an owner a way to state an intended requirement, and have the framework bind
 that statement to a testable contract an agent must satisfy. The requirement becomes the artifact.
 The test is generated from it or attached to it, and an agent cannot report the work as done
-without satisfying it — and cannot quietly weaken it either.
+without satisfying it - and cannot quietly weaken it either.
 
 The generalisation is that a contract can bind to any measurable surface the framework already
 exposes: pixels, simulation state, events, render statistics, timing, or motion.
@@ -31,7 +31,7 @@ A contract system does not need new sensors, only a way to bind intent to the on
 **The failure mode it addresses is documented, not hypothetical.** The demo audit found an agent
 that built plausible-looking work with no way to check itself, and shipped defects that survived
 review because nothing measured them. Goal 01's visual budgets are, in effect, one hand-written
-instance of exactly this pattern — an authored intent ("this frame should have real value
+instance of exactly this pattern - an authored intent ("this frame should have real value
 structure") bound to an assertion that fails until it is true.
 
 ## What would have to be true first
@@ -55,14 +55,14 @@ wrong place for the long term, deliberately.**
 
 The right home is the CLI's inspection library, `packages/cli/src/development/`. That library is
 where inspection lives and where twenty MCP tools already expose it to agents. Note what is
-currently missing from it: every module there *acquires* something — captures, observations,
-evidence, sessions, point lights — and **nothing interprets anything**. `get_render_stats` returns
+currently missing from it: every module there *acquires* something - captures, observations,
+evidence, sessions, point lights - and **nothing interprets anything**. `get_render_stats` returns
 numbers the game reports about itself. Nothing computes a value from pixels or from a series. These
 two modules are the first interpretation this repository has, which is part of why they had no
 obvious home.
 
 **The case for moving them** is `docs/adr/framework/0003`, *"one engine API for humans and
-agents"*. Today an agent working on any other Antiky project cannot measure a frame at all — the
+agents"*. Today an agent working on any other Antiky project cannot measure a frame at all - the
 capability exists only in this repository, as a script. That is a real inconsistency with an
 AI-native framework.
 
@@ -74,7 +74,7 @@ have needed a migration. The thresholds are still unvalidated by the owner.
 
 **Trigger to move them.** Any one of:
 
-- a second consumer outside this repository — another Antiky project, or Studio;
+- a second consumer outside this repository - another Antiky project, or Studio;
 - an agent needing them through MCP rather than as a script;
 - the visual budgets surviving a full render slice (goals 06 and 07) without their thresholds
   needing another rewrite.
@@ -87,7 +87,7 @@ Nothing about living in `scripts/` first makes that harder.
 servers and writes sidecars beside demos. That is repository orchestration, not a framework
 capability, and it belongs where it is.
 
-Check `packages/cli/tests/development-import-boundary.test.mjs` before moving anything — it
+Check `packages/cli/tests/development-import-boundary.test.mjs` before moving anything - it
 constrains what the development library may depend on, and `sharp` is a native module.
 
 ## Why not now
@@ -95,21 +95,21 @@ constrains what the development library may depend on, and `sharp` is a native m
 `GOOD_ENGINEERING_H.md` is direct about this: do not abstract early, wait for a natural cut-point,
 and a little duplication beats a premature abstraction. There is currently **one** implemented
 contract kind, written by hand, whose thresholds are not yet validated. Building a framework for it
-would be designing from a single implementation — the same mistake the `BroMetalRenderDriver`
+would be designing from a single implementation - the same mistake the `BroMetalRenderDriver`
 decision (ADR 0021) explicitly avoids by extracting from two working implementations rather than
 designing from zero.
 
 ## The cheapest next step, when the time comes
 
 Do not start with a language or a schema. Start by writing the second and third contract kinds by
-hand — a motion assertion and a simulation invariant — and see whether they actually rhyme with the
+hand - a motion assertion and a simulation invariant - and see whether they actually rhyme with the
 visual budgets. If three hand-written kinds converge on the same shape, that shape is the contract
 format and it will have been discovered rather than invented. If they do not converge, the idea was
 wrong and this file should be deleted with that finding recorded.
 
 ## Related
 
-- [Demo-refining archive](../objectives/_archives/2026-08-17-demo-refining-summary.md) — the hand-written
+- [Demo-refining archive](../objectives/_archives/2026-08-17-demo-refining-summary.md) - the hand-written
   precedent and bounded acceptance practice
-- `../scratch/skill-research/IMPLEMENTATION-PLAN.md` — the self-verification loop this would harden
-- `../../adr/framework/0003-agent-native_H.md` — one engine API for humans and agents
+- `../scratch/skill-research/IMPLEMENTATION-PLAN.md` - the self-verification loop this would harden
+- `../../adr/framework/0003-agent-native_H.md` - one engine API for humans and agents

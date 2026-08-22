@@ -44,7 +44,7 @@ When the work is complete, the repository must have:
 ## In scope
 
 - **<Work packet name>.** Owns `<file>`, `<file>`. <What is wrong now, what the change is, and the
-  reasoning an executor needs — including any comment or prior decision they must understand before
+  reasoning an executor needs - including any comment or prior decision they must understand before
   changing it.>
 - **Serialisation.** <Which packets share files and must run in order.>
 - **Evidence.** <What must be captured or recorded to show the work is real.>
@@ -53,7 +53,7 @@ When the work is complete, the repository must have:
 
 At minimum, prove:
 
-- <a specific, falsifiable assertion — the value, the threshold, the comparison>;
+- <a specific, falsifiable assertion - the value, the threshold, the comparison>;
 - <...>;
 - <the check that the existing behaviour did NOT regress>;
 - <the full test command that must be green, and any allowlist or manifest updated in the same

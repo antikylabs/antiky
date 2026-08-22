@@ -111,7 +111,7 @@ graph TD
 
 | Page | URL | Parent | Navigation | Priority |
 | --- | --- | --- | --- | --- |
-| Home | `/` | — | logo | High |
+| Home | `/` | - | logo | High |
 | Thesis | `/thesis` | Home | header | High |
 | Studio | `/studio` | Home | release-aware header action | High |
 | Framework | `/framework` | Home | header | High |
@@ -356,7 +356,7 @@ Capture the current macOS Tauri source build at the implementation commit. Produ
 
 Store lossless masters under `media-masters/studio/` and bounded WebP derivatives under
 `public/media/studio/`. Remove local usernames, absolute paths, credentials, tokens, and unrelated
-desktop content before capture by using a clean fixture project—not by painting over the final image.
+desktop content before capture by using a clean fixture project - not by painting over the final image.
 Record the source commit, platform, state, dimensions, and digests in the media manifest.
 
 #### Research and general site media
@@ -365,7 +365,7 @@ Use only current output from the research repository for research imagery. A cur
 capture can illustrate the active gym; a chart or report page can illustrate completed shader
 research. Label both by status. Do not generate research “results” as decorative artwork.
 
-Use approved captures—not generated substitutes—for Framework proof, demo posters, Studio product
+Use approved captures - not generated substitutes - for Framework proof, demo posters, Studio product
 views, and any current claim elsewhere on the site. If a capture contains local UI, use a clean,
 purpose-built fixture and crop; do not use ImageGen to repair, redraw, or enhance product evidence.
 
@@ -509,9 +509,9 @@ multiple runtimes as “previews.”
 
 Restructure `/games` into two unambiguous bands:
 
-1. **Playable Framework studies** — the same three approved public entries as the demo catalog, labeled as
+1. **Playable Framework studies** - the same three approved public entries as the demo catalog, labeled as
    technical studies rather than released games.
-2. **Emberwyrd** — the larger game in development, with no Play or Download action until a real
+2. **Emberwyrd** - the larger game in development, with no Play or Download action until a real
    player-facing build exists.
 
 The Games page must derive the study count and entries from `DEMOS`; do not duplicate a partial list
@@ -525,12 +525,12 @@ HTML has one explicit Play action, and a module is not requested before that act
 
 Create:
 
-- `packages/website/src/app/resources/page.tsx` — hub with four explicit destinations and status;
-- `packages/website/src/app/resources/shaders/page.tsx` — Coming soon, with the intended content and
+- `packages/website/src/app/resources/page.tsx` - hub with four explicit destinations and status;
+- `packages/website/src/app/resources/shaders/page.tsx` - Coming soon, with the intended content and
   no fake catalog entries;
-- `packages/website/src/app/resources/projects/page.tsx` — Coming soon, with the intended content and
+- `packages/website/src/app/resources/projects/page.tsx` - Coming soon, with the intended content and
   no fake templates;
-- `packages/website/src/app/resources/skills/page.tsx` — current skills, install/use commands, status,
+- `packages/website/src/app/resources/skills/page.tsx` - current skills, install/use commands, status,
   source link, and the boundary between ready and internal/stub skills.
 
 The Skills page is a reviewed snapshot, not a client-side GitHub mirror. Source its facts from the
@@ -548,11 +548,11 @@ do not turn stubs or internal skills into public capability claims.
 Add a `skills` section to `docs/user-facing-docs/` and to the allowlists in
 `packages/website/src/lib/docs.ts` and `packages/website/tests/docs-site.test.mjs`. Publish at least:
 
-- `skills/overview.md` — what an agent skill is, repository scope, compatibility boundary, and where
+- `skills/overview.md` - what an agent skill is, repository scope, compatibility boundary, and where
   the source lives;
-- `skills/install.md` — task-oriented install/list/use commands, prerequisites, finish conditions,
+- `skills/install.md` - task-oriented install/list/use commands, prerequisites, finish conditions,
   and safe update/removal guidance;
-- `skills/reference.md` — current ready skills with purpose and supported subcommands.
+- `skills/reference.md` - current ready skills with purpose and supported subcommands.
 
 Link these pages from the docs home and the Skills resource page. Because docs feed Markdown routes,
 search, `llms.txt`, and `llms-full.txt`, verify all four surfaces rather than adding a website-only

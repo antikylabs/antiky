@@ -36,7 +36,7 @@ Detailed reference for creating short-form video content on TikTok, Instagram Re
 - "If you're struggling with [problem], watch this"
 
 **The Warning:**
-- "Stop doing [common practice] — here's why"
+- "Stop doing [common practice] - here's why"
 - "[Number] mistakes that are killing your [results]"
 - "Why [thing you think is good] is actually hurting you"
 
@@ -167,7 +167,7 @@ Best for: Relatable content, humor, niche communities
 
 ### Voiceover Tips
 - Speak slightly faster than normal conversation
-- Vary your tone — avoid monotone delivery
+- Vary your tone - avoid monotone delivery
 - Pause for emphasis on key points
 - Record in a quiet space, use noise removal
 - AI voices work for faceless content (ElevenLabs, etc.)

@@ -291,7 +291,7 @@ Add regression and integration tests at existing ownership boundaries. At minimu
 - direct service, human CLI, HTTP/stdio MCP, and Studio-facing types agree on compatible contracts
   while all existing capture, session, point-light, build, and runtime tests remain green.
 
-After automated verification, use the new Antiky MCP path—not OS capture—to collect private local
+After automated verification, use the new Antiky MCP path - not OS capture - to collect private local
 evidence from all three current slices:
 
 - Starbreaker Circuit: idle defeat plus a bounded mark-to-dash interaction;

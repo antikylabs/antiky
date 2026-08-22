@@ -15,7 +15,7 @@ The type follows from who arrives and why, so answer these before reading anythi
 2. **What do they need when they leave?** A working result, a finished task, a fact, a model?
 3. **Are they at the keyboard?** Acting, or thinking?
 
-A page whose audience cannot be named is not mistyped — it has no reader, which is a bigger finding.
+A page whose audience cannot be named is not mistyped - it has no reader, which is a bigger finding.
 
 ### 2. Place it on the axes
 
@@ -24,8 +24,8 @@ A page whose audience cannot be named is not mistyped — it has no reader, whic
 | Learning | Tutorial | Explanation |
 | Working | How-to | Reference |
 
-*Learning or working* — acquiring a capability, or applying one they have?
-*Practical or theoretical* — do they need to act, or to understand?
+*Learning or working* - acquiring a capability, or applying one they have?
+*Practical or theoretical* - do they need to act, or to understand?
 
 ### 3. Check the existing page against that answer
 
@@ -36,7 +36,7 @@ Signals it is not the type it claims:
 - numbered steps in something called a concept page;
 - a definition list before the first instruction;
 - "usually" or "we recommend" in a reference table;
-- two audiences addressed in one page — see [split.md](split.md).
+- two audiences addressed in one page - see [split.md](split.md).
 
 ### 4. Report
 
@@ -45,7 +45,7 @@ State:
 - **the type**, in one word, and the reader it serves;
 - **what it currently is**, if that differs, with the evidence;
 - **what to do**: keep, retype, or split;
-- **the one thing that must move** if it is mixed — the specific section, not "tighten it up".
+- **the one thing that must move** if it is mixed - the specific section, not "tighten it up".
 
 ## When it is genuinely unclear
 
@@ -55,7 +55,7 @@ Some pages sit between types. Two rules resolve most of them:
 makes a sharper promise, and a page that keeps that promise is more useful than one that hedges.
 
 **If it is unclear because it serves two readers, it is two pages.** That is not a classification
-problem — go to [split.md](split.md).
+problem - go to [split.md](split.md).
 
 Say when you cannot decide, and say what would decide it. Usually that is a question for whoever
 owns the page: *who is this for?*

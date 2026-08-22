@@ -69,7 +69,7 @@ antiky tool get_dev_status
 
 Call this after a source, shader, asset, or project-manifest change. It takes no input and returns
 the accepted revision plus the latest build attempt, change kind, result, changed path, and duration. Use the
-accepted revision—not file timing—to decide whether a reload is safe.
+accepted revision - not file timing - to decide whether a reload is safe.
 
 ```sh
 antiky tool get_latest_build
@@ -356,7 +356,7 @@ while recording 30 frames, then explicitly releases it:
 
 Pointer coordinates are normalized from 0 through 1 inside the registered game canvas. Every key
 or primary-pointer press needs a matching release. Presentation traces are browser-timed review
-inputs—not deterministic semantic replay. The successful result returns only observations,
+inputs - not deterministic semantic replay. The successful result returns only observations,
 cadence, completed-step/digest ranges when available, and opaque poster, manifest, video, trace,
 and master-frame identities. PNG masters are authoritative capture bytes; WebM is a review
 derivative generated from those masters with audio fixed to `none`.

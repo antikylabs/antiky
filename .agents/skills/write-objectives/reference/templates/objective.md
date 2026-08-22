@@ -3,7 +3,7 @@
 **Started:** <YYYY-MM-DD>
 **Status:** Being defined
 
-> This file is yours. It holds raw intent — what you want and why. Nothing else in the objective
+> This file is yours. It holds raw intent - what you want and why. Nothing else in the objective
 > starts until it has content. It is deliberately unstructured: prose, bullets, half-formed
 > worries, all fine. The prompts below are prompts, not a form.
 >
@@ -21,18 +21,18 @@
 ## What good looks like
 
 <!-- How would you recognise success? A demo you would show someone, a number that moves,
-     a class of bug that stops happening? Vague is fine — "it should feel less janky" is
+     a class of bug that stops happening? Vague is fine - "it should feel less janky" is
      a real answer and research can sharpen it. -->
 
 ## What worries me
 
 <!-- The parts you expect to go wrong, the decisions you are unsure about, the thing you
-     suspect is harder than it looks. This is the most useful section for research —
+     suspect is harder than it looks. This is the most useful section for research -
      it points at what to investigate. -->
 
 ## Constraints
 
-<!-- What must not change? What is fixed — deadlines, platforms, existing decisions,
+<!-- What must not change? What is fixed - deadlines, platforms, existing decisions,
      other work in flight, people's availability? -->
 
 ## Explicitly not this

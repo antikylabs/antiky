@@ -15,15 +15,15 @@ preserve the exact bytes used. Antiky Town was refreshed after generation, so it
 bytes are also retained at
 `packages/website/media-masters/marketing/reference-snapshots/antiky-town.png`.
 
-1. `packages/website/design/references/home-media-first.png` — composition and brand restraint only;
+1. `packages/website/design/references/home-media-first.png` - composition and brand restraint only;
    SHA-256 `8fa5b479388cc13930ff8b9d7d80653973a7fac1710a7eab6f8296f137888f57`.
-2. `packages/website/media-masters/demos/antiky-town.png` — current-product palette, voxel scale,
+2. `packages/website/media-masters/demos/antiky-town.png` - current-product palette, voxel scale,
    and warm material only; generation-time SHA-256
    `819b3a319f5b57242ebae41d4a8ece04a8726282135d18ed61e8a0afe78b9ddd`.
-3. `packages/website/media-masters/demos/combat-arena.png` — planar geometry, hard-surface material,
+3. `packages/website/media-masters/demos/combat-arena.png` - planar geometry, hard-surface material,
    and cool values only; SHA-256
    `f8589e5f99f96ef4d74503ae3dfc63dca185375e638d451c2c184afde3f39b78`.
-4. `packages/website/media-masters/demos/point-light-expo.png` — practical colored-light falloff and
+4. `packages/website/media-masters/demos/point-light-expo.png` - practical colored-light falloff and
    material response only; SHA-256
    `04b4ba42d185e8e34e7951b1e28bc183ba559fdef8996db5ebf1b91c7f06f55f`.
 
@@ -39,7 +39,7 @@ Image 2: current-product palette, voxel-scale, and warm material reference only.
 Image 3: planar geometry, hard-surface material, and cool-value reference only. Use its clear constructed shapes and restrained dark-to-light separation, but do not copy or alter the arena, vehicles, or HUD.
 Image 4: practical colored-light falloff and material-response reference only. Use the way separate light sources reveal a rough surface, but do not copy or alter the scene, rings, characters, or instructions.
 
-Primary request: Create a polished editorial campaign still life for Antiky Labs: a small, visibly physical tabletop maquette assembled from modular world fragments. It should suggest authored spatial building through block forms, a few stepped paths, and layered elevations, while remaining unmistakably an illustrative photographed studio object—not a renderer capture, concept screenshot, or fictional game.
+Primary request: Create a polished editorial campaign still life for Antiky Labs: a small, visibly physical tabletop maquette assembled from modular world fragments. It should suggest authored spatial building through block forms, a few stepped paths, and layered elevations, while remaining unmistakably an illustrative photographed studio object - not a renderer capture, concept screenshot, or fictional game.
 Scene/backdrop: near-black studio ground and backdrop using #050506, #08090B, and #121317 values; no visible room and no horizon gradient.
 Subject: one compact, incomplete physical maquette with tactile matte stone, dark wood, and painted block materials; visible miniature-scale seams and slightly imperfect handcrafted edges. No people, characters, vehicles, creatures, screens, or controls.
 Style/medium: premium editorial still-life photography of a real physical maquette; restrained, believable material texture; not concept art and not a 3D game screenshot.

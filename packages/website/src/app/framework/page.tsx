@@ -18,14 +18,14 @@ const CAPABILITIES = [
   ['Fixed-step sessions', 'Run game systems on a predictable clock with explicit input, ordered commands, pause, resume, single-step control, and fail-closed faults.'],
   ['Stable public identity', 'Refer to worlds, sessions, entities, commands, and events with durable identifiers instead of screen coordinates or temporary render slots.'],
   ['Structured inspection', 'Read immutable lifecycle, session, hierarchy, store, event, diagnostic, and measurement snapshots without handing a client the live world.'],
-  ['Bounded authoring', 'Change and correct point-light power through validated commands with expected revisions. Read access does not become write access by accident.'],
+  ['Controlled authoring', 'Change and correct point-light power through validated commands with expected revisions. Read access stays separate from write access.'],
   ['Portable game modules', 'Keep game rules, systems, shaders, and assets separate from the browser, Studio, command-line interface (CLI), and website hosts.'],
 ] as const;
 
 const BOUNDARIES = [
-  ['Current', 'current', 'Session, identity, inspection, capture, and a bounded light-authoring slice', 'These capabilities exist in the current source and public documentation. Four approved game studies exercise different parts of the foundation.'],
-  ['Emerging', 'emerging', 'A broader Framework-owned BroMetal render path', 'A narrow driver path exists in current demos, but games still contain renderer-owned work and the broader rendering system is incomplete.'],
-  ['Direction', 'direction', 'General world services, sandboxes, selection, physics, abilities, and online authority', 'Accepted architecture and active work guide these areas. They are not current Framework features or release promises.'],
+  ['Current', 'current', 'Sessions, identity, inspection, capture, and light editing', 'These capabilities are available in the current source, documentation, and playable studies.'],
+  ['Emerging', 'emerging', 'A broader Framework-owned BroMetal render path', 'Current demos use the first driver path. More rendering work still lives inside individual games.'],
+  ['Planned', 'direction', 'World services, sandboxes, selection, physics, abilities, and online play', 'These areas are planned, but they are not current Framework features or release promises.'],
   ['Pre-release', 'direction', 'No stable npm package or API guarantee yet', 'The repository is open and current behavior is documented, but package publication, versioning, and compatibility policy are still open decisions.'],
 ] as const;
 
@@ -49,7 +49,7 @@ export default function FrameworkPage() {
 
       <figure className="wide-media wrap evidence-figure">
         <DemoPoster demo={TOWN} priority />
-        <figcaption>Current proof · Antiky Town runs as a portable Framework game module and renders through BroMetal.</figcaption>
+        <figcaption>Antiky Town runs as a portable Framework game module and renders through BroMetal.</figcaption>
       </figure>
 
       <section className="content-section wrap split-heading">
@@ -77,7 +77,7 @@ export default function FrameworkPage() {
           <div>
             <p className="section-label">Direction</p>
             <p className="lead">
-              The complete loop connects a bounded change to a repeatable run, semantic inspection,
+              The complete loop connects a controlled change to a repeatable run, semantic inspection,
               visual evidence, performance checks, and a human creative decision.
             </p>
             <p>
@@ -92,8 +92,8 @@ export default function FrameworkPage() {
       <section className="content-section wrap" data-evidence-status="current">
         <header className="section-intro compact">
           <p className="section-label">Current · pre-release</p>
-          <h2>A narrow foundation with observable behavior.</h2>
-          <p>The current source is smaller than a general-purpose engine. Its working boundaries are explicit and documented.</p>
+          <h2>What you can use today.</h2>
+          <p>The current source covers a focused set of documented game and development features.</p>
         </header>
         <div className="editorial-list">
           {CAPABILITIES.map(([title, body]) => (
@@ -139,9 +139,9 @@ export default function FrameworkPage() {
       <FrameworkArchitecture />
 
       <section className="content-section wrap split-heading">
-        <div><p className="section-label">Evidence-led development</p><h2>A plausible change is not a verified change.</h2></div>
+        <div><p className="section-label">See what changed</p><h2>Inspect the result, not only the code.</h2></div>
         <div className="prose">
-          <p className="lead">The same development session can publish structured state, diagnostics, measurements, captures, and bounded event history.</p>
+          <p className="lead">The same development session can publish structured state, diagnostics, measurements, captures, and limited event history.</p>
           <p>
             That evidence protects human judgment rather than replacing it. It can expose a broken
             frame, missed budget, or unexpected transition. It cannot make the creative call.
@@ -155,9 +155,8 @@ export default function FrameworkPage() {
           <div>
             <p className="lead">Antiky Labs games are the Framework's first customer.</p>
             <p>
-              We build a complete game slice, find the systems that prove reusable, and move those
-              systems into Framework when evidence supports the boundary. Framework will be narrower
-              before it is broad.
+              We build complete game slices, find the systems that help across more than one game,
+              and move those systems into Framework.
             </p>
             <Link className="text-link" href="/games">See the games and studies <ArrowRight /></Link>
           </div>
@@ -174,7 +173,7 @@ export default function FrameworkPage() {
       </section>
 
       <section className="content-section wrap">
-        <header className="section-intro compact"><h2>What is current—and what is not</h2><p>The boundary stays visible as Framework grows.</p></header>
+        <header className="section-intro compact"><h2>Available now and planned</h2><p>See what works today and what is still ahead.</p></header>
         <div className="editorial-list">
           {BOUNDARIES.map(([status, evidenceStatus, title, body]) => (
             <div className="editorial-row static" data-evidence-status={evidenceStatus} key={status}>
@@ -186,7 +185,7 @@ export default function FrameworkPage() {
       </section>
 
       <section className="closing-cta wrap">
-        <p>Start with what Framework can prove today.</p>
+        <p>Start with Framework today.</p>
         <Link href="/docs/framework/engine-sessions">Read the Framework docs <ArrowRight /></Link>
         <Link href="/demos/antiky-town">Run Antiky Town <ArrowRight /></Link>
         <Link href="/studio">Explore Antiky Studio <ArrowRight /></Link>

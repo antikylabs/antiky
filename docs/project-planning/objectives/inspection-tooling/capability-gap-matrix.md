@@ -8,11 +8,11 @@ not mean the capability is implemented.
 
 ## Priority definitions
 
-- **P0 — unlocks trustworthy iteration:** required before skills can safely perform and prove
+- **P0 - unlocks trustworthy iteration:** required before skills can safely perform and prove
   general gameplay/world/render work.
-- **P1 — unlocks representative game slices:** required for a content-rich, polished vertical
+- **P1 - unlocks representative game slices:** required for a content-rich, polished vertical
   slice rather than a narrow technology demo.
-- **P2 — unlocks production scale or shipping:** required as Antiky games add large worlds,
+- **P2 - unlocks production scale or shipping:** required as Antiky games add large worlds,
   persistence, online play, target platforms, and releases.
 
 Priority is not an instruction to build the entire row at once. Each row should enter the framework

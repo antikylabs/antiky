@@ -23,7 +23,7 @@ The first paragraph says **what the thing is and why someone would use it**, in 
 already has. The smallest working example goes near the top.
 
 Move storage, validation, protocol, ownership, and boundary rules to the section where the reader
-needs them — which is after they understand the thing, not before.
+needs them - which is after they understand the thing, not before.
 
 Do not open a page about a point light with stable identity, component records, and render bindings.
 Open with the visible idea:
@@ -35,17 +35,17 @@ The identity and render rules still matter. They belong after the reader can cre
 
 ## Shape, by type
 
-**Tutorial** — one path, no branches. Every step concrete. A visible result early and at the end. It
+**Tutorial** - one path, no branches. Every step concrete. A visible result early and at the end. It
 must work start to finish; test it. No justification: link to an Explanation instead.
 
-**How-to** — titled as the task in the reader's words. Straight into the first action. Assume
+**How-to** - titled as the task in the reader's words. Straight into the first action. Assume
 competence. Cover the task, not its variations. State the finish condition so they know they are
 done.
 
-**Reference** — the same structure on every page of the set, so it can be learned once. Tables over
+**Reference** - the same structure on every page of the set, so it can be learned once. Tables over
 prose. Signatures, defaults, limits, errors. No narrative, no advice.
 
-**Explanation** — start from the question or surprise that brings the reader. Give the alternatives
+**Explanation** - start from the question or surprise that brings the reader. Give the alternatives
 and say why this one. **Name the cost.** End where the understanding is complete, not with steps.
 
 ## Before delivering
@@ -60,5 +60,5 @@ and say why this one. **Name the cost.** End where the understanding is complete
 
 - the type and the reader it serves;
 - what you verified against the source, and what you asserted from the request;
-- anything you could not confirm — say so rather than writing it smoothly;
+- anything you could not confirm - say so rather than writing it smoothly;
 - what other pages this should link to, and what is now missing.

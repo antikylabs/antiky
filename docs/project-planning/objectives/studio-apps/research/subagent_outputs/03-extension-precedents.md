@@ -1,4 +1,4 @@
-# 03 — Extension-system precedents
+# 03 - Extension-system precedents
 
 **Research date:** 2026-08-14
 **Scope:** VS Code, Eclipse Theia extensions, JupyterLab, and Godot editor plugins. No fifth browser shell was included because Theia and JupyterLab already supply distinct browser-first models.
@@ -6,9 +6,9 @@
 
 Evidence labels:
 
-- **Established** — specified by an official API, document, or repository.
-- **Claimed** — a benefit or rationale asserted by maintainers but not independently tested here.
-- **Inferred** — a lesson derived for Antiky from established behavior.
+- **Established** - specified by an official API, document, or repository.
+- **Claimed** - a benefit or rationale asserted by maintainers but not independently tested here.
+- **Inferred** - a lesson derived for Antiky from established behavior.
 
 ## Findings
 
@@ -123,7 +123,7 @@ All factual entries in these tables are **Established** unless marked otherwise.
 
 These are research alternatives, not a selected plan.
 
-### Option A — Minimal imperative activation
+### Option A - Minimal imperative activation
 
 ```ts
 interface StudioAppDefinition {
@@ -156,7 +156,7 @@ Each `registerCommand`, `registerPanel`, listener, or resource registration ente
 
 **Tradeoff:** This is the smallest surface and keeps app code cohesive. Contribution metadata is unavailable until activation, and an imperative activation path needs strong rollback behavior.
 
-### Option B — Validated contributions plus optional runtime
+### Option B - Validated contributions plus optional runtime
 
 ```ts
 interface StudioAppDefinition {

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const DIRECTIONS = [
-  ['A memorable journey', 'Places, people, and mysteries worth caring about—not a world assembled to fill space.'],
+  ['A memorable journey', 'Places, people, and mysteries worth caring about, not a world assembled to fill space.'],
   ['Tactile action', 'A compact, equipment-defined moveset where timing, range, facing, and commitment matter.'],
   ['Consequential travel', 'A world where goods come from somewhere, distance has weight, and risk is chosen rather than ambient.'],
 ];
@@ -24,7 +24,7 @@ export default function GamesPage() {
         <p className="status-line"><span className="status-dot status-planned" /> Emberwyrd in development</p>
         <p className="page-lead">
           Antiky Labs builds technology in service of games. Three public Framework studies show
-          traversal, authored worlds, and bounded light authoring today. Emberwyrd is the larger
+          traversal, authored worlds, and live light editing today. Emberwyrd is the larger
           creative and technical test ahead.
         </p>
       </section>
@@ -32,16 +32,14 @@ export default function GamesPage() {
       <section className="content-section games-current-section" data-evidence-status="current">
         <div className="wrap split-heading">
           <div>
-            <p className="section-label">Current proof</p>
+            <p className="section-label">Playable now</p>
             <h2>{DEMOS.length} different game problems run today.</h2>
           </div>
           <div className="prose">
-            <p className="lead">
-              These are playable Framework studies: bounded technical evidence rather than released games.
-            </p>
+            <p className="lead">Play three Framework studies in your browser.</p>
             <p>
-              Their catalog is the one source for this page and the Demos index. They are working
-              evidence, not production games or substitutes for Emberwyrd.
+              Antiky Town explores an authored world, Traversal Study focuses on movement, and Point
+              Light Expo lets you edit lighting while the scene runs.
             </p>
             <Link className="text-link section-link" href="/demos">
               Run all current studies <ArrowRight />
@@ -76,12 +74,11 @@ export default function GamesPage() {
         </div>
         <div className="prose">
           <p className="lead">
-            Emberwyrd is the larger game in development—and the reason Antiky exists.
+            Emberwyrd is the larger game in development and the reason Antiky exists.
           </p>
           <p>
             The game creates real creative and technical problems. When a solution proves reusable,
-            it can become part of Antiky. This is the direction, not a shipped feature list or a
-            playable game announcement.
+            it can become part of Antiky.
           </p>
         </div>
       </section>

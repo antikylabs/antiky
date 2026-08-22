@@ -13,7 +13,7 @@ that AI can help us build the game beyond basic integrations.
 We want the Antiky Framework to be lightweight, straightforward, and reusable. We should be able to
 use it across multiple games and demos, while allowing others to build on top of it as they see fit.
 
-However, the primary user is Antiky Labs—ourselves. We will consider proposals and directions that
+However, the primary user is Antiky Labs - ourselves. We will consider proposals and directions that
 do not conflict with the direction of the games we are building.
 
 ## Framework foundations

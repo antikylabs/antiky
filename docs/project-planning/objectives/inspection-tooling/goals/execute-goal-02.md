@@ -14,7 +14,7 @@ Add a small Framework-owned component schema registry and revision-fenced world 
 project that same service through the CLI development client and a capability-grouped MCP read
 surface. An agent must be able to discover what Transform and Point Light mean, query exact entities
 or bounded sets by stable identity and component type, request selected fields, page honestly, and
-know which authoring revision it read—without parsing the whole `WorldInspection`, reading game
+know which authoring revision it read - without parsing the whole `WorldInspection`, reading game
 source, or receiving live engine objects.
 
 This is the first generic semantic **read** slice. It must prove the reusable seam using the current
@@ -79,8 +79,8 @@ Add or update tests at existing ownership boundaries. At minimum, prove:
 - schema metadata agrees with the existing Transform and Point Light parsers and range constants;
 - exact-ID, `all`, `any`, selected-field, empty-result, multi-page, final-page, and maximum-page
   queries return correct stable results;
-- synthetic worlds larger than one page—and large enough that a whole legal inspection would exceed
-  transport limits—remain queryable through bounded responses;
+- synthetic worlds larger than one page - and large enough that a whole legal inspection would exceed
+  transport limits - remain queryable through bounded responses;
 - cursors cannot be forged, reused with another world/query/schema set, continued after authoring
   mutation or expiry, or used to request undeclared fields;
 - unavailable runtime/render projections, unknown component types, excessive filters, excessive

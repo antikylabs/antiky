@@ -51,7 +51,7 @@ No code or tools were changed as part of this audit.
 6. capture motion or debug views correlated to exact simulation steps;
 7. compare two runs, parameter variants, or branches as one evidence operation;
 8. tune combat, movement, camera, AI, levels, UI, or progression through validated generic
-   commands—the point-light power is the only live semantic authoring example;
+   commands - the point-light power is the only live semantic authoring example;
 9. package a human playtest session and consented telemetry without confusing it with event-sourcing
    history.
 
@@ -180,7 +180,7 @@ view, or gameplay authoring UI. Those operations appear in the
 [Studio architecture](../../architecture/studio/overview_A.md) as accepted direction, not current
 product evidence.
 
-## What the current demos prove—and do not prove
+## What the current demos prove - and do not prove
 
 The demos are useful adversarial and technical fixtures precisely because their automated success
 criteria are much narrower than a compelling game.
@@ -301,7 +301,7 @@ not agent-safe tuning data until its meaning and constraints are declared.
 
 ### 2. Semantic action map and trace
 
-Actions—not keys—are the replay unit.
+Actions - not keys - are the replay unit.
 
 ```ts
 type ActionContract = Readonly<{
@@ -406,7 +406,7 @@ evidence.json
 
 `compare_gameplay_runs` must refuse incompatible builds, checkpoints, scenarios, viewports, or
 sampling policies unless the caller explicitly selects a supported normalization. It should align
-by completed step, named marker, or semantic event—not approximate wall-clock screenshots.
+by completed step, named marker, or semantic event - not approximate wall-clock screenshots.
 
 ## Domain inspection requirements
 
@@ -434,7 +434,7 @@ Required probes and measurements:
 - deadzone/curve samples, repeated/suppressed events, button buffer and coyote-window consumption;
 - action availability, cooldown/lockout/cancel reason, input ownership, and prompt glyph;
 - device-specific traces for keyboard, pointer/touch, and supported gamepads;
-- median, high-percentile, and worst input-to-state and input-to-pixel latency by action—not just
+- median, high-percentile, and worst input-to-state and input-to-pixel latency by action - not just
   average FPS.
 
 Agent injection must use the same action contracts as players. It may select the source as replay or
@@ -597,7 +597,7 @@ coached, unconsented, or leading-question sessions cannot support a broad qualit
 
 ## Priority roadmap
 
-### P0 — make one mechanic reproducible and comparable
+### P0 - make one mechanic reproducible and comparable
 
 Deliver this as one complete Antiky slice using Combat Arena or Traversal Study as a technical
 fixture, then validate on a new human-designed showcase slice.
@@ -621,7 +621,7 @@ P0 exit criteria:
 - evidence captures only game-owned output and never desktop/terminal context;
 - the evidence reviewer can reject a technically green but self-playing/empty mechanic.
 
-### P1 — explain player-facing failures
+### P1 - explain player-facing failures
 
 Add domain adapters through real vertical slices:
 
@@ -637,7 +637,7 @@ Add domain adapters through real vertical slices:
 Each adapter must improve diagnosis on a deliberately flawed fixture, remain bounded, and avoid
 moving game rules into inspection or BroMetal.
 
-### P2 — scale evidence safely
+### P2 - scale evidence safely
 
 - persistent local run index, trace/media retention and garbage collection;
 - aggregated route/failure/encounter/setting funnels and privacy-governed telemetry queries;
@@ -652,74 +652,74 @@ self-authored reviews would only produce more low-quality evidence.
 
 ## Required evaluation scenarios
 
-### E1 — reject autonomous spectacle as player agency
+### E1 - reject autonomous spectacle as player agency
 
 Use current Combat Arena idle input and Traversal Study attract input. Both produce motion and
 events without a meaningful player action. The tooling must reproduce them, but the evidence review
 must reject claims for player decision depth, control clarity, or onboarding. Passing the automated
 run is not a quality pass.
 
-### E2 — exact input-to-response trace
+### E2 - exact input-to-response trace
 
 From one checkpoint, press a semantic dash/jump action at a declared step. Assert the input receipt,
 capture, mechanic transition, movement/ability state, feedback markers, camera impulse and first
 presented frame. Compare two tuning variants. Fail on missing causal IDs, dropped samples, hidden
 browser input, or an unsupported latency claim.
 
-### E3 — combat decision and counterplay
+### E3 - combat decision and counterplay
 
 Create static, moving, attacking, and crowded enemy scenarios from fixed seeds. Exercise at least
 two player actions and one defensive/counterplay decision. Inspect telegraphs, attack phases,
 hit/hurt volumes, damage, resources, cancels, enemy decisions, deaths and retries. Measure outcome
 distributions. Human comparison decides whether the result is readable and satisfying.
 
-### E4 — traversal reachability and feel
+### E4 - traversal reachability and feel
 
 Run traces just inside/outside the jump envelope and coyote/buffer windows; include moving support,
 slope, ledge, collision, hazard, checkpoint and reset cases. Compare controller variants with exact
 contacts and route outcomes. Blind participants then test discoverability, perceived control and
 fairness; automation cannot answer those questions.
 
-### E5 — camera, motion, and reduced-motion variant
+### E5 - camera, motion, and reduced-motion variant
 
 Replay one combat/traversal run through normal and reduced-motion settings. Record camera target,
 screen-space subject bounds, occlusion, angular/linear motion, impulses and aligned clips. Detect
 clipping or lost critical targets. Human reviewers compare readability and impact in motion.
 
-### E6 — deterministic AI diagnosis
+### E6 - deterministic AI diagnosis
 
 Run multiple declared seeds with a blocked path, unreachable target, crowded avoidance, lost
 perception and attack opportunity. Record perception, goal, target score, path, action reasons,
 stuck/recovery and outcome. Repeating a seed must reproduce declared state observations; variation
 across seeds must remain visible rather than averaged away.
 
-### E7 — level teaching versus prompt presence
+### E7 - level teaching versus prompt presence
 
 Define one expose/practice/test/combine sequence. Automation verifies reachability, triggers,
 prompts, skip/replay and no softlock. A blind no-help session records first correct action,
 hesitation, failure, route and help use. The evaluation must fail if it concludes comprehension only
 because tutorial text appeared.
 
-### E8 — accessibility paths
+### E8 - accessibility paths
 
 Run remapped controls, keyboard/controller/pointer paths, reduced motion, no-color, no-audio, large
 text/localization expansion, focus recovery, timing assist and difficulty-assist conditions. The
 bundle reports barriers and unsupported paths. It cannot claim accessibility from settings labels
 alone; representative disabled-player review remains required.
 
-### E9 — balance and progression sweep
+### E9 - balance and progression sweep
 
 Vary a bounded tuning matrix from identical checkpoints and seeds. Report distributions,
 sensitivity, dominant/dead options, exploits and guardrails; preserve individual outliers. Reject a
 “balanced” verdict based only on equal expected values or one successful automated route.
 
-### E10 — evidence provenance and stale-state failure
+### E10 - evidence provenance and stale-state failure
 
 Attempt to compare a capture from another build, restore a checkpoint after incompatible content,
 submit a stale expected revision, reuse a command ID for a different request, and align traces with
 different sampling. Each operation must fail with structured recovery guidance and change nothing.
 
-### E11 — privacy-safe play evidence
+### E11 - privacy-safe play evidence
 
 Record and export a run and consented playtest while a terminal and other desktop applications are
 present. The result may include only the game canvas/offscreen debug output and structured project
@@ -727,7 +727,7 @@ facts. It must exclude terminal/shell prompt, username, host name, private path,
 messages, credentials, Studio chrome and unrelated apps. Redaction and retention results are part of
 the manifest.
 
-### E12 — quality gate disagreement
+### E12 - quality gate disagreement
 
 Provide a technically green run with sharp visuals and good performance but weak player choices,
 unclear goal, or no desire to continue. Automated QA approves only the technical claims. An
@@ -738,12 +738,12 @@ The system must preserve the disagreement instead of collapsing it into one scor
 
 | Evidence class | Can support | Cannot support alone |
 | --- | --- | --- |
-| A — source/schema | Intended rules, ownership, declared ranges, contracts | Runtime behavior or player experience |
-| B — deterministic headless/run trace | State transitions, invariants, reachability under traces, regression | Appearance, motion communication, human comprehension or fun |
-| C — correlated runtime/render | Actual canvas motion, camera/feedback timing, diagnostics, performance on a target | Representative player response or long-term value |
-| D — accessibility/device validation | Supported paths and observed barriers on target configurations | Every player's experience or preference |
-| E — representative human study | Comprehension, control perception, preference, qualitative why for that sample/context | Population-wide retention or causal live-product effects without adequate design |
-| F — consented telemetry/experiment | Behavioral patterns, funnels and causal experiment estimates within scope | Motivation, ethics, creative quality, or why without qualitative evidence |
+| A - source/schema | Intended rules, ownership, declared ranges, contracts | Runtime behavior or player experience |
+| B - deterministic headless/run trace | State transitions, invariants, reachability under traces, regression | Appearance, motion communication, human comprehension or fun |
+| C - correlated runtime/render | Actual canvas motion, camera/feedback timing, diagnostics, performance on a target | Representative player response or long-term value |
+| D - accessibility/device validation | Supported paths and observed barriers on target configurations | Every player's experience or preference |
+| E - representative human study | Comprehension, control perception, preference, qualitative why for that sample/context | Population-wide retention or causal live-product effects without adequate design |
+| F - consented telemetry/experiment | Behavioral patterns, funnels and causal experiment estimates within scope | Motivation, ethics, creative quality, or why without qualitative evidence |
 
 Every quality claim in an evidence bundle should name its required classes and current status.
 “Build passes,” “events occurred,” “canvas looks busy,” “FPS is 60,” and “the agent played it” are

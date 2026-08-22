@@ -51,7 +51,7 @@ Homepage (/)
 | Customers | `/customers` | Header | Medium |
 | Case studies | `/customers/{slug}` | Customers dropdown | Medium |
 | Blog | `/blog` | Header (Resources) | High |
-| Blog posts | `/blog/{slug}` | — | Medium |
+| Blog posts | `/blog/{slug}` | - | Medium |
 | Integrations | `/integrations` | Header | Medium |
 | Docs | `/docs` | Header | Medium |
 | Compare | `/compare/{slug}` | Footer | High (SEO) |
@@ -100,7 +100,7 @@ Homepage (/)
 | Homepage | `/` | Header (logo) | Critical |
 | Blog index | `/blog` | Header | High |
 | Categories | `/blog/category/{slug}` | Header dropdown | Medium |
-| Posts | `/blog/{slug}` | — | Medium |
+| Posts | `/blog/{slug}` | - | Medium |
 | Newsletter | `/newsletter` | Header (CTA) | High |
 | Guides | `/resources/guides` | Header | Medium |
 | About | `/about` | Header | Low |
@@ -153,7 +153,7 @@ Homepage (/)
 | Homepage | `/` | Header (logo) | Critical |
 | Shop | `/shop` | Header | Critical |
 | Categories | `/shop/{category}` | Header mega menu | High |
-| Products | `/shop/{category}/{product}` | — | High |
+| Products | `/shop/{category}/{product}` | - | High |
 | Collections | `/collections/{slug}` | Header | Medium |
 | Sale | `/sale` | Header (highlighted) | High |
 | Cart | `/cart` | Header (icon) | Critical |
@@ -205,7 +205,7 @@ Docs Home (/docs)
 
 **Header**: Docs | API | Blog | Community | GitHub | [Dashboard]
 
-**Sidebar** (persistent, left): Getting Started, Guides, API Reference, Examples, Changelog — with expandable subsections
+**Sidebar** (persistent, left): Getting Started, Guides, API Reference, Examples, Changelog - with expandable subsections
 
 **On-page**: Previous/Next navigation at bottom of each doc page
 

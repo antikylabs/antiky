@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 
 const STATUS_GROUPS = [
   ['Current', 'current', 'A working native workspace', 'Project launch, recent projects, a live game, native terminal, simulation controls, structured inspection, activity history, and settings work in the current macOS source build.'],
-  ['Emerging', 'emerging', 'The first packaged Studio release', 'Packaging and release delivery are still being completed. GitHub Releases becomes the authority only after the explicit release gate is satisfied.'],
-  ['Direction', 'direction', 'Exact-target feedback and native agent conversation', 'Stable selection, native Agent Client Protocol (ACP), click-to-agent context, and bounded authoring form the next creator-agent proof.'],
-  ['Research question', 'research-question', 'Mini apps, durable feedback, and broader creator modes', 'App isolation, reusable viewports, persistence, feedback retention, sandboxes, accessibility targets, and cross-platform packaging still need decisions and working evidence.'],
+  ['Emerging', 'emerging', 'The first packaged Studio release', 'Packaging is still in progress. There is no public download yet.'],
+  ['Planned', 'direction', 'Exact-target feedback and native agent conversation', 'Select something in the running game, carry its context into a coding agent, and keep feedback attached to that target.'],
+  ['Exploring', 'research-question', 'Task-specific workspaces and durable feedback', 'We are exploring flexible workspaces, saved feedback, reusable viewports, accessibility, and support beyond macOS.'],
 ] as const;
 
 export default function StudioPage() {
@@ -27,7 +27,7 @@ export default function StudioPage() {
         <p className="page-lead">
           Antiky Studio is the native visual workspace for Antiky development. It keeps project
           launch, the running game, a native terminal, simulation controls, structured inspection,
-          and development activity together—so you can see what is happening, direct the next
+          and development activity together, so you can see what is happening, direct the next
           change, and keep the shared project state in view.
         </p>
         <div className="actions">
@@ -57,7 +57,7 @@ export default function StudioPage() {
             <div className="prose"><span className="row-status">02 · Current</span><h3>See the game and terminal together</h3><p>Studio starts the same local project services used by the command-line interface (CLI). The configured game runs beside a native terminal with a compact prompt that does not expose the user or machine name.</p></div>
           </article>
           <article className="studio-proof-row">
-            <div className="prose"><span className="row-status">03 · Current</span><h3>Control simulation time</h3><p>Pause, resume, step, restart, or stop the development session. A single step advances exactly one presented frame through the shared session boundary.</p></div>
+            <div className="prose"><span className="row-status">03 · Current</span><h3>Control simulation time</h3><p>Pause, resume, step, restart, or stop the development session. A single step advances exactly one presented frame.</p></div>
             <figure className="evidence-figure"><Image src="/media/studio/simulation-controls.webp" alt="Antiky Studio with the running game paused and the Pause, Step, Restart, and Stop controls visible above the workspace." width={1600} height={1000} sizes="(max-width: 900px) 100vw, 54vw" /><figcaption>Current controls · the paused session remains available for inspection and one-frame stepping.</figcaption></figure>
           </article>
           <article className="studio-proof-row">
@@ -73,11 +73,11 @@ export default function StudioPage() {
           <div><p className="section-label">Shared development session</p><h2>Studio sees the same game as the CLI and the agent.</h2></div>
           <div className="prose">
             <p className="lead">CLI project services own the local build, game host, inspection service, MCP endpoint, and cleanup. Studio calls the same service library directly.</p>
-            <p>Engine state stays distinct from build and connection state. Inspection stays read-only. Simulation controls and approved Framework commands cross explicit change boundaries.</p>
+            <p>Engine state stays distinct from build and connection state. Inspection stays read-only. Only simulation controls and approved Framework commands can change game state.</p>
             <Link className="text-link section-link" href="/docs/studio/development-connection">See how Studio connects <ArrowRight /></Link>
           </div>
         </div>
-        <div className="wrap studio-session-map" aria-label="CLI, Studio, and MCP connect to one local project-service session that owns the game, build, inspection, and tool boundaries.">
+        <div className="wrap studio-session-map" aria-label="CLI, Studio, and MCP connect to one local project-service session for the game, build, inspection, and tools.">
           <div className="studio-session-clients"><span><b>CLI</b><small>Terminal workflow</small></span><span><b>Studio</b><small>Visual workspace</small></span><span><b>MCP</b><small>Agent tools</small></span></div>
           <span className="studio-session-line" aria-hidden="true" />
           <div className="studio-session-runtime"><span className="status-dot status-live" /><span><b>Project services</b><small>Game · build · inspection · tools</small></span></div>
@@ -85,20 +85,18 @@ export default function StudioPage() {
       </section>
 
       <section className="content-section wrap split-heading" data-evidence-status="direction">
-        <div><p className="section-label">Direction · human gateway</p><h2>Point at what you mean.</h2></div>
+        <div><p className="section-label">Planned · visual selection</p><h2>Point at what you mean.</h2></div>
         <div className="prose">
           <p className="lead">Studio's long-term job is to help a person select the exact thing that matters and give an agent precise creative direction with the relevant context attached.</p>
-          <p>Studio will expose fewer manual authoring surfaces at first than a traditional editor. In return, new interactions can use the same validated commands and shared truth as agents, tests, and CLI clients.</p>
-          <p className="boundary-note"><strong>Direction:</strong> stable entity selection, click-to-agent context, and feedback attached to an exact target are not in the current workspace.</p>
+          <p>Stable entity selection, click-to-agent context, and feedback attached to an exact target are planned but not available in the current workspace.</p>
         </div>
       </section>
 
       <section className="content-section wrap split-heading" data-evidence-status="direction">
-        <div><p className="section-label">Direction · agent conversation</p><h2>Studio is not another coding agent.</h2></div>
+        <div><p className="section-label">Planned · agent connections</p><h2>Use the coding agent you already have.</h2></div>
         <div className="prose">
           <p className="lead">Studio is intended to connect to compatible coding agents people already use, with their existing provider, account, and plan.</p>
-          <p>Agent Client Protocol (ACP) is the human-agent conversation layer. MCP remains the agent-to-engine adapter. Neither bypasses Framework commands, grants, or revision checks.</p>
-          <p className="boundary-note"><strong>Direction:</strong> native ACP conversation and selected-entity context are the next focused proof, not current Studio behavior.</p>
+          <p>Native Agent Client Protocol (ACP) conversations and selected-entity context are planned but not available in the current workspace.</p>
         </div>
       </section>
 
@@ -106,33 +104,32 @@ export default function StudioPage() {
         <div className="wrap statement-grid">
           <h2>The workspace should change with the task.</h2>
           <div>
-            <p className="section-label">Research and direction</p>
+            <p className="section-label">Exploring</p>
             <p className="lead">Lighting, assets, simulation, and debugging need different arrangements and evidence.</p>
-            <p>The Studio direction calls focused workspaces mini apps. They need stable identities, declared capabilities, disposal, isolated failures, and bounded services.</p>
-            <p className="boundary-note"><strong>Research question:</strong> the current four resizable panels are a working shell, not a mini-app platform.</p>
+            <p>We are exploring task-specific workspaces that rearrange Studio around the work. The current version has four resizable panels.</p>
           </div>
         </div>
       </section>
 
       <section className="content-section wrap split-heading" data-evidence-status="direction">
-        <div><p className="section-label">Direction</p><h2>Creative direction should remain attached to what it meant.</h2></div>
+        <div><p className="section-label">Planned · contextual feedback</p><h2>Keep feedback attached to what you meant.</h2></div>
         <div className="prose">
-          <p className="lead">A useful comment needs an author, target, observed revision, evidence, and visible state—not only prompt text.</p>
-          <p>Durable feedback, staging, attachments, sandboxes, review, and promotion are not in the current source build.</p>
+          <p className="lead">Select a target, leave feedback on the state you saw, and keep that context with the conversation.</p>
+          <p>Saved feedback, attachments, and review tools are planned but not available in the current source build.</p>
         </div>
       </section>
 
       <section className="content-section wrap split-heading">
-        <div><p className="section-label">Product boundary</p><h2>Studio never becomes the game itself.</h2></div>
+        <div><p className="section-label">Independent games</p><h2>Your game does not depend on Studio.</h2></div>
         <div className="prose">
           <p className="lead">Framework games build, run, test, and ship without Studio.</p>
-          <p>Editor cameras do not become game cameras. Preview gestures do not become durable changes until a validated command commits them. Stale selections and late results must remain visibly stale.</p>
-          <Link className="text-link section-link" href="/framework">Understand the Framework boundary <ArrowRight /></Link>
+          <p>Use Studio while developing, then build, run, test, and ship the game on its own.</p>
+          <Link className="text-link section-link" href="/framework">Explore Antiky Framework <ArrowRight /></Link>
         </div>
       </section>
 
       <section className="content-section wrap studio-status-boundary">
-        <header className="section-intro compact"><h2>What is current—and what comes next</h2><p>The product boundary stays visible as Studio grows.</p></header>
+        <header className="section-intro compact"><h2>What is current, and what comes next</h2><p>See what works today and what is planned.</p></header>
         <div className="editorial-list">
           {STATUS_GROUPS.map(([status, evidenceStatus, title, body]) => (
             <div className="editorial-row static studio-status-row" data-evidence-status={evidenceStatus} key={status}>

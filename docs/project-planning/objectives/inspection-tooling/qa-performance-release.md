@@ -626,7 +626,7 @@ ffmpeg -framerate 60 -i frame-%06d.png -c:v libx264 -pix_fmt yuv420p gameplay.mp
 
 ## First implementation slices
 
-### P0 — evidence identity and privacy-safe capture
+### P0 - evidence identity and privacy-safe capture
 
 1. Define and validate quality profile, target, scenario/input trace, run evidence, visual capture, and
    performance-budget/result schemas. Add a manifest reference through an explicit project-schema
@@ -645,7 +645,7 @@ evidence plus reproducible state checkpoints. Independent humans review its play
 Captures stay canvas-only; synthetic terminal names, paths, tokens, and chat cannot enter public
 evidence.
 
-### P0 — deterministic replay and browser integration
+### P0 - deterministic replay and browser integration
 
 1. Add a Framework scenario driver that advances exactly one fixed step per semantic trace entry and
    records digests/assertions without browser timing.
@@ -660,7 +660,7 @@ evidence.
 two independent same-input runs match; one deliberately changed trace reports the exact first
 divergent step; browser failure includes build/runtime/scenario evidence without leaking credentials.
 
-### P0 — performance and artifact-to-release mapping
+### P0 - performance and artifact-to-release mapping
 
 1. Replace FPS-only authority with present/frame-time samples and target/scenario budgets; preserve
    draw/instance/upload and discarded-simulation measurements as supporting facts.
@@ -677,7 +677,7 @@ divergent step; browser failure includes build/runtime/scenario evidence without
 performance receipts -> draft GitHub asset -> verified downloaded bytes. A previous candidate can be
 restored in rehearsal. No release claim relies on the development build revision.
 
-### P1 — persistence, compatibility, accessibility, localization, and crash triage
+### P1 - persistence, compatibility, accessibility, localization, and crash triage
 
 1. Implement checkpoint codec/migration contracts through a real game's save/retry need; test fresh
    runtime round-trip, corrupt/oversized/interrupted writes, prior release, and rollback.
@@ -690,7 +690,7 @@ restored in rehearsal. No release claim relies on the development build revision
 5. Add structured bounded logs and failure envelopes, source-map/symbol retention, synthetic crash and
    privacy scrub gates. Evaluate a remote crash provider only after data governance is approved.
 
-### P2 — scale, multiplayer when real, and community evidence
+### P2 - scale, multiplayer when real, and community evidence
 
 1. Add target soak profiles, memory slope, repeated load/dispose/restart, storage/focus/offline and
    recovery fault injection.

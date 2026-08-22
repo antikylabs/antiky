@@ -1,6 +1,6 @@
 ---
 name: anti-slop
-description: Find and remove AI slop — tests that cannot fail, tests committed switched off, errors caught and discarded, placeholder bodies shipped as finished, suppressions with no stated reason, scripts nothing invokes, and prose that asserts a system is robust or scalable with nothing a reader could check. Use when reviewing an agent's changes, before committing generated code, when a repository feels untidy, or when a document reads as confident and says nothing. Ships a twenty-rule Oxlint plugin and two deterministic checkers that need nothing but Node.
+description: Find and remove AI slop - tests that cannot fail, tests committed switched off, errors caught and discarded, placeholder bodies shipped as finished, suppressions with no stated reason, scripts nothing invokes, and prose that asserts a system is robust or scalable with nothing a reader could check. Use when reviewing an agent's changes, before committing generated code, when a repository feels untidy, or when a document reads as confident and says nothing. Ships a twenty-rule Oxlint plugin and two deterministic checkers that need nothing but Node.
 ---
 
 # anti-slop
@@ -24,7 +24,7 @@ repository layout are one skill rather than three.
 **Never report a codebase clean when you only ran the checkers.** They decide twenty-eight named
 rules.
 Whether an abstraction is premature, whether a module is deep, whether a test asserts the *right*
-thing — none of that is here, and no run of these tools says anything about it. Report the machine
+thing - none of that is here, and no run of these tools says anything about it. Report the machine
 result and the judgement result separately, and name what you did not check.
 
 **Say which findings are proxies.** The structure checker labels every finding with its oracle:
@@ -49,7 +49,7 @@ node <skill-dir>/scripts/structure_lint.mjs .         # a repository root
 ```
 
 The code rules are an **Oxlint plugin**, so they run inside the linter the project already has.
-They are copied into the target repository rather than installed as a dependency — see
+They are copied into the target repository rather than installed as a dependency - see
 [reference/install.md](reference/install.md).
 
 Both accept `--json` and `--fail-on {error,warning,info,never}`. Exit 1 means findings at
@@ -66,12 +66,12 @@ or above the threshold; exit 2 means the tool could not run.
 
 Routing:
 
-- **Explicit command** — load its reference and follow it.
-- **A bare document** — `prose`. **A bare repository or directory** — `structure`.
-- **"Review these changes", "is this slop", "clean this up"** — run every command that applies, and report
+- **Explicit command** - load its reference and follow it.
+- **A bare document** - `prose`. **A bare repository or directory** - `structure`.
+- **"Review these changes", "is this slop", "clean this up"** - run every command that applies, and report
   them separately. They measure different things and a clean run of one says nothing about the
   others.
-- **No command and no target** — ask which, and on what.
+- **No command and no target** - ask which, and on what.
 
 `install` is the only command that writes. The other three are read-only by construction: moving a
 test, deleting a script, and rewriting a claim all have consequences a checker cannot see, so
@@ -95,7 +95,7 @@ eight need only Node.
 | `no-redundant-prefix` | A prefix on every file that the directory name already carries | `structure_lint.mjs` |
 | `no-unsupported-claim` | A quality asserted of an artifact with no referent | `prose_lint.mjs` |
 | `no-time-estimate` | A duration offered as a prediction | `prose_lint.mjs` |
-| `no-empty-metaphor` | A metaphor standing in for a mechanism — `load-bearing`, `seam`, `smoking gun` | `prose_lint.mjs` |
+| `no-empty-metaphor` | A metaphor standing in for a mechanism - `load-bearing`, `seam`, `smoking gun` | `prose_lint.mjs` |
 | `no-ai-tell` | A structural tic that carries no information | `prose_lint.mjs` |
 
 Plus **fifteen TypeScript rules** in the same plugin, adapted from
@@ -131,7 +131,7 @@ Every message carries two clauses, and both matter:
 - **`Do:`** the correction that addresses the cause.
 - **`Never:`** the cheap fix that makes the finding disappear without fixing anything.
 
-Each of these rules has a mechanical suppression that costs seconds and makes the codebase worse —
+Each of these rules has a mechanical suppression that costs seconds and makes the codebase worse -
 deleting the error binding, renaming a test so the runner stops seeing it, hedging a claim instead
 of evidencing it. **Follow `Do:`, or argue that the finding is wrong. Do not take the third path.**
 
@@ -139,13 +139,13 @@ of evidencing it. **Follow `Do:`, or argue that the finding is wrong. Do not tak
 
 - **Type safety.** The fifteen rules adapted from
   [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop) cover low-evidence *type* patterns
-  for TypeScript — chained assertions, `unknown` returns, known-value widening. Use upstream
+  for TypeScript - chained assertions, `unknown` returns, known-value widening. Use upstream
   directly when its TypeScript plugin and runtime dependencies fit the target project better.
 - **Complexity, duplication, dead exports.** Already shipped by `eslint-plugin-sonarjs`, Ruff, and
   `knip`. Do not rebuild them here.
 - **What a document is for.** Page type and reader goal belong to `write-docs`.
 - **Controlled language.** ASD-STE100 belongs to `simplified-technical-english`. The prose
-  rules here are not a language standard and are **not an authorship detector** — they make no claim
+  rules here are not a language standard and are **not an authorship detector** - they make no claim
   about who wrote the text.
 
 ## Reference

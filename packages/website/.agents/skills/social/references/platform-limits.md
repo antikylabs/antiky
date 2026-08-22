@@ -97,7 +97,7 @@ Quick reference for hashtag limits, character counts, and visible text threshold
 | Max with text attachment | 10,500 (500 + 10,000 expandable) |
 | Visible without expanding | First ~1 – 2 lines |
 
-> Threads limits topic tags to one per post. The platform is not hashtag-driven — the algorithm prioritizes content from followed accounts mixed with recommendations.
+> Threads limits topic tags to one per post. The platform is not hashtag-driven - the algorithm prioritizes content from followed accounts mixed with recommendations.
 
 ---
 
@@ -107,4 +107,4 @@ Quick reference for hashtag limits, character counts, and visible text threshold
 - **Front-load your message** before the "more" truncation point
 - On Instagram and TikTok, fewer hashtags now outperform hashtag-stuffing
 - On LinkedIn, hashtags at the end of the post perform better than inline
-- On Facebook, hashtags have minimal impact on reach — use sparingly
+- On Facebook, hashtags have minimal impact on reach - use sparingly

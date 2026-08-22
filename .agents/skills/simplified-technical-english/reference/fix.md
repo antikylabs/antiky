@@ -2,7 +2,7 @@
 
 Audit a document, then apply the corrections.
 
-`fix` changes files. Confirm you are permitted to change this one before you start — see
+`fix` changes files. Confirm you are permitted to change this one before you start - see
 "Ownership" below.
 
 ## Procedure
@@ -33,7 +33,7 @@ decides, not you.
 Work through the file in one pass. Preserve:
 
 - the document's structure, headings, and link targets;
-- code blocks, command lines, file paths, and identifiers — the linter reads them as prose, so
+- code blocks, command lines, file paths, and identifiers - the linter reads them as prose, so
   findings inside them are usually false and must not be "corrected";
 - quoted text and proper nouns;
 - the meaning of every sentence you touch.
@@ -72,7 +72,7 @@ State:
 
 - the command you ran and the finding counts before and after;
 - what you changed, grouped by rule;
-- **what you did not change, and why** — each meaning-at-risk finding, with the sentence and the
+- **what you did not change, and why** - each meaning-at-risk finding, with the sentence and the
   question the author must answer;
 - which rules remain unchecked.
 
@@ -81,8 +81,8 @@ risk.
 
 ## Ownership
 
-Do not apply fixes to a human-owned document — an `_H` file in an Antiky repository, an accepted
-ADR, or an accepted AIP — without an explicit instruction from its owner. Run `audit` and report.
+Do not apply fixes to a human-owned document - an `_H` file in an Antiky repository, an accepted
+ADR, or an accepted AIP - without an explicit instruction from its owner. Run `audit` and report.
 
 For an owner-approved change to an accepted record, follow the repository's own procedure for
 preserving the prior text before you edit. In Antiky documentation repositories that means running

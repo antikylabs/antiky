@@ -1,8 +1,8 @@
-# 03 — Camera and coordinate coverage
+# 03 - Camera and coordinate coverage
 
 ## Findings
 
-**Verdict — Inferred from established code:** Antiky has camera ingredients, not a reusable 2D camera. BroMetal 0.17.2 provides a reusable, CPU-only perspective pose/lens/matrix primitive. Antiky supplies normalized pointer input, resize handling, generic render uniforms, and several independently authored follow/damping implementations. No public module composes those parts into orthographic projection, pan, anchored zoom, follow, bounds, and viewport/world conversion.
+**Verdict - Inferred from established code:** Antiky has camera ingredients, not a reusable 2D camera. BroMetal 0.17.2 provides a reusable, CPU-only perspective pose/lens/matrix primitive. Antiky supplies normalized pointer input, resize handling, generic render uniforms, and several independently authored follow/damping implementations. No public module composes those parts into orthographic projection, pan, anchored zoom, follow, bounds, and viewport/world conversion.
 
 A previous extraction audit reached the same conclusion: the camera implementations shared idioms
 but had not converged into one module. It explicitly rejected promoting them at that time. The
@@ -11,9 +11,9 @@ boundary.
 
 Status labels below mean:
 
-- **Established** — implemented code, an accepted ADR, or an executable test.
-- **Claimed** — documentation or intended architecture not matched by implementation.
-- **Inferred** — conclusion drawn from those sources.
+- **Established** - implemented code, an accepted ADR, or an executable test.
+- **Claimed** - documentation or intended architecture not matched by implementation.
+- **Inferred** - conclusion drawn from those sources.
 
 ## Capability matrix
 

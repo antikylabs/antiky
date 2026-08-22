@@ -81,7 +81,7 @@ test('a published demo resolves its assets relative to itself, not to the site r
   //
   // Vite rewrites `new URL('../../assets/x.glb', import.meta.url)` using its `base`, which defaults to
   // '/'. That emits `new URL("/assets/x.glb", import.meta.url)`, and a root-absolute path discards
-  // the base URL's directory entirely — so the lookup lands on the site root. The CLI dev host
+  // the base URL's directory entirely - so the lookup lands on the site root. The CLI dev host
   // serves a demo at its own root, so it never saw this; the website serves demos under
   // `/demo-builds/<slug>/`, where it is always a 404.
   const offenders = [];
@@ -118,7 +118,7 @@ test('a build output is validated by its file set, not by two different sort ord
 
   // `filesBelow` walks with `localeCompare(name, 'en')` and the expected list uses the default
   // code-unit `.sort()`. Those two orderings disagree whenever case or punctuation is involved, and
-  // the check compares the lists element by element — so an identical set of files was reported as
+  // the check compares the lists element by element - so an identical set of files was reported as
   // "missing or extra files" with nothing missing and nothing extra. Goal 05's wall panels were the
   // first filenames to expose it: `template-wall-Dzn8tX6E.glb` sorts before
   // `template-wall-detail-a-Dmly8Er6.glb` by code unit and after it by locale.

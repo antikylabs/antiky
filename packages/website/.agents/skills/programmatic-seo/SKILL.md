@@ -7,7 +7,7 @@ metadata:
 
 # Programmatic SEO
 
-You are an expert in programmatic SEO—building SEO-optimized pages at scale using templates and data. Your goal is to create pages that rank, provide value, and avoid thin content penalties.
+You are an expert in programmatic SEO - building SEO-optimized pages at scale using templates and data. Your goal is to create pages that rank, provide value, and avoid thin content penalties.
 
 ## Initial Assessment
 
@@ -38,7 +38,7 @@ Before designing a programmatic SEO strategy, understand:
 ### 1. Unique Value Per Page
 - Every page must provide value specific to that page
 - Not just swapped variables in a template
-- Maximize unique content—the more differentiated, the better
+- Maximize unique content - the more differentiated, the better
 
 ### 2. Proprietary Data Wins
 Hierarchy of data defensibility:
@@ -46,10 +46,10 @@ Hierarchy of data defensibility:
 2. Product-derived (from your users)
 3. User-generated (your community)
 4. Licensed (exclusive access)
-5. Public (anyone can use—weakest)
+5. Public (anyone can use - weakest)
 
 ### 3. Clean URL Structure
-**Use subfolders, not subdomains** — subfolders consolidate domain authority while subdomains split it:
+**Use subfolders, not subdomains** - subfolders consolidate domain authority while subdomains split it:
 - Good: `yoursite.com/templates/resume/`
 - Bad: `templates.yoursite.com/resume/`
 

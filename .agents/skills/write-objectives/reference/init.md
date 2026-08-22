@@ -14,7 +14,7 @@ Aliases: `scaffold`.
    - that `create-research` comes next, once it has content.
 
 That is the whole command. It is two actions, and it is finished in one turn. Do not survey the
-repository first — there is nothing to learn from other objectives that changes what this one's
+repository first - there is nothing to learn from other objectives that changes what this one's
 scaffold looks like.
 
 ## What this command does and does not do
@@ -36,7 +36,7 @@ Two failures are equally bad, and the second is easier to fall into:
 Ask, if it is not clear from the request:
 
 - Is this a large arc of work, or one bounded piece? A large arc is an objective. One bounded piece
-  is a simple goal — see [simple-goals.md](simple-goals.md), and use `init <name> --simple`.
+  is a simple goal - see [simple-goals.md](simple-goals.md), and use `init <name> --simple`.
 - What is the short kebab-case name? Prefer the subject, not the activity: `demo-refining`,
   `inspection-tooling`, `asset-catalog` are the right shape.
 
@@ -50,7 +50,7 @@ history ambiguous.
   objective.md
 ```
 
-That is all. Do not create `research/`, plan documents, or `goals/` — each is created by the command
+That is all. Do not create `research/`, plan documents, or `goals/` - each is created by the command
 that fills it, so the folder shape always reports the true phase.
 
 ### 3. Write objective.md from the template
@@ -67,24 +67,24 @@ state.
 Add the objective to the active table in the objectives index:
 
 ```markdown
-| [<Name>](<name>/README.md) | — | <one line, from the owner's intent or "being defined"> |
+| [<Name>](<name>/README.md) | - | <one line, from the owner's intent or "being defined"> |
 ```
 
-The roadmap column stays `—` until there is a plan.
+The roadmap column stays ` - ` until there is a plan.
 
 ### 5. Report
 
 Tell the owner, in this order:
 
 - the path created;
-- **that `objective.md` is theirs to fill in** — say it plainly, in those terms. It is the single
+- **that `objective.md` is theirs to fill in** - say it plainly, in those terms. It is the single
   most important sentence this command produces, and an agent that creates the file without saying
   so has left the owner unsure whether it is waiting on them;
 - that nothing else should start until it has content;
 - the specific prompts in it that matter most for this piece of work;
 - that `create-research` is the next command, and what it will do.
 
-Do not offer to fill in `objective.md` for them. Offer to talk it through — dialogue is how intent
+Do not offer to fill in `objective.md` for them. Offer to talk it through - dialogue is how intent
 gets stated, and their words in the file are worth more than your summary of them.
 
 ## When the owner wants to start immediately

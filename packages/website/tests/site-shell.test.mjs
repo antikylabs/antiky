@@ -92,7 +92,7 @@ test('home, Games, and Framework use current Evidence media and a code-native di
 
   assert.match(framework, /href="\/demos\/antiky-town"/);
   assert.match(framework, /class="architecture-diagram"/);
-  assert.match(framework, /Direction · target architecture, not a list of completed features/);
+  assert.match(framework, /Planned architecture\. Some components are still in development/);
   assert.doesNotMatch(framework, /antiky-architecture\.png/);
 });
 

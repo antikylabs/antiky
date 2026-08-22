@@ -129,7 +129,7 @@ Prefix counts within that published manifest are:
 
 The most conservative shader-focused lower bound is therefore **102 examples**: 78 filter examples plus 24 Shader Game Object examples. Including the clearly shader-backed Gradient and Noise categories raises it to **149**.
 
-These are demonstrations, variations, transitions, tests, and tutorials—not 102 or 149 reusable production shaders. The repository licenses source code under MIT but explicitly warns that many example assets are not available for commercial reuse.
+These are demonstrations, variations, transitions, tests, and tutorials - not 102 or 149 reusable production shaders. The repository licenses source code under MIT but explicitly warns that many example assets are not available for commercial reuse.
 
 The official create-game tool supplies project/framework templates and **three demo games**, but no shader-pack or shader-library starter was identified. [Create Phaser Game](https://github.com/phaserjs/create-game) Phaser Editor 5 can visually configure built-in filters, but that is another authoring surface over the same built-ins, not a separate shader catalog.
 
@@ -158,4 +158,4 @@ Phaser is a browser-focused **2D framework**. Its reusable shader units are prim
 
 It does not need the broad 3D material surface found in Unreal, Unity, or Godot: PBR material families, terrain materials, skeletal skin shading, subsurface scattering, volumetrics, atmospheric models, decals, hair, water, or material graphs for arbitrary 3D meshes.
 
-The fair inference is that Phaser’s leverage comes from **a compact set of stackable 2D primitives plus more than 2,000 official examples**, not from shipping hundreds of independent artistic shaders. Phaser therefore shows that a mature ecosystem can be useful without a thousand built-ins—but it is not itself evidence that a built-in thousand-shader catalog is normal.
+The fair inference is that Phaser’s leverage comes from **a compact set of stackable 2D primitives plus more than 2,000 official examples**, not from shipping hundreds of independent artistic shaders. Phaser therefore shows that a mature ecosystem can be useful without a thousand built-ins - but it is not itself evidence that a built-in thousand-shader catalog is normal.

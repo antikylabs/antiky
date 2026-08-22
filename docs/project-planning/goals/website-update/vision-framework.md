@@ -13,7 +13,7 @@ rendering path, the development loop, and the evidence the engine must produce. 
 have to infer what happened from a screenshot and hope. It should be able to ask the game, change the
 game, run the game, observe the result, and prove whether the change worked.
 
-This is the foundation we are building first for Antiky Labs games—and for anyone who wants to
+This is the foundation we are building first for Antiky Labs games - and for anyone who wants to
 explore what game development becomes when humans supply the intent and agents can work with the
 full system.
 
@@ -103,7 +103,7 @@ promises.
 
 The Framework runs headless. A game can build, run, test, host, and ship without Antiky Studio.
 Game modules own their rules, systems, shaders, and assets; hosts own the canvas and platform work.
-The Studio is a powerful visual client—a human gateway into the same world—but it is not the engine
+The Studio is a powerful visual client - a human gateway into the same world - but it is not the engine
 and it is not the source of truth.
 
 This boundary matters. It keeps the game real outside the tool. It lets tests exercise the same
@@ -116,12 +116,12 @@ a person to understand and direct.
 Today, the Framework is pre-release and is not yet a published npm product. It has fixed-step
 sessions, stable identities, bounded inspection, captures, and a working point-light path. The
 BroMetal driver and the first Framework-backed game slices are emerging. General component
-services, sandboxes, selection, physics, shared abilities, and online play are direction—not
+services, sandboxes, selection, physics, shared abilities, and online play are direction - not
 finished promises.
 
 We will qualify those systems in real games before claiming them. We will keep CPU and GPU authority
 explicit. We will validate boundaries where data crosses a process, network, worker, trust zone, or
-storage layer. We will let comparative evidence—not ambition—make future performance claims.
+storage layer. We will let comparative evidence - not ambition - make future performance claims.
 
 But the direction is clear.
 

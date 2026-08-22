@@ -79,7 +79,7 @@ Planning should not silently choose these product and architecture decisions:
 1. **First apps:** Name the GPU-native and no-GPU apps that should prove the seam. If voxel is one,
    define its smallest useful user workflow.
 2. **Game-editor relationship:** Decide whether the current workspace is core beside apps, becomes
-   a built-in app, or is an inviolable built-in app—and which surfaces users may move, hide, or
+   a built-in app, or is an inviolable built-in app - and which surfaces users may move, hide, or
    close.
 3. **Customization and persistence:** Choose the version-1 layout ceiling, persistence scope, and
    behavior when an updated app adds a panel.

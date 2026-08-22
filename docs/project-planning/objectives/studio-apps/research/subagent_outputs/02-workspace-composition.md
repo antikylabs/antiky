@@ -28,7 +28,7 @@
 
 - **Inferred:** Split changes survive Settings opening and a same-window project prop change because `StudioShell` remains mounted, but they reset on a Studio reload or any remount. There is no per-app, per-project, or per-device layout identity.
 
-- **Established:** At 760 CSS px or narrower, the workspace becomes a single vertical sequence—Game, Terminal, Inspection, Activity—with fixed heights. Resizers disappear and the page becomes vertically scrollable. Evidence: `packages/studio/app/src/responsive.css:1-59`. This matches the documented behavior at narrow width or high zoom: `docs/user-facing-docs/studio/getting-started.md:80-87`.
+- **Established:** At 760 CSS px or narrower, the workspace becomes a single vertical sequence - Game, Terminal, Inspection, Activity - with fixed heights. Resizers disappear and the page becomes vertically scrollable. Evidence: `packages/studio/app/src/responsive.css:1-59`. This matches the documented behavior at narrow width or high zoom: `docs/user-facing-docs/studio/getting-started.md:80-87`.
 
 - **Established:** Responsive presentation does not mutate the two stored split values; it only stops using their CSS variables while the single-column media query applies. This is a useful precedent for treating responsive layout as an ephemeral projection, not as saved user intent.
 
@@ -104,7 +104,7 @@
 
 #### Focus order and competing input surfaces
 
-- **Established:** Wide visual order is row-major—Game, Inspection, Terminal, Activity—but DOM and sequential focus order are Game, Terminal, Inspection, Activity. Tests intentionally enforce that source order. Evidence: `packages/studio/app/src/components/StudioShell.tsx:283-360`; `packages/studio/app/src/styles.css:245-252`; `packages/studio/app/tests/components/StudioShell.test.tsx:181-205`, `packages/studio/app/tests/components/StudioShell.test.tsx:512-535`.
+- **Established:** Wide visual order is row-major - Game, Inspection, Terminal, Activity - but DOM and sequential focus order are Game, Terminal, Inspection, Activity. Tests intentionally enforce that source order. Evidence: `packages/studio/app/src/components/StudioShell.tsx:283-360`; `packages/studio/app/src/styles.css:245-252`; `packages/studio/app/tests/components/StudioShell.test.tsx:181-205`, `packages/studio/app/tests/components/StudioShell.test.tsx:512-535`.
 
 - **Established:** WCAG allows focus order to differ from visual order when meaning and operation remain understandable, while recommending that focus reinforce implied visual order. Primary sources: [WCAG 2.2 Understanding 2.4.3 Focus Order](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html), [W3C C27 DOM order technique](https://www.w3.org/WAI/WCAG22/Techniques/css/C27).
 
@@ -245,7 +245,7 @@ No library is selected here.
 
 - The owner has not identified which game-editor panels are required, locked, merely default, or replaceable.
 
-- Persistence scope—device, app, project, or app-and-project—is undecided.
+- Persistence scope - device, app, project, or app-and-project - is undecided.
 
 - Behavior when an app preset changes after users customize it is undecided.
 

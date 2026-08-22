@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function DemoPage({ params }: Params) {
   const { slug } = await params;
   // `depth-study` was renamed to `town-study`, which has since been retired in favour of
-  // `antiky-town` — the same town with sprites, a real post pass and Framework integration.
+  // `antiky-town`, the same town with sprites, a real post pass, and Framework integration.
   if (slug === 'depth-study' || slug === 'town-study') redirect('/demos/antiky-town');
   const demo = findDemo(slug);
   const around = neighbours(slug);

@@ -18,8 +18,7 @@ export default function DemosPage() {
         <p className="status-line"><span className="status-dot status-live" /> Three live studies</p>
         <p className="page-lead">
           These are live Antiky Framework modules, not trailers. Each is rendered through BroMetal{' '}
-          {BROMETAL_VERSION} and shows a bounded result; none is a production game or proof of the
-          complete Antiky architecture.
+          {BROMETAL_VERSION}. Try the movement, world, and lighting studies directly in your browser.
         </p>
       </section>
 

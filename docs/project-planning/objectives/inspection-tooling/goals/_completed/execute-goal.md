@@ -118,7 +118,7 @@ or unrelated-application capture for manual verification.
 
 ## Completion definition
 
-The goal is complete only when all required behavior is implemented—not merely documented—and the
+The goal is complete only when all required behavior is implemented - not merely documented - and the
 repository demonstrates the successful and adversarial cases above through passing tests. The
 final handoff must list the changed contracts and adapters, test commands/results, compatibility
 decision, sanitized evidence, commits, and any remaining limitations.

@@ -46,7 +46,7 @@ use of a shader, not a new implementation.
 Three.js gives developers a compact default material vocabulary, low-level GLSL chunks, a large TSL
 composition API, optional effect modules, and a very large official teaching corpus. Its 577
 official examples are especially important because they show imports, geometry, textures, render
-targets, pass order, renderer selection, resize behavior, and frame updates—not only shader source.
+targets, pass order, renderer selection, resize behavior, and frame updates - not only shader source.
 
 Its practical strength is composability and example coverage. It does not have an official shader
 marketplace or a countable thousand-shader catalog.

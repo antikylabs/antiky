@@ -90,12 +90,12 @@ still write BroMetal by hand.
 
 Every meaningful public claim belongs to one of these states:
 
-- **Current** — implemented and documented through a public boundary today.
-- **Emerging** — a narrow working slice exists, but the broader capability remains incomplete or
+- **Current** - implemented and documented through a public boundary today.
+- **Emerging** - a narrow working slice exists, but the broader capability remains incomplete or
   pre-release.
-- **Direction** — supported by an accepted decision or explicit product direction, but not a public
+- **Direction** - supported by an accepted decision or explicit product direction, but not a public
   capability yet.
-- **Research question** — a hypothesis that needs a published method and result before it can become
+- **Research question** - a hypothesis that needs a published method and result before it can become
   a product claim.
 
 The website must label status in text. Color may reinforce status but cannot replace it.
@@ -164,19 +164,19 @@ presenting it as the Antiky Labs identity.
 
 ## Public information architecture
 
-- **Home (`/`)** — explain why Antiky exists, introduce the current architecture and evidence, then
+- **Home (`/`)** - explain why Antiky exists, introduce the current architecture and evidence, then
   offer clear participation paths.
-- **The Thesis (`/thesis`)** — hold the durable public argument without becoming a product page.
-- **Studio (`/studio`)** — show the strongest current visual expression of the Thesis and separate
+- **The Thesis (`/thesis`)** - hold the durable public argument without becoming a product page.
+- **Studio (`/studio`)** - show the strongest current visual expression of the Thesis and separate
   current, emerging, and direction.
-- **Framework (`/framework`)** — explain the headless session/state foundation, current public
+- **Framework (`/framework`)** - explain the headless session/state foundation, current public
   slices, and target architecture.
-- **Games (`/games`)** — connect Antiky Town, focused studies, and Emberwyrd to the game-led method.
-- **Research (`/research`)** — maintain the boundary between runnable evidence, direction, and open
+- **Games (`/games`)** - connect Antiky Town, focused studies, and Emberwyrd to the game-led method.
+- **Research (`/research`)** - maintain the boundary between runnable evidence, direction, and open
   questions.
-- **Demos (`/demos`)** — let visitors run three approved artifacts and understand what each does and
+- **Demos (`/demos`)** - let visitors run three approved artifacts and understand what each does and
   does not show.
-- **Docs (`/docs`)** — publish exact current Framework, CLI, MCP, Studio, and API behavior.
+- **Docs (`/docs`)** - publish exact current Framework, CLI, MCP, Studio, and API behavior.
 
 `/worlds` permanently redirects to `/games`. “Antiky Worlds” is not a primary public navigation or
 company-positioning concept.

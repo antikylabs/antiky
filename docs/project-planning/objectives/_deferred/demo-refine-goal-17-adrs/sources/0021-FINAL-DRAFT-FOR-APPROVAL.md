@@ -1,4 +1,4 @@
-# ADR 0021 — final draft for owner approval
+# ADR 0021 - final draft for owner approval
 
 > **Status: APPROVED AND PLACED, 2026-08-11, commit `288cd76`.** This document is now the historical
 > record of what was approved and on what basis. The live record is
@@ -14,7 +14,7 @@ question.
 
 ---
 
-## 1. Language audit — read this before approving
+## 1. Language audit - read this before approving
 
 `docs/adr/AGENTS.md` requires ASD-STE100 **Issue 9** conformance and says plainly: *"If you cannot
 read the official Issue 9 standard, do not claim compliance."* and *"Never report that an ADR is
@@ -27,15 +27,15 @@ retrieve it. So, reported separately as the workflow requires:
 
 | Rule | Result |
 |---|---|
-| Active voice | Pass — every sentence in Decision and Consequences |
+| Active voice | Pass - every sentence in Decision and Consequences |
 | One topic per sentence | Pass |
-| 25-word limit on descriptive sentences | Pass — longest is 22 words |
-| Multi-word nouns of three words or fewer | Pass — see the term list below |
-| No semicolons | Pass — zero |
+| 25-word limit on descriptive sentences | Pass - longest is 22 words |
+| Multi-word nouns of three words or fewer | Pass - see the term list below |
+| No semicolons | Pass - zero |
 | No `-ing` word unless a technical noun | Pass, with two flagged terms below |
-| Condition before result | Pass — "If a game module uses BroMetal directly, that module owns…" |
+| Condition before result | Pass - "If a game module uses BroMetal directly, that module owns…" |
 | Vertical-list items connect to their lead-in | Pass |
-| No synonym only for variety | Pass — "driver", "render driver" and "game module" are each used one way |
+| No synonym only for variety | Pass - "driver", "render driver" and "game module" are each used one way |
 | No technical noun used as a verb | Pass |
 
 **What I could NOT check, and you should treat as unvalidated:**
@@ -58,15 +58,15 @@ Technical nouns declared and used with one meaning throughout: BroMetal, render 
 framework, shader, render target, shadow map, texture, buffer, GPU state, Antiky render data,
 pipeline key, WebGPU library, Document Object Model (DOM), key light, pull request.
 
-## 2. Format and link checks — separate from the language audit
+## 2. Format and link checks - separate from the language audit
 
 | Check | Result |
 |---|---|
 | Five parts present (Title, Status, Context, Decision, Consequences) | Pass |
-| Status value permitted by `README.md:101-107` | Pass — `Accepted` |
-| Next unused number | Pass — framework runs `0001`–`0020`, so `0021` is next and reuses nothing |
+| Status value permitted by `README.md:101-107` | Pass - `Accepted` |
+| Next unused number | Pass - framework runs `0001`–`0020`, so `0021` is next and reuses nothing |
 | Filename rule `NNNN-short-title_H.md` | Pass |
-| No `docs/objectives/` citation inside the ADR | Pass — `README.md:71-73` forbids it, and this draft cites none |
+| No `docs/objectives/` citation inside the ADR | Pass - `README.md:71-73` forbids it, and this draft cites none |
 | Local links resolve | Verified at placement time with `test -f` |
 
 ## 3. The exact text to be placed
@@ -160,11 +160,11 @@ BroMetal project. An accepted pull request removes the need for that patch.
 - Some GPU features can need changes to BroMetal.
 ```
 
-## 4. `studio/0007` — my recommendation, your decision
+## 4. `studio/0007` - my recommendation, your decision
 
 `studio/0007:41-42` says the game module *"initializes and resizes the renderer"* and *"disposes its
 renderer resources"*. That text is written across all four renderer choices, one of which is
-"Antiky Framework with BroMetal". Once `0021` exists, that one case is wrong — the driver owns those
+"Antiky Framework with BroMetal". Once `0021` exists, that one case is wrong - the driver owns those
 resources, not the game module.
 
 **I recommend clarifying it**, because a reader looking up renderer ownership is more likely to land

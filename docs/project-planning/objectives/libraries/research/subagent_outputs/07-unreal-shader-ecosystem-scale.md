@@ -1,6 +1,6 @@
 # Unreal Engine shader/material ecosystem scale
 
-Research snapshot: **2026-08-12**  
+Research snapshot: **2026-08-12**
 Current scope: **Unreal Engine 5.8**, released in June 2026.
 
 ## Headline
@@ -26,7 +26,7 @@ Those numbers must not be added together as “shaders.”
 | Functions described by Epic’s 15 default-function reference pages | **82** | Documented reusable functions, not full materials. |
 | Core installed `MaterialFunction` assets | **516 lower bound** | Class-identified packages in `Engine/Content`; plugins and templates excluded. |
 | Core functions marked `bExposeToLibrary=True` | **398 lower bound** | Functions marked for Material Editor library exposure; UI appearance was not independently enumerated. |
-| Core installed base `Material` assets | **353 lower bound** | Actual material graphs, but many are defaults, editor infrastructure, debugging, examples, or engine implementation assets—not a polished public catalog. |
+| Core installed base `Material` assets | **353 lower bound** | Actual material graphs, but many are defaults, editor infrastructure, debugging, examples, or engine implementation assets - not a polished public catalog. |
 | Core installed `MaterialInstanceConstant` assets | **125 lower bound** | Parameterized children; not independent shader implementations. |
 | Core installed Material Layer Blend functions | **12 lower bound** | Reusable layer building blocks, not finished materials. |
 | Official Engine Feature sample entries | **10** | Separate sample projects/packs, generally downloaded through Fab. |
@@ -76,7 +76,7 @@ The seven material domains determine where a material runs. A Post Process mater
 
 Substrate is enabled by default for newly created projects in UE 5.8, although Epic’s documentation still labels it Beta. It replaces the fixed legacy model/blend combination with composable BSDF slabs and operators. Existing upgraded projects remain on the legacy path unless enabled, and legacy materials can be translated to Substrate during compilation.
 
-Substrate greatly increases the possible material space, but combinations of slabs are parameterized graphs—not a catalog of separate shipped shaders.
+Substrate greatly increases the possible material space, but combinations of slabs are parameterized graphs - not a catalog of separate shipped shaders.
 
 ## Expressions and functions
 
@@ -120,7 +120,7 @@ Epic also maintains a substantial separate learning surface:
 - The [Sample Game Projects](https://dev.epicgames.com/documentation/en-us/unreal-engine/sample-game-projects-for-unreal-engine?application_version=5.8) index contains **3** entries.
 - [Content Examples](https://dev.epicgames.com/documentation/en-us/unreal-engine/content-examples-sample-project-for-unreal-engine?application_version=5.8) documents **49 levels**, including `Material_Advanced`, `Material_Instances`, `Material_Nodes`, and `Material_Properties`.
 
-These projects contain many inspectable materials, but they are separate downloads, complete scenes, and teaching projects—not built-in shader entries.
+These projects contain many inspectable materials, but they are separate downloads, complete scenes, and teaching projects - not built-in shader entries.
 
 ## Fab/community scale
 
@@ -157,7 +157,7 @@ Epic warns that static parameters can cause a massive increase in shader permuta
 
 - Unreal’s practical advantage comes more from its authoring system, engine content, samples, and marketplace network than from a single catalog of thousands of full shaders.
 - The closest BroMetal comparison to Unreal’s 516 core functions is a large typed shader-function library.
-- The closest comparison to Unreal’s 353 core materials is a complete material/effect catalog—but Unreal’s count overstates its polished, reusable artistic selection because many entries are internal.
+- The closest comparison to Unreal’s 353 core materials is a complete material/effect catalog - but Unreal’s count overstates its polished, reusable artistic selection because many entries are internal.
 - A catalog of 1,000 genuinely complete, documented, previewed BroMetal effects would be much larger than Unreal’s clearly curated built-in finished-material surface, even though it would still be smaller than Unreal’s broader community ecosystem.
 
 ## Gaps

@@ -20,8 +20,8 @@ not proposed runtime dependencies.
 
 Antiky can currently show that a game runtime exists, report a few aggregate render counters, and
 save a PNG of the game canvas. It cannot explain why a particular pixel, draw, material, pass, or
-resource exists. The current demos contain capable BroMetal work—multipass shadows and post,
-instancing, compute/storage use, translucent effects, and full-screen shaders—but each game owns
+resource exists. The current demos contain capable BroMetal work - multipass shadows and post,
+instancing, compute/storage use, translucent effects, and full-screen shaders - but each game owns
 its renderer privately and self-reports coarse totals. The Framework has no implemented general
 `RenderDriver`, render graph, resource registry, material inspection, object-to-draw trace, measured
 GPU timing, or deterministic visual-evidence contract.
@@ -113,7 +113,7 @@ draw; target quality profile; or evidence link.
 
 The point-light service is the one implemented semantic precedent. It maintains a stable
 entity-to-render-slot binding and publishes authoring, runtime, and render projections at the same
-event sequence. Its dirty slots are renderer-neutral prepared state—not BroMetal handles. A general
+event sequence. Its dirty slots are renderer-neutral prepared state - not BroMetal handles. A general
 driver should follow this model for identities and revision fences without treating transient slots
 as stable authoring identity.
 
@@ -135,7 +135,7 @@ as stable authoring identity.
 ### Capture path and privacy
 
 **Verified:** the browser host performs `canvas.toDataURL('image/png')`, so normal capture includes
-the game canvas—not the Studio window, terminal, desktop, microphone, or system audio
+the game canvas - not the Studio window, terminal, desktop, microphone, or system audio
 ([`game-server.ts`](../../../packages/cli/src/host/game-server.ts)). The action broker validates
 base64 and the PNG signature, caps decoded data at 32 MiB, associates results with action/runtime/
 development-session/build IDs, writes under `.antiky/captures`, uses directory mode `0700` and file
@@ -202,7 +202,7 @@ policy-limited readback. Do not add Antiky world/material/evidence concepts to B
 
 ### No agent-visible GPU probing, though a real WebGPU device is reachable
 
-**Gap — open.** The capability exists and a test can now reach it, but an *agent* still cannot.
+**Gap - open.** The capability exists and a test can now reach it, but an *agent* still cannot.
 
 The only code in this repository that launches a browser is
 `packages/cli/src/host/managed-capture-runtime.ts`, and through the CLI and MCP it is reachable only
@@ -216,7 +216,7 @@ already suspects the defect and knows which pixels would betray it.
 
 The same shortage hits automated tests, which is how this surfaced: a test needing real WebGPU
 behaviour substitutes a fake `GPUDevice` and asserts on the *calls made* rather than the *pixels
-produced*. That half has since been addressed for tests — see below — and it is worth separating,
+produced*. That half has since been addressed for tests - see below - and it is worth separating,
 because the fix for tests is a file in `packages/demos/tests` while the fix for agents is a contract
 in the inspection tooling.
 
@@ -236,19 +236,19 @@ machine has no GPU":
 - **The profile directory must be a real path.** An empty string yields no `navigator.gpu`.
 - **The page must be on a secure origin.** `about:blank` yields no `navigator.gpu`; a page served
   from `http://127.0.0.1` works. `127.0.0.1` is a secure context, so a throwaway `node:http` server
-  is sufficient — no TLS.
+  is sufficient - no TLS.
 
 Headless is fine. The flags are already in the capture runtime; nothing new is needed from Chromium.
 
 **What the gap costs, concretely.** Goal 15 added a `sampler2DArray` type to BroMetal and required
 "a runtime test that an array texture binds without WebGPU validation errors, and that a layer index
-selects the layer it names — a two-layer texture of distinct colours, sampled at each index", plus a
+selects the layer it names - a two-layer texture of distinct colours, sampled at each index", plus a
 per-layer mip test. Both were satisfied against a recording device: the mip test asserts no view has
 `arrayLayerCount > 1`, which is a sound proxy but is reasoning about the plan rather than the result.
 The only GPU-side evidence is a whole-frame capture that looks correct. A wrong layer index that
 happened to land on a similar-coloured material would pass every test in the repository.
 
-**Partly addressed 2026-08-15 — for tests only, and the inspection gap stays open.**
+**Partly addressed 2026-08-15 - for tests only, and the inspection gap stays open.**
 
 `packages/demos/tests/support/gpu-page.mjs` (~110 lines) launches the same Chromium with the same
 flags, serves the repository over loopback, hands a callback a page with a real device, and returns
@@ -265,21 +265,21 @@ Proven able to fail: expecting layer 0 to be the other layer's colour turns test
 actual pixel printed.
 
 **No bundler was needed.** BroMetal's `dist` uses relative imports, so serving the repository as-is
-lets the page `import('/node_modules/brometal/dist/runtime/webgpu.js')` directly — which has the
+lets the page `import('/node_modules/brometal/dist/runtime/webgpu.js')` directly - which has the
 advantage of loading the **patched installed copy**, the artifact that actually ships.
 
 One deliberate limit remains: the WGSL doing the sampling is written in the test, not produced by
 BroMetal's shader compiler, which has no public entry point from Node (`compileShaderSource` is not
-exported). So this proves the patch's **runtime** half — upload, view dimension, per-layer mips —
+exported). So this proves the patch's **runtime** half - upload, view dimension, per-layer mips -
 and the compiler half is still covered by the WGSL-emission test and the demo capture.
 
 **Why this does not close the gap.** What exists is a *developer* harness: a `node:test` file, run
 from the repository, against code the author already knows the shape of. Nothing about it is reachable
-by an agent inspecting a running session. Through the CLI and MCP the answer is unchanged — an agent
+by an agent inspecting a running session. Through the CLI and MCP the answer is unchanged - an agent
 gets `capture_frame`, which returns a PNG of a whole frame, and cannot ask:
 
 - read back the pixels of *this* texture, target, or layer;
-- what did the GPU actually accept — were there validation errors this frame;
+- what did the GPU actually accept - were there validation errors this frame;
 - sample this texture at a chosen mip and layer and tell me the colour;
 - does this bound resource have the dimensions and view type it claims.
 
@@ -288,7 +288,7 @@ identical to a whole-frame PNG unless a human already suspects them and knows wh
 the gap, and it is an inspection gap rather than a testing one.
 
 **Proposal, unchanged in substance but now with a working precedent.** A bounded, policy-limited
-readback in the inspection contract — the CLI/MCP equivalent of what `gpu-page.mjs` does in a test.
+readback in the inspection contract - the CLI/MCP equivalent of what `gpu-page.mjs` does in a test.
 `gpu-page.mjs` is worth reading first when that is built: it already settles the launch recipe, the
 secure-origin requirement, and the fact that no bundler is needed. It is roughly the transport half
 of the answer with none of the contract half.
@@ -313,7 +313,7 @@ These packages are good fixture candidates. They are not evidence of a shared in
 They are also technical regression fixtures, not Antiky's visual-quality bar and not appropriate
 hero presentation proof. The first quality-facing evidence should come from a new, deliberately
 art-directed moving showcase built from a written visual brief, reference frames, motion beats, and
-target-camera composition—not another Antiky Town or Point Light Expo capture.
+target-camera composition - not another Antiky Town or Point Light Expo capture.
 Current counts are often constants or game-side arithmetic rather than observed driver/backend
 events. One archived Town slice even reports roughly 1.1 KiB of upload bytes per frame in the
 Framework aggregate while an injected probe reports roughly 1.5 MiB of buffer writes. The values
@@ -619,7 +619,7 @@ query.
 
 All query responses declare `available`, `retained`, and `incomplete`, use bounded limits/cursors,
 and are fenced by runtime/render/snapshot identity. Large shader source, images, traces, and buffers
-are artifacts—not inline MCP JSON or base64.
+are artifacts - not inline MCP JSON or base64.
 
 ### Minimum request guards
 

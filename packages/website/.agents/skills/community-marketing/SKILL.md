@@ -16,11 +16,11 @@ If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md`, or 
 
 Understand the situation (ask if not provided):
 
-1. **What is the product or brand?** — What problem does it solve, who uses it
-2. **What community platform(s) are in play?** — Discord, Slack, Circle, Reddit, Facebook Groups, forum, etc.
-3. **What stage is the community at?** — Pre-launch, 0–100 members, 100–1k, scaling, or established
-4. **What is the primary community goal?** — Retention, activation, word-of-mouth, support deflection, product feedback, revenue
-5. **Who is the ideal community member?** — Role, motivation, what they hope to get from joining
+1. **What is the product or brand?** - What problem does it solve, who uses it
+2. **What community platform(s) are in play?** - Discord, Slack, Circle, Reddit, Facebook Groups, forum, etc.
+3. **What stage is the community at?** - Pre-launch, 0–100 members, 100–1k, scaling, or established
+4. **What is the primary community goal?** - Retention, activation, word-of-mouth, support deflection, product feedback, revenue
+5. **Who is the ideal community member?** - Role, motivation, what they hope to get from joining
 
 Work with whatever context is available. If key details are missing, make reasonable assumptions and flag them.
 
@@ -30,7 +30,7 @@ Work with whatever context is available. If key details are missing, make reason
 
 ### Build around a shared identity, not just a product
 
-The strongest communities are built around who members *are* or aspire to be — not around your product. Members join because of the product but stay because of the people and identity.
+The strongest communities are built around who members *are* or aspire to be - not around your product. Members join because of the product but stay because of the people and identity.
 
 Examples:
 - Indie hackers (identity: bootstrapped founders)
@@ -67,34 +67,34 @@ Design for the flywheel from day one. Every decision should ask: *Does this acce
 
 ### Launching a Community from Zero
 
-1. **Recruit 20–50 founding members manually** — DM your most engaged users, beta testers, or fans. Don't open publicly until there is baseline activity.
-2. **Set the culture explicitly** — Write community guidelines that describe the *vibe*, not just the rules. What does great participation look like here?
-3. **Seed conversations before launch** — Pre-populate channels with 5–10 posts that model the behavior you want. Questions, wins, resources.
-4. **Do things that don't scale at first** — Reply to every post. Welcome every new member by name. Host a weekly call. You are buying social proof.
-5. **Define your core loop** — What action do you want members to take weekly? Make it easy and reward it publicly.
+1. **Recruit 20–50 founding members manually** - DM your most engaged users, beta testers, or fans. Don't open publicly until there is baseline activity.
+2. **Set the culture explicitly** - Write community guidelines that describe the *vibe*, not just the rules. What does great participation look like here?
+3. **Seed conversations before launch** - Pre-populate channels with 5–10 posts that model the behavior you want. Questions, wins, resources.
+4. **Do things that don't scale at first** - Reply to every post. Welcome every new member by name. Host a weekly call. You are buying social proof.
+5. **Define your core loop** - What action do you want members to take weekly? Make it easy and reward it publicly.
 
 ### Growing an Existing Community
 
-1. **Audit where members drop off** — Are people joining but not posting? Posting once and disappearing? Identify the leaky stage.
-2. **Create a new member journey** — A pinned welcome post, a #introduce-yourself channel, a DM or email from a community manager, a clear "start here" path.
-3. **Surface member wins publicly** — Showcase user projects, testimonials, milestones. This reinforces identity and signals that participation has rewards.
-4. **Run recurring community rituals** — Weekly threads (e.g., "What are you working on?"), monthly AMAs, seasonal challenges. Rituals create habit.
-5. **Identify and invest in power users** — 1% of members generate 90% of value. Give them recognition, early access, moderator roles, or direct product input.
+1. **Audit where members drop off** - Are people joining but not posting? Posting once and disappearing? Identify the leaky stage.
+2. **Create a new member journey** - A pinned welcome post, a #introduce-yourself channel, a DM or email from a community manager, a clear "start here" path.
+3. **Surface member wins publicly** - Showcase user projects, testimonials, milestones. This reinforces identity and signals that participation has rewards.
+4. **Run recurring community rituals** - Weekly threads (e.g., "What are you working on?"), monthly AMAs, seasonal challenges. Rituals create habit.
+5. **Identify and invest in power users** - 1% of members generate 90% of value. Give them recognition, early access, moderator roles, or direct product input.
 
 ### Building a Brand Ambassador / Advocate Program
 
-1. **Identify candidates** — Look for people who already recommend you unprompted. Check reviews, social mentions, community posts.
-2. **Make the ask personal** — Don't send a generic form. Reach out 1:1 and explain why you chose them specifically.
-3. **Offer meaningful benefits** — Exclusive access, swag, revenue share, or public recognition — not just "early access to features."
-4. **Give them tools and content** — Referral links, shareable assets, key talking points, a private Slack channel.
-5. **Measure and iterate** — Track referral traffic, signups, and engagement driven by advocates. Double down on what works.
+1. **Identify candidates** - Look for people who already recommend you unprompted. Check reviews, social mentions, community posts.
+2. **Make the ask personal** - Don't send a generic form. Reach out 1:1 and explain why you chose them specifically.
+3. **Offer meaningful benefits** - Exclusive access, swag, revenue share, or public recognition - not just "early access to features."
+4. **Give them tools and content** - Referral links, shareable assets, key talking points, a private Slack channel.
+5. **Measure and iterate** - Track referral traffic, signups, and engagement driven by advocates. Double down on what works.
 
 ### Community-Led Support (Deflection + Retention)
 
 1. **Create a searchable knowledge base** from top community questions
-2. **Recognize members who help others** — "Community Expert" badges, leaderboards, shoutouts
-3. **Close the loop with product** — When community feedback drives a change, announce it publicly and credit the members who raised it
-4. **Monitor sentiment weekly** — Look for patterns in complaints or confusion before they become churn signals
+2. **Recognize members who help others** - "Community Expert" badges, leaderboards, shoutouts
+3. **Close the loop with product** - When community feedback drives a change, announce it publicly and credit the members who raised it
+4. **Monitor sentiment weekly** - Look for patterns in complaints or confusion before they become churn signals
 
 ---
 
@@ -115,11 +115,11 @@ Design for the flywheel from day one. Every decision should ask: *Does this acce
 
 Track these signals weekly:
 
-- **DAU/MAU ratio** — Stickiness. Above 20% is healthy for most communities.
-- **New member post rate** — % of new members who post within 7 days of joining
-- **Thread reply rate** — % of posts that receive at least one reply
-- **Churn / lurker ratio** — Members who joined but haven't posted in 30+ days
-- **Content created by non-staff** — % of posts not written by the company team
+- **DAU/MAU ratio** - Stickiness. Above 20% is healthy for most communities.
+- **New member post rate** - % of new members who post within 7 days of joining
+- **Thread reply rate** - % of posts that receive at least one reply
+- **Churn / lurker ratio** - Members who joined but haven't posted in 30+ days
+- **Content created by non-staff** - % of posts not written by the company team
 
 **Warning signs:**
 - Most posts are from the company team, not members
@@ -133,12 +133,12 @@ Track these signals weekly:
 
 Depending on what the user needs, produce one of:
 
-- **Community Strategy Doc** — Platform choice, identity definition, core loop, 90-day launch plan
-- **Channel Architecture** — Recommended channels/categories with purpose and posting guidelines for each
-- **New Member Journey** — Welcome sequence: pinned post, DM template, first-week prompts
-- **Community Ritual Calendar** — Weekly/monthly recurring events and threads
-- **Ambassador Program Brief** — Criteria, benefits, outreach template, tracking plan
-- **Health Audit Report** — Current metrics, diagnosis, top 3 priorities to fix
+- **Community Strategy Doc** - Platform choice, identity definition, core loop, 90-day launch plan
+- **Channel Architecture** - Recommended channels/categories with purpose and posting guidelines for each
+- **New Member Journey** - Welcome sequence: pinned post, DM template, first-week prompts
+- **Community Ritual Calendar** - Weekly/monthly recurring events and threads
+- **Ambassador Program Brief** - Criteria, benefits, outreach template, tracking plan
+- **Health Audit Report** - Current metrics, diagnosis, top 3 priorities to fix
 
 Always be specific. Generic advice ("be consistent," "provide value") is not useful. Give the user something they can act on today.
 

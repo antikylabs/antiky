@@ -82,4 +82,5 @@ read `antiky.config.json` after this change.
 
 ## Revision history
 
-- `ef36519e3f7386fc9b55fbecff02336358f1b9e5` — Text change for ASD-STE100 Issue 9.
+- `ef36519e3f7386fc9b55fbecff02336358f1b9e5`: Text change for ASD-STE100 Issue 9.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

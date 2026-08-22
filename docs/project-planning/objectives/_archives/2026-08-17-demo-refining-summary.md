@@ -29,7 +29,7 @@ accepted debt, and what should trigger future work.
 
 - The packaged and public catalog now contains only Antiky Town, Combat Arena, Point Light Expo,
   and Traversal Study.
-- The remaining standalone BroMetal demos—Luminous Reef, Shader Study, and Solar Forge—and the
+- The remaining standalone BroMetal demos - Luminous Reef, Shader Study, and Solar Forge - and the
   Three.js demos Glass Garden and Orbital Atlas were deleted. The earlier Town Study duplicate was
   also retired.
 - Antiky demos may remain hybrid Antiky/BroMetal projects. This objective did not require every
@@ -430,8 +430,8 @@ lessons worth carrying forward:
 - **A synthetic camera model can agree with itself.** The camera snap appeared only when real enemy
   priorities changed. Later, even correct motion tests could not decide whether the camera was a
   good experience; the owner's discomfort remained the decisive result.
-- **Refresh-capped statistics are bounds.** Final frame-time values—Town 8.303 ms, Combat 8.333 ms,
-  Point Light 8.786 ms, Traversal 8.333 ms—are upper bounds near one display interval, not resolved
+- **Refresh-capped statistics are bounds.** Final frame-time values - Town 8.303 ms, Combat 8.333 ms,
+  Point Light 8.786 ms, Traversal 8.333 ms - are upper bounds near one display interval, not resolved
   GPU costs.
 - **Production asset URLs need static discovery.** Dynamic `new URL()` expressions in Combat and
   Traversal built successfully but resolved through an empty Vite map at runtime. Static literal

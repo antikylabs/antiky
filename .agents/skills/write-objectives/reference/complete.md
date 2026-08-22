@@ -9,7 +9,7 @@ Move a finished goal and its summary into `goals/_completed/`.
 ### Procedure
 
 1. **Check it is actually complete.** Walk the goal's own **Completion definition**. Every clause,
-   not most of them. A goal halted at its stop condition is not complete — it stays open, and the
+   not most of them. A goal halted at its stop condition is not complete - it stays open, and the
    summary records where it stopped.
 
 2. **Check the summary exists.** `goals/summary-goal-NN.md`, written per [execute.md](execute.md). A
@@ -35,7 +35,7 @@ Move a finished goal and its summary into `goals/_completed/`.
 
    A prerequisite link that 404s is how an executor ends up guessing what a prerequisite required.
 
-5. **Regenerate the objective README** — move the goal from open to completed, update the phase.
+5. **Regenerate the objective README** - move the goal from open to completed, update the phase.
 
 6. **Report** what is now unblocked, and what the summary says needs the owner.
 
@@ -64,7 +64,7 @@ Write the durable archive summary and retire the objective folder.
    | Section | Contents |
    | --- | --- |
    | Opening | What the objective was, when archived, what it established |
-   | Delivered outcome | What now exists, concretely — packages, boundaries, capabilities |
+   | Delivered outcome | What now exists, concretely - packages, boundaries, capabilities |
    | Durable decisions | The rules that outlive the objective, and where they are recorded |
    | What was learned | Findings worth keeping, including what turned out wrong |
    | What was not done | Deliberately excluded, deferred, or dropped, with the reason |
@@ -77,10 +77,10 @@ Write the durable archive summary and retire the objective folder.
    teaches nothing and is not what happened.
 
 4. **Remove the objective folder.** The summary replaces it, so finished plans and closeout material
-   do not linger in the active tree — this is the convention `_archives/studio-summary.md` states.
+   do not linger in the active tree - this is the convention `_archives/studio-summary.md` states.
    Use `git rm -r`, so the history remains reachable.
 
-   If any part of the folder must survive — a reference document other work depends on — move it to
+   If any part of the folder must survive - a reference document other work depends on - move it to
    its permanent home first, and say in the summary where it went.
 
 5. **Update the objectives index:** remove the row from active, add it to archived.
@@ -91,6 +91,6 @@ Write the durable archive summary and retire the objective folder.
 ### Do not
 
 - Do not archive an objective with open goals.
-- Do not delete the folder before the summary is written and reviewed — it is the only thing that
+- Do not delete the folder before the summary is written and reviewed - it is the only thing that
   survives.
 - Do not write a summary that lists only successes.

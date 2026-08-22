@@ -1,4 +1,4 @@
-# `code` — the Oxlint rules
+# `code` - the Oxlint rules
 
 Read-only. Run the project's own linter; the rules live inside it.
 
@@ -22,7 +22,7 @@ so `expect(user.name).toEqual(user.name)` is caught and `expect(a.b).toBe(c.d)` 
 This is the purest evidence theatre: it runs, it passes, coverage counts it, and no behaviour was
 checked. Agents write these when asked to add a test for code they cannot exercise.
 
-*False positive:* a deliberate identity test — checking that a normaliser leaves already-normal input
+*False positive:* a deliberate identity test - checking that a normaliser leaves already-normal input
 alone. Written as `expect(normalise(x)).toBe(x)` it does not fire, because the two sides differ.
 Written as `expect(x).toBe(x)` it says nothing anyway.
 
@@ -42,7 +42,7 @@ visible in config rather than buried in a file.
 
 Two shapes:
 
-- an **empty catch block** — the failure leaves no trace anywhere;
+- an **empty catch block** - the failure leaves no trace anywhere;
 - a catch that **binds the error and never uses it**, and does not rethrow.
 
 The second is the precise one. Binding the error means the author meant to use it, so a binding that
@@ -69,7 +69,7 @@ as the message says that rather than "not implemented". The vocabulary is the wh
 `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `biome-ignore`, `c8 ignore`
 and friends, with fewer than three words of explanation.
 
-A suppression is a claim that the checker is wrong. Unaccompanied, it is a claim with no evidence —
+A suppression is a claim that the checker is wrong. Unaccompanied, it is a claim with no evidence -
 the same defect [`prose.md`](prose.md) catches in sentences. It is also the cheapest escape hatch an
 agent has, which is why it should cost one sentence.
 
@@ -83,7 +83,7 @@ reviewable.
 
 ## Verifying the plugin actually loaded
 
-A plugin that fails to load reports nothing and exits 0 — indistinguishable from a clean run. Lint a
+A plugin that fails to load reports nothing and exits 0 - indistinguishable from a clean run. Lint a
 shipped fixture to prove otherwise:
 
 ```bash
@@ -95,6 +95,6 @@ second must produce none.
 
 ## What this does not check
 
-Type safety — that is [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop). Complexity,
-duplication, and dead exports — `eslint-plugin-sonarjs`, `jscpd`, `knip`. Whether a test asserts the
-*right* thing — only mutation testing answers that, and it is not cheap. Say so when reporting.
+Type safety - that is [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop). Complexity,
+duplication, and dead exports - `eslint-plugin-sonarjs`, `jscpd`, `knip`. Whether a test asserts the
+*right* thing - only mutation testing answers that, and it is not cheap. Say so when reporting.

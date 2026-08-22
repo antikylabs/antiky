@@ -7,7 +7,7 @@ What follows are short bullet points on what makes good engineering, will be exp
 - Complexity manifests as: change amplification (one change touches many places), cognitive load (must know too much to work safely), and unknown unknowns (not clear what could break).
 - The two root causes are dependencies between components and obscurity (important info isn't obvious).
 - Say "no" to unnecessary features and abstractions by default.
-- When you must say yes, deliver an 80/20 solution — core value, minimal code.
+- When you must say yes, deliver an 80/20 solution - core value, minimal code.
 
 ## Don't Abstract Too Early
 - Let structure emerge from working code. Don't design elaborate frameworks upfront.
@@ -17,22 +17,22 @@ What follows are short bullet points on what makes good engineering, will be exp
 
 ## Build Deep Modules, Not Shallow Ones
 - A deep module has a simple interface but hides powerful, complex functionality behind it.
-- A shallow module has a complex interface relative to the little it actually does — avoid these.
+- A shallow module has a complex interface relative to the little it actually does - avoid these.
 - Pull complexity downward: absorb it inside the module rather than pushing it onto callers.
 - Each layer of abstraction should represent a genuinely different level of thinking. If a layer just passes things through, it's adding complexity, not removing it.
 
 ## Ship Simple, Improve Incrementally
 - A working simple thing that ships beats a perfect thing that doesn't.
 - Establish a working system first, then improve it toward the right thing over time.
-- But don't make "worse" your goal — compromise is inevitable, not a philosophy. Always aim high and actually ship.
-- Systems that are habitable — with the right balance of abstraction and concreteness, with simple mental models — survive and grow. Purity does not guarantee survival.
+- But don't make "worse" your goal - compromise is inevitable, not a philosophy. Always aim high and actually ship.
+- Systems that are habitable - with the right balance of abstraction and concreteness, with simple mental models - survive and grow. Purity does not guarantee survival.
 
 ## Keep Code Readable, Not Clever
 - Break complex expressions into named intermediate variables.
 - Sacrifice brevity for clarity and debuggability.
 - Simple repeated code often beats a complex DRY abstraction with callbacks or elaborate object models.
-- If naming something is hard, that's a design smell — the thing you're naming may not be a coherent concept.
-- Write code for readers, not writers. If someone says it's not obvious, it isn't — fix it.
+- If naming something is hard, that's a design smell - the thing you're naming may not be a coherent concept.
+- Write code for readers, not writers. If someone says it's not obvious, it isn't - fix it.
 
 ## Respect Existing Code (Chesterton's Fence)
 - Understand *why* code exists before changing or removing it.
@@ -56,7 +56,7 @@ What follows are short bullet points on what makes good engineering, will be exp
 
 ## Test Strategically
 - Integration tests at system cut-points and critical user paths deliver the most value.
-- Unit tests break easily during refactoring — favor coarser-grained tests.
+- Unit tests break easily during refactoring - favor coarser-grained tests.
 - Minimize mocking. Mock only at system boundaries.
 - Always write a regression test when a bug is found.
 
@@ -70,7 +70,7 @@ What follows are short bullet points on what makes good engineering, will be exp
 - Think in terms of what the caller needs, not how the implementation works.
 - Simple cases get simple APIs. Complexity is opt-in.
 - Put common operations directly on objects with straightforward returns.
-- Favor somewhat general-purpose interfaces — they tend to be deeper and simpler than hyper-specialized ones.
+- Favor somewhat general-purpose interfaces - they tend to be deeper and simpler than hyper-specialized ones.
 
 ## Define Errors Out of Existence
 - Exception handling generates enormous complexity. Where possible, design interfaces so error cases simply cannot occur.
@@ -84,7 +84,7 @@ What follows are short bullet points on what makes good engineering, will be exp
 
 ## Optimize with Data, Not Gut
 - Never optimize without a real-world profile showing the actual bottleneck.
-- Network calls cost millions of CPU cycles — minimize those first.
+- Network calls cost millions of CPU cycles - minimize those first.
 - Assume your guess about the bottleneck is wrong.
 
 ## Locality of Behavior over Strict Separation
@@ -108,12 +108,12 @@ What follows are short bullet points on what makes good engineering, will be exp
 
 ## Closures and Patterns
 - Closures: great for collection operations, dangerous in excess (callback hell).
-- Avoid the Visitor pattern — it adds complexity with little payoff.
+- Avoid the Visitor pattern - it adds complexity with little payoff.
 - Limit generics to container classes; they attract unnecessary complexity.
 
 ## Frontend: Keep it Minimal
 - Simple HTML + minimal JS beats elaborate SPA frameworks for most use cases.
-- Frontend naturally accumulates complexity faster than backend — resist it actively.
+- Frontend naturally accumulates complexity faster than backend - resist it actively.
 
 ## Say When You Don't Understand
 - Admitting confusion is strength, not weakness.
@@ -121,17 +121,17 @@ What follows are short bullet points on what makes good engineering, will be exp
 
 ## Security is a Design Constraint
 - Complexity is the enemy of security too. Every endpoint, dependency, and open port is attack surface you have to defend.
-- Default to deny. Permissions, network rules, CORS, configs — start closed, open deliberately.
+- Default to deny. Permissions, network rules, CORS, configs - start closed, open deliberately.
 - Auth, crypto, and session management are not DIY projects. Use well-vetted libraries.
 - Validate all input at the trust boundary, encode at the output. Everything from outside is hostile.
 - Think in blast radius. Least privilege everything. One compromised key shouldn't unlock the whole system.
 
 ## Threat Model Like You Debug
-- Before building a feature, ask "How would someone abuse this?" — same as asking where it will break.
+- Before building a feature, ask "How would someone abuse this?" - same as asking where it will break.
 - Dependencies are code you didn't write and probably didn't read. Pin versions, audit what matters.
 - Secrets don't go in code, logs, or error messages. No exceptions.
-- Secure your defaults everywhere — don't run as root, don't commit `.env`, don't connect local to prod.
-- Vulnerabilities cluster. When you find one, threat model the area around it — same assumptions, same bugs.
+- Secure your defaults everywhere - don't run as root, don't commit `.env`, don't connect local to prod.
+- Vulnerabilities cluster. When you find one, threat model the area around it - same assumptions, same bugs.
 
 ## Speak like a human
 - Engineers don't have to speak in technical jargon to get things done.

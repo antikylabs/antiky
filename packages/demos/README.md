@@ -4,10 +4,10 @@ The four demo workspaces sit directly under this directory. Each project uses An
 simulation or authoring state and BroMetal for rendering. Open its `.antiky` manifest in Studio to
 run the same portable game module that the website stages.
 
-- **Antiky Town** — a walkable voxel town with Framework-owned lamp authoring.
-- **Combat Arena** — a compact action loop with Framework-owned combat state.
-- **Point Light Expo** — a focused gallery for editable practical lights and custom shaders.
-- **Traversal Study** — a deterministic platform course with checkpoints and hazards.
+- **Antiky Town** - a walkable voxel town with Framework-owned lamp authoring.
+- **Combat Arena** - a compact action loop with Framework-owned combat state.
+- **Point Light Expo** - a focused gallery for editable practical lights and custom shaders.
+- **Traversal Study** - a deterministic platform course with checkpoints and hazards.
 
 Run a project from the repository root:
 

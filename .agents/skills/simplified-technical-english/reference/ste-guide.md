@@ -1,4 +1,4 @@
-# Simplified Technical English — condensed rule guide
+# Simplified Technical English - condensed rule guide
 
 A working summary of the ASD-STE100 Issue 9 writing rules, for writers and for
 tools that check STE. It states every rule and the guidance needed to apply it.
@@ -38,14 +38,14 @@ instead of a meaning.
 **Parts of speech.** Eight: noun (n), verb (v), adjective (adj), adverb (adv),
 pronoun (pron), article (art), preposition (prep), conjunction (conj). An
 approved word is approved *as one part of speech only*. A few are approved as
-more than one — CLEAN is both a verb and an adjective.
+more than one - CLEAN is both a verb and an adjective.
 
 **Technical nouns and technical verbs** are the escape hatch that makes the
 vocabulary usable. A technical noun is a noun term for a specified concept in a
 subject field; a technical verb is the same for a process. They are not in the
 dictionary, and rules 1.5 and 1.12 permit them. The dictionary marks them (TN)
 and (TV) when it offers one as an alternative. So the dictionary is a core
-vocabulary, not the whole permitted vocabulary — a word's absence from it is not
+vocabulary, not the whole permitted vocabulary - a word's absence from it is not
 an error.
 
 **Forms.** Nouns are listed in the singular; the plural of a countable noun is
@@ -58,7 +58,7 @@ themselves approved. Adverbs are usually made by adding "-ly" to an adjective.
 **Help.** Some entries carry a light-bulb symbol with a note, in four
 categories: (1) how to use an approved word correctly, (2) an approved word has
 a restricted meaning, so use the alternatives for other meanings, (3) a word
-approved for one context only — SWALLOW is for safety instructions only, and
+approved for one context only - SWALLOW is for safety instructions only, and
 (4) important information about the listed word.
 
 **Meanings.** An approved word may be used only with the meaning the dictionary
@@ -89,7 +89,7 @@ Note the pattern in `check`, `cover`, `damage`, `test`: the same spelling is
 approved as a noun and rejected as a verb. These are part-of-speech questions
 (rule 1.2), not forbidden words.
 
-## Section 1 — Words
+## Section 1 - Words
 
 **1.1** Use words that are approved in the dictionary, technical nouns, or
 technical verbs. Keep your technical nouns and verbs in a company glossary or
@@ -139,7 +139,7 @@ tool or material used.
 **1.14** Use American English spelling unless an official directive says
 otherwise.
 
-## Section 2 — Multi-word nouns
+## Section 2 - Multi-word nouns
 
 A multi-word noun is a group of nouns and adjectives acting as one part of
 speech, usually the subject or object. The head noun is normally the last word.
@@ -153,13 +153,13 @@ connection" is fine; "runway light connection resistance calibration" is not.
 first time. Then either give a shorter form of it, or use hyphens between the
 words that act as one unit.
 
-## Section 3 — Verbs
+## Section 3 - Verbs
 
 **3.1** Use only the verb forms given in the dictionary.
 
 **3.2** Use only these forms and tenses: the infinitive; the imperative
 (command) form; the simple present; the simple past; the simple future; and the
-past participle as an adjective. Nothing else — no progressive, no perfect, no
+past participle as an adjective. Nothing else - no progressive, no perfect, no
 conditional.
 
 **3.3** Use the past participle form as an adjective, not to build other tenses.
@@ -177,7 +177,7 @@ therefore never the passive.
 of speech. Write "the hydraulic fluid flow opens the valve", not "acts on the
 valve".
 
-## Section 4 — Sentences
+## Section 4 - Sentences
 
 The rules for sentences in procedures (section 5) differ from those for
 descriptive text (section 6). Section 4 is what applies to both.
@@ -193,14 +193,14 @@ Write "do not", never "don't".
 sentence or a fragment completing the lead-in. The colon at the end of the
 lead-in ends a sentence for word-count purposes (rule 8.4).
 
-**4.4** Use connecting words and phrases — BUT, THUS, AS A RESULT, THEN — to
+**4.4** Use connecting words and phrases - BUT, THUS, AS A RESULT, THEN - to
 connect sentences that hold related topics.
 
 **4.5** Where applicable, put an article (the, a, an) or a demonstrative
 adjective (this, these) before a noun or multi-word noun. Do not drop them to
 save words.
 
-## Section 5 — Procedural writing
+## Section 5 - Procedural writing
 
 **5.1** Write short sentences: **20 words maximum** per sentence. Warnings,
 cautions, and other safety instructions must also obey this limit.
@@ -218,7 +218,7 @@ values are incorrect, stop the test procedure."
 **5.5** Write notes to give information, not instructions. A note must not
 contain a command.
 
-## Section 6 — Descriptive writing
+## Section 6 - Descriptive writing
 
 Descriptive writing gives information, not instructions, so the imperative form
 is not permitted. It covers descriptions of items, products, systems and
@@ -237,12 +237,12 @@ procedures.
 
 **6.6** No paragraph has more than **six sentences**.
 
-## Section 7 — Safety instructions
+## Section 7 - Safety instructions
 
 A safety instruction warns that a procedure or work step can be dangerous or
 cause damage. A **warning** tells the reader there is a risk of injury or death.
 A **caution** tells the reader there is a risk of damage to objects. Other
-industries may use different words — "danger", "attention", "notice" — or
+industries may use different words - "danger", "attention", "notice" - or
 graphical symbols; whatever words are used, the content must obey rules 7.1
 through 7.3. Refer to ISO 45001, the ANSI Z535 series, and ISO 3864.
 
@@ -253,7 +253,7 @@ the level of risk.
 
 **7.3** Give an explanation that shows the risk or the possible result.
 
-## Section 8 — Punctuation and word count
+## Section 8 - Punctuation and word count
 
 STE does not give general punctuation rules; follow a standard reference such as
 the Chicago Manual of Style or the Gregg Reference Manual.
@@ -293,9 +293,9 @@ Apply 8.4 through 8.7 in this order:
 5. Count what remains. A colon ends the sentence (8.4).
 
 Worked example: *"Install the three auxiliary screws (2) in the flange of the
-motor assembly (9)."* — 14 words. Each parenthetical counts as one.
+motor assembly (9)."* - 14 words. Each parenthetical counts as one.
 
-## Section 9 — Writing practices
+## Section 9 - Writing practices
 
 **9.1** When a word-for-word replacement is not enough, use a different sentence
 construction. If the dictionary's alternative has the same part of speech, swap
@@ -308,7 +308,7 @@ valve can operate" (different part of speech, so a new construction).
 meaning.
 
 **9.3** When you use two words together, do not make phrasal verbs. A phrasal
-verb means something different from its parts. Only a few — PUT ON, COME ON —
+verb means something different from its parts. Only a few - PUT ON, COME ON -
 are approved, each with a restricted meaning.
 
 **9.4** Use a consistent style. Once you choose terminology or wording for a
@@ -318,38 +318,38 @@ work step, use the same terminology and wording every time that step occurs.
 
 These are recommendations, not numbered rules.
 
-**GR-1 — the conjunction "that".** Use it as much as possible after verbs such
+**GR-1 - the conjunction "that".** Use it as much as possible after verbs such
 as MAKE SURE, SHOW, and RECOMMEND. It marks where the main clause ends and the
 subordinate clause begins, and many languages cannot omit the equivalent word.
 Write "Make sure that the valve is open", not "Make sure the valve is open".
 
-**GR-2 — the preposition "with".** It has three approved meanings: association
+**GR-2 - the preposition "with".** It has three approved meanings: association
 or relationship, help or sharing, and means or instrument. "Install the panel
 with the green fasteners" has three possible readings. Reread every sentence
 containing "with" and confirm it cannot be misread. When you rebuild such a
 sentence, keep the primary action verb: write "Seal the opening with tool
 TS9867", not "Use tool TS9867 to seal the opening".
 
-**GR-3 — pronouns.** Use only the pronouns in the dictionary; "he" and "she" are
+**GR-3 - pronouns.** Use only the pronouns in the dictionary; "he" and "she" are
 not approved. If a pronoun could refer to more than one noun, replace it with
 the noun it refers to.
 
-**GR-4 — the pronoun "this".** Make sure the reader knows what "this" refers to.
+**GR-4 - the pronoun "this".** Make sure the reader knows what "this" refers to.
 If it could refer to more than one item, restate the context.
 
-**GR-5 — false friends.** A word that looks like one in the reader's native
-language but means something different — English "disposition" against Italian
+**GR-5 - false friends.** A word that looks like one in the reader's native
+language but means something different - English "disposition" against Italian
 "disposizione". Confirm the English meaning is the one you intend.
 
-**GR-6 — Latin abbreviations.** Do not use them. Write "for example" not "e.g.",
+**GR-6 - Latin abbreviations.** Do not use them. Write "for example" not "e.g.",
 "that is" not "i.e.", and name the remaining items or write "and other colors"
 instead of "etc." Often the abbreviation can simply be dropped.
 
-**GR-7 — inclusive language.** Use neutral, non-discriminatory wording.
+**GR-7 - inclusive language.** Use neutral, non-discriminatory wording.
 Gender-specific pronouns are not permitted. "Man" and "woman" are not permitted
 unless the context requires them, for example in a medical text.
 
-**GR-8 — possessive form.** The Saxon genitive ("the manufacturer's
+**GR-8 - possessive form.** The Saxon genitive ("the manufacturer's
 instructions") is permitted but easy to misuse, and many languages form it
 differently. If you are not sure the sentence is correct, do not use it.
 
@@ -376,7 +376,7 @@ Decidable from the text and the dictionary alone:
 | GR-6 | Latin abbreviations |
 | GR-8 | the possessive form |
 
-Needs human judgement: part of speech in context (1.2 — a spelling approved
+Needs human judgement: part of speech in context (1.2 - a spelling approved
 under any part of speech is accepted, because which one a sentence means cannot
 be decided without a parser); approved meanings (1.3); technical noun selection
 and consistency (1.8 through 1.11); shortening long technical nouns (2.2); text

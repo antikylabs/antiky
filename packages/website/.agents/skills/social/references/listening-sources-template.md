@@ -1,8 +1,8 @@
-# Listening Sources — Template
+# Listening Sources - Template
 
 Copy this file to `.agents/listening-sources.md` in your project (or `.claude/listening-sources.md`) and fill in the brackets. Claude reads it when running the [listening workflow](listening.md).
 
-Delete sections you don't use. Keep this short and current — stale sources are worse than no sources.
+Delete sections you don't use. Keep this short and current - stale sources are worse than no sources.
 
 ---
 
@@ -27,9 +27,9 @@ Used by the [scoring rubric](listening.md#scoring-rubric) to judge ICP fit.
 
 Engage with **every** post from these accounts when relevant. Keep this list to 20-50 max.
 
-### LinkedIn (browser-driven — use dev-browser to view feed)
-- [Name] — `linkedin.com/in/handle`
-- [Name] — `linkedin.com/in/handle`
+### LinkedIn (browser-driven - use dev-browser to view feed)
+- [Name] - `linkedin.com/in/handle`
+- [Name] - `linkedin.com/in/handle`
 
 ### X / Twitter (browser-driven)
 - [@handle]
@@ -43,11 +43,11 @@ Engage with **every** post from these accounts when relevant. Keep this list to 
 - [handle.bsky.social]
 
 ### Blogs / Newsletters (RSS)
-- [Name] — `https://example.com/feed/`
-- [Name] — `https://example.substack.com/feed`
+- [Name] - `https://example.com/feed/`
+- [Name] - `https://example.substack.com/feed`
 
 ### YouTube channels (RSS)
-- [Name] — channel ID `UCxxxxxxxx`
+- [Name] - channel ID `UCxxxxxxxx`
 
 ---
 
@@ -94,13 +94,13 @@ Pulled via Reddit JSON API on the daily loop.
 URLs Claude opens via dev-browser to scan.
 
 ### LinkedIn Sales Navigator
-- [Search name] — `https://linkedin.com/sales/search/people?...`
+- [Search name] - `https://linkedin.com/sales/search/people?...`
 
 ### LinkedIn (regular)
-- Posts hashtag — `https://linkedin.com/feed/hashtag/yourtopic/`
+- Posts hashtag - `https://linkedin.com/feed/hashtag/yourtopic/`
 
 ### X advanced search
-- [Search name] — `https://x.com/search?q=...&f=live`
+- [Search name] - `https://x.com/search?q=...&f=live`
 
 ---
 
@@ -120,4 +120,4 @@ Save yourself the regret.
 - For LinkedIn and X, use dev-browser with the persistent session (user is logged in)
 - For everything else, use the curl recipes in [listening.md](listening.md#sources--light-tooling-curl-recipes)
 - Default lookback: 24h. User can override.
-- Always ask before posting — output drafts, user approves and posts manually
+- Always ask before posting - output drafts, user approves and posts manually

@@ -36,13 +36,13 @@ and fades out by five seconds or immediately after the first successful deposit.
 Antiky Framework owns the fixed 60 Hz `EngineSession`, input capture, deterministic simulation,
 stable world/entity IDs, point-light authoring and correction history, gameplay world projection,
 event history, and pause/resume/single-step controls. Gameplay charge-region entities have their own
-stable IDs and link to—not impersonate—the authored point-light entities. Point-light MCP edits
+stable IDs and link to - not impersonate - the authored point-light entities. Point-light MCP edits
 therefore change game rules as well as presentation without creating conflicting inspection views.
 
 BroMetal owns the WebGPU renderer, typed shaders, geometry, texture sampling, camera, and bounded
 visual feedback. The default look keeps a neutral environment fill even when relay powers are zero,
 then layers the authored relay lights as controlled material illumination. A fixed three-quarter
-camera frames the complete elevated architecture AABB—not only its ground footprint—at the default
+camera frames the complete elevated architecture AABB - not only its ground footprint - at the default
 1280×720 review size; camera shake starts only above the contact-hit threshold. Instanced weathered
 rocks and broad rooted stumps form the main side ruins, three differently massed relay shrines, and
 the forge's heavy central body. Nine brighter trunk instances remain only as three rear arches; the

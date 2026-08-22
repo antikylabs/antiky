@@ -16,21 +16,21 @@ the plan.
 
 ## Deliverables
 
-- [Implementation plan](../website-update/plan/goal-plan.md) — owns all fourteen acceptance
+- [Implementation plan](../website-update/plan/goal-plan.md) - owns all fourteen acceptance
   criteria, exact source areas, delivery order, release gates, and completion evidence.
-- [Framework page copy](../website-update/copy/framework.md) — explains the human-agent engine
+- [Framework page copy](../website-update/copy/framework.md) - explains the human-agent engine
   assumption, current Framework proof, TypeScript and BroMetal choices, shared authority, headless
   boundary, and product maturity.
-- [Studio page copy](../website-update/copy/studio.md) — separates the current native workspace from
+- [Studio page copy](../website-update/copy/studio.md) - separates the current native workspace from
   ACP, exact-target feedback, mini apps, and durable-feedback direction, with four real screenshot
   specifications and release-aware actions.
-- [Research page copy](../website-update/copy/research.md) — defines research gyms, distinguishes
+- [Research page copy](../website-update/copy/research.md) - defines research gyms, distinguishes
   completed, active, and future work, and states the evidence required before a question becomes a
   claim.
-- [Roadmap DSL](../website-update/plan/roadmap.txt) — keeps roadmap delivery and subitems to two
+- [Roadmap DSL](../website-update/plan/roadmap.txt) - keeps roadmap delivery and subitems to two
   editable single-line levels without dates or unsupported release assignments.
 - [Framework vision](../website-update/vision-framework.md) and
-  [Studio vision](../website-update/vision-studio.md) — durable direction used as the higher-weight
+  [Studio vision](../website-update/vision-studio.md) - durable direction used as the higher-weight
   source for the copy.
 
 ## Website-local review
@@ -109,11 +109,11 @@ names the focused and full commands required for the implementation work.
 
 ## Commits
 
-- `be04b98` — Write Framework and Studio vision
-- `4e56f3a` — Add public Antiky roadmap
-- `146a1ba` — Detail roadmap release scope
-- `ae365d2` — Convert roadmap to YAML DSL
-- `9a9c218` — Simplify roadmap DSL
-- `5715529` — Plan website launch update
-- `d8c2120` — Write launch page copy
-- `fffa856` — Refine website launch messaging
+- `be04b98` - Write Framework and Studio vision
+- `4e56f3a` - Add public Antiky roadmap
+- `146a1ba` - Detail roadmap release scope
+- `ae365d2` - Convert roadmap to YAML DSL
+- `9a9c218` - Simplify roadmap DSL
+- `5715529` - Plan website launch update
+- `d8c2120` - Write launch page copy
+- `fffa856` - Refine website launch messaging

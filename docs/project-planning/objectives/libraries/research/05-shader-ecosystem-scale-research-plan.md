@@ -33,7 +33,7 @@ This supplement corrects the unit of comparison before planning.
    thousands of independent shaders.
 2. It distinguishes product capability from an educational/reference corpus.
 3. It measures the ecosystem network effect the owner wants to reproduce.
-4. It prevents unlike counts—for example material instances, graph nodes, and complete effects—from
+4. It prevents unlike counts - for example material instances, graph nodes, and complete effects - from
    being presented as comparable shaders.
 5. It identifies the actual source of agent training context and developer leverage.
 6. It turns ecosystem scale into a useful Antiky/BroMetal direction rather than a vanity count.

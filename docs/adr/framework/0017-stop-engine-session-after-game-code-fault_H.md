@@ -59,4 +59,5 @@ After a terminal fault, the game host must start a new engine session to continu
 
 ## Revision history
 
-- `28662fe98ad0d547c5a9c43fc133a63e95b6e3aa` — Prior version before this change.
+- `28662fe98ad0d547c5a9c43fc133a63e95b6e3aa`: Prior version before this change.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

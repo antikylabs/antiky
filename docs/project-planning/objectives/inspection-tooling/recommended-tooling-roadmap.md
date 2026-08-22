@@ -144,10 +144,10 @@ each operation is deep enough to serve CLI, Studio, MCP, tests, and skills.
 
 Specialized subsystem services can extend `query_world`, `get_target_context`, scenario evidence,
 and registered commands before they need separate MCP groups. A separate tool is warranted when the
-job has distinct lifecycle, data volume, safety, or performance behavior—not because a new
+job has distinct lifecycle, data volume, safety, or performance behavior - not because a new
 component type exists.
 
-## Phase 0 — freeze the current baseline
+## Phase 0 - freeze the current baseline
 
 Before generalizing, turn the existing behavior into a versioned baseline.
 
@@ -181,7 +181,7 @@ replay, and audit one light without private engine objects or hidden authority.
 - A complete evidence chain links MCP call, action, command, fact, state projections, capture, and
   correction.
 
-## Phase 1 — semantic inspect/edit loop
+## Phase 1 - semantic inspect/edit loop
 
 Generalize from the point light to framework-owned world data.
 
@@ -212,7 +212,7 @@ Existing demos may provide regression cases, but they are not the quality target
 - A sandbox can prove and promote one bounded change through normal authority.
 - Framework core keeps its import boundaries.
 
-## Phase 2 — deterministic scenario and evidence loop
+## Phase 2 - deterministic scenario and evidence loop
 
 Let an agent prove gameplay behavior instead of narrating success from code and screenshots.
 
@@ -240,10 +240,10 @@ Let an agent prove gameplay behavior instead of narrating success from code and 
 - Three clean runs produce equal semantic checkpoints and declared tolerances.
 - A seeded state, input, timing, or event defect is localized to its first divergence.
 - Scenario runs work headlessly when rendering is not required.
-- Visual evidence supplements—not replaces—state/event assertions.
+- Visual evidence supplements - not replaces - state/event assertions.
 - An interrupted or timed-out run leaves a queryable job result and cleans owned resources.
 
-## Phase 3 — selection, assets, rendering, and motion evidence
+## Phase 3 - selection, assets, rendering, and motion evidence
 
 Connect semantic intent to the actual asset and pixels the player experiences.
 
@@ -282,7 +282,7 @@ Connect semantic intent to the actual asset and pixels the player experiences.
 - Motion evidence is clear at intended website/game delivery size and includes more than repeated
   views of one state.
 
-## Phase 4 — representative game disciplines
+## Phase 4 - representative game disciplines
 
 Grow specialized inspection only through game features that need it.
 
@@ -312,7 +312,7 @@ Grow specialized inspection only through game features that need it.
 - The inspection helps find a seeded real defect that ordinary tests or static screenshots miss.
 - Independent design/presentation review still decides player-facing quality.
 
-## Phase 5 — production scale and release
+## Phase 5 - production scale and release
 
 Add these when an Antiky game has the corresponding production requirement:
 

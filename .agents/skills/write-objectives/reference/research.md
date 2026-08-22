@@ -9,7 +9,7 @@ Aliases: `generate-research-plan`.
 
 ### 1. Read the objective and the ground truth
 
-Read `objective.md` in full. If it is empty or still only prompts, stop and say so — there is
+Read `objective.md` in full. If it is empty or still only prompts, stop and say so - there is
 nothing to research against.
 
 Then read what constrains the answer before you go looking for one:
@@ -39,10 +39,10 @@ A question that cannot change what the plan says is not a research question. Cut
 
 One subagent per line of inquiry. Give each:
 
-- **a narrow scope** — one area, one question set. Two agents on the same area produce two
+- **a narrow scope** - one area, one question set. Two agents on the same area produce two
   overlapping documents and no more information;
-- **its sources** — the directories, files, or external material to read;
-- **the return format** — findings, evidence for each, and explicit gaps;
+- **its sources** - the directories, files, or external material to read;
+- **the return format** - findings, evidence for each, and explicit gaps;
 - **the standing rule** that an unverifiable claim must be labelled as such rather than dropped or
   asserted.
 
@@ -64,10 +64,10 @@ research/02-<finding-area>.md
 
 Compiling is not concatenating. For each document:
 
-- state what is **established** — verified against a primary source, with the source named;
-- state what is **claimed** — asserted by a maintainer, a document, or a subagent, unverified;
-- state what is **inferred** — your reasoning from the above, marked as reasoning;
-- state the **gaps** — what nobody could answer, and what it would take to answer it.
+- state what is **established** - verified against a primary source, with the source named;
+- state what is **claimed** - asserted by a maintainer, a document, or a subagent, unverified;
+- state what is **inferred** - your reasoning from the above, marked as reasoning;
+- state the **gaps** - what nobody could answer, and what it would take to answer it.
 
 Where two subagents disagree, say so and say which you believe and why. A contradiction resolved
 silently is a contradiction that resurfaces during execution.
@@ -83,7 +83,7 @@ Tell the owner:
 
 - what the research concluded, in a few sentences;
 - which questions are answered and which are still open;
-- **what needs their decision before planning can start** — the open questions that are theirs, not
+- **what needs their decision before planning can start** - the open questions that are theirs, not
   yours;
 - anything found that contradicts an existing ADR or the stated direction, called out plainly. This
   is the most valuable thing research produces and the easiest to bury.

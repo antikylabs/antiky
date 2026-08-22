@@ -48,7 +48,7 @@ agents, and Studio. Start with the task you want to complete.
   compatibility boundary.
 - [Install and manage Antiky skills](skills/install.md) for one project, one agent, or your user
   account.
-- Use the [Ready skills reference](skills/reference.md) to look up public skill names, purposes, and
+- Use the [Antiky skills reference](skills/reference.md) to look up public skill names, purposes, and
   subcommands.
 
 ## API reference

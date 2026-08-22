@@ -12,7 +12,7 @@ const SYSTEM = [
     status: 'Current foundation · pre-release',
     evidenceStatus: 'current',
     title: 'Framework',
-    body: 'Headless fixed-step sessions, stable identities, structured inspection, portable game modules, and a first bounded authoring slice.',
+    body: 'Build portable games with fixed-step sessions, stable identities, structured inspection, and controlled live editing.',
   },
   {
     href: '/studio',
@@ -26,14 +26,14 @@ const SYSTEM = [
     status: 'Current services · pre-release',
     evidenceStatus: 'current',
     title: 'CLI and project services',
-    body: 'One local authority starts the game, build, inspection, and MCP services for CLI, Studio, and typed clients.',
+    body: 'Start the game, build watcher, inspection service, and MCP tools from one local command.',
   },
   {
     href: '/docs/mcp/overview',
-    status: 'Bounded tools now · broader work ahead',
+    status: 'Current tools · more ahead',
     evidenceStatus: 'emerging',
     title: 'Agents',
-    body: 'Agents can inspect the same session and use approved tools today. Richer feedback, experiments, and authority boundaries remain direction.',
+    body: 'Let compatible coding agents inspect the running game and use approved development tools.',
   },
 ] as const;
 
@@ -44,12 +44,12 @@ export default function HomePage() {
   return (
     <>
       <section className="home-hero" id="idea">
-        <DemoStage slug="antiky-town" variant="hero" label="Antiky Town — a current Framework world with a golden-hour market, water, foliage, and live light authoring" />
+        <DemoStage slug="antiky-town" variant="hero" label="Antiky Town: a current Framework world with a golden-hour market, water, foliage, and live light authoring" />
         <div className="home-hero-copy">
           <h1>Build the world in your mind.<br />Stay in the director&apos;s chair.</h1>
           <p>
             Antiky Labs explores game development where human creators and software agents are both
-            first-class participants—and the human remains the creative authority.
+            first-class participants, and the human remains the creative authority.
           </p>
           <div className="actions">
             <StudioPrimaryAction className="button button-primary" />
@@ -59,7 +59,7 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-        <p className="media-caption"><span>Current proof · Antiky Town</span> Live Framework world, light authoring, and BroMetal rendering</p>
+        <p className="media-caption"><span>Playable now · Antiky Town</span> Live Framework world, light authoring, and BroMetal rendering</p>
       </section>
 
       <section className="content-section assumption-section" id="changed-assumption">
@@ -75,7 +75,7 @@ export default function HomePage() {
             </p>
             <p>
               Antiky asks what changes when software agents can work through context the system
-              exposes directly—not only fragments they must assemble.
+              exposes directly, not only fragments they must assemble.
             </p>
             <Link className="text-link section-link" href="/thesis">Follow the full argument <ArrowRight /></Link>
           </div>
@@ -100,7 +100,7 @@ export default function HomePage() {
       <section className="content-section shared-state-section" id="shared-state">
         <div className="wrap split-heading">
           <div>
-            <p className="section-label">Current architectural proof</p>
+            <p className="section-label">How it works today</p>
             <h2>One game. One source of truth.</h2>
           </div>
           <div className="prose">
@@ -109,8 +109,8 @@ export default function HomePage() {
               services and observe the same running session.
             </p>
             <p>
-              Inspection is read-only. Simulation controls and approved commands cross explicit
-              change boundaries; the broader creator-agent loop remains direction.
+              Inspection is read-only. Simulation controls and approved commands make deliberate
+              changes without giving every connected tool unrestricted access.
             </p>
             <div className="thesis-links">
               <Link className="text-link" href="/studio">See it in Studio <ArrowRight /></Link>
@@ -125,7 +125,7 @@ export default function HomePage() {
           <h2>One development model.</h2>
           <p>
             Framework, Studio, project services, and agent tools are different views and
-            responsibilities around the same game—not four unrelated products.
+            responsibilities around the same game, not four unrelated products.
           </p>
         </header>
         <div className="editorial-list">
@@ -154,8 +154,8 @@ export default function HomePage() {
             <p className="lead">The game creates real problems. Reusable solutions become Antiky.</p>
             <p>
               Antiky Town, Traversal Study, and Point Light Expo are the three public technical
-              studies running today. Emberwyrd is the larger creative and technical test Antiky
-              Labs is building toward. It is not a playable release yet.
+              studies running today. Emberwyrd is the larger game Antiky Labs is building. It is
+              not playable yet.
             </p>
             <div className="thesis-links">
               <Link className="button button-primary" href="/demos/antiky-town">Run Antiky Town <ArrowUpRight /></Link>
@@ -173,12 +173,12 @@ export default function HomePage() {
             <p className="lead">Antiky is a lab because the important questions still need testing.</p>
             <p>
               Can better context reduce guessing? Can a creator give feedback to an exact target?
-              Can bounded experiments produce useful evidence without granting authority? Can a
-              better environment help smaller models do meaningful work? The questions are public;
-              results become claims only when the evidence exists.
+              Can agents test ideas without taking control away from the creator? Can a
+              better environment help smaller models do meaningful work? We publish what works,
+              what fails, and what we learn.
             </p>
             <div className="thesis-links">
-              <Link className="text-link" href="/research">See the research boundary <ArrowRight /></Link>
+              <Link className="text-link" href="/research">Explore the research <ArrowRight /></Link>
               <Link className="text-link" href="/roadmap">Read the roadmap <ArrowRight /></Link>
             </div>
           </div>
@@ -191,7 +191,7 @@ export default function HomePage() {
           <h2>The idea should choose the form.</h2>
         </div>
         <div className="prose">
-          <p className="lead">2D, 3D, and 2.3D are creative possibilities, not product boundaries.</p>
+          <p className="lead">Build in 2D, 3D, or anywhere between them.</p>
           <p>
             BroMetal is where Antiky&apos;s rendering work began and the renderer our Framework games
             use today. The research can follow the needs of the games without turning one rendering
@@ -214,8 +214,7 @@ export default function HomePage() {
           </div>
           <div className="prose">
             <p className="lead">
-              The Antiky Discord is for builders curious about human-agent game development—not a
-              claim that a finished ecosystem already exists.
+              Meet builders exploring human-agent game development and share what you are making.
             </p>
             <p>
               Ask for Studio help, share what you are building, challenge the thesis, compare

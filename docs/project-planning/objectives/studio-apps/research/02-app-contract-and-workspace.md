@@ -49,7 +49,7 @@ visible and keep optional services optional.
 
 No shape is selected during research.
 
-### Shape A — imperative first-party activation
+### Shape A - imperative first-party activation
 
 ```ts
 {
@@ -67,7 +67,7 @@ exist.
 **Pressure:** Contribution validation, introspection, deterministic workspace assembly, and future
 isolation become conventions unless the registration methods themselves are narrow and validated.
 
-### Shape B — validated descriptor plus optional runtime
+### Shape B - validated descriptor plus optional runtime
 
 ```ts
 {

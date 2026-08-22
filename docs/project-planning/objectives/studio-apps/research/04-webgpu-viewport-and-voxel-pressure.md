@@ -32,8 +32,8 @@ StudioShell
 camera. The live game is an iframe connected through session identity, snapshots, commands, call
 logs, and capture operations.
 
-**Established:** Accepted ADRs place platform work—canvas selection, raw events, focus/visibility,
-time, presentation callbacks, and listener cleanup—in the game host. Renderer selection remains in
+**Established:** Accepted ADRs place platform work - canvas selection, raw events, focus/visibility,
+time, presentation callbacks, and listener cleanup - in the game host. Renderer selection remains in
 the game module. The Framework driver owns BroMetal/GPU resources on the default path, while Studio
 and CLI remain renderer-agnostic.
 

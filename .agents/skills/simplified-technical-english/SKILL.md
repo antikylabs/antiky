@@ -27,7 +27,7 @@ Resolve `<skill-dir>` to the base directory the runtime reports for this skill. 
 reports none, use `.claude/skills/simplified-technical-english/` or
 `.agents/skills/simplified-technical-english/`. Keep cwd at the user's project.
 
-Run the linter directly. It needs Node and nothing else — no install, no network, no model:
+Run the linter directly. It needs Node and nothing else - no install, no network, no model:
 
 ```bash
 node <skill-dir>/scripts/ste_lint.mjs <file>...
@@ -45,10 +45,10 @@ The data file sits next to the script and is found automatically.
 
 Routing:
 
-- **Explicit command** — load its reference and follow it.
-- **No command, but a target** — run `audit`. It is the only mode that cannot damage the target.
+- **Explicit command** - load its reference and follow it.
+- **No command, but a target** - run `audit`. It is the only mode that cannot damage the target.
   Offer `fix` afterward.
-- **No command and no target** — ask which of the three the user wants, and on what.
+- **No command and no target** - ask which of the three the user wants, and on what.
 - A request to "check", "review", or "lint" means `audit`. A request to "clean up", "correct", or
   "make it STE" means `fix`. A request to draft, rewrite, or produce new text means `write`.
 

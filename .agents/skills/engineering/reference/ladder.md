@@ -50,7 +50,7 @@ From [ponytail](https://github.com/DietrichGebert/ponytail).
 **The ladder runs after you understand the problem, not instead of it.**
 
 Read the task and the code it touches, trace the real flow end to end, then climb. The smallest
-change in the wrong place is not lazy — it is a second bug.
+change in the wrong place is not lazy - it is a second bug.
 
 This is the half that gets dropped. A rung-1 verdict on a problem you have not traced is a guess
 with a number on it.
@@ -58,20 +58,20 @@ with a number on it.
 ## Bug fixes: root cause, not symptom
 
 A report names a symptom. Grep every caller of the function you touch and fix the shared function
-once — one guard there is a smaller diff than one per caller, and patching only the path the report
+once - one guard there is a smaller diff than one per caller, and patching only the path the report
 names leaves a sibling caller still broken.
 
 ## What laziness does not apply to
 
 Never trade these away for a smaller diff:
 
-- **understanding the problem** — a small diff you do not understand is laziness dressed up as
+- **understanding the problem** - a small diff you do not understand is laziness dressed up as
   efficiency;
 - **input validation at trust boundaries**;
 - **error handling that prevents data loss**;
 - **security**;
 - **accessibility**;
-- **the calibration real hardware needs** — the platform is never the spec ideal, a clock drifts, a
+- **the calibration real hardware needs** - the platform is never the spec ideal, a clock drifts, a
   sensor reads off;
 - **anything explicitly requested.**
 
@@ -80,7 +80,7 @@ flimsier algorithm.
 
 ## Marking a deliberate simplification
 
-A shortcut with a known ceiling — a global lock, an O(n²) scan, a naive heuristic — gets a
+A shortcut with a known ceiling - a global lock, an O(n²) scan, a naive heuristic - gets a
 `ponytail:` comment naming the ceiling and the upgrade path. That turns a shortcut into a recorded
 decision instead of a trap.
 

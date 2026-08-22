@@ -2,10 +2,10 @@
 
 This document compiles the current-state and use-case research. Evidence labels have these meanings:
 
-- **Established** — verified in current code, an accepted ADR, or maintained documentation.
-- **Claimed** — stated by direction or third-party documentation but not proven in Antiky.
-- **Inferred** — a conclusion drawn from established evidence.
-- **Gap** — requires owner direction or a focused proof.
+- **Established** - verified in current code, an accepted ADR, or maintained documentation.
+- **Claimed** - stated by direction or third-party documentation but not proven in Antiky.
+- **Inferred** - a conclusion drawn from established evidence.
+- **Gap** - requires owner direction or a focused proof.
 
 Raw evidence is retained in
 [`00-current-studio-seams-corrected.md`](subagent_outputs/00-current-studio-seams-corrected.md) and
@@ -17,7 +17,7 @@ repository citations.
 ## What exists today
 
 **Established:** Studio is one coordinated game-editing workspace, not an app host. `StudioShell`
-assembles four fixed regions—Live game, Terminal, Inspection, and Activity—inside a fixed CSS grid.
+assembles four fixed regions - Live game, Terminal, Inspection, and Activity - inside a fixed CSS grid.
 The shell owns split values, fullscreen state, active tabs, and Settings visibility. Those state
 variables and CSS areas are implementation details rather than a registered workspace model.
 

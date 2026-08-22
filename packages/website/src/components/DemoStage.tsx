@@ -32,7 +32,7 @@ type StageStyle = CSSProperties & {
 /**
  * `gated` is a browser without WebGPU meeting a demo that needs it. It is deliberately not `error`:
  * the visitor did nothing wrong and there is nothing to retry, so the stage shows the demo's poster
- * — a real still frame of the demo running — with a badge saying why it is not live. A still frame
+ * with a real still frame of the demo running and a badge saying why it is not live. A still frame
  * is evidence; a red error card is a bug report addressed to the wrong person.
  */
 type StagePhase = 'poster' | 'gated' | 'loading' | 'running' | 'paused' | 'error';
@@ -302,7 +302,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
     >
       <canvas ref={canvasRef} className="stage-canvas" aria-label={label} tabIndex={0} />
       {phase === 'gated' ? (
-        <p className="stage-badge">Static capture — this study needs WebGPU</p>
+        <p className="stage-badge">Static capture: this study needs WebGPU</p>
       ) : phase === 'loading' ? (
         <div className="stage-status">Loading verified game artifact…</div>
       ) : phase === 'error' ? (

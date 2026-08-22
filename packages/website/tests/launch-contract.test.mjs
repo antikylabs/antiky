@@ -8,11 +8,11 @@ const mediaPublication = JSON.parse(await readFile(new URL('../media-publication
 
 const EXPLANATIONS = [
   ['framework.html', '/framework', /Antiky Framework is an open-source TypeScript game framework/, ['Current', 'Emerging', 'Direction']],
-  ['studio.html', '/studio', /Antiky Studio is the native visual workspace/, ['Current', 'Emerging', 'Direction', 'Research question']],
-  ['research.html', '/research', /Antiky Labs uses focused research gyms/, ['Completed study', 'Active gym', 'Research question']],
-  ['resources.html', '/resources', /Antiky Resources is the public home/, ['Current', 'Direction', 'Coming soon']],
-  ['resources/skills.html', '/resources/skills', /An agent skill is a small, independently installable/, ['Current', 'Ready skills']],
-  ['roadmap.html', '/roadmap', /We are building one complete loop/, ['Direction', 'release scope without dates']],
+  ['studio.html', '/studio', /Antiky Studio is the native visual workspace/, ['Current', 'Emerging', 'Planned', 'Exploring']],
+  ['research.html', '/research', /Antiky Labs runs focused experiments/, ['Completed study', 'Active gym', 'Research question']],
+  ['resources.html', '/resources', /Browse CC0 assets and installable agent skills today/, ['Current', 'Coming soon']],
+  ['resources/skills.html', '/resources/skills', /An agent skill is a small, independently installable/, ['Current', 'Available skills']],
+  ['roadmap.html', '/roadmap', /We are building one complete loop/, ['Planned', 'no release dates']],
 ];
 
 function mainContent(source) {
@@ -101,7 +101,7 @@ test('agent-readable discovery and crawler policy include the new public explana
     assert.ok(llms.includes(name), `llms.txt is missing ${name}`);
     assert.ok(llms.includes(new URL(route, siteUrl).toString()), `llms.txt is missing ${route}`);
   }
-  for (const page of ['Understand Antiky agent skills', 'Install and manage Antiky skills', 'Ready skills reference']) {
+  for (const page of ['Understand Antiky agent skills', 'Install and manage Antiky skills', 'Antiky skills reference']) {
     assert.ok(llmsFull.includes(page), `llms-full.txt is missing ${page}`);
   }
   assert.match(robots, /User-Agent: \*/i);
@@ -109,11 +109,11 @@ test('agent-readable discovery and crawler policy include the new public explana
   assert.doesNotMatch(robots, /Disallow:/i);
 });
 
-test('Coming soon libraries contain boundaries instead of fake catalog entries', async () => {
+test('Coming soon libraries state availability and do not render fake catalog entries', async () => {
   const shaders = mainContent(await readFile(new URL('resources/shaders.html', outputRoot), 'utf8'));
   const projects = mainContent(await readFile(new URL('resources/projects.html', outputRoot), 'utf8'));
   assert.match(shaders, /There is no public catalog yet/);
-  assert.match(projects, /No template catalog is public yet/);
+  assert.match(projects, /There is no public template catalog yet/);
   assert.doesNotMatch(shaders, /class="(?:editorial-row|asset-card|skill-row)"/);
   assert.doesNotMatch(projects, /class="(?:editorial-row|asset-card|skill-row)"/);
 });

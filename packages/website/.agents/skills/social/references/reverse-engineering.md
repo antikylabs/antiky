@@ -9,7 +9,7 @@ Instead of guessing what works, systematically analyze top-performing content in
 
 ## The 6-Step Framework
 
-### 1. NICHE ID — Find Top Creators
+### 1. NICHE ID - Find Top Creators
 
 Identify 10-20 creators in your space who consistently get high engagement:
 
@@ -25,15 +25,15 @@ Identify 10-20 creators in your space who consistently get high engagement:
 - Use tools like SparkToro, Followerwonk, or manual research
 - Look at who gets featured in industry newsletters
 
-### 2. SCRAPE — Collect Posts at Scale
+### 2. SCRAPE - Collect Posts at Scale
 
 Gather 500-1000+ posts from your identified creators for analysis:
 
 **Tools:**
-- **Apify** — LinkedIn scraper, Twitter scraper actors
-- **Phantom Buster** — Multi-platform automation
-- **Export tools** — Platform-specific export features
-- **Manual collection** — For smaller datasets, copy/paste into spreadsheet
+- **Apify** - LinkedIn scraper, Twitter scraper actors
+- **Phantom Buster** - Multi-platform automation
+- **Export tools** - Platform-specific export features
+- **Manual collection** - For smaller datasets, copy/paste into spreadsheet
 
 **Data to collect:**
 - Post text/content
@@ -44,7 +44,7 @@ Gather 500-1000+ posts from your identified creators for analysis:
 - CTA used
 - Topic/theme
 
-### 3. ANALYZE — Extract What Actually Works
+### 3. ANALYZE - Extract What Actually Works
 
 Sort and analyze the data to find patterns:
 
@@ -68,7 +68,7 @@ Sort and analyze the data to find patterns:
 - What CTAs drive most comments?
 - What topics get saved/shared most?
 
-### 4. PLAYBOOK — Codify Patterns
+### 4. PLAYBOOK - Codify Patterns
 
 Document repeatable patterns you can use:
 
@@ -98,7 +98,7 @@ Why it works: Pattern interrupt + invites debate
 - Share: "Tag someone who needs this"
 - Save: "Save this for later"
 
-### 5. LAYER VOICE — Apply Direct Response Principles
+### 5. LAYER VOICE - Apply Direct Response Principles
 
 Take proven patterns and make them yours with these voice principles:
 
@@ -155,7 +155,7 @@ My hands were shaking when I sent the email.
 Here's what happened..."
 ```
 
-### 6. CONVERT — Turn Attention into Action
+### 6. CONVERT - Turn Attention into Action
 
 Bridge from engagement to business results:
 

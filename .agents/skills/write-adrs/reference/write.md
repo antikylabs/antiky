@@ -2,7 +2,7 @@
 
 Record an architecture decision a human owner has already made.
 
-`write` creates files. Confirm the owner wants the record written before you write it — see
+`write` creates files. Confirm the owner wants the record written before you write it - see
 "Ownership" below. If the decision has not actually been made, you want
 [suggest.md](suggest.md) instead.
 
@@ -17,7 +17,7 @@ Ask, if it is not already clear:
 
 - What did the owner decide? State it back in one sentence.
 - Is this one decision, or several? One record holds one decision. Two decisions are two records.
-- Does it change an existing decision? If so, this is a supersede — see step 5.
+- Does it change an existing decision? If so, this is a supersede - see step 5.
 - Is there a related proposal document? Link it in the Context.
 
 If the owner is describing options rather than an outcome, stop. That is a `suggest` job.
@@ -25,7 +25,7 @@ If the owner is describing options rather than an outcome, stop. That is a `sugg
 ### 2. Place and number it
 
 Follow the project's numbering scheme. Where records are grouped into areas, numbering is usually
-**per area** — read that area for its highest number rather than taking the highest in the tree:
+**per area** - read that area for its highest number rather than taking the highest in the tree:
 
 ```bash
 ls docs/adr/<area>/*.md | sed 's|.*/||' | grep -oE '^[0-9]{4}' | sort -n | tail -1
@@ -42,7 +42,7 @@ the existing records, not from assumption:
 - What is true now that creates the problem? Name the constraint.
 - Which existing ADRs bear on it? Read them. A conflict between two records is often exactly what
   the new record resolves, and saying so is the clearest possible Context.
-- What limits apply — platform, performance, dependency maturity, team size?
+- What limits apply - platform, performance, dependency maturity, team size?
 - What does the related proposal document establish?
 
 An ADR must not use an objective, goal, feedback record, or implementation plan as its authority.
@@ -100,7 +100,7 @@ Do not report the record as STE compliant on the strength of a linter run.
 ADRs are human-owned and carry `_H`. Write one only when a human owner instructs you to.
 
 If the owner asks you to draft first and file later, produce the draft and show it. Do not create
-the file, do not take a number, and do not touch the index — a number taken and abandoned is a hole
+the file, do not take a number, and do not touch the index - a number taken and abandoned is a hole
 in a sequence that must never be reused.
 
 For an owner-approved in-place clarification, run `docs/adr/tag-hash.sh` while `HEAD` still contains

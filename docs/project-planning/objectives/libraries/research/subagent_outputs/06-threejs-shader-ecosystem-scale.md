@@ -4,7 +4,7 @@
 
 ### Plain-English result
 
-Three.js does **not** give users hundreds or thousands of independent, ready-made shaders in core. It gives them a small supported set of general-purpose material models, a much larger shader-composition vocabulary, roughly a hundred separately importable rendering-effect modules across the old WebGL and newer TSL stacks, and a **577-example official teaching corpus**. Its practical scale comes from composition, parameters, examples, and decentralized third-party packages—not from thousands of bundled named looks.
+Three.js does **not** give users hundreds or thousands of independent, ready-made shaders in core. It gives them a small supported set of general-purpose material models, a much larger shader-composition vocabulary, roughly a hundred separately importable rendering-effect modules across the old WebGL and newer TSL stacks, and a **577-example official teaching corpus**. Its practical scale comes from composition, parameters, examples, and decentralized third-party packages - not from thousands of bundled named looks.
 
 ### Counts by layer
 

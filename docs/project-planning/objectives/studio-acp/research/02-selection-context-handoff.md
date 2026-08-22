@@ -38,7 +38,7 @@ different rules.
 The maintained Studio architecture requires one selection service and says a selected target can
 include an entity or asset, owner entity, specialized pick data, material, pipeline, and render pass
 (`docs/architecture/studio/overview_A.md:247-263`). Contextual feedback defines complete parent
-hierarchy as every parent from world root to target—not the whole world—and requires explicit size,
+hierarchy as every parent from world root to target - not the whole world - and requires explicit size,
 permission, and incompleteness behavior
 (`docs/architecture/studio/contextual-feedback_A.md:74-116`).
 

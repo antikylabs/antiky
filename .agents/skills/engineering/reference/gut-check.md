@@ -5,7 +5,7 @@ A fast read on an approach before it is built. Minutes, not an audit.
 ## The answer might be "yes"
 
 **A gut-check that always finds something is as useless as one that never does.** Some approaches
-are fine. When one is, say so plainly and say why — that is a real answer, and it is what makes the
+are fine. When one is, say so plainly and say why - that is a real answer, and it is what makes the
 other verdicts worth listening to.
 
 Do not manufacture a caveat to look thorough. "This is the right shape, build it" is a complete
@@ -17,7 +17,7 @@ gut-check.
 
 Read the proposal, and the code it touches. Trace the real flow end to end.
 
-You cannot gut-check a problem you have not understood — see the guard in [ladder.md](ladder.md). If
+You cannot gut-check a problem you have not understood - see the guard in [ladder.md](ladder.md). If
 the proposal is too vague to trace, that is the finding: go to [talk-it-out.md](talk-it-out.md).
 
 ### 2. Climb the ladder
@@ -32,17 +32,17 @@ Simplifying away validation at a trust boundary is not a gut-check, it is a defe
 
 [GOOD_ENGINEERING_H.md](GOOD_ENGINEERING_H.md), particularly:
 
-- **Complexity is the enemy** — does this add change amplification, cognitive load, or unknown
+- **Complexity is the enemy** - does this add change amplification, cognitive load, or unknown
   unknowns?
-- **Don't abstract too early** — is this a framework for a problem that has occurred once?
-- **Deep modules, not shallow** — does the interface hide more than it exposes?
-- **Respect existing code** — is there a fence here, and do you know why it was built?
+- **Don't abstract too early** - is this a framework for a problem that has occurred once?
+- **Deep modules, not shallow** - does the interface hide more than it exposes?
+- **Respect existing code** - is there a fence here, and do you know why it was built?
 
 ### 4. Answer
 
 Three sentences is a good gut-check. Say:
 
-- **the verdict** — build it, build something smaller, or do not build it;
+- **the verdict** - build it, build something smaller, or do not build it;
 - **the one reason** that decided it;
 - **what would change your mind**, if you are not confident.
 

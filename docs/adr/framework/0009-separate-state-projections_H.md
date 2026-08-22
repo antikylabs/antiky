@@ -42,4 +42,5 @@ clients.
 
 ## Revision history
 
-- `4c35b270f3da017454b12dd75e104b0c50355818` — Prior version before the plain-language rewrite.
+- `4c35b270f3da017454b12dd75e104b0c50355818`: Prior version before the plain-language rewrite.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

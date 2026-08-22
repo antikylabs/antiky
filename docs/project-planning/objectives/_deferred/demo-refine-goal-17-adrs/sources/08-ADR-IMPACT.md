@@ -1,4 +1,4 @@
-# ADR Impact Analysis — the demo-refining plan set against accepted decisions
+# ADR Impact Analysis - the demo-refining plan set against accepted decisions
 
 **Date:** 2026-08-10
 **Scope:** all 30 ADRs under `docs/adr/{framework,cli,studio}/`, `docs/adr/UNDER_REVIEW_A.md`,
@@ -14,15 +14,15 @@ raise an issue loudly! Disasterous ADRs can be disasterous for the platform."*
 
 ## How to read the labels
 
-- **[verified]** — I ran the grep or read the file. A `file:line` citation follows.
-- **[inference]** — my reading of a clause or a consequence. Reasoned, not proven.
-- **[owner decision]** — cannot be resolved from the record. Needs a Core Contributor.
+- **[verified]** - I ran the grep or read the file. A `file:line` citation follows.
+- **[inference]** - my reading of a clause or a consequence. Reasoned, not proven.
+- **[owner decision]** - cannot be resolved from the record. Needs a Core Contributor.
 
 And the two verdicts that matter most, which are deliberately kept apart:
 
-- **WORK** — an accepted ADR already decided this. Closing the gap needs engineering, not a
+- **WORK** - an accepted ADR already decided this. Closing the gap needs engineering, not a
   decision, and needs no AIP.
-- **DECISION** — no accepted ADR covers it. It needs an AIP, and possibly an ADR after.
+- **DECISION** - no accepted ADR covers it. It needs an AIP, and possibly an ADR after.
 
 ---
 
@@ -42,7 +42,7 @@ exist.** `RenderDriver` appears in `framework/0006`, `0008`, `0009`, `0016`, `00
 | `packages/demos/antiky/antiky-town/src/town/town-runtime.ts:9` | comment |
 | `packages/demos/brometal/town-study/src/town/town-runtime.ts:9` | comment |
 
-The two comments read `/** Game-module data plus the game-owned BroMetal render driver. */` — the
+The two comments read `/** Game-module data plus the game-owned BroMetal render driver. */` - the
 *inverse* of ADR 0006's ownership rule [verified].
 
 This is not new information inside the repository. `docs/objectives/inspection-tooling/framework-state-and-inspection.md:160`
@@ -56,7 +56,7 @@ failure the ADR README exists to prevent, and it is worse than any single item b
 
 ## 1. Compliance gaps
 
-### 1.1 ADR framework/0006 — the render driver — **DECISION**
+### 1.1 ADR framework/0006 - the render driver - **DECISION**
 
 **Clause** (`docs/adr/framework/0006-brometal-render-driver_H.md:25-26`):
 
@@ -75,12 +75,12 @@ state, Disposal of these resources."
 - `packages/demos/antiky/traversal-study/src/renderer.ts:14`
 - `packages/demos/antiky/antiky-town/src/game.ts:1`, `src/town/town-runtime.ts:1`
 
-Each demo owns its own programs, textures and disposal — precisely the six things `:28-35` assigns
+Each demo owns its own programs, textures and disposal - precisely the six things `:28-35` assigns
 to the driver.
 
 **But the divergence is narrower than it first looks, and this matters.** ADR 0006's context scopes
 the harm to framework concerns: *"BroMetal types and resources must not spread into those parts of
-Antiky"* — world data, gameplay rules, saved data, networking, Studio behavior, agent protocols
+Antiky"* - world data, gameplay rules, saved data, networking, Studio behavior, agent protocols
 (`:12-19`). That containment **holds today and is enforced by test**:
 `packages/framework/tests/import-boundary.test.mjs:10` forbids `/^brometal(?:\/|$)/` in framework
 source, and `:56` forbids `window|document|navigator` [verified]. A grep for
@@ -104,7 +104,7 @@ driver."*
 
 **A reader cannot determine from the accepted record whether a game module may hold a BroMetal
 `Renderer`.** That ambiguity, not the missing class, is the compliance defect. Resolution requires a
-decision, not work — see §3.1.
+decision, not work - see §3.1.
 
 **Impact of the plan.** `02-REMEDIATION-PLAN.md:40` adds `createRenderTarget` + `drawTo` passes
 inside each demo's own renderer; `06-WORK-PACKETS.md:201-251` (W B.2–W B.5) adds HDR targets, shadow
@@ -113,7 +113,7 @@ divergence by roughly three renderers' worth. The owner has already stated this 
 (`02-REMEDIATION-PLAN.md:21-32`). The question is therefore *not* whether to stop, but what record
 should exist for an interim state that is about to become substantially larger.
 
-### 1.2 ADR framework/0013 — no seed reaches any simulation — **WORK**
+### 1.2 ADR framework/0013 - no seed reaches any simulation - **WORK**
 
 **Clause** (`docs/adr/framework/0013-explicit-simulation-inputs_H.md:17-21`):
 
@@ -125,11 +125,11 @@ should exist for an interim state that is about to become substantially larger.
 
 **Divergence** [verified]. `grep -rn "seed\|Seed" packages/framework/src` returns **zero hits**, and
 `EngineSessionOptions` (`packages/framework/src/sessions/engine-session/contract.ts:41-50`) has no
-seed field — it carries `sessionId`, `worldId`, `runtimeInstanceId`, `systems`, `captureInput`,
+seed field - it carries `sessionId`, `worldId`, `runtimeInstanceId`, `systems`, `captureInput`,
 `getStateDigest?`, `services?`, `initialCompletedStepCount?` and nothing else. `packages/cli/src`
 likewise has zero `\bseed\b` matches. Instead, `Math.sin`-based hashes are baked into demo source at
-six sites — **five distinct implementations**, since the last two are byte-identical copies of each
-other — plus one GLSL copy:
+six sites - **five distinct implementations**, since the last two are byte-identical copies of each
+other - plus one GLSL copy:
 
 | file:line | constants |
 |---|---|
@@ -148,12 +148,12 @@ input; there is no seed at all. That is the breach, stated precisely.
 
 **Be careful about the adjacent claim.** ADR 0013 `:33-34` says *"Antiky does not promise identical
 binary results on all platforms. A subsystem can make this promise only if tests verify it."* So
-`Math.sin`'s non-correctly-rounded behaviour is a **risk**, not an ADR violation — the ADR declines
+`Math.sin`'s non-correctly-rounded behaviour is a **risk**, not an ADR violation - the ADR declines
 the cross-platform promise. And `seeded(index, salt)` is a pure function of explicit arguments, so
-it does not breach `:39-41` (*"A system cannot read the system clock or hidden random values"*) —
+it does not breach `:39-41` (*"A system cannot read the system clock or hidden random values"*) -
 nothing hidden is read.
 
-**Where it does bite — exactly one of the four demos.** `combat-arena`'s state digest hashes
+**Where it does bite - exactly one of the four demos.** `combat-arena`'s state digest hashes
 `enemy.phase` (`packages/demos/antiky/combat-arena/src/combat/digest.ts:112`), and `enemy.phase` is
 set from `seeded(index, 2) * Math.PI * 2`
 (`packages/demos/antiky/combat-arena/src/combat/state.ts:260`) [verified]. That digest reaches
@@ -173,7 +173,7 @@ The other three digests do **not** depend on it [verified]: `point-light-expo`
 a forkable `RandomStream` is implementation, and `05:514-519` already reasons it both ways. Do not
 write an ADR for this.
 
-### 1.3 Render interpolation is **not** a compliance gap — correction
+### 1.3 Render interpolation is **not** a compliance gap - correction
 
 ADR 0013 `:30-31` says: *"The renderer **can** estimate positions between two simulation states. It
 can also run at a different rate from the simulation."* That is a **permission**, not a requirement.
@@ -209,7 +209,7 @@ Two details worth carrying into W D.5 that the plan set does not yet state:
 
 **Verdict: WORK.** No ADR, no AIP.
 
-### 1.4 ADR framework/0009 — projection drift has no detector — **WORK**
+### 1.4 ADR framework/0009 - projection drift has no detector - **WORK**
 
 **Clause** (`docs/adr/framework/0009-separate-state-projections_H.md:36-38`):
 
@@ -220,10 +220,10 @@ Two details worth carrying into W D.5 that the plan set does not yet state:
 different answers to "what is the ground height at x", one per projection
 (`04-COMPLEXITY-REDUCTION.md:644-648`):
 
-- runtime: `supportAt` — `packages/demos/antiky/traversal-study/src/simulation.ts:161-171`
+- runtime: `supportAt` - `packages/demos/antiky/traversal-study/src/simulation.ts:161-171`
   (highest platform wins, `width*0.5 − 0.05` inset)
-- render: `courseTopAt` — `src/renderer.ts:282-288` (first in array order, no inset)
-- inspection: `courseTop` — `src/inspection.ts:330-333`
+- render: `courseTopAt` - `src/renderer.ts:282-288` (first in array order, no inset)
+- inspection: `courseTop` - `src/inspection.ts:330-333`
 
 No sequence check, rebuild, or test detects the disagreement. `combat-arena`'s three sun directions
 and three fog ranges (`04-COMPLEXITY-REDUCTION.md:717-720`) are the same failure across shader
@@ -238,7 +238,7 @@ mutating. Do not report a mutation violation here; there isn't one.
 **Verdict: WORK.** `06-WORK-PACKETS.md:120-134` (W0.4) and `04-COMPLEXITY-REDUCTION.md:654-664` (F1)
 are the correct remedies and satisfy 0009's own consequence. No ADR needed.
 
-### 1.5 ADR framework/0008 — module-level mutable simulation state — **WORK**
+### 1.5 ADR framework/0008 - module-level mutable simulation state - **WORK**
 
 **Clause** (`docs/adr/framework/0008-engine-session-owns-worlds_H.md:21-22`):
 
@@ -256,10 +256,10 @@ and `UNDER_REVIEW_A.md:59-68` (item 7, Sandbox isolation, **Open**) both assume 
 isolated world. Module-level mutable simulation state defeats that.
 
 **Verdict: WORK.** `04-COMPLEXITY-REDUCTION.md:110-114` (A1, `course-query.ts`) already proposes the
-split. It should be scoped to per-instance state, not merely moved to another file — the plan's A1
+split. It should be scoped to per-instance state, not merely moved to another file - the plan's A1
 does not currently say that, and it should.
 
-### 1.6 ADR cli/0001 — the tool enumeration is stale — **WORK (clarification)**
+### 1.6 ADR cli/0001 - the tool enumeration is stale - **WORK (clarification)**
 
 **Clause** (`docs/adr/cli/0001-use-mcp-tools-for-development_H.md:43-44`):
 
@@ -273,15 +273,15 @@ eight actions (adding `capture_gameplay_sequence:382`, `pause_simulation:388`,
 `resume_simulation:394`, `step_simulation:400`, `set_point_light_power:406`,
 `correct_point_light_power:412`).
 
-The ADR's *decision* — "advertise local development state and actions as MCP Tools" (`:41`), no
-duplicating Resources (`:49`) — is fully honoured. Only the enumeration has aged. The plan depends
+The ADR's *decision* - "advertise local development state and actions as MCP Tools" (`:41`), no
+duplicating Resources (`:49`) - is fully honoured. Only the enumeration has aged. The plan depends
 on eight tools the ADR does not name (`07-TESTING-WITH-ANTIKY-MCP.md:28-34`).
 
 **Verdict: WORK.** An owner-approved clarification via `docs/adr/tag-hash.sh`, replacing the frozen
 list with the rule that produces it. Low priority, but it is a decision record currently stating
 something untrue.
 
-### 1.7 Public product claims that the code does not support — **WORK**
+### 1.7 Public product claims that the code does not support - **WORK**
 
 `packages/website/PRODUCT.md:85`: *"The current Framework render driver uses BroMetal."*
 `packages/website/PRODUCT.md:158`: *"BroMetal … remains the current Framework render driver."*
@@ -289,8 +289,8 @@ something untrue.
 to the public [verified].
 
 `PRODUCT.md` sets its own bar three lines later (`:87-96`): *"Every meaningful public claim belongs
-to one of these states: **Current** — implemented and documented through a public boundary today.
-… **Direction** — supported by an accepted decision or explicit product direction, but not a public
+to one of these states: **Current** - implemented and documented through a public boundary today.
+… **Direction** - supported by an accepted decision or explicit product direction, but not a public
 capability yet."*
 
 There is no Framework render driver. By PRODUCT.md's own taxonomy this claim is **Direction**,
@@ -299,7 +299,7 @@ become a product claim because it appears in a plan or accepted architecture dir
 
 **Verdict: WORK, and it is the most urgent item in this document** because it is public, it is
 already shipped, and it is cheap to fix. Downgrade the wording to Direction, or state that game
-modules own the BroMetal renderer today. No ADR needed either way — this is a copy fix against an
+modules own the BroMetal renderer today. No ADR needed either way - this is a copy fix against an
 existing product standard. It should not wait for §3.1.
 
 ---
@@ -315,10 +315,10 @@ That second clause matters here. **None of the five ADRs below may cite this dir
 authority.** These plan documents can link to an ADR; an ADR cannot link back to them. Each proposed
 ADR must be able to state its facts from code and dependency versions alone.
 
-**Note on numbering:** `docs/aip/` contains only `README.md` — **zero AIPs exist** [verified], and
+**Note on numbering:** `docs/aip/` contains only `README.md` - **zero AIPs exist** [verified], and
 the AIP README defines no filename or numbering convention. Titles below, not numbers.
 
-### 2.1 CLEARS — Interim render ownership and the framework render slice
+### 2.1 CLEARS - Interim render ownership and the framework render slice
 
 **Decision to be made:** who owns a BroMetal `Renderer` today, and what evidence promotes rendering
 into a framework slice.
@@ -331,7 +331,7 @@ single most consequential unrecorded decision in the repository.
 **What it must decide, and nothing more:**
 1. A game module may hold and dispose a renderer directly (aligning 0006 with `studio/0007:41-42`
    and `framework/0020:51-52`).
-2. The framework must remain able to run without BroMetal or a DOM (already true and tested —
+2. The framework must remain able to run without BroMetal or a DOM (already true and tested -
    `packages/framework/tests/import-boundary.test.mjs:10,56`).
 3. The evidence that creates a Framework `RenderDriver`, stated as a condition.
 
@@ -344,24 +344,24 @@ directory.
 the reasoning survives.
 
 **Acceptance criteria for the AIP being ready to decide:**
-- Names every accepted ADR whose text depends on `RenderDriver` — 0006, 0008, 0009, 0016, 0019,
-  0020, studio/0007 — and states for each whether the successor changes its meaning.
+- Names every accepted ADR whose text depends on `RenderDriver` - 0006, 0008, 0009, 0016, 0019,
+  0020, studio/0007 - and states for each whether the successor changes its meaning.
 - States the promotion condition in a form that can be *checked*, not judged. `05-FRAMEWORK-EASY-WINS.md:5-7`
   offers one: *"a capability qualifies when it has been independently re-implemented in three or
   more demos with the same shape."*
 - States explicitly whether a 2.3D demo must be among those implementations (see §4.3).
 - ≤ 500 lines (`docs/aip/README.md:50`).
 
-### 2.2 CLEARS, narrowly — Colour management and transfer-function boundaries
+### 2.2 CLEARS, narrowly - Colour management and transfer-function boundaries
 
 **Decision to be made:** Antiky performs lighting in linear colour, and applies the sRGB transfer
-function at defined boundaries — once on texture decode, once on final output.
+function at defined boundaries - once on texture decode, once on final output.
 
 **Why it clears.** It is technology-independent, it outlives the demos, it binds any future
 `RenderDriver`, and getting it wrong has already cost thirteen documented compensation knobs
 (`04-COMPLEXITY-REDUCTION.md:317-331`). It has a compatibility surface: a shader either honours it
 or does not, and a repo-wide test can prove which (`06-WORK-PACKETS.md:127-128`). The root cause is
-a permanent fact about the stack, not a tuning choice — BroMetal hard-codes `rgba8unorm`
+a permanent fact about the stack, not a tuning choice - BroMetal hard-codes `rgba8unorm`
 (`00-VISUAL-DIAGNOSIS.md:181`), so the decode must live somewhere, and *where* is architectural.
 
 **Scope it hard.** The ADR decides the transfer-function boundary and the rule *material shaders
@@ -369,7 +369,7 @@ return linear HDR and never tone-map* (`02-REMEDIATION-PLAN.md:104-107`). It mus
 pass graph, the HDR target format, bloom, exposure, or grading. Those are implementation and will
 change.
 
-**Sequencing note that matters:** `docs/adr/README.md:110-111` — *"Core Contributors make the
+**Sequencing note that matters:** `docs/adr/README.md:110-111` - *"Core Contributors make the
 decision before they add the ADR."* So land W B.1(point-light-expo) first as the evidence, then
 record. Do not write this ADR speculatively.
 
@@ -381,17 +381,17 @@ record. Do not write this ADR speculatively.
 - The ADR text contains no reference to a render target, a bloom chain, or a tone-map operator name.
 - `06-WORK-PACKETS.md:127` W0.4's assertion is derivable from the ADR's decision sentence alone.
 
-### 2.3 CLEARS — Asset intake fidelity policy
+### 2.3 CLEARS - Asset intake fidelity policy
 
 **Decision to be made:** an asset intake step preserves what the source carried; the runtime adapts
 to the source, not the reverse. Any deliberate loss is declared with a reason and is verifiable.
 
-**Why architectural.** It is a boundary contract with a durable, versioned surface — the per-demo
+**Why architectural.** It is a boundary contract with a durable, versioned surface - the per-demo
 `assets/antiky-assets.json` receipts and hash verification
 (`packages/asset-catalog/src/node/install.ts:45-63`, cited at `03-ART-DIRECTION-AND-VFX.md:408`).
 It binds every current and future importer including Studio's. It is the same *shape* of question as
 `UNDER_REVIEW_A.md:100-108` (item 11, Voxel authoring and runtime-asset boundary, **Open**), and the
-two should be decided together or explicitly separated — two overlapping ADRs on the asset boundary
+two should be decided together or explicitly separated - two overlapping ADRs on the asset boundary
 would be a real cost.
 
 **The evidence is unusually strong.** Two shipped scripts destroy committed data:
@@ -408,19 +408,19 @@ review item 11 in its first paragraph.
   `traversal-study`'s 1×1 textures and against `gltf-pack-lib.mjs:89`, before the ADR is written.
 - The ADR decides the *policy*, not the manifest schema. A schema change must not require a new ADR.
 - W C.3 (`02-REMEDIATION-PLAN.md:269-270`, converge the three divergent asset scripts) is not started
-  until the policy is recorded — converging three scripts *is* choosing the policy.
+  until the policy is recorded - converging three scripts *is* choosing the policy.
 
-### 2.4 CLEARS, reframed — Local modification of a pinned dependency
+### 2.4 CLEARS, reframed - Local modification of a pinned dependency
 
 **Assess the BroMetal patches against ADR 0006's own clause first**
 (`docs/adr/framework/0006-brometal-render-driver_H.md:40`):
 
 > Changes that Antiky contributes to BroMetal must help renderers in general or correct an error.
 
-- **P1** — render-target sampler `nearest` → `linear` (`webgpu.js:761`,
+- **P1** - render-target sampler `nearest` → `linear` (`webgpu.js:761`,
   `02-REMEDIATION-PLAN.md:186`). Point-sampled render targets break bloom, planar reflection and any
   downsample chain for *every* renderer, not just Antiky's. **Passes "help renderers in general."**
-- **P2** — honour MSAA in `drawTo`, which hard-codes `passSamples = 1` (`webgpu.js:235`,
+- **P2** - honour MSAA in `drawTo`, which hard-codes `passSamples = 1` (`webgpu.js:235`,
   `02-REMEDIATION-PLAN.md:187`). Silently discarding a caller's requested sample count is a
   correctness defect. **Passes "correct an error."**
 
@@ -444,13 +444,13 @@ under what conditions, or what happens when upstream accepts, rejects, or diverg
 **Acceptance criteria:**
 - States the current surface exactly: 2 patches today, 4 proposed, one version pin at
   `scripts/patch-brometal.mjs:23-25`.
-- Decides what happens on a version bump when a patch target has moved — today
+- Decides what happens on a version bump when a patch target has moved - today
   `scripts/patch-brometal.mjs:31` throws `BroMetal patch target changed`, which is good behaviour
   and should be recorded as intended, not incidental.
 - Decides whether an unmerged upstream PR blocks a dependency upgrade.
 - Does **not** enumerate the patches. A fifth patch must not require a new ADR.
 
-### 2.5 CLEARS, weakly — May a delivery host branch on a game module's renderer?
+### 2.5 CLEARS, weakly - May a delivery host branch on a game module's renderer?
 
 `studio/0007:26-27` decides: *"Studio and the CLI will use the game-module contract to load each
 project. The game host will not select, import, or call a renderer."* Its consequence `:60`:
@@ -463,7 +463,7 @@ metadata (`packages/website/src/lib/demos.ts:23`, values at `:69`–`:216`), and
 branch shape (`packages/website/tests/demo/delivery.test.mjs:81`).
 
 ADR 0020 `:55` requires *"A delivery target will supply a game host when it operates a compiled game
-module"*, and `:73` calls the game module interface *"a compatibility boundary"* — but no accepted
+module"*, and `:73` calls the game module interface *"a compatibility boundary"* - but no accepted
 ADR says whether that boundary carries a capability declaration, or whether a non-Studio host may
 branch on renderer requirements.
 
@@ -474,13 +474,13 @@ needed. If it moves `requiresWebGpu` from website metadata onto the game-module 
 change to the compatibility boundary ADR 0020 names, and it needs an AIP first. **[owner decision]**
 on which of the two it is.
 
-### 2.6 Rejected — candidates that do **not** clear the bar
+### 2.6 Rejected - candidates that do **not** clear the bar
 
 A bloated ADR backlog is a real cost. These four were assessed and should not become ADRs.
 
 | Candidate | Why it fails |
 |---|---|
-| **Visual budgets and capture evidence as a required quality gate** | This is *process*, not architecture. `docs/aip/README.md:3-6` explicitly covers "development process" and `:37` allows an AIP to produce zero ADRs. `IMPLEMENTATION-PLAN.md:565` (B3) already routes it correctly — an `AGENTS.md` amendment. **AIP yes, ADR no.** One caveat: if frame statistics are to become an *engine service* reachable by agents, ADR 0003 has already decided that (§4.2) and it is WORK, still not a new ADR. |
+| **Visual budgets and capture evidence as a required quality gate** | This is *process*, not architecture. `docs/aip/README.md:3-6` explicitly covers "development process" and `:37` allows an AIP to produce zero ADRs. `IMPLEMENTATION-PLAN.md:565` (B3) already routes it correctly - an `AGENTS.md` amendment. **AIP yes, ADR no.** One caveat: if frame statistics are to become an *engine service* reachable by agents, ADR 0003 has already decided that (§4.2) and it is WORK, still not a new ADR. |
 | **Seeded RNG interface** | ADR 0013 decided it (§1.2). Choosing between `hashUnit` and a forkable `RandomStream` is implementation. |
 | **Framework-slice promotion criteria (the general rule)** | Governance/process. It belongs in an AIP and possibly `VISION_DIRECTION_H.md`, which already states the slice philosophy at `:37-50`. The *rendering-specific* form of it is inside §2.1, which is where it is load-bearing. |
 | **Making `FIXED_STEP_SECONDS` a per-session option** (`05-FRAMEWORK-EASY-WINS.md:1079-1089`) | ADR 0013 `:17` says "a fixed time step" and never fixes the rate. Widening `fixedDeltaSeconds: typeof FIXED_STEP_SECONDS` (`contract.ts:27,55,71`) from a literal type is work, not a decision. |
@@ -489,11 +489,11 @@ A bloated ADR backlog is a real cost. These four were assessed and should not be
 
 ## 3. ADRs needing amendment or supersession
 
-### 3.1 framework/0006 — recommendation, with the judgement call named
+### 3.1 framework/0006 - recommendation, with the judgement call named
 
 **Three options were considered.**
 
-**(a) Change the code to meet the ADR — build a `RenderDriver` now. Reject.** It contradicts the
+**(a) Change the code to meet the ADR - build a `RenderDriver` now. Reject.** It contradicts the
 owner's stated direction (`02-REMEDIATION-PLAN.md:21-24`), and it is precisely the premature
 abstraction `GOOD_ENGINEERING_H.md` forbids: *"Let structure emerge from working code… Wait for
 natural cut-points… A little code duplication is better than a premature abstraction."* The plan
@@ -503,7 +503,7 @@ interface.
 
 **(b) Supersede 0006 outright with a successor ADR.** Clean per `docs/adr/README.md:146` (*"When a
 decision changes, create a new ADR"*) and `docs/adr/AGENTS.md` (*"Do not change an accepted decision
-in place"*). Cost: 0006 carries content that is still correct and still enforced — the containment
+in place"*). Cost: 0006 carries content that is still correct and still enforced - the containment
 rule (`:12-19`), the no-DOM guarantee (`:44-45`), and the contribution clause (`:40`) that §2.4 uses.
 A successor would have to restate all of it, and six ADRs plus studio/0007 cite 0006 by number.
 
@@ -517,7 +517,7 @@ six citation repairs.
 (0006's own context already scopes the harm to framework concerns, `:12-19`) and arguably a *change
 of decision*. `docs/adr/AGENTS.md` permits clarification in place only with explicit owner
 instruction and requires `docs/adr/tag-hash.sh` to be run while `HEAD` still holds the prior text.
-**[owner decision]** — if the owner reads it as a decision change, (b) is correct and (c) is not
+**[owner decision]** - if the owner reads it as a decision change, (b) is correct and (c) is not
 available. I lean (c) because studio/0007 has *already* made the substantive decision for game
 modules; 0006's text simply never caught up.
 
@@ -533,21 +533,21 @@ the public on its authority (§1.7).
 - `packages/framework/tests/import-boundary.test.mjs` passes unchanged. The framework's BroMetal-free
   guarantee is the part of 0006 that is real, and it must survive.
 
-### 3.2 framework/0016 — already superseded, still being cited
+### 3.2 framework/0016 - already superseded, still being cited
 
-`docs/adr/framework/0016-give-platform-work-to-game-host_H.md:5` — *"Superseded by ADR 0020"*.
-`docs/adr/README.md:107` — a superseded decision *"does not control new work."*
+`docs/adr/framework/0016-give-platform-work-to-game-host_H.md:5` - *"Superseded by ADR 0020"*.
+`docs/adr/README.md:107` - a superseded decision *"does not control new work."*
 
-`05-FRAMEWORK-EASY-WINS.md:590` cites it as authority: *"(it never touches an event object — it
+`05-FRAMEWORK-EASY-WINS.md:590` cites it as authority: *"(it never touches an event object - it
 receives already-semantic booleans, per ADR 0016's raw-event/semantic-input split)"* [verified].
 
-The substance survives — `framework/0020:48` says *"The game host will change raw device events into
-semantic input"* — so the plan's reasoning is sound and only its citation is wrong. **No ADR action.
+The substance survives - `framework/0020:48` says *"The game host will change raw device events into
+semantic input"* - so the plan's reasoning is sound and only its citation is wrong. **No ADR action.
 Fix the citation in the plan.** Flagged here because a plan set built on superseded authority is
 precisely the failure mode the ADR README warns about, and it was one line from being a real
 problem.
 
-### 3.3 cli/0001 — clarification, low priority
+### 3.3 cli/0001 - clarification, low priority
 
 See §1.6. Replace the frozen tool enumeration at `:43-44` with the rule that generates it. Run
 `docs/adr/tag-hash.sh` first. Not urgent, but it is currently a record that states something false.
@@ -556,7 +556,7 @@ See §1.6. Replace the frozen tool enumeration at `:43-44` with the rule that ge
 
 ## 4. ADRs that constrain the plan and must be respected
 
-### 4.1 framework/0015 — WebGPU only — **constrains W F.1, does not block it**
+### 4.1 framework/0015 - WebGPU only - **constrains W F.1, does not block it**
 
 `docs/adr/framework/0015-webgpu-support-only_H.md:13`: *"Antiky will only support WebGPU. Antiky
 will not support WebGL2."*
@@ -570,16 +570,16 @@ permitted [verified].
 WebGL path to the Framework, to a `brometal/` demo, or to an `antiky/` demo breaches 0015 and
 studio/0007 `:69` (*"Antiky Framework stays WebGPU-only"*). The plan text at
 `02-REMEDIATION-PLAN.md:309-313` is careful about this and says "Fix the fallback framing… or lead
-with posters" — no divergence. Keep it that way.
+with posters" - no divergence. Keep it that way.
 
-### 4.2 framework/0003 — agent-native — **constrains Track 0's shape**
+### 4.2 framework/0003 - agent-native - **constrains Track 0's shape**
 
 `docs/adr/framework/0003-agent-native_H.md:17-23`: Studio, agents, tests and other clients use the
 same engine services, which include *"Image and video capture"* and *"Diagnostics"*. Consequence
 `:35`: *"A feature is not complete until clients can inspect and use it through the shared engine
 API."*
 
-`07-TESTING-WITH-ANTIKY-MCP.md:17-21` already caught the important half of this — Track 0 was
+`07-TESTING-WITH-ANTIKY-MCP.md:17-21` already caught the important half of this - Track 0 was
 rewritten to *wrap* the MCP rather than build a parallel Playwright harness. That correction is
 exactly right and is 0003 working as intended.
 
@@ -589,13 +589,13 @@ exactly right and is 0003 working as intended.
 every AC in `03-ART-DIRECTION-AND-VFX.md`, then an agent working through Studio or MCP cannot reach
 them, only an agent running repo scripts can. That is the split-surface 0003 exists to prevent.
 
-**Verdict: WORK, and a scoping call.** [owner decision] — either (i) declare frame statistics a
+**Verdict: WORK, and a scoping call.** [owner decision] - either (i) declare frame statistics a
 repo test utility, not an engine feature, in which case 0003 does not apply and `scripts/` is
 correct; or (ii) treat it as a diagnostic capability, in which case 0003 already requires it be
 reachable through the shared API. **No new ADR either way.** Decide it before W0.2b, so the code
 lands on the right side of the line once.
 
-### 4.3 framework/0004 — 2D, 3D and 2.3D — **the plan's biggest blind spot**
+### 4.3 framework/0004 - 2D, 3D and 2.3D - **the plan's biggest blind spot**
 
 `docs/adr/framework/0004-23d_H.md:14`: *"Antiky will give equal framework support to 2D, 3D, and
 2.3D games."* `:22`: *"Framework code must not assume that every object is a mesh, sprite, voxel, or
@@ -605,24 +605,24 @@ ARPG using the 2.3D art direction we have established for the game."*
 
 **Every plan document excludes the only 2.3D artifact** [verified]:
 
-- `03-ART-DIRECTION-AND-VFX.md:4` — "`antiky-town` is out of scope"
-- `04-COMPLEXITY-REDUCTION.md:5` — "`antiky-town` was not read and is out of scope"
-- `05-FRAMEWORK-EASY-WINS.md:9` — "`antiky-town/src` was not inspected"
-- `IMPLEMENTATION-PLAN.md:609` — "Not touching `antiky-town`"
-- `IMPLEMENTATION-PLAN.md:446` — notes it is *"the only demo with a real post pass"*, i.e. the one
+- `03-ART-DIRECTION-AND-VFX.md:4` - "`antiky-town` is out of scope"
+- `04-COMPLEXITY-REDUCTION.md:5` - "`antiky-town` was not read and is out of scope"
+- `05-FRAMEWORK-EASY-WINS.md:9` - "`antiky-town/src` was not inspected"
+- `IMPLEMENTATION-PLAN.md:609` - "Not touching `antiky-town`"
+- `IMPLEMENTATION-PLAN.md:446` - notes it is *"the only demo with a real post pass"*, i.e. the one
   artifact that has already solved part of what Track B is about
 
-`antiky-town` and `town-study` are the sprite-plus-voxel demos —
+`antiky-town` and `town-study` are the sprite-plus-voxel demos -
 `src/town/art/sprite-batch.ts` alongside `src/town/art/voxel-surface-mesh.ts` [verified], which is
 2D characters in a 3D world, the definition at `0004:14`. Separately, **no demo declares itself
-2.3D anywhere in `packages/` source** — the term appears only in `PRODUCT.md` and website copy
+2.3D anywhere in `packages/` source** - the term appears only in `PRODUCT.md` and website copy
 [verified].
 
 **Two consequences the plan must absorb.**
 
 1. **Immediate.** Excluding `antiky-town` is a defensible scoping choice for a visual audit. It is
    not defensible as the evidence base for a framework slice. `05-FRAMEWORK-EASY-WINS.md:5-7` sets
-   the promotion bar at *"independently re-implemented in three or more demos with the same shape"* —
+   the promotion bar at *"independently re-implemented in three or more demos with the same shape"* -
    and its three are all 3D. A rendering capability promoted on 3D-only convergence will violate
    `0004:22` on contact with sprites.
 2. **Structural.** `UNDER_REVIEW_A.md:39-47` (item 4, 2.3D depth policy, **Open**) says
@@ -635,7 +635,7 @@ ambient and post packets, and require §2.1's AIP to state whether a 2.3D implem
 before rendering is promoted. **Acceptance criterion:** the AIP for §2.1 answers that question in one
 sentence, either way.
 
-### 4.4 framework/0020 — module boundaries — **satisfied, with one thing to watch**
+### 4.4 framework/0020 - module boundaries - **satisfied, with one thing to watch**
 
 `0020:60-61`: *"The game module will not import CLI, Studio, website, or server code."* `:63-64`:
 *"The compiled output will contain the game module and all necessary runtime files. It will not
@@ -647,21 +647,21 @@ The plan is compliant: `scripts/shoot-demos.mjs` (`06-WORK-PACKETS.md:63`) is re
 **Watch item.** `05-FRAMEWORK-EASY-WINS.md:388-402` proposes splitting a zero-dependency
 `@antiky/framework/contract` module. That directly touches what `0020:73` calls *"a compatibility
 boundary."* `05:381-383` already flags it as *"a product decision, not an engineering one"* and
-leaves it with the owner — correct. **Do not let a subagent land the fence half of that proposal
+leaves it with the owner - correct. **Do not let a subagent land the fence half of that proposal
 (the guard test) and the boundary half (a types-only import for framework-free demos) in the same
 change.** `packages/demos/tests/dev-host.test.mjs:72,95` is the fence [verified]; the split is safe,
 opening the fence is not.
 
-### 4.5 cli/0001 and cli/0002 — **satisfied**
+### 4.5 cli/0001 and cli/0002 - **satisfied**
 
 W0.1 (`06-WORK-PACKETS.md:30`) edits `packages/cli/src/host/actions.ts` and
-`capture-service.ts` — host services, not the MCP adapter, so `cli/0001:46-47` (*"MCP will remain an
+`capture-service.ts` - host services, not the MCP adapter, so `cli/0001:46-47` (*"MCP will remain an
 adapter and will not own engine facts"*) holds. `cli/0002:49` (*"The library API will not read
 `process.argv`, write terminal output, or call `process.exit`"*) is untouched. W0.1's own criterion
-— *"neither is a magic number at a call site"* (`06-WORK-PACKETS.md:46`) — is well aligned with
+ - *"neither is a magic number at a call site"* (`06-WORK-PACKETS.md:46`) - is well aligned with
 `cli/0002:50` requiring timeouts and configuration to arrive through typed inputs.
 
-### 4.6 framework/0002 and 0010 — checked, no constraint
+### 4.6 framework/0002 and 0010 - checked, no constraint
 
 ADR 0002 `:24-34` keeps render state and diagnostics transient by default. A committed
 `visual-metrics.json` sidecar is a test fixture, not a domain event, and ADR 0002 governs the
@@ -678,14 +678,14 @@ so the owner would first meet §2.1 and §2.3 mid-flight, at the moment three de
 diverging.
 
 **Recommendation: add a Track G to `06-WORK-PACKETS.md`.** Its packets own only
-`docs/aip/**` and are therefore disjoint from every existing packet — the concurrency rule at
+`docs/aip/**` and are therefore disjoint from every existing packet - the concurrency rule at
 `06-WORK-PACKETS.md:8-10` is satisfied trivially, and Track G runs fully in parallel.
 
 ### Not blocked by anything. Start now.
 
 - **All of Track 0** (W0.1, W0.1b, W0.2, W0.2b, W0.3, W0.4). Tooling and tests only. W0.4's
   invariant assertions are regression tests for documented bugs and are permitted by
-  `AGENTS.md` on that basis — `IMPLEMENTATION-PLAN.md:372-380` reasons this correctly.
+  `AGENTS.md` on that basis - `IMPLEMENTATION-PLAN.md:372-380` reasons this correctly.
 - **All of Track D.** W D.5 (interpolation) closes no ADR gap (§1.3) and needs no decision.
 - **W C.1, W C.2, W C.3-interim.** Specific bug repairs.
 - **Track E items 1–9** (`03-ART-DIRECTION-AND-VFX.md:960-962`).
@@ -693,13 +693,13 @@ diverging.
   and should be pulled *early*, not left at their listed order, because W0.3's and Track B's
   acceptance criteria all rest on comparable frames, and `07-TESTING-WITH-ANTIKY-MCP.md:150-154`
   correctly notes there is no seed today.
-- **§1.7 — the public product claim.** Independent of everything. Fix this week.
+- **§1.7 - the public product claim.** Independent of everything. Fix this week.
 
 ### Decision should precede the work
 
 | Work | Blocked on | Why, and the cost of getting it wrong |
 |---|---|---|
-| **W A.1, W A.2** (Track A, BroMetal patches) | §2.4 AIP | Doubles the local-patch surface on a pinned dependency with no recorded policy. Both patches individually clear ADR 0006 `:40` (§2.4), so the *contributions* are fine — it is the local `postinstall` rewriting of `node_modules` that is unrecorded. **[owner decision]:** the existing `discard()`/`present()` precedent may be judged sufficient. If so, say so in one line and unblock. This is a one-sitting decision, not a research project. |
+| **W A.1, W A.2** (Track A, BroMetal patches) | §2.4 AIP | Doubles the local-patch surface on a pinned dependency with no recorded policy. Both patches individually clear ADR 0006 `:40` (§2.4), so the *contributions* are fine - it is the local `postinstall` rewriting of `node_modules` that is unrecorded. **[owner decision]:** the existing `discard()`/`present()` precedent may be judged sufficient. If so, say so in one line and unblock. This is a one-sitting decision, not a research project. |
 | **Carrying W B.1 to demos 2 and 3** | §2.2 ADR | W B.1(point-light-expo) is the evidence and must land *first* (`docs/adr/README.md:110-111`). But three demos landing three colour contracts before the ADR is exactly the divergence `02-REMEDIATION-PLAN.md:81-99` warns about. **Land one, record, then carry.** |
 | **W C.3** (converge the three asset scripts) | §2.3 ADR | Converging three scripts into one fidelity policy *is* choosing the policy. W C.1 and W C.2 are point repairs and are not blocked. |
 | **W F.1** (WebGPU fallback framing) | §2.5, conditionally | Not blocked if the fix is copy and CSS. Blocked if it moves `requiresWebGpu` onto the game-module contract (§2.5). |
@@ -708,33 +708,33 @@ diverging.
 
 ### Recommended Track G packets
 
-**W G.1 — AIP: per-demo render ownership and the framework render slice.**
+**W G.1 - AIP: per-demo render ownership and the framework render slice.**
 **Owns:** `docs/aip/**` (one file). **Depends on:** nothing. **Do first.**
 **Acceptance:** meets §2.1's four criteria; ≤500 lines; cites only code, ADRs and dependency
 versions as authority, never this directory (`docs/adr/README.md:71-73`).
 
-**W G.2 — AIP: local modification of pinned third-party dependencies.**
+**W G.2 - AIP: local modification of pinned third-party dependencies.**
 **Depends on:** nothing. **Unblocks:** W A.1, W A.2.
-**Acceptance:** meets §2.4's four criteria. Should be short — this is a policy, not a design.
+**Acceptance:** meets §2.4's four criteria. Should be short - this is a policy, not a design.
 
-**W G.3 — Correct the public render-driver claim.**
+**W G.3 - Correct the public render-driver claim.**
 **Owns:** `packages/website/PRODUCT.md`, `src/app/page.tsx`, `src/app/framework/page.tsx`,
 `src/app/thesis/page.tsx`. **Depends on:** nothing.
 **Acceptance:** no committed public text asserts a Framework render driver as a **Current**
 capability; `packages/website/tests/site-shell.test.mjs` passes; the wording matches PRODUCT.md's own
 evidence taxonomy at `:87-96`.
 
-**W G.4 — AIP: asset intake fidelity policy.**
+**W G.4 - AIP: asset intake fidelity policy.**
 **Depends on:** W A.4 / G5 existing and failing at HEAD. **Unblocks:** W C.3.
 **Acceptance:** meets §2.3's three criteria; states its relationship to `UNDER_REVIEW_A.md` item 11
 in its first paragraph.
 
-**W G.5 — AIP: colour management and transfer-function boundaries.**
+**W G.5 - AIP: colour management and transfer-function boundaries.**
 **Depends on:** W B.1(point-light-expo) passing. **Unblocks:** W B.1(combat-arena),
 W B.1(traversal-study).
 **Acceptance:** meets §2.2's three criteria; contains no pass-graph content.
 
-**W G.6 — ADR clarifications (owner-executed).**
+**W G.6 - ADR clarifications (owner-executed).**
 `cli/0001:43-44` tool enumeration (§1.6); `framework/0006` per §3.1.
 **Acceptance:** `docs/adr/tag-hash.sh` run while `HEAD` holds the prior text, per
 `docs/adr/README.md:149-157`; ASD-STE100 audit reported separately from format and link checks, per
@@ -752,9 +752,9 @@ would mislead an agent executing it.
    citation to 0020.**
 
 2. **Overstated determinism claim.** `05-FRAMEWORK-EASY-WINS.md:473` says *"In `point-light-expo`,
-   `seeded()` feeds shade `phase` at `simulation.ts:160` — simulated state, not decoration."*
+   `seeded()` feeds shade `phase` at `simulation.ts:160` - simulated state, not decoration."*
    Verified: `phase` is written at `point-light-expo/src/simulation.ts:160` and read **only** by
-   `src/relay-visuals.ts:102` and `:421` — presentation. The digest at `simulation.ts:485-498` does
+   `src/relay-visuals.ts:102` and `:421` - presentation. The digest at `simulation.ts:485-498` does
    not include it, and shade `x`/`z` come from `initialShadePositions`, not from `seeded`. The claim
    is **true for `combat-arena`**, where `combat-digest.ts:112` hashes `enemy.phase`, set from
    `seeded(index, 2)` at `combat-state.ts:260`. **Cite combat-arena.** The argument survives intact;
@@ -766,7 +766,7 @@ would mislead an agent executing it.
    overstated for interpolation. See §1.3.
 
 4. **The two plan documents contradict each other on committed captures.**
-   `06-WORK-PACKETS.md:83-85`: *"**The PNG is not the committed artifact** — `.antiky/` is
+   `06-WORK-PACKETS.md:83-85`: *"**The PNG is not the committed artifact** - `.antiky/` is
    gitignored, evidence retention is session-scoped, and `*.png` is LFS here."*
    `IMPLEMENTATION-PLAN.md:329`: capture PNG committed to
    `docs/objectives/demo-refining/evidence-captures/<slug>.png`, *"Yes, one per demo, bounded."*
@@ -776,7 +776,7 @@ would mislead an agent executing it.
 5. **A path that does not exist.** `02-REMEDIATION-PLAN.md:346` and `IMPLEMENTATION-PLAN.md:329`
    both write to `docs/objectives/demo-refining/evidence-captures/`. The captures are at
    `docs/objectives/scratch/demo-refining/evidence-captures/`. `IMPLEMENTATION-PLAN.md:550` (A1)
-   proposes promoting files out of `scratch/`, which may be the intent — but the two documents
+   proposes promoting files out of `scratch/`, which may be the intent - but the two documents
    already write the post-promotion path as though it exists.
 
 6. **A withdrawn figure still carried as an acceptance criterion.**
@@ -794,7 +794,7 @@ would mislead an agent executing it.
 8. **No plan document mentions ADRs at all.** Seven documents, ~4,300 lines, roughly sixty work
    packets. `05-FRAMEWORK-EASY-WINS.md` is the only one that cites an accepted ADR as a driver
    (`:70-79`, ADR 0013). `AGENTS.md` requires ADR compliance and `CONTRIBUTING.md:14` says *"Follow
-   accepted ADRs"* — but nothing in the executable backlog routes an agent to them. That is the
+   accepted ADRs"* - but nothing in the executable backlog routes an agent to them. That is the
    structural reason §1.1 and §2.4 went unnoticed for the length of a four-agent audit, and adding
    Track G is only half a fix. **The other half:** add "names the ADRs it touches, or states that it
    touches none" to `06-WORK-PACKETS.md:376-384`'s dispatch rules.
@@ -806,16 +806,16 @@ would mislead an agent executing it.
 | # | Item | ADR | Verdict | Blocks |
 |---|---|---|---|---|
 | 1.1 | No `RenderDriver`; 0006 vs studio/0007 contradiction | fw/0006, st/0007 | **DECISION** | promotion, not near-term work |
-| 1.2 | No seed reaches any simulation | fw/0013 | **WORK** | pull early — Track 0 + B rest on it |
+| 1.2 | No seed reaches any simulation | fw/0013 | **WORK** | pull early - Track 0 + B rest on it |
 | 1.3 | Interpolation absent in 3 of 4 antiky demos, inert in the 4th | fw/0013 | **WORK** (permission, not breach) | nothing |
 | 1.4 | Three ground-height projections, no drift detector | fw/0009 | **WORK** | W0.4, F1 already cover it |
 | 1.5 | Module-level mutable simulation state | fw/0008 | **WORK** | sandbox isolation |
 | 1.6 | Stale MCP tool enumeration | cli/0001 | **WORK** (clarification) | nothing |
-| 1.7 | Public "Framework render driver" claim | — | **WORK** | nothing — do it now |
+| 1.7 | Public "Framework render driver" claim | - | **WORK** | nothing - do it now |
 | 2.1 | Interim render ownership + exit criteria | new | **AIP → ADR** | framework promotion |
 | 2.2 | Linear colour / transfer boundaries | new | **AIP → ADR** | W B.1 carry to demos 2, 3 |
 | 2.3 | Asset intake fidelity | new | **AIP → ADR** | W C.3 |
 | 2.4 | Local patching of a pinned dependency | new | **AIP → ADR** | W A.1, W A.2 |
 | 2.5 | Delivery-host renderer branching | new | **conditional** | W F.1, if contract changes |
-| 2.6 | Capture gate / seeds / promotion rule / fixed-step type | — | **rejected as ADRs** | — |
+| 2.6 | Capture gate / seeds / promotion rule / fixed-step type | - | **rejected as ADRs** | - |
 | 4.3 | Plan excludes the only 2.3D demo | fw/0004 | **constraint** | §2.1 AIP must answer it |

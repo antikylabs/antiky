@@ -197,8 +197,8 @@ advanced pipelines. This supports Antiky's need for explicit artifact classes.
 
 ### Godot
 
-Godot exposes strong user-facing uniform hints—ranges, enums, colors, texture hints, and inspector
-groups—and catalog-level version/compatibility/license/media fields. Its source language and host
+Godot exposes strong user-facing uniform hints - ranges, enums, colors, texture hints, and inspector
+groups - and catalog-level version/compatibility/license/media fields. Its source language and host
 built-ins remain Godot-specific. Its conversion guidance is evidence that GLSL-like syntax does not
 remove coordinate, input, and engine-contract translation work.
 

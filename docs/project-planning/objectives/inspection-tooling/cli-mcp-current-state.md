@@ -1,10 +1,10 @@
 # Antiky CLI and MCP inspection: current state and required game-production surface
 
-**Status:** implementation audit and proposal  
-**Audited:** 2026-08-09  
+**Status:** implementation audit and proposal
+**Audited:** 2026-08-09
 **Scope:** Antiky Framework, the CLI-owned development host, Antiky Studio's shared development client, Antiky games, and BroMetal behind Antiky's `RenderDriver` boundary
 
-> **Implementation update — 2026-08-10:** Work toward
+> **Implementation update - 2026-08-10:** Work toward
 > [execute goal 01](goals/execute-goal.md) has implemented strict version-two runtime observations
 > and fenced, path-safe private still evidence in the working development service. Runtime-backed
 > MCP reads now identify the accepted build, runtime publication sequence/time, freshness, and
@@ -390,7 +390,7 @@ There is also no common read token. `get_session_status`, `get_world_inspection`
 
 Point-light power proves the right mutation architecture: registered schema, command ID, target world/entity, expected revision, trusted authority, structured outcome, one accepted fact, and a correction rather than erased history. But the tool catalog hard-codes this one domain. Agents cannot discover or submit a game's own registered commands for transforms, encounters, UI tuning, materials, camera parameters, animation, audio, spawn rules, or other authored components.
 
-Direct generic JSON property writes would violate the command ADR. The missing abstraction is a versioned command/capability registry plus bounded command submission—not access to live objects or arbitrary JavaScript.
+Direct generic JSON property writes would violate the command ADR. The missing abstraction is a versioned command/capability registry plus bounded command submission - not access to live objects or arbitrary JavaScript.
 
 There is no sandbox world/session, mutation lease, change set, preview diff, promotion, or discard operation. The global action broker serializes delivery but does not establish which agent owns the right to mutate or prevent simultaneous file edits/browser input.
 
@@ -535,7 +535,7 @@ HTTP MCP should authenticate a local client principal and grant only the request
 
 ## Prioritized proposed additions
 
-### P0 — make every current observation and action trustworthy
+### P0 - make every current observation and action trustworthy
 
 These changes should precede new high-authority tools.
 
@@ -585,7 +585,7 @@ This is a schema correction rather than a new tool:
 - sanitize logs and game-authored text as untrusted data without destroying stable domain facts;
 - test synthetic usernames, emails, home paths, terminal prompts, hostnames, credentials, and prompt injection.
 
-### P1 — complete a reproducible play-and-observe loop
+### P1 - complete a reproducible play-and-observe loop
 
 #### `get_entity`
 
@@ -639,7 +639,7 @@ Keep `capture_frame`, but return dimensions and an image content/artifact refere
 - **Failures:** cursor expired/source unavailable; incompleteness is explicit.
 - **Evidence:** source sequence, diagnostic code, observation, redaction/truncation markers.
 
-### P1 — execute declared checks without arbitrary shell authority
+### P1 - execute declared checks without arbitrary shell authority
 
 #### `start_project_check`
 
@@ -659,7 +659,7 @@ Keep `capture_frame`, but return dimensions and an image content/artifact refere
 
 Initial declared profiles should cover Antiky package typecheck/unit/integration tests, the manifest production build, BroMetal shader generation/validation, and asset validation. Packaged builds and platform signing/publishing remain separate higher-authority workflows.
 
-### P2 — generalize safe authoring through Antiky commands
+### P2 - generalize safe authoring through Antiky commands
 
 #### `list_command_schemas`
 
@@ -689,7 +689,7 @@ This should absorb point-light power as one registered command while preserving 
 
 Antiky's current EngineSession types describe multiple independent worlds conceptually, but this sandbox lifecycle is not implemented by the current CLI and should not be implied by skills yet.
 
-### P2 — BroMetal-native shader, material, and render inspection
+### P2 - BroMetal-native shader, material, and render inspection
 
 #### `get_render_pipeline`
 
@@ -717,7 +717,7 @@ Antiky's current EngineSession types describe multiple independent worlds concep
 
 BroMetal tools must report through Antiky-owned render identities and projections. They do not get authority over gameplay rules, world identity, event history, Studio selection, or the agent protocol.
 
-### P2 — asset inventory and import evidence
+### P2 - asset inventory and import evidence
 
 #### `get_asset_inventory`
 
@@ -737,7 +737,7 @@ BroMetal tools must report through Antiky-owned render identities and projection
 
 The current verified catalog installer can later gain a narrow `install_catalog_asset` MCP wrapper: catalog ID only, expected project revision, explicit network/filesystem approval, verified source record, atomic replacement, provenance receipt, and post-install validation. Never accept an arbitrary URL or silently download while answering an inspection request.
 
-### P3 — repeatable visual-regression evidence
+### P3 - repeatable visual-regression evidence
 
 #### `compare_visual_artifacts`
 

@@ -32,7 +32,7 @@ The Studio should already know.
 The Studio begins as a place of observation. The live game, its entities, properties, activity,
 diagnostics, events, and captures are not passive displays. Each is a potential feedback point.
 Selection turns a visible object into stable Framework identity before it reaches the interface.
-Inspection exposes a bounded, truthful projection instead of handing the UI—or an agent—raw access
+Inspection exposes a bounded, truthful projection instead of handing the UI - or an agent - raw access
 to the world.
 
 This changes the role of the editor. Rather than reproducing every operation as a bespoke form,
@@ -97,7 +97,7 @@ chat log: not just what was said, but what it meant, what changed, and how the r
 
 Staging makes that record practical. A person can gather feedback from several places in the
 Studio, review the bundle, add one larger direction, and then send the agent a coherent brief. The
-workflow follows how creative judgment actually arrives—not always as one isolated instruction,
+workflow follows how creative judgment actually arrives - not always as one isolated instruction,
 but as a set of connected observations.
 
 ## A window into the game, never the game itself
@@ -126,13 +126,13 @@ The next proof is focused: native ACP conversation, selection that resolves to s
 entities, and click-to-agent context. The broader mini-app contract, reusable GPU viewports,
 persistent workspaces, durable feedback, sandboxes, and expanded authoring modes still need to be
 designed and proven. Questions such as app isolation, agent transcripts, feedback retention,
-multi-agent work, accessibility targets, and cross-platform packaging remain real decisions—not
+multi-agent work, accessibility targets, and cross-platform packaging remain real decisions - not
 details we will hide behind a mockup.
 
 But the destination is not ambiguous.
 
 The future of game development is not a person operating a larger control panel. It is a person
-working at the level of intent—looking, pointing, judging, and imagining—while agents handle more of
+working at the level of intent - looking, pointing, judging, and imagining - while agents handle more of
 the distance between an idea and a playable result.
 
 Antiky Studio is the place where that relationship becomes visible.

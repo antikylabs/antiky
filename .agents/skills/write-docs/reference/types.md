@@ -1,7 +1,7 @@
 # The four types
 
 Diátaxis separates documentation by what the reader needs. The definitions are easy and the
-application is not, so each type below is given with **the way it fails** — which is what you will
+application is not, so each type below is given with **the way it fails** - which is what you will
 actually recognise in a real page.
 
 ## The map
@@ -43,7 +43,7 @@ they are not equipped to make. Pick one path. That is the tutorial's promise.
 The reader already has competence and a goal. They arrived from a search with a problem in hand.
 
 - Named after the task, in the reader's words: "Change a point light while the game runs".
-- Adaptable — they will apply it to their situation, which is not yours.
+- Adaptable - they will apply it to their situation, which is not yours.
 - Assumes competence. It can say "authenticate as usual".
 
 **Fails when it teaches.** A how-to that explains the concepts first has become a tutorial with a
@@ -72,7 +72,7 @@ Explanation or How-to. Reference describes the machine, not the choice.
 
 **Reader need:** understand why the system is like this.
 
-The reader is not doing anything right now. They are trying to build a model — often because
+The reader is not doing anything right now. They are trying to build a model - often because
 something surprised them.
 
 - Discusses alternatives and why they were not taken.

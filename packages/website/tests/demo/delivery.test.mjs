@@ -129,7 +129,7 @@ test('every published demo has a distinct real poster in the Antiky group', asyn
 
   const frameworkPage = await readFile(new URL('../../.next/server/app/framework.html', import.meta.url), 'utf8');
   assert.match(frameworkPage, /class="architecture-diagram"/);
-  assert.match(frameworkPage, /Direction · target architecture, not a list of completed features/);
+  assert.match(frameworkPage, /Planned architecture\. Some components are still in development/);
   assert.doesNotMatch(frameworkPage, /antiky-architecture\.png/);
 });
 
@@ -266,8 +266,8 @@ test('a browser without WebGPU is shown posters, not error cards', async () => {
   //
   // This used to slice a fixed 160 characters after the gate expression, so a comment or a log line
   // inside the branch pushed `setPhase('error')` past the window and the red card shipped green.
-  // The gate appears twice and in two shapes — a braced `if` in `activate()` and a single-statement
-  // `if` in the effect — so instead of matching a block, take the text from each occurrence up to
+  // The gate appears twice and in two shapes - a braced `if` in `activate()` and a single-statement
+  // `if` in the effect - so instead of matching a block, take the text from each occurrence up to
   // whichever `setPhase(` call comes next, and require it to be the gated one.
   const occurrences = [...host.matchAll(/requiresWebGpu && !webGpuAvailable\(\)/g)];
   assert.ok(occurrences.length >= 1, 'the WebGPU gate is gone');
@@ -296,7 +296,7 @@ test('the WebGPU requirement is not announced to visitors who never hit it', asy
 
   // Most visitors are on a browser that runs everything, so a page-level paragraph about WebGPU is
   // a limitation notice aimed at the wrong audience. The gated card carries its own caption, which
-  // is the only place the requirement is worth mentioning — and only to the people it affects.
+  // is the only place the requirement is worth mentioning - and only to the people it affects.
   assert.equal((page.match(/WebGPU/g) ?? []).length, 0);
 });
 

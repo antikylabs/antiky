@@ -25,10 +25,10 @@ entries, and the human decides which.
 
 Read, in this order:
 
-- the root `README.md` — what this project is, in the owner's words;
-- `AGENTS.md` and `CLAUDE.md` at every level — the terms already used as instructions;
-- `docs/adr/` if present — architectural terms, and the decisions that gave them their meaning;
-- the top-level source directories — the names the code actually uses.
+- the root `README.md` - what this project is, in the owner's words;
+- `AGENTS.md` and `CLAUDE.md` at every level - the terms already used as instructions;
+- `docs/adr/` if present - architectural terms, and the decisions that gave them their meaning;
+- the top-level source directories - the names the code actually uses.
 
 Collect a term when it appears **repeatedly** and carries **specific meaning** in this project.
 `entity`, `render driver`, `revision` qualify. `service`, `handler`, `manager` usually do not, unless

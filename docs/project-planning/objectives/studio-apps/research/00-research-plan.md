@@ -50,7 +50,7 @@ executable goals.
 
 ## Lines of inquiry
 
-### 00 — Current Studio composition and extension seams
+### 00 - Current Studio composition and extension seams
 
 - Scope: Trace the current React component tree, workspace layout, development coordinator,
   project activation, native host contract, terminal, inspection surface, and live game frame.
@@ -61,7 +61,7 @@ executable goals.
   blockers with file evidence, facts that are only documented rather than implemented, and gaps.
   Do not change files.
 
-### 01 — Proving apps and capability pressure
+### 01 - Proving apps and capability pressure
 
 - Scope: Derive distinct app scenarios from the shipped game editor, the owner's recorded ideas,
   and nearby Studio direction. Treat the voxel renderer as one candidate, not as authorization to
@@ -73,7 +73,7 @@ executable goals.
   persistence, host access, and lifecycle; the smallest set of genuinely independent proving apps;
   unsupported assumptions; owner questions; and gaps. Do not write a plan or change files.
 
-### 02 — Workspace composition, design coherence, and accessibility
+### 02 - Workspace composition, design coherence, and accessibility
 
 - Scope: Evaluate the current fixed split layout and the requirements for composable panels,
   app-provided workspace presets, user customization, responsive fallback, keyboard operation,
@@ -85,7 +85,7 @@ executable goals.
   constraints, a bounded comparison of implementation shapes, failure cases, evidence links, and
   gaps. Do not select a library or change files.
 
-### 03 — Extension-system precedents
+### 03 - Extension-system precedents
 
 - Scope: Compare how mature extensible editors define contributions, activation, commands,
   services, panels/views, workspace defaults, state, compatibility, and disposal. Focus on lessons
@@ -96,7 +96,7 @@ executable goals.
   does not map to Antiky, at least two bounded contract shapes, and explicit gaps. Popularity is a
   discovery signal only. Do not change files.
 
-### 04 — Loading, authority, lifecycle, and security boundaries
+### 04 - Loading, authority, lifecycle, and security boundaries
 
 - Scope: Determine the threat and failure model for built-in, bundled, and project-local app code.
   Trace what can remain an in-process typed contribution and what would require isolation,
@@ -110,7 +110,7 @@ executable goals.
   options, decisions already settled by ADRs, new decisions that need an ADR or owner input, and
   gaps. Do not design a marketplace or change files.
 
-### 05 — Reusable WebGPU viewport and render ownership
+### 05 - Reusable WebGPU viewport and render ownership
 
 - Scope: Trace current canvas and renderer ownership from Studio through the game host, game
   module, `EngineSession`, and `BroMetalRenderDriver`. Research browser/WebGPU rules for canvas
@@ -124,7 +124,7 @@ executable goals.
   observable failure modes, and gaps. Do not install or run external projects and do not change
   files.
 
-### 06 — Verification, evolution, and operational limits
+### 06 - Verification, evolution, and operational limits
 
 - Scope: Define evidence that a first extension seam works and remains habitable. Cover contract,
   integration, lifecycle, project-switch, visual-regression, responsive, accessibility,
@@ -141,11 +141,11 @@ executable goals.
 
 Each raw return must contain:
 
-1. **Findings** — concise answers tied to the assigned questions.
-2. **Evidence** — a source file and line, command output, or primary URL for each material claim.
-3. **Established / claimed / inferred** — label evidence status explicitly.
-4. **Gaps** — unanswered points and what would answer them.
-5. **Planning implications** — decisions the evidence supports without writing a plan or goal.
+1. **Findings** - concise answers tied to the assigned questions.
+2. **Evidence** - a source file and line, command output, or primary URL for each material claim.
+3. **Established / claimed / inferred** - label evidence status explicitly.
+4. **Gaps** - unanswered points and what would answer them.
+5. **Planning implications** - decisions the evidence supports without writing a plan or goal.
 
 An unverifiable claim must stay visible and labelled rather than being dropped or asserted.
 

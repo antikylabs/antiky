@@ -25,7 +25,7 @@ test('production Studio page presents the working workspace and honest availabil
     'CLI project services own the local build',
     'Engine state stays distinct from build and connection state',
     'Inspection is read-only',
-    'What is current—and what comes next',
+    'What is current, and what comes next',
     'data-evidence-status="current"',
     'data-evidence-status="emerging"',
     'data-evidence-status="direction"',

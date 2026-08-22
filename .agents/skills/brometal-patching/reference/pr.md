@@ -7,7 +7,7 @@ One patch, one branch, one pull request. The PR body format is in
 
 ## Procedure
 
-### 1. Work in the fork, against source — never against `dist/`
+### 1. Work in the fork, against source - never against `dist/`
 
 The published package ships compiled output. Patching `dist/` is right locally and wrong upstream: a
 maintainer wants the change in the TypeScript.
@@ -19,7 +19,7 @@ git fetch upstream && git checkout -b <one-branch-per-patch> upstream/main
 ```
 
 Find the real source for what you patched. This routinely surfaces things the compiled output hides
-— in one of ours, an entire emitter had been removed since the branch we were reading was written.
+ - in one of ours, an entire emitter had been removed since the branch we were reading was written.
 
 Branch from current `upstream/main`, not from whatever the fork last had.
 
@@ -35,7 +35,7 @@ Five separate pull requests beat one 8,000-line pull request. Say in the body th
 and can land on its own.
 
 Watch for accidental coupling. Two of ours nearly added the same test fixture, which would have made
-them conflict on a file neither needed to share — reuse an existing fixture instead.
+them conflict on a file neither needed to share - reuse an existing fixture instead.
 
 If two changes genuinely cannot be separated, put them in one pull request, say why, and **offer to
 split it**.
@@ -43,7 +43,7 @@ split it**.
 ### 4. Prove it in their harness
 
 Add a test in the project's own style. If they have a GPU or integration suite that reads real
-output, put it there rather than in unit tests — that is usually where the assertions that matter
+output, put it there rather than in unit tests - that is usually where the assertions that matter
 live.
 
 **Record the before and after.** This is the strongest thing a pull request can carry:
@@ -57,7 +57,7 @@ Revert the fix, rebuild, run, capture the failure, restore. That converts "this 
 evidence.
 
 Run their typecheck, their unit suite, and their integration suite. Say plainly what you could not
-run — one of ours could not run WebKit locally, and saying so was better than letting the maintainer
+run - one of ours could not run WebKit locally, and saying so was better than letting the maintainer
 wonder.
 
 ### 5. Open the pull request
@@ -79,7 +79,7 @@ Back in the Antiky repository, put the URL and the title in the patch module's h
  * **Upstream: https://github.com/ericdrowell/brometal/pull/NN**
  * <the pull request title>
  *
- * Retire this file when #NN is merged or released. Nothing else needs changing —
+ * Retire this file when #NN is merged or released. Nothing else needs changing -
  * remove the module, drop it from PATCHES in ../patch-brometal.mjs, and from the
  * scripts/ allowlist in ../repository-policy.test.mjs.
 ```
@@ -102,5 +102,5 @@ anyone who was not there, and `update` has nothing to check.
   or correct an error.
 - Do not open a pull request against `dist/`.
 - Do not delete the local patch when the pull request opens. It is retired when the change is merged
-  or released — that is `update`'s job.
+  or released - that is `update`'s job.
 - Do not argue in the thread. If the maintainer prefers a different approach, write their version.

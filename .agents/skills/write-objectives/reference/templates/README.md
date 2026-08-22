@@ -25,7 +25,7 @@ not invented.>
 
 ## Research
 
-[`research/`](research/README.md) — <one line on what it established, and what is still open.>
+[`research/`](research/README.md) - <one line on what it established, and what is still open.>
 
 ## Goals
 

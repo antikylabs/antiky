@@ -3,7 +3,7 @@
 **Started:** 2026-08-14
 **Status:** Being defined
 
-> This file is yours. It holds raw intent — what you want and why. Nothing else in the objective
+> This file is yours. It holds raw intent - what you want and why. Nothing else in the objective
 > starts until it has content. It is deliberately unstructured: prose, bullets, half-formed
 > worries, all fine. The prompts below are prompts, not a form.
 >
@@ -25,7 +25,7 @@ We have a few first apps that we want to extend the studio with, and we want to 
 ## What good looks like
 
 <!-- How would you recognise success? A demo you would show someone, a number that moves,
-     a class of bug that stops happening? Vague is fine — "it should feel less janky" is
+     a class of bug that stops happening? Vague is fine - "it should feel less janky" is
      a real answer and research can sharpen it. -->
 
 Well defined system for panels, webgpu viewport, terminal, etc. That are composable and mountable.
@@ -36,7 +36,7 @@ mini apps should be able to load and configure the workspace of the studio in or
 ## What worries me
 
 <!-- The parts you expect to go wrong, the decisions you are unsure about, the thing you
-     suspect is harder than it looks. This is the most useful section for research —
+     suspect is harder than it looks. This is the most useful section for research -
      it points at what to investigate. -->
 
 - making it too complex out the gate.
@@ -47,7 +47,7 @@ mini apps should be able to load and configure the workspace of the studio in or
 
 ## Constraints
 
-<!-- What must not change? What is fixed — deadlines, platforms, existing decisions,
+<!-- What must not change? What is fixed - deadlines, platforms, existing decisions,
      other work in flight, people's availability? -->
 
 Current experience of main workspace (game editor) view.

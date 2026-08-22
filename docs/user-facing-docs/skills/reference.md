@@ -1,6 +1,6 @@
-# Ready skills reference
+# Antiky skills reference
 
-This reference lists the public skills marked Ready in the Antiky Labs skills repository at commit
+This reference lists the public skills in the Antiky Labs skills repository at commit
 `c5970383cde4e90588ba7d039f7a665ebe3443fd`. Use the exact name with `npx skills add
 antikylabs/skills --skill <name>`.
 
@@ -24,11 +24,10 @@ subcommand, include the subcommand and target so the agent can choose the matchi
 `wait-what` disables automatic model invocation. A person must name it explicitly. `engineering`
 is read-only: it can review and challenge work, but it does not implement a recommendation.
 
-## Publication boundary
+## Catalog scope
 
-The reviewed snapshot contains nine Ready skills and no internal or frontmatter-only stub entries.
-The public catalog omits any future entry with `metadata.internal: true` until its owner marks it
-Ready and the repository verification passes.
+The reviewed snapshot contains nine public skills. The catalog excludes internal skills and
+frontmatter-only placeholders.
 
 ## Related documentation
 

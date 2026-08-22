@@ -1,4 +1,4 @@
-# `install` — putting the Oxlint plugin into a project
+# `install` - putting the Oxlint plugin into a project
 
 This is the only command that writes files. It puts the plugin into the target project and wires its
 config. Nothing else in this skill modifies the project.
@@ -18,7 +18,7 @@ That is what the header comment in `index.mjs` is for.
 
 ## Steps
 
-**1. Check the project has Oxlint.** JS plugins need a recent version — the API reached alpha in
+**1. Check the project has Oxlint.** JS plugins need a recent version - the API reached alpha in
 March 2026.
 
 ```bash
@@ -26,10 +26,10 @@ npx oxlint --version
 ```
 
 If Oxlint is absent, say so and stop. Do not install a linter into someone's project uninvited, and
-do not fall back to judging the code by eye — that is exactly the substitution this skill exists to
+do not fall back to judging the code by eye - that is exactly the substitution this skill exists to
 avoid.
 
-**2. Copy the plugin.** Somewhere the project already keeps local tooling — `tools/`, `config/`, or
+**2. Copy the plugin.** Somewhere the project already keeps local tooling - `tools/`, `config/`, or
 `.oxlint/`. Take the whole `oxlint` directory including `fixtures/`; the fixtures are how the next
 person checks a rule still does what it claims.
 
@@ -108,7 +108,7 @@ they appear.
 ## Taking upstream as well
 
 The fifteen type rules are a reimplementation, and upstream is the reference. A project that would
-rather track the original can install it alongside — the rule names are identical, so turn ours off
+rather track the original can install it alongside - the rule names are identical, so turn ours off
 by name where they overlap:
 
 ```bash
@@ -128,7 +128,7 @@ Oxlint is fast enough to run on every edit. The useful ordering is by how much c
 | Pre-commit | The same, and it cannot be forgotten | `--no-verify` skips it |
 | CI | Everything, unbypassably | The context that produced it is gone |
 
-A pre-write block is not on this list. Blocking a tool call is guidance rather than a boundary — an
+A pre-write block is not on this list. Blocking a tool call is guidance rather than a boundary - an
 agent reaches the same file through a shell command, and that is documented behaviour rather than
 speculation. Put the rules that matter at commit and CI, where the check applies to the artifact
 instead of the actor.

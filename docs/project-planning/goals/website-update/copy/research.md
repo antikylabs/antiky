@@ -241,8 +241,8 @@ These are deliberate alternatives, not additional headings to ship.
 
 CTA alternatives:
 
-- **Read the completed research** — use when the completed-report destination is stable.
-- **Inspect the active experiments** — use when the repository offers a maintained experiments
+- **Read the completed research** - use when the completed-report destination is stable.
+- **Inspect the active experiments** - use when the repository offers a maintained experiments
   index rather than a generic source view.
 
 ## Editorial notes

@@ -310,7 +310,7 @@ Host authority and Framework authority must remain separate:
 The protocols below are recommendations. Use small versioned schemas and stable rejection codes.
 Every trusted field is attached by the host from authenticated server-side state.
 
-### 1. Capability catalog and authenticated client session — P0
+### 1. Capability catalog and authenticated client session - P0
 
 Add a host-generated capability view before expanding mutation:
 
@@ -355,7 +355,7 @@ useful attribution but is not authentication. Bind the authenticated connection 
 Use lazy capability groups as the surface grows. A default read session should not even advertise
 ungranted mutation, process, network, signing, publishing, or production tools.
 
-### 2. Agent context and source identity — P0
+### 2. Agent context and source identity - P0
 
 `get_agent_context` should be the mandatory preflight and return:
 
@@ -374,7 +374,7 @@ digest of changed tracked/untracked inputs, not timestamps. Large assets can be 
 asset/catalog manifest. The accepted build receipt should add source/content digests so a build can
 be compared across sessions, rather than replacing the useful local counter.
 
-### 3. Attenuated agent grant — P0
+### 3. Attenuated agent grant - P0
 
 A server-side `AgentGrant v1` should contain:
 
@@ -403,7 +403,7 @@ Keep high-risk authority separate:
 - signing, publishing, deployment, and production/live mutation; and
 - any capture outside the known game canvas.
 
-### 4. Universal action envelope and causal receipt — P0
+### 4. Universal action envelope and causal receipt - P0
 
 Every action should pass through one host envelope even when its domain command has its own schema:
 
@@ -437,7 +437,7 @@ evidence references and journal sequence
 This makes lost-response recovery safe: retry the same idempotency key or read its receipt. It also
 provides causal readback without forcing an agent to infer success from a screenshot.
 
-### 5. Scoped mutation lease with fencing — P0
+### 5. Scoped mutation lease with fencing - P0
 
 Recommended tools are `acquire_mutation_lease`, `renew_mutation_lease`,
 `release_mutation_lease`, and `get_mutation_lease`.
@@ -456,7 +456,7 @@ The existing single pending action remains a useful delivery serialization guard
 used as proof of ownership. Once unrelated domains exist, a scoped queue can serialize commits
 without blocking independent reads, builds, or isolated workspace work.
 
-### 6. Checkpoints, change sets, and honest rollback — P1
+### 6. Checkpoints, change sets, and honest rollback - P1
 
 Recommended lifecycle: `create_checkpoint` → `begin_change_set` →
 `apply_change_set_command` → `validate_change_set` → `commit_change_set` or
@@ -492,7 +492,7 @@ A `ChangeManifest v1` should record:
 - tests, replays, diagnostics, captures, performance, and review evidence;
 - known risks, non-reversible effects, and correction/compensation instructions.
 
-### 7. Durable tool and mutation journal — P1
+### 7. Durable tool and mutation journal - P1
 
 Retain the current 100-call MCP ring as a Studio debugging projection. Add a separate append-only
 journal whose records include:
@@ -525,7 +525,7 @@ Secret/PII controls should include:
 - no raw environment dump or shell history; and
 - explicit privileged access when a local path or full diagnostic is genuinely necessary.
 
-### 8. Task handoff and isolated parallel work — P1
+### 8. Task handoff and isolated parallel work - P1
 
 Use a versioned `TaskEnvelope` rather than prose alone:
 
@@ -562,7 +562,7 @@ custom roles can be read-only, and parallelism is most useful for read-heavy exp
 triage; write-heavy parallelism increases conflict and coordination cost. Antiky should encode the
 same restriction in grants and artifacts instead of relying on prompting alone.
 
-### 9. Human approval protocol — P0 for high risk, otherwise P1
+### 9. Human approval protocol - P0 for high risk, otherwise P1
 
 `ApprovalRequest v1` should contain an exact preview:
 
@@ -588,7 +588,7 @@ policy does not already grant that exact bounded action.
 An agent cannot author, execute, and approve its own quality or release gate. “The model judged this
 safe” is never an approval artifact.
 
-### 10. Prompt injection, process, network, and capture enforcement — P0
+### 10. Prompt injection, process, network, and capture enforcement - P0
 
 Tag provenance at ingestion:
 
@@ -646,7 +646,7 @@ revision, structured result, fact, and correction.
 
 ## Delivery priorities
 
-### P0 — before broader mutation
+### P0 - before broader mutation
 
 1. Require authenticated HTTP MCP and mint a distinct client session plus server-side grant.
 2. Add `get_agent_context` with stable Project/Workspace IDs and source/dirty identity.
@@ -658,7 +658,7 @@ revision, structured result, fact, and correction.
 7. Enforce trust labels and separate process/network/destructive/capture gates before exposing any
    such capability.
 
-### P1 — before parallel writers or sandbox promotion
+### P1 - before parallel writers or sandbox promotion
 
 1. Introduce WorkspaceId and isolated workspace/sandbox-world lifecycle.
 2. Implement checkpoint/change-set manifests and Framework command re-dispatch promotion.
@@ -667,13 +667,13 @@ revision, structured result, fact, and correction.
 5. Add the durable mutation journal and bound human approvals.
 6. Bind replays, captures, diagnostics, performance, provenance, and independent review to a change.
 
-### P2 — production-quality evidence
+### P2 - production-quality evidence
 
 Add deterministic scenario/replay fixtures, visual comparison, feel/design review, performance
 budgets, accessibility/compatibility evidence, asset provenance, and release artifact manifests.
 Human reviewers retain creative and release approval.
 
-### P3 — external and production authority
+### P3 - external and production authority
 
 Only after the local authority plane is exercised should Antiky broker DCC/editor processes,
 downloads/uploads, signing, publishing, deployment, telemetry, or production/live operations. These

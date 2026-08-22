@@ -34,7 +34,7 @@ plan reviewed only by rendering people misses that nothing is testable.
 
 Each gets:
 
-- the artifacts under review — the plan documents, or the goal files, or both;
+- the artifacts under review - the plan documents, or the goal files, or both;
 - `objective.md`, so they can judge whether the plan serves the intent;
 - the constraints: the relevant ADRs, the direction documents, `GOOD_ENGINEERING_H.md`;
 - **their lens**, stated: "review as a test-design specialist. Assume the plan is wrong and find
@@ -42,7 +42,7 @@ Each gets:
 - the return format: findings, each with severity, evidence, and a concrete remediation.
 
 Brief them to distinguish **defect** (this is wrong) from **risk** (this may go wrong) from
-**preference** (I would do it differently). Preferences are not findings — say so in the brief, or
+**preference** (I would do it differently). Preferences are not findings - say so in the brief, or
 you will get a pile of them.
 
 Run the panel concurrently. Reviewers must not see each other's findings; independence is what makes
@@ -67,7 +67,7 @@ with evidence.
 
 ### 4. Remediate
 
-The main agent remediates — not the reviewers. Fix the confirmed findings in the plan documents or
+The main agent remediates - not the reviewers. Fix the confirmed findings in the plan documents or
 the goal files.
 
 - Amending an **open goal**: edit it in place. Note what changed and why at the bottom.
@@ -92,7 +92,7 @@ A numbered plan document, `NN-AUDIT-<topic>.md`:
 Tell the owner: the most serious confirmed finding, what changed as a result, what needs their
 decision, and what the panel could not judge.
 
-Say plainly if the panel found nothing serious. That is a real result — but check the briefs first,
+Say plainly if the panel found nothing serious. That is a real result - but check the briefs first,
 because it is more often a sign the panel was briefed to agree.
 
 ## What this command must not do

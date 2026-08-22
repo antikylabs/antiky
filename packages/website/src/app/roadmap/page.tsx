@@ -5,7 +5,7 @@ import { loadRoadmap } from '@/lib/roadmap';
 
 export const metadata: Metadata = {
   title: 'Roadmap',
-  description: 'The ordered Antiky Labs delivery scope, without invented dates or progress estimates.',
+  description: 'The planned Antiky Labs release sequence, without release dates or progress estimates.',
   alternates: { canonical: '/roadmap' },
 };
 
@@ -15,7 +15,7 @@ export default async function RoadmapPage() {
   return (
     <>
       <section className="page-hero wrap roadmap-hero">
-        <p className="status-line"><span className="status-dot status-planned" /> Direction · release scope without dates</p>
+        <p className="status-line"><span className="status-dot status-planned" /> Planned · no release dates</p>
         <h1>{roadmap.title}</h1>
         <p className="page-lead">{roadmap.intro}</p>
         <p className="roadmap-notice">{roadmap.notice}</p>
@@ -44,7 +44,7 @@ export default async function RoadmapPage() {
       </section>
 
       <section className="closing-cta wrap">
-        <p>Start with the current contracts and the studies proving them.</p>
+        <p>Start with the current documentation and playable studies.</p>
         <Link href="/docs">Read the documentation <ArrowRight /></Link>
         <Link href="/demos">Run current studies <ArrowRight /></Link>
       </section>

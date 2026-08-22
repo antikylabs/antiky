@@ -28,11 +28,11 @@ ask, in the middle of answering the one they did.
 
 Routing:
 
-- **Explicit command** — load its reference and follow it.
-- **A bare target** — `classify`. It is the cheapest useful thing, it changes nothing, and every
+- **Explicit command** - load its reference and follow it.
+- **A bare target** - `classify`. It is the cheapest useful thing, it changes nothing, and every
   other command depends on its answer.
-- **"This page is confusing"** — `audit`. It will usually find a type problem, not a prose problem.
-- **A new page** — `classify` first to fix the type, then `write`.
+- **"This page is confusing"** - `audit`. It will usually find a type problem, not a prose problem.
+- **A new page** - `classify` first to fix the type, then `write`.
 
 Never `write` without a declared type. A draft that has not decided what it is becomes all four at
 once, and that is the defect this skill exists to prevent.
@@ -42,7 +42,7 @@ once, and that is the defect this skill exists to prevent.
 This skill decides what a page is **for** and how it is **shaped**. It does not constrain vocabulary
 or sentence form.
 
-If a document must meet ASD-STE100 — a procedure for readers whose first language is not English —
+If a document must meet ASD-STE100 - a procedure for readers whose first language is not English -
 that is `simplified-technical-english`, invoked separately. Do not reach for it by default.
 Product documentation should be *readable*, which is not the same as *controlled*, and a tutorial
 written like a maintenance manual has traded one failure for another.

@@ -63,7 +63,7 @@ A "seam" in Michael Feathers' sense is a real term of art. A "load-bearing wall"
 The entry has to let those through, and `passes` is where you prove it does.
 
 **Write the `passes` example first.** Thinking of the legitimate use is what stops the entry being a
-blunt ban, and if you cannot think of one — `smoking gun`, `north star`, `secret sauce` — then an
+blunt ban, and if you cannot think of one - `smoking gun`, `north star`, `secret sauce` - then an
 empty `passes` array is the honest answer and the word can be flagged everywhere.
 
 ## Quoted text is never flagged
@@ -107,8 +107,8 @@ vocabulary entry, expect to delete it.
 it is wrong, the entry is a preference rather than a rule.
 
 **Do not raise these above `warning`.** Vocabulary and phrasing rules are the weakest signals in this
-skill and they must never gate a build. The two evidence rules — `no-unsupported-claim` and
-`no-time-estimate` — are the ones worth failing on.
+skill and they must never gate a build. The two evidence rules - `no-unsupported-claim` and
+`no-time-estimate` - are the ones worth failing on.
 
 **Do not describe any of this as AI detection.** These are writing defects. A human writes them too,
 and tools that classify authorship misfire badly on writing by people whose first language is not
@@ -117,7 +117,7 @@ nothing about who wrote it.
 
 ## Adding a rule that needs code
 
-Three of the rules — `no-unsupported-claim`, `no-time-estimate`, and the pattern engine itself —
+Three of the rules - `no-unsupported-claim`, `no-time-estimate`, and the pattern engine itself -
 are functions in `prose_lint.mjs`, because they combine several conditions rather than matching one
 phrase. Add one the same way the others are built: a `check*` function returning findings, called
 from `checkText`, with its vocabulary in the `words` block and its examples in `fixtures`.

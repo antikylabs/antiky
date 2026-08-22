@@ -9,7 +9,7 @@
 > asset and get its full GPU<>ECS hierarchy. Once we have ACP, I can click and have that context
 > pulled into the ACP chat automatically and submitted to the agent."
 >
-> — Owner, 2026-08-16
+> - Owner, 2026-08-16
 
 Studio should contain an ACP agent conversation surface that works with the user's installed coding
 agent. A selected rendered item must resolve to the stable Framework target and its available ECS,

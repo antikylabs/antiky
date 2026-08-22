@@ -1,11 +1,11 @@
-# 04 — Loading, authority, lifecycle, and security boundaries
+# 04 - Loading, authority, lifecycle, and security boundaries
 
 ## Evidence labels
 
-- **Established** — accepted ADR, current repository code, or primary platform specification.
-- **Claimed** — documented in an in-progress architecture guide but not fully established by accepted ADR or implementation.
-- **Inferred** — conclusion drawn from established evidence.
-- **Unverifiable** — requires an owner decision, prototype, or runtime security test.
+- **Established** - accepted ADR, current repository code, or primary platform specification.
+- **Claimed** - documented in an in-progress architecture guide but not fully established by accepted ADR or implementation.
+- **Inferred** - conclusion drawn from established evidence.
+- **Unverifiable** - requires an owner decision, prototype, or runtime security test.
 
 ## Findings
 
@@ -46,10 +46,10 @@ Studio panel
 
 | Tier | Source and loading | Trust consequence | Suitable first use |
 | --- | --- | --- | --- |
-| **0 — Built-in core** | Statically shipped Studio code in the main realm. | **Established/Inferred:** Fully trusted. A fault or infinite loop can affect the complete Studio UI. Native access must still stay behind host adapters. | Existing workspace, host adapters, core services. |
-| **1 — Studio-bundled app** | App code included and versioned with the Studio distribution, loaded statically or with `import()`. | **Inferred:** If loaded in the main realm it has the same effective authority as core, regardless of API typing. “Bundled” is provenance, not isolation. | First-party apps reviewed and released with Studio. |
-| **2 — Project-local declarative contribution** | Strict JSON-like data validated before any project app code runs; trusted Studio components render it. | **Inferred:** Can be treated as untrusted input if it cannot contain executable URLs, HTML, event handlers, or unrestricted command arguments. | Panel metadata, commands that map to known host operations, workspace suggestions, asset references. |
-| **3 — Project-local executable app** | JavaScript supplied by the opened project. | **Inferred:** Potentially malicious, stale, or accidental-faulting. It must not be imported into the privileged Studio realm by default. Use a worker, cross-origin sandboxed iframe, or process boundary with a serialized broker. | Only if real proving apps cannot be expressed as Tier 2 and the owner approves the trust model. |
+| **0 - Built-in core** | Statically shipped Studio code in the main realm. | **Established/Inferred:** Fully trusted. A fault or infinite loop can affect the complete Studio UI. Native access must still stay behind host adapters. | Existing workspace, host adapters, core services. |
+| **1 - Studio-bundled app** | App code included and versioned with the Studio distribution, loaded statically or with `import()`. | **Inferred:** If loaded in the main realm it has the same effective authority as core, regardless of API typing. “Bundled” is provenance, not isolation. | First-party apps reviewed and released with Studio. |
+| **2 - Project-local declarative contribution** | Strict JSON-like data validated before any project app code runs; trusted Studio components render it. | **Inferred:** Can be treated as untrusted input if it cannot contain executable URLs, HTML, event handlers, or unrestricted command arguments. | Panel metadata, commands that map to known host operations, workspace suggestions, asset references. |
+| **3 - Project-local executable app** | JavaScript supplied by the opened project. | **Inferred:** Potentially malicious, stale, or accidental-faulting. It must not be imported into the privileged Studio realm by default. Use a worker, cross-origin sandboxed iframe, or process boundary with a serialized broker. | Only if real proving apps cannot be expressed as Tier 2 and the owner approves the trust model. |
 | **Current remote main-realm exception** | `usessps.com/ssps.js`. | **Established/Inferred:** Remote provenance but Tier-0-equivalent runtime authority inside the main document. | Existing presence integration; needs a security review before the same loading shape is copied. |
 
 No Studio app registry, `StudioApp`, `AppContribution`, activation registry, or app-version contract exists in the inspected packages. Repository search for those terms returned no matches. **Established, repository snapshot.**

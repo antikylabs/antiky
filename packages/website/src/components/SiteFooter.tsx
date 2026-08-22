@@ -39,10 +39,10 @@ export default function SiteFooter() {
         {process.env.NODE_ENV === 'production' && (
           <span className="live-presence" role="status" aria-live="polite">
             <span className="live-presence-dot" aria-hidden="true" />
-            <span><span id="ssps-live-count">—</span> active now</span>
+            <span><span id="ssps-live-count">…</span> active now</span>
           </span>
         )}
-        <span>Current proof is public. The larger game and system are still being built.</span>
+        <span>Three technical studies are public. The larger game and system are still being built.</span>
       </div>
     </footer>
   );

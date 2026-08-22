@@ -14,7 +14,7 @@ and a critique that has not established the type will report symptoms.
 
 ### 2. Read it as its reader
 
-Read the page as the reader you named — not as someone checking it. The failures below are all
+Read the page as the reader you named - not as someone checking it. The failures below are all
 failures of *arrival*: they only show up if you come to the page cold, wanting what it promises.
 
 ### 3. Check, in this order
@@ -45,11 +45,11 @@ worse defect than any of the above, and the only one that will actively break so
 
 Four parts, in order:
 
-1. **Type** — what it is, what it should be, and whether they match.
+1. **Type** - what it is, what it should be, and whether they match.
 2. **Defects**, ranked, each with the evidence quoted and the specific section named.
-3. **Not checked** — what you could not verify. If you did not check the signatures against the
+3. **Not checked** - what you could not verify. If you did not check the signatures against the
    source, say so; the reader of your audit will otherwise assume you did.
-4. **Verdict** — keep, retype, or split, and the single change that would help most.
+4. **Verdict** - keep, retype, or split, and the single change that would help most.
 
 Rank by what costs the reader most. A buried goal costs every reader; an awkward sentence costs
 none.

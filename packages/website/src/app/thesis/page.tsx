@@ -25,7 +25,7 @@ export default function ThesisPage() {
         <p className="page-lead">
           Game development is becoming collaboration between human creators and software agents.
           The systems supporting that collaboration should be designed around shared understanding
-          and human authority from the beginning—then tested by building real games.
+          and human authority from the beginning, then tested by building real games.
         </p>
       </header>
 
@@ -51,7 +51,7 @@ export default function ThesisPage() {
           <p>
             Building it exposed a familiar limit. A game asks for engineering, art, animation,
             design, writing, sound, production, and more. Few creators hold every craft themselves.
-            Software agents may give a creator meaningful leverage across those boundaries—but only
+            Software agents may give a creator meaningful leverage across those boundaries, but only
             if the tools help them collaborate with intent.
           </p>
           <p>
@@ -70,7 +70,7 @@ export default function ThesisPage() {
             <p>
               We want someone with a world in their mind to have a better chance of making it real.
               The creator chooses the world, sets the direction, judges the result, and remains the
-              creative authority. Agents can explore, propose, implement, test, and help—but the
+              creative authority. Agents can explore, propose, implement, test, and help, but the
               human stays in the director&apos;s chair.
             </p>
           </div>
@@ -196,7 +196,7 @@ export default function ThesisPage() {
         </div>
         <div className="thesis-prose">
           <p className="lead">
-            2D, 3D, and 2.3D are creative possibilities—not the boundaries of Antiky.
+            2D, 3D, and 2.3D are creative possibilities, not the boundaries of Antiky.
           </p>
           <p>
             BroMetal is where Antiky&apos;s rendering work began and remains the renderer our Framework
@@ -217,7 +217,7 @@ export default function ThesisPage() {
               become part of Antiky. Working software teaches us more than speculative architecture.
               Playable experiments teach us more than promises.
             </p>
-            <Link className="text-link" href="/demos/antiky-town">Run the current proof <ArrowRight /></Link>
+            <Link className="text-link" href="/demos/antiky-town">Run Antiky Town <ArrowRight /></Link>
           </div>
         </div>
       </section>
@@ -240,7 +240,7 @@ export default function ThesisPage() {
           <p>
             Antiky is early. If it only helps us build Emberwyrd, learn deeply, and have fun exploring
             these ideas, it will have been worthwhile. We hope the work becomes useful to many more
-            creators—and we invite thoughtful builders to help test, question, and improve it.
+            creators, and we invite thoughtful builders to help test, question, and improve it.
           </p>
           <div className="thesis-links">
             <Link className="text-link" href="/studio">See the current Studio <ArrowRight /></Link>

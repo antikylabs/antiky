@@ -1,6 +1,6 @@
 # The STE checker
 
-A deterministic Simplified Technical English checker. Node standard library only — no install,
+A deterministic Simplified Technical English checker. Node standard library only - no install,
 no network, no model.
 
 | File | What it is |
@@ -43,7 +43,7 @@ an agent to consume.
 | --- | --- |
 | `--mode auto\|procedural\|descriptive` | which sentence and paragraph limits apply. Default `auto`, decided per paragraph |
 | `--json` | structured output: `version`, `issue`, `counts`, and `findings[]` with path, line, column, severity, rule, message, and the source text |
-| `--strict` | also list words absent from the dictionary. Noisy on technical text — see below |
+| `--strict` | also list words absent from the dictionary. Noisy on technical text - see below |
 | `--fail-on error\|warning\|info\|never` | lowest severity that makes the exit status 1 |
 | `--data PATH` | use a different vocabulary file |
 
@@ -57,7 +57,7 @@ an agent to consume.
 | 2.1 | A possible multi-word noun of more than three words | warning |
 | 3.2 | The "-ing" form used as a verb | error |
 | 3.6 | Passive voice with a named agent | error |
-| 3.6 | Passive voice with no agent — may be a participle adjective (rule 3.3) | warning |
+| 3.6 | Passive voice with no agent - may be a participle adjective (rule 3.3) | warning |
 | 4.2 | Contractions | error |
 | 5.1 / 6.3 | Sentence over 20 words (procedural) or 25 (descriptive) | error |
 | 5.3 | An instruction that does not start with an approved verb | warning |
@@ -73,10 +73,10 @@ quoted text, so does a number with its unit, and so does a hyphenated word. A co
 
 Severity says how much the tool actually knows:
 
-- **error** — the dictionary or a numeric limit settles it.
-- **warning** — real but needs a look. Passive voice with no named agent may be a past participle
+- **error** - the dictionary or a numeric limit settles it.
+- **warning** - real but needs a look. Passive voice with no named agent may be a past participle
   used as an adjective, which rule 3.3 permits.
-- **info** — probably fine, shown so you can confirm. Usually a word rejected as a verb that is
+- **info** - probably fine, shown so you can confirm. Usually a word rejected as a verb that is
   being used as a noun.
 
 Two things are deliberate, and matter when acting on output:
@@ -100,7 +100,7 @@ order, always.
 import ste from "<skill-dir>/scripts/ste100-lint.json" with { type: "json" };
 
 ste.words["ensure"];        // [{ approved: false, pos: "v", senses: [...] }]
-ste.forms["connects"];      // "CONNECT" — inflected forms resolve to headwords
+ste.forms["connects"];      // "CONNECT" - inflected forms resolve to headwords
 ste.limits.max_words_per_procedural_sentence;   // { value: 20, rule: "5.1" }
 ste.rules;                  // 61 entries: 53 rules + 8 general recommendations
 ste.recurring_errors;       // the 39 most frequent mistakes, with replacements
@@ -117,7 +117,7 @@ const findings = checkText(text, "draft.md", dictionary, "procedural");
 ```
 
 Lookup is by lowercased headword. The value is a list because one spelling can appear more than once
-with different parts of speech — `CHECK (n)` is approved while `check (v)` is not.
+with different parts of speech - `CHECK (n)` is approved while `check (v)` is not.
 
 ## About the standard
 

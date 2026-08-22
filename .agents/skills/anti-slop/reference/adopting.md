@@ -27,7 +27,7 @@ Do not skip the third row. A rule nobody has argued with has not been tested.
 
 **3. Wire the cheap rules only.**
 
-Start with `--fail-on error`, which gates on `no-uncollected-test` and `no-orphan-script` — both
+Start with `--fail-on error`, which gates on `no-uncollected-test` and `no-orphan-script` - both
 derived from the repository's own configuration, so neither is a matter of taste. Leave the two
 directory-shape rules as warnings. They are proxies and they should stay advisory until the project
 has opinions about them.
@@ -43,7 +43,7 @@ The useful ordering is by how much context survives:
 | Pre-commit | The same, and it cannot be forgotten | Bypassable with `--no-verify` |
 | CI | Everything, unbypassably | The context that produced it is gone |
 
-A pre-write block is **not** on this list. Blocking a tool call is guidance rather than a boundary —
+A pre-write block is **not** on this list. Blocking a tool call is guidance rather than a boundary -
 a determined agent reaches the same file through a shell command, and this is documented behaviour
 rather than speculation. Put the rules that matter at commit and CI, where the check applies to the
 artifact instead of the actor.
@@ -60,7 +60,7 @@ node <skill-dir>/scripts/structure_lint.mjs --json . | grep -c '"rule"'
 Two cautions if you build on this:
 
 **Gate on the set, never the count.** A count is satisfied by removing one finding and adding
-another. Compare the identity of each finding — rule plus path — not how many there are.
+another. Compare the identity of each finding - rule plus path - not how many there are.
 
 **A baseline that only ever grows is a graveyard.** Whatever records known findings must be
 reviewed, and entries must leave it. If the recorded set has never shrunk, the mechanism is
@@ -72,8 +72,8 @@ Named plainly, because a check that has stopped earning its place is worse than 
 
 - Every finding for a month has been "the rule is wrong here."
 - The only failure anyone has seen is that someone forgot to run it.
-- Findings are being fixed by the `Never:` route — renaming tests, hedging claims, splitting
-  directories in the wrong place — rather than the `Do:` route.
+- Findings are being fixed by the `Never:` route - renaming tests, hedging claims, splitting
+  directories in the wrong place - rather than the `Do:` route.
 
 The last one is the serious one. A rule whose cheapest fix is the wrong fix teaches the wrong
 behaviour, and it does that faster to an agent than to a person. Remove the rule rather than living

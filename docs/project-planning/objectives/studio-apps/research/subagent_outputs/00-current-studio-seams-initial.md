@@ -2,9 +2,9 @@
 
 ## Evidence labels
 
-- **Established** — implemented in repository code or asserted by a current test.
-- **Claimed** — described by documentation but not implemented or not fully verified.
-- **Inferred** — conclusion from repository evidence that requires runtime or integration verification.
+- **Established** - implemented in repository code or asserted by a current test.
+- **Claimed** - described by documentation but not implemented or not fully verified.
+- **Inferred** - conclusion from repository evidence that requires runtime or integration verification.
 
 No files were edited and no tests were run; this was a repository evidence pass.
 
@@ -167,7 +167,7 @@ Evidence: `packages/studio/app/src/main.tsx:28-58`, `packages/studio/app/src/App
 
 ## Planning implications
 
-- The current natural cut points are `EditorHost`, `ProjectManager`, `StudioDevelopmentCoordinator`, the validated `DevelopmentClient`, and the CLI lifecycle handle—not the presentational `Panel` component (`packages/studio/app/src/editor/types.ts:47-56`, `packages/studio/app/src/development/coordinator.ts:50-72`, `packages/cli/src/development/browser-client.ts:76-120`). This aligns with the repository guidance to factor at narrow, proven seams and avoid premature shallow abstractions (`docs/GOOD_ENGINEERING_H.md:12-22`).
+- The current natural cut points are `EditorHost`, `ProjectManager`, `StudioDevelopmentCoordinator`, the validated `DevelopmentClient`, and the CLI lifecycle handle - not the presentational `Panel` component (`packages/studio/app/src/editor/types.ts:47-56`, `packages/studio/app/src/development/coordinator.ts:50-72`, `packages/cli/src/development/browser-client.ts:76-120`). This aligns with the repository guidance to factor at narrow, proven seams and avoid premature shallow abstractions (`docs/GOOD_ENGINEERING_H.md:12-22`).
 
 - A composable surface boundary would need explicit identity, placement, activation/visibility/disposal behavior, and narrowly scoped services. Passing `StudioShell` state or raw Tauri APIs through an open-ended context would reproduce the current coupling and weaken information hiding (`docs/GOOD_ENGINEERING_H.md:95-98`).
 

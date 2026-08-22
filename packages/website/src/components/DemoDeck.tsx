@@ -54,7 +54,7 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
         <DemoStage
           key={demo.slug}
           slug={demo.slug}
-          label={`${demo.title} — interactive live study`}
+          label={`${demo.title}: interactive live study`}
           controlMode={demo.controlMode}
         />
       </div>

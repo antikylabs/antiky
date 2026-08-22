@@ -106,6 +106,7 @@ interface (API).
 
 ## Revision history
 
-- `40991f9dd41f9e2b996c22f5875d77990ddd2c45` — Clarified same-step GPU use and GPU-to-CPU readback.
-- `9858394c6688762af6c23dee4aab4c29ef8239bd` — Clarified local single-player GPU authority.
-- `720a66321241d1ba9f27c32d9991f4baefad93ba` — Defined the authority owner for a local game.
+- `40991f9dd41f9e2b996c22f5875d77990ddd2c45`: Clarified same-step GPU use and GPU-to-CPU readback.
+- `9858394c6688762af6c23dee4aab4c29ef8239bd`: Clarified local single-player GPU authority.
+- `720a66321241d1ba9f27c32d9991f4baefad93ba`: Defined the authority owner for a local game.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

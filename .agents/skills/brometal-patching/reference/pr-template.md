@@ -10,7 +10,7 @@ This format came out of BroMetal pull requests
 
 ## 1. Lead with the current behaviour, quoted from their code
 
-Not your diagnosis — their code. The maintainer should recognise it immediately.
+Not your diagnosis - their code. The maintainer should recognise it immediately.
 
 ````markdown
 `createRenderTarget` hard-codes its sampler to nearest:
@@ -20,7 +20,7 @@ const sampler = device.createSampler({ magFilter: 'nearest', minFilter: 'nearest
 ```
 ````
 
-## 2. Take their existing comment seriously — Chesterton's fence, in public
+## 2. Take their existing comment seriously - Chesterton's fence, in public
 
 If a comment explains why the code is as it is, say which part still holds and which no longer
 matches the code. It shows you read it, and it is usually half-right.
@@ -39,7 +39,7 @@ and was not:
 ## 4. Why it matters, in user terms
 
 What a developer using the library actually experiences, and why they would misattribute it. Not
-internal mechanics — the symptom.
+internal mechanics - the symptom.
 
 ## 5. What changed
 
@@ -58,7 +58,7 @@ WITHOUT   ✗ two batches in one frame keep their own attribute data
 WITH      ✓ two batches in one frame keep their own attribute data
 ```
 
-And anything that did **not** run, said plainly — "WebKit is not installed locally, so I could not
+And anything that did **not** run, said plainly - "WebKit is not installed locally, so I could not
 run that suite" is better than silence.
 
 ## 7. Notes for the maintainer
@@ -85,11 +85,11 @@ solution", which is the honest framing when you are a stranger to the codebase.
 Genuine questions, not politeness:
 
 - **Is this applicable at all?** If it does not fit where the project is going, say so and close it
-  — no offence taken. We carry it as a local patch today, so nothing of ours is blocked.
+ - no offence taken. We carry it as a local patch today, so nothing of ours is blocked.
 - **Is there a better approach?** We arrived at this from the outside, without the context you have
   on the design. If you would solve it differently, we would rather write your version than have
   you merge ours.
-- **Anything you want changed** — naming, comment style, test placement, scope — tell us.
+- **Anything you want changed** - naming, comment style, test placement, scope - tell us.
 ```
 
 The "nothing of ours is blocked" line matters: it removes any pressure from the request, which is

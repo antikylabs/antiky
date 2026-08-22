@@ -45,7 +45,7 @@ Replace `claude-code` with a supported agent identifier for your environment.
 
 ## Install every public skill
 
-Use `--all` only when every Ready skill belongs in the project:
+Use `--all` only when you want every public skill in the project:
 
 ```bash
 npx skills add antikylabs/skills --all
@@ -107,5 +107,5 @@ directories by hand; the command-line interface also maintains its installation 
 ## Related documentation
 
 - [Understand Antiky agent skills](overview.md).
-- Use the [Ready skills reference](reference.md) to find names and subcommands.
+- Use the [Antiky skills reference](reference.md) to find names and subcommands.
 - Inspect the [canonical source repository](https://github.com/antikylabs/skills).

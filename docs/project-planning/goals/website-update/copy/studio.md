@@ -40,7 +40,7 @@ Lead:
 
 Antiky Studio is the native visual workspace for Antiky development. It keeps project launch, the
 running game, a native terminal, simulation controls, structured inspection, and development
-activity together—so you can see what is happening, direct the next change, and keep the shared
+activity together, so you can see what is happening, direct the next change, and keep the shared
 project state in view.
 
 Primary action before packaged release: Run Studio from source
@@ -249,7 +249,7 @@ remain visibly stale instead of attaching to the wrong project or revision.
 Because Studio does not carry a separate engine inside its interface, it can focus on the part only
 it can do: help a person see, understand, and direct the work.
 
-## What is current—and what comes next
+## What is current, and what comes next
 
 Status: Current
 
@@ -333,8 +333,8 @@ These are deliberate alternatives, not additional headings to ship.
 
 CTA alternatives:
 
-- **Open the current Studio guide** — safest primary action before a packaged release exists.
-- **See the workspace in detail** — suitable for an in-page jump to the screenshot sequence, not an
+- **Open the current Studio guide** - safest primary action before a packaged release exists.
+- **See the workspace in detail** - suitable for an in-page jump to the screenshot sequence, not an
   external conversion action.
 
 ## Editorial notes

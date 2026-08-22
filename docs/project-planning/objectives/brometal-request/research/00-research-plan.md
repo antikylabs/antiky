@@ -1,4 +1,4 @@
-# Research plan — BroMetal issue #8 capability response
+# Research plan - BroMetal issue #8 capability response
 
 **Prepared:** 2026-08-14
 **Objective:** [`../objective.md`](../objective.md)
@@ -43,7 +43,7 @@ The owner clarified two requirements on 2026-08-14:
 
 ## Lines of inquiry
 
-### 00 — Issue and BroMetal surface
+### 00 - Issue and BroMetal surface
 
 Read issue #8, all comments and state, BroMetal's current primary documentation, the installed
 `0.17.2` package, its camera/runtime types, and current Antiky patch metadata. Return:
@@ -55,7 +55,7 @@ Read issue #8, all comments and state, BroMetal's current primary documentation,
 - any missing general renderer primitive that could justify an upstream contribution;
 - dated sources and explicit gaps.
 
-### 01 — Entity, transform, and inspection coverage
+### 01 - Entity, transform, and inspection coverage
 
 Read `packages/framework/src/identity/`, `point-light/`, `inspection/`, `sessions/`, the public
 exports and API docs, relevant tests, ADRs 0001, 0009, and 0011, and the world/session architecture.
@@ -63,7 +63,7 @@ Return a requirement-by-requirement matrix that distinguishes reusable code, fea
 inspection-only records, architecture direction, and missing behavior. Include the smallest reusable
 boundary supported by current evidence and explicit gaps.
 
-### 02 — Picking and selection coverage
+### 02 - Picking and selection coverage
 
 Read the game pointer contract and host adapter, Framework render contracts and BroMetal driver,
 demo render data, Studio and rendering selection architecture, inspection surfaces, tests, and
@@ -79,7 +79,7 @@ and missing link:
 
 CPU picking can be recorded as a fallback or comparison. It cannot replace the required GPU path.
 
-### 03 — Camera and coordinate coverage
+### 03 - Camera and coordinate coverage
 
 Read BroMetal's `Camera` API, Antiky game/host contracts, camera and presentation code across current
 demos, tests, ADR 0004, and Studio camera architecture. Return a matrix for projection, pan, zoom,
@@ -87,7 +87,7 @@ follow, damping, viewport/world conversion, resize, ownership, headless testing,
 whether existing code is a reusable 2D camera or only separate ingredients. Include evidence and
 explicit gaps.
 
-### 04 — External product fit and ownership
+### 04 - External product fit and ownership
 
 Read package manifests and exports, build and publication configuration, user documentation,
 current release posture, ADRs 0020 and 0021, the render-driver work, and the other research returns.
@@ -99,7 +99,7 @@ Return:
 - a capability ownership matrix for Framework, Studio, BroMetal, or no action;
 - any owner decisions that genuinely change the product direction.
 
-### 05 — GPU-to-Framework-to-Studio correction
+### 05 - GPU-to-Framework-to-Studio correction
 
 Recheck the latest branch after the owner made GPU picking and Studio tracing explicit. Return:
 
@@ -113,11 +113,11 @@ Recheck the latest branch after the owner made GPU picking and Studio tracing ex
 
 Each raw return must contain:
 
-1. **Findings** — concise answers tied to the assigned questions.
-2. **Evidence** — a source file and line, command output, or primary URL for each material claim.
-3. **Established / claimed / inferred** — label the evidence status explicitly.
-4. **Gaps** — unanswered points and what would answer them.
-5. **Planning implications** — decisions the evidence supports, without writing a plan or goal.
+1. **Findings** - concise answers tied to the assigned questions.
+2. **Evidence** - a source file and line, command output, or primary URL for each material claim.
+3. **Established / claimed / inferred** - label the evidence status explicitly.
+4. **Gaps** - unanswered points and what would answer them.
+5. **Planning implications** - decisions the evidence supports, without writing a plan or goal.
 
 An unverifiable claim must remain visible and labelled.
 

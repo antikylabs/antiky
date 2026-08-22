@@ -1,6 +1,6 @@
 # Social Listening & Engagement Triage
 
-How to surface the right posts to engage with each day — instead of randomly scrolling. The goal is a short, scorable list ("here are your top 10 posts to comment on") rather than an open feed.
+How to surface the right posts to engage with each day - instead of randomly scrolling. The goal is a short, scorable list ("here are your top 10 posts to comment on") rather than an open feed.
 
 ## Contents
 - When to use this
@@ -30,19 +30,19 @@ If the user wants to **create** content, use the rest of the social skill. Liste
 
 A repeatable 20-minute loop the user (or you, on their behalf) can run each morning.
 
-1. **Pull** — fetch new posts from defined sources (target accounts, keywords, subreddits, hashtags). See [tooling](#sources--light-tooling-curl-recipes).
-2. **Filter** — drop anything older than 24h, low signal, or off-topic.
-3. **Score** — apply the [rubric](#scoring-rubric). Keep top 10.
-4. **Draft** — for each, draft a comment matched to the post's tier.
-5. **Post** — user reviews, edits, posts. Mark which actually went live.
-6. **Log** — track what you commented on and what got replies. This is your engagement loop dataset.
+1. **Pull** - fetch new posts from defined sources (target accounts, keywords, subreddits, hashtags). See [tooling](#sources--light-tooling-curl-recipes).
+2. **Filter** - drop anything older than 24h, low signal, or off-topic.
+3. **Score** - apply the [rubric](#scoring-rubric). Keep top 10.
+4. **Draft** - for each, draft a comment matched to the post's tier.
+5. **Post** - user reviews, edits, posts. Mark which actually went live.
+6. **Log** - track what you commented on and what got replies. This is your engagement loop dataset.
 
 Output format Claude should produce:
 
 ```
-TOP 10 POSTS — 2026-06-05
+TOP 10 POSTS - 2026-06-05
 
-1. [Score 9/10] @author — LinkedIn — 2h ago
+1. [Score 9/10] @author - LinkedIn - 2h ago
    "We just rolled out X and the team is loving it…"
    Why: ICP fit (B2B SaaS, 50–200 employees), buying-intent signal
    Suggested comment: [draft]
@@ -67,7 +67,7 @@ Score each post 1–10 across five dimensions, then sum and rank.
 - "Looking for a tool that does X"
 - "Why is [category] so painful?"
 - "We just switched from [competitor] because…"
-- "Anyone use [competitor] — is it worth it?"
+- "Anyone use [competitor] - is it worth it?"
 - A complaint about a known competitor
 
 **Drop if any of these are true:**
@@ -83,18 +83,18 @@ Score each post 1–10 across five dimensions, then sum and rank.
 
 Match the comment to the post. Don't waste a tier-1 draft on a tier-3 opportunity.
 
-**Tier 1 — Relationship builder (target accounts, ICP, high intent)**
+**Tier 1 - Relationship builder (target accounts, ICP, high intent)**
 - Add a specific insight or counter-example
 - Reference your own experience with specifics (numbers, names, outcomes)
 - Ask a thoughtful follow-up that invites a reply
 - Length: 2–4 sentences, no link
 
-**Tier 2 — Visibility play (high-reach post, adjacent topic)**
+**Tier 2 - Visibility play (high-reach post, adjacent topic)**
 - Add one sharp insight in one sentence
-- Pattern: "Agreed — and the part most miss is [X]"
+- Pattern: "Agreed - and the part most miss is [X]"
 - Length: 1–2 sentences
 
-**Tier 3 — Light touch (relationship maintenance)**
+**Tier 3 - Light touch (relationship maintenance)**
 - Specific reaction, not "Love this"
 - Quote a specific line and react to it
 - Length: 1 sentence
@@ -105,7 +105,7 @@ Match the comment to the post. Don't waste a tier-1 draft on a tier-3 opportunit
 
 ## Sources & Light Tooling (curl recipes)
 
-These are public JSON endpoints — no auth needed. Run them from bash, pipe to `jq`, and Claude can parse the output to score and draft comments.
+These are public JSON endpoints - no auth needed. Run them from bash, pipe to `jq`, and Claude can parse the output to score and draft comments.
 
 **Requires:** `jq` (most recipes) and `xmllint` (RSS only). Install once:
 ```bash
@@ -166,16 +166,16 @@ curl -s "https://www.youtube.com/feeds/videos.xml?channel_id=CHANNEL_ID"
 curl -s "https://example.com/feed/" | xmllint --xpath "//item[position()<6]" - 2>/dev/null
 ```
 
-### LinkedIn & X — use the browser
+### LinkedIn & X - use the browser
 
-LinkedIn and X don't expose useful public APIs, but you can drive a real browser session. **dev-browser** (MCP, already in the global setup) and **Playwright** both maintain persistent state — log in once, the session stays alive, Claude can navigate the authenticated feed.
+LinkedIn and X don't expose useful public APIs, but you can drive a real browser session. **dev-browser** (MCP, already in the global setup) and **Playwright** both maintain persistent state - log in once, the session stays alive, Claude can navigate the authenticated feed.
 
-**dev-browser workflow (preferred — already wired up):**
+**dev-browser workflow (preferred - already wired up):**
 1. User logs into LinkedIn / X once in the dev-browser session
 2. Claude navigates to a target URL (feed, profile, saved search, hashtag)
 3. Claude reads the accessibility tree / page text, extracts posts
 4. Claude scores using the [rubric](#scoring-rubric) and drafts comments
-5. User reviews and posts manually (don't auto-post — high-stakes, bot detection risk)
+5. User reviews and posts manually (don't auto-post - high-stakes, bot detection risk)
 
 **Useful URLs to feed dev-browser:**
 
@@ -183,10 +183,10 @@ LinkedIn and X don't expose useful public APIs, but you can drive a real browser
 |-------------|---------------|
 | `linkedin.com/in/HANDLE/recent-activity/all/` | A target account's recent posts |
 | `linkedin.com/feed/hashtag/TOPIC/` | Hashtag feed |
-| `linkedin.com/feed/` | Your main feed (algorithmic — less useful for triage) |
+| `linkedin.com/feed/` | Your main feed (algorithmic - less useful for triage) |
 | `x.com/HANDLE` | A target account's profile |
 | `x.com/search?q=QUERY&f=live` | Real-time search (use `f=live` for chronological) |
-| `x.com/i/lists/LIST_ID` | A curated list — best for target accounts |
+| `x.com/i/lists/LIST_ID` | A curated list - best for target accounts |
 
 **Tips:**
 - On X, build a private list of target accounts and use the list URL. Far cleaner than the algorithmic feed.
@@ -201,36 +201,36 @@ LinkedIn and X don't expose useful public APIs, but you can drive a real browser
 | X | TweetDeck/X Pro (saved columns), Typefully, Taplio, Tweet Hunter |
 
 **Still closed (no good path):**
-- Instagram & TikTok — closed APIs, browser automation is detectable and risky. Use native saved searches / hashtag follows.
+- Instagram & TikTok - closed APIs, browser automation is detectable and risky. Use native saved searches / hashtag follows.
 
 ---
 
 ## Per-Platform Notes
 
 ### LinkedIn
-- **Browser-driven** (dev-browser with persistent session) — see [LinkedIn & X — use the browser](#linkedin--x--use-the-browser)
-- **First-hour comments matter most** — algorithm weights early engagement heavily. Prioritize posts <2h old from target accounts.
+- **Browser-driven** (dev-browser with persistent session) - see [LinkedIn & X - use the browser](#linkedin--x--use-the-browser)
+- **First-hour comments matter most** - algorithm weights early engagement heavily. Prioritize posts <2h old from target accounts.
 - Comments with 5+ words get more reach than reactions
 - Replying to other commenters can put you in front of their network
 - Tag the author in your reply only if it adds context
 
 ### Twitter/X
-- **Browser-driven** (dev-browser) — build a private list of target accounts and point dev-browser at the list URL
+- **Browser-driven** (dev-browser) - build a private list of target accounts and point dev-browser at the list URL
 - Reply within first 30 min for max reach on big accounts
 - Quote-tweet > reply when adding substantial value
 - Threading your reply (multi-tweet) signals effort
-- Don't pile on dunks — relationships > clout
+- Don't pile on dunks - relationships > clout
 
 ### Reddit
 - Read the subreddit rules before commenting (some ban self-promotion outright)
 - Earn karma in the sub before linking to anything you own
 - Long, specific answers win. AMAs and "help me decide" threads are gold
-- Never lead with your product — answer the question first
+- Never lead with your product - answer the question first
 
 ### Hacker News
 - Comment quality bar is high; low-effort gets downvoted fast
 - Founders commenting on threads about their product is welcomed if you're transparent
-- Search for past discussions of your category — they're often dormant gold mines
+- Search for past discussions of your category - they're often dormant gold mines
 
 ### Bluesky
 - Smaller volume but high engagement-to-follower ratio

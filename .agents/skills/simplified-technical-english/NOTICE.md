@@ -13,7 +13,7 @@ This skill is not a copy of the standard and is no substitute for it.
 | Content | Included here? |
 | --- | --- |
 | Explanatory text, worked examples, the standard's dictionary example sentences | no |
-| The controlled vocabulary: which words are approved, with what part of speech, and their approved alternatives | yes — these are the facts a checker cannot work without |
+| The controlled vocabulary: which words are approved, with what part of speech, and their approved alternatives | yes - these are the facts a checker cannot work without |
 | Rule statements and numeric limits | yes. `reference/ste-guide.md` is a paraphrase; the JSON carries the rule statements close to their published wording |
 | Example sentences | only originals written for this package and verified against the linter |
 

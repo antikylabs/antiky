@@ -19,7 +19,7 @@ Research date: 2026-08-12. This report is read-only.
 - Skills teach workflow but do not establish facts. The current asset and shader skills are explicitly work in progress
   ([`docs/objectives/skill-research/skills/AGENTS.md:1`](docs/objectives/skill-research/skills/AGENTS.md:1)).
 
-**Inference.** Keep that split and add one small, task-oriented retrieval contract shared by the package, Studio, CLI, and—only if measured client demand warrants it—an optional local MCP adapter. Do not create a hosted catalog MCP server merely to wrap public JSON. This matches the archived catalog decision
+**Inference.** Keep that split and add one small, task-oriented retrieval contract shared by the package, Studio, CLI, and - only if measured client demand warrants it - an optional local MCP adapter. Do not create a hosted catalog MCP server merely to wrap public JSON. This matches the archived catalog decision
 ([archived asset-catalog objective](../../../_archives/2026-08-10-asset-catalog-summary.md)).
 
 The leading workflow should be:

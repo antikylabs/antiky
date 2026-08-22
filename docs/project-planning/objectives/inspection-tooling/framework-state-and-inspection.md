@@ -650,7 +650,7 @@ Required read models:
   layer/mask, material, broadphase region, and physics-world revision.
 - Evidence/queries: bounded step-linked contact/manifold history; registered ray, shape, sweep, and
   overlap queries with units, space, filter, hit cap, deterministic ordering, and source fence.
-- Diagnostics: per-step counts/timings, divergence evidence, and checkpoint/rebuild support—or an
+- Diagnostics: per-step counts/timings, divergence evidence, and checkpoint/rebuild support - or an
   explicit platform/build-local determinism classification.
 
 Mutation should occur through gameplay/authoring commands such as changing a collider definition,
@@ -710,7 +710,7 @@ need semantic game inspection.
 Agents need bounded evidence that answers “what changed this value?” without recording every frame
 forever.
 
-Add registered, schema-known watch expressions and breakpoints—never arbitrary JS—and bounded trace
+Add registered, schema-known watch expressions and breakpoints - never arbitrary JS - and bounded trace
 windows filterable by step, entity/component/system/event/command/task, and severity. Record system
 phase/order/status, read/write and changed sets, emitted signals, stable decision/rejection codes, and
 optional performance measurements. Preserve the causal chain `command -> facts/signals -> systems ->
@@ -728,19 +728,19 @@ collection, cost, and time limits. Return immutable clones without callbacks, pr
 mutable views, GPU/DOM objects, paths, credentials, terminal text, or private error messages. Trusted
 hosts supply identity/permissions; filtering precedes paging/digesting. Separate read/mutation
 authority; use one writer, leases, fences, idempotent command IDs, correlation, and typed conflicts.
-Transport adapters—not Framework core—own loopback/authentication policy.
+Transport adapters - not Framework core - own loopback/authentication policy.
 Isolate subscriber exceptions; bound queues; support cancellation, disposal, and resync after drops.
-Capture only the canvas/offscreen target with hash, dimensions, encoding, and render fence—never the
+Capture only the canvas/offscreen target with hash, dimensions, encoding, and render fence - never the
 desktop or terminal as fallback.
 
 Skill research likewise recommends read-before-write, one live writer, complete provenance,
 correction history, and canvas-only evidence ([orchestration research](../skill-research/orchestration-and-library-design.md#L187)).
 Its Godot comparison offers structured state, real input, deterministic freeze/step, and read/write
-separation as comparative patterns—not an integration target ([Godot research](../skill-research/godot.md#L111)).
+separation as comparative patterns - not an integration target ([Godot research](../skill-research/godot.md#L111)).
 
 ## Recommended implementation sequence
 
-### Milestone 0 — define invariants before expanding tools
+### Milestone 0 - define invariants before expanding tools
 
 Add branded IDs/counters, `StateFence`, and canonical digest fixtures. Define atomic step/command
 commit semantics and prove faults cannot masquerade as unchanged state. Separate `InspectionView`,
@@ -749,7 +749,7 @@ commit semantics and prove faults cannot masquerade as unchanged state. Separate
 Exit gate: one small world can produce the same canonical fence/digest from different map insertion
 orders, and every existing snapshot/action can be related to a committed fence.
 
-### Milestone 1 — real world/query/command core
+### Milestone 1 - real world/query/command core
 
 Implement simple-map component/relationship/system registries, read transactions, bounded queries,
 visibility, paging, and diffs. Generalize point-light semantics into the command/fact core without
@@ -758,7 +758,7 @@ weakening its tests; project `WorldInspection` as a bounded overview of that wor
 Exit gate: Point Light Expo, Combat Arena, and Traversal Study use the shared world/query contract;
 their public views are not hand-authored second models of omitted runtime state.
 
-### Milestone 2 — replay and worker safety
+### Milestone 2 - replay and worker safety
 
 Add explicit clock/random/environment services, action-based input, checkpoints, manifests,
 injection, step batches/step-until, and divergence localization. Add worker envelopes plus one safe
@@ -768,7 +768,7 @@ after loss instead of publishing the full world every 250 ms.
 Exit gate: a clean headless run and an interactive run consume the same trace and reach declared
 state/event/subsystem digests; a stale worker result is rejected without mutation.
 
-### Milestone 3 — subsystem adapters and debugging
+### Milestone 3 - subsystem adapters and debugging
 
 Add physics/navigation/AI/gameplay/render adapters only when real features require them, plus
 watchpoints, causal traces, system diagnostics, and fence-linked canvas captures. Project those
@@ -778,7 +778,7 @@ Exit gate: an independent QA agent can reproduce a non-trivial combat/traversal 
 identify the causing system/command and first divergent step, inspect physics/navigation/AI/gameplay
 state, and produce privacy-safe motion evidence without raw engine reflection.
 
-### Milestone 4 — persistence, sandboxes, and scale
+### Milestone 4 - persistence, sandboxes, and scale
 
 Add compatible durable snapshots/event adapters, sandbox/proposed-change promotion, zones/streaming,
 and online baselines/corrections only after the local contracts above are stable and measured.

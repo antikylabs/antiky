@@ -74,4 +74,5 @@ Three.js stays a game-module selection, not a Framework render driver.
 
 ## Revision history
 
-- `f403e4b2d125d7d13cb69c6cead4866c9f340023` — Prior version before the ADR 0021 render driver clarification.
+- `f403e4b2d125d7d13cb69c6cead4866c9f340023`: Prior version before the ADR 0021 render driver clarification.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

@@ -28,7 +28,7 @@ says, and you will need that when reality does not match.
 Follow **Required outcome** as the specification and **Explicit non-goals** as the boundary.
 
 - Write the failing test first where the goal calls for tests. Watch it fail. Then make it pass.
-- Stay inside the owned file set. Touching a file the goal does not own is a scope breach — stop and
+- Stay inside the owned file set. Touching a file the goal does not own is a scope breach - stop and
   report instead.
 - Keep to the repository conventions in **Engineering constraints**: commit style, file limits, what
   is gitignored, which `AGENTS.md` applies.
@@ -48,7 +48,7 @@ for.
 ### 4. Verify against the goal's own criteria
 
 Work through **Required tests and evidence** item by item. For each, record what you ran and what it
-produced. An item you cannot satisfy is stated as unsatisfied — not omitted, and not reinterpreted
+produced. An item you cannot satisfy is stated as unsatisfied - not omitted, and not reinterpreted
 into something you did satisfy.
 
 Then check **Completion definition** as a whole. All of it, or the goal is not complete.
@@ -58,7 +58,7 @@ Then check **Completion definition** as a whole. All of it, or the goal is not c
 `goals/summary-goal-NN.md`, from [templates/summary-goal.md](templates/summary-goal.md). The
 project's own completed summaries are the best exemplar; read one before writing your first.
 
-The summary leads with **Action needed from the owner** — a table of what needs them, why it needs
+The summary leads with **Action needed from the owner** - a table of what needs them, why it needs
 them specifically, and what it blocks. If nothing does, say that explicitly. Burying an owner
 decision at the bottom of a summary is the failure this format exists to prevent.
 
@@ -73,7 +73,7 @@ Then record:
 
 ### 6. Complete the goal
 
-Move both files into `goals/_completed/` — see [complete.md](complete.md). Fix the relative links
+Move both files into `goals/_completed/` - see [complete.md](complete.md). Fix the relative links
 that the move breaks.
 
 ### 7. Regenerate the objective README
@@ -91,8 +91,8 @@ Point at the summary rather than repeating it. State plainly:
 ## When the goal turns out to be wrong
 
 A goal is written from a plan, and a plan is written from research that may be incomplete. When
-execution shows the goal is wrong — its outcome is impossible, its premise is false, its tests
-cannot mean what they say — stop.
+execution shows the goal is wrong - its outcome is impossible, its premise is false, its tests
+cannot mean what they say - stop.
 
 Report the conflict precisely: what the goal requires, what is actually true, and what you found.
 Do not rewrite the goal to match what you managed to do. Either the owner adjusts it, or `audit`

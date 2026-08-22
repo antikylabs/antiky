@@ -19,7 +19,7 @@ they do not block this plan.
 
 | # | What | Blocks |
 | --- | --- | --- |
-| — | None | Nothing blocks `create-goals`. |
+| - | None | Nothing blocks `create-goals`. |
 
 ## Plan documents
 
@@ -55,13 +55,13 @@ dependency order in [`02-IMPLEMENTATION-STRATEGY.md`](02-IMPLEMENTATION-STRATEGY
 
 | Goal | Delivers | Prerequisites | Needs owner |
 | --- | --- | --- | --- |
-| — | No executable goals exist yet. | Run `create-goals`. | No |
+| - | No executable goals exist yet. | Run `create-goals`. | No |
 
 **Completed**
 
 | Goal | Summary | Outcome |
 | --- | --- | --- |
-| — | None | No goals have been executed for this objective. |
+| - | None | No goals have been executed for this objective. |
 
 ## What this objective will not do
 

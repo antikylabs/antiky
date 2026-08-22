@@ -1,6 +1,6 @@
 ---
 name: wait-what
-description: "Stop — that did not land. Re-pitch it. Invoke on a message you did not follow, on a file that reads badly, or with `init` to draft a CONTEXT.md. Human-invoked only."
+description: "Stop - that did not land. Re-pitch it. Invoke on a message you did not follow, on a file that reads badly, or with `init` to draft a CONTEXT.md. Human-invoked only."
 disable-model-invocation: true
 ---
 
@@ -66,7 +66,7 @@ Re-pitch the same claim:
   its linter over the re-pitch if it is more than a couple of sentences.
 - **Use the terms this repository already uses.** Read `CONTEXT.md` if there is one, otherwise the
   nearest `AGENTS.md`, and the ADRs for anything architectural. Do not reach for a synonym because
-  it reads better — a new word for a known thing is how this failed in the first place.
+  it reads better - a new word for a known thing is how this failed in the first place.
 - **Cut the scaffolding.** Named intermediate steps, hedges, and restated premises are usually what
   buried the claim. Say the thing.
 

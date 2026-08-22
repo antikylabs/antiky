@@ -4,7 +4,7 @@ Compile `research/` into numbered plan documents at the objective root.
 
 Aliases: `compile-research-to-plan`.
 
-Where a project has an exemplar plan, read it before writing your first — it shows the level of
+Where a project has an exemplar plan, read it before writing your first - it shows the level of
 specificity expected far better than a description can.
 
 ## Procedure
@@ -29,7 +29,7 @@ coherent piece of thinking. A typical set looks like:
 | `NN-` | Decisions and gaps | Impact on ADRs, seed gaps, critiques |
 
 Do not force this exact set. Do write a diagnosis before a remediation, and do define the vocabulary
-before using it — the two commonest ways a plan becomes unfollowable are proposing fixes before
+before using it - the two commonest ways a plan becomes unfollowable are proposing fixes before
 establishing what is broken, and using a term three ways.
 
 ### 3. Write each document
@@ -60,7 +60,7 @@ If the plan needs something an ADR forbids, or reveals a decision nobody has rec
 
 - say so in its own numbered document, named for the decision it examines;
 - do not plan around the ADR silently;
-- do not write the ADR yourself — use `write-adrs suggest`, and reference the proposal here.
+- do not write the ADR yourself - use `write-adrs suggest`, and reference the proposal here.
 
 A plan that quietly contradicts an accepted decision is worse than one that stops and asks.
 

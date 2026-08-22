@@ -7,7 +7,7 @@ export default function FrameworkArchitecture() {
       <div
         className="architecture-diagram"
         role="img"
-        aria-label="Target Antiky architecture: game hosts, Studio, command-line tools, and the Model Context Protocol adapter use shared project services over explicit Framework state, execution, inspection, and command boundaries."
+        aria-label="Planned Antiky architecture: game hosts, Studio, command-line tools, and the Model Context Protocol adapter use shared project services and Framework APIs for state, execution, inspection, and commands."
       >
         <div className="architecture-tier architecture-clients" aria-hidden="true">
           <span className="architecture-tier-label">Clients</span>
@@ -18,14 +18,14 @@ export default function FrameworkArchitecture() {
           <span>Project services</span>
           <strong>One development session</strong>
         </div>
-        <span className="architecture-connector" aria-hidden="true">validated boundaries</span>
+        <span className="architecture-connector" aria-hidden="true">validated interfaces</span>
         <div className="architecture-tier architecture-framework" aria-hidden="true">
           <span className="architecture-tier-label">Framework</span>
           <div>{BOUNDARIES.map((boundary) => <span key={boundary}>{boundary}</span>)}</div>
         </div>
       </div>
       <figcaption id="framework-architecture-caption">
-        Direction · target architecture, not a list of completed features.
+        Planned architecture. Some components are still in development.
       </figcaption>
     </figure>
   );

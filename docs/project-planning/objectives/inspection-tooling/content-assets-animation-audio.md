@@ -70,7 +70,7 @@ These are current observations, not hypothetical future problems:
    contains a verified four-texture Poly Haven installation, but no game source refers to those
    files. Antiky has no orphan/unused-asset diagnostic.
 2. Antiky Town and the pure BroMetal Town Study each carry byte-identical copies of four atlas
-   images and their sidecars—roughly 6.4 MiB per project. The relationship is implicit; there is no
+   images and their sidecars - roughly 6.4 MiB per project. The relationship is implicit; there is no
    shared content identity, snapshot declaration, or duplicate-content report.
 3. The Town sprite sidecar points at
    `_legacy/creative/pixel-art/.../antiky-wayfarer-cardinal-walk-v003.aseprite`; that source path is
@@ -312,7 +312,7 @@ type ContentEvidence = Readonly<{
 }>;
 ```
 
-Capture only the game canvas and, for audio, the game-owned mix—never the desktop, microphone,
+Capture only the game canvas and, for audio, the game-owned mix - never the desktop, microphone,
 terminal, title bar, notifications, or unrelated applications. Store opaque evidence IDs in MCP
 results; do not expose `/Users/...` capture paths. Require at least an isolated preview and an
 in-world sequence from expected gameplay cameras. Character/animation review needs motion and
@@ -366,7 +366,7 @@ and offer a recovery action without inventing one.
 
 ## Prioritized Antiky slices
 
-### P0 — Offline registry and audit
+### P0 - Offline registry and audit
 
 - Strictly parse current `assets/antiky-assets.json` records and project-local sidecars.
 - Add stable `AssetId`, revision, source, hash, type/schema, provenance, dependency, and status
@@ -377,7 +377,7 @@ and offer a recovery action without inventing one.
 **Exit:** a stopped project can produce a deterministic, path-safe report of every registered file,
 hash, source, rights state, dependency completeness, duplicate, missing item, and likely orphan.
 
-### P1 — One complete loaded-texture slice
+### P1 - One complete loaded-texture slice
 
 - Register the Town material atlas and sidecar through one shared texture/atlas schema.
 - Make runtime code consume generated typed metadata rather than repeat dimensions/grid/pivot.
@@ -389,7 +389,7 @@ hash, source, rights state, dependency completeness, duplicate, missing item, an
 users, current/last-good revision, budget, and native gameplay evidence. Removing or corrupting it
 produces one stable asset diagnostic, not a generic game-start failure.
 
-### P2 — Candidate reimport, safe swap, and rollback
+### P2 - Candidate reimport, safe swap, and rollback
 
 - Reimport one texture/material candidate with pinned deterministic tooling.
 - Validate before promotion; use expected revisions and explicit authority.
@@ -400,7 +400,7 @@ produces one stable asset diagnostic, not a generic game-start failure.
 **Exit:** a failed candidate cannot replace the accepted frame; an accepted change can be restored
 without deleting history or refreshing the world blindly.
 
-### P3 — Target variants and artifact integration
+### P3 - Target variants and artifact integration
 
 - Add one measured desktop/mobile quality profile and source-preserving texture variant pipeline.
 - Extend `antiky-artifact.json` with the accepted content manifest hash and compiled variant set only
@@ -410,7 +410,7 @@ without deleting history or refreshing the world blindly.
 **Exit:** the build proves source→variant→artifact→runtime identity and measured delivery/decoded/
 GPU cost; staging rejects stale or undeclared variants.
 
-### P4 — Animation and player-facing sequence evidence
+### P4 - Animation and player-facing sequence evidence
 
 - Convert the current Wayfarer atlas into the first shared sprite-animation contract.
 - Resolve or explicitly mark its missing editable source and full generated-asset provenance.
@@ -420,7 +420,7 @@ GPU cost; staging rejects stale or undeclared variants.
 **Exit:** an agent can trace one visible character frame to an accepted atlas/clip revision and prove
 loop timing, pivot/ground contact, direction, transition, limitations, and runtime cost in motion.
 
-### P5 — First real audio and scalable VFX slices
+### P5 - First real audio and scalable VFX slices
 
 - Add one gameplay-critical sound event with licensed source, loop/loudness/attenuation/concurrency/
   streaming data and game-mix evidence.

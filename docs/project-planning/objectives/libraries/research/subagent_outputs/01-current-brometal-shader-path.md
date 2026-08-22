@@ -1,4 +1,4 @@
-# Research line B — Current BroMetal shader and Antiky render path
+# Research line B - Current BroMetal shader and Antiky render path
 
 ## Decisive findings
 

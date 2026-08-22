@@ -35,13 +35,13 @@ performance, or a feature workflow.
 Every ImageGen call must receive these exact local references through `referenced_image_paths` and
 name their roles in the prompt:
 
-1. `packages/website/design/references/home-media-first.png` — composition and brand-restraint
+1. `packages/website/design/references/home-media-first.png` - composition and brand-restraint
    reference only; do not reproduce its interface or text.
-2. `packages/website/media-masters/demos/antiky-town.png` — current-product palette, world scale, and
+2. `packages/website/media-masters/demos/antiky-town.png` - current-product palette, world scale, and
    warm-light reference only; do not copy or alter the scene.
-3. `packages/website/media-masters/demos/combat-arena.png` — cool-violet contrast and dark-value
+3. `packages/website/media-masters/demos/combat-arena.png` - cool-violet contrast and dark-value
    reference only; do not copy or alter the scene.
-4. `packages/website/media-masters/demos/point-light-expo.png` — practical point-light falloff and
+4. `packages/website/media-masters/demos/point-light-expo.png` - practical point-light falloff and
    material-response reference only; do not copy or alter the scene.
 
 These are generation references, not edit targets. No output may be called product evidence.

@@ -42,8 +42,8 @@ printf '# 9999: Test decision\n' > "$adr_file"
 git_hash=$(git -C "$script_dir" rev-parse --verify HEAD)
 hash_count=$(grep -F -c "$git_hash" "$adr_file")
 heading_count=$(grep -c '^## Revision history$' "$adr_file")
-first_entry=$(printf -- "- \`%s\` — First test note." "$git_hash")
-default_entry=$(printf -- "- \`%s\` — Prior version before this in-place revision." "$git_hash")
+first_entry=$(printf -- "- \`%s\`: First test note." "$git_hash")
+default_entry=$(printf -- "- \`%s\`: Prior version before this in-place revision." "$git_hash")
 
 [ "$hash_count" -eq 2 ] || fail "expected the current hash in both entries"
 [ "$heading_count" -eq 1 ] || fail "expected one revision-history heading"

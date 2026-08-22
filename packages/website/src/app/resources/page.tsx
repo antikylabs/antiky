@@ -4,7 +4,7 @@ import { ArrowRight } from '@/components/Icons';
 
 export const metadata: Metadata = {
   title: 'Resources',
-  description: 'Current Antiky game assets and agent skills, plus honestly labeled shader and project libraries in development.',
+  description: 'Free game assets, installable agent skills, and upcoming shader and project libraries from Antiky Labs.',
   alternates: { canonical: '/resources' },
 };
 
@@ -14,7 +14,7 @@ const LIBRARIES = [
     status: 'Current',
     evidenceStatus: 'current',
     title: 'CC0 asset library',
-    body: 'Find source-linked game assets with licenses, formats, tags, verification state, permanent pages, and structured records for agents.',
+    body: 'Find free game assets with clear licenses, source links, previews, formats, tags, and download links.',
   },
   {
     href: '/resources/skills',
@@ -25,17 +25,17 @@ const LIBRARIES = [
   },
   {
     href: '/resources/shaders',
-    status: 'Direction · Coming soon',
+    status: 'Coming soon',
     evidenceStatus: 'direction',
     title: 'Shader library',
-    body: 'The intended library will make BroMetal shader sources, generated output, examples, and support boundaries easier to inspect and reuse.',
+    body: 'Browse reusable BroMetal shader sources, generated output, and working examples. Coming soon.',
   },
   {
     href: '/resources/projects',
-    status: 'Direction · Coming soon',
+    status: 'Coming soon',
     evidenceStatus: 'direction',
     title: 'Project library',
-    body: 'The intended library will publish bounded, maintained Antiky project starting points after they have real users and verification.',
+    body: 'Start from maintained Antiky projects for common game-development tasks. Coming soon.',
   },
 ] as const;
 
@@ -44,18 +44,17 @@ export default function ResourcesPage() {
     <>
       <section className="page-hero wrap">
         <p className="status-line"><span className="status-dot status-live" /> Current assets and skills · more libraries ahead</p>
-        <h1>Reusable work, with its boundary attached.</h1>
+        <h1>Free assets and reusable tools for making games.</h1>
         <p className="page-lead">
-          Antiky Resources is the public home for reusable game material and agent guidance. Assets
-          and Skills are available now; Shader and Project libraries remain direction until their
-          reviewed catalogs exist.
+          Browse CC0 assets and installable agent skills today. Shader and project libraries are
+          coming later.
         </p>
       </section>
 
       <section className="content-section wrap">
         <header className="section-intro compact">
           <h2>Choose a library</h2>
-          <p>Each destination states what is usable today and what still needs evidence.</p>
+          <p>Assets and skills are available now. Shader and project libraries are coming later.</p>
         </header>
         <div className="editorial-list">
           {LIBRARIES.map((library) => (
@@ -73,23 +72,6 @@ export default function ResourcesPage() {
         </div>
       </section>
 
-      <section className="statement-band">
-        <div className="wrap statement-grid">
-          <h2>Libraries grow from proved work.</h2>
-          <div>
-            <p className="lead">A useful building block needs source, provenance, a boundary, and a maintained path.</p>
-            <p>
-              Research can expose a candidate and a game can prove it. Publication is a separate
-              decision, so experimental work does not silently become a supported resource.
-            </p>
-            <div className="thesis-links">
-              <Link className="text-link" href="/roadmap">Read the roadmap <ArrowRight /></Link>
-              <Link className="text-link" href="/docs">Read the documentation <ArrowRight /></Link>
-              <Link className="text-link" href="/research">See the research method <ArrowRight /></Link>
-            </div>
-          </div>
-        </div>
-      </section>
     </>
   );
 }

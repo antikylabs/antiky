@@ -39,10 +39,10 @@ mostly noise: `entity`, `renderer`, `shader`, and `manifest` are technical nouns
 Read [ste-checker.md](ste-checker.md) before you interpret the output. Severity states how much the
 tool knows:
 
-- **error** — the dictionary or a numeric limit settles it. Report as a defect.
-- **warning** — real, but needs a look. Passive voice with no agent may be a participle adjective,
+- **error** - the dictionary or a numeric limit settles it. Report as a defect.
+- **warning** - real, but needs a look. Passive voice with no agent may be a participle adjective,
   which rule 3.3 permits.
-- **info** — usually a word rejected as a verb that is being used as a noun. Confirm and dismiss.
+- **info** - usually a word rejected as a verb that is being used as a noun. Confirm and dismiss.
 
 A warning or an info that you confirm is fine is not a finding. Dismiss it in your own reading
 rather than passing it to the user as work.
@@ -72,12 +72,12 @@ finding, not an exemption.
 
 Give the user four sections, in this order:
 
-1. **Machine findings** — the linter output, grouped by rule, with the counts by severity. State
+1. **Machine findings** - the linter output, grouped by rule, with the counts by severity. State
    the exact command you ran.
-2. **Judgement findings** — what step 3 found, each naming its rule and quoting the sentence.
-3. **Not checked** — the rules you could not decide and why. GR-1 through GR-5 and GR-7 need the
+2. **Judgement findings** - what step 3 found, each naming its rule and quoting the sentence.
+3. **Not checked** - the rules you could not decide and why. GR-1 through GR-5 and GR-7 need the
    document's purpose and audience; say so rather than passing over them silently.
-4. **Verdict** — one of:
+4. **Verdict** - one of:
    - *Conforms as far as this audit can decide*, naming what was not checked.
    - *Does not conform*, with the error count.
 
@@ -87,6 +87,6 @@ audit. State what you checked and what you found.
 ## When the linter cannot run
 
 If `node` is absent, say so and stop. Do not substitute your own judgement for the dictionary
-and then present the result as an audit — the vocabulary is exactly the part that cannot be
+and then present the result as an audit - the vocabulary is exactly the part that cannot be
 recalled reliably. Report which checks are unavailable and offer the judgement audit alone, clearly
 labelled.

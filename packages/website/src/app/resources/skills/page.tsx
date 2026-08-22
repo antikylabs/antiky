@@ -19,7 +19,7 @@ export default function SkillsPage() {
     <>
       <section className="page-hero wrap resource-child-hero">
         <Link className="parent-link" href="/resources">Resources</Link>
-        <p className="status-line"><span className="status-dot status-live" /> Current · nine Ready skills</p>
+        <p className="status-line"><span className="status-dot status-live" /> Current · nine skills</p>
         <h1>Portable ways of working for coding agents.</h1>
         <p className="page-lead">
           An agent skill is a small, independently installable set of task instructions and optional
@@ -49,8 +49,8 @@ export default function SkillsPage() {
 
       <section className="content-section wrap">
         <header className="section-intro compact">
-          <h2>Ready skills</h2>
-          <p>Only entries marked Ready in the pinned repository snapshot appear here.</p>
+          <h2>Available skills</h2>
+          <p>These are the nine public skills in the pinned repository snapshot.</p>
         </header>
         <div className="editorial-list">
           {PUBLIC_SKILLS.map((skill) => (
@@ -70,13 +70,12 @@ export default function SkillsPage() {
 
       <section className="statement-band">
         <div className="wrap statement-grid">
-          <h2>Ready is a publication boundary.</h2>
+          <h2>Start with one skill.</h2>
           <div>
-            <p className="lead">Frontmatter-only stubs and internal skills are not public capability claims.</p>
+            <p className="lead">Choose the procedure that matches the work in front of you.</p>
             <p>
-              The reviewed snapshot contains nine Ready skills and no internal or stub entries.
-              Future work appears here only after its instructions, links, scripts, and evaluation
-              boundary are ready for use outside the source repository.
+              Each skill brings its instructions and supporting files into your project. You can
+              inspect every file in the pinned source snapshot before you install it.
             </p>
             <div className="thesis-links">
               <Link className="text-link" href="/docs/skills/overview">Understand agent skills <ArrowRight /></Link>

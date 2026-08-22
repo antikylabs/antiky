@@ -4,7 +4,7 @@ Adversarial review of something that already exists. This is our review **and** 
 
 ## Stance
 
-Try to break it. Assume it is wrong and go looking for where — that is the job, and it is the
+Try to break it. Assume it is wrong and go looking for where - that is the job, and it is the
 opposite of `talk-it-out`, which helps someone arrive at a statement.
 
 But adversarial is not the same as negative:
@@ -44,7 +44,7 @@ reaches.
 ### 3. Verify before reporting
 
 Check each finding against the artifact. A plausible-sounding finding that does not survive reading
-the code costs more than silence — it spends the author's time and your credibility.
+the code costs more than silence - it spends the author's time and your credibility.
 
 Drop what you cannot substantiate. Say what you suspect but could not confirm, separately and
 labelled as such.
@@ -53,7 +53,7 @@ labelled as such.
 
 - **The most serious finding first**, with the failure it produces. Not a numbered list in the order
   you found them.
-- **The evidence** — quoted, with file and line.
+- **The evidence** - quoted, with file and line.
 - **What you did not check**, and why. A review that does not state its own scope reads as complete.
 - **What holds.** If the design survives, say so as a finding, not as a politeness at the end.
 

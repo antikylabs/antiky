@@ -8,7 +8,7 @@ A simple goal fits when the work is one bounded deliverable: a single research q
 change, reviewable as one unit. "Add motion capture to the inspection harness" is a simple goal.
 "Make the demos best-in-class" is an objective.
 
-Test: **would this produce more than one goal?** If yes, it is an objective — use `init <name>`.
+Test: **would this produce more than one goal?** If yes, it is an objective - use `init <name>`.
 
 Getting this wrong in the cheap direction is fine. A simple goal that grows can be promoted; an
 objective scaffolded for a two-hour change is dead weight.
@@ -40,10 +40,10 @@ Differences from a full objective:
 | --- | --- | --- |
 | Folder | `objectives/<name>/` | `objectives/goals/<goal-name>/` |
 | Intent file | `objective.md` | folded into `goal.md` |
-| Plan documents | `NN-<title>.md` at root | none — the goal is the plan |
+| Plan documents | `NN-<title>.md` at root | none - the goal is the plan |
 | Goals | many, `goals/execute-goal-NN.md` | one, `goal.md` |
 | Archive | `_archives/<name>-summary.md` | `goals/_completed/<goal-name>/` |
-| Numbering | two-digit sequence | none — the folder name is the identity |
+| Numbering | two-digit sequence | none - the folder name is the identity |
 
 The archive difference matters: a completed simple goal keeps its whole folder, moved into
 `_completed/`. There is no separate durable summary, because the goal and its summary together are
@@ -63,7 +63,7 @@ init --simple → create-research → (goal.md written directly) → execute →
 
 2. **`create-research`** works as in [research.md](research.md), writing into the goal's own
    `research/`. Usually one or two subagents. Skip it only when the change is genuinely understood
-   already — and say you skipped it, in `goal.md`.
+   already - and say you skipped it, in `goal.md`.
 
 3. **No `create-plan` or `create-goals`.** The research feeds straight into `goal.md`, which is
    written to the full contract format in [goals.md](goals.md). Every section still applies:
@@ -82,7 +82,7 @@ init --simple → create-research → (goal.md written directly) → execute →
    Then fix the relative links the move broke, and update the index.
 
 `audit` applies unchanged, and is worth running on a simple goal whose blast radius is larger than
-its size — a small change to a shared boundary deserves the panel more than a large change to an
+its size - a small change to a shared boundary deserves the panel more than a large change to an
 isolated one.
 
 ## Promoting a simple goal

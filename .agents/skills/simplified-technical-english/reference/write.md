@@ -33,7 +33,7 @@ node -e '
 `ste100.json` carries an STE and a non-STE example sentence for every entry, which is what you want
 while writing: the example shows the approved alternative in use. `ste["forms"]` resolves an
 inflected form to its headword. `ste["recurring_errors"]` is the published list of the 39 most
-frequent mistakes — read it once and you will avoid most of them.
+frequent mistakes - read it once and you will avoid most of them.
 
 Lookup is by lowercased headword and returns a list, because one spelling can appear more than once
 with different parts of speech. `CHECK (n)` is approved; `check (v)` is not.
@@ -43,7 +43,7 @@ The words that catch every writer: *ensure* (use MAKE SURE), *utilize* (use USE)
 
 ## Before delivering
 
-Lint your own draft. This is not optional — you wrote it from the same memory that cannot hold the
+Lint your own draft. This is not optional - you wrote it from the same memory that cannot hold the
 dictionary:
 
 ```bash

@@ -6,7 +6,7 @@
 
 ### Request and minimum implied contract
 
-- **Established — issue author:** The requester is building a 16-bit canal visualization with clickable ships and a follow camera. They want:
+- **Established - issue author:** The requester is building a 16-bit canal visualization with clickable ships and a follow camera. They want:
 
   - lightweight position/transform tracking for a few dozen objects;
   - pointer-event-to-entity picking;
@@ -18,7 +18,7 @@
 
 - **Established:** The author is asking whether such a companion belongs in the ecosystem. They say they intend to build and share it; they are not asking the BroMetal or Antiky teams to implement it.
 
-- **Inferred — minimum contract:** The smallest useful layer needs:
+- **Inferred - minimum contract:** The smallest useful layer needs:
 
   1. an application-supplied entity key associated with a mutable 2D transform;
   2. add/update/remove or equivalent tracking;
@@ -36,7 +36,7 @@
 
   Sources: [issue API](https://api.github.com/repos/ericdrowell/brometal/issues/8), [comments API](https://api.github.com/repos/ericdrowell/brometal/issues/8/comments), [comment](https://github.com/ericdrowell/brometal/issues/8#issuecomment-5299608314). Comment created `2026-08-15T00:49:03Z`, updated `2026-08-15T00:49:51Z`.
 
-- **Claimed — contributor, not maintainer direction:** The commenter says Antiky Framework and Studio are building something similar, provide “bits like” the requested features, include CLI/MCP inspection, are open source, and were planned for release “this weekend.” The issue comment supplies no API, release, demo, or test evidence for those claims.
+- **Claimed - contributor, not maintainer direction:** The commenter says Antiky Framework and Studio are building something similar, provide “bits like” the requested features, include CLI/MCP inspection, are open source, and were planned for release “this weekend.” The issue comment supplies no API, release, demo, or test evidence for those claims.
 
 - **Partially established:** The repository’s five current open PRs, [#3](https://github.com/ericdrowell/brometal/pull/3) through [#7](https://github.com/ericdrowell/brometal/pull/7), were all opened by `shadowcodex` on `2026-08-12` and correspond to Antiky’s patch modules. That verifies who opened the PRs and their technical subjects, but not the claim that they all originated from Antiky development.
 
@@ -56,11 +56,11 @@ npm’s `latest` tag was `0.17.2`, published `2026-08-11T07:47:21.926Z`, when ch
 
 ### General upstream candidates
 
-- **Inferred — strongest small candidate:** `mat4.orthographic`. BroMetal’s own shipped 2D example hand-rolls it and explicitly names its absence. This is renderer-general and does not introduce scene or game policy.
+- **Inferred - strongest small candidate:** `mat4.orthographic`. BroMetal’s own shipped 2D example hand-rolls it and explicitly names its absence. This is renderer-general and does not introduce scene or game policy.
 
-- **Inferred — conditional candidate:** Public render-target pixel/region readback. The internal texture already has `COPY_SRC`, but no supported public operation uses it. Readback would help diagnostics and GPU picking generally. It should only enter scope if research selects a GPU path; a few dozen 2D objects may not justify GPU picking.
+- **Inferred - conditional candidate:** Public render-target pixel/region readback. The internal texture already has `COPY_SRC`, but no supported public operation uses it. Readback would help diagnostics and GPU picking generally. It should only enter scope if research selects a GPU path; a few dozen 2D objects may not justify GPU picking.
 
-- **Inferred — possible but less settled:** General inverse-matrix/unprojection support. Star Bro’s local math proves the need can arise, but the requested 2D helper can also own its simpler screen/world conversion without changing BroMetal.
+- **Inferred - possible but less settled:** General inverse-matrix/unprojection support. Star Bro’s local math proves the need can arise, but the requested 2D helper can also own its simpler screen/world conversion without changing BroMetal.
 
 No source establishes maintainer approval for any of these.
 
@@ -84,20 +84,20 @@ No source establishes maintainer approval for any of these.
 
 Primary local sources:
 
-- `node_modules/brometal/package.json` — version, package purpose, public export map.
-- `node_modules/brometal/README.md:5-7` — compiler/runtime scope and pre-1.0 warning.
-- `node_modules/brometal/README.md:168-182` — documented camera.
-- `node_modules/brometal/README.md:251` — GLB node transforms unsupported.
-- `node_modules/brometal/README.md:308-319` — per-instance attributes.
-- `node_modules/brometal/dist/index.d.ts:1-23` — exhaustive root public exports.
-- `node_modules/brometal/dist/camera/camera.d.ts:2-29` and `camera.js:2-91` — perspective camera contract and implementation.
-- `node_modules/brometal/dist/math/mat4.d.ts:11-35` — no orthographic, inverse, or unprojection operation.
-- `node_modules/brometal/dist/runtime/context.d.ts:32-46` — renderer public surface.
-- `node_modules/brometal/dist/runtime/render-target.d.ts:3-50` — render-target public surface.
-- `node_modules/brometal/dist/runtime/webgpu.js:774-831` — fixed `rgba16float` target, `COPY_SRC`, and private WebGPU binding.
-- `node_modules/brometal/examples/demos/LegendOfBroDemo.tsx:92-112,324-340` — local orthographic projection and follow/clamp.
-- `node_modules/brometal/examples/demos/StarBroDemo.tsx:319-340,405-428,538-545` — local unprojection, DOM pointer handling, and follow.
-- `scripts/patch-brometal.mjs:14-39,105-120` and `scripts/patch-brometal/*.mjs` — exact patch set and upstream links.
+- `node_modules/brometal/package.json` - version, package purpose, public export map.
+- `node_modules/brometal/README.md:5-7` - compiler/runtime scope and pre-1.0 warning.
+- `node_modules/brometal/README.md:168-182` - documented camera.
+- `node_modules/brometal/README.md:251` - GLB node transforms unsupported.
+- `node_modules/brometal/README.md:308-319` - per-instance attributes.
+- `node_modules/brometal/dist/index.d.ts:1-23` - exhaustive root public exports.
+- `node_modules/brometal/dist/camera/camera.d.ts:2-29` and `camera.js:2-91` - perspective camera contract and implementation.
+- `node_modules/brometal/dist/math/mat4.d.ts:11-35` - no orthographic, inverse, or unprojection operation.
+- `node_modules/brometal/dist/runtime/context.d.ts:32-46` - renderer public surface.
+- `node_modules/brometal/dist/runtime/render-target.d.ts:3-50` - render-target public surface.
+- `node_modules/brometal/dist/runtime/webgpu.js:774-831` - fixed `rgba16float` target, `COPY_SRC`, and private WebGPU binding.
+- `node_modules/brometal/examples/demos/LegendOfBroDemo.tsx:92-112,324-340` - local orthographic projection and follow/clamp.
+- `node_modules/brometal/examples/demos/StarBroDemo.tsx:319-340,405-428,538-545` - local unprojection, DOM pointer handling, and follow.
+- `scripts/patch-brometal.mjs:14-39,105-120` and `scripts/patch-brometal/*.mjs` - exact patch set and upstream links.
 
 Primary external sources:
 

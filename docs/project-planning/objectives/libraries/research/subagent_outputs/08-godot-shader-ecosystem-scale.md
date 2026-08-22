@@ -215,4 +215,4 @@ The honest Godot comparison is:
 - **Hundreds** of official Asset Library packages.
 - **More than two thousand** direct community shader posts.
 
-A BroMetal catalog aiming for Godot-like practical reach should compare itself primarily with the 2,297-post community discovery surface—not with Godot’s nine built-in materials or its internal renderer shader files.
+A BroMetal catalog aiming for Godot-like practical reach should compare itself primarily with the 2,297-post community discovery surface - not with Godot’s nine built-in materials or its internal renderer shader files.

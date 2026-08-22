@@ -111,8 +111,8 @@ this objective.
 
 ### Renderer-neutral Antiky camera
 
-**Inferred shape.** Own canonical 2D state—viewport size, center, zoom, optional target, bounds, and
-delta time—and expose projection plus world/viewport conversions as plain numeric values. Accept
+**Inferred shape.** Own canonical 2D state - viewport size, center, zoom, optional target, bounds, and
+delta time - and expose projection plus world/viewport conversions as plain numeric values. Accept
 semantic pan/zoom intent; do not own DOM listeners. Emit a matrix that the existing render contract
 or direct BroMetal code can consume.
 

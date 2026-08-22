@@ -39,7 +39,7 @@ than in the ADR. Include it in the record only when a reader cannot follow the d
 | Title | One decision, stated as an outcome | A topic area, a question, a ticket id |
 | Status | One of the three values below | A date, an author, a review note |
 | Context | Facts, limits, requirements, the conflict being resolved | The decision itself, or advocacy |
-| Decision | What we will do, in active voice, present or future | Justification — that is Context |
+| Decision | What we will do, in active voice, present or future | Justification - that is Context |
 | Consequences | Benefits, costs, follow-on obligations, accepted losses | Only the benefits |
 
 Consequences that list only benefits are the most common defect. A decision with no cost was not a
@@ -54,7 +54,7 @@ decision. State what gets worse, and what the team is accepting.
 | `Superseded` | A newer ADR replaces it. Name and link that ADR in the status |
 
 New records are usually `Accepted`: the owner decides before the record is written. There is no
-`Proposed` status — a proposal is not yet a decision, and belongs wherever the project reviews them.
+`Proposed` status - a proposal is not yet a decision, and belongs wherever the project reviews them.
 
 When a record supersedes another, say so under its own status too:
 
@@ -73,7 +73,7 @@ a four-digit number, a lowercase hyphenated title, and a suffix marking ownershi
 
 **Decide whether numbering is global or per area, and be consistent.** A project with separate areas
 usually numbers within each, so two records can share a number across areas. Read the area before
-choosing a number rather than taking the highest number in the tree — that is the mistake that
+choosing a number rather than taking the highest number in the tree - that is the mistake that
 collides.
 
 Numbers are never reused, including for a superseded record. A gap in the sequence is information.
@@ -83,7 +83,7 @@ ownership suffix, and index format. This file covers what is true of ADRs anywhe
 
 ## The index
 
-Most projects keep a list of every record. Add the entry in the same change that adds the record — a
+Most projects keep a list of every record. Add the entry in the same change that adds the record - a
 record missing from the index is invisible to a reader browsing the tree.
 
 ## Changing a decision
@@ -98,7 +98,7 @@ When a decision changes:
 4. Do not delete the old record. Do not reuse its number.
 
 For an owner-approved clarification that must happen in place, **preserve the committed text
-first**. A project usually has a procedure for this — a revision-history entry recording the commit
+first**. A project usually has a procedure for this - a revision-history entry recording the commit
 hash of the prior wording, so the change is auditable. Follow it before editing, not after.
 
 

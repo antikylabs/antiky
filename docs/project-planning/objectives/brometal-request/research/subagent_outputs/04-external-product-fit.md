@@ -4,7 +4,7 @@
 
 ### 1. An external BroMetal user cannot install Antiky Framework today
 
-**Established — released surface.** `@antiky/framework` is not available from npm. The package manifest is private, remains at `0.0.0`, exports TypeScript source files, and has no build or publication script. The shared compiler configuration has `noEmit: true`.
+**Established - released surface.** `@antiky/framework` is not available from npm. The package manifest is private, remains at `0.0.0`, exports TypeScript source files, and has no build or publication script. The shared compiler configuration has `noEmit: true`.
 
 - `packages/framework/package.json:2-17`
 - `packages/framework/package.json:19-24`
@@ -32,7 +32,7 @@ The repository says the same thing: only browser demos and the source workflow w
 - `README.md:137-149`
 - `packages/website/src/app/framework/page.tsx:49-67`
 
-**Established — source availability.** Framework source is MIT-licensed, so a user can inspect, copy, modify, or use it from a checkout.
+**Established - source availability.** Framework source is MIT-licensed, so a user can inspect, copy, modify, or use it from a checkout.
 
 - `packages/framework/LICENSE.md:1-13`
 - `README.md:179-183`
@@ -90,7 +90,7 @@ Runtime bundle/tree-shaking cost was not measured and must not be inferred from 
 
 ### 4. Antiky has useful ingredients, not a proven externally consumable solution to all three requests
 
-**Established — current public/source ingredients.**
+**Established - current public/source ingredients.**
 
 - Stable UUIDv7 entity identity exists: `packages/framework/src/identity/ids.ts:94-100`.
 - The host contract supplies semantic pointer position, down/active state, drag deltas, and a click latch: `packages/framework/src/game/contract.ts:20-29`.
@@ -108,7 +108,7 @@ The issue author explicitly wants a standalone layer that does not touch the ren
 - Issue #8: <https://github.com/ericdrowell/brometal/issues/8>
 - `docs/adr/framework/0021-brometal-render-driver-ownership_H.md:29-66`
 
-**Established — local committed branch, not released/public package.** The current local branch contains a `@antiky/framework/render-driver` export. It is deliberately absent from the package barrel.
+**Established - local committed branch, not released/public package.** The current local branch contains a `@antiky/framework/render-driver` export. It is deliberately absent from the package barrel.
 
 - `packages/framework/package.json:6-10`
 - `packages/framework/src/render/brometal-driver.ts:1-12`
@@ -129,7 +129,7 @@ Historical evidence:
 - `packages/website/PRODUCT.md:84-96`
 - `git branch -r --contains 49fd76b` returned no branch.
 
-**Established — in-flight release gate.** At local HEAD, the generated API reference is already stale:
+**Established - in-flight release gate.** At local HEAD, the generated API reference is already stale:
 
 ```text
 npm run docs:api:check --workspace @antiky/framework

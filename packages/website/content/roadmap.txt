@@ -2,33 +2,33 @@ title: Antiky Labs roadmap
 intro: We are building one complete loop: agents can understand and change a game, people can see and direct the work, and every new capability is proven in something playable.
 notice: This roadmap describes release scope, not dates. Work beyond v0.4 earns a release number only after it has a plan and a concrete proving case.
 stages:
-  - v0.1 — Put the foundation in people's hands: Release a coherent first version of Framework, Studio, agent tools, demos, documentation, and the website—open, understandable, and ready to try.
+  - v0.1. Put the foundation in people's hands: Release a coherent first version of Framework, Studio, agent tools, demos, documentation, and the website. Make it open, understandable, and ready to try.
     - Framework and agent tools: Fixed-step sessions, stable entity IDs, point-light authoring and correction, bounded inspection and capture, and CLI/MCP project and session controls.
     - Studio: A macOS app with project launch, live game view, native terminal, simulation controls, inspection, and activity history.
     - Demos and website: Antiky Town, Point Light Expo, and Traversal Study with current screenshots and click-to-play builds; Emberwyrd remains separate from the technical demos.
     - Docs and release: Current product, API, and skills documentation; a resource hub for the CC0 asset and skills libraries; shader and project libraries marked as coming soon; and versioned release and packaging automation after pointer input, terminal exit handling, and terminal crashes are fixed in Studio.
-  - v0.2 — Make the game part of the conversation: Click something in a running game, carry its exact identity and context into the coding agent you already use, and turn human feedback into a safe, inspectable change.
+  - v0.2. Make the game part of the conversation: Click something in a running game, carry its exact identity and context into the coding agent you already use, and turn human feedback into a safe, inspectable change.
     - 2D selection proof: Reusable position and camera behavior plus GPU picking from a displayed pixel to a stable Framework entity selected in Studio, proven by a checked-in Antiky/BroMetal example.
     - Agent conversation: A native ACP v1 panel for one installed compatible coding agent. The selected entity's bounded project, world, hierarchy, component, render, and asset context can follow it into the conversation; Antiky MCP remains the agent-to-engine connection.
     - Studio workflow: Rearrangeable panels, attached and detached modes, and click-to-comment feedback on a running scene.
     - Agent tooling: MCP code mode, interpretation of motion measurements, and the first Antiky, BroMetal, game-development, Studio, and MCP skills.
-  - v0.3 — Grow the game-making core: Build input, movement, sprite animation, camera and presentation controls, and the first mini-app foundation through real game slices in 2D, 3D, and everything in between.
+  - v0.3. Grow the game-making core: Build input, movement, sprite animation, camera and presentation controls, and the first mini-app foundation through real game slices in 2D, 3D, and everything in between.
     - Input: Captured game input and reusable controls.
     - Animation: First-class sprite flipbooks with animation and character-movement timing.
     - Presentation: Field-of-view and vignette controls.
     - Studio extensions: Mini apps for complete workspaces and gadgets for focused panel additions.
-  - v0.4 — Turn Studio into a creator workspace: Use the mini-app foundation to add focused tools for assets, sprites, flipbooks, and properties, so Studio changes to fit the work instead of becoming one enormous editor.
+  - v0.4. Turn Studio into a creator workspace: Use the mini-app foundation to add focused tools for assets, sprites, flipbooks, and properties, so Studio changes to fit the work instead of becoming one enormous editor.
     - Asset browser: Find catalog assets and bring them into the project workflow.
     - Sprite editor: Inspect and edit sprite content.
     - Flipbook editor: Assemble and tune frame-based animation.
     - Object properties: Inspect and edit object settings through Framework-owned commands.
-  - Beyond — Build a creative library agents can understand: Grow the CC0 asset catalog alongside shader, project, and skills libraries, giving people and agents trusted building blocks they can actually find, understand, and reuse. These items are not assigned to a release yet.
+  - Beyond. Build a creative library agents can understand: Grow the CC0 asset catalog alongside shader, project, and skills libraries, giving people and agents trusted building blocks they can actually find, understand, and reuse. These items are not assigned to a release yet.
     - Tutorials: Getting-started and build-a-game tutorials.
     - Asset and shader libraries: Semantic inventories inside asset packs and a large BroMetal shader catalog with a smaller supported core.
     - Project and skills libraries: A project library and an expanded skills library for Antiky, BroMetal, Studio, MCP, and game development.
     - Physics: Rapier CPU physics, Nexus GPU physics, and the Nexus-to-BroMetal render path.
     - Examples: Selected open-source Three.js and BroMetal games rebuilt as Antiky examples.
-  - The destination — Ship games that prove the idea: Use Antiky to create complete, memorable games—and let those games earn the reusable systems, production tooling, performance evidence, and online capabilities the platform needs next.
+  - The destination. Ship games that prove the idea: Use Antiky to create complete, memorable games, and let those games earn the reusable systems, production tooling, performance evidence, and online capabilities the platform needs next.
     - Independent games: Complete games that build, run, and ship without Studio.
     - Game-earned systems: Reusable abilities, physics, rendering, asset, and online systems extracted from working game slices instead of designed from a feature checklist.
     - Release evidence: Repeatable scenarios, performance budgets, build artifacts, and release evidence tied to the exact game version they prove.

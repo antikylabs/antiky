@@ -22,7 +22,7 @@ and the owner-directed
 
 ## What the requester actually proposed
 
-**Established — issue author.** The requester is building a 16-bit canal visualization with a few
+**Established - issue author.** The requester is building a 16-bit canal visualization with a few
 dozen clickable ships and a follow camera. They are considering a separate, opt-in helper that does
 not change BroMetal's render path and that supplies:
 
@@ -39,7 +39,7 @@ conversion, and bounded hit testing that returns the registered key. The issue d
 need for UUIDs that survive reloads, an ECS, hierarchy, events, Studio selection, physics, spatial
 indexing, or GPU picking.
 
-**Established — owner direction for Antiky.** The external issue does not require GPU picking or
+**Established - owner direction for Antiky.** The external issue does not require GPU picking or
 Studio. This Antiky objective does. The required Antiky result starts with a clicked GPU pixel,
 resolves the temporary rendered value to a stable Framework `EntityId`, and shows that same entity
 as the current selection in Studio. A CPU-only hit test can compare techniques, but it cannot prove
@@ -58,7 +58,7 @@ maintainer. No listed BroMetal maintainer had answered the ecosystem or ownershi
 [comments API](https://api.github.com/repos/ericdrowell/brometal/issues/8/comments), and
 [comment](https://github.com/ericdrowell/brometal/issues/8#issuecomment-5299608314).
 
-**Mixed — contributor comment.** The statement that Antiky Framework is open source is established
+**Mixed - contributor comment.** The statement that Antiky Framework is open source is established
 by its repository and MIT license. The comment also says that Antiky is building something similar,
 already provides parts of the requested behavior, and was planned for a weekend release. Those
 feature-completeness and release statements provide no API, demo, test, or release evidence.

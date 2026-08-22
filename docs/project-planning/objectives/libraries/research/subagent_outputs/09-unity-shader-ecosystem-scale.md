@@ -99,7 +99,7 @@ These are starting models, not 11 completed visual effects.
 
 ### What a user receives
 
-With URP installed, users receive a compact group of general-purpose 3D, particle, terrain, vegetation, and 2D shaders. Most visual variety comes from their parameters, textures, Shader Graphs, renderer features, and post-processing—not hundreds of independent shader implementations.
+With URP installed, users receive a compact group of general-purpose 3D, particle, terrain, vegetation, and 2D shaders. Most visual variety comes from their parameters, textures, Shader Graphs, renderer features, and post-processing - not hundreds of independent shader implementations.
 
 ## High Definition Render Pipeline
 
@@ -163,7 +163,7 @@ Counting C# node classes marked with Shader Graph’s `Title` attribute produced
 
 | Configuration | Core nodes | Pipeline-specific nodes | Source-defined total |
 | --- | ---: | ---: | ---: |
-| Core Shader Graph | 206 | — | 206 |
+| Core Shader Graph | 206 | - | 206 |
 | URP project | 206 | 3 | Up to 209 |
 | HDRP project | 206 | 33 | Up to 239 |
 
