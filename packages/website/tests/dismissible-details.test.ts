@@ -20,6 +20,23 @@ function keyEvent(key: string) {
   return event;
 }
 
+class ListenerOptionsTarget extends EventTarget {
+  pointerDownUsesCapture = false;
+
+  override addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ) {
+    if (type === 'pointerdown') {
+      this.pointerDownUsesCapture = options === true
+        || (typeof options === 'object' && options.capture === true);
+    }
+
+    super.addEventListener(type, listener, options);
+  }
+}
+
 test('an open details menu stays open for an inside pointer and closes for an outside pointer', () => {
   const { details } = detailsFixture();
   const events = new EventTarget();
@@ -42,6 +59,15 @@ test('Escape closes an open details menu', () => {
   events.dispatchEvent(keyEvent('Escape'));
 
   assert.equal(details.open, false);
+});
+
+test('outside pointers are observed before page controls can stop propagation', () => {
+  const { details } = detailsFixture();
+  const events = new ListenerOptionsTarget();
+
+  bindDetailsDismissal(details, events);
+
+  assert.equal(events.pointerDownUsesCapture, true);
 });
 
 test('removing the dismissal listeners leaves the menu state alone', () => {

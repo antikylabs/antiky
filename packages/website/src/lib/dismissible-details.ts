@@ -1,6 +1,7 @@
 type DismissibleDetails = EventTarget & { open: boolean };
 
 export function bindDetailsDismissal(details: DismissibleDetails, eventTarget: EventTarget) {
+  const pointerOptions = { capture: true };
   const onPointerDown = (event: Event) => {
     if (details.open && !event.composedPath().includes(details)) details.open = false;
   };
@@ -8,11 +9,11 @@ export function bindDetailsDismissal(details: DismissibleDetails, eventTarget: E
     if (details.open && 'key' in event && event.key === 'Escape') details.open = false;
   };
 
-  eventTarget.addEventListener('pointerdown', onPointerDown);
+  eventTarget.addEventListener('pointerdown', onPointerDown, pointerOptions);
   eventTarget.addEventListener('keydown', onKeyDown);
 
   return () => {
-    eventTarget.removeEventListener('pointerdown', onPointerDown);
+    eventTarget.removeEventListener('pointerdown', onPointerDown, pointerOptions);
     eventTarget.removeEventListener('keydown', onKeyDown);
   };
 }
