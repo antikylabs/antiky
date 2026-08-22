@@ -75,23 +75,25 @@ test('production pages report the configured SSPS live visitor count once', asyn
   }
 });
 
-test('home, Games, and Framework feature distinct current Antiky media', async () => {
+test('home, Games, and Framework use current Evidence media and a code-native direction diagram', async () => {
   const home = await readFile(new URL('index.html', outputRoot), 'utf8');
   const games = await readFile(new URL('games.html', outputRoot), 'utf8');
   const framework = await readFile(new URL('framework.html', outputRoot), 'utf8');
 
-  assert.match(home, /combat-arena\.webp/);
-  assert.match(home, /Run Combat Arena/);
+  assert.match(home, /antiky-town\.webp/);
+  assert.match(home, /Run Antiky Town/);
+  assert.doesNotMatch(home, /Combat Arena|combat-arena/);
   assert.doesNotMatch(home, /studio-(?:pause|step|point-light-workflow)-wide-v1\.webp|studio-point-light-workflow-v2/);
   assert.doesNotMatch(home, /href="\/demos\/town-study">Explore Town Study/);
-  assert.match(games, /href="\/demos\/combat-arena"/);
+  assert.doesNotMatch(games, /Combat Arena|combat-arena/);
   assert.match(games, /href="\/demos\/traversal-study"/);
   assert.match(games, /href="\/demos\/antiky-town"/);
   assert.doesNotMatch(games, /antiky-town-traversal-wide-v1\.webp/);
 
   assert.match(framework, /href="\/demos\/antiky-town"/);
-  assert.match(framework, /antiky-architecture\.png/);
-  assert.match(framework, /Antiky target architecture/);
+  assert.match(framework, /class="architecture-diagram"/);
+  assert.match(framework, /Direction · target architecture, not a list of completed features/);
+  assert.doesNotMatch(framework, /antiky-architecture\.png/);
 });
 
 test('the homepage changed-assumption diagram explains inputs without claiming research outcomes', async () => {
@@ -140,14 +142,14 @@ test('homepage follows the why-first evidence-to-participation sequence', async 
   assert.match(home, /data-evidence-status="current"/);
   assert.match(home, /data-evidence-status="emerging"/);
   assert.match(home, /href="\/thesis"/);
-  assert.match(home, /href="\/demos\/combat-arena"/);
+  assert.match(home, /href="\/demos\/antiky-town"/);
   assert.doesNotMatch(home, /Tools for making worlds|<h1>2D character|emerging 2\.3D framework/);
 });
 
 test('production navigation exposes the public architecture and release-aware Studio action', async () => {
   for (const page of ['index.html', 'framework.html', 'studio.html', 'games.html']) {
     const output = await readFile(new URL(page, outputRoot), 'utf8');
-    for (const route of ['/thesis', '/studio', '/framework', '/games', '/research', '/docs']) {
+    for (const route of ['/thesis', '/studio', '/framework', '/games', '/resources', '/research', '/docs']) {
       assert.ok(output.includes(`href="${route}"`), `${page} is missing ${route}`);
     }
     assert.ok(output.includes(`href="${discordUrl}"`), `${page} is missing Discord`);
@@ -168,6 +170,16 @@ test('Games replaces Worlds in the sitemap and Worlds permanently redirects', as
 
   assert.ok(sitemap.includes(`<loc>${new URL('/games', siteUrl)}</loc>`));
   assert.ok(sitemap.includes(`<loc>${new URL('/thesis', siteUrl)}</loc>`));
+  for (const route of [
+    '/resources',
+    '/resources/shaders',
+    '/resources/projects',
+    '/resources/skills',
+    '/roadmap',
+    '/docs/skills/overview',
+    '/docs/skills/install',
+    '/docs/skills/reference',
+  ]) assert.ok(sitemap.includes(`<loc>${new URL(route, siteUrl)}</loc>`), `sitemap is missing ${route}`);
   assert.ok(!sitemap.includes(`<loc>${new URL('/worlds', siteUrl)}</loc>`));
   assert.ok(routesManifest.redirects.some((entry) => (
     entry.source === '/worlds'
@@ -187,19 +199,18 @@ test('product and research pages expose status boundaries without stale primary 
   assert.match(framework, /data-evidence-status="current"/);
   assert.match(framework, /data-evidence-status="emerging"/);
   assert.match(framework, /data-evidence-status="direction"/);
-  assert.match(framework, /A headless foundation for a game that tools can understand\./);
+  assert.match(framework, /Antiky Framework is an open-source TypeScript game framework/);
   assert.doesNotMatch(framework, /Built for 2D characters in 3D worlds|emerging 2\.3D game framework/);
 
   for (const status of ['current', 'emerging', 'direction']) {
     assert.ok(studio.includes(`data-evidence-status="${status}"`));
   }
   assert.match(research, /data-evidence-status="current"/);
-  assert.match(research, /data-evidence-status="direction"/);
   assert.match(research, /data-evidence-status="research-question"/);
   assert.doesNotMatch(research, /Training and adapting models|Generated voxel assets/);
   assert.match(games, /data-evidence-status="current"/);
   assert.match(games, /data-evidence-status="direction"/);
-  assert.match(demos.replaceAll('<!-- -->', ''), /Four live studies/);
+  assert.match(demos.replaceAll('<!-- -->', ''), /Three live studies/);
   assert.match(demos.replaceAll('<!-- -->', ''), /live Antiky Framework modules/);
   assert.match(demo, /What it does not show/);
 });

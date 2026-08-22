@@ -3,7 +3,6 @@ import {
   BROMETAL_URL,
   DISCORD_URL,
   GITHUB_URL,
-  NAV,
   SITE_NAME,
   STUDIO_RELEASES_READY,
   STUDIO_RELEASES_URL,
@@ -19,8 +18,14 @@ export default function SiteFooter() {
           <p>A game technology lab building games and an AI-native development system around human creative authority.</p>
         </div>
         <nav aria-label="Footer navigation">
-          {NAV.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
+          <Link href="/studio">Studio</Link>
+          <Link href="/framework">Framework</Link>
+          <Link href="/games">Games</Link>
           <Link href="/demos">Demos</Link>
+          <Link href="/resources">Resources</Link>
+          <Link href="/research">Research</Link>
+          <Link href="/roadmap">Roadmap</Link>
+          <Link href="/docs">Docs</Link>
           {STUDIO_RELEASES_READY && (
             <a href={STUDIO_RELEASES_URL} target="_blank" rel="noreferrer">Studio releases <ArrowUpRight /></a>
           )}

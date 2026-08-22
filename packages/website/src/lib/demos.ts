@@ -1,7 +1,6 @@
 export type DemoSlug =
-  | 'combat-arena'
-  | 'traversal-study'
   | 'antiky-town'
+  | 'traversal-study'
   | 'point-light-expo';
 
 export type DemoPillar = 'Framework';
@@ -36,20 +35,20 @@ export const DEMO_GROUPS: readonly Readonly<{
 /** Editorial approval is deliberate. A staged artifact cannot add itself to this catalog. */
 export const DEMOS: readonly DemoMeta[] = [
   {
-    slug: 'combat-arena',
-    title: 'Combat Arena',
+    slug: 'antiky-town',
+    title: 'Antiky Town',
     pillar: 'Framework',
-    tagline: 'A readable combat loop with dash strikes, enemy waves, and impact bursts.',
+    tagline: 'A living town with Framework-owned light authoring.',
     notes:
-      'A compact action game where Antiky Framework owns fixed-step movement, targeting, projectiles, damage, entity identity, runtime stores, and a bounded combat-event history.',
+      'Explore the golden-hour market while Antiky Framework owns the identity, authoring state, runtime projection, and render update for a visible lamp.',
     proves: [
-      'Framework-owned combat state with stable player, enemy, and projectile identities',
-      'Automatic firing, click-to-dash attacks, defeats, and wave pressure from the first seconds',
-      'One runtime projection drives custom BroMetal arena, trail, and impact rendering',
+      'One stable light identity from authored content through rendering',
+      'Live command changes without a reload or renderer rebuild',
+      'Structured runtime state through the same game module used by Studio',
     ],
-    tags: ['Antiky Framework', 'combat', 'particles'],
+    tags: ['Antiky Framework', 'BroMetal', 'live authoring'],
     requiresWebGpu: true,
-    controls: 'Move with WASD or arrows; click or tap the arena to dash',
+    controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
     controlMode: 'move',
   },
   {
@@ -67,23 +66,6 @@ export const DEMOS: readonly DemoMeta[] = [
     tags: ['Antiky Framework', 'platforming', 'attract loop'],
     requiresWebGpu: true,
     controls: 'Steer with horizontal controls; click, tap, or press up to jump',
-    controlMode: 'move',
-  },
-  {
-    slug: 'antiky-town',
-    title: 'Antiky Town',
-    pillar: 'Framework',
-    tagline: 'A living town with Framework-owned light authoring.',
-    notes:
-      'Explore the golden-hour market while Antiky Framework owns the identity, authoring state, runtime projection, and render update for a visible lamp.',
-    proves: [
-      'One stable light identity from authored content through rendering',
-      'Live command changes without a reload or renderer rebuild',
-      'Structured runtime state through the same game module used by Studio',
-    ],
-    tags: ['Antiky Framework', 'BroMetal', 'live authoring'],
-    requiresWebGpu: true,
-    controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
     controlMode: 'move',
   },
   {
@@ -124,9 +106,4 @@ export function demoModuleUrl(slug: DemoSlug): string {
 
 export function demoPosterUrl(slug: DemoSlug): string {
   return `/media/demos/${slug}.webp`;
-}
-
-export function demoMobilePosterUrl(slug: DemoSlug): string | undefined {
-  if (slug === 'combat-arena') return '/media/demos/combat-arena-mobile.webp';
-  return undefined;
 }

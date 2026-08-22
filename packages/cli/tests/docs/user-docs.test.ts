@@ -23,7 +23,7 @@ async function markdownFiles(directory: URL): Promise<URL[]> {
 async function verifyLocalLinks(path: URL, source: string): Promise<void> {
   const links = Array.from(source.matchAll(/\[[^\]]+]\(([^)]+)\)/g), (match) => match[1]!);
   for (const link of links) {
-    if (/^(?:https?:|mailto:|#)/.test(link)) continue;
+    if (/^(?:https?:|mailto:|#|\/)/.test(link)) continue;
     const target = link.split('#', 1)[0]!;
     await access(resolve(dirname(fileURLToPath(path)), target));
   }
@@ -233,4 +233,51 @@ test('the Studio renderer guide covers Framework, BroMetal, Three.js, and agent 
   assert.match(source, /get_world_inspection/);
   assert.match(source, /without.*Antiky Framework.*host.*fallback snapshot/is);
   assert.match(source, /does not expose.*renderer.*GPU objects/is);
+});
+
+test('the skills guides define the supported CLI workflows and public snapshot boundary', async () => {
+  const [index, overview, install, reference] = await Promise.all([
+    readFile(new URL('../../../../docs/user-facing-docs/README.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../../docs/user-facing-docs/skills/overview.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../../docs/user-facing-docs/skills/install.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../../docs/user-facing-docs/skills/reference.md', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(index, /\(skills\/overview\.md\)/);
+  assert.match(index, /\(skills\/install\.md\)/);
+  assert.match(index, /\(skills\/reference\.md\)/);
+  assert.match(overview, /Agent Skills specification/);
+  assert.match(overview, /does not replace the current API.*repository instructions/is);
+  assert.match(overview, /c5970383cde4e90588ba7d039f7a665ebe3443fd/);
+
+  for (const command of [
+    'npx skills add antikylabs/skills --list',
+    'npx skills add antikylabs/skills --skill write-adrs',
+    'npx skills add antikylabs/skills -a claude-code',
+    'npx skills add antikylabs/skills --all',
+    'npx skills add antikylabs/skills --skill write-docs -g',
+    'npx skills use antikylabs/skills@write-adrs | claude',
+    'npx skills list',
+    'npx skills update -p -y',
+    'npx skills remove write-adrs -y',
+  ]) {
+    assert.ok(install.includes(command), `missing documented skills workflow: ${command}`);
+  }
+  assert.match(install, /finished when the intended skill appears.*intended scope/is);
+  assert.match(install, /Do not delete agent\s+directories by hand/i);
+
+  const tableRows = Array.from(reference.matchAll(/^\| `([^`]+)` \|/gm), (match) => match[1]);
+  assert.deepEqual(tableRows, [
+    'anti-slop',
+    'brometal-patching',
+    'engineering',
+    'show-me',
+    'simplified-technical-english',
+    'wait-what',
+    'write-adrs',
+    'write-docs',
+    'write-objectives',
+  ]);
+  assert.match(reference, /wait-what.*human-invoked only/i);
+  assert.match(reference, /nine Ready skills and no internal or frontmatter-only stub entries/i);
 });

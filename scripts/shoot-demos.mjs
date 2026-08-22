@@ -14,7 +14,7 @@
  * :3011 for inspection, so two demos cannot run at once.
  *
  * Usage:
- *   node scripts/shoot-demos.mjs [--demo <slug>] [--runs <n>] [--warm-up <n>]
+ *   node scripts/shoot-demos.mjs [--demo <slug>] [--runs <n>] [--warm-up <n>] [--no-evidence]
  */
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
@@ -696,8 +696,8 @@ async function shootDemo(slug, { warmUpFrames, runs, keep, evidence }) {
   }
 }
 
-function parseArguments(argv) {
-  const options = { demo: undefined, runs: 2, warmUpFrames: 60, keep: undefined, evidence: false };
+export function parseArguments(argv) {
+  const options = { demo: undefined, runs: 2, warmUpFrames: 60, keep: undefined, evidence: true };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === '--demo') options.demo = argv[index += 1];
@@ -705,6 +705,7 @@ function parseArguments(argv) {
     else if (argument === '--warm-up') options.warmUpFrames = Number(argv[index += 1]);
     else if (argument === '--keep') options.keep = argv[index += 1];
     else if (argument === '--evidence') options.evidence = true;
+    else if (argument === '--no-evidence') options.evidence = false;
     else throw new Error(`Unknown argument "${argument}".`);
   }
   if (!Number.isSafeInteger(options.runs) || options.runs < 1) {

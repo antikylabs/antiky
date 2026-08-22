@@ -2,23 +2,6 @@
   "schemaVersion": 1,
   "demos": [
     {
-      "slug": "combat-arena",
-      "projectName": "Combat Arena",
-      "renderer": "antiky",
-      "workspace": "@antiky/demo-combat-arena",
-      "projectDirectory": "packages/demos/combat-arena",
-      "sources": [
-        {
-          "label": "project",
-          "path": "packages/demos/combat-arena"
-        },
-        {
-          "label": "artifact-builder",
-          "path": "packages/website/scripts/build/demo-artifact.mjs"
-        }
-      ]
-    },
-    {
       "slug": "traversal-study",
       "projectName": "Traversal Study",
       "renderer": "antiky",

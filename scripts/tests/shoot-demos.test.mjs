@@ -21,6 +21,7 @@ import {
   measurePixelDrift,
   measureControlPair,
   pauseAndAdvanceToStep,
+  parseArguments,
   resolveDemo,
   sealMetrics,
   sourceDigest,
@@ -29,6 +30,11 @@ import {
 /** These tests need no GPU, no browser, and no dev server. */
 
 const repositoryRoot = path.resolve(import.meta.dirname, '../..');
+
+test('normal demo captures include sealed inspection evidence', () => {
+  assert.equal(parseArguments([]).evidence, true);
+  assert.equal(parseArguments(['--no-evidence']).evidence, false);
+});
 
 test('every registered demo manifest exists on disk', async () => {
   for (const [slug, manifest] of Object.entries(DEMOS)) {

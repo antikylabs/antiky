@@ -10,28 +10,35 @@ test('production Studio page presents the working workspace and honest availabil
   const studio = await readFile(new URL('studio.html', outputRoot), 'utf8');
 
   for (const marker of [
-    'Your game and its living state. One workspace.',
+    'Direct the work. Keep the game in view.',
+    'Open a project and work beside the running game.',
     'Create a project',
     'recent project',
-    'Studio starts the local development services',
-    'compact <code>%</code> prompt',
+    'Studio starts the same local project services',
+    'compact prompt that does not expose the user or machine name',
     'Pause, resume, step, restart, or stop',
     'Hierarchy',
     'Stores',
     'Snapshot',
     'MCP calls',
     'Diagnostics',
-    'Antiky Framework',
-    'rendering implementation',
-    'game-module contract',
-    'Inspector views are read-only',
-    'Current, emerging, and ahead',
+    'CLI project services own the local build',
+    'Engine state stays distinct from build and connection state',
+    'Inspection is read-only',
+    'What is current—and what comes next',
     'data-evidence-status="current"',
     'data-evidence-status="emerging"',
     'data-evidence-status="direction"',
   ]) {
     assert.ok(studio.includes(marker), `Studio page is missing: ${marker}`);
   }
+
+  for (const media of [
+    'workspace-overview.webp',
+    'project-launcher.webp',
+    'simulation-controls.webp',
+    'inspection-activity.webp',
+  ]) assert.ok(studio.includes(media), `Studio page is missing current capture ${media}`);
 
   assert.match(studio, /href="\/docs\/studio\/getting-started"/);
   assert.match(studio, /href="\/docs\/studio\/development-connection"/);
@@ -51,7 +58,7 @@ test('production Studio page presents the working workspace and honest availabil
 
 test('the high-resolution media pass ships bounded real delivery media', async () => {
   const assets = [
-    ['demos/combat-arena.webp', 1_200_000, Buffer.from('WEBP')],
+    ['demos/antiky-town.webp', 1_200_000, Buffer.from('WEBP')],
     ['demos/traversal-study.webp', 1_200_000, Buffer.from('WEBP')],
   ];
 

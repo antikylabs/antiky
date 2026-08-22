@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import {
   useCallback,
   useEffect,
@@ -14,9 +13,7 @@ import type {
   GameMeasurements,
   GameModuleEntry,
 } from '@antiky/framework/game';
-import { ArrowUpRight } from '@/components/Icons';
 import {
-  demoMobilePosterUrl,
   demoModuleUrl,
   demoPosterUrl,
   findDemo,
@@ -30,7 +27,6 @@ function webGpuAvailable(): boolean {
 
 type StageStyle = CSSProperties & {
   '--stage-poster'?: string;
-  '--stage-poster-mobile'?: string;
 };
 
 /**
@@ -39,12 +35,12 @@ type StageStyle = CSSProperties & {
  * — a real still frame of the demo running — with a badge saying why it is not live. A still frame
  * is evidence; a red error card is a bug report addressed to the wrong person.
  */
-type StagePhase = 'poster' | 'ready' | 'gated' | 'loading' | 'running' | 'paused' | 'error';
+type StagePhase = 'poster' | 'gated' | 'loading' | 'running' | 'paused' | 'error';
 
 type Props = Readonly<{
   slug: DemoSlug;
   label: string;
-  variant?: 'hero' | 'thumb';
+  variant?: 'hero';
   controlMode?: 'move';
 }>;
 
@@ -91,12 +87,10 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<Runtime | null>(null);
   const activationPendingRef = useRef(false);
-  const previewRequestedRef = useRef(false);
   const visibleRef = useRef(true);
   const userPausedRef = useRef(false);
   const mountedRef = useRef(true);
   const poster = demoPosterUrl(slug);
-  const mobilePoster = demoMobilePosterUrl(slug);
   const [phase, setPhase] = useState<StagePhase>('poster');
   const [error, setError] = useState('');
   const [measurements, setMeasurements] = useState<GameMeasurements>({});
@@ -117,7 +111,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
     runtime.instance.dispose();
   }, []);
 
-  const activate = useCallback(async () => {
+  const activate = useCallback(async (focusCanvas = true) => {
     if (runtimeRef.current || activationPendingRef.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -246,10 +240,9 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
         cancelFrame: () => cancelAnimationFrame(frameRequest),
         removeListeners: () => removals.splice(0).forEach((remove) => remove()),
       };
-      const previewPaused = variant === 'thumb' && !previewRequestedRef.current;
-      userPausedRef.current = previewPaused;
-      setPhase(previewPaused ? 'ready' : 'running');
-      if (variant !== 'thumb') canvas.focus();
+      userPausedRef.current = false;
+      setPhase('running');
+      if (focusCanvas) canvas.focus();
       frameRequest = requestAnimationFrame(frame);
     } catch (cause: unknown) {
       removals.splice(0).forEach((remove) => remove());
@@ -259,7 +252,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
     } finally {
       activationPendingRef.current = false;
     }
-  }, [requiresWebGpu, slug, stopRuntime, variant]);
+  }, [requiresWebGpu, slug, stopRuntime]);
 
   const activateRef = useRef(activate);
   activateRef.current = activate;
@@ -274,7 +267,7 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
         entry?.isIntersecting
         && variant === 'hero'
         && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      ) void activateRef.current();
+      ) void activateRef.current(false);
     }, { threshold: 0.05 });
     observer.observe(canvas);
     return () => {
@@ -283,25 +276,6 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
       stopRuntime();
     };
   }, [stopRuntime, variant]);
-
-  const beginPreview = () => {
-    if (variant !== 'thumb') return;
-    previewRequestedRef.current = true;
-    userPausedRef.current = false;
-    if (runtimeRef.current) {
-      setPhase('running');
-      return;
-    }
-    void activate();
-  };
-
-  const endPreview = () => {
-    if (variant !== 'thumb') return;
-    previewRequestedRef.current = false;
-    if (!runtimeRef.current) return;
-    userPausedRef.current = true;
-    setPhase('ready');
-  };
 
   const togglePause = () => {
     userPausedRef.current = !userPausedRef.current;
@@ -313,47 +287,22 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
     canvasRef.current?.dispatchEvent(event);
   };
 
-  const displayPhase = phase === 'poster' ? 'ready' : phase;
   const classes = ['stage', variant ? `stage-${variant}` : '', poster ? 'stage-has-poster' : '']
     .filter(Boolean)
     .join(' ');
   const style: StageStyle | undefined = poster ? {
     '--stage-poster': `url(${poster})`,
-    '--stage-poster-mobile': `url(${mobilePoster ?? poster})`,
   } : undefined;
 
   return (
     <div
       className={classes}
-      data-phase={displayPhase}
+      data-phase={phase}
       style={style}
-      onPointerEnter={beginPreview}
-      onPointerLeave={endPreview}
-      onFocusCapture={beginPreview}
-      onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) endPreview();
-      }}
     >
-      <canvas ref={canvasRef} className="stage-canvas" aria-label={label} tabIndex={variant === 'thumb' ? -1 : 0} />
+      <canvas ref={canvasRef} className="stage-canvas" aria-label={label} tabIndex={0} />
       {phase === 'gated' ? (
-        <>
-          <p className="stage-badge">Static capture — this study needs WebGPU</p>
-          {variant === 'thumb' && (
-            <Link className="demo-open" href={`/demos/${slug}`}>Open study <ArrowUpRight /></Link>
-          )}
-        </>
-      ) : variant === 'thumb' ? (
-        <>
-          {phase === 'loading' && <div className="stage-status">Loading live preview…</div>}
-          {(phase === 'poster' || phase === 'ready') && (
-            // Touch devices never fire pointerenter, so without this the whole page is posters.
-            <button className="stage-activate" type="button" onClick={() => void activate()}>
-              <span className="stage-play" aria-hidden="true">▶</span>
-              Run preview
-            </button>
-          )}
-          <Link className="demo-open" href={`/demos/${slug}`}>Open study <ArrowUpRight /></Link>
-        </>
+        <p className="stage-badge">Static capture — this study needs WebGPU</p>
       ) : phase === 'loading' ? (
         <div className="stage-status">Loading verified game artifact…</div>
       ) : phase === 'error' ? (
@@ -361,10 +310,10 @@ export default function DemoStage({ slug, label, variant, controlMode }: Props) 
           <span>{error}</span>
           <button className="stage-action" type="button" onClick={() => { setPhase('poster'); void activate(); }}>Retry</button>
         </div>
-      ) : phase === 'poster' || phase === 'ready' ? (
+      ) : phase === 'poster' ? (
         <button className="stage-activate" type="button" onClick={() => void activate()}>
           <span className="stage-play" aria-hidden="true">▶</span>
-          Run {findDemo(slug)?.title ?? 'the live scene'}
+          Play {findDemo(slug)?.title ?? 'the live scene'}
         </button>
       ) : (
         <>

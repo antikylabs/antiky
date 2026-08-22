@@ -59,6 +59,10 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
         />
       </div>
 
+      <p className="demo-poster-caption wrap">
+        Current verified capture · Select <strong>Play {demo.title}</strong> to request and start the interactive module.
+      </p>
+
       <div className="demo-meta wrap">
         <p>{demo.controls ?? 'Use the controls in the media frame'}</p>
         <nav className="demo-switcher" aria-label="Study navigation">

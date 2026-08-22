@@ -24,11 +24,21 @@ export const metadata: Metadata = {
     url: SITE_URL,
     type: 'website',
     locale: 'en_US',
+    images: [{
+      url: '/media/marketing/launch-key-art.webp',
+      width: 1600,
+      height: 900,
+      alt: 'Illustrative Antiky Labs launch artwork showing a physical modular maquette under restrained amber and violet studio light.',
+    }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
+    images: [{
+      url: '/media/marketing/launch-key-art.webp',
+      alt: 'Illustrative Antiky Labs launch artwork showing a physical modular maquette under restrained amber and violet studio light.',
+    }],
   },
 };
 

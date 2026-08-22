@@ -1,4 +1,11 @@
 .studio-hero h1 { max-width: 12ch; }
+.studio-hero-media { margin-bottom: clamp(88px, 9vw, 130px); }
+.studio-proof-sequence { border-top: 1px solid var(--line); }
+.studio-proof-row { display: grid; grid-template-columns: minmax(280px, .72fr) minmax(420px, 1.28fr); gap: clamp(42px, 7vw, 100px); align-items: center; padding: clamp(54px, 7vw, 92px) 0; border-bottom: 1px solid var(--line); }
+.studio-proof-row.text-only { grid-template-columns: minmax(280px, .72fr) minmax(420px, 1.28fr); }
+.studio-proof-row.text-only > div { grid-column: 1 / -1; max-width: 68ch; }
+.studio-proof-row h3 { margin: 13px 0 16px; font-size: clamp(2rem, 3.8vw, 3.6rem); line-height: 1; }
+.studio-proof-row .row-status { display: block; padding: 0; }
 
 .studio-session-section {
   border-block: 1px solid var(--line);
@@ -83,6 +90,8 @@
 }
 
 @media (max-width: 760px) {
+  .studio-proof-row, .studio-proof-row.text-only { grid-template-columns: 1fr; }
+  .studio-proof-row.text-only > div { grid-column: 1; }
   .studio-session-map { grid-template-columns: 1fr; gap: 0; }
   .studio-session-line { width: 1px; height: 44px; justify-self: center; }
   .studio-session-clients > span { min-height: 92px; padding: 12px; }

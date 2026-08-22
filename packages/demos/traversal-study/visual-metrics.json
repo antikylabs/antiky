@@ -1,7 +1,7 @@
 {
   "schemaVersion": 5,
   "demo": "traversal-study",
-  "capturedAt": "2026-08-17T05:20:30.860Z",
+  "capturedAt": "2026-08-22T00:54:20.227Z",
   "warmUpFrames": 60,
   "source": {
     "digest": "acee0539e4152439",
@@ -48,15 +48,15 @@
   "inspection": {
     "observation": {
       "schemaVersion": 1,
-      "developmentSessionId": "e189d2d9-549b-4af7-9ea6-c96b6f80d9df",
+      "developmentSessionId": "23de6965-01b8-4c5b-815c-61a0c2205278",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "db29c569-00cc-478a-8c2e-bcb59d32a316",
-      "publicationSequence": 34,
-      "publishedAt": "2026-08-17T05:20:30.859Z",
+      "runtimeInstanceId": "9c9a8dfd-94e5-4849-845a-9304ad260985",
+      "publicationSequence": 43,
+      "publishedAt": "2026-08-22T00:54:20.225Z",
       "connectionState": "connected",
       "freshness": "current",
       "session": {
-        "sessionId": "01a00e29-ec3b-7089-97cb-1e11fedbedb9",
+        "sessionId": "01a026f5-fef2-749c-ba53-742da713bc90",
         "worldId": "01991e00-1000-7000-8000-000000000001",
         "mode": "paused",
         "completedStepCount": 50,
@@ -105,10 +105,10 @@
       ]
     },
     "comparableIdentity": {
-      "developmentSessionId": "e189d2d9-549b-4af7-9ea6-c96b6f80d9df",
+      "developmentSessionId": "23de6965-01b8-4c5b-815c-61a0c2205278",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "db29c569-00cc-478a-8c2e-bcb59d32a316",
-      "sessionId": "01a00e29-ec3b-7089-97cb-1e11fedbedb9",
+      "runtimeInstanceId": "9c9a8dfd-94e5-4849-845a-9304ad260985",
+      "sessionId": "01a026f5-fef2-749c-ba53-742da713bc90",
       "completedStepCount": 50,
       "stateDigest": "51:1:running:idle:1:2.000:0.430:0.000:0.000:0:3:0:48.000:0:0:0"
     },
@@ -640,5 +640,5 @@
       "limitation": "The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval."
     }
   },
-  "seal": "0c976cb7291c18ab"
+  "seal": "a71df59f2be9900d"
 }

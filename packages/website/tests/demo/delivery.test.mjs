@@ -70,15 +70,15 @@ test('website game host owns activation, input, presentation, visibility, and cl
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
-test('the website catalog exposes only the four Antiky demos', async () => {
+test('the website catalog exposes only the three owner-approved public demos', async () => {
   const catalog = await readFile(new URL('../../src/lib/demos.ts', import.meta.url), 'utf8');
   const host = await readFile(new URL('../../src/components/DemoStage.tsx', import.meta.url), 'utf8');
   for (const slug of [
-    'combat-arena',
     'traversal-study',
     'antiky-town',
     'point-light-expo',
   ]) assert.match(catalog, new RegExp(`slug: '${slug}'`));
+  assert.doesNotMatch(catalog, /combat-arena|Combat Arena/);
   assert.match(catalog, /pillar: 'Framework'/);
   assert.doesNotMatch(catalog, /pillar: 'BroMetal'/);
   assert.doesNotMatch(catalog, /pillar: 'Three\.js'/);
@@ -86,8 +86,6 @@ test('the website catalog exposes only the four Antiky demos', async () => {
   assert.match(host, /function webGpuAvailable\(\)/);
   assert.match(host, /'gpu' in navigator/);
   assert.match(host, /requiresWebGpu && !webGpuAvailable\(\)/);
-  assert.match(host, /onPointerEnter/);
-  assert.match(host, /onFocusCapture/);
   assert.match(host, /prefers-reduced-motion/);
 });
 
@@ -114,7 +112,7 @@ test('every published demo has a distinct real poster in the Antiky group', asyn
 
   assert.equal(digests.size, publication.demos.length, 'Demo posters must not reuse the same image');
   const groups = [
-    ['framework-demos', 'Antiky Framework', ['combat-arena', 'traversal-study', 'antiky-town', 'point-light-expo']],
+    ['framework-demos', 'Antiky Framework', ['traversal-study', 'antiky-town', 'point-light-expo']],
   ];
   const groupStarts = groups.map(([id, heading]) => {
     const marker = `<h2 id="${id}">${heading}</h2>`;
@@ -129,10 +127,10 @@ test('every published demo has a distinct real poster in the Antiky group', asyn
     for (const slug of groups[index][2]) assert.match(section, new RegExp(`href="/demos/${slug}"`));
   }
 
-  const architecture = await readFile(new URL('media/antiky-architecture.png', publicRoot));
-  const architectureSize = pngDimensions(architecture);
-  assert.ok(architectureSize.width >= 1600);
-  assert.ok(architectureSize.height >= 900);
+  const frameworkPage = await readFile(new URL('../../.next/server/app/framework.html', import.meta.url), 'utf8');
+  assert.match(frameworkPage, /class="architecture-diagram"/);
+  assert.match(frameworkPage, /Direction · target architecture, not a list of completed features/);
+  assert.doesNotMatch(frameworkPage, /antiky-architecture\.png/);
 });
 
 test('website publication contains only the approved verified artifact files', async () => {
@@ -302,37 +300,43 @@ test('the WebGPU requirement is not announced to visitors who never hit it', asy
   assert.equal((page.match(/WebGPU/g) ?? []).length, 0);
 });
 
-test('a thumb renders an activation control that does not depend on hovering', async () => {
-  const host = await readFile(new URL('../../src/components/DemoStage.tsx', import.meta.url), 'utf8');
-  const thumbStart = host.indexOf("variant === 'thumb' ? (");
-  assert.ok(thumbStart > 0, 'failed to locate the thumb branch');
-  // Slice forward from the branch, not to the first "Open study" in the file — the gated branch
-  // above the thumb branch has one too.
-  const thumbBranch = host.slice(thumbStart, host.indexOf('Open study', thumbStart));
-
-  // Touch devices never fire pointerenter, so hover-only activation left the mobile page as ten
-  // static posters with no way to start anything.
-  assert.match(thumbBranch, /className="stage-activate"/);
-  assert.match(thumbBranch, /onClick=\{\(\) => void activate\(\)\}/);
-
-  const styles = await readFile(new URL('../../src/app/globals.css', import.meta.url), 'utf8');
-  // ...and a running thumb must accept input rather than swallowing it.
-  assert.match(styles, /\.stage-thumb\[data-phase='running'\] \.stage-canvas.*pointer-events: auto/);
-});
-
 test('mobile posters are fitted rather than cropped past their subject', async () => {
   const styles = await readFile(new URL('../../src/app/globals.css', import.meta.url), 'utf8');
 
   // `.deck-stage` is `height: 68svh`, which at a 390px viewport is a portrait box. `cover` against
-  // a 2560x1440 master then shows only its middle ~35%, cutting Orbital Atlas's ringed planet and
-  // Shader Study's moon out of frame. `contain` shows 100% of the master's width.
-  const mobileRule = styles.slice(styles.indexOf('.stage-has-poster { background-image: var(--stage-poster-mobile)'));
-  assert.match(mobileRule.slice(0, 120), /background-size: contain/);
+  // a 2560x1440 master then shows only its middle ~35%. `contain` preserves the complete verified
+  // evidence frame instead of silently changing what the capture shows.
+  assert.match(styles, /@media \(max-width: 900px\)[\s\S]*?\.stage-has-poster \{ background-size: contain; \}/);
 
   const posterAspect = 2560 / 1440;
   const stageAspect = 390 / (844 * 0.68);
   const visibleWidthWithCover = stageAspect / posterAspect;
   assert.ok(visibleWidthWithCover < 0.7, 'this test is meaningless if cover would already fit');
+});
+
+test('demo index and Games render linked posters without activating a runtime', async () => {
+  const [index, games, detail, indexSource] = await Promise.all([
+    readFile(new URL('../../.next/server/app/demos.html', import.meta.url), 'utf8'),
+    readFile(new URL('../../.next/server/app/games.html', import.meta.url), 'utf8'),
+    readFile(new URL('../../.next/server/app/demos/antiky-town.html', import.meta.url), 'utf8'),
+    readFile(new URL('../../src/app/demos/page.tsx', import.meta.url), 'utf8'),
+  ]);
+  const indexMain = index.slice(index.indexOf('<main>'), index.indexOf('</main>'));
+  const gamesMain = games.slice(games.indexOf('<main>'), games.indexOf('</main>'));
+  const detailMain = detail.slice(detail.indexOf('<main>'), detail.indexOf('</main>'));
+
+  assert.doesNotMatch(indexSource, /DemoStage/);
+  for (const source of [indexMain, gamesMain]) {
+    assert.doesNotMatch(source, /<canvas|stage-activate|demo-builds\//);
+    for (const slug of ['traversal-study', 'antiky-town', 'point-light-expo']) {
+      assert.match(source, new RegExp(`href="/demos/${slug}"`));
+      assert.match(source, new RegExp(`media(?:%2F|/)demos(?:%2F|/)${slug}\\.webp`, 'i'));
+    }
+    assert.doesNotMatch(source, /combat-arena|Combat Arena/);
+  }
+
+  assert.equal((detailMain.match(/<button class="stage-activate"/g) ?? []).length, 1);
+  assert.match(detailMain.replaceAll('<!-- -->', ''), /Play Antiky Town/);
 });
 
 test('the public catalog has one Antiky Framework group', async () => {

@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:67d0ebbc1f5eea28
+frameworkSource: sha256:641549dc472c878c
 ---
 
 # BroMetal render driver API

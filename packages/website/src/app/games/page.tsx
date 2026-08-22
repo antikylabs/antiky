@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import DemoStage from '@/components/DemoStage';
+import DemoPoster from '@/components/DemoPoster';
 import { ArrowRight } from '@/components/Icons';
-import type { DemoSlug } from '@/lib/demos';
+import { DEMOS } from '@/lib/demos';
 
 export const metadata: Metadata = {
   title: 'Games',
-  description: 'The games that give Antiky its questions: three playable Framework studies today, and Emberwyrd as the larger test ahead.',
+  description: 'Three public Antiky Framework technical studies today, with Emberwyrd kept separate as the larger game in development.',
   alternates: { canonical: '/games' },
 };
 
@@ -16,28 +16,6 @@ const DIRECTIONS = [
   ['Consequential travel', 'A world where goods come from somewhere, distance has weight, and risk is chosen rather than ambient.'],
 ];
 
-const CURRENT_GAMES: readonly Readonly<{
-  slug: DemoSlug;
-  title: string;
-  body: string;
-}>[] = [
-  {
-    slug: 'combat-arena',
-    title: 'Combat Arena',
-    body: 'Automatic fire, dash strikes, enemy pressure, damage, defeats, and impact particles make the Framework simulation legible immediately.',
-  },
-  {
-    slug: 'traversal-study',
-    title: 'Traversal Study',
-    body: 'A self-running platform course turns movement, hazards, checkpoints, and moving platforms into visible Framework state.',
-  },
-  {
-    slug: 'antiky-town',
-    title: 'Antiky Town',
-    body: 'The golden-hour town connects a larger authored world to stable light identity, structured runtime state, and live authoring.',
-  },
-];
-
 export default function GamesPage() {
   return (
     <>
@@ -45,8 +23,9 @@ export default function GamesPage() {
         <h1>Games create the questions.</h1>
         <p className="status-line"><span className="status-dot status-planned" /> Emberwyrd in development</p>
         <p className="page-lead">
-          Antiky Labs is building technology in service of games. Three runnable Framework studies
-          show combat, traversal, and a living town today. Emberwyrd is the larger creative and technical test ahead.
+          Antiky Labs builds technology in service of games. Three public Framework studies show
+          traversal, authored worlds, and bounded light authoring today. Emberwyrd is the larger
+          creative and technical test ahead.
         </p>
       </section>
 
@@ -54,17 +33,15 @@ export default function GamesPage() {
         <div className="wrap split-heading">
           <div>
             <p className="section-label">Current proof</p>
-            <h2>Three different game problems run today.</h2>
+            <h2>{DEMOS.length} different game problems run today.</h2>
           </div>
           <div className="prose">
             <p className="lead">
-              Combat Arena tests moment-to-moment action. Traversal Study tests movement and recovery.
-              Antiky Town tests a larger authored place and live light authoring.
+              These are playable Framework studies: bounded technical evidence rather than released games.
             </p>
             <p>
-              Seven focused studies alongside them isolate rendering, shaders, and portable-host
-              questions. They are working evidence, not production games or substitutes for
-              Emberwyrd.
+              Their catalog is the one source for this page and the Demos index. They are working
+              evidence, not production games or substitutes for Emberwyrd.
             </p>
             <Link className="text-link section-link" href="/demos">
               Run all current studies <ArrowRight />
@@ -72,14 +49,14 @@ export default function GamesPage() {
           </div>
         </div>
         <div className="game-proof-grid wrap">
-          {CURRENT_GAMES.map((game) => (
-            <article className="game-proof" key={game.slug}>
+          {DEMOS.map((demo) => (
+            <article className="game-proof" key={demo.slug}>
               <div className="game-proof-media">
-                <DemoStage slug={game.slug} variant="thumb" label={`${game.title} live preview`} />
+                <DemoPoster demo={demo} />
               </div>
               <p>Current Framework study</p>
-              <h3><Link href={`/demos/${game.slug}`}>{game.title}</Link></h3>
-              <p>{game.body}</p>
+              <h3><Link href={`/demos/${demo.slug}`}>{demo.title}</Link></h3>
+              <p>{demo.tagline}</p>
             </article>
           ))}
         </div>
@@ -99,7 +76,7 @@ export default function GamesPage() {
         </div>
         <div className="prose">
           <p className="lead">
-            Emberwyrd is a character-first online fantasy action RPG—and the reason Antiky exists.
+            Emberwyrd is the larger game in development—and the reason Antiky exists.
           </p>
           <p>
             The game creates real creative and technical problems. When a solution proves reusable,
@@ -121,7 +98,7 @@ export default function GamesPage() {
 
       <section className="closing-cta wrap">
         <p>Want to see what runs now?</p>
-        <Link href="/demos/combat-arena">Run Combat Arena <ArrowRight /></Link>
+        <Link href="/demos/antiky-town">Run Antiky Town <ArrowRight /></Link>
       </section>
     </>
   );

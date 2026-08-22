@@ -110,10 +110,12 @@ The website must label status in text. Color may reinforce status but cannot rep
 - MCP and typed inspection/tool adapters for the same local development session.
 - A native Studio workspace with project launch, running game, terminal, simulation controls,
   hierarchy, stores, snapshots, events, MCP calls, and diagnostics.
-- Four current Antiky Framework studies rendered through BroMetal in one portable website-owned
+- Three public Antiky Framework studies rendered through BroMetal in one portable website-owned
   game host.
-- Combat Arena as the strongest immediate motion proof, Traversal Study as a distinct movement proof,
-  and Antiky Town as the broadest current authored-world proof.
+- Antiky Town as the primary public key art and broadest current authored-world proof, Traversal
+  Study as a distinct movement proof, and Point Light Expo as the bounded light-authoring proof.
+- Combat Arena remains internal until the owner promotes it. Do not list, link, stage, or publish
+  its route, artifact, poster, or copy on visitor-facing website surfaces.
 
 All current packages remain early and pre-release. Current behavior does not imply stable APIs or a
 complete general-purpose game engine.
@@ -149,8 +151,8 @@ failure record, and limitations.
 Antiky Labs will build games, not just technology. The game creates real problems. Reusable
 solutions can become Antiky after working evidence justifies the boundary.
 
-- **Combat Arena** is the immediate action proof, **Traversal Study** is the movement proof, and
-  **Antiky Town** is the larger authored-world proof.
+- **Antiky Town** is the primary public authored-world proof, **Traversal Study** is the movement
+  proof, and **Point Light Expo** is the focused light-authoring proof.
 - **Focused studies** isolate rendering, hosting, shader, identity, and authoring questions.
 - **Emberwyrd** is the larger creative and technical test in development. It has no playable release
   today.
@@ -172,7 +174,7 @@ presenting it as the Antiky Labs identity.
 - **Games (`/games`)** — connect Antiky Town, focused studies, and Emberwyrd to the game-led method.
 - **Research (`/research`)** — maintain the boundary between runnable evidence, direction, and open
   questions.
-- **Demos (`/demos`)** — let visitors run four approved artifacts and understand what each does and
+- **Demos (`/demos`)** — let visitors run three approved artifacts and understand what each does and
   does not show.
 - **Docs (`/docs`)** — publish exact current Framework, CLI, MCP, Studio, and API behavior.
 

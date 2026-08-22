@@ -14,7 +14,6 @@ const demos = publication.demos;
 
 test('publication includes the complete Antiky demo catalog', () => {
   assert.deepEqual(demos.map(({ slug, renderer }) => ({ slug, renderer })), [
-    { slug: 'combat-arena', renderer: 'antiky' },
     { slug: 'traversal-study', renderer: 'antiky' },
     { slug: 'antiky-town', renderer: 'antiky' },
     { slug: 'point-light-expo', renderer: 'antiky' },
@@ -65,13 +64,13 @@ test('every demo build describes a bounded portable game artifact', async () => 
 });
 
 test('rebuilding the same source produces the same artifact manifest and bytes', async () => {
-  const demo = demos.find((candidate) => candidate.slug === 'combat-arena');
+  const demo = demos.find((candidate) => candidate.slug === 'antiky-town');
   assert.ok(demo);
   const dist = path.join(repositoryRoot, demo.projectDirectory, 'dist');
-  await buildDemo('combat-arena');
+  await buildDemo('antiky-town');
   const firstManifest = await readFile(path.join(dist, 'antiky-artifact.json'));
   const firstEntry = await readFile(path.join(dist, 'antiky.game.js'));
-  await buildDemo('combat-arena');
+  await buildDemo('antiky-town');
   assert.deepEqual(await readFile(path.join(dist, 'antiky-artifact.json')), firstManifest);
   assert.deepEqual(await readFile(path.join(dist, 'antiky.game.js')), firstEntry);
 });

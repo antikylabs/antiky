@@ -44,7 +44,7 @@ export default function HomePage() {
   return (
     <>
       <section className="home-hero" id="idea">
-        <DemoStage slug="combat-arena" variant="hero" label="Combat Arena — a live Framework combat loop with enemies, projectiles, dashes, and impact particles" />
+        <DemoStage slug="antiky-town" variant="hero" label="Antiky Town — a current Framework world with a golden-hour market, water, foliage, and live light authoring" />
         <div className="home-hero-copy">
           <h1>Build the world in your mind.<br />Stay in the director&apos;s chair.</h1>
           <p>
@@ -59,7 +59,7 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-        <p className="media-caption"><span>Current proof · Combat Arena</span> Live Framework simulation and BroMetal rendering</p>
+        <p className="media-caption"><span>Current proof · Antiky Town</span> Live Framework world, light authoring, and BroMetal rendering</p>
       </section>
 
       <section className="content-section assumption-section" id="changed-assumption">
@@ -153,14 +153,14 @@ export default function HomePage() {
           <div className="prose">
             <p className="lead">The game creates real problems. Reusable solutions become Antiky.</p>
             <p>
-              Combat Arena, Traversal Study, Antiky Town, and seven focused browser studies are the
-              working proof today. Emberwyrd
-              is the larger creative and technical test Antiky Labs is building toward. It is not a
-              playable release yet.
+              Antiky Town, Traversal Study, and Point Light Expo are the three public technical
+              studies running today. Emberwyrd is the larger creative and technical test Antiky
+              Labs is building toward. It is not a playable release yet.
             </p>
             <div className="thesis-links">
-              <Link className="button button-primary" href="/demos/combat-arena">Run Combat Arena <ArrowUpRight /></Link>
+              <Link className="button button-primary" href="/demos/antiky-town">Run Antiky Town <ArrowUpRight /></Link>
               <Link className="text-link" href="/games">See the games <ArrowRight /></Link>
+              <Link className="text-link" href="/resources">Browse Resources <ArrowRight /></Link>
             </div>
           </div>
         </div>
@@ -177,7 +177,10 @@ export default function HomePage() {
               better environment help smaller models do meaningful work? The questions are public;
               results become claims only when the evidence exists.
             </p>
-            <Link className="text-link" href="/research">See the research boundary <ArrowRight /></Link>
+            <div className="thesis-links">
+              <Link className="text-link" href="/research">See the research boundary <ArrowRight /></Link>
+              <Link className="text-link" href="/roadmap">Read the roadmap <ArrowRight /></Link>
+            </div>
           </div>
         </div>
       </section>
@@ -195,7 +198,7 @@ export default function HomePage() {
             style or library into the identity of the lab.
           </p>
           <div className="thesis-links">
-            <Link className="text-link" href="/demos">Explore all four studies <ArrowRight /></Link>
+            <Link className="text-link" href="/demos">Explore all three studies <ArrowRight /></Link>
             <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">
               Visit BroMetal <ArrowUpRight />
             </a>

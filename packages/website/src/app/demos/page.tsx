@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import DemoStage from '@/components/DemoStage';
+import DemoPoster from '@/components/DemoPoster';
 import { DEMOS, DEMO_GROUPS } from '@/lib/demos';
 import { BROMETAL_VERSION } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Demos',
-  description: 'Four runnable Antiky Framework studies, each showing a narrow piece of current work.',
+  description: 'Three public Antiky Framework studies, each showing a narrow piece of current work.',
   alternates: { canonical: '/demos' },
 };
 
@@ -15,7 +15,7 @@ export default function DemosPage() {
     <>
       <section className="page-hero wrap demos-intro">
         <h1>Run the work.</h1>
-        <p className="status-line"><span className="status-dot status-live" /> Four live studies</p>
+        <p className="status-line"><span className="status-dot status-live" /> Three live studies</p>
         <p className="page-lead">
           These are live Antiky Framework modules, not trailers. Each is rendered through BroMetal{' '}
           {BROMETAL_VERSION} and shows a bounded result; none is a production game or proof of the
@@ -35,11 +35,11 @@ export default function DemosPage() {
               </header>
               {demos.map((demo) => (
                 <article className="demo-entry" key={demo.slug}>
-                  <div className="demo-entry-media" aria-label={`${demo.title} live preview`}>
-                    <DemoStage slug={demo.slug} variant="thumb" label={`${demo.title} preview`} />
+                  <div className="demo-entry-media">
+                    <DemoPoster demo={demo} />
                   </div>
                   <div className="demo-entry-copy">
-                    <p>{demo.pillar} · Live demo</p>
+                    <p>{demo.pillar} · Current technical study</p>
                     <h3><Link href={`/demos/${demo.slug}`}>{demo.title}</Link></h3>
                     <p>{demo.tagline}</p>
                     <div className="tag-list">{demo.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>

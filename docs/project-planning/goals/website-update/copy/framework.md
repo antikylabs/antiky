@@ -28,7 +28,7 @@ Canonical: `/framework`
 | Read how the development session works | `/docs/cli/development` |
 | See the games and studies | `/games` |
 | See the same session in Studio | `/studio` |
-| Run Combat Arena | `/demos/combat-arena` |
+| Run Antiky Town | `/demos/antiky-town` |
 
 ## Hero
 
@@ -278,7 +278,7 @@ tools. The broader vision is public; the working boundary is too.
 
 Primary action: Read the Framework docs
 
-Secondary action: Run Combat Arena
+Secondary action: Run Antiky Town
 
 Tertiary action: Explore Antiky Studio
 

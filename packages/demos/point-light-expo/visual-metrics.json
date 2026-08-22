@@ -1,7 +1,7 @@
 {
   "schemaVersion": 5,
   "demo": "point-light-expo",
-  "capturedAt": "2026-08-17T05:20:07.741Z",
+  "capturedAt": "2026-08-22T00:53:55.366Z",
   "warmUpFrames": 60,
   "source": {
     "digest": "70b98991cb0d528b",
@@ -12,9 +12,9 @@
     "height": 720
   },
   "luminance": {
-    "mean": 0.120769,
+    "mean": 0.120745,
     "p05": 0.001085,
-    "p50": 0.06104,
+    "p50": 0.060979,
     "p95": 0.646628,
     "spread": 0.645543
   },
@@ -27,27 +27,27 @@
     "low": 0
   },
   "saturation": {
-    "mean": 0.246892
+    "mean": 0.246897
   },
   "encodedLuma": {
     "p05": 0.014019,
-    "p50": 0.271998,
+    "p50": 0.271771,
     "p95": 0.815242,
     "spread": 0.801223,
     "clipped": 0.000003
   },
   "hue": {
     "clusters": 4,
-    "dominantShare": 0.452165,
-    "chromaticFraction": 0.355826
+    "dominantShare": 0.45243,
+    "chromaticFraction": 0.355972
   },
   "edges": {
-    "hard": 0.010795
+    "hard": 0.010813
   },
   "probes": {
     "onboarding": {
-      "meanLuminance": 0.064043,
-      "standardDeviation": 0.14305,
+      "meanLuminance": 0.064061,
+      "standardDeviation": 0.143052,
       "pixels": 36480
     },
     "sunShadow": {
@@ -74,25 +74,25 @@
   "inspection": {
     "observation": {
       "schemaVersion": 1,
-      "developmentSessionId": "a1d631fe-d16b-43af-a6ad-8b6cacf87f89",
+      "developmentSessionId": "52f3e04d-4915-4558-bcc3-0fe5dece1b41",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "094d8334-f068-4a23-bf7e-ef7f63657c72",
-      "publicationSequence": 34,
-      "publishedAt": "2026-08-17T05:20:07.737Z",
+      "runtimeInstanceId": "5b6c3e51-d652-4ef7-9979-aebc8f8ad56b",
+      "publicationSequence": 46,
+      "publishedAt": "2026-08-22T00:53:55.364Z",
       "connectionState": "connected",
       "freshness": "current",
       "session": {
-        "sessionId": "01a00e29-9240-7e47-af32-45c864187386",
+        "sessionId": "01a026f5-9b34-7523-87e0-28765787f8ad",
         "worldId": "0197f27e-1000-7000-8000-000000000001",
         "mode": "paused",
-        "completedStepCount": 51,
+        "completedStepCount": 52,
         "controlRevision": 2,
         "worldRevision": 0,
-        "stateDigest": "52|1|playing|1.000000|0.000000|2.150000|-1|0.000000|0.000000|0.000000|000|-6.12402|4.27639|threaten|6.41924|-3.87080|threaten|-1.17622|3.94700|threaten|6.02041|4.43717|threaten"
+        "stateDigest": "53|1|playing|1.000000|0.000000|2.150000|-1|0.000000|0.000000|0.000000|000|-6.10292|4.26907|threaten|6.40295|-3.85552|threaten|-1.16399|3.92831|threaten|5.99953|4.42924|threaten"
       },
       "world": {
         "worldId": "0197f27e-1000-7000-8000-000000000001",
-        "revision": 52,
+        "revision": 53,
         "eventSequence": 0
       }
     },
@@ -116,12 +116,12 @@
       ]
     },
     "comparableIdentity": {
-      "developmentSessionId": "a1d631fe-d16b-43af-a6ad-8b6cacf87f89",
+      "developmentSessionId": "52f3e04d-4915-4558-bcc3-0fe5dece1b41",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "094d8334-f068-4a23-bf7e-ef7f63657c72",
-      "sessionId": "01a00e29-9240-7e47-af32-45c864187386",
-      "completedStepCount": 51,
-      "stateDigest": "52|1|playing|1.000000|0.000000|2.150000|-1|0.000000|0.000000|0.000000|000|-6.12402|4.27639|threaten|6.41924|-3.87080|threaten|-1.17622|3.94700|threaten|6.02041|4.43717|threaten"
+      "runtimeInstanceId": "5b6c3e51-d652-4ef7-9979-aebc8f8ad56b",
+      "sessionId": "01a026f5-9b34-7523-87e0-28765787f8ad",
+      "completedStepCount": 52,
+      "stateDigest": "53|1|playing|1.000000|0.000000|2.150000|-1|0.000000|0.000000|0.000000|000|-6.10292|4.26907|threaten|6.40295|-3.85552|threaten|-1.16399|3.92831|threaten|5.99953|4.42924|threaten"
     },
     "repeatability": {
       "comparedPixels": 921600,
@@ -142,25 +142,25 @@
         "outcome": "fail",
         "measurement": {
           "pixels": 921600,
-          "controlMeanLuminance": 0.26916447,
-          "treatmentMeanLuminance": 0.13256425,
-          "controlToTreatmentRatio": 2.030445,
-          "changedPixelFraction": 0.7345497,
+          "controlMeanLuminance": 0.26912888,
+          "treatmentMeanLuminance": 0.1325543,
+          "controlToTreatmentRatio": 2.030329,
+          "changedPixelFraction": 0.73452148,
           "p99AbsoluteLuminanceDifference": 0.65430272,
-          "measuredBoundaryPixels": 105099,
-          "p99LuminanceGradientPerPixel": 0.61725412,
-          "minimumFalloffPixelsAtP99": 1.6201,
+          "measuredBoundaryPixels": 105190,
+          "p99LuminanceGradientPerPixel": 0.61708941,
+          "minimumFalloffPixelsAtP99": 1.6205,
           "declaredMaximumGradientPerPixel": 0.1,
           "declaredChangedPixelMinimum": 0.0001
         },
         "artifacts": {
           "control": {
-            "artifactId": "artifact-d300a6b7f861fafef77a3b0365e148e7e36f38dd3b0a7ec9b3f2a40efddba9f6",
-            "sha256": "d300a6b7f861fafef77a3b0365e148e7e36f38dd3b0a7ec9b3f2a40efddba9f6"
+            "artifactId": "artifact-cfbb16a1be47a8641871484dd55bf270fe9e765a37f6ca4f7d4c8520b6749167",
+            "sha256": "cfbb16a1be47a8641871484dd55bf270fe9e765a37f6ca4f7d4c8520b6749167"
           },
           "treatment": {
-            "artifactId": "artifact-0d88fd9115771a8b74c6291e0584bb17c7c1f680776fcc3bfd9a5a5e6377906c",
-            "sha256": "0d88fd9115771a8b74c6291e0584bb17c7c1f680776fcc3bfd9a5a5e6377906c"
+            "artifactId": "artifact-19fec33fad93200ec0ead6e55027069c876e2599fae376d8d62ebef1903582db",
+            "sha256": "19fec33fad93200ec0ead6e55027069c876e2599fae376d8d62ebef1903582db"
           }
         },
         "fixtures": {
@@ -229,12 +229,12 @@
         },
         "artifacts": {
           "control": {
-            "artifactId": "artifact-3851b32611e813f3931834b0b22c335ff784eafcaa038d87387798462ba558de",
-            "sha256": "3851b32611e813f3931834b0b22c335ff784eafcaa038d87387798462ba558de"
+            "artifactId": "artifact-cfbb16a1be47a8641871484dd55bf270fe9e765a37f6ca4f7d4c8520b6749167",
+            "sha256": "cfbb16a1be47a8641871484dd55bf270fe9e765a37f6ca4f7d4c8520b6749167"
           },
           "treatment": {
-            "artifactId": "artifact-0e663bb91e793285fc5bc78f7dec6a580c6fb20ce979fae5465bb94f08d5f2d0",
-            "sha256": "0e663bb91e793285fc5bc78f7dec6a580c6fb20ce979fae5465bb94f08d5f2d0"
+            "artifactId": "artifact-f23829d2063c874e9d5d2cd53388aec55157cde1561303a668a4228b527c0bca",
+            "sha256": "f23829d2063c874e9d5d2cd53388aec55157cde1561303a668a4228b527c0bca"
           }
         },
         "fixtures": {
@@ -281,10 +281,10 @@
     },
     "frameTime": {
       "supported": "upper-bound-only",
-      "framesPerSecond": 113.81789137380167,
-      "frameTimeUpperBoundMilliseconds": 8.785965,
+      "framesPerSecond": 113.90887290167832,
+      "frameTimeUpperBoundMilliseconds": 8.778947,
       "limitation": "The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval."
     }
   },
-  "seal": "7db0b5b04a9cddb6"
+  "seal": "8915c9b277023fb6"
 }

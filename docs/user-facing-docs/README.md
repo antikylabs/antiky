@@ -42,6 +42,15 @@ agents, and Studio. Start with the task you want to complete.
 - [Use BroMetal or Three.js in Studio](studio/renderers.md) while keeping the host lifecycle,
   measurements, captures, and local agent connection.
 
+## Skills
+
+- [Understand Antiky agent skills](skills/overview.md), their portable format, and their
+  compatibility boundary.
+- [Install and manage Antiky skills](skills/install.md) for one project, one agent, or your user
+  account.
+- Use the [Ready skills reference](skills/reference.md) to look up public skill names, purposes, and
+  subcommands.
+
 ## API reference
 
 - Use the [framework API reference](api/reference.md) for every public export, exact TypeScript

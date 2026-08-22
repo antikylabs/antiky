@@ -15,6 +15,7 @@ const PRODUCT_DOCS_SECTIONS = [
   { directory: 'mcp', label: 'MCP' },
   { directory: 'studio', label: 'Studio' },
   { directory: 'assets', label: 'Game Assets' },
+  { directory: 'skills', label: 'Skills' },
 ] as const;
 
 const API_DOCS_SECTION = { directory: 'api', label: 'API Reference' } as const;
@@ -24,6 +25,15 @@ const CONTRIBUTOR_PAGE = {
   relativePath: 'DOCUMENTATION_STANDARDS_A.md',
   slug: ['contributing', 'documentation-standards'],
 };
+
+const PUBLIC_EXPLANATIONS = [
+  ['Antiky Framework', '/framework', 'Open-source, headless TypeScript game framework where people, agents, tools, and tests meet one game through explicit interfaces.'],
+  ['Antiky Studio', '/studio', 'Native visual workspace for launching a project, running its game, controlling simulation, and inspecting published state.'],
+  ['Antiky Research', '/research', 'Focused research gyms that publish a bounded question, artifact, method, result, and limitation.'],
+  ['Antiky Resources', '/resources', 'Current game assets and agent skills, with shader and project libraries clearly marked as direction.'],
+  ['Antiky Skills', '/resources/skills', 'Reviewed portable task instructions and tools for compatible coding agents.'],
+  ['Antiky Roadmap', '/roadmap', 'Ordered release scope and proving work without invented dates or progress estimates.'],
+] as const;
 
 export type DocsHeading = {
   depth: number;
@@ -69,7 +79,7 @@ function sourcePathToSlug(relativePath: string): string[] | null {
   if (normalizedPath === 'README.md') return [];
   if (normalizedPath === CONTRIBUTOR_PAGE.relativePath) return CONTRIBUTOR_PAGE.slug;
 
-  const match = normalizedPath.match(/^(framework|cli|mcp|studio|assets|api)\/(.+)\.md$/);
+  const match = normalizedPath.match(/^(framework|cli|mcp|studio|assets|skills|api)\/(.+)\.md$/);
   return match ? [match[1]!, match[2]!] : null;
 }
 
@@ -253,6 +263,10 @@ export function renderLlmsTxt(entries: DocsEntry[], navigation: DocsNavigationSe
 
   lines.push(
     '',
+    '## Product explanations',
+    '',
+    ...PUBLIC_EXPLANATIONS.map(([title, href, description]) => `- [${title}](${canonical(href)}): ${description}`),
+    '',
     '## Complete context',
     '',
     `- [Antiky complete documentation and asset context](${canonical('/llms-full.txt')}): Full public docs, generated API reference, and every asset catalog record.`,
@@ -286,6 +300,10 @@ export function renderLlmsFullTxt(entries: DocsEntry[]): string {
     '> Complete public documentation, generated API reference, and CC0-first asset catalog context.',
     '',
     `Canonical index: ${canonical('/llms.txt')}`,
+    '',
+    '## Public product explanations',
+    '',
+    ...PUBLIC_EXPLANATIONS.map(([title, href, description]) => `- ${title}: ${description} ${canonical(href)}`),
   ];
 
   for (const entry of entries) {

@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-08-21",
+  "implementationRevision": "8e20c7ad167ed0522fb2314cf487df9aa24cbb87",
+  "entries": [
+    {
+      "id": "demo-antiky-town",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/demos/antiky-town.png",
+        "sha256": "48728b0dd57248a69739220d07e7410ab816939f8c031714fe4c0d7217e2f35d",
+        "width": 2560,
+        "height": 1440
+      },
+      "delivery": {
+        "path": "packages/website/public/media/demos/antiky-town.webp",
+        "publicUrl": "/media/demos/antiky-town.webp",
+        "sha256": "4ae190ed59ad3c9a75d488db4f1f13bb1027ac0152b1e661ba8c5aac44706195",
+        "width": 2560,
+        "height": 1440,
+        "bytes": 369950,
+        "maxBytes": 1200000
+      },
+      "usedBy": ["/", "/framework", "/games", "/demos", "/demos/antiky-town"],
+      "capture": {
+        "kind": "managed-demo",
+        "sourceRevision": "8e20c7ad167ed0522fb2314cf487df9aa24cbb87",
+        "capturedAt": "2026-08-22T00:28:34.456Z",
+        "sourceDirectory": "packages/demos/antiky-town",
+        "sourceDigest": "422072eb85d2f76d",
+        "sourceFileCount": 128,
+        "metricsSidecar": "packages/demos/antiky-town/visual-metrics.json",
+        "fixture": "goal-19-evidence",
+        "acceptedBuildRevision": 1,
+        "selectedRun": 1,
+        "inputSha256": "3fdc85abc6282ff434fa2cefa727d51b904ad7c99b08f69d701cd29596da2241",
+        "inputWidth": 1280,
+        "inputHeight": 720
+      }
+    },
+    {
+      "id": "demo-point-light-expo",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/demos/point-light-expo.png",
+        "sha256": "04b4ba42d185e8e34e7951b1e28bc183ba559fdef8996db5ebf1b91c7f06f55f",
+        "width": 2560,
+        "height": 1440
+      },
+      "delivery": {
+        "path": "packages/website/public/media/demos/point-light-expo.webp",
+        "publicUrl": "/media/demos/point-light-expo.webp",
+        "sha256": "d5bd24813ac348b0a742bc8ca74a91e810f9c00b4c23a04ffe20a3386c0e1336",
+        "width": 2560,
+        "height": 1440,
+        "bytes": 322384,
+        "maxBytes": 1200000
+      },
+      "usedBy": ["/games", "/demos", "/demos/point-light-expo"],
+      "capture": {
+        "kind": "managed-demo",
+        "sourceRevision": "8e20c7ad167ed0522fb2314cf487df9aa24cbb87",
+        "capturedAt": "2026-08-21T18:13:02.110Z",
+        "sourceDirectory": "packages/demos/point-light-expo",
+        "sourceDigest": "70b98991cb0d528b",
+        "sourceFileCount": 132,
+        "metricsSidecar": "packages/demos/point-light-expo/visual-metrics.json",
+        "fixture": "goal-19-evidence",
+        "acceptedBuildRevision": 1,
+        "selectedRun": 1,
+        "inputSha256": "2e3b225774935850c8c0ac472a8ac6638703425fd22f7b9ea49b131b548f5a64",
+        "inputWidth": 1280,
+        "inputHeight": 720
+      }
+    },
+    {
+      "id": "demo-traversal-study",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/demos/traversal-study.png",
+        "sha256": "46e38a3c22c0475be0a320094d189afcbc0bdde2723f6d10486d0b68c02115a5",
+        "width": 2560,
+        "height": 1440
+      },
+      "delivery": {
+        "path": "packages/website/public/media/demos/traversal-study.webp",
+        "publicUrl": "/media/demos/traversal-study.webp",
+        "sha256": "26061726183424f24ce5c58ebaae89e923497d8cd06eb0522ce002c109ea8e9f",
+        "width": 2560,
+        "height": 1440,
+        "bytes": 84528,
+        "maxBytes": 1200000
+      },
+      "usedBy": ["/games", "/demos", "/demos/traversal-study"],
+      "capture": {
+        "kind": "managed-demo",
+        "sourceRevision": "8e20c7ad167ed0522fb2314cf487df9aa24cbb87",
+        "capturedAt": "2026-08-21T18:13:18.634Z",
+        "sourceDirectory": "packages/demos/traversal-study",
+        "sourceDigest": "acee0539e4152439",
+        "sourceFileCount": 118,
+        "metricsSidecar": "packages/demos/traversal-study/visual-metrics.json",
+        "fixture": "goal-19-evidence",
+        "acceptedBuildRevision": 1,
+        "selectedRun": 1,
+        "inputSha256": "46a978948a99cef1c9b6b9465f7398872a287d23a56a152d0c2d6d87c5fea9ee",
+        "inputWidth": 1280,
+        "inputHeight": 720
+      }
+    },
+    {
+      "id": "studio-launcher",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/studio/studio-launcher.png",
+        "sha256": "60efeab6f4764002ab9f523f35a698e96a65451818a327aa0d38608f6332bb7a",
+        "width": 1228,
+        "height": 768
+      },
+      "delivery": {
+        "path": "packages/website/public/media/studio/project-launcher.webp",
+        "publicUrl": "/media/studio/project-launcher.webp",
+        "sha256": "2eb4f907fe83b454d1527f2c35c2f0bbf5b9c8ae52e16f61d55ffd1a750cea61",
+        "width": 1600,
+        "height": 1000,
+        "bytes": 20776,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/studio"],
+      "capture": {
+        "kind": "studio-source-build",
+        "sourceRevision": "8e20c7ad167ed0522fb2314cf487df9aa24cbb87",
+        "capturedAt": "2026-08-21",
+        "platform": "macOS",
+        "fixture": "clean launcher store",
+        "state": "Create, Open, and empty Recent projects choices visible"
+      }
+    },
+    {
+      "id": "studio-workspace",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/studio/studio-workspace.png",
+        "sha256": "77452dd66c1e69afcdbc60d58d03fb76536452d3203fda0929742f189e1b520c",
+        "width": 1228,
+        "height": 768
+      },
+      "delivery": {
+        "path": "packages/website/public/media/studio/workspace-overview.webp",
+        "publicUrl": "/media/studio/workspace-overview.webp",
+        "sha256": "4c3542b8dd766b3ccddae7995a51bf5024c75481f9d19d0e463e96472835085f",
+        "width": 1600,
+        "height": 1000,
+        "bytes": 101428,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/studio"],
+      "capture": {
+        "kind": "studio-source-build",
+        "sourceRevision": "8e20c7ad167ed0522fb2314cf487df9aa24cbb87",
+        "capturedAt": "2026-08-21",
+        "platform": "macOS",
+        "fixture": "packages/demos/antiky-town/antiky-town.antiky",
+        "state": "Antiky Town running with terminal, Hierarchy, and Events visible"
+      }
+    },
+    {
+      "id": "studio-simulation-controls",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/studio/studio-paused-step.png",
+        "sha256": "203afac8c2afe4a04f66ff8af2d263befb93a77edd5c82cec91b724b5b3d47bb",
+        "width": 1228,
+        "height": 768
+      },
+      "delivery": {
+        "path": "packages/website/public/media/studio/simulation-controls.webp",
+        "publicUrl": "/media/studio/simulation-controls.webp",
+        "sha256": "1b1821741c5796f31caddcec768d0e9f99e94d4d28d7aaae830d0562860674fe",
+        "width": 1600,
+        "height": 1000,
+        "bytes": 100992,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/studio"],
+      "capture": {
+        "kind": "studio-source-build",
+        "sourceRevision": "8e20c7ad167ed0522fb2314cf487df9aa24cbb87",
+        "capturedAt": "2026-08-21",
+        "platform": "macOS",
+        "fixture": "packages/demos/antiky-town/antiky-town.antiky",
+        "state": "Simulation paused and advanced with current Pause and Step controls visible"
+      }
+    },
+    {
+      "id": "studio-inspection-activity",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/studio/studio-inspection-activity.png",
+        "sha256": "0beba3b5b5834abd3b95707d7047b3c451bdf6448af235471c510fb9748fb9cc",
+        "width": 1228,
+        "height": 768
+      },
+      "delivery": {
+        "path": "packages/website/public/media/studio/inspection-activity.webp",
+        "publicUrl": "/media/studio/inspection-activity.webp",
+        "sha256": "b815e1b51c00c04def6af6486814b8785e8954638bc2e5b4fefc5f165039cc0d",
+        "width": 1600,
+        "height": 1000,
+        "bytes": 76346,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/studio"],
+      "capture": {
+        "kind": "studio-source-build",
+        "sourceRevision": "8e20c7ad167ed0522fb2314cf487df9aa24cbb87",
+        "capturedAt": "2026-08-21",
+        "platform": "macOS",
+        "fixture": "packages/demos/antiky-town/antiky-town.antiky",
+        "state": "Stores and Diagnostics detail visible beside current Hierarchy and Events"
+      }
+    },
+    {
+      "id": "research-aot-report",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/research/aot-report.png",
+        "sha256": "572a4389b1e36c4fe8bde7dee7cd2d1de55832c15979afa111ee6025672c98c5",
+        "width": 1600,
+        "height": 900
+      },
+      "delivery": {
+        "path": "packages/website/public/media/research/aot-report.webp",
+        "publicUrl": "/media/research/aot-report.webp",
+        "sha256": "e3ae5f43681871cf8781ca94d9e851b4060f27e30228b29da3c9ce44db08824e",
+        "width": 1600,
+        "height": 900,
+        "bytes": 67046,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/research"],
+      "capture": {
+        "kind": "research-artifact",
+        "sourceRevision": "cc98e0059016417ccab848457e309eae9f77ed12",
+        "capturedAt": "2026-08-21",
+        "fixture": "completed WebGPU AOT report social chart",
+        "state": "Completed study result with title, plotted values, and source labels",
+        "sourcePath": "research/experiments/webgpu-aot/output/social/webgpu-cold-start-and-artifacts.png",
+        "sourceSha256": "572a4389b1e36c4fe8bde7dee7cd2d1de55832c15979afa111ee6025672c98c5"
+      }
+    },
+    {
+      "id": "research-voxel-gym",
+      "sourceKind": "capture",
+      "publicRole": "Evidence",
+      "master": {
+        "path": "packages/website/media-masters/research/voxel-gym.png",
+        "sha256": "62c7c12bcff3d333e7cb822bd53c070cd3b224db8a2f021c0b9b0950dd835003",
+        "width": 1280,
+        "height": 720
+      },
+      "delivery": {
+        "path": "packages/website/public/media/research/voxel-gym.webp",
+        "publicUrl": "/media/research/voxel-gym.webp",
+        "sha256": "7d535482779b2ef16f04731d1633325abdb58fae13e5909f3a61a1d061ca02d9",
+        "width": 1600,
+        "height": 900,
+        "bytes": 115086,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/research"],
+      "capture": {
+        "kind": "research-artifact",
+        "sourceRevision": "cc98e0059016417ccab848457e309eae9f77ed12",
+        "capturedAt": "2026-08-21",
+        "fixture": "checked voxel-rendering evidence frame",
+        "state": "Golden Hour Valley Atelier common scene and camera",
+        "sourcePath": "research/experiments/voxel-rendering/docs/evidence/voxel-mesh-photorealistic.png",
+        "sourceSha256": "62c7c12bcff3d333e7cb822bd53c070cd3b224db8a2f021c0b9b0950dd835003"
+      }
+    },
+    {
+      "id": "marketing-launch-key-art",
+      "sourceKind": "generated",
+      "publicRole": "Illustrative",
+      "master": {
+        "path": "packages/website/media-masters/marketing/launch-key-art.png",
+        "sha256": "31830789560d251406603a65c12bca70a2cbbccb2ce789fa70f052853b584ab6",
+        "width": 1672,
+        "height": 941
+      },
+      "delivery": {
+        "path": "packages/website/public/media/marketing/launch-key-art.webp",
+        "publicUrl": "/media/marketing/launch-key-art.webp",
+        "sha256": "95774e749f9b796fe51e4656b22ca276c378dcc219fabe455b45c8f51166cfbc",
+        "width": 1600,
+        "height": 900,
+        "bytes": 95664,
+        "maxBytes": 600000
+      },
+      "usedBy": ["/", "launch-kit:landscape"],
+      "generation": {
+        "method": "built-in ImageGen with referenced_image_paths",
+        "generatedAt": "2026-08-21",
+        "promptSidecar": "packages/website/media-masters/marketing/launch-key-art.prompt.md",
+        "references": [
+          { "path": "packages/website/design/references/home-media-first.png", "sha256": "8fa5b479388cc13930ff8b9d7d80653973a7fac1710a7eab6f8296f137888f57", "role": "composition and brand restraint" },
+          { "path": "packages/website/media-masters/demos/antiky-town.png", "archivePath": "packages/website/media-masters/marketing/reference-snapshots/antiky-town.png", "sha256": "819b3a319f5b57242ebae41d4a8ece04a8726282135d18ed61e8a0afe78b9ddd", "role": "current-product palette, voxel scale, and warm material" },
+          { "path": "packages/website/media-masters/demos/combat-arena.png", "sha256": "f8589e5f99f96ef4d74503ae3dfc63dca185375e638d451c2c184afde3f39b78", "role": "planar geometry, hard-surface material, and cool values" },
+          { "path": "packages/website/media-masters/demos/point-light-expo.png", "sha256": "04b4ba42d185e8e34e7951b1e28bc183ba559fdef8996db5ebf1b91c7f06f55f", "role": "practical colored-light falloff and material response" }
+        ],
+        "approval": {
+          "status": "approved",
+          "approvedBy": "Antiky Labs owner through delegated implementation instruction",
+          "approvedAt": "2026-08-21",
+          "basis": "Selected within the approved media matrix and creative direction while completing goal-plan.md."
+        }
+      }
+    },
+    {
+      "id": "marketing-launch-announcement-square",
+      "sourceKind": "generated",
+      "publicRole": "Illustrative",
+      "master": {
+        "path": "packages/website/media-masters/marketing/launch-announcement-square.png",
+        "sha256": "5932b0579543f8ec993c29bfa82628107e790d26d40955aff8e022c35b516fd7",
+        "width": 1254,
+        "height": 1254
+      },
+      "delivery": {
+        "path": "packages/website/public/media/marketing/launch-announcement-square.webp",
+        "publicUrl": "/media/marketing/launch-announcement-square.webp",
+        "sha256": "67ea3b79ad9caf52b7c975f949fac3cb026d3cc83cba47b4a3b176b981542e2d",
+        "width": 1200,
+        "height": 1200,
+        "bytes": 120622,
+        "maxBytes": 600000
+      },
+      "usedBy": ["launch-kit:square"],
+      "generation": {
+        "method": "built-in ImageGen with referenced_image_paths",
+        "generatedAt": "2026-08-21",
+        "promptSidecar": "packages/website/media-masters/marketing/launch-announcement-square.prompt.md",
+        "references": [
+          { "path": "packages/website/design/references/home-media-first.png", "sha256": "8fa5b479388cc13930ff8b9d7d80653973a7fac1710a7eab6f8296f137888f57", "role": "composition and brand restraint" },
+          { "path": "packages/website/media-masters/demos/antiky-town.png", "archivePath": "packages/website/media-masters/marketing/reference-snapshots/antiky-town.png", "sha256": "819b3a319f5b57242ebae41d4a8ece04a8726282135d18ed61e8a0afe78b9ddd", "role": "current-product palette, voxel scale, and warm material" },
+          { "path": "packages/website/media-masters/demos/combat-arena.png", "sha256": "f8589e5f99f96ef4d74503ae3dfc63dca185375e638d451c2c184afde3f39b78", "role": "planar geometry, hard-surface material, and cool values" },
+          { "path": "packages/website/media-masters/demos/point-light-expo.png", "sha256": "04b4ba42d185e8e34e7951b1e28bc183ba559fdef8996db5ebf1b91c7f06f55f", "role": "practical colored-light falloff and material response" }
+        ],
+        "approval": {
+          "status": "approved",
+          "approvedBy": "Antiky Labs owner through delegated implementation instruction",
+          "approvedAt": "2026-08-21",
+          "basis": "Selected within the approved media matrix and creative direction while completing goal-plan.md."
+        }
+      }
+    },
+    {
+      "id": "marketing-launch-announcement-portrait",
+      "sourceKind": "generated",
+      "publicRole": "Illustrative",
+      "master": {
+        "path": "packages/website/media-masters/marketing/launch-announcement-portrait.png",
+        "sha256": "14b419a14fee82b490332d502a2cbcb8c6a64b13cdbf96d4d2c94250c78e847d",
+        "width": 1122,
+        "height": 1402
+      },
+      "delivery": {
+        "path": "packages/website/public/media/marketing/launch-announcement-portrait.webp",
+        "publicUrl": "/media/marketing/launch-announcement-portrait.webp",
+        "sha256": "938b26856a90dd8aaa5bed533d9428b816382913305880d246ffaf93a3ff7f5b",
+        "width": 1080,
+        "height": 1350,
+        "bytes": 119082,
+        "maxBytes": 600000
+      },
+      "usedBy": ["launch-kit:portrait"],
+      "generation": {
+        "method": "built-in ImageGen with referenced_image_paths",
+        "generatedAt": "2026-08-21",
+        "promptSidecar": "packages/website/media-masters/marketing/launch-announcement-portrait.prompt.md",
+        "references": [
+          { "path": "packages/website/design/references/home-media-first.png", "sha256": "8fa5b479388cc13930ff8b9d7d80653973a7fac1710a7eab6f8296f137888f57", "role": "composition and brand restraint" },
+          { "path": "packages/website/media-masters/demos/antiky-town.png", "archivePath": "packages/website/media-masters/marketing/reference-snapshots/antiky-town.png", "sha256": "819b3a319f5b57242ebae41d4a8ece04a8726282135d18ed61e8a0afe78b9ddd", "role": "current-product palette, voxel scale, and warm material" },
+          { "path": "packages/website/media-masters/demos/combat-arena.png", "sha256": "f8589e5f99f96ef4d74503ae3dfc63dca185375e638d451c2c184afde3f39b78", "role": "planar geometry, hard-surface material, and cool values" },
+          { "path": "packages/website/media-masters/demos/point-light-expo.png", "sha256": "04b4ba42d185e8e34e7951b1e28bc183ba559fdef8996db5ebf1b91c7f06f55f", "role": "practical colored-light falloff and material response" }
+        ],
+        "approval": {
+          "status": "approved",
+          "approvedBy": "Antiky Labs owner through delegated implementation instruction",
+          "approvedAt": "2026-08-21",
+          "basis": "Selected within the approved media matrix and creative direction while completing goal-plan.md."
+        }
+      }
+    }
+  ]
+}

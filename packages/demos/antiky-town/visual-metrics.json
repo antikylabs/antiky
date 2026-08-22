@@ -1,10 +1,10 @@
 {
   "schemaVersion": 5,
   "demo": "antiky-town",
-  "capturedAt": "2026-08-17T05:19:02.427Z",
+  "capturedAt": "2026-08-22T00:52:44.605Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "9d8a48a2fe8e0b77",
+    "digest": "422072eb85d2f76d",
     "fileCount": 128
   },
   "frame": {
@@ -48,15 +48,15 @@
   "inspection": {
     "observation": {
       "schemaVersion": 1,
-      "developmentSessionId": "e46ece94-d75a-49e8-8026-c504e625dd20",
+      "developmentSessionId": "bebb9998-abf3-44af-b957-64a541cae3fe",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "d4f1cff3-8f05-4d2b-8ef9-6a50703446ed",
-      "publicationSequence": 34,
-      "publishedAt": "2026-08-17T05:19:02.424Z",
+      "runtimeInstanceId": "9f353930-6718-4548-b282-d347591fd495",
+      "publicationSequence": 46,
+      "publishedAt": "2026-08-22T00:52:44.602Z",
       "connectionState": "connected",
       "freshness": "current",
       "session": {
-        "sessionId": "01a00e28-931a-79c8-b93d-db517fa552d9",
+        "sessionId": "01a026f4-8670-7846-89a1-9ccdc34e2f3b",
         "worldId": "018f0f3a-7b2c-7a1d-8e2f-123456789abc",
         "mode": "paused",
         "completedStepCount": 53,
@@ -97,10 +97,10 @@
       ]
     },
     "comparableIdentity": {
-      "developmentSessionId": "e46ece94-d75a-49e8-8026-c504e625dd20",
+      "developmentSessionId": "bebb9998-abf3-44af-b957-64a541cae3fe",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "d4f1cff3-8f05-4d2b-8ef9-6a50703446ed",
-      "sessionId": "01a00e28-931a-79c8-b93d-db517fa552d9",
+      "runtimeInstanceId": "9f353930-6718-4548-b282-d347591fd495",
+      "sessionId": "01a026f4-8670-7846-89a1-9ccdc34e2f3b",
       "completedStepCount": 53,
       "stateDigest": "town-v1:df22f29a171d73bc"
     },
@@ -454,10 +454,10 @@
     },
     "frameTime": {
       "supported": "upper-bound-only",
-      "framesPerSecond": 120.43435340572557,
-      "frameTimeUpperBoundMilliseconds": 8.303279,
+      "framesPerSecond": 112,
+      "frameTimeUpperBoundMilliseconds": 8.928571,
       "limitation": "The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval."
     }
   },
-  "seal": "329c9815a99147e4"
+  "seal": "336ece8dcb3131e8"
 }

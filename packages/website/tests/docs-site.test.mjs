@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const docsRoot = new URL('../../../docs/user-facing-docs/', import.meta.url);
 const outputRoot = new URL('../.next/server/app/', import.meta.url);
-const sections = ['framework', 'cli', 'mcp', 'studio', 'assets', 'api'];
+const sections = ['framework', 'cli', 'mcp', 'studio', 'assets', 'skills', 'api'];
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
 
 async function documentationSources() {
@@ -148,4 +148,27 @@ test('docs content media and inline code stay inside narrow layouts', async () =
   assert.match(styles, /\.docs-prose img\s*{[^}]*max-width:\s*100%[^}]*height:\s*auto/s);
   assert.match(styles, /\.docs-prose :not\(pre\) > code\s*{[^}]*overflow-wrap:\s*anywhere/s);
   assert.match(styles, /\.docs-prose table\s*{[^}]*display:\s*block[^}]*overflow-x:\s*auto/s);
+});
+
+test('skills guides reach every agent-readable docs surface', async () => {
+  const docsHome = await readFile(new URL('docs.html', outputRoot), 'utf8');
+  const llms = await readFile(new URL('llms.txt.body', outputRoot), 'utf8');
+  const llmsFull = await readFile(new URL('llms-full.txt.body', outputRoot), 'utf8');
+  const guides = [
+    ['overview', 'Understand Antiky agent skills'],
+    ['install', 'Install and manage Antiky skills'],
+    ['reference', 'Ready skills reference'],
+  ];
+
+  for (const [slug, title] of guides) {
+    const route = `/docs/skills/${slug}`;
+    assert.ok(docsHome.includes(`href="${route}"`), `${route} is missing from docs navigation`);
+    assert.ok(docsHome.includes(title), `${route} is missing from docs search data`);
+    assert.ok(llms.includes(`[${title}](${new URL(`${route}.md`, siteUrl)})`));
+    assert.ok(llmsFull.includes(`# ${title}`));
+    assert.match(
+      await readFile(new URL(`docs-markdown/skills/${slug}.body`, outputRoot), 'utf8'),
+      new RegExp(`^# ${title}`),
+    );
+  }
 });

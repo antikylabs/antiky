@@ -1,3 +1,5 @@
+import frameworkPackage from '../../../framework/package.json';
+
 export const SITE_NAME = 'Antiky Labs';
 export const SITE_TAGLINE = 'Build the world in your mind.';
 export const SITE_DESCRIPTION =
@@ -9,7 +11,7 @@ export const STUDIO_RELEASES_URL = `${GITHUB_URL}/releases`;
 export const STUDIO_RELEASES_READY = process.env.NEXT_PUBLIC_STUDIO_RELEASES_READY === 'true';
 export const DISCORD_URL = 'https://discord.gg/3Qs2uejUf9';
 export const BROMETAL_URL = 'https://brometal.dev';
-export const BROMETAL_VERSION = '0.14.0';
+export const BROMETAL_VERSION = frameworkPackage.dependencies.brometal;
 
 export const STATUS_LINE =
   'Antiky Town and the browser studies run today. The broader development system and Emberwyrd remain in development.';
@@ -18,10 +20,9 @@ export type NavLink = { href: string; label: string };
 
 export const NAV: NavLink[] = [
   { href: '/thesis', label: 'Thesis' },
-  { href: '/studio', label: 'Studio' },
   { href: '/framework', label: 'Framework' },
   { href: '/games', label: 'Games' },
-  { href: '/assets', label: 'Assets' },
+  { href: '/resources', label: 'Resources' },
   { href: '/research', label: 'Research' },
   { href: '/docs', label: 'Docs' },
 ];

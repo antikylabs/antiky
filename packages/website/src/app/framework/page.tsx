@@ -1,142 +1,194 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
-import DemoStage from '@/components/DemoStage';
-import { BROMETAL_URL, BROMETAL_VERSION } from '@/lib/site';
+import DemoPoster from '@/components/DemoPoster';
+import FrameworkArchitecture from '@/components/FrameworkArchitecture';
 import { ArrowRight, ArrowUpRight } from '@/components/Icons';
+import { DEMOS } from '@/lib/demos';
+import { BROMETAL_URL, BROMETAL_VERSION } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Antiky Framework',
-  description:
-    'The pre-release headless game-session and structured-state foundation behind Antiky development tools and current Framework studies.',
+  title: 'Antiky Framework | Headless TypeScript game framework',
+  description: 'Open-source, headless TypeScript game framework where humans, agents, tools, and tests inspect and change one game through explicit interfaces.',
   alternates: { canonical: '/framework' },
 };
 
+const TOWN = DEMOS.find((demo) => demo.slug === 'antiky-town')!;
+
 const CAPABILITIES = [
-  ['Fixed-step sessions', 'Run game systems on a predictable clock with pause, resume, single-step controls, explicit inputs, and fail-closed faults.'],
-  ['Stable identity', 'Keep public world, session, entity, command, and event identities stable across the development boundary.'],
-  ['Structured inspection', 'Publish immutable lifecycle, session, hierarchy, store, event, diagnostic, and measurement snapshots for tools and tests.'],
-  ['Bounded authoring', 'Use validated commands for the current point-light authoring slice instead of letting inspection mutate state.'],
-  ['Portable game modules', 'Keep game code separate from browser, Studio, CLI, and website hosts so the same module can run in different delivery contexts.'],
+  ['Fixed-step sessions', 'Run game systems on a predictable clock with explicit input, ordered commands, pause, resume, single-step control, and fail-closed faults.'],
+  ['Stable public identity', 'Refer to worlds, sessions, entities, commands, and events with durable identifiers instead of screen coordinates or temporary render slots.'],
+  ['Structured inspection', 'Read immutable lifecycle, session, hierarchy, store, event, diagnostic, and measurement snapshots without handing a client the live world.'],
+  ['Bounded authoring', 'Change and correct point-light power through validated commands with expected revisions. Read access does not become write access by accident.'],
+  ['Portable game modules', 'Keep game rules, systems, shaders, and assets separate from the browser, Studio, command-line interface (CLI), and website hosts.'],
+] as const;
+
+const BOUNDARIES = [
+  ['Current', 'current', 'Session, identity, inspection, capture, and a bounded light-authoring slice', 'These capabilities exist in the current source and public documentation. Four approved game studies exercise different parts of the foundation.'],
+  ['Emerging', 'emerging', 'A broader Framework-owned BroMetal render path', 'A narrow driver path exists in current demos, but games still contain renderer-owned work and the broader rendering system is incomplete.'],
+  ['Direction', 'direction', 'General world services, sandboxes, selection, physics, abilities, and online authority', 'Accepted architecture and active work guide these areas. They are not current Framework features or release promises.'],
+  ['Pre-release', 'direction', 'No stable npm package or API guarantee yet', 'The repository is open and current behavior is documented, but package publication, versioning, and compatibility policy are still open decisions.'],
 ] as const;
 
 export default function FrameworkPage() {
   return (
     <>
       <section className="page-hero wrap">
-        <p className="status-line"><span className="status-dot status-emerging" /> Pre-release · working foundation</p>
-        <h1>A headless foundation for a game that tools can understand.</h1>
+        <p className="status-line"><span className="status-dot status-emerging" /> Pre-release · open source · working foundation</p>
+        <h1>Build games that can explain themselves.</h1>
         <p className="page-lead">
-          Antiky Framework owns game sessions, identity, structured inspection, and bounded state
-          changes beneath Studio, CLI, MCP, direct clients, and the current Framework studies.
+          Antiky Framework is an open-source TypeScript game framework that runs without Studio. It
+          lets you and software agents inspect, run, test, and change the same game through explicit
+          interfaces. It powers Antiky Studio, command-line tools, agent tools, and Antiky Labs games.
         </p>
         <div className="actions">
-          <Link className="button button-primary" href="/docs/framework/engine-sessions">
-            Read Framework docs <ArrowRight />
-          </Link>
-          <Link className="text-link" href="/demos/antiky-town">Run Antiky Town <ArrowUpRight /></Link>
+          <Link className="button button-primary" href="/docs/framework/engine-sessions">Read the Framework docs <ArrowRight /></Link>
+          <Link className="text-link" href="/demos">Run the Framework studies <ArrowUpRight /></Link>
         </div>
+        <p className="review-date">Technical claims reviewed 2026-08-21</p>
       </section>
 
-      <section className="wide-media wrap" aria-label="Antiky Town preview">
-        <DemoStage
-          slug="antiky-town"
-          controlMode="move"
-          label="Antiky Town — live Framework experiment"
-        />
-      </section>
+      <figure className="wide-media wrap evidence-figure">
+        <DemoPoster demo={TOWN} priority />
+        <figcaption>Current proof · Antiky Town runs as a portable Framework game module and renders through BroMetal.</figcaption>
+      </figure>
 
-      <section className="content-section wrap split-heading" data-evidence-status="current">
+      <section className="content-section wrap split-heading">
         <div>
-          <p className="section-label">Current boundary</p>
-          <h2>Narrow, working, and still pre-release.</h2>
+          <p className="section-label">Why AI-native starts below the interface</p>
+          <h2>The agent is a user of the engine.</h2>
         </div>
         <div className="prose">
           <p className="lead">
-            Framework is not a complete engine and it has no stable package release today.
+            Most game engines expect a person to interpret an editor, project, running game, and debugger.
+            An agent usually arrives later and must reconstruct that truth from files, output, and screenshots.
           </p>
           <p>
-            The current source implements a focused foundation: fixed-step EngineSession behavior,
-            UUIDv7 identities, immutable inspection snapshots, portable game-module contracts, and
-            a point-light command and correction flow. The public API documentation records the exact
-            surface that exists.
+            Antiky starts from a different requirement: the game must be able to tell an agent what
+            is true. That changes the runtime, world model, development services, rendering boundary,
+            and evidence the system produces. Generating code is useful. Understanding what it did is harder.
           </p>
-          <p>
-            Broader world systems, abilities, persistence, online authority, physics, sandboxes, and
-            agent workflows remain architectural direction until working public slices earn those
-            claims.
-          </p>
+          <blockquote>Give agents context before asking them to guess.</blockquote>
+        </div>
+      </section>
+
+      <section className="statement-band" data-evidence-status="direction">
+        <div className="wrap statement-grid">
+          <h2>Change the game. Run it. Inspect the result. Prove what happened.</h2>
+          <div>
+            <p className="section-label">Direction</p>
+            <p className="lead">
+              The complete loop connects a bounded change to a repeatable run, semantic inspection,
+              visual evidence, performance checks, and a human creative decision.
+            </p>
+            <p>
+              Sessions, inspection, captures, project services, and narrow commands work today. The
+              complete creator-agent workflow remains direction; a metric cannot decide whether a
+              jump feels alive or a world is worth remembering.
+            </p>
+          </div>
         </div>
       </section>
 
       <section className="content-section wrap" data-evidence-status="current">
         <header className="section-intro compact">
-          <h2>What works now</h2>
-          <p>Concrete development behavior, kept deliberately smaller than a general-purpose engine.</p>
+          <p className="section-label">Current · pre-release</p>
+          <h2>A narrow foundation with observable behavior.</h2>
+          <p>The current source is smaller than a general-purpose engine. Its working boundaries are explicit and documented.</p>
         </header>
         <div className="editorial-list">
           {CAPABILITIES.map(([title, body]) => (
             <div className="editorial-row static" key={title}>
+              <span className="row-status">Current</span>
+              <span className="row-copy"><strong>{title}</strong><span>{body}</span></span>
+            </div>
+          ))}
+        </div>
+        <div className="thesis-links">
+          <Link className="text-link" href="/docs/api/reference">Inspect the current API <ArrowRight /></Link>
+          <a className="text-link" href="https://github.com/antikylabs/antiky/tree/main/packages/framework" target="_blank" rel="noreferrer">Inspect the Framework source <ArrowUpRight /></a>
+        </div>
+      </section>
+
+      <section className="content-section wrap split-heading">
+        <div><p className="section-label">Architectural choice</p><h2>One language from game logic to shader source.</h2></div>
+        <div className="prose">
+          <p className="lead">TypeScript gives builders and agents one coherent path across game logic, engine systems, browser hosts, Canvas, and WebGPU integration.</p>
+          <p>
+            BroMetal carries that idea onto the GPU. Its typed TypeScript shader domain-specific
+            language compiles to WebGPU Shading Language (WGSL) before the game runs. WebGPU still
+            creates graphics pipelines at runtime; ahead-of-time shader generation is not itself a performance claim.
+          </p>
+          <p>Framework games currently declare BroMetal {BROMETAL_VERSION} through package metadata.</p>
+          <a className="text-link section-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">Explore BroMetal <ArrowUpRight /></a>
+        </div>
+      </section>
+
+      <section className="content-section wrap split-heading">
+        <div><p className="section-label">Shared development model</p><h2>Every client meets the same game.</h2></div>
+        <div className="prose">
+          <p className="lead">Humans, agents, Studio, CLI project services, and tests meet the game through the same commands, queries, events, diagnostics, and visual captures.</p>
+          <p>
+            Model Context Protocol (MCP) adapts that contract into tools for an agent. It is not a
+            second engine. Inspection stays read-only, and changes cross validated commands,
+            expected revisions, and narrow grants.
+          </p>
+          <Link className="text-link section-link" href="/docs/cli/development">Read how the development session works <ArrowRight /></Link>
+        </div>
+      </section>
+
+      <FrameworkArchitecture />
+
+      <section className="content-section wrap split-heading">
+        <div><p className="section-label">Evidence-led development</p><h2>A plausible change is not a verified change.</h2></div>
+        <div className="prose">
+          <p className="lead">The same development session can publish structured state, diagnostics, measurements, captures, and bounded event history.</p>
+          <p>
+            That evidence protects human judgment rather than replacing it. It can expose a broken
+            frame, missed budget, or unexpected transition. It cannot make the creative call.
+          </p>
+        </div>
+      </section>
+
+      <section className="statement-band">
+        <div className="wrap statement-grid">
+          <h2>The game leads. The engine follows.</h2>
+          <div>
+            <p className="lead">Antiky Labs games are the Framework's first customer.</p>
+            <p>
+              We build a complete game slice, find the systems that prove reusable, and move those
+              systems into Framework when evidence supports the boundary. Framework will be narrower
+              before it is broad.
+            </p>
+            <Link className="text-link" href="/games">See the games and studies <ArrowRight /></Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-section wrap split-heading">
+        <div><p className="section-label">Headless by design</p><h2>Studio helps you see the work. Framework does not depend on it.</h2></div>
+        <div className="prose">
+          <p className="lead">A Framework game can build, run, test, host, and ship without Antiky Studio.</p>
+          <p>Studio is a visual client over the same project services. It never becomes the engine or the source of game truth.</p>
+          <Link className="text-link section-link" href="/studio">See the same session in Studio <ArrowRight /></Link>
+        </div>
+      </section>
+
+      <section className="content-section wrap">
+        <header className="section-intro compact"><h2>What is current—and what is not</h2><p>The boundary stays visible as Framework grows.</p></header>
+        <div className="editorial-list">
+          {BOUNDARIES.map(([status, evidenceStatus, title, body]) => (
+            <div className="editorial-row static" data-evidence-status={evidenceStatus} key={status}>
+              <span className="row-status">{status}</span>
               <span className="row-copy"><strong>{title}</strong><span>{body}</span></span>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="content-section wrap split-heading" data-evidence-status="emerging">
-        <div>
-          <p className="section-label">One development model</p>
-          <h2>Shared services, different clients.</h2>
-        </div>
-        <div className="prose">
-          <p className="lead">
-            CLI project services start and supervise one local development session. Studio uses the
-            same library path; MCP and typed clients adapt the same inspection and tool boundaries.
-          </p>
-          <p>
-            That makes the running project legible from several workflows without giving each client
-            its own engine rules. The shared foundation exists. The broader human-agent creation
-            experience is still being built.
-          </p>
-          <Link className="text-link section-link" href="/docs/cli/development">See the development session <ArrowRight /></Link>
-        </div>
-      </section>
-
-      <figure className="framework-architecture wrap" aria-labelledby="framework-architecture-caption">
-        <Image
-          src="/media/antiky-architecture.png"
-          alt="Diagram of the Antiky target architecture from game hosts through engine state and execution"
-          width={1672}
-          height={941}
-          sizes="(max-width: 760px) 100vw, 92vw"
-        />
-        <figcaption id="framework-architecture-caption">
-          Antiky target architecture · accepted direction, not a list of completed features
-        </figcaption>
-      </figure>
-
-      <section className="statement-band" data-evidence-status="direction">
-        <div className="wrap statement-grid">
-          <h2>Rendering is one layer, not the identity.</h2>
-          <div>
-            <p className="lead">2D, 3D, and 2.3D are creative possibilities.</p>
-            <p>
-              BroMetal {BROMETAL_VERSION} is the renderer our Framework games use today and remains an
-              important part of the work. The portable host boundary keeps renderer choice from owning
-              game rules, session state, or development authority.
-            </p>
-            <div className="thesis-links">
-              <Link className="text-link" href="/demos">Compare the studies <ArrowRight /></Link>
-              <a className="text-link" href={BROMETAL_URL} target="_blank" rel="noreferrer">
-                Explore BroMetal <ArrowUpRight />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="closing-cta wrap">
-        <p>The visual expression of this foundation lives in Studio.</p>
+        <p>Start with what Framework can prove today.</p>
+        <Link href="/docs/framework/engine-sessions">Read the Framework docs <ArrowRight /></Link>
+        <Link href="/demos/antiky-town">Run Antiky Town <ArrowRight /></Link>
         <Link href="/studio">Explore Antiky Studio <ArrowRight /></Link>
       </section>
     </>

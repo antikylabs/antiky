@@ -1,7 +1,7 @@
 {
   "schemaVersion": 5,
   "demo": "combat-arena",
-  "capturedAt": "2026-08-17T05:19:32.972Z",
+  "capturedAt": "2026-08-22T00:53:18.119Z",
   "warmUpFrames": 60,
   "source": {
     "digest": "87742803f4ce2cd1",
@@ -59,15 +59,15 @@
   "inspection": {
     "observation": {
       "schemaVersion": 1,
-      "developmentSessionId": "08087096-04df-47c3-aeb5-f2d1061310ec",
+      "developmentSessionId": "d9d26aad-c2a9-4522-8053-bead5a4cf7d1",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "4f8849c1-1401-43e6-9fa9-483781834b34",
-      "publicationSequence": 34,
-      "publishedAt": "2026-08-17T05:19:32.969Z",
+      "runtimeInstanceId": "2f5b831e-bba0-4b54-bb94-f436f309d23d",
+      "publicationSequence": 47,
+      "publishedAt": "2026-08-22T00:53:18.116Z",
       "connectionState": "connected",
       "freshness": "current",
       "session": {
-        "sessionId": "01a00e29-0a16-79f7-b4bc-586016fbee24",
+        "sessionId": "01a026f5-08cd-7848-b4da-a4e77ea7c929",
         "worldId": "01991d00-1000-7000-8000-000000000001",
         "mode": "paused",
         "completedStepCount": 54,
@@ -116,10 +116,10 @@
       ]
     },
     "comparableIdentity": {
-      "developmentSessionId": "08087096-04df-47c3-aeb5-f2d1061310ec",
+      "developmentSessionId": "d9d26aad-c2a9-4522-8053-bead5a4cf7d1",
       "acceptedBuildRevision": 1,
-      "runtimeInstanceId": "4f8849c1-1401-43e6-9fa9-483781834b34",
-      "sessionId": "01a00e29-0a16-79f7-b4bc-586016fbee24",
+      "runtimeInstanceId": "2f5b831e-bba0-4b54-bb94-f436f309d23d",
+      "sessionId": "01a026f5-08cd-7848-b4da-a4e77ea7c929",
       "completedStepCount": 54,
       "stateDigest": "starbreaker-v1:1ee0f03f303af7b3daaa22e5a2c5f70f"
     },
@@ -646,10 +646,10 @@
     },
     "frameTime": {
       "supported": "upper-bound-only",
-      "framesPerSecond": 120,
-      "frameTimeUpperBoundMilliseconds": 8.333333,
+      "framesPerSecond": 108.22510822510807,
+      "frameTimeUpperBoundMilliseconds": 9.24,
       "limitation": "The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval."
     }
   },
-  "seal": "82e1257fb36bc851"
+  "seal": "32d5cdfd07f54b7a"
 }
