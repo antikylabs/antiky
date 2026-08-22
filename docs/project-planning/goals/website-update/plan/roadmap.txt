@@ -5,7 +5,7 @@ stages:
   - v0.1 — Put the foundation in people's hands: Release a coherent first version of Framework, Studio, agent tools, demos, documentation, and the website—open, understandable, and ready to try.
     - Framework and agent tools: Fixed-step sessions, stable entity IDs, point-light authoring and correction, bounded inspection and capture, and CLI/MCP project and session controls.
     - Studio: A macOS app with project launch, live game view, native terminal, simulation controls, inspection, and activity history.
-    - Demos and website: Antiky Town, Combat Arena, Point Light Expo, and Traversal Study with current screenshots and click-to-play builds; Emberwyrd remains separate from the technical demos.
+    - Demos and website: Antiky Town, Point Light Expo, and Traversal Study with current screenshots and click-to-play builds; Combat Arena remains internal until it is ready for public presentation, and Emberwyrd remains separate from the technical demos.
     - Docs and release: Current product, API, and skills documentation; a resource hub for the CC0 asset and skills libraries; shader and project libraries marked as coming soon; and versioned release and packaging automation after pointer input, terminal exit handling, and terminal crashes are fixed in Studio.
   - v0.2 — Make the game part of the conversation: Click something in a running game, carry its exact identity and context into the coding agent you already use, and turn human feedback into a safe, inspectable change.
     - 2D selection proof: Reusable position and camera behavior plus GPU picking from a displayed pixel to a stable Framework entity selected in Studio, proven by a checked-in Antiky/BroMetal example.

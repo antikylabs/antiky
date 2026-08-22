@@ -1,12 +1,19 @@
 # Website launch content and delivery plan
 
-Status: ready for implementation
+Status: completed
+
+Completed: 2026-08-22 UTC
 
 Planning source: `docs/project-planning/goals/website-update/`
 
 Public product truth: `packages/website/PRODUCT.md`
 
 Visual authority: `packages/website/DESIGN.md`
+
+Owner direction recorded 2026-08-21: Antiky Town is the primary public key art and first demo
+action. Combat Arena remains an internal runnable project and capture source, but it must not be
+listed, linked, staged, or published on visitor-facing website surfaces until the owner promotes it.
+Its exact capture master remains only where required for historical ImageGen input provenance.
 
 ## Objective
 
@@ -145,7 +152,7 @@ graph TD
 | Home | Framework, Studio, Games, Resources, Research, Docs, and one current study |
 | Framework | Framework docs, current studies, Studio, BroMetal source, and Games |
 | Studio | Studio docs, Framework, the release-aware action, and Discord |
-| Games | the four study details, Demos index, Framework, and Emberwyrd direction |
+| Games | the three study details, Demos index, Framework, and Emberwyrd direction |
 | Resources | all four libraries, Roadmap, Docs, and Research |
 | Skills library | skills docs, reviewed source snapshot, install commands, and Research |
 | Research | completed report or repository index, active skills work, current studies, and Roadmap |
@@ -224,8 +231,8 @@ content files.
 
 ### 1. Establish the claim and route baseline
 
-1. Record the implementation commit, the current package versions, the four approved demo slugs,
-   and whether Studio release assets exist.
+1. Record the implementation commit, the current package versions, the three approved public demo
+   slugs, the withheld internal Combat Arena project, and whether Studio release assets exist.
 2. Build the current website in both Studio-release states and save the failing/passing baseline for
    the focused tests. Do not change `NEXT_PUBLIC_STUDIO_RELEASES_READY` merely to make copy pass.
 3. Create a short claim ledger in the implementation PR description. Each changed claim names one
@@ -316,11 +323,12 @@ Capture a fresh launch set from the implementation commit. An existing filename 
 old image does not establish freshness. A prior capture may remain only when its recorded source
 revision and state match the implementation baseline and the owner explicitly approves it.
 
-The minimum evidence set is the four approved demo posters, the four distinct Studio states below,
-the current Framework hero evidence, a completed-research chart or report view, and the active
-voxel-research capture. Home, Games, Demos, and Framework may reuse an approved capture when it proves
-the same claim; do not make near-duplicate screenshots merely to fill layout slots. Record the exact
-state and fixture before capture so a later operator can reproduce it.
+The minimum public evidence set is the three approved demo posters, the four distinct Studio states
+below, the current Framework hero evidence, a completed-research chart or report view, and the active
+voxel-research capture. Keep the current Combat Arena capture internal for reproducibility and exact
+ImageGen input provenance. Home, Games, Demos, and Framework may reuse an approved capture when it
+proves the same claim; do not make near-duplicate screenshots merely to fill layout slots. Record the
+exact state and fixture before capture so a later operator can reproduce it.
 
 #### Demo captures
 
@@ -501,7 +509,7 @@ multiple runtimes as “previews.”
 
 Restructure `/games` into two unambiguous bands:
 
-1. **Playable Framework studies** — the same four approved entries as the demo catalog, labeled as
+1. **Playable Framework studies** — the same three approved public entries as the demo catalog, labeled as
    technical studies rather than released games.
 2. **Emberwyrd** — the larger game in development, with no Play or Download action until a real
    player-facing build exists.
@@ -625,21 +633,21 @@ platform, installation steps, release notes, limitations, and the expected downl
 
 | Criterion | Owned by | Completion evidence |
 | --- | --- | --- |
-| 1. Latest website content | phases 4, 5, 9 | copy applied, counts derived, production-page assertions |
-| 2. Framework direction | phase 5 | copy deck, current/direction labels, Framework page test |
-| 3. Studio direction and screenshots | phases 3, 5 | real-capture manifest, Studio copy, focused page test |
-| 4. Demo screenshots and click to play | phases 3, 6 | poster-only index and pre-activation network/component test |
-| 5. Demos separate from Emberwyrd | phase 6 | two-band Games page; one catalog source; Emberwyrd absent from demos |
-| 6. Resources home | phases 7, 9 | `/resources` route, navigation, sitemap, link checks |
-| 7. CC0 asset library | phase 7 | Resources links to existing `/assets`; asset routes unchanged |
-| 8. Shader library coming soon | phase 7 | honest `/resources/shaders` page and route test |
-| 9. Project library coming soon | phase 7 | honest `/resources/projects` page and route test |
-| 10. Skills library | phase 7 | reviewed source snapshot, commands, source commit/link, route tests |
-| 11. Current user/API docs | phase 8 | generator check, source audit, CLI/Framework/website test suites |
-| 12. Skills docs | phases 7, 8 | docs navigation, Markdown, search, sitemap, llms surfaces |
-| 13. Flattened demos and useful scripts | phase 2 | no current old paths, script ledger, focused/full tests |
-| 14. Current real media | phases 3, 9 | media manifest, capture provenance, stale-media rejection, visual QA |
-| Added launch media requirement: ImageGen marketing imagery and material | phases 3, 5, 9 | approved media matrix and creative direction, prompt/provenance sidecars, published derivatives, responsive visual QA |
+| 1. Latest website content | phases 4, 5, 9 | [implemented surfaces](./2026-08-21-implementation-summary.md#public-information-architecture-and-copy), [launch contract](../../../../../packages/website/tests/launch-contract.test.mjs), and [visual confirmation](./visual-review.md#confirmation) |
+| 2. Framework direction | phase 5 | [implementation record](./2026-08-21-implementation-summary.md#public-information-architecture-and-copy), [copy deck](../copy/framework.md), and [launch contract](../../../../../packages/website/tests/launch-contract.test.mjs) |
+| 3. Studio direction and screenshots | phases 3, 5 | [media matrix](./media-matrix.md#route-and-launch-slots), [publication manifest](../../../../../packages/website/media-publication.json), and [Studio page test](../../../../../packages/website/tests/studio-page.test.mjs) |
+| 4. Demo screenshots and click to play | phases 3, 6 | [shot list](./capture-shot-list.md#demo-studies), [delivery tests](../../../../../packages/website/tests/demo/delivery.test.mjs), and [activation evidence](./visual-review.md#click-to-play-check) |
+| 5. Demos separate from Emberwyrd | phase 6 | [implementation record](./2026-08-21-implementation-summary.md#demo-workspaces-and-publication) and [owner-approved catalog test](../../../../../packages/website/tests/demo/delivery.test.mjs) |
+| 6. Resources home | phases 7, 9 | [implementation record](./2026-08-21-implementation-summary.md#public-information-architecture-and-copy), [launch contract](../../../../../packages/website/tests/launch-contract.test.mjs), and [visual confirmation](./visual-review.md#confirmation) |
+| 7. CC0 asset library | phase 7 | [Resources implementation record](./2026-08-21-implementation-summary.md#public-information-architecture-and-copy) and [site-shell route test](../../../../../packages/website/tests/site-shell.test.mjs) |
+| 8. Shader library coming soon | phase 7 | [implementation record](./2026-08-21-implementation-summary.md#public-information-architecture-and-copy), [launch contract](../../../../../packages/website/tests/launch-contract.test.mjs), and [visual confirmation](./visual-review.md#confirmation) |
+| 9. Project library coming soon | phase 7 | [implementation record](./2026-08-21-implementation-summary.md#public-information-architecture-and-copy), [launch contract](../../../../../packages/website/tests/launch-contract.test.mjs), and [visual defect record](./visual-review.md#first-round-findings-and-batch-fix) |
+| 10. Skills library | phase 7 | [documentation record](./2026-08-21-implementation-summary.md#documentation), [docs-site test](../../../../../packages/website/tests/docs-site.test.mjs), and [visual confirmation](./visual-review.md#confirmation) |
+| 11. Current user/API docs | phase 8 | [documentation and verification record](./2026-08-21-implementation-summary.md#documentation), [generated API index](../../../../user-facing-docs/api/reference.md), and [CLI docs contract](../../../../../packages/cli/tests/docs/user-docs.test.ts) |
+| 12. Skills docs | phases 7, 8 | [documentation record](./2026-08-21-implementation-summary.md#documentation), [published Skills overview](../../../../user-facing-docs/skills/overview.md), and [docs-site test](../../../../../packages/website/tests/docs-site.test.mjs) |
+| 13. Flattened demos and useful scripts | phase 2 | [implementation record](./2026-08-21-implementation-summary.md#demo-workspaces-and-publication), [capture behavior tests](../../../../../scripts/tests/shoot-demos.test.mjs), and commits `1a61f9b` plus `8e20c7a` |
+| 14. Current real media | phases 3, 9 | [publication record](./2026-08-21-implementation-summary.md#evidence-capture-and-media-publication), [media manifest](../../../../../packages/website/media-publication.json), [publication tests](../../../../../packages/website/tests/media-publication.test.mjs), and [visual review](./visual-review.md) |
+| Added launch media requirement: ImageGen marketing imagery and material | phases 3, 5, 9 | [creative brief](./imagegen-creative-brief.md), [launch kit](./launch-kit.md), [prompt/provenance summary](./2026-08-21-implementation-summary.md#imagegen-launch-set), and [delivery review](./visual-review.md#generated-delivery-review) |
 
 ## Definition of done
 
