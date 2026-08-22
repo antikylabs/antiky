@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { ArrowUpRight } from '@/components/Icons';
+import { bindDetailsDismissal } from '@/lib/dismissible-details';
 import { DISCORD_URL, NAV, RESOURCE_NAV, SITE_NAME } from '@/lib/site';
 
 export default function SiteHeader() {
@@ -50,11 +52,23 @@ export default function SiteHeader() {
 }
 
 function ResourcesMenu({ mobile, pathname }: { mobile: boolean; pathname: string }) {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
   const active = pathname === '/assets' || pathname.startsWith('/assets/')
     || pathname === '/resources' || pathname.startsWith('/resources/');
 
+  useEffect(() => {
+    const details = detailsRef.current;
+    if (!details) return;
+
+    return bindDetailsDismissal(details, document);
+  }, []);
+
+  useEffect(() => {
+    if (detailsRef.current) detailsRef.current.open = false;
+  }, [pathname]);
+
   return (
-    <details className={mobile ? 'mobile-resource-menu' : 'nav-resources'}>
+    <details ref={detailsRef} className={mobile ? 'mobile-resource-menu' : 'nav-resources'}>
       <summary className={active ? 'active' : undefined}>Resources</summary>
       <div className="resource-menu-links">
         {RESOURCE_NAV.map((link) => {
