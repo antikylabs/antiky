@@ -208,7 +208,7 @@ toward a marked target and use an explicit primary press, frame wait, and releas
 The result contains no path or base64 JSON: it returns private opaque still, PNG-master, poster,
 manifest, trace, and WebM identities for `get_render_evidence`. The WebM is a review derivative,
 the presentation trace is not deterministic semantic replay, and every artifact remains
-`private-unreviewed`. See the [MCP capture reference](../../../../docs/user-facing-docs/mcp/tools.md#capture_frame)
+`private-unreviewed`. See the [MCP capture reference](../../../docs/user-facing-docs/mcp/tools.md#capture_frame)
 for exact request JSON and limits.
 
 An MCP client calls the identical tool names and JSON inputs. While this project runs, connect to

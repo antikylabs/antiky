@@ -199,7 +199,7 @@ manifest, trace, and WebM identities; retrieve an exact authorized artifact with
 `get_render_evidence`. No filesystem path or unbounded base64 appears in JSON. Canvas-only evidence
 does not approve dark or game-rendered content for publication, WebM is a review derivative, and
 presentation input is not deterministic semantic replay. See the [MCP capture
-reference](../../../../docs/user-facing-docs/mcp/tools.md#capture_frame) for exact request JSON and
+reference](../../../docs/user-facing-docs/mcp/tools.md#capture_frame) for exact request JSON and
 limits.
 
 An MCP client uses the identical tool names and JSON inputs. Configure its Streamable HTTP server as

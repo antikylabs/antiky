@@ -9,7 +9,7 @@ import test from 'node:test';
  */
 const BROMETAL_STUB = new URL('../support/brometal-stub.ts', import.meta.url).href;
 
-register(new URL('../../../../tests/support/renderer-construction-loader.mjs', import.meta.url), {
+register(new URL('../../../tests/support/renderer-construction-loader.mjs', import.meta.url), {
   data: {
     brometalStub: BROMETAL_STUB,
     resolveVirtualModules: true,

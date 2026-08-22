@@ -10,7 +10,7 @@
  * every compiled shader behave exactly as they do in production. Explicit named exports below win
  * over the `export *`, which is the ESM rule this file relies on.
  */
-export * from '../../../../../../node_modules/brometal/dist/index.js';
+export * from '../../../../../node_modules/brometal/dist/index.js';
 
 export interface StubCall {
   readonly kind: 'program' | 'target' | 'texture' | 'loaded';

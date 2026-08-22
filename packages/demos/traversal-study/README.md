@@ -188,7 +188,7 @@ manual-authority takeover and a jump. Results expose private opaque still, lossl
 poster, manifest, trace, and WebM identities for `get_render_evidence`, never a local path or
 unbounded base64 JSON. WebM is a review derivative, presentation input is not deterministic semantic
 replay, and all canvas evidence remains `private-unreviewed`. See the [MCP capture
-reference](../../../../docs/user-facing-docs/mcp/tools.md#capture_frame) for exact request JSON and
+reference](../../../docs/user-facing-docs/mcp/tools.md#capture_frame) for exact request JSON and
 limits.
 
 An MCP client calls the identical tool names and JSON inputs. While this project is running, connect
