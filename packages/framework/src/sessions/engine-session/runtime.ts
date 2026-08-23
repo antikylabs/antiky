@@ -6,6 +6,10 @@ import {
   type WorldId,
 } from '../../identity/ids.ts';
 import {
+  INVALID_CAPTURED_INPUT,
+  canonicalizeCapturedInput,
+} from './captured-input.ts';
+import {
   ENGINE_SESSION_SCHEMA_VERSION,
   FIXED_STEP_SECONDS,
   MAX_ENGINE_SYSTEMS,
@@ -42,9 +46,6 @@ import {
   readSafeCount,
   sortedPauseReasons,
 } from './validation.ts';
-
-const MAX_INPUT_DEPTH = 32;
-const MAX_INPUT_VALUES = 4_096;
 
 function readSystems<Input>(value: unknown): readonly EngineSystem<Input>[] {
   if (!Array.isArray(value) || value.length === 0) {
@@ -92,23 +93,6 @@ function readServices(value: unknown): readonly EngineSessionOwnedService[] {
   }));
 }
 
-function isImmutableInput(value: unknown): boolean {
-  const seen = new Set<object>();
-  let valueCount = 0;
-  const visit = (current: unknown, depth: number): boolean => {
-    valueCount += 1;
-    if (valueCount > MAX_INPUT_VALUES || depth > MAX_INPUT_DEPTH) return false;
-    if (current === null || typeof current !== 'object') return true;
-    if (seen.has(current)) return false;
-    if (!Object.isFrozen(current)) return false;
-    seen.add(current);
-    if (Array.isArray(current)) return current.every((item) => visit(item, depth + 1));
-    if (Object.getPrototypeOf(current) !== Object.prototype) return false;
-    return Object.values(current).every((item) => visit(item, depth + 1));
-  };
-  return visit(value, 0);
-}
-
 export function createEngineSession<Input>(
   options: EngineSessionOptions<Input>,
 ): EngineSession<Input> {
@@ -138,8 +122,12 @@ export function createEngineSession<Input>(
   if (options.getStateDigest !== undefined && typeof options.getStateDigest !== 'function') {
     fail('Expected a state-digest function', '$.getStateDigest');
   }
+  if (options.onCompletedStep !== undefined && typeof options.onCompletedStep !== 'function') {
+    fail('Expected a completed-step observer', '$.onCompletedStep');
+  }
   const captureInput = options.captureInput;
   const getStateDigest = options.getStateDigest;
+  const onCompletedStep = options.onCompletedStep;
   const services = readServices(options.services);
 
   let mode: EngineSessionMode = 'running';
@@ -204,8 +192,11 @@ export function createEngineSession<Input>(
     try {
       const captured = captureInput(input);
       if (captured === null) return Object.freeze({ kind: 'rejected' });
-      if (!isImmutableInput(captured)) return Object.freeze({ kind: 'failed' });
-      return Object.freeze({ kind: 'captured', input: captured });
+      const canonicalInput = canonicalizeCapturedInput(captured);
+      if (canonicalInput === INVALID_CAPTURED_INPUT) {
+        return Object.freeze({ kind: 'failed' });
+      }
+      return Object.freeze({ kind: 'captured', input: canonicalInput });
     } catch {
       return Object.freeze({ kind: 'failed' });
     } finally {
@@ -232,6 +223,12 @@ export function createEngineSession<Input>(
       source: Extract<EngineSessionFaultSource, 'system' | 'state-digest'>;
       systemId: string | null;
     }>;
+
+  type StepFailure = Extract<StepResult, { kind: 'failed' }> | Readonly<{
+    kind: 'failed';
+    source: 'completed-step-observer';
+    systemId: null;
+  }>;
 
   const runStep = (
     completedStepId: number,
@@ -296,15 +293,16 @@ export function createEngineSession<Input>(
       availableSeconds - (plannedSteps + excessSteps) * FIXED_STEP_SECONDS,
     );
     const nextInputSequence = inputSequence + 1;
+    const initialCompletedStepCount = completedStepCount;
 
     busy = true;
     let latestStep = lastCompletedStep;
     let successfulSteps = 0;
-    let stepFailure: Extract<StepResult, { kind: 'failed' }> | null = null;
+    let stepFailure: StepFailure | null = null;
     try {
       for (let index = 0; index < plannedSteps; index += 1) {
         const stepResult = runStep(
-          completedStepCount + index + 1,
+          initialCompletedStepCount + index + 1,
           nextInputSequence,
           captureResult.input,
           'frame',
@@ -315,17 +313,34 @@ export function createEngineSession<Input>(
         }
         latestStep = stepResult.step;
         successfulSteps += 1;
+        if (onCompletedStep !== undefined) {
+          inputSequence = nextInputSequence;
+          completedStepCount = initialCompletedStepCount + successfulSteps;
+          lastCompletedStep = latestStep;
+          try {
+            onCompletedStep(stepResult.step);
+          } catch {
+            stepFailure = Object.freeze({
+              kind: 'failed',
+              source: 'completed-step-observer',
+              systemId: null,
+            });
+            break;
+          }
+        }
       }
     } finally {
       busy = false;
     }
 
     inputSequence = nextInputSequence;
-    completedStepCount += successfulSteps;
+    if (onCompletedStep === undefined) {
+      completedStepCount += successfulSteps;
+      lastCompletedStep = latestStep;
+    }
     accumulatorSeconds = nextAccumulator < FIXED_STEP_SECONDS ? nextAccumulator : 0;
     totalAcceptedElapsedSeconds += acceptedElapsedSeconds;
     totalDiscardedSeconds += discardedElapsedSeconds;
-    lastCompletedStep = latestStep;
     if (stepFailure !== null) {
       enterFault(stepFailure.source, stepFailure.systemId);
       return frameResult('SESSION_FAULTED', {
@@ -397,6 +412,7 @@ export function createEngineSession<Input>(
     const nextInputSequence = inputSequence + 1;
     busy = true;
     let stepResult: StepResult;
+    let observerFailed = false;
     try {
       stepResult = runStep(
         completedStepCount + 1,
@@ -404,6 +420,17 @@ export function createEngineSession<Input>(
         captureResult.input,
         'single-step',
       );
+      if (stepResult.kind === 'completed') {
+        inputSequence = nextInputSequence;
+        completedStepCount += 1;
+        controlRevision += 1;
+        lastCompletedStep = stepResult.step;
+        try {
+          onCompletedStep?.(stepResult.step);
+        } catch {
+          observerFailed = true;
+        }
+      }
     } finally {
       busy = false;
     }
@@ -412,9 +439,10 @@ export function createEngineSession<Input>(
       enterFault(stepResult.source, stepResult.systemId);
       return controlResult('SESSION_FAULTED');
     }
-    completedStepCount += 1;
-    controlRevision += 1;
-    lastCompletedStep = stepResult.step;
+    if (observerFailed) {
+      enterFault('completed-step-observer');
+      return controlResult('SESSION_FAULTED');
+    }
     return controlResult('STEPPED', true);
   };
 
@@ -519,7 +547,7 @@ export function createEngineSession<Input>(
         failures.push(error);
       }
     }
-    if (failures.length > 0) throw new EngineSessionDisposalError(failures.length);
+    if (failures.length > 0) throw new EngineSessionDisposalError(failures);
   };
 
   return Object.freeze({

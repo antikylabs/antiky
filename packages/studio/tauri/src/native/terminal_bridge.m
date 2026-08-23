@@ -4,6 +4,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <dispatch/dispatch.h>
 #import <ghostty.h>
+#import <stdlib.h>
 
 @interface AntikyGhosttyView : NSView
 @property(nonatomic, assign) ghostty_surface_t surface;
@@ -24,6 +25,11 @@ static const char *ANTIKY_TERMINAL_THEME_ERROR_MESSAGE =
 static void write_error(char *destination, size_t capacity, const char *message) {
   if (destination == NULL || capacity == 0) return;
   snprintf(destination, capacity, "%s", message);
+}
+
+static AntikyGhosttyView *terminal_view(void *userdata) {
+  if (userdata == NULL) return nil;
+  return (__bridge AntikyGhosttyView *)userdata;
 }
 
 static int32_t initialize_ghostty(char *error, size_t error_capacity) {
@@ -243,19 +249,24 @@ static void runtime_wakeup(void *userdata) {
 static bool runtime_action(
     ghostty_app_t app, ghostty_target_s target, ghostty_action_s action) {
   (void)app;
-  if (action.tag == GHOSTTY_ACTION_RENDER && target.tag == GHOSTTY_TARGET_SURFACE) {
-    ghostty_surface_t surface = target.target.surface;
+  if (target.tag != GHOSTTY_TARGET_SURFACE) return true;
+  ghostty_surface_t surface = target.target.surface;
+  if (action.tag == GHOSTTY_ACTION_RENDER) {
     dispatch_async(dispatch_get_main_queue(), ^{
       if (antiky_view != nil && antiky_view.surface == surface) ghostty_surface_draw(surface);
     });
   } else if (action.tag == GHOSTTY_ACTION_SHOW_CHILD_EXITED) {
     dispatch_async(dispatch_get_main_queue(), ^{
-      if (antiky_view != nil) antiky_view.processExited = YES;
+      if (antiky_view != nil && antiky_view.surface == surface) {
+        antiky_view.processExited = YES;
+      }
     });
   } else if (action.tag == GHOSTTY_ACTION_RENDERER_HEALTH) {
     BOOL healthy = action.action.renderer_health == GHOSTTY_RENDERER_HEALTH_HEALTHY;
     dispatch_async(dispatch_get_main_queue(), ^{
-      if (antiky_view != nil) antiky_view.rendererHealthy = healthy;
+      if (antiky_view != nil && antiky_view.surface == surface) {
+        antiky_view.rendererHealthy = healthy;
+      }
     });
   }
   return true;
@@ -263,12 +274,12 @@ static bool runtime_action(
 
 static bool runtime_read_clipboard(
     void *userdata, ghostty_clipboard_e location, void *request) {
-  (void)userdata;
-  if (location != GHOSTTY_CLIPBOARD_STANDARD || antiky_view.surface == NULL) return false;
+  AntikyGhosttyView *view = terminal_view(userdata);
+  if (location != GHOSTTY_CLIPBOARD_STANDARD || view.surface == NULL) return false;
   NSString *value = [NSPasteboard.generalPasteboard stringForType:NSPasteboardTypeString];
   if (value.length == 0) return false;
   ghostty_surface_complete_clipboard_request(
-      antiky_view.surface, value.UTF8String, request, false);
+      view.surface, value.UTF8String, request, false);
   return true;
 }
 
@@ -277,11 +288,11 @@ static void runtime_confirm_read_clipboard(
     const char *value,
     void *request,
     ghostty_clipboard_request_e type) {
-  (void)userdata;
+  AntikyGhosttyView *view = terminal_view(userdata);
   (void)value;
   (void)type;
-  if (antiky_view.surface != NULL) {
-    ghostty_surface_complete_clipboard_request(antiky_view.surface, "", request, false);
+  if (view.surface != NULL) {
+    ghostty_surface_complete_clipboard_request(view.surface, "", request, false);
   }
 }
 
@@ -291,7 +302,8 @@ static void runtime_write_clipboard(
     const ghostty_clipboard_content_s *content,
     size_t count,
     bool requires_confirmation) {
-  (void)userdata;
+  AntikyGhosttyView *view = terminal_view(userdata);
+  if (view.surface == NULL) return;
   if (location != GHOSTTY_CLIPBOARD_STANDARD || requires_confirmation || content == NULL) return;
   for (size_t index = 0; index < count; index++) {
     if (content[index].mime != NULL && content[index].data != NULL &&
@@ -307,10 +319,10 @@ static void runtime_write_clipboard(
 }
 
 static void runtime_close_surface(void *userdata, bool process_alive) {
-  (void)userdata;
+  AntikyGhosttyView *view = terminal_view(userdata);
   (void)process_alive;
   dispatch_async(dispatch_get_main_queue(), ^{
-    if (antiky_view != nil) antiky_view.processExited = YES;
+    if (antiky_view == view && view.surface != NULL) view.processExited = YES;
   });
 }
 
@@ -346,7 +358,12 @@ int32_t antiky_terminal_open(
     return ANTIKY_TERMINAL_ERROR;
   }
   if (antiky_view != nil) {
-    return antiky_terminal_layout(x, y, width, height, error, error_capacity);
+    BOOL process_exited = antiky_view.surface == NULL || antiky_view.processExited ||
+        ghostty_surface_process_exited(antiky_view.surface);
+    if (!process_exited) {
+      return antiky_terminal_layout(x, y, width, height, error, error_capacity);
+    }
+    antiky_terminal_close();
   }
   int32_t profile_status =
       antiky_terminal_validate_profile(terminal_profile, error, error_capacity);
@@ -383,6 +400,8 @@ int32_t antiky_terminal_open(
   NSView *parent = (__bridge NSView *)parent_view;
   antiky_view = [[AntikyGhosttyView alloc]
       initWithFrame:native_frame(parent, x, y, width, height)];
+  antiky_view.processExited = NO;
+  antiky_view.rendererHealthy = YES;
   antiky_view.wantsLayer = YES;
   antiky_view.clipsToBounds = YES;
   antiky_view.layer.backgroundColor = [NSColor colorWithSRGBRed:(8.0 / 255.0)
@@ -391,6 +410,12 @@ int32_t antiky_terminal_open(
                                                           alpha:1.0].CGColor;
   [parent addSubview:antiky_view positioned:NSWindowAbove relativeTo:nil];
 
+  NSString *profile_path = [NSString stringWithUTF8String:terminal_profile];
+  const char *shell_config_directory =
+      profile_path.stringByDeletingLastPathComponent.fileSystemRepresentation;
+  ghostty_env_var_s shell_environment[] = {
+      {.key = "ZDOTDIR", .value = shell_config_directory},
+  };
   ghostty_surface_config_s surface_config = ghostty_surface_config_new();
   surface_config.platform_tag = GHOSTTY_PLATFORM_MACOS;
   surface_config.platform.macos.nsview = (__bridge void *)antiky_view;
@@ -398,6 +423,9 @@ int32_t antiky_terminal_open(
   surface_config.scale_factor = parent.window.backingScaleFactor;
   surface_config.font_size = 13;
   surface_config.working_directory = working_directory;
+  surface_config.command = "/bin/zsh -d -i";
+  surface_config.env_vars = shell_environment;
+  surface_config.env_var_count = 1;
   surface_config.wait_after_command = true;
   surface_config.context = GHOSTTY_SURFACE_CONTEXT_WINDOW;
   antiky_view.surface = ghostty_surface_new(antiky_app, &surface_config);
@@ -451,9 +479,10 @@ int32_t antiky_terminal_focus(char *error, size_t error_capacity) {
 
 void antiky_terminal_close(void) {
   if (![NSThread isMainThread]) return;
-  ghostty_surface_t surface = antiky_view.surface;
-  antiky_view.surface = NULL;
-  [antiky_view removeFromSuperview];
+  __attribute__((objc_precise_lifetime)) AntikyGhosttyView *view = antiky_view;
+  ghostty_surface_t surface = view.surface;
+  view.surface = NULL;
+  [view removeFromSuperview];
   antiky_view = nil;
   if (surface != NULL) {
     ghostty_surface_set_focus(surface, false);

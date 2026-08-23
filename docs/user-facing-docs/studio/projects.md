@@ -1,7 +1,8 @@
 # Antiky projects
 
 An Antiky project is a game directory with one visible `<name>.antiky` manifest. The manifest gives
-Studio and the CLI the same project name, development commands, network ports, and build command.
+Studio and the CLI the same project name, development commands, preferred network ports, and build
+command.
 
 ## Create the project manifest
 
@@ -55,32 +56,44 @@ The generated `harbor-lights.antiky` file has these defaults:
 The directory that contains the manifest is the project root. The development and build working
 directories are relative to that root. Keep those paths inside the project.
 
-Edit the development and build commands when your package scripts use different names. The
-initializer does not inspect or run `package.json`.
+Edit the development and build commands when your package scripts use different names. Projects
+that do not compile BroMetal shaders, such as Three.js projects, set `shaderCommand` to `[]` so
+Studio does not start a shader watcher. The initializer does not inspect or run `package.json`.
 
 The manifest is strict JSON. Every field in the example is required, unknown fields are rejected,
 and only schema version 1 is supported. The maximum file size is 64 KiB.
 
 ## Open the project in Studio
 
-Start Antiky Studio and use either launcher path:
+Start Antiky Studio and use one of these paths:
 
 - Enter a name and select **Create project**. Choose an existing game folder. Studio creates the
   same manifest as `antiky init`, opens it, and does not install dependencies or create game source.
 - Select **Open project**, then select an existing `.antiky` manifest.
+- Choose **File > Open Project…** (`Command-O`), then select an existing `.antiky` manifest.
 
 After the first successful open, the launcher lists the project under **Recent projects**. Select a
-recent project to open it without using the file picker. Studio keeps at most 20 recent project
-paths and last-opened times on this device, outside every project directory. A moved or deleted
-manifest stays visible as missing so the list does not hide what happened.
+recent project to open it without using the file picker. You can also choose it from
+**File > Recent Projects**, including while another project is open. Studio keeps at most 20 recent
+project paths and last-opened times on this device, outside every project directory. A moved or
+deleted manifest stays visible as **Missing** but is disabled, so the list does not hide what
+happened or try to open a path that no longer exists.
 
 Studio validates a selected or created file before it opens the workspace and shows the project
 name, manifest path, schema version, and project root. Studio then starts the CLI package's project
 service and development game host directly. It does not run an `antiky dev` shell command.
 
-Select **Open project** in the workspace to choose a different project. You can also double-click a
-`.antiky` file in Finder after Antiky Studio is installed. Finder opens the same Studio window when
-Studio is already running.
+For a Studio launch, the project service atomically claims the first available consecutive port
+pair in `7000–7999`: the even port hosts the game and the following odd port hosts inspection and
+MCP. If another Studio game or local process already owns a pair, Studio advances to the next pair.
+The allocated ports are session-local and do not rewrite the `.antiky` manifest. Direct
+`antiky dev` launches continue to use the explicit manifest ports, which keeps command-line
+automation deterministic.
+
+Choose **File > Open Project…** or **File > Recent Projects** to replace the active project without
+closing Studio. The replacement opens in the same window. You can also double-click a `.antiky` file
+in Finder after Antiky Studio is installed. Finder uses the same window when Studio is already
+running.
 
 On macOS, you can open the project from a terminal instead:
 
@@ -115,6 +128,24 @@ antiky dev --project path/to/harbor-lights.antiky
 The CLI checks only the current directory when `--project` is absent. It does not search parent
 directories. Zero or multiple `.antiky` files produce an error instead of selecting one implicitly.
 
+## Install a catalog asset
+
+Install an **Install verified** catalog entry into an explicit project:
+
+```sh
+antiky asset install poly-haven:forest-floor --project path/to/harbor-lights.antiky
+```
+
+Antiky downloads each file into the project's `assets/` directory, verifies its upstream size and
+hash, and records the source, license, attribution, installed paths, and calculated SHA-256 hashes in
+`assets/antiky-assets.json`. The registry travels with the project so Studio and agents can inspect
+where every installed asset came from.
+
+An unknown catalog identity returns `ANTIKY_ASSET_NOT_FOUND`. A failed download, unsafe path, or
+provenance mismatch returns `ANTIKY_ASSET_INSTALL_FAILED` without recording a successful install.
+See [Find and use game assets](../assets/catalog.md) to search the full catalog and understand why
+some records link to a provider but are not available to this command.
+
 ## Understand the manifest fields
 
 | Field | Purpose |
@@ -122,11 +153,11 @@ directories. Zero or multiple `.antiky` files produce an error instead of select
 | `schemaVersion` | Selects the manifest format. The current value is `1`. |
 | `name` | Supplies the project name shown in Studio and development output. |
 | `development.command` | Watches and compiles the game to `dist/antiky.game.js`. |
-| `development.shaderCommand` | Starts the shader watcher. |
+| `development.shaderCommand` | Starts the shader watcher, or skips it when the array is empty. |
 | `development.workingDirectory` | Selects the working directory for both development commands. |
 | `development.url` | Supplies the loopback page that Studio displays as the live game. |
 | `development.viewport` | Supplies the requested game width and height. |
-| `network` | Selects the loopback host and the game and inspection ports. |
+| `network` | Selects the loopback host and explicit CLI ports; Studio allocates a session-local pair in `7000–7999`. |
 | `build.command` | Builds the game. |
 | `build.workingDirectory` | Selects the working directory for the build command. |
 

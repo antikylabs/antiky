@@ -1,0 +1,4 @@
++gamedev - create a general development skill
++gamedev - create a BroMetal development skill
++gamedev - create a framework development skill
+create a game bible skill

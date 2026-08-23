@@ -11,12 +11,19 @@ starts a packaged worker that imports `@antiky/cli`, loads the active `.antiky` 
 the project-service library directly. The worker returns one bounded `DevelopmentConnection` to
 the native host after the service starts.
 
+Each Studio launch reserves an available consecutive pair in the private `7000–7999` range. The
+game uses the even port and inspection/MCP uses the following odd port. Reservations are held before
+children start, so another Studio session or unrelated local listener cannot be assigned the same
+pair. The connection returned to the webview contains the actual allocated inspection URL.
+
 The service also starts a loopback game host for the generated game page and compiled
 `dist/antiky.game.js` module. Studio displays that page in an isolated iframe, so browser and WebGPU
 behavior stays separate from the native application boundary. The same game host is used when you
 run `antiky dev`; Studio does not create a second renderer. It listens on `127.0.0.1`, so it is
 available only on your computer, not on the public network. A browser game still needs an HTTP
 origin for module loading and isolation, even though the game appears inside the desktop window.
+The host lifecycle is renderer-neutral: BroMetal, Three.js, and other browser renderers receive the
+same canvas, semantic input, timing, measurement callback, and cleanup call.
 
 The portable Studio webview does not import Node.js modules. It receives the bounded connection
 from the native host and creates the browser-safe client:
@@ -25,7 +32,7 @@ from the native host and creates the browser-safe client:
 import { createDevelopmentClient } from '@antiky/cli/development';
 
 const client = createDevelopmentClient({
-  inspectionUrl: 'http://127.0.0.1:3011',
+  inspectionUrl: 'http://127.0.0.1:7001', // Example; use the allocated connection value.
   developmentSessionId: 'development-01HXYZ',
   credential: sessionCredential,
 });
@@ -87,5 +94,6 @@ through [runtime inspection](../framework/inspection.md); a capture supplies pix
 review.
 
 See [Inspect a running game in Studio](getting-started.md) for the complete workspace. See
+[Use BroMetal or Three.js in Studio](renderers.md) for renderer integration. See
 [Run Antiky locally](../cli/development.md) for the command adapter. See the [MCP tool
 reference](../mcp/tools.md) for the equivalent agent and terminal operations.

@@ -1,5 +1,9 @@
 import {
+  pow,
   shader,
+  sin,
+  cos,
+  sqrt,
   abs,
   clamp,
   cross,
@@ -174,7 +178,23 @@ export default shader({
     },
     { vUv, vTint, vFacing, vWorld, vBillboardNormal, vDepth },
   ) {
-    const texel = texture(uAtlas, vUv);
+    const encoded = texture(uAtlas, vUv);
+    // Deliberately NOT decoded from sRGB, unlike every other albedo in this demo.
+    //
+    // The actor atlas is hand-painted pixel art with its shading already in the paint, not a linear
+    // reflectance map. Measured against the demo's other three atlases it sits far darker by design
+    // — median luminance 45 against 80 (material), 69 (prop) and 83 (vegetation), and 95th
+    // percentile 107 against 178-202. Those are an artist's chosen *appearance* values.
+    //
+    // Decoding them treats appearance as reflectance and crushes it: the atlas's most common colour,
+    // 23,25,35, is 0.09 in sRGB and 0.0089 linear, a tenfold cut. Through this shader's light
+    // — [1.42, 1.07, 0.99], red-dominant because `uFrontLight` is [1.28, 0.72, 0.38] — only red
+    // survives the tone-map with any strength, so every townsperson reads orange-brown and the darks
+    // go to near black. Mean output luminance across the atlas's commonest colours falls from 107 to
+    // 27. That was shipped once and the owner spotted it immediately.
+    //
+    // If the atlas is ever re-authored as true linear albedo, this decode should come back with it.
+    const texel = encoded;
     const alpha = keyedAlpha(texel, uColorKey, uUseColorKey) * vTint.w;
     if (alpha < uCutoff) discard();
 
@@ -200,8 +220,12 @@ export default shader({
     const depthBias = uShadowBias + uShadowSlopeBias * slope * slope;
     let occluded = 0;
     for (let i = 0; i < 9; i += 1) {
-      const x = mod(i, 3) - 1;
-      const y = floor(i / 3) - 1;
+      // Goal 08 widened the penumbra: a vogel disk over ±3 texels replaces the ±1 grid, whose
+      // 1-2 px transitions read as paper cut-outs. Bias is untouched, so no acne returns.
+      const angle = i * 2.399963 + 0.7;
+      const ringRadius = sqrt((i + 0.5) / 9) * 3;
+      const x = cos(angle) * ringRadius;
+      const y = sin(angle) * ringRadius;
       const stored = texture(uShadowMap, shadowUv.add(uShadowTexel.mul(vec2(x, y))));
       const nearestDepth = stored.x + stored.y / 255;
       occluded = occluded + step(nearestDepth + depthBias, receiverDepth);

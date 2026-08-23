@@ -1,9 +1,10 @@
 import { AntikyCliError } from '../errors.ts';
-import type { AntikyProject } from '../project.ts';
+import type { AntikyProject } from '../project/index.ts';
 import { MCP_HTTP_PATH, MCP_PROTOCOL_VERSION } from './server.ts';
 
 const MCP_ACCEPT = 'application/json, text/event-stream';
 const MCP_REQUEST_TIMEOUT_MILLISECONDS = 15_000;
+const MCP_TOOL_REQUEST_TIMEOUT_MILLISECONDS = 30_000;
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -59,7 +60,11 @@ function throwResponseError(response: JsonRpcResponse): never {
 async function postMcp(
   url: string,
   message: unknown,
-  options: Readonly<{ protocolVersion?: string; notification?: boolean }> = {},
+  options: Readonly<{
+    protocolVersion?: string;
+    notification?: boolean;
+    timeoutMilliseconds?: number;
+  }> = {},
 ): Promise<unknown> {
   let response: Response;
   try {
@@ -73,7 +78,9 @@ async function postMcp(
           : {}),
       },
       body: JSON.stringify(message),
-      signal: AbortSignal.timeout(MCP_REQUEST_TIMEOUT_MILLISECONDS),
+      signal: AbortSignal.timeout(
+        options.timeoutMilliseconds ?? MCP_REQUEST_TIMEOUT_MILLISECONDS,
+      ),
     });
   } catch {
     unavailable('The Antiky MCP service is unavailable. Start it with `antiky dev`.');
@@ -137,7 +144,10 @@ export async function callMcpTool(
     id: 2,
     method: 'tools/call',
     params: { name, arguments: argumentsValue },
-  }, { protocolVersion: MCP_PROTOCOL_VERSION }), 2);
+  }, {
+    protocolVersion: MCP_PROTOCOL_VERSION,
+    timeoutMilliseconds: MCP_TOOL_REQUEST_TIMEOUT_MILLISECONDS,
+  }), 2);
   if (callResponse.error) throwResponseError(callResponse);
 
   const result = readRecord(callResponse.result);

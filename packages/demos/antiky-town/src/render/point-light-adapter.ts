@@ -11,8 +11,6 @@ type PendingReplacement = Readonly<{
   power: number;
 }>;
 
-export type TownPointLightAdapter = TownSlotZeroPowerSource;
-
 function readMarketChange(changes: PointLightRenderChanges): PendingReplacement | undefined {
   if (changes.pointLights.length === 0) return undefined;
   if (
@@ -30,7 +28,7 @@ function readMarketChange(changes: PointLightRenderChanges): PendingReplacement 
 
 export function createTownPointLightAdapter(
   service: PointLightAuthoringService,
-): TownPointLightAdapter {
+): TownSlotZeroPowerSource {
   const initialBindings = service.readPointLightState().render.pointLights;
   if (
     initialBindings.length !== 1

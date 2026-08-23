@@ -59,7 +59,7 @@ summary:focus-visible,
 .studio-shell {
   position: relative;
   display: grid;
-  grid-template-rows: 50px 44px minmax(0, 1fr) 30px;
+  grid-template-rows: 50px minmax(0, 1fr) 30px;
   width: 100vw;
   height: 100dvh;
   background: var(--bg);
@@ -70,7 +70,6 @@ summary:focus-visible,
 }
 
 .titlebar,
-.controlbar,
 .statusbar {
   display: flex;
   align-items: center;
@@ -79,7 +78,7 @@ summary:focus-visible,
 
 .titlebar {
   min-width: 0;
-  gap: 24px;
+  gap: 14px;
   padding: 0 16px;
   background: var(--surface-raised);
   user-select: none;
@@ -87,6 +86,21 @@ summary:focus-visible,
 
 .titlebar > * {
   pointer-events: none;
+}
+
+.titlebar-controls {
+  min-width: 0;
+  pointer-events: auto;
+}
+
+.titlebar-issue {
+  overflow: hidden;
+  max-width: 280px;
+  color: var(--warning);
+  font-family: var(--mono);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .titlebar-page-button {
@@ -153,15 +167,6 @@ summary:focus-visible,
   letter-spacing: .03em;
 }
 
-.connection-state {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--text-muted);
-  font-family: var(--mono);
-  font-size: 10px;
-}
-
 .status-dot {
   display: inline-block;
   width: 6px;
@@ -195,70 +200,9 @@ summary:focus-visible,
   background: var(--error);
 }
 
-.controlbar {
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--surface);
-}
-
-.controlbar-label {
-  margin-right: 5px;
-  color: var(--text-faint);
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.session-summary,
-.control-actions,
-.statusbar span {
+.control-actions {
   display: flex;
   align-items: center;
-}
-
-.session-summary {
-  min-width: 0;
-  gap: 8px;
-  margin-left: auto;
-  color: var(--text-faint);
-  font-family: var(--mono);
-  font-size: 9px;
-}
-
-.session-summary code {
-  color: var(--text-muted);
-  font-family: var(--mono);
-}
-
-.control-issue {
-  overflow: hidden;
-  max-width: 420px;
-  color: var(--warning);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.state-chip {
-  min-height: 28px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 8px;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  color: var(--text-muted);
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.project-open-issue {
-  overflow: hidden;
-  max-width: 420px;
-  color: var(--warning);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .control-actions {
@@ -275,6 +219,7 @@ summary:focus-visible,
   color: var(--text-muted);
   font-family: var(--mono);
   font-size: 10px;
+  white-space: nowrap;
 }
 
 .control-actions button:disabled {
@@ -298,17 +243,109 @@ summary:focus-visible,
 }
 
 .workspace {
+  position: relative;
   display: grid;
   grid-template-areas:
     "game inspection"
     "terminal activity";
-  grid-template-columns: minmax(0, 1.55fr) minmax(270px, .7fr);
-  grid-template-rows: minmax(330px, 1.4fr) minmax(180px, .8fr);
+  grid-template-columns: minmax(0, var(--workspace-column-split, 69%)) minmax(0, 1fr);
+  grid-template-rows: minmax(0, var(--workspace-row-split, 64%)) minmax(0, 1fr);
   gap: 1px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   background: var(--line);
+}
+
+.studio-shell.game-fullscreen {
+  grid-template-rows: minmax(0, 1fr);
+  background: #000;
+}
+
+.studio-shell.game-fullscreen > .titlebar,
+.studio-shell.game-fullscreen > .statusbar {
+  display: none;
+}
+
+.studio-shell.game-fullscreen .workspace {
+  grid-template-areas: "game";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  background: #000;
+}
+
+.studio-shell.game-fullscreen .terminal-panel,
+.studio-shell.game-fullscreen .inspection-panel,
+.studio-shell.game-fullscreen .activity-panel,
+.studio-shell.game-fullscreen .workspace-resizer,
+.studio-shell.game-fullscreen .game-panel > .panel-heading {
+  display: none;
+}
+
+.studio-shell.game-fullscreen .game-stage {
+  height: 100%;
+}
+
+.workspace-resizer {
+  position: absolute;
+  z-index: 3;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+}
+
+.workspace-resizer::after {
+  position: absolute;
+  content: '';
+  background: transparent;
+}
+
+.workspace-resizer:hover::after,
+.workspace-resizer:focus-visible::after,
+.workspace.is-resizing-column .workspace-column-resizer::after,
+.workspace.is-resizing-row .workspace-row-resizer::after {
+  background: var(--accent);
+}
+
+.workspace-column-resizer {
+  top: 0;
+  bottom: 0;
+  left: var(--workspace-column-split, 69%);
+  width: 9px;
+  cursor: col-resize;
+  transform: translateX(-4px);
+}
+
+.workspace-column-resizer::after {
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+}
+
+.workspace-row-resizer {
+  right: 0;
+  bottom: auto;
+  left: 0;
+  top: var(--workspace-row-split, 64%);
+  height: 9px;
+  cursor: row-resize;
+  transform: translateY(-4px);
+}
+
+.workspace-row-resizer::after {
+  top: 4px;
+  right: 0;
+  left: 0;
+  height: 1px;
+}
+
+.workspace.is-resizing-column iframe,
+.workspace.is-resizing-row iframe {
+  pointer-events: none;
 }
 
 .panel {
@@ -335,6 +372,49 @@ summary:focus-visible,
   font-size: 10px;
   font-weight: 400;
   letter-spacing: .02em;
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
+.panel-actions .panel-state {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fullscreen-issue {
+  color: var(--danger);
+  font-size: 9px;
+}
+
+.panel-action-button,
+.fullscreen-exit-button {
+  flex: 0 0 auto;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.panel-action-button:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.panel-action-button:not(:disabled):hover,
+.fullscreen-exit-button:hover {
+  background: var(--surface-soft);
+  color: var(--text);
 }
 
 .game-panel {
@@ -376,6 +456,21 @@ summary:focus-visible,
   position: relative;
   background: var(--media);
   box-shadow: inset 0 0 0 1px #111216;
+}
+
+.game-stage:fullscreen {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  box-shadow: none;
+}
+
+.fullscreen-exit-button {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  background: rgba(9, 10, 13, .82);
 }
 
 .game-connection-note {
@@ -504,11 +599,21 @@ summary:focus-visible,
   text-transform: uppercase;
 }
 
-.statusbar span {
+.statusbar > span {
+  display: flex;
+  align-items: center;
   height: 100%;
   gap: 8px;
   padding: 0 14px;
   border-right: 1px solid var(--line);
+}
+
+.statusbar .status-dot {
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: 0;
 }
 
 .stale-banner {

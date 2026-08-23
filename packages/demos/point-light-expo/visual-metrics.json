@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 5,
+  "demo": "point-light-expo",
+  "capturedAt": "2026-08-22T00:53:55.366Z",
+  "warmUpFrames": 60,
+  "source": {
+    "digest": "70b98991cb0d528b",
+    "fileCount": 132
+  },
+  "frame": {
+    "width": 1280,
+    "height": 720
+  },
+  "luminance": {
+    "mean": 0.120745,
+    "p05": 0.001085,
+    "p50": 0.060979,
+    "p95": 0.646628,
+    "spread": 0.645543
+  },
+  "localContrast": {
+    "median": 8.6424,
+    "p10": 0
+  },
+  "clipping": {
+    "high": 0.000002,
+    "low": 0
+  },
+  "saturation": {
+    "mean": 0.246897
+  },
+  "encodedLuma": {
+    "p05": 0.014019,
+    "p50": 0.271771,
+    "p95": 0.815242,
+    "spread": 0.801223,
+    "clipped": 0.000003
+  },
+  "hue": {
+    "clusters": 4,
+    "dominantShare": 0.45243,
+    "chromaticFraction": 0.355972
+  },
+  "edges": {
+    "hard": 0.010813
+  },
+  "probes": {
+    "onboarding": {
+      "meanLuminance": 0.064061,
+      "standardDeviation": 0.143052,
+      "pixels": 36480
+    },
+    "sunShadow": {
+      "meanLuminance": 0.03716,
+      "standardDeviation": 0.008972,
+      "pixels": 1024
+    },
+    "sunLit": {
+      "meanLuminance": 0.133979,
+      "standardDeviation": 0.067875,
+      "pixels": 1024
+    },
+    "bloomNear": {
+      "meanLuminance": 0.438947,
+      "standardDeviation": 0.297053,
+      "pixels": 576
+    },
+    "bloomFar": {
+      "meanLuminance": 0.144041,
+      "standardDeviation": 0.185044,
+      "pixels": 576
+    }
+  },
+  "inspection": {
+    "observation": {
+      "schemaVersion": 1,
+      "developmentSessionId": "52f3e04d-4915-4558-bcc3-0fe5dece1b41",
+      "acceptedBuildRevision": 1,
+      "runtimeInstanceId": "5b6c3e51-d652-4ef7-9979-aebc8f8ad56b",
+      "publicationSequence": 46,
+      "publishedAt": "2026-08-22T00:53:55.364Z",
+      "connectionState": "connected",
+      "freshness": "current",
+      "session": {
+        "sessionId": "01a026f5-9b34-7523-87e0-28765787f8ad",
+        "worldId": "0197f27e-1000-7000-8000-000000000001",
+        "mode": "paused",
+        "completedStepCount": 52,
+        "controlRevision": 2,
+        "worldRevision": 0,
+        "stateDigest": "53|1|playing|1.000000|0.000000|2.150000|-1|0.000000|0.000000|0.000000|000|-6.10292|4.26907|threaten|6.40295|-3.85552|threaten|-1.16399|3.92831|threaten|5.99953|4.42924|threaten"
+      },
+      "world": {
+        "worldId": "0197f27e-1000-7000-8000-000000000001",
+        "revision": 53,
+        "eventSequence": 0
+      }
+    },
+    "fixture": {
+      "schemaVersion": 1,
+      "fixtureName": "goal-19-evidence",
+      "appliedControls": [
+        {
+          "kind": "scene-visibility",
+          "group": "scene-geometry",
+          "visible": true
+        },
+        {
+          "kind": "camera-translation",
+          "delta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      ]
+    },
+    "comparableIdentity": {
+      "developmentSessionId": "52f3e04d-4915-4558-bcc3-0fe5dece1b41",
+      "acceptedBuildRevision": 1,
+      "runtimeInstanceId": "5b6c3e51-d652-4ef7-9979-aebc8f8ad56b",
+      "sessionId": "01a026f5-9b34-7523-87e0-28765787f8ad",
+      "completedStepCount": 52,
+      "stateDigest": "53|1|playing|1.000000|0.000000|2.150000|-1|0.000000|0.000000|0.000000|000|-6.10292|4.26907|threaten|6.40295|-3.85552|threaten|-1.16399|3.92831|threaten|5.99953|4.42924|threaten"
+    },
+    "repeatability": {
+      "comparedPixels": 921600,
+      "meanAbsoluteLuminanceDifference": 0,
+      "p99AbsoluteLuminanceDifference": 0,
+      "maximumAbsoluteLuminanceDifference": 0,
+      "declaredP99Bound": 0.01
+    },
+    "criteria": {
+      "ac-v1-vfx-only": {
+        "kind": "vfx-boundary",
+        "region": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 720
+        },
+        "outcome": "fail",
+        "measurement": {
+          "pixels": 921600,
+          "controlMeanLuminance": 0.26912888,
+          "treatmentMeanLuminance": 0.1325543,
+          "controlToTreatmentRatio": 2.030329,
+          "changedPixelFraction": 0.73452148,
+          "p99AbsoluteLuminanceDifference": 0.65430272,
+          "measuredBoundaryPixels": 105190,
+          "p99LuminanceGradientPerPixel": 0.61708941,
+          "minimumFalloffPixelsAtP99": 1.6205,
+          "declaredMaximumGradientPerPixel": 0.1,
+          "declaredChangedPixelMinimum": 0.0001
+        },
+        "artifacts": {
+          "control": {
+            "artifactId": "artifact-cfbb16a1be47a8641871484dd55bf270fe9e765a37f6ca4f7d4c8520b6749167",
+            "sha256": "cfbb16a1be47a8641871484dd55bf270fe9e765a37f6ca4f7d4c8520b6749167"
+          },
+          "treatment": {
+            "artifactId": "artifact-19fec33fad93200ec0ead6e55027069c876e2599fae376d8d62ebef1903582db",
+            "sha256": "19fec33fad93200ec0ead6e55027069c876e2599fae376d8d62ebef1903582db"
+          }
+        },
+        "fixtures": {
+          "control": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            ]
+          },
+          "treatment": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": false
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "ac-l7-camera-translation": {
+        "kind": "camera-registration",
+        "region": {
+          "x": 180,
+          "y": 100,
+          "width": 920,
+          "height": 500
+        },
+        "outcome": "fail",
+        "measurement": {
+          "knownWorldDelta": {
+            "x": 0.5,
+            "y": 0,
+            "z": 0
+          },
+          "registeredPixelOffset": {
+            "x": -28,
+            "y": 0
+          },
+          "comparedPixels": 27875,
+          "p99AbsoluteLuminanceDifference": 0.18431373,
+          "declaredP99Bound": 0.1
+        },
+        "artifacts": {
+          "control": {
+            "artifactId": "artifact-cfbb16a1be47a8641871484dd55bf270fe9e765a37f6ca4f7d4c8520b6749167",
+            "sha256": "cfbb16a1be47a8641871484dd55bf270fe9e765a37f6ca4f7d4c8520b6749167"
+          },
+          "treatment": {
+            "artifactId": "artifact-f23829d2063c874e9d5d2cd53388aec55157cde1561303a668a4228b527c0bca",
+            "sha256": "f23829d2063c874e9d5d2cd53388aec55157cde1561303a668a4228b527c0bca"
+          }
+        },
+        "fixtures": {
+          "control": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            ]
+          },
+          "treatment": {
+            "schemaVersion": 1,
+            "fixtureName": "goal-19-evidence",
+            "appliedControls": [
+              {
+                "kind": "scene-visibility",
+                "group": "scene-geometry",
+                "visible": true
+              },
+              {
+                "kind": "camera-translation",
+                "delta": {
+                  "x": 0.5,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "frameTime": {
+      "supported": "upper-bound-only",
+      "framesPerSecond": 113.90887290167832,
+      "frameTimeUpperBoundMilliseconds": 8.778947,
+      "limitation": "The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval."
+    }
+  },
+  "seal": "8915c9b277023fb6"
+}

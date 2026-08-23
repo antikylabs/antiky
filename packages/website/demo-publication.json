@@ -2,33 +2,54 @@
   "schemaVersion": 1,
   "demos": [
     {
+      "slug": "traversal-study",
+      "projectName": "Traversal Study",
+      "renderer": "antiky",
+      "workspace": "@antiky/demo-traversal-study",
+      "projectDirectory": "packages/demos/traversal-study",
+      "sources": [
+        {
+          "label": "project",
+          "path": "packages/demos/traversal-study"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
+        }
+      ]
+    },
+    {
       "slug": "antiky-town",
       "projectName": "Antiky Town",
+      "renderer": "antiky",
       "workspace": "@antiky/demo-antiky-town",
       "projectDirectory": "packages/demos/antiky-town",
       "sources": [
-        { "label": "project", "path": "packages/demos/antiky-town" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/antiky-town"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
+        }
       ]
     },
     {
-      "slug": "town-study",
-      "projectName": "Town Study",
-      "workspace": "@antiky/demo-town-study",
-      "projectDirectory": "packages/demos/town-study",
+      "slug": "point-light-expo",
+      "projectName": "Point Light Expo",
+      "renderer": "antiky",
+      "workspace": "@antiky/demo-point-light-expo",
+      "projectDirectory": "packages/demos/point-light-expo",
       "sources": [
-        { "label": "project", "path": "packages/demos/town-study" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
-      ]
-    },
-    {
-      "slug": "shader-study",
-      "projectName": "Shader Study",
-      "workspace": "@antiky/demo-shader-study",
-      "projectDirectory": "packages/demos/shader-study",
-      "sources": [
-        { "label": "project", "path": "packages/demos/shader-study" },
-        { "label": "artifact-builder", "path": "packages/website/scripts/build-demo-artifact.mjs" }
+        {
+          "label": "project",
+          "path": "packages/demos/point-light-expo"
+        },
+        {
+          "label": "artifact-builder",
+          "path": "packages/website/scripts/build/demo-artifact.mjs"
+        }
       ]
     }
   ]

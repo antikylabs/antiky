@@ -1,17 +1,36 @@
-export type DemoSlug = 'antiky-town' | 'town-study' | 'shader-study';
+export type DemoSlug =
+  | 'antiky-town'
+  | 'traversal-study'
+  | 'point-light-expo';
+
+export type DemoPillar = 'Framework';
 
 export type DemoMeta = Readonly<{
   slug: DemoSlug;
   title: string;
-  pillar: 'Framework' | 'Research';
+  pillar: DemoPillar;
   tagline: string;
   notes: string;
   proves: readonly string[];
   tags: readonly string[];
+  requiresWebGpu: boolean;
   controls?: string;
   controlMode?: 'move';
-  poster?: string;
 }>;
+
+export const DEMO_GROUPS: readonly Readonly<{
+  id: string;
+  pillar: DemoPillar;
+  title: string;
+  description: string;
+}>[] = [
+  {
+    id: 'framework-demos',
+    pillar: 'Framework',
+    title: 'Antiky Framework',
+    description: 'Three small games that show movement, authored worlds, inspection, and live lighting tools.',
+  },
+];
 
 /** Editorial approval is deliberate. A staged artifact cannot add itself to this catalog. */
 export const DEMOS: readonly DemoMeta[] = [
@@ -19,49 +38,51 @@ export const DEMOS: readonly DemoMeta[] = [
     slug: 'antiky-town',
     title: 'Antiky Town',
     pillar: 'Framework',
-    tagline: 'A living town with framework-owned light authoring.',
+    tagline: 'A living town with Framework-owned light authoring.',
     notes:
-      'Explore the golden-hour market while Antiky Framework owns the identity, authoring state, runtime projection, and render update for a visible lamp.',
+      'Walk through a golden-hour market, then inspect or change a visible lamp through Antiky development tools.',
     proves: [
-      'One stable light identity from authored content through rendering',
-      'Live command changes without a reload or renderer rebuild',
-      'Structured runtime state through the same game module used by Studio',
+      'An authored town that you can explore',
+      'A lamp that can change while the game keeps running',
+      'Live game state that Studio and agent tools can inspect',
     ],
-    tags: ['Antiky Framework', 'WebGPU', 'live authoring'],
+    tags: ['Antiky Framework', 'BroMetal', 'live authoring'],
+    requiresWebGpu: true,
     controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
     controlMode: 'move',
-    poster: '/media/town-study-poster.png',
   },
   {
-    slug: 'town-study',
-    title: 'Town Study',
+    slug: 'traversal-study',
+    title: 'Traversal Study',
     pillar: 'Framework',
-    tagline: 'A living pixel cast inside a golden-hour voxel town.',
+    tagline: 'A kinetic floating-platform course with checkpoints, hazards, and an attract loop.',
     notes:
-      'Cross the canal and enter a market town at sunset. Lit cardboard travelers move through dense voxel streets, cast long shadows, and disappear naturally behind bridges, stalls, and buildings.',
+      'Watch the side-on course run by itself or take control. The demo includes moving platforms, hazards, checkpoints, particles, and events that Studio can inspect.',
     proves: [
-      'A handcrafted bridge, market, canal, houses, and bell tower',
-      'Crisp illustrated travelers with physical depth, light, and shadow',
-      'A walkable scene with grounded movement and solid architecture',
+      'Platform movement, collision, checkpoints, and hazard recovery',
+      'A self-running preview that starts without input',
+      'Traversal objects, game state, and events available to development tools',
     ],
-    tags: ['2.3D', 'voxel town', 'real-time lighting'],
-    controls: 'Move with WASD, arrow keys, or the on-screen direction controls',
+    tags: ['Antiky Framework', 'platforming', 'attract loop'],
+    requiresWebGpu: true,
+    controls: 'Steer with horizontal controls; click, tap, or press up to jump',
     controlMode: 'move',
-    poster: '/media/town-study-poster.png',
   },
   {
-    slug: 'shader-study',
-    title: 'Shader Study',
-    pillar: 'Research',
-    tagline: 'One typed shader compiled ahead of time for WebGPU.',
+    slug: 'point-light-expo',
+    title: 'Point Light Expo',
+    pillar: 'Framework',
+    tagline: 'Three inspectable practical lights inside a prismatic foundry.',
     notes:
-      'Shader Study isolates one useful property of BroMetal: typed shader source compiles ahead of time to WGSL. The website runs only the compiled game artifact.',
+      'Three colored lights illuminate a custom BroMetal material. Studio, the CLI, or agent tools can inspect each light and change its power.',
     proves: [
-      'Typed TypeScript becomes browser-ready shader code at build time',
-      'No shader compiler ships to the browser',
-      'The same compiled game-module contract works in each delivery host',
+      'Three RGB point lights that Framework can identify',
+      'Lighting changes that appear without restarting the game',
+      'A typed shader compiled to WGSL before the game runs',
     ],
-    tags: ['WebGPU', 'WGSL', 'shaders'],
+    tags: ['Antiky Framework', 'point lights', 'custom shader'],
+    requiresWebGpu: true,
+    controls: 'Move the pointer to shift the gallery camera',
   },
 ];
 
@@ -81,4 +102,8 @@ export function neighbours(slug: string): { prev: DemoMeta; next: DemoMeta; inde
 
 export function demoModuleUrl(slug: DemoSlug): string {
   return `/demo-builds/${slug}/antiky.game.js`;
+}
+
+export function demoPosterUrl(slug: DemoSlug): string {
+  return `/media/demos/${slug}.webp`;
 }

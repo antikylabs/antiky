@@ -38,6 +38,8 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0018: Select physics authority and physics execution independently](framework/0018-select-physics-authority-and-execution-independently_H.md)
 - [0019: Use Rapier for CPU physics and Nexus for GPU physics](framework/0019-use-rapier-for-cpu-physics-and-nexus-for-gpu-physics_H.md)
 - [0020: Keep game code and game hosts in different modules](framework/0020-keep-game-code-and-game-hosts-in-different-modules_H.md)
+- [0021: Own BroMetal in a BroMetal render driver](framework/0021-brometal-render-driver-ownership_H.md)
+- [0022: Use GPU IDs to select Framework entities](framework/0022-use-gpu-ids-to-select-framework-entities_H.md)
 
 ### CLI
 
@@ -53,6 +55,7 @@ the AIP. When applicable, the ADR must also link to the AIP.
 - [0004: Make CLI and Studio use the same engine services](studio/0004-share-engine-services-with-cli_H.md)
 - [0005: Use one Antiky project manifest](studio/0005-use-one-antiky-project-manifest_H.md)
 - [0006: Use CLI project services directly](studio/0006-use-cli-project-services-directly_H.md)
+- [0007: Use Antiky Framework first and select the renderer in the game module](studio/0007-framework-first-allow-others_H.md)
 
 ## Minimal format
 

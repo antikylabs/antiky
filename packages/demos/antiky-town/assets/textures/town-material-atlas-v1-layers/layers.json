@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 2,
+  "emitMode": "layers",
+  "layerSize": {
+    "width": 384,
+    "height": 512
+  },
+  "channels": 3,
+  "layers": [
+    {
+      "name": "warm-limestone",
+      "index": 0,
+      "image": "00-warm-limestone.png",
+      "imageSha256": "75cb28432ef6ca050f4240f73cca419e824fb5761b5f686ec8334a30154d3cfd"
+    },
+    {
+      "name": "mossy-cobblestone",
+      "index": 1,
+      "image": "01-mossy-cobblestone.png",
+      "imageSha256": "ae801259ae30050ee3c5a2c418a27f27bd30af7d0d38f80c048891e441c3f142"
+    },
+    {
+      "name": "aged-ivory-plaster",
+      "index": 2,
+      "image": "02-aged-ivory-plaster.png",
+      "imageSha256": "4c5ee45dfd1665a26eee3a307868fe2f0953ea8fed49822c4d492bdf7fcafe1b"
+    },
+    {
+      "name": "hand-hewn-timber",
+      "index": 3,
+      "image": "03-hand-hewn-timber.png",
+      "imageSha256": "71230766c955511432bb61e94126210dfbea54308cc77ae894d815dc629660cb"
+    },
+    {
+      "name": "terracotta-shingles",
+      "index": 4,
+      "image": "04-terracotta-shingles.png",
+      "imageSha256": "fb94d8d2be9c89dd1a67c66e5ee6e20682d7764a2017cd672093baea4a14b820"
+    },
+    {
+      "name": "slate-shingles",
+      "index": 5,
+      "image": "05-slate-shingles.png",
+      "imageSha256": "042f042463e381a3a17270e7aa652b02e0c7eee8653cd60e682ea3a087bf8a3c"
+    },
+    {
+      "name": "meadow-grass-and-flowers",
+      "index": 6,
+      "image": "06-meadow-grass-and-flowers.png",
+      "imageSha256": "35f6b0201dcf0c7bd63d39d58eea5130d5dbb0704ab28078af5712fd3ac64828"
+    },
+    {
+      "name": "compacted-earth",
+      "index": 7,
+      "image": "07-compacted-earth.png",
+      "imageSha256": "ce5087f092f77b23ea2b95bc7616591a19592df930dd36c77aca78e83d62371b"
+    },
+    {
+      "name": "red-cream-market-cloth",
+      "index": 8,
+      "image": "08-red-cream-market-cloth.png",
+      "imageSha256": "f4369cb0f1c1fbe3eeff95c53c67d69f5b65f544b370c5913a71692d3bf08fc1"
+    },
+    {
+      "name": "olive-leaves",
+      "index": 9,
+      "image": "09-olive-leaves.png",
+      "imageSha256": "feae6f615c39f8a4f11ef81d355ac8539b77515ce2c5a13241c91d9c2d2a8037"
+    },
+    {
+      "name": "wet-canal-stone",
+      "index": 10,
+      "image": "10-wet-canal-stone.png",
+      "imageSha256": "60d63b58b4ff4eb0258d8d34e9e3e8b2a7d749098140c0a617a5467408c61bf1"
+    },
+    {
+      "name": "damp-waterfall-rock",
+      "index": 11,
+      "image": "11-damp-waterfall-rock.png",
+      "imageSha256": "b716bb95e18649c5f173570c50c0c4bc370fe1391ee3da4bbcc207ce7d1b730f"
+    }
+  ],
+  "source": {
+    "image": "source/town-material-atlas-v1.png",
+    "grid": {
+      "columns": 4,
+      "rows": 3
+    },
+    "size": {
+      "width": 1254,
+      "height": 1254
+    },
+    "cell": {
+      "width": 313.5,
+      "height": 418
+    },
+    "sha256": "a0a503e0a0f3a320a792c6f6e65146d8cfa56e2a6caa8e614294e8e5535203ec"
+  }
+}

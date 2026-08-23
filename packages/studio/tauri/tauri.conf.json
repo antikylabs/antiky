@@ -31,7 +31,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app"],
+    "targets": ["app", "dmg"],
+    "macOS": {
+      "signingIdentity": "-"
+    },
     "fileAssociations": [
       {
         "ext": ["antiky"],
@@ -48,11 +51,15 @@
     ],
     "resources": {
       "resources/node": "project-service/node",
+      "resources/node-LICENSE": "project-service/node-LICENSE",
+      "resources/node_modules/playwright": "project-service/node_modules/playwright",
+      "resources/node_modules/playwright-core": "project-service/node_modules/playwright-core",
       "resources/project-service.mjs": "project-service/project-service.mjs",
-      "resources/terminal/antiky-studio.ghostty": "terminal/antiky-studio.ghostty"
+      "resources/terminal/antiky-studio.ghostty": "terminal/antiky-studio.ghostty",
+      "resources/terminal/antiky-studio.zshrc": "terminal/.zshrc"
     },
     "icon": [
-      "../../website/public/brand/antiky-labs-wordmark-white.png"
+      "icons/icon.icns"
     ]
   }
 }

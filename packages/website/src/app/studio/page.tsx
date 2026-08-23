@@ -1,219 +1,119 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight } from '@/components/Icons';
-import { canonical } from '@/lib/site';
+import { ArrowRight, ArrowUpRight } from '@/components/Icons';
+import StudioPrimaryAction from '@/components/StudioPrimaryAction';
+import { DISCORD_URL, STUDIO_RELEASES_READY } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Studio',
-  description:
-    'Antiky Studio keeps your running game, terminal, simulation controls, and live runtime state together in one development workspace.',
-  alternates: { canonical: canonical('/studio') },
+  title: 'Antiky Studio | Visual workspace for Antiky projects',
+  description: 'Run a game beside a native terminal, simulation controls, inspection tools, and development activity in Antiky Studio.',
+  alternates: { canonical: '/studio' },
 };
 
-const CAPABILITIES = [
-  {
-    number: '01',
-    title: 'Work beside the running game',
-    body: 'Keep the configured game and a native terminal in the same workspace. Start antiky dev without leaving Studio.',
-  },
-  {
-    number: '02',
-    title: 'Control simulation time',
-    body: 'Pause, resume, or advance one step while inspecting the state produced by the current development session.',
-  },
-  {
-    number: '03',
-    title: 'Inspect semantic state',
-    body: 'Browse the entity hierarchy, authoring and runtime stores, and a bounded development snapshot without reaching into private renderer objects.',
-  },
-  {
-    number: '04',
-    title: 'Understand what happened',
-    body: 'Review accepted events, MCP tool calls, and current diagnostics through the same typed services used by the CLI.',
-  },
+const NEXT_STEPS = [
+  ['Emerging', 'emerging', 'Packaged downloads', 'The macOS source build works today. Public downloads are still in progress.'],
+  ['Planned', 'direction', 'Select a game object for an agent', 'Pass the selected object and its live context into a coding-agent conversation.'],
+  ['Exploring', 'research-question', 'Workspaces that fit the task', 'Arrange tools for lighting, assets, simulation, debugging, and review.'],
 ] as const;
 
 export default function StudioPage() {
   return (
     <>
       <section className="page-hero studio-hero wrap">
-        <div className="status-line">
-          <span className="status-dot status-emerging" />
-          macOS source-development build
-        </div>
-        <h1>Your game and its living state. One workspace.</h1>
+        <p className="status-line"><span className="status-dot status-live" /> {STUDIO_RELEASES_READY ? 'Early Studio release · details on GitHub' : 'Working macOS source build · no public download yet'}</p>
+        <h1>Direct the work. Keep the game in view.</h1>
         <p className="page-lead">
-          Antiky Studio brings the running game, a native terminal, simulation controls,
-          and structured runtime inspection into one focused development environment.
+          Antiky Studio is the native visual workspace for Antiky development. Run the game beside
+          a terminal, control simulation, inspect live state, and review development activity in one
+          window.
         </p>
         <div className="actions">
-          <Link className="button button-primary" href="/docs/studio/getting-started">
-            Open Studio docs <ArrowRight />
-          </Link>
-          <Link className="text-link" href="/docs/studio/development-connection">
-            How Studio connects <ArrowRight />
-          </Link>
+          <StudioPrimaryAction className="button button-primary" fallbackHref="/docs/getting-started/studio" fallbackLabel="Run Studio from source" />
+          <Link className="text-link" href="/docs/studio/getting-started">Read the Studio guide <ArrowRight /></Link>
         </div>
       </section>
 
-      <figure className="studio-showcase wrap" aria-labelledby="studio-workspace-caption">
-        <div className="studio-window">
-          <header className="studio-titlebar">
-            <span className="studio-product">
-              <span className="studio-product-mark" aria-hidden="true">A</span>
-              <span>Antiky Labs</span>
-              <strong>Studio</strong>
-            </span>
-            <span className="studio-project">antiky-town</span>
-            <span className="studio-connected"><i />Connected</span>
-          </header>
-
-          <div className="studio-toolbar">
-            <span className="studio-toolbar-label">Simulation</span>
-            <span className="studio-toolbar-control is-active">Pause</span>
-            <span className="studio-toolbar-control">Resume</span>
-            <span className="studio-toolbar-control">Step</span>
-            <span className="studio-toolbar-runtime">Runtime 0.0.0 · Frame 18,204</span>
-          </div>
-
-          <div className="studio-workspace">
-            <section className="studio-surface studio-terminal" aria-label="Embedded terminal">
-              <div className="studio-surface-head">
-                <span>Terminal</span>
-                <span>zsh</span>
-              </div>
-              <div className="studio-terminal-body">
-                <p><b>›</b> antiky dev</p>
-                <p><span>[game]</span> ready on 127.0.0.1:3010</p>
-                <p><span>[inspect]</span> development session connected</p>
-                <p><span>[mcp]</span> tools ready</p>
-                <p className="studio-terminal-cursor"><b>›</b><i /></p>
-              </div>
-            </section>
-
-            <section className="studio-surface studio-game" aria-label="Live game view">
-              <div className="studio-surface-head">
-                <span>Live game</span>
-                <span>127.0.0.1:3010</span>
-              </div>
-              <div className="studio-game-media">
-                <Image
-                  src="/media/town-study-poster.png"
-                  alt="Pixel characters exploring a voxel town at golden hour"
-                  fill
-                  sizes="(max-width: 760px) 100vw, 55vw"
-                />
-                <span className="studio-game-state"><i />Connected</span>
-              </div>
-            </section>
-
-            <section className="studio-surface studio-inspection" aria-label="Runtime inspection">
-              <div className="studio-surface-head">
-                <span>Inspection</span>
-                <span>read-only</span>
-              </div>
-              <div className="studio-tabs"><b>Hierarchy</b><span>Stores</span><span>Snapshot</span></div>
-              <div className="studio-tree">
-                <p><span className="tree-caret">⌄</span><strong>Town Root</strong><small>scene</small></p>
-                <p className="tree-child"><span className="tree-caret">⌄</span><strong>Harbor Lamp</strong><small>entity</small></p>
-                <p className="tree-leaf"><span />Transform <small>component</small></p>
-                <p className="tree-leaf"><span />Point Light <small>component</small></p>
-                <p className="tree-child"><span className="tree-caret">›</span><strong>Market Square</strong><small>entity</small></p>
-                <p className="tree-child"><span className="tree-caret">›</span><strong>Player</strong><small>entity</small></p>
-              </div>
-            </section>
-
-            <section className="studio-surface studio-activity" aria-label="Development activity">
-              <div className="studio-surface-head">
-                <span>Activity</span>
-                <span>retained</span>
-              </div>
-              <div className="studio-tabs"><b>Events</b><span>MCP calls</span><span>Diagnostics</span></div>
-              <div className="studio-log">
-                <p><time>15:42:08</time><span>simulation.paused</span><em>accepted</em></p>
-                <p><time>15:42:05</time><span>point_light.updated</span><em>accepted</em></p>
-                <p><time>15:41:59</time><span>runtime.connected</span><em>accepted</em></p>
-              </div>
-            </section>
-          </div>
-
-          <footer className="studio-statusbar">
-            <span>Build <b>development</b></span>
-            <span>Runtime <b>connected</b></span>
-            <span>Draws <b>42</b></span>
-            <span className="studio-status-spacer">Antiky Studio · source build</span>
-          </footer>
-        </div>
-        <figcaption id="studio-workspace-caption">
-          Current workspace map · illustrated from the shipped source-development interface
-        </figcaption>
+      <figure className="wide-media wrap evidence-figure studio-hero-media">
+        <Image src="/media/studio/workspace-overview.webp" alt="Antiky Studio showing a running game, native terminal, structured inspection, and development activity in one window." width={1920} height={1200} sizes="(max-width: 760px) 100vw, 92vw" priority />
+        <figcaption>Current source build · game, terminal, inspection, and activity</figcaption>
       </figure>
 
-      <section className="content-section studio-session-section">
+      <section className="content-section wrap" data-evidence-status="current">
+        <header className="section-intro compact">
+          <p className="section-label">Current</p>
+          <h2>Open a project and work beside the running game.</h2>
+          <p>The current source build supports the core Studio workflow.</p>
+        </header>
+        <div className="studio-proof-sequence">
+          <article className="studio-proof-row">
+            <div className="prose"><h3>Open an Antiky project</h3><p>Create a project, choose an existing <code>.antiky</code> file, or return to a recent project.</p></div>
+            <figure className="evidence-figure"><Image src="/media/studio/project-launcher.webp" alt="Antiky Studio project launcher with Create project, Open project, and Recent projects choices." width={1600} height={1000} sizes="(max-width: 900px) 100vw, 54vw" /><figcaption>Project launcher · create, open, or return</figcaption></figure>
+          </article>
+          <article className="studio-proof-row text-only">
+            <div className="prose"><h3>Keep the game and terminal together</h3><p>Studio starts the local game and development tools for the selected project. The native terminal opens in that project, ready for your shell or coding agent.</p></div>
+          </article>
+          <article className="studio-proof-row">
+            <div className="prose"><h3>Control simulation time</h3><p>Pause, resume, advance one frame, restart, or stop the game without leaving the workspace.</p></div>
+            <figure className="evidence-figure"><Image src="/media/studio/simulation-controls.webp" alt="Antiky Studio showing a paused game with Pause, Step, Restart, and Stop controls above the workspace." width={1600} height={1000} sizes="(max-width: 900px) 100vw, 54vw" /><figcaption>Simulation controls · pause, step, restart, and stop</figcaption></figure>
+          </article>
+          <article className="studio-proof-row">
+            <div className="prose"><h3>Inspect the running game</h3><p>Read the hierarchy, stores, snapshot, events, MCP calls, and diagnostics that the game and development tools publish.</p></div>
+            <figure className="evidence-figure"><Image src="/media/studio/inspection-activity.webp" alt="Antiky Studio inspection and activity panels showing hierarchy, stores, events, MCP calls, and diagnostics." width={1600} height={1000} sizes="(max-width: 900px) 100vw, 54vw" /><figcaption>Inspection and activity · live project information</figcaption></figure>
+          </article>
+        </div>
+        <Link className="text-link section-link" href="/docs/getting-started/studio">Open Antiky Town in Studio <ArrowRight /></Link>
+      </section>
+
+      <section className="content-section studio-session-section studio-session-boundary">
         <div className="wrap split-heading">
-          <div>
-            <p className="section-label">Shared development session</p>
-            <h2>One game. One source of truth.</h2>
-          </div>
+          <div><p className="section-label">One project session</p><h2>Studio, the CLI, and agent tools see the same game.</h2></div>
           <div className="prose">
-            <p className="lead">
-              Studio does not start a second renderer or scrape terminal output to understand your game.
-            </p>
-            <p>
-              The CLI, Studio, and connected agents use the same typed development services from
-              <code> antiky dev</code>. What you inspect in one client is the same running session seen by the others.
-            </p>
+            <p className="lead">Each tool connects to the same local game, build status, inspection data, and commands.</p>
+            <p>Inspection is read-only. Simulation controls and checked game commands make deliberate changes.</p>
+            <Link className="text-link section-link" href="/docs/studio/development-connection">See how Studio connects <ArrowRight /></Link>
           </div>
         </div>
-
-        <div className="wrap studio-session-map" aria-label="CLI, Studio, and MCP share one Antiky development session">
-          <div className="studio-session-clients">
-            <span><b>CLI</b><small>Human commands</small></span>
-            <span><b>Studio</b><small>Visual workspace</small></span>
-            <span><b>MCP</b><small>Agent tools</small></span>
-          </div>
+        <div className="wrap studio-session-map" aria-label="CLI, Studio, and MCP connect to one local project session for the game, build, inspection, and tools.">
+          <div className="studio-session-clients"><span><b>CLI</b><small>Terminal</small></span><span><b>Studio</b><small>Visual workspace</small></span><span><b>MCP</b><small>Agent tools</small></span></div>
           <span className="studio-session-line" aria-hidden="true" />
-          <div className="studio-session-runtime">
-            <span className="status-dot status-live" />
-            <span><b>antiky dev</b><small>Game · inspection · tools</small></span>
-          </div>
+          <div className="studio-session-runtime"><span className="status-dot status-live" /><span><b>Project session</b><small>Game · build · inspection · tools</small></span></div>
         </div>
       </section>
 
-      <section className="content-section wrap studio-capabilities">
-        <header className="section-intro compact">
-          <h2>Built around the development loop</h2>
-          <p>Every current surface answers a practical question about the game running in front of you.</p>
-        </header>
-        <div className="studio-feature-list">
-          {CAPABILITIES.map((capability) => (
-            <article key={capability.number} className="studio-feature-row">
-              <span>{capability.number}</span>
-              <h3>{capability.title}</h3>
-              <p>{capability.body}</p>
-            </article>
+      <section className="content-section wrap">
+        <header className="section-intro compact"><h2>What we are building next</h2><p>The workspace works from source today. These additions come later.</p></header>
+        <div className="editorial-list">
+          {NEXT_STEPS.map(([status, evidenceStatus, title, body]) => (
+            <div className="editorial-row static studio-status-row" data-evidence-status={evidenceStatus} key={status}>
+              <span className="row-status">{status}</span><span className="row-copy"><strong>{title}</strong><span>{body}</span></span>
+            </div>
           ))}
+        </div>
+      </section>
+
+      <section className="content-section wrap split-heading">
+        <div><p className="section-label">Independent games</p><h2>Your game does not depend on Studio.</h2></div>
+        <div className="prose">
+          <p className="lead">Use Studio while developing, then build, test, and ship the game on its own.</p>
+          <Link className="text-link section-link" href="/framework">Explore Antiky Framework <ArrowRight /></Link>
         </div>
       </section>
 
       <section className="studio-availability">
         <div className="wrap studio-availability-grid">
-          <div>
-            <p className="section-label">Current availability</p>
-            <h2>Built for development. Available from source.</h2>
-          </div>
+          <div><p className="section-label">Availability</p><h2>{STUDIO_RELEASES_READY ? 'Download the current Studio release.' : 'Run Studio from source.'}</h2></div>
           <div className="prose">
-            <p className="lead">Studio currently runs as a macOS source-development build.</p>
-            <p>
-              Inspection is read-only, and release packaging is not available yet. The getting-started
-              guide covers the current setup, launch flow, and recovery behavior without promising unfinished editor features.
-            </p>
-            <Link className="text-link" href="/docs/studio/getting-started">
-              Get started from source <ArrowRight />
-            </Link>
+            <p className="lead">{STUDIO_RELEASES_READY ? 'Downloadable builds and release notes are on GitHub.' : 'There is no public download yet. The tutorial starts the working macOS app from the repository.'}</p>
+            <StudioPrimaryAction className="button button-primary" fallbackHref="/docs/getting-started/studio" fallbackLabel="Run Studio from source" />
           </div>
         </div>
+      </section>
+
+      <section className="closing-cta wrap">
+        <p>Try the current Studio workspace.</p>
+        <StudioPrimaryAction className="closing-action" fallbackHref="/docs/getting-started/studio" fallbackLabel="Run Studio from source" />
+        <a href={DISCORD_URL} target="_blank" rel="noreferrer">Join the Studio discussion <ArrowUpRight /></a>
       </section>
     </>
   );

@@ -14,6 +14,10 @@ type Props = {
   index: number;
 };
 
+const DEMO_LIMITS: Record<DemoMeta['pillar'], string> = {
+  Framework: 'This demo shows one focused part of Framework, not a complete game engine.',
+};
+
 export default function DemoDeck({ demo, prev, next, index }: Props) {
   const router = useRouter();
 
@@ -43,18 +47,21 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
           <p className="status-line"><span className="status-dot status-live" /> Live demo · {demo.pillar}</p>
           <p>{demo.tagline}</p>
         </div>
-        <Link className="text-link" href="/demos">All studies <ArrowUpRight /></Link>
+        <Link className="text-link" href="/demos">All demos <ArrowUpRight /></Link>
       </section>
 
       <div className="deck-stage wrap">
         <DemoStage
           key={demo.slug}
           slug={demo.slug}
-          label={`${demo.title} — interactive live study`}
+          label={`${demo.title}: interactive demo`}
           controlMode={demo.controlMode}
-          poster={demo.poster}
         />
       </div>
+
+      <p className="demo-poster-caption wrap">
+        Preview image · Select <strong>Play {demo.title}</strong> to start the interactive demo.
+      </p>
 
       <div className="demo-meta wrap">
         <p>{demo.controls ?? 'Use the controls in the media frame'}</p>
@@ -67,7 +74,7 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
 
       <section className="content-section wrap demo-notes">
         <div>
-          <p className="section-label">About the study</p>
+          <p className="section-label">About the demo</p>
           <p className="lead">{demo.notes}</p>
         </div>
         <div>
@@ -75,6 +82,7 @@ export default function DemoDeck({ demo, prev, next, index }: Props) {
           <ul>
             {demo.proves.map((claim) => <li key={claim}>{claim}</li>)}
           </ul>
+          <p className="demo-limit"><span>What it does not show</span>{DEMO_LIMITS[demo.pillar]}</p>
         </div>
       </section>
     </>

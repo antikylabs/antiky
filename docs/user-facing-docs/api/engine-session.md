@@ -1,11 +1,11 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:abec93cf7a78bb76
+frameworkSource: sha256:641549dc472c878c
 ---
 
 # Engine session API
 
-Run deterministic fixed-step systems and expose safe pause, resume, single-step, command, and disposal controls.
+Run deterministic fixed-step systems, observe completed steps live, and expose safe pause, resume, single-step, command, and disposal controls.
 
 Use one session as the authority for a running world when simulation timing must stay independent from display timing.
 
@@ -29,13 +29,62 @@ const session = createEngineSession({
 session.advance(elapsedSeconds, currentInput);
 ```
 
+## Session frame driver
+
+Derive elapsed time from the host clock once, route a non-advanced frame to a fault channel instead of dropping it, and keep presenting either way.
+
+### `SessionFrameFault`
+
+A frame whose advance returned something other than ADVANCED.
+
+```ts
+type SessionFrameFault = Readonly<{
+    code: EngineFrameResultCode;
+    result: EngineFrameResult;
+}>;
+```
+
+### `SessionFrameDriverOptions`
+
+The host services a frame driver needs: advance, input, present, and where a fault goes.
+
+```ts
+type SessionFrameDriverOptions<TInput> = Readonly<{
+    advance(elapsedSeconds: number, input: TInput): EngineFrameResult;
+    input(): TInput;
+    present(alpha: number): void;
+    presentationAlpha?(result: EngineFrameResult): number;
+    onFault?(fault: SessionFrameFault): void;
+}>;
+```
+
+### `SessionFrameDriver`
+
+Derives elapsed time from the host clock, advances the session, and presents the result.
+
+```ts
+type SessionFrameDriver = Readonly<{
+    frame(platformTimeSeconds: number): EngineFrameResult;
+    resetClock(): void;
+    presentStep(result: EngineControlResult): EngineControlResult;
+}>;
+```
+
+### `createSessionFrameDriver`
+
+Create the per-frame loop that turns a presentation clock into session advances.
+
+```ts
+function createSessionFrameDriver<TInput>(options: SessionFrameDriverOptions<TInput>): SessionFrameDriver;
+```
+
 ## Create a session
 
 Create the stateful session once, then drive it through the returned `EngineSession` interface.
 
 ### `createEngineSession`
 
-Creates the authoritative fixed-step session and validates its IDs, systems, input capture, and owned services.
+Creates the authoritative fixed-step session and validates its IDs, systems, input capture, completed-step observer, and owned services.
 
 ```ts
 function createEngineSession<Input>(options: EngineSessionOptions<Input>): EngineSession<Input>;
@@ -50,7 +99,7 @@ Use these records and result codes to integrate game systems, controls, commands
 The schema version emitted in engine-session status records.
 
 ```ts
-const ENGINE_SESSION_SCHEMA_VERSION = 2 as const;
+const ENGINE_SESSION_SCHEMA_VERSION = 3 as const;
 ```
 
 ### `FIXED_STEP_SECONDS`
@@ -114,7 +163,7 @@ type EngineStepSource = 'frame' | 'single-step';
 The callback boundary that caused a terminal session fault.
 
 ```ts
-type EngineSessionFaultSource = 'input-capture' | 'system' | 'state-digest' | 'command';
+type EngineSessionFaultSource = 'input-capture' | 'system' | 'state-digest' | 'completed-step-observer' | 'command';
 ```
 
 ### `EngineSessionFault`
@@ -166,7 +215,7 @@ type EngineSessionOwnedService = Readonly<{
 
 ### `EngineSessionOptions`
 
-Construction options for IDs, ordered systems, immutable input capture, digesting, and owned services.
+Construction options for IDs, ordered systems, immutable input capture, digesting, live completed-step observation, and owned services.
 
 ```ts
 type EngineSessionOptions<Input> = Readonly<{
@@ -176,6 +225,7 @@ type EngineSessionOptions<Input> = Readonly<{
     systems: readonly EngineSystem<Input>[];
     captureInput(input: Input): Readonly<Input> | null;
     getStateDigest?: () => string;
+    onCompletedStep?: (step: CompletedEngineStep<Input>) => void;
     services?: readonly EngineSessionOwnedService[];
     initialCompletedStepCount?: number;
 }>;
@@ -183,7 +233,7 @@ type EngineSessionOptions<Input> = Readonly<{
 
 ### `CompletedEngineStep`
 
-The last completed step, including captured input and an optional state digest.
+One completed step, including captured input and an optional state digest.
 
 ```ts
 type CompletedEngineStep<Input> = Readonly<{
@@ -364,7 +414,9 @@ Thrown after cleanup when one or more owned services fail to dispose.
 ```ts
 class EngineSessionDisposalError extends Error {
     readonly code = 'ANTIKY_ENGINE_SESSION_DISPOSAL_FAILED';
-    constructor(readonly failureCount: number);
+    readonly causes: readonly unknown[];
+    constructor(causes: readonly unknown[]);
+    get failureCount(): number;
 }
 ```
 

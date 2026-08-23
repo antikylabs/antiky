@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const docsRoot = new URL('../../../docs/user-facing-docs/', import.meta.url);
 const outputRoot = new URL('../.next/server/app/', import.meta.url);
-const sections = ['framework', 'cli', 'mcp', 'studio', 'api'];
+const sections = ['getting-started', 'framework', 'cli', 'mcp', 'studio', 'assets', 'skills', 'api'];
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://antikylabs.com';
 
 async function documentationSources() {
@@ -76,7 +76,10 @@ test('production docs publish every canonical user page with web-native links', 
     assert.match(output, new RegExp(`<h1[^>]*>.*${escapeHtml(title)}.*<\\/h1>`));
     const markdownLinks = new Set(Array.from(output.matchAll(/href="([^"]+\.md(?:#[^"]*)?)"/g), (match) => match[1]));
     assert.deepEqual(markdownLinks, new Set([markdownRouteForSource(sourcePath)]));
-    assert.ok(docsHome.includes(`href="${route}"`), `${route} is missing from documentation navigation`);
+    assert.ok(
+      output.includes(`aria-current="page" href="${route}"`),
+      `${route} is missing from its section navigation`,
+    );
     assert.ok(sitemap.includes(`<loc>${new URL(route, siteUrl)}</loc>`), `${route} is missing from the sitemap`);
     assert.ok(llms.includes(new URL(markdownRouteForSource(sourcePath), siteUrl).toString()));
     assert.equal(await readFile(markdownOutputForSource(sourcePath), 'utf8'), source);
@@ -114,9 +117,34 @@ test('docs production output provides search, Markdown copy, and an llms.txt ind
   assert.match(docsHome, /placeholder="Search docs"/);
   assert.match(docsHome, />Copy Markdown<\/button>/);
   assert.match(docsHome, /href="\/docs\/index\.html\.md"/);
-  assert.match(llms, /^# Antiky Documentation\n\n> /);
+  assert.match(llms, /^# Antiky Labs\n\n> /);
   assert.equal(llmsMeta.headers['content-type'], 'text/markdown; charset=utf-8');
   assert.match(routesManifest, /docs-markdown/);
+});
+
+test('docs use major-section tabs, a focused sidebar, and an active table of contents', async () => {
+  const docsHome = await readFile(new URL('docs.html', outputRoot), 'utf8');
+  const framework = await readFile(new URL('docs/framework/game-modules.html', outputRoot), 'utf8');
+  const tabsStart = docsHome.indexOf('<nav class="docs-tabs"');
+  const tabs = docsHome.slice(tabsStart, docsHome.indexOf('</nav>', tabsStart));
+  assert.deepEqual(
+    Array.from(tabs.matchAll(/<a\b[^>]*>([^<]+)<\/a>/g), (match) => match[1]),
+    ['Start', 'Framework', 'Tools', 'Studio', 'Resources', 'API'],
+  );
+  assert.match(tabs, /aria-current="page" href="\/docs"/);
+
+  const frameworkTabsStart = framework.indexOf('<nav class="docs-tabs"');
+  const frameworkTabs = framework.slice(frameworkTabsStart, framework.indexOf('</nav>', frameworkTabsStart));
+  assert.match(frameworkTabs, /aria-current="page" href="\/docs\/framework\/game-modules"/);
+
+  const sidebarStart = framework.indexOf('<aside class="docs-sidebar"');
+  const sidebar = framework.slice(sidebarStart, framework.indexOf('</aside>', sidebarStart));
+  assert.match(sidebar, /<h2>Framework<\/h2>/);
+  assert.doesNotMatch(sidebar, /<h2>(?:CLI|MCP|Studio|Game Assets|Skills|API Reference)<\/h2>/);
+
+  const tocStart = framework.indexOf('<aside class="docs-toc"');
+  const toc = framework.slice(tocStart, framework.indexOf('</aside>', tocStart));
+  assert.match(toc, /<a[^>]*class="active"[^>]*aria-current="location"/);
 });
 
 test('docs production output exposes the complete generated framework API reference', async () => {
@@ -137,7 +165,39 @@ test('docs production output exposes the complete generated framework API refere
   assert.match(pointLightCore, /<h3 id="createpointlightauthoringservice"/);
   assert.match(pointLightCommands, /<h3 id="parsesetpointlightpowercommand"/);
   assert.match(pointLightIntegration, /<h3 id="inspectpointlightworld"/);
-  assert.ok(docsHome.indexOf('<h2>API Reference</h2>') > docsHome.indexOf('<h2>Studio</h2>'));
+  assert.match(overview, /<nav class="docs-tabs"[^>]*>[\s\S]*href="\/docs\/api\/reference">API<\/a>/);
+  assert.match(overview, /<aside class="docs-sidebar"[\s\S]*<h2>API Reference<\/h2>/);
   assert.match(llms, /\/docs\/api\/reference\.md/);
   await assert.rejects(readFile(new URL('docs/framework/api-reference.html', outputRoot)), { code: 'ENOENT' });
+});
+
+test('docs content media and inline code stay inside narrow layouts', async () => {
+  const styles = await readFile(new URL('../src/app/docs/docs.css', import.meta.url), 'utf8');
+
+  assert.match(styles, /\.docs-prose img\s*{[^}]*max-width:\s*100%[^}]*height:\s*auto/s);
+  assert.match(styles, /\.docs-prose :not\(pre\) > code\s*{[^}]*overflow-wrap:\s*anywhere/s);
+  assert.match(styles, /\.docs-prose table\s*{[^}]*display:\s*block[^}]*overflow-x:\s*auto/s);
+});
+
+test('skills guides reach every agent-readable docs surface', async () => {
+  const docsHome = await readFile(new URL('docs.html', outputRoot), 'utf8');
+  const llms = await readFile(new URL('llms.txt.body', outputRoot), 'utf8');
+  const llmsFull = await readFile(new URL('llms-full.txt.body', outputRoot), 'utf8');
+  const guides = [
+    ['overview', 'Understand Antiky agent skills'],
+    ['install', 'Install and manage Antiky skills'],
+    ['reference', 'Antiky skills reference'],
+  ];
+
+  for (const [slug, title] of guides) {
+    const route = `/docs/skills/${slug}`;
+    assert.ok(docsHome.includes(`href="${route}"`), `${route} is missing from docs navigation`);
+    assert.ok(docsHome.includes(title), `${route} is missing from docs search data`);
+    assert.ok(llms.includes(`[${title}](${new URL(`${route}.md`, siteUrl)})`));
+    assert.ok(llmsFull.includes(`# ${title}`));
+    assert.match(
+      await readFile(new URL(`docs-markdown/skills/${slug}.body`, outputRoot), 'utf8'),
+      new RegExp(`^# ${title}`),
+    );
+  }
 });

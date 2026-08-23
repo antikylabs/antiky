@@ -1,0 +1,3 @@
+# Ideas
+
+Opportunities not yet in progress. Just thoughts...

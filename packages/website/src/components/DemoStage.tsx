@@ -6,22 +6,42 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { CSSProperties } from 'react';
 import type {
   GameHostContext,
   GameInstance,
   GameMeasurements,
   GameModuleEntry,
 } from '@antiky/framework/game';
-import { demoModuleUrl, type DemoSlug } from '@/lib/demos';
+import {
+  demoModuleUrl,
+  demoPosterUrl,
+  findDemo,
+  type DemoSlug,
+} from '@/lib/demos';
 
-type StagePhase = 'poster' | 'ready' | 'loading' | 'running' | 'paused' | 'error';
+/** A browser without `navigator.gpu` shows the verified poster for each current demo. */
+function webGpuAvailable(): boolean {
+  return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+type StageStyle = CSSProperties & {
+  '--stage-poster'?: string;
+};
+
+/**
+ * `gated` is a browser without WebGPU meeting a demo that needs it. It is deliberately not `error`:
+ * the visitor did nothing wrong and there is nothing to retry, so the stage shows the demo's poster
+ * with a real still frame of the demo running and a badge saying why it is not live. A still frame
+ * is evidence; a red error card is a bug report addressed to the wrong person.
+ */
+type StagePhase = 'poster' | 'gated' | 'loading' | 'running' | 'paused' | 'error';
 
 type Props = Readonly<{
   slug: DemoSlug;
   label: string;
-  variant?: 'hero' | 'thumb';
+  variant?: 'hero';
   controlMode?: 'move';
-  poster?: string;
 }>;
 
 type MutablePointer = {
@@ -63,16 +83,24 @@ function movementFromPressed(pressed: ReadonlySet<string>, movement: MutableMove
   movement.active = length > 0;
 }
 
-export default function DemoStage({ slug, label, variant, controlMode, poster }: Props) {
+export default function DemoStage({ slug, label, variant, controlMode }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<Runtime | null>(null);
+  const activationPendingRef = useRef(false);
   const visibleRef = useRef(true);
   const userPausedRef = useRef(false);
   const mountedRef = useRef(true);
-  const [phase, setPhase] = useState<StagePhase>(poster ? 'poster' : 'ready');
+  const poster = demoPosterUrl(slug);
+  const [phase, setPhase] = useState<StagePhase>('poster');
   const [error, setError] = useState('');
   const [measurements, setMeasurements] = useState<GameMeasurements>({});
   const [framesPerSecond, setFramesPerSecond] = useState<number | null>(null);
+  const requiresWebGpu = findDemo(slug)?.requiresWebGpu ?? true;
+  useEffect(() => {
+    // Runs after hydration on purpose: `navigator` does not exist during server rendering, and the
+    // server must emit the same markup the client starts from.
+    if (requiresWebGpu && !webGpuAvailable()) setPhase('gated');
+  }, [requiresWebGpu]);
 
   const stopRuntime = useCallback(() => {
     const runtime = runtimeRef.current;
@@ -83,17 +111,17 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
     runtime.instance.dispose();
   }, []);
 
-  const activate = useCallback(async () => {
-    if (runtimeRef.current || phase === 'loading' || variant === 'thumb') return;
+  const activate = useCallback(async (focusCanvas = true) => {
+    if (runtimeRef.current || activationPendingRef.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (!('gpu' in navigator)) {
-      setError('This demo needs a browser with WebGPU support.');
-      setPhase('error');
+    if (requiresWebGpu && !webGpuAvailable()) {
+      setPhase('gated');
       return;
     }
 
     setError('');
+    activationPendingRef.current = true;
     setPhase('loading');
     const pointer: MutablePointer = {
       x: 0.5,
@@ -189,7 +217,7 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
     try {
       const moduleUrl = demoModuleUrl(slug);
       const loaded = await import(/* webpackIgnore: true */ moduleUrl) as { default?: unknown };
-      if (typeof loaded.default !== 'function') throw new Error('The compiled game has no default game-module entry.');
+      if (typeof loaded.default !== 'function') throw new Error('This study could not start. Its build looks incomplete.');
       const entry = loaded.default as GameModuleEntry;
       const context: GameHostContext = {
         canvas,
@@ -202,7 +230,7 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
         },
       };
       instance = await entry(context);
-      if (!validGameInstance(instance)) throw new Error('The compiled game returned an invalid game instance.');
+      if (!validGameInstance(instance)) throw new Error('This study could not start. Its build looks incomplete.');
       if (!mountedRef.current) {
         instance.dispose();
         return;
@@ -212,16 +240,22 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
         cancelFrame: () => cancelAnimationFrame(frameRequest),
         removeListeners: () => removals.splice(0).forEach((remove) => remove()),
       };
+      userPausedRef.current = false;
       setPhase('running');
-      canvas.focus();
+      if (focusCanvas) canvas.focus();
       frameRequest = requestAnimationFrame(frame);
     } catch (cause: unknown) {
       removals.splice(0).forEach((remove) => remove());
       instance?.dispose();
       setError(cause instanceof Error ? cause.message : 'The game artifact could not start.');
       setPhase('error');
+    } finally {
+      activationPendingRef.current = false;
     }
-  }, [phase, slug, stopRuntime, variant]);
+  }, [requiresWebGpu, slug, stopRuntime]);
+
+  const activateRef = useRef(activate);
+  activateRef.current = activate;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -229,6 +263,11 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
     if (!canvas) return;
     const observer = new IntersectionObserver(([entry]) => {
       visibleRef.current = entry?.isIntersecting ?? false;
+      if (
+        entry?.isIntersecting
+        && variant === 'hero'
+        && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ) void activateRef.current(false);
     }, { threshold: 0.05 });
     observer.observe(canvas);
     return () => {
@@ -236,7 +275,7 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
       observer.disconnect();
       stopRuntime();
     };
-  }, [stopRuntime]);
+  }, [stopRuntime, variant]);
 
   const togglePause = () => {
     userPausedRef.current = !userPausedRef.current;
@@ -248,28 +287,33 @@ export default function DemoStage({ slug, label, variant, controlMode, poster }:
     canvasRef.current?.dispatchEvent(event);
   };
 
-  const displayPhase = phase === 'poster' ? 'ready' : phase;
   const classes = ['stage', variant ? `stage-${variant}` : '', poster ? 'stage-has-poster' : '']
     .filter(Boolean)
     .join(' ');
-  const style = poster ? { backgroundImage: `url(${poster})` } : undefined;
+  const style: StageStyle | undefined = poster ? {
+    '--stage-poster': `url(${poster})`,
+  } : undefined;
 
   return (
-    <div className={classes} data-phase={displayPhase} style={style}>
+    <div
+      className={classes}
+      data-phase={phase}
+      style={style}
+    >
       <canvas ref={canvasRef} className="stage-canvas" aria-label={label} tabIndex={0} />
-      {variant === 'thumb' ? (
-        <div className="stage-status">Open to run</div>
+      {phase === 'gated' ? (
+        <p className="stage-badge">Static capture: this study needs WebGPU</p>
       ) : phase === 'loading' ? (
-        <div className="stage-status">Loading verified game artifact…</div>
+        <div className="stage-status">Loading game…</div>
       ) : phase === 'error' ? (
         <div className="stage-fallback" role="alert">
           <span>{error}</span>
-          <button className="stage-action" type="button" onClick={() => { setPhase(poster ? 'poster' : 'ready'); void activate(); }}>Retry</button>
+          <button className="stage-action" type="button" onClick={() => { setPhase('poster'); void activate(); }}>Retry</button>
         </div>
-      ) : phase === 'poster' || phase === 'ready' ? (
+      ) : phase === 'poster' ? (
         <button className="stage-activate" type="button" onClick={() => void activate()}>
           <span className="stage-play" aria-hidden="true">▶</span>
-          Run {slug === 'shader-study' ? 'Shader Study' : 'the live scene'}
+          Play {findDemo(slug)?.title ?? 'the live scene'}
         </button>
       ) : (
         <>

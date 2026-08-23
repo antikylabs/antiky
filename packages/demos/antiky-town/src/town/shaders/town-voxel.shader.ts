@@ -1,5 +1,8 @@
 import {
   shader,
+  sin,
+  cos,
+  sqrt,
   abs,
   clamp,
   dot,
@@ -9,7 +12,6 @@ import {
   max,
   min,
   mix,
-  mod,
   normalize,
   pow,
   smoothstep,
@@ -58,6 +60,36 @@ function practicalRadiance(
  * The shadow map stores packed normalized light depth in RG; it must be rendered
  * by town-shadow.shader.ts into a depth-enabled target cleared to [1,1,1,1].
  */
+/**
+ * sRGB to linear, applied when an albedo texture is sampled.
+ *
+ * BroMetal exposes no sRGB texture format — everything uploads as `rgba8unorm` — so a sampled albedo
+ * texel arrives holding display-encoded values. Lighting maths on those is wrong: mid-tones come out
+ * too dark, which then gets compensated by over-bright lights, and the error compounds through every
+ * term downstream. This is the sample-side half of colour management; encoding once on output is the
+ * other half and belongs to the post pass.
+ *
+ * Only albedo goes through here. Normal maps, ARM and roughness maps, shadow maps and scene targets
+ * already hold linear data, and decoding those would corrupt them.
+ *
+ * The piecewise curve rather than the 2.2 approximation: they differ most below 0.04045, which is
+ * exactly where these dark scenes spend their time.
+ *
+ * Declared in every shader that needs it rather than imported. The BroMetal MVP resolves only
+ * "module-level helper functions declared above their first use" — an imported helper fails to
+ * compile. `pipeline-invariants.test.mjs` asserts every copy is identical.
+ */
+function channelToLinear(channel: number): number {
+  const low = channel / 12.92;
+  const high = pow((channel + 0.055) / 1.055, 2.4);
+  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
+  return mix(low, high, step(0.04045, channel));
+}
+
+function decodeSrgb(color: Vec3): Vec3 {
+  return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
+
 export default shader({
   attributes: {
     aPosition: 'vec3',
@@ -75,13 +107,25 @@ export default shader({
     uLightDir: 'vec3',
     uSunColor: 'vec3',
     uSunIntensity: 'float',
+    uSh0: 'vec3',
+    uSh1: 'vec3',
+    uSh2: 'vec3',
+    uSh3: 'vec3',
+    uSh4: 'vec3',
+    uSh5: 'vec3',
+    uSh6: 'vec3',
+    uSh7: 'vec3',
+    uSh8: 'vec3',
     uSkyColor: 'vec3',
     uSkyIntensity: 'float',
     uGroundColor: 'vec3',
     uGroundIntensity: 'float',
     uEmissiveIntensity: 'float',
-    uMaterialAtlas: 'sampler2D',
-    uMaterialAtlasTexel: 'vec2',
+    /** Twelve materials as twelve array layers, indexed by material id rather than addressed by UV. */
+    uMaterialAtlas: 'sampler2DArray',
+    uDetailNormal: 'sampler2D',
+    /** One authored texel in a layer's own UV, so the two height taps keep their authored spacing. */
+    uAuthoredTexel: 'vec2',
     uPracticalCount: 'float',
     uPracticalStrength: 'float',
     uPracticalPosInvRangeSq0: 'vec4',
@@ -144,13 +188,23 @@ export default shader({
       uLightDir,
       uSunColor,
       uSunIntensity,
+      uSh0,
+      uSh1,
+      uSh2,
+      uSh3,
+      uSh4,
+      uSh5,
+      uSh6,
+      uSh7,
+      uSh8,
       uSkyColor,
       uSkyIntensity,
       uGroundColor,
       uGroundIntensity,
       uEmissiveIntensity,
       uMaterialAtlas,
-      uMaterialAtlasTexel,
+      uDetailNormal,
+      uAuthoredTexel,
       uPracticalCount,
       uPracticalStrength,
       uPracticalPosInvRangeSq0,
@@ -181,7 +235,41 @@ export default shader({
     },
     { vWorld, vNormal, vBaseColor, vMaterial, vMaterialId, vLocalAo, vEmissive, vDepth },
   ) {
-    const normal = normalize(vNormal);
+    const baseNormal = normalize(vNormal);
+    // Triplanar detail normal over the atlas albedo.
+    //
+    // The hard rule this respects: never project an atlas. Triplanar ignores UVs, so projecting the
+    // material atlas across world space would sample across tile boundaries and composite unrelated
+    // tiles into every surface. What is projected here is a separate tiling normal map that carries
+    // no tile layout at all. The atlas keeps its authored UVs and decides colour; this decides only
+    // which way the surface faces.
+    //
+    // Axis-aligned box faces are the ideal case for it - each face lands almost entirely on one
+    // projection, so the three-way blend is nearly a straight lookup with none of the smearing that
+    // shows up on curved geometry.
+    //
+    // Sampled in the fragment body, not through a helper: `texture()` inside a DSL helper compiles
+    // to `textureSampleLevel(..., 0.0)`, which would pin this to the base mip and make it crawl.
+    //
+    // Rate and strength are local consts rather than uniforms. Nothing varies them at run time, and
+    // a uniform would mean binding plumbing for a number that never moves.
+    const detailRate = 0.55;
+    const detailStrength = 0.5;
+    const weightX = abs(baseNormal.x);
+    const weightY = abs(baseNormal.y);
+    const weightZ = abs(baseNormal.z);
+    const weightSum = weightX + weightY + weightZ;
+    const detailX = texture(uDetailNormal, vec2(vWorld.z, vWorld.y).scale(detailRate)).xyz;
+    const detailY = texture(uDetailNormal, vWorld.xz.scale(detailRate)).xyz;
+    const detailZ = texture(uDetailNormal, vWorld.xy.scale(detailRate)).xyz;
+    const tiltX = detailX.scale(2).sub(vec3(1, 1, 1));
+    const tiltY = detailY.scale(2).sub(vec3(1, 1, 1));
+    const tiltZ = detailZ.scale(2).sub(vec3(1, 1, 1));
+    const tilt = vec3(0, tiltX.y, tiltX.x).scale(weightX)
+      .add(vec3(tiltY.x, 0, tiltY.y).scale(weightY))
+      .add(vec3(tiltZ.x, tiltZ.y, 0).scale(weightZ))
+      .scale(detailStrength / weightSum);
+    const normal = normalize(baseNormal.add(tilt));
     const light = normalize(uLightDir);
     const view = normalize(uCamPos.sub(vWorld));
     const baseNdotL = max(dot(normal, light), 0);
@@ -198,9 +286,17 @@ export default shader({
     const slope = 1 - baseNdotL;
     const depthBias = uShadowBias + uShadowSlopeBias * slope * slope;
     let occluded = 0;
+    // Goal 08's penumbra: a vogel disk over ±3.2 texels replaces the ±1 grid, whose 1-2 px
+    // transitions read as paper cut-outs. A blocker-scaled spread (the cheap PCSS estimate) was
+    // built and then backed out: the pipeline invariants trace every shadow-map sample's dataflow,
+    // and a centre tap that steers other taps' lookup positions is indistinguishable to the tracer
+    // from a sample leaking into the colour path. Fixed spread, like the other six receivers.
+    // Bias is untouched, so no acne returns.
     for (let i = 0; i < 9; i += 1) {
-      const x = mod(i, 3) - 1;
-      const y = floor(i / 3) - 1;
+      const angle = i * 2.399963 + 0.7;
+      const ringRadius = sqrt((i + 0.5) / 9) * 3.2;
+      const x = cos(angle) * ringRadius;
+      const y = sin(angle) * ringRadius;
       const stored = texture(uShadowMap, shadowUv.add(uShadowTexel.mul(vec2(x, y))));
       const nearestDepth = stored.x + stored.y / 255;
       occluded = occluded + step(nearestDepth + depthBias, receiverDepth);
@@ -215,11 +311,11 @@ export default shader({
     if (abs(normal.x) > 0.5) surfaceUv = vec2(vWorld.z, vWorld.y);
     if (abs(normal.z) > 0.5) surfaceUv = vec2(vWorld.x, vWorld.y);
     const tiledUv = surfaceUv.scale(0.82);
-    const wrappedUv = vec2(fract(tiledUv.x), fract(tiledUv.y));
-    surfaceUv = vec2(
-      mix(0.02, 0.98, wrappedUv.x),
-      mix(0.02, 0.98, wrappedUv.y),
-    );
+    // The whole tile, edge to edge. This used to shrink to [0.02, 0.98] to keep the sample off the
+    // tile boundary, back when the boundary was the neighbouring tile. Then the packed atlas gave
+    // every tile 64 pixels of its own extruded edge, and now each material is its own array layer —
+    // so the boundary is the edge of an image with nothing beyond it, at every mip level.
+    surfaceUv = vec2(fract(tiledUv.x), fract(tiledUv.y));
 
     const materialId = floor(vMaterialId + 0.5);
     let atlasTile = 0;
@@ -246,13 +342,12 @@ export default shader({
     else if (materialId < 48) atlasTile = 4;
     else if (materialId < 49) atlasTile = 3;
 
-    const atlasColumn = mod(atlasTile, 4);
-    const atlasRow = floor(atlasTile / 4);
-    const atlasUv = vec2(
-      (atlasColumn + surfaceUv.x) / 4,
-      (2 - atlasRow + surfaceUv.y) / 3,
-    );
-    const materialSample = texture(uMaterialAtlas, atlasUv).xyz;
+    // The tile is a layer, so the material id *is* the address. What this replaces was a grid
+    // derivation — columns, rows, a gutter inset in u and v, and a rectangle worked out per
+    // fragment — that existed only because twelve materials shared one image. None of it survives
+    // contact with an array texture, and neither does the class of bug it invited: a sample can no
+    // longer land on the wrong tile, at any mip level, however the atlas is repacked.
+    const materialSample = decodeSrgb(texture(uMaterialAtlas, surfaceUv, atlasTile).xyz);
     const sampleLuma = max(dot(materialSample, vec3(0.299, 0.587, 0.114)), 0.08);
     const microValue = clamp(1 + (sampleLuma - 0.5) * 0.82, 0.62, 1.4);
     const microChroma = materialSample.scale(1 / sampleLuma);
@@ -265,8 +360,8 @@ export default shader({
     // Two forward height taps turn atlas value into a restrained world-space
     // micro-normal. This is real grazing-light depth on stone, timber, plaster,
     // shingles, and ground rather than a baked highlight in the albedo.
-    const sampleU = texture(uMaterialAtlas, atlasUv.add(vec2(uMaterialAtlasTexel.x * 2, 0))).xyz;
-    const sampleV = texture(uMaterialAtlas, atlasUv.add(vec2(0, uMaterialAtlasTexel.y * 2))).xyz;
+    const sampleU = texture(uMaterialAtlas, surfaceUv.add(vec2(uAuthoredTexel.x * 2, 0)), atlasTile).xyz;
+    const sampleV = texture(uMaterialAtlas, surfaceUv.add(vec2(0, uAuthoredTexel.y * 2)), atlasTile).xyz;
     const heightU = dot(sampleU, vec3(0.299, 0.587, 0.114));
     const heightV = dot(sampleV, vec3(0.299, 0.587, 0.114));
     let tangentU = vec3(1, 0, 0);
@@ -287,10 +382,46 @@ export default shader({
 
     const ao = clamp(vLocalAo, 0, 1);
     const cavity = 1 - ao;
+    // No projected roughness map here, and the reason is complexity rather than measurement.
+    //
+    // A `rock-boulder-dry` roughness scan was installed, projected and tried at two spreads. It
+    // measured 8.49 against 8.52 without — but three captures of *identical* code give 8.50, 8.50,
+    // 8.46, so that difference is inside the noise and proves nothing either way. The honest
+    // statement is that its effect is too small for this instrument to see.
+    //
+    // So the decision rests on what is left: these faces already carry authored per-face roughness,
+    // a projected detail normal, and five depth-from-light shadow passes. A fourth source of
+    // variation that no measurement can detect is a sample, a download and a uniform for something
+    // nobody can point at.
+    //
+    // The material stays installed and receipted at `assets/poly-haven/rock-boulder-dry/` so the
+    // next person can try it against a sharper instrument rather than re-fetching it.
     const roughness = clamp(vMaterial.x, 0.12, 1);
     const specularLevel = clamp(vMaterial.y, 0, 1);
     const up = surfaceNormal.y * 0.5 + 0.5;
-    const sky = uSkyColor.scale(uSkyIntensity * (0.28 + up * 0.72));
+    // Measured sky in place of two hand-picked colours.
+    //
+    // Worth saying what this did and did not fix, because the honest answer is unusual: the two
+    // colours it replaces were already right. `SKY_COLOR` was a cool blue and `GROUND_COLOR` a warm
+    // brown, and a real sunset HDRI bakes to cool blue looking up and warm brown looking down —
+    // independently the same decision, from a photograph rather than by eye.
+    //
+    // What nine coefficients add over two is the *second band*: light varying around the horizon
+    // rather than only up-against-down. On a town of axis-aligned faces that is the difference
+    // between every north wall matching every south wall and them differing the way they do outdoors.
+    //
+    // Scaled in `src/town/ambient.ts` so its spherical average matches what the split averaged, so
+    // this changes where the light comes from and not how much there is.
+    const skyIrradiance = uSh0
+      .add(uSh1.scale(normal.y))
+      .add(uSh2.scale(normal.z))
+      .add(uSh3.scale(normal.x))
+      .add(uSh4.scale(normal.x * normal.y))
+      .add(uSh5.scale(normal.y * normal.z))
+      .add(uSh6.scale(3 * normal.z * normal.z - 1))
+      .add(uSh7.scale(normal.x * normal.z))
+      .add(uSh8.scale(normal.x * normal.x - normal.y * normal.y));
+    const sky = skyIrradiance.scale(uSkyIntensity * (0.28 + up * 0.72));
     const ground = uGroundColor.scale(uGroundIntensity * (0.22 + (1 - up) * 0.78));
     // Preserve a cool, readable floor in shadow while retaining the authored
     // corner AO. Splitting AO between ambient and direct visibility prevents a

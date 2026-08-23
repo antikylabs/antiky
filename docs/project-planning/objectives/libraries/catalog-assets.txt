@@ -1,0 +1,35 @@
+# List of repos / sites with assets that are sourced and their license.
+
+# Assets in this list are verified cc0 and handpicked.
+
+# Quality 0
+https://pixel-boy.itch.io/ninja-adventure-asset-pack
+https://pixelfrog-assets.itch.io/tiny-swords
+https://kaylousberg.itch.io/kaykit-medieval-hexagon
+https://kaylousberg.itch.io/kaykit-dungeon-pack
+https://kaylousberg.itch.io/kaykit-forest
+https://quaternius.itch.io/stylized-nature-megakit
+https://pixelfrog-assets.itch.io/pixel-adventure-1
+
+
+# Quality 1
+https://quaternius.itch.io/universal-animation-library
+https://kaylousberg.itch.io/kaykit-skeletons
+https://rgsdev.itch.io/free-3d-modular-low-poly-assets-for-prototyping-by-rgsdev
+https://kevins-moms-house.itch.io/four-seasons-platformer-tileset
+
+# Quality 2
+https://0x72.itch.io/dungeontileset-ii
+https://datagoblin.itch.io/monogram
+https://fertile-soil-productions.itch.io/modular-village-pack
+https://kevins-moms-house.itch.io/fantasy
+https://gibbongl.itch.io/gboracles-character-interior-pack
+
+# Quality 3
+https://binbun3d.itch.io/godot-skies
+
+# Quality 4
+https://voxel-dev.itch.io/low-poly-camping-asset-pack-free-demo
+https://cc0gameassets.itch.io/lowpoly-3d-swords-cc0
+
+# Quality 5

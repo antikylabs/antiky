@@ -25,6 +25,31 @@ The command creates only the manifest. It does not install dependencies, run pac
 create source files, initialize Git, or contact a remote service. It prints the created manifest
 path and the next `antiky dev` and Studio actions.
 
+## Install a catalog asset
+
+Install an **Install verified** asset from the Antiky catalog into a project with its catalog ID:
+
+```sh
+antiky asset install poly-haven:forest-floor --project path/to/harbor-lights.antiky
+```
+
+The command validates the selected Antiky project, downloads the catalog's selected files, and
+checks every byte count and upstream hash before it replaces an existing installation. It writes
+the files beneath `assets/<provider>/<asset>/` and records their source URLs, upstream hashes,
+SHA-256 hashes, license, API attribution, and installation time in `assets/antiky-assets.json`.
+Track that registry with the project. It lets Studio, agents, builds, and reviewers identify the
+exact source of installed files without relying on filenames.
+
+The installer accepts only catalog records marked `install-verified`. Cataloged and
+source-metadata-verified records remain available for discovery and link to their original source.
+A failed download or integrity check
+leaves the prior installed asset unchanged. `ANTIKY_ASSET_NOT_FOUND` means the catalog ID is not
+known. `ANTIKY_ASSET_INSTALL_FAILED` means project validation, download, integrity verification, or
+the final filesystem update failed.
+
+See [Find and use game assets](../assets/catalog.md) for supported sources, status meanings, search,
+and the agent-facing static catalog JSON.
+
 The name stays visible in the manifest. Antiky converts it to a safe lowercase file slug. It keeps
 Unicode letters in the display name when they can produce a non-empty ASCII slug.
 
@@ -49,10 +74,25 @@ Select a project explicitly when you are outside its directory:
 antiky dev --project path/to/harbor-lights.antiky
 ```
 
+Add `--open` to start the session and open its exact loopback game page in your system browser:
+
+```sh
+antiky dev --open --project path/to/harbor-lights.antiky
+```
+
+The browser-opening step is explicit: plain `antiky dev` remains suitable for headless agents and
+terminal automation. If the operating system cannot open a browser, Antiky stops the partially
+started session and reports the exact loopback URL to open manually.
+
 An explicit path takes priority. Without one, Antiky accepts exactly one `.antiky` file in the
 current directory. It does not search parent directories. Antiky validates the complete manifest
 and reserves both ports before it starts a child process. If validation fails or a port is busy,
 nothing starts.
+
+That exact-port behavior belongs to direct `antiky dev` launches. Studio uses the same session host
+in a Studio-specific allocation mode: it claims the first free consecutive game/inspection pair in
+`7000–7999` without modifying the manifest. This lets multiple Studio game sessions coexist while
+keeping explicit CLI automation reproducible.
 
 On macOS, open the same selected project in the installed desktop application with:
 
@@ -398,7 +438,8 @@ The CLI writes a stable error code before its message:
 - `ANTIKY_PROJECT_INVALID`: JSON, fields, commands, URLs, ports, or portable paths are invalid.
 - `ANTIKY_PROJECT_PATH_ESCAPE`: a manifest link or resolved working directory escapes the project.
 - `ANTIKY_PROJECT_EXISTS`: initialization or migration would add a second project manifest.
-- `ANTIKY_PORT_BUSY`: a configured port cannot be reserved. No child starts.
+- `ANTIKY_PORT_BUSY`: a configured CLI port cannot be reserved, or Studio cannot find a free pair
+  in `7000–7999`. No child starts.
 - `ANTIKY_CHILD_START_FAILED`: an owned process could not start. Any partial start is cleaned up.
 - `ANTIKY_CHILD_STOP_FAILED`: an owned child process group remained active after shutdown attempts.
 - `ANTIKY_INTERNAL_ERROR`: the CLI failed unexpectedly; use the correlated diagnostic event.

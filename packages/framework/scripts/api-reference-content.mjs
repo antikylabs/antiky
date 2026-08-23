@@ -21,7 +21,7 @@ const worldId = parseWorldId(savedWorldId);`,
   {
     slug: 'engine-session',
     title: 'Engine session API',
-    summary: 'Run deterministic fixed-step systems and expose safe pause, resume, single-step, command, and disposal controls.',
+    summary: 'Run deterministic fixed-step systems, observe completed steps live, and expose safe pause, resume, single-step, command, and disposal controls.',
     useWhen: 'Use one session as the authority for a running world when simulation timing must stay independent from display timing.',
     guide: { href: '../framework/engine-sessions.md', label: 'Run a fixed-step game session' },
     exampleDescription: '`sessionId` and `worldId` are stable IDs. `move` is game logic; the host supplies elapsed time and current input each frame.',
@@ -37,6 +37,11 @@ const session = createEngineSession({
 
 session.advance(elapsedSeconds, currentInput);`,
     modules: [
+      {
+        source: 'sessions/session-frame-driver.ts',
+        title: 'Session frame driver',
+        description: 'Derive elapsed time from the host clock once, route a non-advanced frame to a fault channel instead of dropping it, and keep presenting either way.',
+      },
       {
         source: 'sessions/engine-session/runtime.ts',
         title: 'Create a session',
@@ -86,6 +91,11 @@ const store = createInspectionStore(createInspectionSnapshot({
         source: 'inspection/world.ts',
         title: 'World views',
         description: 'Describe bounded entity, relationship, component, and store data without exposing mutable engine state.',
+      },
+      {
+        source: 'inspection/event-recorder.ts',
+        title: 'Bounded event recorder',
+        description: 'Retain the newest events within a capacity, number them without reuse, and build the history envelope with its counts and drop accounting derived rather than hand-assembled.',
       },
       {
         source: 'inspection/events.ts',
@@ -211,15 +221,228 @@ const mountGame: GameModuleEntry = ({ canvas, movement, pointer }) => ({
 export default mountGame;`,
     modules: [
       {
+        source: 'game/contract.ts',
+        title: 'Game contract, import-free',
+        description: 'Re-exported here so the game entry stays one import. `@antiky/framework/contract` is the same types with nothing behind them.',
+      },
+      {
         source: 'game/host.ts',
         title: 'Game module and host contract',
         description: 'Keep platform work in the host and expose only semantic game input, measurements, inspection, presentation, and cleanup.',
+      },
+      {
+        source: 'game/capture-fixture.ts',
+        title: 'Capture fixture contract',
+        description: 'Validate bounded game-owned presentation controls for deterministic visual evidence.',
+      },
+    ],
+  },
+  {
+    slug: 'resources',
+    title: 'Resource disposal API',
+    summary: 'Own a set of resources and release them in reverse order, reporting every failure rather than the first.',
+    useWhen: 'Use one scope wherever construction acquires several things that must be released together, especially when a partial construction has to be unwound.',
+    guide: { href: '../framework/engine-sessions.md', label: 'Run a fixed-step game session' },
+    exampleDescription: '`loadTexture` and `createProgram` each acquire something that must be released. If the program fails to link, the texture is still released and the construction fault is what the caller sees.',
+    example: `import { createDisposalScope } from '@antiky/framework';
+
+const scope = createDisposalScope();
+try {
+  const texture = scope.adopt(loadTexture(source));
+  const program = scope.adopt(createProgram(texture));
+  return { program, dispose: () => scope.dispose() };
+} catch (cause) {
+  scope.rollback(cause);
+}`,
+    modules: [
+      {
+        source: 'resources/disposal-scope.ts',
+        title: 'Disposal scope',
+        description: 'Adopt resources as they are acquired, release them newest first, and unwind a failed construction without losing the fault that caused it.',
+      },
+    ],
+  },
+  {
+    slug: 'random',
+    title: 'Seeded randomness API',
+    summary: 'Draw reproducible pseudo-random values from an explicit seed, with forks that do not depend on draw order.',
+    useWhen: 'Use one seeded stream wherever a simulation needs randomness, so a run replays exactly and its state digest means something.',
+    guide: { href: '../framework/engine-sessions.md', label: 'Run a fixed-step game session' },
+    exampleDescription: '`seed` is an explicit simulation input, carried in the snapshot. Forking by label keeps two subsystems independent of each other\'s draw order.',
+    example: `import { createRandomStream } from '@antiky/framework';
+
+const random = createRandomStream(seed);
+const scatter = random.fork(1);
+const damage = random.fork(2);
+
+const offset = scatter.unit();`,
+    modules: [
+      {
+        source: 'random/seeded-random.ts',
+        title: 'Seeded random streams',
+        description: 'Hash integers reproducibly and draw from a seeded stream whose forks depend on their label alone.',
+      },
+    ],
+  },
+  {
+    slug: 'input',
+    title: 'Latched input API',
+    summary: 'Hold a one-shot action from the frame it was pressed until a fixed step consumes it, counting a held button once.',
+    useWhen: 'Use one latch per discrete action whenever input is sampled per rendered frame but consumed per fixed step.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'The host samples every frame; the session may complete no steps in a frame, so the press has to survive until one runs.',
+    example: `import { createLatchedAction } from '@antiky/framework';
+
+const jump = createLatchedAction();
+
+jump.capture(pointer.down);
+const advance = session.advance({ elapsedSeconds, input: { jump: jump.read() } });
+jump.consume(advance.completedSteps);`,
+    modules: [
+      {
+        source: 'input/latched-action.ts',
+        title: 'Latched action buffer',
+        description: 'Capture a press once per edge, keep it across frames that complete no step, and clear it when one does.',
+      },
+    ],
+  },
+  {
+    slug: 'game-contract',
+    title: 'Game contract API',
+    packageEntry: '@antiky/framework/contract',
+    summary: 'The shape of a game module and the context a host supplies it, with nothing imported behind it.',
+    useWhen: 'Use this entry when a module needs only the contract, so it does not pull in the inspection snapshot or the point-light type graph to learn what a game looks like.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'The same contract as the game host entry, obtainable on its own. `mode` lets a game degrade for a thumbnail; the seven-field pointer carries press and drag state, not just a position.',
+    example: `import type { GameModuleEntry } from '@antiky/framework/contract';
+
+const mountGame: GameModuleEntry = ({ canvas, pointer, mode }) => ({
+  frame(platformTimeSeconds) {
+    if (mode !== 'thumbnail') updateGame({ pointer, platformTimeSeconds });
+    drawGame(canvas);
+  },
+  dispose() {
+    disposeGame();
+  },
+});
+
+export default mountGame;`,
+    modules: [
+      {
+        source: 'game/contract.ts',
+        title: 'Game contract, import-free',
+        description: 'The shape of a game module and the context a host supplies it, with zero imports so it can be taken on its own.',
+      },
+    ],
+  },
+  {
+    slug: 'render-contract',
+    title: 'Render contract API',
+    summary: 'Describe a frame as passes, targets and pipeline keys, so a render driver can draw it without the game naming a graphics object.',
+    useWhen: 'Use this to hand rendering to a driver. A game that builds graphics resources itself is taking an exception, not the default path.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'A scene drawn into a floating-point target, reduced through a bloom step, then resolved to the canvas. `scene` and `bloom` are keys; the driver owns what they are made of.',
+    example: `import type { RenderFrame } from '@antiky/framework';
+
+const frame: RenderFrame = {
+  passes: [
+    { target: 'scene', clear: [0, 0, 0, 1], draws: [{ pipeline: 'world' }] },
+    { target: 'bloom', draws: [{ pipeline: 'extract', uniforms: { uScene: { target: 'scene' } } }] },
+    { draws: [{ pipeline: 'post', uniforms: { uBloom: { target: 'bloom' }, uExposure: 1.24 } }] },
+  ],
+};
+
+driver.submit(frame);`,
+    modules: [
+      {
+        source: 'render/render-contract.ts',
+        title: 'Render frame contract',
+        description: 'Name pipelines and targets by key and describe a frame as data, so a driver can be replaced without changing the framework.',
+      },
+    ],
+  },
+  {
+    slug: 'brometal-render-driver',
+    title: 'BroMetal render driver API',
+    packageEntry: '@antiky/framework/render-driver',
+    summary: 'Draw render contract frames with BroMetal, and own the programs, targets and their disposal.',
+    useWhen: 'Use this entry from a game host that renders with BroMetal. It is the only framework module that uses BroMetal, and it is reached by its own entry so a headless consumer never loads one.',
+    guide: { href: '../framework/game-modules.md', label: 'Build a game module' },
+    exampleDescription: 'Pipelines are supplied once, keyed. After that the game describes frames as data and never names a graphics object.',
+    example: `import { createBroMetalRenderDriver } from '@antiky/framework/render-driver';
+
+const driver = createBroMetalRenderDriver({
+  renderer,
+  pipelines: {
+    world: { shader: worldShader, setup: (program) => program.attributes.aPosition.set(positions) },
+    post: { shader: postShader, options: { blend: 'alpha' } },
+  },
+});
+
+driver.configureTargets([{ key: 'scene', scale: 1, depth: true, samples: 4 }]);`,
+    modules: [
+      {
+        source: 'render/brometal-driver.ts',
+        title: 'BroMetal render driver',
+        description: 'Own every BroMetal program and render target, and draw a contract frame pass by pass.',
       },
     ],
   },
 ]);
 
 export const SYMBOL_DESCRIPTIONS = Object.freeze({
+  // BroMetal render driver
+  PipelineDefinition: 'One pipeline the BroMetal driver can draw, supplied when it is constructed.',
+  BroMetalRenderDriverOptions: 'The renderer and pipelines a BroMetal render driver is built from.',
+  PipelineProgram: 'The binding records a pipeline setup callback is handed.',
+  TextureSource: 'Where a texture comes from: a URL the driver fetches, a list of URLs it fetches as the layers of one array texture, or an already-decoded source.',
+  BroMetalRenderDriver: 'A render driver that also accepts pipelines registered after it is built.',
+  createBroMetalRenderDriver: 'Create the render driver that owns Antiky BroMetal resources and draws contract frames.',
+
+  // Render contract
+  ClearColor: 'A clear colour in linear light, with alpha.',
+  PipelineKey: 'Names one pipeline a render driver was constructed with.',
+  TextureKey: 'Names one texture the driver was given to sample.',
+  TargetKey: 'Names one render target a driver owns, or the canvas when absent.',
+  UniformValue: 'A uniform a game sets for a draw: a number, a number list, or a reference to a target.',
+  DrawCall: 'One pipeline drawn, with the uniforms set immediately before it.',
+  TargetRequest: 'A render target a frame will use, sized as a fraction of the canvas.',
+  RenderPass: 'One target, what to clear it to, and the draws that write into it.',
+  RenderFrame: 'One frame, as an ordered list of passes.',
+  RenderDriver: 'What every render driver implements: configure targets, submit a frame, dispose.',
+  isContractValue: 'Whether a value carries only contract data rather than a backend handle.',
+
+  // Session frame driver
+  SessionFrameFault: 'A frame whose advance returned something other than ADVANCED.',
+  SessionFrameDriverOptions: 'The host services a frame driver needs: advance, input, present, and where a fault goes.',
+  SessionFrameDriver: 'Derives elapsed time from the host clock, advances the session, and presents the result.',
+  createSessionFrameDriver: 'Create the per-frame loop that turns a presentation clock into session advances.',
+
+  // Bounded event recording
+  completeCounts: 'The counts block for a set whose every available item is also retained.',
+  RecordedEvent: 'One retained event with its sequence number and timestamp.',
+  EventHistoryDescriptor: 'What a caller must supply to turn retained events into a history envelope.',
+  BoundedEventRecorder: 'A capped ring of simulation events that owns its own drop accounting.',
+  createBoundedEventRecorder: 'Create a bounded recorder that keeps the newest events and reports what it dropped.',
+
+  // Latched input
+  LatchedAction: 'A one-shot action captured at display rate and consumed at simulation rate.',
+  createLatchedAction: 'Create an edge-triggered action buffer that survives frames completing no step.',
+
+  // Seeded randomness
+  hash32: 'A reproducible 32-bit hash of one or two integers, using integer operations only.',
+  hashUnit: 'The same hash mapped onto `[0, 1)`.',
+  RandomStream: 'A seeded sequence that replays exactly and forks into independent child streams.',
+  createRandomStream: 'Create a seeded stream for one simulation or one subsystem of it.',
+
+  // Resource disposal
+  DisposableResource: 'Anything that can be released. The only shape a disposal scope requires.',
+  DisposalScope: 'Owns adopted resources and releases them newest first, collecting every failure.',
+  createDisposalScope: 'Create a scope that adopts resources and releases them in reverse order.',
+  ResourceTransaction: 'A completed all-or-nothing acquisition and the handle that releases it.',
+  acquireTransactional: 'Acquire every resource in order, or release what was acquired and rethrow.',
+  RendererResourceLifetime: 'A disposal scope that also owns the renderer, destroyed last and exactly once.',
+  createRendererResourceLifetime: 'Create a scope whose renderer is destroyed after the resources borrowed from it.',
   // Identity
   WorldId: 'A branded UUIDv7 for one authored world.',
   EntityId: 'A branded UUIDv7 for one stable world entity.',
@@ -242,7 +465,7 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   parseSessionId: 'Validates unknown input and returns it as a `SessionId`.',
 
   // Engine sessions
-  createEngineSession: 'Creates the authoritative fixed-step session and validates its IDs, systems, input capture, and owned services.',
+  createEngineSession: 'Creates the authoritative fixed-step session and validates its IDs, systems, input capture, completed-step observer, and owned services.',
   ENGINE_SESSION_SCHEMA_VERSION: 'The schema version emitted in engine-session status records.',
   FIXED_STEP_SECONDS: 'The simulation duration accepted by every completed fixed step.',
   MAX_FRAME_ELAPSED_SECONDS: 'The most wall-clock time one frame can add to the fixed-step accumulator.',
@@ -256,8 +479,8 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   EngineStepContext: 'The immutable input and clock data passed to each ordered system for one step.',
   EngineSystem: 'A stable system ID and its fixed-step callback.',
   EngineSessionOwnedService: 'A disposable service whose lifetime is owned by the session.',
-  EngineSessionOptions: 'Construction options for IDs, ordered systems, immutable input capture, digesting, and owned services.',
-  CompletedEngineStep: 'The last completed step, including captured input and an optional state digest.',
+  EngineSessionOptions: 'Construction options for IDs, ordered systems, immutable input capture, digesting, live completed-step observation, and owned services.',
+  CompletedEngineStep: 'One completed step, including captured input and an optional state digest.',
   EngineSessionStatus: 'Serializable inspection state for identity, mode, clocks, pause reasons, order, and revisions.',
   EngineFrameResultCode: 'Stable outcomes from `EngineSession.advance`.',
   EngineFrameResult: 'Counts accepted, discarded, accumulated, and completed frame work.',
@@ -420,6 +643,16 @@ export const SYMBOL_DESCRIPTIONS = Object.freeze({
   GameHostInspectionState: 'Host-owned lifecycle, canvas, frame, measurement, and error state used for one inspection snapshot.',
   GameInspectionDetails: 'Optional game-owned session and point-light state added to a host inspection snapshot.',
   GameSessionControlResult: 'One session-control result paired with the current serializable session status.',
+  CaptureFixtureControl: 'One declared scene-visibility, camera-translation, or named presentation-variant control.',
+  CaptureFixtureRequest: 'A bounded semantic fixture request addressed to one game-owned fixture surface.',
+  CaptureFixtureResult: 'The exact semantic controls a game accepted and applied for a capture.',
+  CaptureFixtureState: 'The current presentation-only scene, variant, and camera values owned by one game.',
+  CaptureFixtureDeclaration: 'The fixture name, semantic controls, defaults, and camera bound one game declares.',
+  CaptureFixtureController: 'Validates and applies a game declaration without exposing renderer or simulation objects.',
+  CaptureFixtureValidationError: 'Thrown for invalid or undeclared capture controls with a stable code and path.',
+  parseCaptureFixtureRequest: 'Validates, copies, and freezes a bounded semantic capture-fixture request.',
+  parseCaptureFixtureResult: 'Validates an applied fixture result and can require an exact request echo.',
+  createCaptureFixtureController: 'Creates a presentation-only controller from one game-owned fixture declaration.',
   GameInspectionPort: 'Optional semantic inspection and control operations supplied by a mounted game.',
   createGameInspectionSnapshot: 'Combines validated host state with optional game state in one Framework inspection snapshot.',
   GameHostContext: 'Canvas, runtime identity, semantic input, mode, and measurement callback supplied when a host mounts a game.',

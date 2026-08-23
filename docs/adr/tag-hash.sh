@@ -19,7 +19,7 @@ script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
 git_hash=$(git -C "$script_dir" rev-parse --verify HEAD)
 
 if grep -Fqx '## Revision history' "$adr_file"; then
-  printf -- "- \`%s\` — %s\n" "$git_hash" "$note" >> "$adr_file"
+  printf -- "- \`%s\`: %s\n" "$git_hash" "$note" >> "$adr_file"
 else
-  printf "\n## Revision history\n\n- \`%s\` — %s\n" "$git_hash" "$note" >> "$adr_file"
+  printf "\n## Revision history\n\n- \`%s\`: %s\n" "$git_hash" "$note" >> "$adr_file"
 fi

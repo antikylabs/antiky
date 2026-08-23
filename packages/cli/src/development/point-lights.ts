@@ -7,11 +7,14 @@ import {
 import { AntikyCliError } from '../errors.ts';
 import type {
   DevelopmentPointLightDetails,
+  DevelopmentPointLightDetailsV2,
   DevelopmentPointLightList,
+  DevelopmentPointLightListV2,
   DevelopmentSnapshot,
+  DevelopmentSnapshotV2,
 } from './types.ts';
 
-function readPointLightInspection(snapshot: DevelopmentSnapshot) {
+function readPointLightInspection(snapshot: DevelopmentSnapshot | DevelopmentSnapshotV2) {
   const pointLights = snapshot.inspection?.pointLights;
   if (!pointLights) {
     throw new AntikyCliError(
@@ -37,7 +40,7 @@ function readEntityId(value: unknown): EntityId {
 }
 
 export function projectDevelopmentPointLightList(
-  snapshot: DevelopmentSnapshot,
+  snapshot: DevelopmentSnapshot | DevelopmentSnapshotV2,
 ): DevelopmentPointLightList {
   const inspection = readPointLightInspection(snapshot);
   return Object.freeze({
@@ -51,7 +54,7 @@ export function projectDevelopmentPointLightList(
 }
 
 export function projectDevelopmentPointLight(
-  snapshot: DevelopmentSnapshot,
+  snapshot: DevelopmentSnapshot | DevelopmentSnapshotV2,
   entityIdInput: unknown,
 ): DevelopmentPointLightDetails {
   const inspection = readPointLightInspection(snapshot);
@@ -81,3 +84,39 @@ export function projectDevelopmentPointLight(
   });
 }
 
+function requireObservation(snapshot: DevelopmentSnapshotV2) {
+  if (!snapshot.observation) {
+    throw new AntikyCliError(
+      'ANTIKY_RUNTIME_UNAVAILABLE',
+      'The runtime has not published an observation.',
+    );
+  }
+  return snapshot.observation;
+}
+
+export function projectDevelopmentPointLightListV2(
+  snapshot: DevelopmentSnapshotV2,
+): DevelopmentPointLightListV2 {
+  const legacy = projectDevelopmentPointLightList(snapshot);
+  return Object.freeze({
+    schemaVersion: 2,
+    observation: requireObservation(snapshot),
+    worldId: legacy.worldId,
+    eventSequence: legacy.eventSequence,
+    pointLights: legacy.pointLights,
+  });
+}
+
+export function projectDevelopmentPointLightV2(
+  snapshot: DevelopmentSnapshotV2,
+  entityIdInput: unknown,
+): DevelopmentPointLightDetailsV2 {
+  const legacy = projectDevelopmentPointLight(snapshot, entityIdInput);
+  return Object.freeze({
+    schemaVersion: 2,
+    observation: requireObservation(snapshot),
+    worldId: legacy.worldId,
+    eventSequence: legacy.eventSequence,
+    pointLight: legacy.pointLight,
+  });
+}

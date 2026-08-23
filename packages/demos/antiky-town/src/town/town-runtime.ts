@@ -1,5 +1,6 @@
 import type { Renderer } from 'brometal';
 import type {
+  CaptureFixtureController,
   GameHostContext,
   GameInstance,
   GameMovementInput,
@@ -8,6 +9,7 @@ import type { TownDemoOptions } from './practical-light-input.ts';
 
 /** Game-module data plus the game-owned BroMetal render driver. */
 export type TownGameSetup = GameHostContext & Readonly<{
+  captureFixture?: CaptureFixtureController;
   renderer: Renderer;
 }>;
 
@@ -26,7 +28,3 @@ export type TownRuntimeFactory = (
 export type TownRuntimeBuilder = (
   options: TownDemoOptions,
 ) => TownRuntimeFactory;
-
-export type TownGameFactory = (
-  setup: TownGameSetup,
-) => GameInstance | Promise<GameInstance>;

@@ -10,25 +10,35 @@ import './globals.css';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
-    template: `%s — ${SITE_NAME}`,
+    default: `${SITE_NAME}: ${SITE_TAGLINE}`,
+    template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   category: 'technology',
   alternates: { canonical: SITE_URL },
   openGraph: {
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    title: `${SITE_NAME}: ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
     url: SITE_URL,
     type: 'website',
     locale: 'en_US',
+    images: [{
+      url: '/media/demos/antiky-town.webp',
+      width: 2560,
+      height: 1440,
+      alt: 'Antiky Town at golden hour, with a market, water, trees, and a small adventurer in a voxel world.',
+    }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    title: `${SITE_NAME}: ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
+    images: [{
+      url: '/media/demos/antiky-town.webp',
+      alt: 'Antiky Town at golden hour, with a market, water, trees, and a small adventurer in a voxel world.',
+    }],
   },
 };
 

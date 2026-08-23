@@ -67,9 +67,8 @@ not require one model provider.
 - `@antiky/framework` supplies the fixed-step `EngineSession`, stable UUIDv7 identities, immutable
   runtime inspection snapshots, and the first framework-owned point-light command and correction
   flow.
-- Antiky Town uses that framework path while the original BroMetal town remains available as its
-  visual and behavioral reference.
-- Browser studies exercise the current 2.3D, shader, sprite, voxel, and WebGPU work.
+- Four browser demos use that Framework path while BroMetal remains the rendering layer beneath
+  their game rules.
 
 ## How the pieces fit
 
@@ -87,12 +86,12 @@ You need Node.js 22 or newer, npm, and a WebGPU-capable browser for the rendered
 git clone https://github.com/antikylabs/site.git
 cd site
 npm install
-npm run antiky -- dev
+npm run antiky -- dev --project packages/demos/antiky-town/antiky-town.antiky
 ```
 
-The repository's [`antiky-town.antiky`](antiky-town.antiky) starts the focused Antiky Town game
-host, shader watcher, inspection service, and Streamable HTTP MCP endpoint. The CLI prints the game,
-inspection, and MCP URLs after startup.
+The selected [Antiky Town project](packages/demos/antiky-town/antiky-town.antiky) starts the
+focused game host, shader watcher, inspection service, and Streamable HTTP MCP endpoint. The CLI
+prints the game, inspection, and MCP URLs after startup.
 
 In another terminal, inspect the session or call a shared tool:
 
@@ -104,9 +103,9 @@ npm run antiky -- tool list_point_lights
 
 Press `Ctrl-C` in the development terminal to stop every owned process and release the local ports.
 
-Start Studio with `npm run dev:studio`, then reopen a recent project, create one in an existing game
-folder, or select **Open project** and choose `antiky-town.antiky`. The local packaged macOS app also
-registers `.antiky` files for Finder. See
+Start Studio with `npm run dev:studio`, then create a project, select one from the launcher, or use
+**File > Open Project…** and **File > Recent Projects** to replace the active project in the same
+window. The local packaged macOS app also registers `.antiky` files for Finder. See
 [Inspect a running game in Studio](docs/user-facing-docs/studio/getting-started.md) for launcher,
 picker, project switching, and workspace guidance.
 
@@ -129,29 +128,30 @@ security boundary.
 | Run type checks and tests | `npm run check` |
 | Build the production website | `npm run build` |
 
-Use `antiky-town`, `town-study`, or `shader-study` as a focused demo slug. The
-[demo source guide](packages/demos/src/demos/README.md) lists the registered and internal studies.
+Use `antiky-town`, `combat-arena`, `point-light-expo`, or `traversal-study` as a focused demo slug.
+The [Antiky demo guide](packages/demos/README.md) describes the catalog and maintained asset tools.
 
 ## Workspace packages
 
-The repository currently contains four npm workspace packages:
+The repository contains core product workspaces plus four self-contained Antiky demo workspaces:
 
 | Package | Path | Role |
 | --- | --- | --- |
 | `@antiky/framework` | [`packages/framework`](packages/framework) | Headless engine sessions, identities, inspection contracts, and reusable game systems |
 | `@antiky/cli` | [`packages/cli`](packages/cli) | The `antiky` command, development-session host, typed development client, inspection transport, and MCP adapters |
-| `@antiky/demos` | [`packages/demos`](packages/demos) | Standalone browser studies, the focused Vite game host, Antiky Town, and the original BroMetal Town reference |
+| Demo workspaces | [`packages/demos`](packages/demos) | Four flat Antiky Framework game modules rendered through BroMetal |
 | `@antiky/website` | [`packages/website`](packages/website) | The Antiky Labs website and public presentation of runnable demos |
+| `@antiky/studio-app` and `@antiky/studio-tauri` | [`packages/studio`](packages/studio) | Studio webview, native application host, project service, and terminal integration |
 
-All four packages are private and pre-release. [`packages/studio`](packages/studio) reserves the
-future Studio source location, but it is not an npm package or runnable application yet.
+The workspaces are private and pre-release.
 
 The current package dependencies are:
 
 ```text
-@antiky/website -> @antiky/demos -> @antiky/framework
-                               \-> BroMetal
-@antiky/cli --------------------> @antiky/framework
+Antiky demos ----------> @antiky/framework + BroMetal
+@antiky/website -------> @antiky/framework
+@antiky/cli -----------> @antiky/framework
+@antiky/studio-app ----> @antiky/cli
 ```
 
 Framework core stays free of React, Next.js, browser DOM, Node.js host, Studio, MCP, and BroMetal

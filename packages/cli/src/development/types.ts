@@ -13,6 +13,7 @@ import type {
   WorldId,
   WorldInspection,
 } from '@antiky/framework';
+import type { ObservationRefV1 } from './observation.ts';
 
 export const DEVELOPMENT_SCHEMA_VERSION = 1 as const;
 
@@ -89,6 +90,14 @@ export type DevelopmentSnapshot = Readonly<{
   inspection: InspectionSnapshot | null;
 }>;
 
+export type DevelopmentSnapshotV2 = Readonly<
+  Omit<DevelopmentSnapshot, 'schemaVersion'>
+  & Readonly<{
+    schemaVersion: 2;
+    observation: ObservationRefV1 | null;
+  }>
+>;
+
 export type DevelopmentStopReason = 'normal' | 'interrupt' | 'child-failure' | 'start-failure';
 
 export type DevelopmentStopResult = Readonly<{
@@ -106,19 +115,6 @@ export type DevelopmentReloadResult = Readonly<{
   oldRuntimeInstanceId: string;
   newRuntimeInstanceId: string;
   result: 'reloaded';
-}>;
-
-export type DevelopmentCaptureResult = Readonly<{
-  schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
-  actionId: string;
-  captureId: string;
-  developmentSessionId: string;
-  runtimeInstanceId: string;
-  buildRevision: number;
-  mimeType: 'image/png';
-  byteLength: number;
-  sha256: string;
-  path: string;
 }>;
 
 export type DevelopmentPointLightList = Readonly<{
@@ -144,6 +140,22 @@ export type DevelopmentPointLightDetails = Readonly<{
   }> | null;
 }>;
 
+export type DevelopmentPointLightListV2 = Readonly<{
+  schemaVersion: 2;
+  observation: ObservationRefV1;
+  worldId: WorldId;
+  eventSequence: number;
+  pointLights: readonly PointLightAuthoringRecord[];
+}>;
+
+export type DevelopmentPointLightDetailsV2 = Readonly<{
+  schemaVersion: 2;
+  observation: ObservationRefV1;
+  worldId: WorldId;
+  eventSequence: number;
+  pointLight: DevelopmentPointLightDetails['pointLight'];
+}>;
+
 export type DevelopmentWorldInspection = Readonly<{
   schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
   developmentSessionId: string;
@@ -156,6 +168,18 @@ export type DevelopmentEventHistory = Readonly<{
   events: EventHistory;
 }>;
 
+export type DevelopmentWorldInspectionV2 = Readonly<{
+  schemaVersion: 2;
+  observation: ObservationRefV1;
+  world: WorldInspection;
+}>;
+
+export type DevelopmentEventHistoryV2 = Readonly<{
+  schemaVersion: 2;
+  observation: ObservationRefV1;
+  events: EventHistory;
+}>;
+
 export type DevelopmentSetPointLightPowerInput = SetPointLightPowerCommand;
 export type DevelopmentCorrectPointLightPowerInput = CorrectPointLightPowerRequest;
 export type DevelopmentPointLightCommandResult = PointLightCommandResult;
@@ -163,6 +187,12 @@ export type DevelopmentPointLightCommandResult = PointLightCommandResult;
 export type DevelopmentSessionStatus = Readonly<{
   schemaVersion: typeof DEVELOPMENT_SCHEMA_VERSION;
   developmentSessionId: string;
+  session: EngineSessionStatus;
+}>;
+
+export type DevelopmentSessionStatusV2 = Readonly<{
+  schemaVersion: 2;
+  observation: ObservationRefV1;
   session: EngineSessionStatus;
 }>;
 

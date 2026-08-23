@@ -1,0 +1,368 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "catalogId": "kenney:blaster-kit",
+      "officialSourcePageUrl": "https://kenney.nl/assets/blaster-kit",
+      "officialDownloadUrl": "https://kenney.nl/media/pages/assets/blaster-kit/261d80a716-1753959510/kenney_blaster-kit_2.1.zip",
+      "archive": {
+        "archiveFileName": "kenney_blaster-kit.zip",
+        "sha256": "91e3093e95427d59625e7e2ce2d0399b861600160fd0b4ada7714796b67cea8c"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "sourcePath": "License.txt",
+        "copiedTo": "assets/kenney/blaster-kit/LICENSE.txt"
+      },
+      "normalization": "Embedded the archive-delivered Models/GLB format/Textures/colormap.png as an image bufferView in each GLB binary chunk; geometry buffers/accessors, meshes/primitives, nodes, materials, textures, and material-to-texture mappings are unchanged.",
+      "embeddedTexture": {
+        "originalPath": "Models/GLB format/Textures/colormap.png",
+        "sha256": "4d0867c3c3c8c539106f91fbc0987d0e1b7d2811362d1daed593169c7d3b0fdc"
+      },
+      "files": [
+        {
+          "originalPath": "Models/GLB format/target-detail.glb",
+          "originalSha256": "639c45fbdde41d9e8c6bc3d11fa23afe622225728a389215f7fa8fd5d858f88f",
+          "derivedPath": "assets/kenney/blaster-kit/target-detail.glb",
+          "derivedSha256": "071d07470b925759f38cc9e4ede67fc9b1e6f31f88e6954e4475723bccbed64b",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 260,
+            "indices": 492,
+            "bounds": {
+              "min": [
+                -0.12999999523162842,
+                0,
+                0
+              ],
+              "max": [
+                0,
+                0.35999998450279236,
+                0.36000001430511475
+              ]
+            }
+          }
+        },
+        {
+          "originalPath": "Models/GLB format/grenade-a.glb",
+          "originalSha256": "8b67f9500005efee816f3fe72eb00bcded0282f7a9916f4436bf923877d8a89f",
+          "derivedPath": "assets/kenney/blaster-kit/grenade-a.glb",
+          "derivedSha256": "4239f8fba56a432d07227bc092d7c3d6d81bc8c33fab2c55b7ece40d2961de4e",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 340,
+            "indices": 600,
+            "bounds": {
+              "min": [
+                -0.09892172366380692,
+                0,
+                -0.08997199684381485
+              ],
+              "max": [
+                0.06997200101613998,
+                0.23770800232887268,
+                0.06997200101613998
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "catalogId": "quaternius:ultimatespaceships",
+      "officialSourcePageUrl": "https://quaternius.com/packs/ultimatespaceships.html",
+      "officialDownloadUrl": "https://drive.google.com/drive/folders/1NpfT3wqe2k3Jwue2xryi7tzxP4bWzETu?usp=sharing",
+      "sourceFolder": {
+        "provider": "Google Drive",
+        "folderId": "1NpfT3wqe2k3Jwue2xryi7tzxP4bWzETu",
+        "retrievedAt": "2026-08-10",
+        "note": "The official source is a folder rather than an archive; exact selected file IDs and hashes are recorded per file."
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "sourcePath": "License.txt",
+        "sourceFileId": "16iPJQOxZQgJB6UBiutO-PU35YROyGEL8",
+        "sourceSha256": "83d8959f9fc56353ed571fbe2dc52e4bcd64508e2399501cd45ac2ce3df0bf8c",
+        "copiedTo": "assets/quaternius/ultimate-spaceships/License.txt"
+      },
+      "normalization": "Validated each official glTF and selected official color PNG by exact SHA-256, decoded the glTF data-URI buffer, preserved geometry/accessors/mesh/nodes/material/UV mappings, substituted the selected official color PNG for the source model's embedded Orange image bufferView, rebuilt four-byte-aligned bufferViews, and packed JSON plus binary data into a self-contained GLB.",
+      "transformationScript": "scripts/intake-quaternius-ships.mjs",
+      "runtimeFootprints": {
+        "derivedPath": "src/ship-footprints.gen.ts",
+        "parser": "brometal@0.15.0 parseGlb",
+        "derivation": "For each normalized shipped GLB, calculate the maximum hypot(position.x * runtimeScale.x, position.z * runtimeScale.z) over every parsed vertex; also record scaled X/Z spans and the exact runtime X/Z scale.",
+        "consumer": "src/combat-hulls.ts"
+      },
+      "files": [
+        {
+          "originalPath": "Spitfire.gltf",
+          "originalFileId": "190E7T13jvAH8rVzD3dd484gPfN5fV8X3",
+          "originalSha256": "65df89a9a163ca1ce2d2ef253668b1b4e670f6903052fd566f54162ac5a92920",
+          "selectedTexturePath": "Spitfire_Blue.png",
+          "selectedTextureFileId": "1LM7mPH8IevKEeKI7_MnvA1ysmzzfupxU",
+          "selectedTextureSha256": "59965e110e6ebe0a3f62120a42099b5d6107a9d1ad124afa1189b9bc1954f08d",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/spitfire-blue.glb",
+          "derivedSha256": "eb584744f6b0bf3ecf0fa25eb55c867b5a6b06a26aca6e9a88c4aae5d684de81",
+          "runtimeUse": "Starbreaker player hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 4107,
+            "indices": 10536,
+            "bounds": {
+              "min": [
+                -5.2618442,
+                -2.0253601,
+                -3.139415
+              ],
+              "max": [
+                5.2618442,
+                1.0298198,
+                4.3938928
+              ]
+            }
+          }
+        },
+        {
+          "originalPath": "Striker.gltf",
+          "originalFileId": "1TmKsBDmZnMIHHZL1ec5WD2Yq1FVwu3Ai",
+          "originalSha256": "2f6c4b1d16f11d5ce02833c5841ff17e19700418c83e52501ed29e3c2bc79359",
+          "selectedTexturePath": "Striker_Red.png",
+          "selectedTextureFileId": "1PF7wvd9GFHBvjcjmxFgLcHZo6x_s1TF_",
+          "selectedTextureSha256": "43dfa2597eb1bae1db209686be0ef6cf12e307aa50a5c55d2e04341b3c356255",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/striker-red.glb",
+          "derivedSha256": "f6c0eed0d727b29f3c6c89c4180fedfe6898a725cae0a598a0c7431c947ff441",
+          "runtimeUse": "Rusher hostile hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 4911,
+            "indices": 13590,
+            "bounds": {
+              "min": [
+                -2.5168083,
+                -1.432785,
+                -3.5290728
+              ],
+              "max": [
+                2.5168083,
+                1.2518599,
+                4.8970942
+              ]
+            }
+          }
+        },
+        {
+          "originalPath": "Omen.gltf",
+          "originalFileId": "1AI4LO8e8-CRd9z9fm4h8XPG90OekGdZb",
+          "originalSha256": "dd77f3f08d17227083b714d80cbc0d0470a6b44480003cca9051a53183571160",
+          "selectedTexturePath": "Omen_Orange.png",
+          "selectedTextureFileId": "1u_H0fMN_wSJCIwtoeDoKIOi30Cf4JY0z",
+          "selectedTextureSha256": "4925ba424ad828b1928926e057ca07232b7bfb7af8eb3542fa5e3d77d1d14648",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/omen-orange.glb",
+          "derivedSha256": "83df1cb9c2df3536e356197b2f32ed36d0843eae4d281a650d390ec6ee6ffe2f",
+          "runtimeUse": "Gunner hostile hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 1781,
+            "indices": 4278,
+            "bounds": {
+              "min": [
+                -6.3922052,
+                -1.0619138,
+                -3.9228954
+              ],
+              "max": [
+                6.3922052,
+                2.0766928,
+                8.6585503
+              ]
+            }
+          }
+        },
+        {
+          "originalPath": "Imperial.gltf",
+          "originalFileId": "1QWFecMijLgalCJpj9O_wihq6VE09Hrl-",
+          "originalSha256": "389012d28270b859adb48ce12d1307af536f395ed734aafcb30f59ec8a9bb2e3",
+          "selectedTexturePath": "Imperial_Red.png",
+          "selectedTextureFileId": "1rulcb694V2ZnHWEYFRIEQ2mfjvzRa2aI",
+          "selectedTextureSha256": "eb9d56bdbf8d66a2241ea7dfcf3c6c032e82844c99427466b05461e03bc876be",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/imperial-red.glb",
+          "derivedSha256": "67a815a0590497adb15aa50d7e83fc1b7f02280f51aa9a065b546d073fff18b6",
+          "runtimeUse": "Shield-anchor hostile hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 3673,
+            "indices": 7926,
+            "bounds": {
+              "min": [
+                -3.8647604,
+                -1.3141971,
+                -6.6691833
+              ],
+              "max": [
+                3.8647604,
+                1.9892471,
+                11.8792019
+              ]
+            }
+          }
+        },
+        {
+          "originalPath": "Executioner.gltf",
+          "originalFileId": "1DaCoRPG1Q54SFBOPMrhTOZNaNETsuRB1",
+          "originalSha256": "95dd08b854b0588480e91515949c5fd3e329ec856882e2b58b71e4cdc41348f9",
+          "selectedTexturePath": "Executioner_Red.png",
+          "selectedTextureFileId": "1SNmGO_0L4pOnDGW3Z86J2N7hnz6EmFuw",
+          "selectedTextureSha256": "2b10363d811f45e1ad89e3e808d031ddbded91deb3107b142f84ec604dcd9879",
+          "derivedPath": "assets/quaternius/ultimate-spaceships/executioner-red.glb",
+          "derivedSha256": "009fb5221b23d292a1bd97bbe5eb4e34ac0398601869f38aea3bd43dc694bae4",
+          "runtimeUse": "Circuit Warden hostile hull",
+          "validation": {
+            "parser": "brometal@0.15.0 parseGlb",
+            "result": "pass",
+            "meshes": 1,
+            "images": 1,
+            "vertices": 3819,
+            "indices": 10164,
+            "bounds": {
+              "min": [
+                -5.0110607,
+                -0.7747538,
+                -3.0779488
+              ],
+              "max": [
+                5.0110607,
+                1.0724101,
+                6.1242223
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "catalogId": "poly-haven:metal-plate",
+      "kind": "texture",
+      "installedAt": "2026-08-12T20:28:10.850Z",
+      "provider": {
+        "id": "poly-haven",
+        "name": "Poly Haven",
+        "url": "https://polyhaven.com"
+      },
+      "upstream": {
+        "id": "metal_plate",
+        "url": "https://polyhaven.com/a/metal_plate",
+        "filesHash": "1046b39bf68d65eeb80dab84a99186a453ee94e0",
+        "retrievedAt": "2026-08-09T22:15:47.937Z"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "resolution": "1k",
+      "format": "jpg",
+      "files": [
+        {
+          "map": "diff",
+          "file": "assets/poly-haven/metal-plate/metal-plate_diff_1k.jpg",
+          "bytes": 692234,
+          "md5": "bd9daf4c04046ca392a38b8df955ed26",
+          "sha256": "c6b6739eac2c75ccc898e753d7833df24eafbdb9aa92fb6eabfb92abd1a680a5",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_diff_1k.jpg"
+        },
+        {
+          "map": "nor",
+          "file": "assets/poly-haven/metal-plate/metal-plate_nor_1k.jpg",
+          "bytes": 770307,
+          "md5": "d379e66130ad6ccff217ac9b13de935d",
+          "sha256": "994f851a84d52b51e97906021a1b7070ee6eac9a789fef041132268de47d8e6b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_nor_gl_1k.jpg"
+        },
+        {
+          "map": "rough",
+          "file": "assets/poly-haven/metal-plate/metal-plate_rough_1k.jpg",
+          "bytes": 775206,
+          "md5": "6e1c8672d804b90546a23db621515b16",
+          "sha256": "756308485ce742a52831453c296452f48cf0adead7d85adfffd34c08dce23ec1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_rough_1k.jpg"
+        },
+        {
+          "map": "ao",
+          "file": "assets/poly-haven/metal-plate/metal-plate_ao_1k.jpg",
+          "bytes": 565996,
+          "md5": "544f16f963e8904495834a94c71c7078",
+          "sha256": "715f90d663af5366ff7839369161b6ad42786aed5f3fc1409ba20fa635aaeacd",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_ao_1k.jpg"
+        }
+      ]
+    },
+    {
+      "catalogId": "kenney:modular-space-kit",
+      "kind": "model",
+      "installedAt": "2026-08-12T22:01:08.903Z",
+      "provider": {
+        "id": "kenney",
+        "name": "Kenney",
+        "url": "https://kenney.nl"
+      },
+      "upstream": {
+        "id": "modular-space-kit",
+        "url": "https://kenney.nl/assets/modular-space-kit",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-09T22:33:55.877Z",
+        "archive": "https://kenney.nl/media/pages/assets/modular-space-kit/8261428a47-1771146076/kenney_modular-space-kit_1.0.zip"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "files": [
+        {
+          "file": "assets/kenney/modular-space-kit/template-wall.glb",
+          "bytes": 38472,
+          "sha256": "d12cfc5bebbabf8f71f5f8898548bd0af4dcaafa7edd386c9de5dacf280ade5f"
+        },
+        {
+          "file": "assets/kenney/modular-space-kit/template-wall-detail-a.glb",
+          "bytes": 84516,
+          "sha256": "9506622c3ef46acc0d8a3096eb637816f8eb45635c8ce65eb702275f8584d9fa"
+        },
+        {
+          "file": "assets/kenney/modular-space-kit/template-wall-corner.glb",
+          "bytes": 7420,
+          "sha256": "9102860b0f75536786b607ccc77853a57885a7688277a21e849acc35410918ad"
+        },
+        {
+          "file": "assets/kenney/modular-space-kit/template-wall-top.glb",
+          "bytes": 31684,
+          "sha256": "06ec7991181f1068c45abd1c6be69fd372dfc3137727dcc363a9f85fc655d58e"
+        }
+      ]
+    }
+  ]
+}

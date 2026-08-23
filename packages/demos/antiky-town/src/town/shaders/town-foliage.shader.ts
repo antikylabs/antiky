@@ -1,5 +1,6 @@
 import {
   shader,
+  sqrt,
   clamp,
   cos,
   discard,
@@ -20,6 +21,7 @@ import {
   vec2,
   vec3,
   vec4,
+  type Vec3,
 } from 'brometal';
 
 /**
@@ -29,6 +31,36 @@ import {
  * share the exact attribute/instance interface and deformation uniforms, so
  * the matching shadow caster can consume the same CPU buffers without repack.
  */
+/**
+ * sRGB to linear, applied when an albedo texture is sampled.
+ *
+ * BroMetal exposes no sRGB texture format — everything uploads as `rgba8unorm` — so a sampled albedo
+ * texel arrives holding display-encoded values. Lighting maths on those is wrong: mid-tones come out
+ * too dark, which then gets compensated by over-bright lights, and the error compounds through every
+ * term downstream. This is the sample-side half of colour management; encoding once on output is the
+ * other half and belongs to the post pass.
+ *
+ * Only albedo goes through here. Normal maps, ARM and roughness maps, shadow maps and scene targets
+ * already hold linear data, and decoding those would corrupt them.
+ *
+ * The piecewise curve rather than the 2.2 approximation: they differ most below 0.04045, which is
+ * exactly where these dark scenes spend their time.
+ *
+ * Declared in every shader that needs it rather than imported. The BroMetal MVP resolves only
+ * "module-level helper functions declared above their first use" — an imported helper fails to
+ * compile. `pipeline-invariants.test.mjs` asserts every copy is identical.
+ */
+function channelToLinear(channel: number): number {
+  const low = channel / 12.92;
+  const high = pow((channel + 0.055) / 1.055, 2.4);
+  // `pow` and `step` are scalar-only here, so the curve is applied one component at a time.
+  return mix(low, high, step(0.04045, channel));
+}
+
+function decodeSrgb(color: Vec3): Vec3 {
+  return vec3(channelToLinear(color.x), channelToLinear(color.y), channelToLinear(color.z));
+}
+
 export default shader({
   attributes: {
     aPosition: 'vec3',
@@ -49,6 +81,7 @@ export default shader({
     uLightDir: 'vec3',
     uSunColor: 'vec3',
     uSunIntensity: 'float',
+    uTransmissionStrength: 'float',
     uSkyColor: 'vec3',
     uSkyIntensity: 'float',
     uGroundColor: 'vec3',
@@ -108,8 +141,12 @@ export default shader({
       clamp(iWind.y, 0, 1),
     );
     const phase = iShape.w * 6.2831853 + iCenter.x * 0.19 + iCenter.z * 0.27;
-    const primary = sin(uTime * uWindSpeed + phase + aWindWeight * 0.8);
-    const flutter = sin(uTime * uWindSpeed * 2.73 + phase * 1.71) * 0.34;
+    // Per-instance frequency, not just per-instance phase — the same rule the glow shaders follow
+    // (AC-V3). One shared rate re-synchronises however the phases start, and a town of plants
+    // breathing in unison reads as a metronome rather than as weather.
+    const rate = uWindSpeed * (0.72 + iShape.w * 0.66);
+    const primary = sin(uTime * rate + phase + aWindWeight * 0.8);
+    const flutter = sin(uTime * rate * 2.73 + phase * 1.71) * 0.34;
     const sway = (primary + flutter) * iWind.x * uWindStrength * anchorWeight * anchorWeight;
     const world = iCenter.add(rotated).add(vec3(
       windDirection.x * sway,
@@ -146,6 +183,7 @@ export default shader({
       uLightDir,
       uSunColor,
       uSunIntensity,
+      uTransmissionStrength,
       uSkyColor,
       uSkyIntensity,
       uGroundColor,
@@ -166,7 +204,8 @@ export default shader({
   ) {
     // WebGPU requires implicit-derivative texture sampling to execute in
     // uniform control flow. Sample for both cards and trunks, then select.
-    const atlasSample = texture(uAtlas, vUv);
+    const encodedAtlas = texture(uAtlas, vUv);
+    const atlasSample = vec4(decodeSrgb(encodedAtlas.xyz), encodedAtlas.w);
     let baseColor = vTint;
     if (vKind < 0.5) {
       if (atlasSample.w < uCutoff) discard();
@@ -197,8 +236,12 @@ export default shader({
     const depthBias = uShadowBias + uShadowSlopeBias * slope * slope;
     let occluded = 0;
     for (let i = 0; i < 9; i += 1) {
-      const x = mod(i, 3) - 1;
-      const y = floor(i / 3) - 1;
+      // Goal 08 widened the penumbra: a vogel disk over ±3 texels replaces the ±1 grid, whose
+      // 1-2 px transitions read as paper cut-outs. Bias is untouched, so no acne returns.
+      const angle = i * 2.399963 + 0.7;
+      const ringRadius = sqrt((i + 0.5) / 9) * 3;
+      const x = cos(angle) * ringRadius;
+      const y = sin(angle) * ringRadius;
       const stored = texture(uShadowMap, shadowUv.add(uShadowTexel.mul(vec2(x, y))));
       const nearestDepth = stored.x + stored.y / 255;
       occluded = occluded + step(nearestDepth + depthBias, receiverDepth);
@@ -210,12 +253,24 @@ export default shader({
     const wrappedDiffuse = 0.16 + baseNdotL * 0.84;
     const direct = uSunColor.scale(uSunIntensity * wrappedDiffuse * shadow);
     const cardWeight = 1 - clamp(vKind, 0, 1);
+    // Goal 08's backlit translucency. The old term was the normal-based transmission alone at
+    // 0.22, which never read: a canopy between the camera and the sun measured the same as one
+    // beside it. The view-dependent lobe is what sunlight through leaves actually is — strongest
+    // exactly when the camera looks toward the sun through the crown — and it carries the sun's
+    // hue, which is what the acceptance criterion measures.
     const transmission = max(0 - dot(normal, light), 0) * cardWeight;
-    const transmitted = uSunColor.scale(uSunIntensity * transmission * 0.22 * shadow);
+    const backScatter = pow(max(0 - dot(view, light), 0), 5) * cardWeight;
+    const transmitted = uSunColor.scale(
+      uSunIntensity * (transmission * 0.4 + backScatter * 0.5) * shadow * uTransmissionStrength,
+    );
+    // Rim on the canopy: the band just inside a backlit silhouette catches the sun the criterion's
+    // 1.6x bar asks for. Gated by the same back-scatter so an unlit crown stays matte.
+    const canopyRim = pow(1 - max(dot(normal, view), 0), 3) * cardWeight * (0.3 + backScatter * 1.3);
 
     const halfVector = normalize(light.add(view));
     const specular = pow(max(dot(normal, halfVector), 0), mix(18, 8, clamp(vKind, 0, 1)));
     let color = baseColor.mul(sky.add(ground).add(direct).add(transmitted)).scale(vRootAo);
+    color = color.add(uSunColor.scale(canopyRim * 0.75 * shadow * uTransmissionStrength));
     color = color.add(uSunColor.scale(specular * mix(0.06, 0.025, clamp(vKind, 0, 1)) * shadow));
 
     const fog = smoothstep(uFogStart, uFogEnd, vDepth) * clamp(uFogStrength, 0, 1);

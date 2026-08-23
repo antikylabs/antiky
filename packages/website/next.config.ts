@@ -2,6 +2,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    return [{ source: '/worlds', destination: '/games', permanent: true }];
+  },
   async rewrites() {
     return [{ source: '/docs/:path*\\.md', destination: '/docs-markdown/:path*' }];
   },

@@ -1,17 +1,24 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "emitMode": "padded",
   "image": "town-vegetation-atlas-v2.png",
-  "imageSha256": "95dd84f215f077498b659182f1f930c0075f0578db6159ff3665cdddaabfb8f7",
+  "imageSha256": "c4576e0693cb611d172ed6ea9cfcc6ed60ece48c7ed45165ad56e7a8bf57c2ea",
   "size": {
-    "width": 1536,
-    "height": 1024
+    "width": 2048,
+    "height": 1280
   },
   "grid": {
     "columns": 4,
     "rows": 2,
-    "cellWidth": 384,
-    "cellHeight": 512
+    "cellWidth": 512,
+    "cellHeight": 640
   },
+  "gutter": 64,
+  "inner": {
+    "width": 384,
+    "height": 512
+  },
+  "uvOrigin": "bottom-left",
   "tiles": [
     "meadow-grass",
     "wildflower-grass",
@@ -22,12 +29,86 @@
     "deciduous-tree-crown",
     "airy-canopy-branch"
   ],
-  "transparency": {
-    "sourceKey": "#f502f8",
-    "edgeContractPixels": 1,
-    "transparentPixels": 1117942,
-    "partiallyTransparentPixels": 111829,
-    "totalPixels": 1572864
+  "tileRects": [
+    {
+      "name": "meadow-grass",
+      "x": 0.03125,
+      "y": 0.55,
+      "width": 0.1875,
+      "height": 0.4
+    },
+    {
+      "name": "wildflower-grass",
+      "x": 0.28125,
+      "y": 0.55,
+      "width": 0.1875,
+      "height": 0.4
+    },
+    {
+      "name": "canal-reeds",
+      "x": 0.53125,
+      "y": 0.55,
+      "width": 0.1875,
+      "height": 0.4
+    },
+    {
+      "name": "fern-and-low-weeds",
+      "x": 0.78125,
+      "y": 0.55,
+      "width": 0.1875,
+      "height": 0.4
+    },
+    {
+      "name": "cascading-ivy",
+      "x": 0.03125,
+      "y": 0.05,
+      "width": 0.1875,
+      "height": 0.4
+    },
+    {
+      "name": "broadleaf-shrub",
+      "x": 0.28125,
+      "y": 0.05,
+      "width": 0.1875,
+      "height": 0.4
+    },
+    {
+      "name": "deciduous-tree-crown",
+      "x": 0.53125,
+      "y": 0.05,
+      "width": 0.1875,
+      "height": 0.4
+    },
+    {
+      "name": "airy-canopy-branch",
+      "x": 0.78125,
+      "y": 0.05,
+      "width": 0.1875,
+      "height": 0.4
+    }
+  ],
+  "source": {
+    "image": "source/town-vegetation-atlas-v2.png",
+    "grid": {
+      "columns": 4,
+      "rows": 2
+    },
+    "size": {
+      "width": 1536,
+      "height": 1024
+    },
+    "cell": {
+      "width": 384,
+      "height": 512
+    },
+    "transparency": {
+      "sourceKey": "#f502f8",
+      "edgeContractPixels": 1,
+      "transparentPixels": 1117942,
+      "partiallyTransparentPixels": 111829,
+      "totalPixels": 1572864
+    },
+    "sha256": "95dd84f215f077498b659182f1f930c0075f0578db6159ff3665cdddaabfb8f7"
   },
   "usage": "Alpha-tested, lit, depth-writing crossed cards and tree-crown planes with GPU wind. This replaces voxel grass and block leaf canopies.",
   "provenance": {

@@ -14,6 +14,19 @@
     "antiky": "node --experimental-strip-types --experimental-transform-types packages/cli/src/bin.ts",
     "portRelease": "node scripts/port-release.mjs",
     "postinstall": "node scripts/patch-brometal.mjs",
+    "demos:shoot": "node scripts/shoot-demos.mjs",
+    "demos:verify": "node --experimental-strip-types --experimental-transform-types --test packages/demos/*/tests/visual-budget.test.mjs packages/demos/combat-arena/tests/camera-shake.test.mjs packages/demos/tests/shader/graph.test.mjs packages/demos/tests/inspection-evidence.test.mjs packages/demos/tests/pipeline-invariants.test.mjs packages/demos/tests/material/invariants.test.mjs",
+    "demos:assets:bake-sh9": "node packages/demos/scripts/bake/sh9-irradiance.mjs",
+    "demos:assets:bake-vertex-occlusion": "node packages/demos/scripts/bake/vertex-occlusion.mjs",
+    "demos:assets:build-detail-normal": "node packages/demos/scripts/build/detail-normal.mjs",
+    "demos:assets:build-kit-materials": "node packages/demos/scripts/build/kit-materials.mjs",
+    "demos:assets:build-lighting-ramp": "node packages/demos/scripts/build/lighting-ramp.mjs",
+    "demos:assets:build-texture-atlas": "node packages/demos/scripts/build/texture-atlas.mjs",
+    "demos:assets:build-vfx-billboard": "node packages/demos/scripts/build/vfx-billboard.mjs",
+    "demos:assets:embed-glb-images": "node packages/demos/scripts/embed-glb-images.mjs",
+    "demos:assets:install-kenney": "node packages/demos/scripts/install/kenney-kit.mjs",
+    "demos:assets:install-nasa": "node packages/demos/scripts/install/nasa-imagery.mjs",
+    "demos:assets:install-poly-haven": "node packages/demos/scripts/install/poly-haven-material.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:website": "node scripts/dev.mjs website",
     "dev:framework": "node scripts/dev.mjs framework",
@@ -22,9 +35,14 @@
     "dev:studio:web": "npm run dev --workspace @antiky/studio-app",
     "docs:api": "npm run docs:api --workspace @antiky/framework",
     "docs:api:check": "npm run docs:api:check --workspace @antiky/framework",
+    "version:check": "node scripts/release-version.mjs check",
+    "version:set": "node scripts/release-version.mjs set",
+    "release:check": "node scripts/release-version.mjs check-tag",
+    "package:studio": "npm run build --workspace @antiky/studio-tauri",
     "build": "npm run build --workspace @antiky/website",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "sh docs/adr/tag-hash.test.sh && node --test scripts/port-release.test.mjs scripts/repository-policy.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader-output-parity.test.mjs && npm test --workspaces --if-present",
+    "test": "sh docs/adr/tests/tag-hash.test.sh && node --test scripts/tests/*.test.mjs packages/demos/tests/build-texture-atlas.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader/output-parity.test.mjs && node --experimental-strip-types --experimental-transform-types --test packages/demos/combat-arena/tests/camera-shake.test.mjs && npm test --workspaces --if-present",
+    "test:gpu": "node --test packages/demos/tests/texture-array-gpu.test.mjs packages/demos/tests/target-readback-gpu.test.mjs",
     "check": "npm run typecheck && npm test"
   },
   "dependencies": {
@@ -36,6 +54,7 @@
     "node": ">=22"
   },
   "overrides": {
+    "@playwright/test": "1.62.1",
     "postcss": "$postcss",
     "sharp": "$sharp"
   }

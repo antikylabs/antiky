@@ -87,3 +87,9 @@ the same project service and host.
 Import the host types from `@antiky/framework/game`. Do not import CLI, Studio, website, Node.js, or
 server modules from the game entry. A test host, the CLI host, Studio, and a delivery host can then
 mount the same compiled entry.
+
+A renderer-only project can instead declare the small structural context and instance types it
+uses locally, which keeps `@antiky/framework` out of its dependency graph. The host still publishes
+lifecycle and `report` measurements. Add the Framework game types when you want its validated
+semantic inspection port; this does not constrain the renderer. See [Use BroMetal or Three.js in
+Studio](../studio/renderers.md) for both paths.

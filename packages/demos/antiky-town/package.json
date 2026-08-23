@@ -9,12 +9,12 @@
     "shaders": "brometal dev --once",
     "shaders:watch": "brometal dev",
     "shaders:prod": "brometal prod",
-    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/composition.test.ts tests/point-light-adapter.test.ts src/town/physics/character-motor.test.ts src/town/practical-light-input.test.ts && vitest run src/town/art/town-validation.test.ts",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts tests/town/*.test.ts tests/town/physics/*.test.ts && vitest run tests/town/art/*.test.ts tests/town/art/town/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@antiky/framework": "0.0.0",
-    "brometal": "0.15.0"
+    "brometal": "0.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",

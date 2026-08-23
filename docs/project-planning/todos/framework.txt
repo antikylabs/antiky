@@ -1,0 +1,7 @@
+add a first-class sprite flipbook
+add entity-component-system support
+add global illumination
+support selecting an asset by clicking it
++spriteproperties - add flipbook speed
++spriteproperties - add movement speed
++spriteproperties - decide which additional properties are needed

@@ -51,5 +51,6 @@ Undo and redo will send commands that record a correction. They will not rewrite
 
 ## Revision history
 
-- `d5512a91c2c6719a7488b03feebe01bd24eaf93b` — Formalized selective durable event sourcing.
-- `cb8ecc4b54e5607130c94fc64d568b58c9937e96` — Prior version before the plain-language rewrite.
+- `d5512a91c2c6719a7488b03feebe01bd24eaf93b`: Formalized selective durable event sourcing.
+- `cb8ecc4b54e5607130c94fc64d568b58c9937e96`: Prior version before the plain-language rewrite.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

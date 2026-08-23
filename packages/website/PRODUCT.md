@@ -1,152 +1,265 @@
-# Product
+# Antiky Labs Website Product
 
-<!-- impeccable:product-schema 1 -->
+**Last updated:** 2026-08-08
 
 ## Platform
 
-web
+Web.
 
-## Users
+## Audience
 
-The initial audience has two primary groups:
+The website serves three current audiences:
 
-1. People following Antiky Labs as the company builds in public. They want to understand what is
-   being worked on, what is real today, and what comes next.
-2. Prospective game builders interested in BroMetal, the public demos, and the emerging Antiky
-   Framework. They want working examples, useful code, and a clear path to whatever is available now.
+1. Game builders exploring how human creators and software agents can work on the same living game.
+2. Skeptical technical visitors who want to distinguish Antiky's working software from its
+   architectural direction and research questions.
+3. People following Antiky Labs as it builds games, tools, and research in public.
 
-Players are a future audience. Until Emberwyrd has compelling player-facing material, the website
-must not present itself as marketing a playable game.
+Players are a future audience. Until Emberwyrd has real player-facing material, the website must not
+present it as a playable game.
 
-## Product Purpose
+## Product purpose
 
-The Antiky Labs website is the public home for the company, its work, and its journey. It introduces
-Antiky Labs, presents deliberately released demos, explains the emerging Antiky Framework, gives a
-high-level view of active research, and introduces Antiky Worlds and Emberwyrd without presenting
-plans as shipped products.
+The website is the public home for the Antiky idea, the games that motivate it, the architecture
+being tested, the software that works today, and the community invited to explore the questions.
 
-Success means a visitor can quickly understand:
+It should move a thoughtful visitor through:
 
-- what Antiky Labs is building;
-- what exists today;
-- what is available through the demos, Antiky Framework, and BroMetal;
-- where BroMetal fits;
-- what is planned for Antiky Worlds and Emberwyrd; and
-- how to follow the work or try something real.
+**clarity → conviction → evidence → participation**
+
+Success means a visitor can understand:
+
+- why Antiky exists;
+- why human creative authority matters;
+- what “AI-native” means in concrete architectural terms;
+- which capabilities work today;
+- which ideas are emerging, direction, or research questions;
+- how Antiky Town, the focused studies, and Emberwyrd relate;
+- how Studio, Framework, CLI project services, MCP, and agents fit one development model;
+- why 2D, 3D, 2.3D, and BroMetal are supporting creative and rendering choices rather than the
+  company identity; and
+- how to download Studio, read the Thesis, run current evidence, or join the Discord.
+
+The site is not primarily a conversion funnel. Studio downloads and Discord participation should be
+obvious, but the public experience must feel like an active game technology lab sharing serious work.
 
 ## Positioning
 
-Antiky Labs is a game-technology company building playable experiments, an emerging open-source game
-framework, active research, and future games through Antiky Worlds. The public site should introduce
-that work directly instead of promoting an internal development philosophy.
+Antiky Labs is a game technology lab building games and an AI-native development system around human
+creative authority.
 
-BroMetal provides the GPU rendering and shader DSL beneath the framework and is available to game
-builders today. Antiky Framework is emerging and must not be presented as complete before useful
-public capabilities exist.
+The central thesis is:
 
-## Operating Context
+> Game development will increasingly become collaboration between human creators and software
+> agents. The systems that support that collaboration should be designed around shared understanding
+> and human authority from the beginning, then tested by building real games.
 
-Visitors encounter Antiky Labs through `antikylabs.com`, live browser demos, public source
-repositories, and the founder's X and GitHub profiles. The final social profile URLs remain open.
+The website should communicate this hierarchy:
 
-The website, demos, and framework share an npm-workspaces monorepo:
+1. The idea is the hero.
+2. The games are the reason.
+3. The architecture is the argument.
+4. The working software is the evidence.
+5. Studio is how people participate.
+6. The community is where people explore it together.
 
-```text
-website → demos → framework
-```
+## Product model
 
-The website presents demos without owning their rendering implementation. Demos may depend on the
-framework. The framework must not depend on either consumer.
+Antiky is one development model with several responsibilities and surfaces:
 
-## Capabilities and Constraints
+- **Antiky Framework** owns headless game sessions, identity, structured inspection, game rules, and
+  the bounded authoring systems implemented within it.
+- **CLI project services** own the local project lifecycle, build and process supervision,
+  inspection service, MCP endpoint, development state, and cleanup.
+- **Antiky Studio** is the current native visual workspace over those shared services. It keeps the
+  running game, terminal, simulation controls, structured inspection, and development activity
+  together.
+- **MCP and typed clients** adapt shared inspection and tool boundaries. They do not receive a
+  separate engine or automatic authority over game state.
+- **Games and studies** create real problems, demonstrate narrow working slices, and keep the system
+  accountable to creative outcomes.
+- **Research** contains questions and reproducible evidence. A hypothesis does not become a product
+  claim because it appears in a plan or accepted architecture direction.
 
-### Current product state
+Studio is not the engine. Framework works without Studio. The game module selects rendering while
+the host supplies platform lifecycle. Antiky Framework games render with BroMetal today. A
+Framework-owned BroMetal render driver is emerging: two Antiky demos render through it, the rest
+still write BroMetal by hand.
 
-- The website workspace is runnable and is being prepared for a complete marketing and editorial
-  replacement.
-- The live demo harness runs WebGPU through BroMetal and owns loading, pausing, input, and teardown.
-- The initial public demo program is planned; its first demo and ordering remain open.
-- The Antiky Framework workspace exists but is intentionally empty.
-- BroMetal is available today and powers the current rendering work.
-- AI model-adaptation and voxel-art research are active; public claims require documented evidence.
-- Antiky Studio is planned but has not started.
-- Emberwyrd is a planned Antiky Worlds title, not a playable product.
+## Evidence status
 
-### Public product structure
+Every meaningful public claim belongs to one of these states:
 
-- **Antiky Framework:** an emerging open-source game framework built on BroMetal.
-- **Antiky Studio:** a future visual application built only as real production needs appear. It must
-  remain optional; games must be buildable with the framework alone.
-- **Antiky Worlds:** the planned commercial game studio for closed-source games.
-- **Emberwyrd:** the planned flagship Antiky Worlds title.
+- **Current** - implemented and documented through a public boundary today.
+- **Emerging** - a narrow working slice exists, but the broader capability remains incomplete or
+  pre-release.
+- **Direction** - supported by an accepted decision or explicit product direction, but not a public
+  capability yet.
+- **Research question** - a hypothesis that needs a published method and result before it can become
+  a product claim.
 
-The initial website has Home, Framework, Worlds, Research, and Demos surfaces. Studio and upstream
-contributions do not receive standalone pages. BroMetal and generally useful upstream work belong in
-the Framework story.
+The website must label status in text. Color may reinforce status but cannot replace it.
 
-### Publishing constraints
+### Current evidence
 
-- Publish only work deliberately approved for release.
-- Keep Antiky Worlds' closed-source work out of public framework and demo packages.
-- Clearly distinguish existing work, active experiments, and future plans.
-- Do not expose internal technical debates as marketing content.
-- Do not present a complete Antiky Framework before usable public capabilities exist.
-- Do not make research claims that cannot be supported by a documented artifact or finding.
+- A fixed-step `EngineSession` with explicit input, pause, resume, single-step controls, command
+  ordering, state revisions, and fail-closed faults.
+- Stable public identities and immutable structured inspection snapshots.
+- A first Framework-owned point-light command, correction, inspection, and rendering slice.
+- One project service used by CLI and the Studio application host.
+- MCP and typed inspection/tool adapters for the same local development session.
+- A native Studio workspace with project launch, running game, terminal, simulation controls,
+  hierarchy, stores, snapshots, events, MCP calls, and diagnostics.
+- Three public Antiky Framework studies rendered through BroMetal in one portable website-owned
+  game host.
+- Antiky Town as the primary public key art and broadest current authored-world proof, Traversal
+  Study as a distinct movement proof, and Point Light Expo as the bounded light-authoring proof.
+- Combat Arena is listed on Games as an in-development project. Its demo route, artifact, and
+  poster remain internal until the owner promotes it to a playable public demo.
 
-### Open product decisions
+All current packages remain early and pre-release. Current behavior does not imply stable APIs or a
+complete general-purpose game engine.
 
-- Framework governance and license.
-- First public demo and initial demo order.
-- Public package and release strategy for framework capabilities.
-- Homepage primary action before the first new demo is ready.
-- Final X and GitHub profile URLs.
-- Public depth and wording for active AI research.
-- Website accessibility standard; do not claim conformance until one is chosen and verified.
+### Emerging work
 
-## Brand Commitments
+- Studio release packaging and the first public download/installation experience.
+- A broader creator workflow around the current shared-service foundation.
+- More Framework-owned game systems earned through real game requirements.
 
-- The company name is **Antiky Labs** and the website is `antikylabs.com`.
-- **Antiky Framework** is the preferred product name, not Antiky Engine.
-- **Antiky Worlds** is the planned commercial studio and **Emberwyrd** is its planned flagship game.
-- **Antiky Studio** is the name of the future optional visual tooling layer.
-- The name Antiky comes from the Antikythera mechanism. No extended public origin story has been
-  approved; do not invent one.
-- Antiky uses **2.3D** to mean “2D characters and objects in a 3D world.”
-- The public voice is direct, human, concise, welcoming to curious game builders, honest about
-  maturity, and ambitious without inflation.
-- Avoid generic AI-company language, implementation manifestos, and copy that reads like an
-  engineering review.
-- Do not elevate Antiky Labs' internal development process into the public value proposition. It is
-  not a proven differentiator and should not occupy homepage hierarchy.
-- The website uses a clean, modern dark visual system. Its craft bar should sit comfortably beside
-  Unreal Engine, EVE Online, xAI, Defined, and Supercommon Systems without copying any one of them.
-- Avoid metaphor-driven interface systems that need an explanation before the company or work makes
-  sense.
-- The old generated website's marketing copy, information architecture, status narrative, and visual
-  system are salvage material and anti-reference, not authority for the replacement.
+### Direction
 
-## Evidence on Hand
+- Contextual feedback attached to an exact game target and revision.
+- General bounded experiments or sandboxes with review evidence and explicit promotion through
+  authority rules.
+- Broader editor and authoring commands.
+- Emberwyrd as the larger game and proving ground.
 
-Confirmed public source material and working evidence include:
+### Research questions
 
-- the runnable website workspace under this directory;
-- the live WebGPU demo harness, registry, renderers, art helpers, and BroMetal shaders under `../demos/`;
-- the scaffolded framework workspace under `../framework/`; and
-- deliberately published research and contribution artifacts when they are available on public surfaces.
+- Whether better context, tools, interfaces, and feedback make software agents materially more
+  effective at bounded game-development tasks.
+- Whether smaller or local models can do useful work with lower token, latency, or infrastructure
+  costs in that environment.
+- Model-training, adapter, and generated-asset outcomes.
+- Rendering and simulation directions that have not yet become Framework capability.
 
-The existing technical demos are available as implementation evidence and salvage material. They are
-not automatically the approved initial public demo program or the creative direction for the new
-site.
+Do not market these questions as results without a public method, baseline, configuration, outcome,
+failure record, and limitations.
 
-There are currently no approved customer claims, testimonials, adoption figures, pricing, release
-dates, shipped Antiky Framework capabilities, playable Emberwyrd build, or player-facing campaign.
-Future work must not fabricate them.
+## Games and rendering
 
-## Product Principles
+Antiky Labs will build games, not just technology. The game creates real problems. Reusable
+solutions can become Antiky after working evidence justifies the boundary.
 
-1. **Show working proof.** Let demos carry claims that prose cannot earn.
-2. **Say what is real.** Separate working demos, active research, emerging tools, and future plans.
-3. **Keep the framework sufficient.** Studio may improve workflows but must never be required.
-4. **Publish deliberately.** Protect the boundary between open tools and Antiky Worlds products.
-5. **Keep it simple and honest.** Prefer a small truthful release over a comprehensive plan presented
-   as reality.
+- **Antiky Town** is the primary public authored-world proof, **Traversal Study** is the movement
+  proof, and **Point Light Expo** is the focused light-authoring proof.
+- **Focused studies** isolate rendering, hosting, shader, identity, and authoring questions.
+- **Emberwyrd** is the larger creative and technical test in development. It has no playable release
+  today.
+
+The creative idea should lead and the engine should follow. 2D, 3D, and 2.3D are creative
+possibilities, not product boundaries. BroMetal is where Antiky's rendering work began and is the
+renderer Antiky Framework games use today. Preserve its attribution and useful links without
+presenting it as the Antiky Labs identity.
+
+## Public information architecture
+
+- **Home (`/`)** - explain why Antiky exists, introduce the current architecture and evidence, then
+  offer clear participation paths.
+- **The Thesis (`/thesis`)** - hold the durable public argument without becoming a product page.
+- **Studio (`/studio`)** - show the strongest current visual expression of the Thesis and separate
+  current, emerging, and direction.
+- **Framework (`/framework`)** - explain the headless session/state foundation, current public
+  slices, and target architecture.
+- **Games (`/games`)** - connect Antiky Town, focused studies, and Emberwyrd to the game-led method.
+- **Research (`/research`)** - maintain the boundary between runnable evidence, direction, and open
+  questions.
+- **Demos (`/demos`)** - let visitors run three approved artifacts and understand what each does and
+  does not show.
+- **Docs (`/docs`)** - publish exact current Framework, CLI, MCP, Studio, and API behavior.
+
+`/worlds` permanently redirects to `/games`. “Antiky Worlds” is not a primary public navigation or
+company-positioning concept.
+
+## Participation
+
+Canonical destinations:
+
+- Studio releases: `https://github.com/antikylabs/antiky/releases`
+- Discord: `https://discord.gg/3Qs2uejUf9`
+- Source repository: `https://github.com/antikylabs/antiky`
+
+The site-launch gate requires packaged Studio release assets with version, platform, installation,
+release-note, and limitation information. Do not deploy a download-led build before those assets
+exist.
+
+The default build therefore links people to the Studio page and source-build guide without claiming
+a download exists. After the release assets pass inspection, build the launch site with
+`NEXT_PUBLIC_STUDIO_RELEASES_READY=true`. That explicit publication assertion changes the primary
+Studio actions to **Download Studio** and exposes the canonical GitHub Releases destination. Verify
+both states with the normal website test and `npm run test:release-ready --workspace
+@antiky/website`.
+
+Discord language should promise member value, not member count. Invite builders to ask for Studio
+help, share work, challenge the Thesis, compare approaches, and help turn questions into evidence.
+Do not claim an established ecosystem until community evidence supports it.
+
+The participation loop is: see a real game moving → download Studio from the release authority →
+open or run a study → join Discord for help, critique, project sharing, and direct influence on what
+the lab tests next. Download and community actions should recur after convincing proof, not interrupt
+the opening idea before the visitor understands why the product exists.
+
+## Voice and language
+
+The public voice is:
+
+- technical;
+- human;
+- curious;
+- ambitious;
+- candid;
+- builder-oriented;
+- evidence-led;
+- early but serious.
+
+Prefer these durable lines where they do real work:
+
+- Build the world in your mind. Stay in the director's chair.
+- AI should increase creative agency, not replace it.
+- AI-native is architectural.
+- One game. One source of truth.
+- Give agents context before asking them to guess.
+- Read access is not change authority.
+- The creative idea should lead. The engine should follow.
+- We will build games, not just technology.
+- Evidence before adjectives.
+
+Avoid generic AI hype, startup clichés, autonomous game-generator language, attacks on existing
+engines, replacement claims about creative specialists, and language that presents target
+architecture as shipped.
+
+## Product principles
+
+1. **Lead with the idea and show real proof quickly.** The argument earns attention; working media,
+   documented behavior, and runnable studies earn trust.
+2. **Keep human authority explicit.** Agents increase creative agency; they do not become the
+   creative owner or receive implied change authority.
+3. **Say what is real.** Separate current, emerging, direction, and research questions everywhere.
+4. **Build from games outward.** Let creative requirements pull reusable technology into Antiky.
+5. **Keep Framework sufficient.** Studio is useful and visual, but it is not required to run the
+   Framework.
+6. **Treat rendering as a layer.** Preserve BroMetal attribution and creative range without reducing
+   Antiky to one renderer or art direction.
+7. **Invite participation modestly.** Make Studio and Discord easy to find while letting the Thesis
+   and evidence breathe.
+8. **Publish deliberately.** Working source does not automatically create an approved public claim,
+   release, or research result.
+
+## Open product decisions
+
+- Stable package and versioning policy for Framework and CLI.
+- Supported platforms and cadence for Studio releases after the launch package.
+- The first complete creator-agent workflow to publish as a reproducible evaluation.
+- Public research-artifact format and cadence.
+- The point at which Emberwyrd has player-facing material worth publishing.
+- Website accessibility conformance target; do not claim conformance until it is chosen and tested.

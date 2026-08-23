@@ -5,7 +5,7 @@ import {
   type VoxelMeshValidation,
   type VoxelSurfaceCell,
   type VoxelSurfaceMesh,
-} from './voxel-surface-mesh';
+} from './voxel-surface-mesh.ts';
 
 export const VOXEL_SIZE = 0.62;
 /** 0.2067 m surface cells: fine enough for trim without desktop-scale density. */
@@ -608,11 +608,41 @@ function bridgeSurfaceGridHeight(gz: number): number {
   return -0.5 + boundary / TOWN_DETAIL_RESOLUTION;
 }
 
+/**
+ * How tall the macro voxel column is here — a structural question, not a surface one.
+ *
+ * On the bridge this is the authored crown profile the spandrels, piers and macro deck are built
+ * from. It is deliberately coarse. It is **not** where anything stands: the deck cell it returns is
+ * carved away and replaced by finer treads, so the surface the courier walks on is up to 1.03 m
+ * from this. Use `placementSurfaceGrid` to rest an object on the ground.
+ */
 function groundHeightGrid(gx: number, gz: number): number {
   if (isBridge(gx, gz)) return bridgeHeight(gz);
   if (gz < -24) return 2;
   if (gz < CANAL_MIN_Z) return 1;
   return 0;
+}
+
+/**
+ * Where the top of the ground is, in grid units, for resting an object on.
+ *
+ * This is `topSurfaceGrid` — the same answer `walkSurfaceHeight` gives the character motor —
+ * expressed in the grid units the placement helpers take. Object placement used to read
+ * `groundHeightGrid` directly and add half a cell, which is right everywhere the ground is one
+ * macro cell tall and wrong on the bridge, where the walking surface is the detail lattice.
+ */
+function placementSurfaceGrid(gx: number, gz: number): number {
+  return topSurfaceGrid(gx, gz) / VOXEL_SIZE;
+}
+
+/**
+ * The same answer as `placementSurfaceGrid`, as a macro cell index rather than a surface.
+ *
+ * Off the bridge this is exactly `groundHeightGrid`, so the props that measure their offsets from
+ * it do not move. On the bridge it follows the deck.
+ */
+function placementBaseGrid(gx: number, gz: number): number {
+  return placementSurfaceGrid(gx, gz) - 0.5;
 }
 
 function worldPoint(gx: number, gz: number): readonly [number, number] {
@@ -1474,31 +1504,66 @@ function bridge(builder: VoxelBuilder): void {
   }
 }
 
+/**
+ * The town's tree species, in one committed table — goal 08's species coherence. The capture
+ * showed "tall thin ones at left" and "a lollipop on the right ridge" reading as different
+ * plants by accident; now every placement resolves to a row here and the distribution test
+ * counts exactly these.
+ */
+export const TOWN_TREE_SPECIES = Object.freeze({
+  /** The town broadleaf in summer dress: round crown on a stout trunk. */
+  'green-round': Object.freeze({ crownScale: 1.75, crownPerHeight: 0.09, trunkPerHeight: 0.62, autumn: false }),
+  /** The same broadleaf turned: identical silhouette, autumn palette. */
+  'autumn-round': Object.freeze({ crownScale: 1.75, crownPerHeight: 0.09, trunkPerHeight: 0.62, autumn: true }),
+  /** The ridge sentinel behind the skyline: taller, sparser crown, only ever on the far hills. */
+  'ridge-sentinel': Object.freeze({ crownScale: 1.5, crownPerHeight: 0.08, trunkPerHeight: 0.56, autumn: false }),
+});
+
+export type TownTreeSpecies = keyof typeof TOWN_TREE_SPECIES;
+
+/**
+ * Every near tree the town plants, authored here so the placement is data the tests can read.
+ * Goal 08 added the grove pairs: trees were sparse singles, and the same clustering logic the
+ * grass follows says company reads as landscape while singles read as markers.
+ */
+export const TOWN_TREE_PLACEMENTS: readonly (readonly [number, number, number, TownTreeSpecies])[] = Object.freeze([
+  [-34, 22, 8, 'green-round'], [-24, 26, 7, 'autumn-round'], [39, 22, 8, 'autumn-round'],
+  [-24, 8, 8, 'green-round'], [24, 8, 7, 'green-round'], [-17, -22, 9, 'autumn-round'],
+  [23, -23, 8, 'green-round'], [-3, -29, 7, 'green-round'], [44, -19, 8, 'autumn-round'],
+  [-45, -23, 9, 'green-round'],
+  // The goal-08 groves: partners beside the existing singles, and two new stands.
+  [-30, 19, 7, 'green-round'], [-28, 25, 6, 'autumn-round'],
+  [36, 25, 7, 'green-round'], [42, 17, 6, 'autumn-round'],
+  [-21, -18, 7, 'green-round'], [27, -19, 6, 'autumn-round'],
+  [-40, -20, 7, 'autumn-round'], [40, 6, 6, 'autumn-round'],
+]);
+
 function tree(
   colliders: TownCollider[],
   vegetation: TownVegetation[],
   gx: number,
   gz: number,
   height: number,
-  autumn = false,
+  species: TownTreeSpecies = 'green-round',
 ): void {
-  const base = groundHeightGrid(gx, gz);
+  const base = placementBaseGrid(gx, gz);
   const seed = gx * 101 + gz * 211;
-  addVegetation(vegetation, gx + 0.5, base + 0.5, gz + 0.5, 'tree-trunk', height * 0.62, seed);
+  const row = TOWN_TREE_SPECIES[species];
+  addVegetation(vegetation, gx + 0.5, base + 0.5, gz + 0.5, 'tree-trunk', height * row.trunkPerHeight, seed);
   addVegetation(
     vegetation,
     gx + 0.5,
     base + height,
     gz + 0.5,
     'tree-crown',
-    1.75 + height * 0.09,
-    seed + (autumn ? 991 : 0),
+    row.crownScale + height * row.crownPerHeight,
+    seed + (row.autumn ? 991 : 0),
   );
   addCollider(colliders, gx, gz, 2, 2, 0.08, `town.tree.${gx}.${gz}`);
 }
 
 function stoneBench(builder: VoxelBuilder, colliders: TownCollider[], x: number, z: number, facingZ = true): void {
-  const base = groundHeightGrid(x, z);
+  const base = placementBaseGrid(x, z);
   const width = facingZ ? 4 : 1;
   const depth = facingZ ? 1 : 4;
   builder.surfaceBox(x, base + 1, z, width, 0.5, depth, 'timberLight');
@@ -1532,7 +1597,7 @@ function cargoCluster(
   x: number,
   z: number,
 ): void {
-  const base = groundHeightGrid(x, z);
+  const base = placementBaseGrid(x, z);
   for (const [index, bx, bz, scale] of [
     [0, x, z, 0.92],
     [1, x + 1.75, z + 0.5, 0.78],
@@ -1555,7 +1620,7 @@ function flowerPlanter(
   z: number,
   violet: boolean,
 ): void {
-  const base = groundHeightGrid(x, z);
+  const base = placementBaseGrid(x, z);
   builder.surfaceBox(x, base + 0.75, z, 2, 1, 1, 'stone');
   builder.surfaceBox(x, base + 1.25, z, 1.5, 0.5, 0.5, 'soil');
   for (const offset of [-0.5, 0, 0.5]) {
@@ -1573,7 +1638,7 @@ function flowerPlanter(
 }
 
 function handCart(builder: VoxelBuilder, colliders: TownCollider[], x: number, z: number): void {
-  const base = groundHeightGrid(x, z);
+  const base = placementBaseGrid(x, z);
   builder.surfaceBox(x, base + 1.5, z, 5, 1.5, 2.5, 'timberLight');
   builder.surfaceBox(x, base + 2.5, z, 5.5, 0.5, 3, 'timber');
   for (const wheelX of [x - 1.75, x + 1.75]) {
@@ -1598,22 +1663,6 @@ function occupiedByCollider(colliders: readonly TownCollider[], gx: number, gz: 
   ));
 }
 
-function grassCluster(vegetation: TownVegetation[], gx: number, gz: number, seed: number): void {
-  const groundTop = groundHeightGrid(gx, gz) + 0.5;
-  addVegetation(vegetation, gx, groundTop, gz, 'grass', 0.72 + hash(seed * 13) * 0.58, seed);
-  if (hash(seed * 61) > 0.82) {
-    addVegetation(
-      vegetation,
-      gx,
-      groundTop,
-      gz,
-      'flower',
-      0.48 + hash(seed * 73) * 0.35,
-      seed + 409,
-    );
-  }
-}
-
 function terracottaPot(
   builder: VoxelBuilder,
   vegetation: TownVegetation[],
@@ -1621,7 +1670,7 @@ function terracottaPot(
   gz: number,
   violet: boolean,
 ): void {
-  const groundTop = groundHeightGrid(Math.round(gx), Math.round(gz)) + 0.5;
+  const groundTop = placementSurfaceGrid(Math.round(gx), Math.round(gz));
   builder.surfaceBox(gx, groundTop + DETAIL, gz, 2 * DETAIL, 2 * DETAIL, 2 * DETAIL, 'terracotta');
   addVegetation(
     vegetation,
@@ -1635,7 +1684,7 @@ function terracottaPot(
 }
 
 function smallCrate(builder: VoxelBuilder, gx: number, gz: number, produce: PaletteName): void {
-  const groundTop = groundHeightGrid(Math.round(gx), Math.round(gz)) + 0.5;
+  const groundTop = placementSurfaceGrid(Math.round(gx), Math.round(gz));
   builder.surfaceBox(gx, groundTop + DETAIL, gz, 3 * DETAIL, 2 * DETAIL, 3 * DETAIL, 'timberLight');
   builder.surfaceBox(gx, groundTop + 2.5 * DETAIL, gz, 3 * DETAIL, DETAIL, 3 * DETAIL, 'timber');
   for (const offset of [-DETAIL, 0, DETAIL]) {
@@ -1648,14 +1697,82 @@ function scatterTownClutter(
   colliders: readonly TownCollider[],
   vegetation: TownVegetation[],
 ): void {
-  // A 1.24 m deterministic sampling rhythm meets the foreground density gate
-  // while preserving every paved route and all authored collision envelopes.
-  for (let gz = WORLD_MIN_Z + 2; gz <= WORLD_MAX_Z; gz += 2) {
-    for (let gx = WORLD_MIN_X + 2 + (Math.abs(gz) % 4 === 0 ? 1 : 0); gx <= WORLD_MAX_X - 2; gx += 2) {
-      if (isCanal(gx, gz) || pavedGroundAt(gx, gz) || occupiedByCollider(colliders, gx, gz)) continue;
-      const seed = gx * 97 + gz * 193;
-      if (hash(seed) < 0.16) continue;
-      grassCluster(vegetation, gx, gz, seed);
+  // Patch-clustered meadow — goal 08, replacing a 2 m parity lattice with 16% dropout. A uniform
+  // lattice reads as a lattice: the capture showed one tuft stamped in rows, and the eye finds the
+  // rhythm immediately. Patches with radial falloff, continuous jitter, scale and blade variety,
+  // slope awareness, a soft feather at paved edges, and distance falloff are each one rule here,
+  // and each is measured by `town-grass-distribution.test.ts` rather than trusted.
+  //
+  // Everything stays deterministic — same hash, same seeds — so `buildTownWorld` remains a pure
+  // function of nothing, which the validation suite depends on.
+  const PATCH_COUNT = 74;
+  const PLAZA_X = 0;
+  const PLAZA_Z = 4;
+  for (let patch = 0; patch < PATCH_COUNT; patch += 1) {
+    const patchSeed = patch * 733 + 91;
+    // Three of every five patches land in the near-field lawns the camera actually frames — the
+    // lower-left meadow the owner named. Spread evenly over the whole 92x70 world, the visible
+    // field drew two patches and read as an empty lawn, which is the lattice problem inverted.
+    const nearField = patch % 5 < 2;
+    const patchX = nearField
+      ? WORLD_MIN_X + 3 + hash(patchSeed) * 56
+      : WORLD_MIN_X + 3 + hash(patchSeed) * (WORLD_MAX_X - WORLD_MIN_X - 6);
+    const patchZ = nearField
+      ? -8 + hash(patchSeed * 3 + 1) * (WORLD_MAX_Z - 3 - -8)
+      : WORLD_MIN_Z + 3 + hash(patchSeed * 3 + 1) * (WORLD_MAX_Z - WORLD_MIN_Z - 6);
+    const patchRadius = 1.9 + hash(patchSeed * 7 + 2) * 2.4;
+    const bladeCount = Math.floor(26 + hash(patchSeed * 11 + 3) * 38);
+    for (let blade = 0; blade < bladeCount; blade += 1) {
+      const bladeSeed = patchSeed + blade * 517 + 5;
+      const angle = hash(bladeSeed) * Math.PI * 2;
+      // sqrt keeps the disc filled rather than ringed; the falloff gate below thins the rim.
+      const radial = Math.sqrt(hash(bladeSeed * 3 + 1)) * patchRadius;
+      const gx = patchX + Math.cos(angle) * radial;
+      const gz = patchZ + Math.sin(angle) * radial;
+      if (gx < WORLD_MIN_X + 2 || gx > WORLD_MAX_X - 2 || gz < WORLD_MIN_Z + 2 || gz > WORLD_MAX_Z - 1) continue;
+      const cellX = Math.round(gx);
+      const cellZ = Math.round(gz);
+      if (isCanal(cellX, cellZ) || pavedGroundAt(cellX, cellZ) || occupiedByCollider(colliders, gx, gz)) continue;
+      // Patch falloff: the rim keeps fewer blades than the core, so a patch feathers into the
+      // field instead of stopping at its radius.
+      if (hash(bladeSeed * 5 + 2) < (radial / patchRadius) * 0.45) continue;
+      // Slope gate: grass collects in flats and hollows, not on berm faces.
+      const here = groundHeightGrid(cellX, cellZ);
+      const neighbourhood = [
+        groundHeightGrid(cellX + 1, cellZ), groundHeightGrid(cellX - 1, cellZ),
+        groundHeightGrid(cellX, cellZ + 1), groundHeightGrid(cellX, cellZ - 1),
+      ];
+      let steepest = 0;
+      let neighbourSum = 0;
+      for (const height of neighbourhood) {
+        steepest = Math.max(steepest, Math.abs(height - here));
+        neighbourSum += height;
+      }
+      if (steepest > 0.9) continue;
+      // Concave collectors keep everything; open flats thin slightly.
+      const hollow = neighbourSum / 4 - here > 0.2;
+      if (!hollow && hash(bladeSeed * 13 + 4) < 0.12) continue;
+      // Soft exclusion feather: the field thins over two cells approaching pavement or a wall
+      // instead of stopping on the boundary line.
+      const pavedRing1 = pavedGroundAt(cellX + 1, cellZ) || pavedGroundAt(cellX - 1, cellZ)
+        || pavedGroundAt(cellX, cellZ + 1) || pavedGroundAt(cellX, cellZ - 1);
+      const pavedRing2 = pavedGroundAt(cellX + 2, cellZ) || pavedGroundAt(cellX - 2, cellZ)
+        || pavedGroundAt(cellX, cellZ + 2) || pavedGroundAt(cellX, cellZ - 2);
+      const feather = pavedRing1 ? 0.2 : pavedRing2 ? 0.6 : 1;
+      if (hash(bladeSeed * 17 + 5) > feather) continue;
+      // Distance falloff from the plaza the camera lives over.
+      const plazaDistance = Math.hypot(gx - PLAZA_X, gz - PLAZA_Z);
+      if (plazaDistance > 24 && hash(bladeSeed * 19 + 6) < (plazaDistance - 24) / 30) continue;
+      const groundTop = here + 0.5;
+      // A taller blade among the short, so the meadow has a profile rather than one height.
+      const tall = hash(bladeSeed * 23 + 7) > 0.85;
+      const scale = tall
+        ? 1.2 + hash(bladeSeed * 31 + 8) * 0.6
+        : 0.5 + hash(bladeSeed * 31 + 8) * 0.85;
+      addVegetation(vegetation, gx, groundTop, gz, tall ? 'reeds' : 'grass', scale, bladeSeed);
+      if (!tall && hash(bladeSeed * 37 + 9) > 0.86) {
+        addVegetation(vegetation, gx + 0.4, groundTop, gz - 0.3, 'flower', 0.42 + hash(bladeSeed * 41 + 10) * 0.35, bladeSeed + 409);
+      }
     }
   }
 
@@ -1850,6 +1967,21 @@ function distantTerrain(builder: VoxelBuilder, vegetation: TownVegetation[]): vo
   ] as const) distantTree(vegetation, x, y, z, height);
 }
 
+/**
+ * What kind of ground a grid cell is, for the grass-distribution tests. The placement rules below
+ * consume the same predicates, so the tests measure the exact contract the generator enforces.
+ */
+export function townGroundKindAt(gx: number, gz: number): 'canal' | 'paved' | 'open' {
+  if (isCanal(gx, gz)) return 'canal';
+  if (pavedGroundAt(gx, gz)) return 'paved';
+  return 'open';
+}
+
+/** Ground height for the same tests: slope and collector rules are measured, not trusted. */
+export function townGroundHeightAt(gx: number, gz: number): number {
+  return groundHeightGrid(Math.round(gx), Math.round(gz));
+}
+
 function pavedGroundAt(gx: number, gz: number): boolean {
   const plazaDistance = Math.hypot(gx * 0.82, (gz + 6) * 1.08);
   const square = plazaDistance <= 19;
@@ -1965,11 +2097,7 @@ function buildTownDetails(
   flowerPlanter(builder, colliders, vegetation, 6, -13, true);
   handCart(builder, colliders, 21, -7);
 
-  for (const [x, z, height, autumn] of [
-    [-34, 22, 8, false], [-24, 26, 7, true], [39, 22, 8, true],
-    [-24, 8, 8, false], [24, 8, 7, false], [-17, -22, 9, true], [23, -23, 8, false],
-    [-3, -29, 7, false], [44, -19, 8, true], [-45, -23, 9, false],
-  ] as const) tree(colliders, vegetation, x, z, height, autumn);
+  for (const [x, z, height, species] of TOWN_TREE_PLACEMENTS) tree(colliders, vegetation, x, z, height, species);
 
   scatterTownClutter(builder, colliders, vegetation);
 
@@ -1990,14 +2118,17 @@ function buildTownDetails(
   for (const [gx, gz, type, scale, curvature] of [
     [-11, 5, 'barrel', 0.82, 0.31], [-9, 4, 'produce-basket', 0.72, 0.2],
     [16, 5, 'barrel', 0.82, 0.31], [18, 5, 'produce-basket', 0.72, 0.2],
-    [-27, 18, 'map-kit', 0.56, 0.12], [29, 19, 'crate', 0.68, 0.18],
+    // z=19 is the south bank. At z=18 this sat inside the canal, where the ground query answers
+    // "height 0" for want of a way to say "there is no ground here", so the kit floated 1.56 m
+    // above the water.
+    [-27, 19, 'map-kit', 0.56, 0.12], [29, 19, 'crate', 0.68, 0.18],
     [-11, -9, 'open-chest', 0.82, 0.24], [13, -9, 'closed-chest', 0.82, 0.24],
     [-17, 4, 'open-book', 0.46, 0.1], [15, 5, 'book-stack', 0.5, 0.12],
   ] as const) {
     addSpriteProp(
       spriteProps,
       gx,
-      groundHeightGrid(gx, gz) + 0.5,
+      placementSurfaceGrid(gx, gz),
       gz,
       type,
       scale,

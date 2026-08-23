@@ -33,6 +33,69 @@ function expectCliError(code: string) {
   };
 }
 
+const installableAsset = Object.freeze({
+  id: 'poly-haven:forest-floor',
+  slug: 'forest-floor',
+  name: 'Forest Floor',
+  description: 'Forest material.',
+  kind: 'texture',
+  quality: 1,
+  fileCount: 1,
+  formats: ['jpg'],
+  tags: ['forest'],
+  categories: ['nature'],
+  provider: { id: 'poly-haven', name: 'Poly Haven', url: 'https://polyhaven.com' },
+  upstream: {
+    id: 'forest_floor',
+    url: 'https://polyhaven.com/a/forest_floor',
+    filesHash: 'files-hash',
+    retrievedAt: '2026-08-09T00:00:00.000Z',
+  },
+  preview: {
+    url: '/previews/poly-haven/forest-floor.webp',
+    sourceUrl: 'https://example.com/preview.png',
+    width: 256,
+    height: 256,
+    hosting: 'local',
+  },
+  facts: {},
+  downloads: [{
+    path: 'forest_floor_diff_1k.jpg',
+    format: 'jpg',
+    size: 11,
+    url: 'https://dl.polyhaven.org/forest.jpg',
+    hash: { algorithm: 'md5', value: '0123456789abcdef0123456789abcdef' },
+  }],
+  license: {
+    id: 'cc0-1.0',
+    name: 'CC0 1.0 Universal',
+    referenceUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+    permitsModification: true,
+    permitsRedistribution: true,
+    requiresAttribution: false,
+  },
+  provenance: {
+    creator: 'eye-candy.xyz',
+    sourceUrl: 'https://polyhaven.com/a/forest_floor',
+    retrievedAt: '2026-08-09T00:00:00.000Z',
+    sourceHash: { algorithm: 'sha1', value: 'files-hash' },
+  },
+  attribution: { required: true, notice: 'Asset delivered through the Poly Haven API.' },
+  verification: 'install-verified',
+});
+
+const primaryAssetUrl = 'https://assets.antikylabs.com/v1/assets/poly-haven/forest-floor.json';
+const githubFallbackUrl = 'https://raw.githubusercontent.com/antikylabs/antiky/main/packages/asset-catalog/data/installable-assets.v1.json';
+
+function primaryAssetResponse(asset: unknown = installableAsset): Response {
+  return Response.json({
+    version: 'v1',
+    schemaVersion: 1,
+    generatedAt: '2026-08-12T15:04:10.163Z',
+    asset,
+  });
+}
+
 test('antiky init help describes one non-interactive manifest command', async () => {
   const help = output();
 
@@ -41,9 +104,45 @@ test('antiky init help describes one non-interactive manifest command', async ()
   assert.match(help.stdout.join(''), /creates one \.antiky project manifest/i);
 });
 
+test('antiky asset install resolves a catalog asset and validated project', async () => {
+  const directory = await emptyProjectDirectory('asset-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const installed: Array<{ id: string; root: string }> = [];
+  const result = output();
+
+  assert.equal(await runCli([
+    'asset', 'install', 'poly-haven:forest-floor', '--project', directory,
+  ], result.io, {
+    catalogFetcher: async () => primaryAssetResponse(),
+    assetInstaller: async ({ asset, projectRoot }) => {
+      installed.push({ id: asset.id, root: projectRoot });
+      return { catalogId: asset.id, installedAt: '2026-08-09T00:00:00.000Z', files: [] };
+    },
+  }), 0);
+
+  assert.deepEqual(installed, [{ id: 'poly-haven:forest-floor', root: await realpath(directory) }]);
+  assert.match(result.stdout.join(''), /Installed poly-haven:forest-floor/);
+});
+
+test('antiky asset install rejects unknown catalog IDs', async () => {
+  const directory = await emptyProjectDirectory('missing-asset-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  await assert.rejects(
+    runCli(
+      ['asset', 'install', 'poly-haven:missing', '--project', directory],
+      output().io,
+      { catalogFetcher: async () => new Response('not found', { status: 404 }) },
+    ),
+    expectCliError('ANTIKY_ASSET_NOT_FOUND'),
+  );
+});
+
 test('antiky init uses the folder name and creates only the frozen manifest', async () => {
   const directory = await emptyProjectDirectory('harbor-lights');
-  const expected = await readFile(new URL('fixtures/initialized-project.antiky', import.meta.url), 'utf8');
+  const expected = await readFile(
+    new URL('project/fixtures/initialized-project.antiky', import.meta.url),
+    'utf8',
+  );
   const result = output();
 
   assert.equal(await runCli(['init', '--directory', directory], result.io), 0);
@@ -55,6 +154,138 @@ test('antiky init uses the folder name and creates only the frozen manifest', as
   assert.match(result.stdout.join(''), /Created .*harbor-lights\.antiky/);
   assert.match(result.stdout.join(''), /antiky dev/);
   assert.match(result.stdout.join(''), /Antiky Studio/);
+});
+
+test('antiky asset install reads one record from the deployed catalog', async () => {
+  const directory = await emptyProjectDirectory('hosted-asset-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const fetched: string[] = [];
+  const installed: Array<{ id: string; root: string }> = [];
+  const result = output();
+
+  assert.equal(await runCli([
+    'asset', 'install', 'poly-haven:forest-floor', '--project', directory,
+  ], result.io, {
+    catalogFetcher: async (input) => {
+      fetched.push(String(input));
+      return primaryAssetResponse();
+    },
+    assetInstaller: async ({ asset, projectRoot }) => {
+      installed.push({ id: asset.id, root: projectRoot });
+      return { catalogId: asset.id, installedAt: '2026-08-12T15:04:10.163Z', files: [] };
+    },
+  }), 0);
+
+  assert.deepEqual(fetched, [primaryAssetUrl]);
+  assert.deepEqual(installed, [{ id: installableAsset.id, root: await realpath(directory) }]);
+  assert.match(result.stdout.join(''), /Installed poly-haven:forest-floor/u);
+});
+
+test('antiky asset install does not contact GitHub without explicit approval', async () => {
+  const directory = await emptyProjectDirectory('declined-fallback-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const fetched: string[] = [];
+
+  await assert.rejects(
+    () => runCli([
+      'asset', 'install', 'poly-haven:forest-floor', '--project', directory,
+    ], output().io, {
+      catalogFetcher: async (input) => {
+        fetched.push(String(input));
+        return new Response('unavailable', { status: 503 });
+      },
+    }),
+    (error: unknown) => error instanceof AntikyCliError
+      && error.code === 'ANTIKY_CATALOG_UNAVAILABLE'
+      && error.message.includes('--allow-github-fallback'),
+  );
+
+  assert.deepEqual(fetched, [primaryAssetUrl]);
+});
+
+test('antiky asset install uses the GitHub raw fallback after explicit approval', async () => {
+  const directory = await emptyProjectDirectory('approved-fallback-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const fetched: string[] = [];
+  const installed: string[] = [];
+
+  assert.equal(await runCli([
+    'asset', 'install', 'poly-haven:forest-floor',
+    '--project', directory,
+    '--allow-github-fallback',
+  ], output().io, {
+    catalogFetcher: async (input) => {
+      const url = String(input);
+      fetched.push(url);
+      if (url === primaryAssetUrl) throw new TypeError('simulated DNS failure');
+      if (url === githubFallbackUrl) {
+        return Response.json({
+          version: 'v1',
+          schemaVersion: 1,
+          generatedAt: '2026-08-12T15:04:10.163Z',
+          assets: [installableAsset],
+        });
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    },
+    assetInstaller: async ({ asset }) => {
+      installed.push(asset.id);
+      return { catalogId: asset.id, installedAt: '2026-08-12T15:04:10.163Z', files: [] };
+    },
+  }), 0);
+
+  assert.deepEqual(fetched, [primaryAssetUrl, githubFallbackUrl]);
+  assert.deepEqual(installed, [installableAsset.id]);
+});
+
+test('antiky asset install does not use fallback for an unknown hosted asset', async () => {
+  const directory = await emptyProjectDirectory('unknown-hosted-asset-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const fetched: string[] = [];
+
+  await assert.rejects(
+    () => runCli([
+      'asset', 'install', 'poly-haven:forest-floor',
+      '--project', directory,
+      '--allow-github-fallback',
+    ], output().io, {
+      catalogFetcher: async (input) => {
+        fetched.push(String(input));
+        return new Response('not found', { status: 404 });
+      },
+    }),
+    expectCliError('ANTIKY_ASSET_NOT_FOUND'),
+  );
+
+  assert.deepEqual(fetched, [primaryAssetUrl]);
+});
+
+test('antiky asset install rejects an invalid hosted record without falling back', async () => {
+  const directory = await emptyProjectDirectory('invalid-hosted-asset-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const fetched: string[] = [];
+  let installCount = 0;
+
+  await assert.rejects(
+    () => runCli([
+      'asset', 'install', 'poly-haven:forest-floor',
+      '--project', directory,
+      '--allow-github-fallback',
+    ], output().io, {
+      catalogFetcher: async (input) => {
+        fetched.push(String(input));
+        return primaryAssetResponse({ ...installableAsset, id: 'poly-haven:different-asset' });
+      },
+      assetInstaller: async () => {
+        installCount += 1;
+        throw new Error('must not install');
+      },
+    }),
+    expectCliError('ANTIKY_CATALOG_INVALID'),
+  );
+
+  assert.deepEqual(fetched, [primaryAssetUrl]);
+  assert.equal(installCount, 0);
 });
 
 test('antiky studio validates and opens one explicit project without starting development', async () => {
@@ -132,6 +363,75 @@ test('antiky studio accepts only one bounded project target', async () => {
       (error: unknown) => error instanceof AntikyCliError
         && error.code === 'ANTIKY_ARGUMENT_INVALID'
         && /antiky studio \[path \| --project path\]/.test(error.message),
+    );
+  }
+});
+
+test('antiky dev --open starts one project and opens its exact loopback game URL', async () => {
+  const directory = await emptyProjectDirectory('open-game-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const manifestPath = join(directory, 'open-game-project.antiky');
+  const opened: string[] = [];
+  const started: string[] = [];
+  const options = {
+    developmentStarter: async (project: { manifestPath: string; network: {
+      host: string;
+      gamePort: number;
+    } }) => {
+      started.push(project.manifestPath);
+      return {
+        connection: {
+          gameUrl: `http://${project.network.host}:${project.network.gamePort}/`,
+        },
+        stopped: Promise.resolve({ reason: 'normal', exitCode: 0 }),
+      };
+    },
+    gameLauncher: async (url: string) => { opened.push(url); },
+  } as unknown as Parameters<typeof runCli>[2];
+
+  assert.equal(await runCli([
+    'dev', '--open', '--project', manifestPath,
+  ], output().io, options), 0);
+  assert.deepEqual(started, [await realpath(manifestPath)]);
+  assert.deepEqual(opened, ['http://127.0.0.1:3010/']);
+});
+
+test('antiky dev --open stops a started session when the browser cannot open', async () => {
+  const directory = await emptyProjectDirectory('failed-open-game-project');
+  assert.equal(await runCli(['init', '--directory', directory], output().io), 0);
+  const stopped: Array<{ reason: string; exitCode: number }> = [];
+  const options = {
+    developmentStarter: async () => ({
+      stopped: new Promise(() => {}),
+      stop: async (reason: string, exitCode: number) => {
+        stopped.push({ reason, exitCode });
+        return { reason, exitCode };
+      },
+    }),
+    gameLauncher: async () => {
+      throw new AntikyCliError('ANTIKY_GAME_LAUNCH_FAILED', 'Could not open game.');
+    },
+  } as unknown as Parameters<typeof runCli>[2];
+
+  await assert.rejects(
+    () => runCli(['dev', '--open', '--project', directory], output().io, options),
+    expectCliError('ANTIKY_GAME_LAUNCH_FAILED'),
+  );
+  assert.deepEqual(stopped, [{ reason: 'start-failure', exitCode: 1 }]);
+});
+
+test('antiky dev rejects duplicate and unknown launch options before starting', async () => {
+  for (const args of [
+    ['dev', '--open', '--open'],
+    ['dev', '--project'],
+    ['dev', '--project', 'one.antiky', '--project', 'two.antiky'],
+    ['dev', '--unknown'],
+  ]) {
+    await assert.rejects(
+      () => runCli(args),
+      (error: unknown) => error instanceof AntikyCliError
+        && error.code === 'ANTIKY_ARGUMENT_INVALID'
+        && /antiky dev \[--open\] \[--project path\]/.test(error.message),
     );
   }
 });

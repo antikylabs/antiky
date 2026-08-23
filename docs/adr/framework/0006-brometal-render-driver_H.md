@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [0021: Own BroMetal in a BroMetal render driver](0021-brometal-render-driver-ownership_H.md)
 
 ## Context
 
@@ -51,4 +51,6 @@ Changes that Antiky contributes to BroMetal must help renderers in general or co
 
 ## Revision history
 
-- `4c35b270f3da017454b12dd75e104b0c50355818` — Prior version before the plain-language rewrite.
+- `4c35b270f3da017454b12dd75e104b0c50355818`: Prior version before the plain-language rewrite.
+- `f403e4b2d125d7d13cb69c6cead4866c9f340023`: Prior version before ADR 0021 superseded this decision.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

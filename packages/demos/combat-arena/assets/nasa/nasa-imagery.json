@@ -1,0 +1,31 @@
+{
+  "assets": [
+    {
+      "file": "assets/nasa/earth-day-2048.jpg",
+      "credit": "NASA Earth Observatory — Blue Marble Next Generation (December 2004)",
+      "page": "https://visibleearth.nasa.gov/images/73909",
+      "upstream": "https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73909/world.topo.bathy.200412.3x5400x2700.jpg",
+      "license": "public-domain (NASA media usage guidelines)",
+      "bytes": 411233,
+      "sha256": "b59b26732f97ffa157120ae33b70564cd81570d4af4db54a89e49c4990d4df21"
+    },
+    {
+      "file": "assets/nasa/earth-clouds-2048.jpg",
+      "credit": "NASA Earth Observatory — Blue Marble cloud composite",
+      "page": "https://visibleearth.nasa.gov/images/57747",
+      "upstream": "https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57747/cloud_combined_2048.jpg",
+      "license": "public-domain (NASA media usage guidelines)",
+      "bytes": 702733,
+      "sha256": "ab363de9a0cf64e809d313ce6a025e36a342a7046a8daeb40955b48e781f7f0d"
+    },
+    {
+      "file": "assets/nasa/starmap-2048.jpg",
+      "credit": "NASA Goddard Scientific Visualization Studio — Deep Star Maps",
+      "page": "https://svs.gsfc.nasa.gov/3895",
+      "upstream": "https://svs.gsfc.nasa.gov/vis/a000000/a003800/a003895/starmap_4k.jpg",
+      "license": "public-domain (NASA media usage guidelines)",
+      "bytes": 445638,
+      "sha256": "27f0fc162fbe461d65fc03780cee70d73e93994238d85ebd7896b3c5eeb50e4e"
+    }
+  ]
+}

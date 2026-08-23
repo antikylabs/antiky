@@ -42,4 +42,5 @@ Antiky will not copy these sandbox items into the primary world as true state:
 
 ## Revision history
 
-- `6facfccaf4614340a4181b4361f77117e59a5e76` — Prior version before the plain-language rewrite.
+- `6facfccaf4614340a4181b4361f77117e59a5e76`: Prior version before the plain-language rewrite.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

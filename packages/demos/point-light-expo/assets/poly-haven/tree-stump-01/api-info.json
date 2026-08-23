@@ -1,0 +1,70 @@
+{
+  "date_published": 1688515200,
+  "name": "Tree Stump 01",
+  "type": 2,
+  "staging": null,
+  "authors": {
+    "Rob Tuytel": "All"
+  },
+  "info": null,
+  "categories": [
+    "nature",
+    "plants",
+    "ground cover",
+    "trees",
+    "collection: pine_forest"
+  ],
+  "tags": [
+    "tree",
+    "trunk",
+    "stump",
+    "dead tree",
+    "bark",
+    "forest",
+    "natural",
+    "nature",
+    "woodland",
+    "foliage",
+    "environment",
+    "forest floor",
+    "leaf",
+    "dead",
+    "roots",
+    "decayed",
+    "log",
+    "dry",
+    "mossy",
+    "debris",
+    "ground cover",
+    "moss",
+    "rough texture"
+  ],
+  "max_resolution": [
+    8192,
+    8192
+  ],
+  "polycount": 41046,
+  "texel_density": 3835.391643639636,
+  "dimensions": [
+    1425.5504608154297,
+    1590.3143286705017,
+    572.6675391197205
+  ],
+  "files_hash": "a61e4018508b545a75a5a705d54d5de8e9c8df9f",
+  "description": "Free 8K model of a decayed tree stump with exposed roots, rough bark, moss patches and leaf-littered forest floor detail.",
+  "category_id": "a690b075-9aa9-5ad2-a35e-3e247d1fce4b",
+  "category": "Nature/Logs, Branches & Roots/Fallen Logs & Stumps",
+  "collections": [
+    "pine_forest"
+  ],
+  "attributes": {
+    "condition": [
+      "weathered"
+    ],
+    "material": [
+      "wood"
+    ]
+  },
+  "download_count": 20423,
+  "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/tree_stump_01.png?width=256&height=256"
+}

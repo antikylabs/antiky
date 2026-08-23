@@ -3,6 +3,20 @@
 Antiky gives you a game framework, a local development command, and shared tools for people,
 agents, and Studio. Start with the task you want to complete.
 
+## Getting started
+
+Follow these tutorials in order:
+
+1. [Run Antiky Town from source](getting-started/framework.md) and inspect its live development
+   session.
+2. [Open Antiky Town in Studio](getting-started/studio.md) and use the visual workspace.
+3. [Inspect Antiky Town with development tools](getting-started/tools.md) and connect an MCP client.
+
+## Assets
+
+- [Find and use game assets](assets/catalog.md) with explicit CC0 licensing, source links, useful
+  metadata, permanent pages, and structured records for agents.
+
 ## Framework
 
 - [Build a game module](framework/game-modules.md) that mounts on a host-owned canvas without
@@ -18,6 +32,8 @@ agents, and Studio. Start with the task you want to complete.
 
 - [Initialize a project and run a local development session](cli/development.md) with one manifest,
   the game, shader watcher, inspection service, and MCP server.
+- [Install a catalog asset](cli/assets.md) from its Antiky asset ID with verified file sizes and
+  hashes.
 
 ## MCP
 
@@ -32,8 +48,21 @@ agents, and Studio. Start with the task you want to complete.
   Finder, and the CLI.
 - [Inspect a running game in Studio](studio/getting-started.md) beside a native terminal, simulation
   controls, hierarchy, stores, event history, and MCP call history.
+- [Package and release Antiky Studio](studio/package-and-release.md) as an arm64 macOS application
+  and draft GitHub release.
 - [Connect Studio to a project service](studio/development-connection.md) through the same lifecycle
   library and typed client used by CLI and MCP adapters.
+- [Use BroMetal or Three.js in Studio](studio/renderers.md) while keeping the host lifecycle,
+  measurements, captures, and local agent connection.
+
+## Skills
+
+- [Understand Antiky agent skills](skills/overview.md), their portable format, and their
+  compatibility boundary.
+- [Install and manage Antiky skills](skills/install.md) for one project, one agent, or your user
+  account.
+- Use the [Antiky skills reference](skills/reference.md) to look up public skill names, purposes, and
+  subcommands.
 
 ## API reference
 

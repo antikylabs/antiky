@@ -1,6 +1,6 @@
 ---
 generated: packages/framework/scripts/generate-api-reference.mjs
-frameworkSource: sha256:abec93cf7a78bb76
+frameworkSource: sha256:641549dc472c878c
 ---
 
 # Game host API
@@ -31,9 +31,9 @@ const mountGame: GameModuleEntry = ({ canvas, movement, pointer }) => ({
 export default mountGame;
 ```
 
-## Game module and host contract
+## Game contract, import-free
 
-Keep platform work in the host and expose only semantic game input, measurements, inspection, presentation, and cleanup.
+Re-exported here so the game entry stays one import. `@antiky/framework/contract` is the same types with nothing behind them.
 
 ### `GamePointerInput`
 
@@ -83,6 +83,25 @@ type GameMeasurements = Readonly<{
     note?: string;
 }>;
 ```
+
+### `GameHostContext`
+
+Canvas, runtime identity, semantic input, mode, and measurement callback supplied when a host mounts a game.
+
+```ts
+type GameHostContext = Readonly<{
+    canvas: HTMLCanvasElement;
+    runtimeInstanceId: string;
+    pointer: GamePointerInput;
+    movement: GameMovementInput;
+    mode: GameHostMode;
+    report(measurements: GameMeasurements): void;
+}>;
+```
+
+## Game module and host contract
+
+Keep platform work in the host and expose only semantic game input, measurements, inspection, presentation, and cleanup.
 
 ### `GameHostInspectionState`
 
@@ -138,6 +157,7 @@ type GameInspectionPort = Readonly<{
     pauseSimulation?(): GameSessionControlResult | Promise<GameSessionControlResult>;
     resumeSimulation?(): GameSessionControlResult | Promise<GameSessionControlResult>;
     stepSimulation?(expectedCompletedStepCount: number): GameSessionControlResult | Promise<GameSessionControlResult>;
+    applyCaptureFixture?(request: CaptureFixtureRequest): CaptureFixtureResult | Promise<CaptureFixtureResult>;
 }>;
 ```
 
@@ -149,31 +169,12 @@ Combines validated host state with optional game state in one Framework inspecti
 function createGameInspectionSnapshot(state: GameHostInspectionState, details: GameInspectionDetails = {}): InspectionSnapshot;
 ```
 
-### `GameHostContext`
-
-Canvas, runtime identity, semantic input, mode, and measurement callback supplied when a host mounts a game.
-
-```ts
-type GameHostContext = Readonly<{
-    canvas: HTMLCanvasElement;
-    runtimeInstanceId: string;
-    pointer: GamePointerInput;
-    movement: GameMovementInput;
-    mode: GameHostMode;
-    report(measurements: GameMeasurements): void;
-}>;
-```
-
 ### `GameInstance`
 
 One mounted game with presentation, cleanup, and optional inspection operations.
 
 ```ts
-type GameInstance = Readonly<{
-    frame(platformTimeSeconds: number): void;
-    dispose(): void;
-    inspection?: GameInspectionPort;
-}>;
+type GameInstance = GameInstanceCore<GameInspectionPort>;
 ```
 
 ### `GameModuleEntry`
@@ -182,4 +183,115 @@ The default game-module function that creates one game instance from a host cont
 
 ```ts
 type GameModuleEntry = (context: GameHostContext) => GameInstance | Promise<GameInstance>;
+```
+
+## Capture fixture contract
+
+Validate bounded game-owned presentation controls for deterministic visual evidence.
+
+### `CaptureFixtureControl`
+
+One declared scene-visibility, camera-translation, or named presentation-variant control.
+
+```ts
+type CaptureFixtureControl = CaptureFixtureSceneVisibilityControl | CaptureFixtureCameraTranslationControl | CaptureFixtureVariantControl;
+```
+
+### `CaptureFixtureRequest`
+
+A bounded semantic fixture request addressed to one game-owned fixture surface.
+
+```ts
+type CaptureFixtureRequest = Readonly<{
+    schemaVersion: typeof CAPTURE_FIXTURE_SCHEMA_VERSION;
+    fixtureName: string;
+    controls: readonly CaptureFixtureControl[];
+}>;
+```
+
+### `CaptureFixtureResult`
+
+The exact semantic controls a game accepted and applied for a capture.
+
+```ts
+type CaptureFixtureResult = Readonly<{
+    schemaVersion: typeof CAPTURE_FIXTURE_SCHEMA_VERSION;
+    fixtureName: string;
+    appliedControls: readonly CaptureFixtureControl[];
+}>;
+```
+
+### `CaptureFixtureState`
+
+The current presentation-only scene, variant, and camera values owned by one game.
+
+```ts
+type CaptureFixtureState = Readonly<{
+    sceneVisibility: Readonly<Record<string, boolean>>;
+    variants: Readonly<Record<string, boolean>>;
+    cameraTranslation: Readonly<{
+        x: number;
+        y: number;
+        z: number;
+    }>;
+}>;
+```
+
+### `CaptureFixtureDeclaration`
+
+The fixture name, semantic controls, defaults, and camera bound one game declares.
+
+```ts
+type CaptureFixtureDeclaration = Readonly<{
+    fixtureName: string;
+    sceneGroups?: Readonly<Record<string, boolean>>;
+    variants?: Readonly<Record<string, boolean>>;
+    maximumCameraTranslation?: number;
+}>;
+```
+
+### `CaptureFixtureController`
+
+Validates and applies a game declaration without exposing renderer or simulation objects.
+
+```ts
+type CaptureFixtureController = Readonly<{
+    apply(request: CaptureFixtureRequest): CaptureFixtureResult;
+    read(): CaptureFixtureState;
+}>;
+```
+
+### `CaptureFixtureValidationError`
+
+Thrown for invalid or undeclared capture controls with a stable code and path.
+
+```ts
+class CaptureFixtureValidationError extends Error {
+    readonly code = 'INVALID_CAPTURE_FIXTURE';
+    constructor(message: string, readonly path: string);
+}
+```
+
+### `parseCaptureFixtureRequest`
+
+Validates, copies, and freezes a bounded semantic capture-fixture request.
+
+```ts
+function parseCaptureFixtureRequest(value: unknown): CaptureFixtureRequest;
+```
+
+### `parseCaptureFixtureResult`
+
+Validates an applied fixture result and can require an exact request echo.
+
+```ts
+function parseCaptureFixtureResult(value: unknown, expected?: CaptureFixtureRequest): CaptureFixtureResult;
+```
+
+### `createCaptureFixtureController`
+
+Creates a presentation-only controller from one game-owned fixture declaration.
+
+```ts
+function createCaptureFixtureController(declaration: CaptureFixtureDeclaration): CaptureFixtureController;
 ```

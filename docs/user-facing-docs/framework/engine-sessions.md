@@ -47,6 +47,14 @@ The system order is fixed when you create the session. Every fixed step runs eac
 that order. The optional state digest gives tests and inspection tools a compact way to compare
 the latest completed state; it is not a save file or event log.
 
+A captured input snapshot can contain primitives, frozen plain objects, and frozen arrays. Every
+own data property, including symbol and non-enumerable properties, must lead to another valid
+snapshot value. Do not include functions, accessor properties, class instances, or mutable nested
+values. A frozen container does not make a function's closure or an accessor's setter immutable.
+The session enforces this policy by copying accepted data into a fresh frozen graph before systems
+run. The copy keeps normal object and array prototypes plus every own data property's key, value,
+and enumerability.
+
 ## Drive it from your game host
 
 Your browser, native window, server process, or test harness supplies elapsed time and semantic
@@ -98,6 +106,42 @@ The session captures one semantic input value for each call to `advance`. If a d
 several catch-up steps, those steps use the same captured input with different completed-step IDs.
 Do not let a system read keys, pointers, sockets, or wall-clock time directly.
 
+## Observe completed steps live
+
+Use `onCompletedStep` when a test, capture adapter, or diagnostic needs the identity of every state
+that the session completes:
+
+```ts
+const session = createEngineSession({
+  // IDs, systems, and input capture omitted here.
+  getStateDigest: () => `player:${player.x}:${player.z}`,
+  onCompletedStep(step) {
+    console.log({
+      completedStepId: step.completedStepId,
+      inputSequence: step.inputSequence,
+      source: step.source,
+      stateDigest: step.stateDigest,
+    });
+  },
+});
+```
+
+The session calls the observer once after the systems and state digest succeed for a step. Calls
+follow completed-step order, including each step in a catch-up frame. A frame that completes no
+steps does not call it. An explicit single-step call reports `source: 'single-step'`.
+
+The completed-step record and its captured input are deeply immutable. The observer runs while the
+session writer is busy, so it can copy the record or request read-only inspection but cannot
+reenter simulation or command work. Do not mutate game state from this observer. If the observer
+throws, that step remains completed, later
+steps in the same frame do not run, and the session enters `faulted` mode with source
+`completed-step-observer`.
+
+This callback is live observation only. `EngineSession` does not retain an observed-step list,
+publish a subscription, save checkpoints, create a replay, or promise durable delivery. A consumer
+that needs history or durability must copy the records into storage that it owns. The callback does
+not request rendering; the host still presents at most once for each display frame.
+
 ## Reject input or stop after a fault
 
 Return `null` from `captureInput` when the caller supplies invalid input that the game can reject
@@ -113,18 +157,19 @@ captureInput(input: { movementX: number }) {
 The frame or single-step operation then returns `INVALID_INPUT`. The session stays usable and does
 not change its clock or game state.
 
-Throwing from `captureInput` means that input capture itself failed. Returning a mutable or otherwise
-unsafe snapshot is also a capture failure. These failures are different from rejecting expected
-invalid input.
+Throwing from `captureInput` means that input capture itself failed. Returning a mutable snapshot,
+a callable or accessor, or another unsupported input shape is also a capture failure. These
+failures are different from rejecting expected invalid input.
 
-The session enters `faulted` mode when input capture, an engine system, the state digest, or a command
-operation fails unexpectedly. The operation returns `SESSION_FAULTED`, and all later frames,
-single-step controls, and commands return the same code without running more game code. This
-fail-closed behavior prevents a partially changed world from being changed again.
+The session enters `faulted` mode when input capture, an engine system, the state digest, the
+completed-step observer, or a command operation fails unexpectedly. The operation returns
+`SESSION_FAULTED`, and all later frames, single-step controls, and commands return the same code
+without running more game code. This fail-closed behavior prevents a partially changed world from
+being changed again.
 
 `readStatus()` remains available in faulted mode. Its `fault` field contains only a stable code, the
 failure source, and the system ID when a system failed. It does not copy the thrown message, stack,
-input, or command data across the inspection boundary. Engine-session status uses `schemaVersion: 2`
+input, or command data across the inspection boundary. Engine-session status uses `schemaVersion: 3`
 for this contract.
 
 After you record the diagnostics you need, call `dispose()` and create a new session. A faulted

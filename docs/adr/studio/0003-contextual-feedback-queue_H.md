@@ -50,4 +50,5 @@ change its target directly.
 
 ## Revision history
 
-- `5ccd6638aa0124b286c5dc7562884f5c2d707f79` — Prior version before the plain-language rewrite.
+- `5ccd6638aa0124b286c5dc7562884f5c2d707f79`: Prior version before the plain-language rewrite.
+- `d59e241c5dc6948743a5f70db1e41ae65c183b44`: Replaced em dash punctuation with standard punctuation.

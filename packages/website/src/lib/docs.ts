@@ -3,15 +3,20 @@ import 'server-only';
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, join, normalize, resolve } from 'node:path';
 import { Marked } from 'marked';
+import { CATALOG_ASSETS } from '@antiky/asset-catalog/catalog';
+import { CATALOG_API_BASE_URL, CATALOG_API_CATALOG_URL, catalogApiAssetUrl } from '@antiky/asset-catalog/static-api';
 import { canonical } from '@/lib/site';
 
 const DOCS_ROOT = resolve(process.cwd(), '../../docs/user-facing-docs');
 
 const PRODUCT_DOCS_SECTIONS = [
+  { directory: 'getting-started', label: 'Getting Started' },
   { directory: 'framework', label: 'Framework' },
   { directory: 'cli', label: 'CLI' },
   { directory: 'mcp', label: 'MCP' },
   { directory: 'studio', label: 'Studio' },
+  { directory: 'assets', label: 'Game Assets' },
+  { directory: 'skills', label: 'Skills' },
 ] as const;
 
 const API_DOCS_SECTION = { directory: 'api', label: 'API Reference' } as const;
@@ -21,6 +26,15 @@ const CONTRIBUTOR_PAGE = {
   relativePath: 'DOCUMENTATION_STANDARDS_A.md',
   slug: ['contributing', 'documentation-standards'],
 };
+
+const PUBLIC_EXPLANATIONS = [
+  ['Antiky Framework', '/framework', 'Open-source TypeScript game framework for running, testing, inspecting, and editing a game.'],
+  ['Antiky Studio', '/studio', 'Native workspace with a running game, terminal, simulation controls, inspection, and development activity.'],
+  ['Antiky Research', '/research', 'Public experiments in rendering, asset pipelines, agent tools, and ways to describe game worlds.'],
+  ['Antiky Resources', '/resources', 'Free game assets and installable skills, with shader and project libraries coming later.'],
+  ['Antiky Skills', '/resources/skills', 'Installable instructions and tools for compatible coding agents.'],
+  ['Antiky Roadmap', '/roadmap', 'The planned order for upcoming Antiky releases, without estimated dates.'],
+] as const;
 
 export type DocsHeading = {
   depth: number;
@@ -49,9 +63,27 @@ export type DocsSearchRecord = {
 };
 
 export type DocsNavigationSection = {
+  id: string;
   label: string;
   pages: DocsEntry[];
 };
+
+export type DocsNavigationGroup = {
+  href: string;
+  id: string;
+  label: string;
+  sectionIds: string[];
+  sections: DocsNavigationSection[];
+};
+
+const DOCS_GROUPS = [
+  { id: 'start', label: 'Start', href: '/docs', sectionIds: ['getting-started'] },
+  { id: 'framework', label: 'Framework', href: '/docs/framework/game-modules', sectionIds: ['framework'] },
+  { id: 'tools', label: 'Tools', href: '/docs/cli/development', sectionIds: ['cli', 'mcp'] },
+  { id: 'studio', label: 'Studio', href: '/docs/studio/getting-started', sectionIds: ['studio'] },
+  { id: 'resources', label: 'Resources', href: '/docs/assets/catalog', sectionIds: ['assets', 'skills'] },
+  { id: 'api', label: 'API', href: '/docs/api/reference', sectionIds: ['api'] },
+] as const;
 
 function docsHref(slug: string[]): string {
   return slug.length === 0 ? '/docs' : `/docs/${slug.join('/')}`;
@@ -66,7 +98,7 @@ function sourcePathToSlug(relativePath: string): string[] | null {
   if (normalizedPath === 'README.md') return [];
   if (normalizedPath === CONTRIBUTOR_PAGE.relativePath) return CONTRIBUTOR_PAGE.slug;
 
-  const match = normalizedPath.match(/^(framework|cli|mcp|studio|api)\/(.+)\.md$/);
+  const match = normalizedPath.match(/^(getting-started|framework|cli|mcp|studio|assets|skills|api)\/(.+)\.md$/);
   return match ? [match[1]!, match[2]!] : null;
 }
 
@@ -207,19 +239,32 @@ export async function getDocsNavigation(): Promise<DocsNavigationSection[]> {
 
   return [
     ...PRODUCT_DOCS_SECTIONS.map(({ directory, label }) => ({
+      id: directory,
       label,
       pages: ordered(entries.filter((entry) => entry.section === directory)),
     })),
     {
+      id: 'contributing',
       label: 'Contributing',
       pages: ordered(entries.filter((entry) => entry.slug[0] === 'contributing')),
     },
     {
+      id: API_DOCS_SECTION.directory,
       label: API_DOCS_SECTION.label,
       pages: ordered(entries.filter((entry) => entry.section === API_DOCS_SECTION.directory)),
     },
   ]
     .filter((section) => section.pages.length > 0);
+}
+
+export function getDocsNavigationGroups(navigation: DocsNavigationSection[]): DocsNavigationGroup[] {
+  return DOCS_GROUPS.map((group) => ({
+    ...group,
+    sectionIds: [...group.sectionIds],
+    sections: group.sectionIds.flatMap((sectionId) => (
+      navigation.filter((section) => section.id === sectionId)
+    )),
+  }));
 }
 
 export function getDocsSearchRecords(entries: DocsEntry[]): DocsSearchRecord[] {
@@ -237,16 +282,27 @@ export function renderLlmsTxt(entries: DocsEntry[], navigation: DocsNavigationSe
   if (!home) throw new Error('The documentation home is required to generate llms.txt.');
 
   const lines = [
-    '# Antiky Documentation',
+    '# Antiky Labs',
     '',
     `> ${home.description}`,
     '',
-    'These are the public docs for developers building games with Antiky Framework, CLI, MCP, and Studio.',
+    'Public documentation and CC0 game assets for developers and agents building with Antiky Framework, CLI, MCP, and Studio.',
     '',
     '## Overview',
     '',
     `- [${home.title}](${canonical(home.markdownHref)}): ${home.description}`,
   ];
+
+  lines.push(
+    '',
+    '## Product explanations',
+    '',
+    ...PUBLIC_EXPLANATIONS.map(([title, href, description]) => `- [${title}](${canonical(href)}): ${description}`),
+    '',
+    '## Complete context',
+    '',
+    `- [Antiky complete documentation and asset context](${canonical('/llms-full.txt')}): Full public docs, generated API reference, and every asset catalog record.`,
+  );
 
   for (const section of navigation) {
     lines.push('', `## ${section.label}`, '');
@@ -255,6 +311,65 @@ export function renderLlmsTxt(entries: DocsEntry[], navigation: DocsNavigationSe
     }
   }
 
+  lines.push(
+    '',
+    '## Asset Catalog',
+    '',
+    `- [Static catalog API](${CATALOG_API_BASE_URL}/): Versioned index for frontend and agent clients.`,
+    `- [Complete asset catalog JSON](${CATALOG_API_CATALOG_URL}): Static schema-versioned JSON containing all ${CATALOG_ASSETS.length.toLocaleString('en-US')} asset records.`,
+  );
+  for (const asset of CATALOG_ASSETS) {
+    lines.push(`- [${asset.name}](${canonical(`/assets/${asset.provider.id}/${asset.slug}`)}): ${asset.provider.name} ${asset.kind}; ${asset.license.name}; ${asset.verification}.`);
+  }
+
+  return `${lines.join('\n')}\n`;
+}
+
+export function renderLlmsFullTxt(entries: DocsEntry[]): string {
+  const lines = [
+    '# Antiky Labs full context',
+    '',
+    '> Complete public documentation, generated API reference, and CC0-first asset catalog context.',
+    '',
+    `Canonical index: ${canonical('/llms.txt')}`,
+    '',
+    '## Public product explanations',
+    '',
+    ...PUBLIC_EXPLANATIONS.map(([title, href, description]) => `- ${title}: ${description} ${canonical(href)}`),
+  ];
+
+  for (const entry of entries) {
+    lines.push(
+      '',
+      `## Documentation: ${entry.title}`,
+      '',
+      `Source: ${canonical(entry.markdownHref)}`,
+      '',
+      entry.source.trim(),
+    );
+  }
+
+  lines.push('', '## Asset catalog records', '');
+  for (const asset of CATALOG_ASSETS) {
+    lines.push(
+      `### ${asset.name}`,
+      '',
+      `- Catalog URL: ${canonical(`/assets/${asset.provider.id}/${asset.slug}`)}`,
+      `- JSON URL: ${catalogApiAssetUrl(asset)}`,
+      `- Stable ID: ${asset.id}`,
+      `- Provider: ${asset.provider.name}`,
+      `- Creator: ${asset.provenance.creator}`,
+      `- Type: ${asset.kind}`,
+      `- Description: ${asset.description}`,
+      `- Tags: ${asset.tags.join(', ')}`,
+      `- Formats: ${asset.formats.join(', ') || 'not published'}`,
+      `- Published file count: ${asset.fileCount ?? 'not published'}`,
+      `- License: ${asset.license.name} (${asset.license.referenceUrl})`,
+      `- Verification: ${asset.verification}`,
+      `- Official source: ${asset.upstream.url}`,
+      '',
+    );
+  }
   return `${lines.join('\n')}\n`;
 }
 

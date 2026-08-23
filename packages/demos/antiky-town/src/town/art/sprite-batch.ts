@@ -1,4 +1,4 @@
-import type { BroMetalTexture, Mat4Array } from 'brometal';
+import type { Mat4Array } from 'brometal';
 
 export const QUAD_POSITIONS_GROUNDED = new Float32Array([
   -0.5, 0, 0,
@@ -158,15 +158,19 @@ export type StandeeSideMesh = {
   indices: Uint32Array;
 };
 
+/**
+ * Where each tile sits in the atlas, in uv.
+ *
+ * Deliberately carries no texture. The render driver owns the GPU texture and never hands one back,
+ * and nothing here ever needed it: a batch reads `rect` and nothing else.
+ */
 export type SpriteAtlas = {
-  texture: BroMetalTexture;
   cols: number;
   rows: number;
   rect(tile: number, out: Float32Array, offset: number): void;
 };
 
 export function spriteAtlas(
-  texture: BroMetalTexture,
   options: { cols: number; rows: number; tileWidth?: number; tileHeight?: number },
 ): SpriteAtlas {
   const tileWidth = options.tileWidth ?? 16;
@@ -176,7 +180,6 @@ export function spriteAtlas(
   const insetU = 0.5 / (options.cols * tileWidth);
   const insetV = 0.5 / (options.rows * tileHeight);
   return {
-    texture,
     cols: options.cols,
     rows: options.rows,
     rect(tile, out, offset) {
@@ -213,7 +216,6 @@ export class SpriteBatch {
   facings: Float32Array;
   tiles: Uint16Array;
   count = 0;
-  dirty = true;
 
   private capacity: number;
   private readonly atlas: SpriteAtlas;
@@ -231,13 +233,11 @@ export class SpriteBatch {
 
   clear(): void {
     this.count = 0;
-    this.dirty = true;
   }
 
   push(sprite: SpriteInput): void {
     if (this.count === this.capacity) this.grow();
     const i = this.count++;
-    this.dirty = true;
     this.tiles[i] = sprite.tile;
     this.centers.set([sprite.x, sprite.y, sprite.z], i * 3);
     this.sizes.set([sprite.width, sprite.height], i * 2);
@@ -266,10 +266,6 @@ export class SpriteBatch {
       facings: this.facings.subarray(0, this.count * 3),
       tiles: this.tiles.subarray(0, this.count),
     };
-  }
-
-  markUploaded(): void {
-    this.dirty = false;
   }
 
   private grow(): void {
@@ -421,30 +417,22 @@ function pushStandeeSideVertex(
   emissive.push(0);
 }
 
-type SpriteTarget = {
-  instanceAttributes: {
-    iCenter: { set(value: Float32Array): void };
-    iSize: { set(value: Float32Array): void };
-    iUvRect: { set(value: Float32Array): void };
-    iTint: { set(value: Float32Array): void };
-    iFacing: { set(value: Float32Array): void };
-  };
-};
-
-export function uploadSpriteBatch(program: SpriteTarget, batch: SpriteBatch): number {
-  if (batch.count === 0) return 0;
-  // A batch can feed both its visible and shadow-caster programs. Each program
-  // owns separate GPU buffers, so an upload completed for one target cannot be
-  // treated as completed for the other. Actor counts are deliberately small;
-  // upload the live prefix to every requested target.
+/**
+ * The batch's live prefix, named as the instance attributes a sprite shader declares.
+ *
+ * Returned rather than uploaded, because the render driver owns the GPU buffers. The same rows feed
+ * both the visible draw and its shadow caster, which is why this hands back one record instead of
+ * writing into a program: each of those draws carries its own copy of it.
+ */
+export function spriteInstanceData(batch: SpriteBatch): Record<string, Float32Array> {
   const live = batch.live();
-  program.instanceAttributes.iCenter.set(live.centers);
-  program.instanceAttributes.iSize.set(live.sizes);
-  program.instanceAttributes.iUvRect.set(live.uvRects);
-  program.instanceAttributes.iTint.set(live.tints);
-  program.instanceAttributes.iFacing.set(live.facings);
-  batch.markUploaded();
-  return batch.count;
+  return {
+    iCenter: live.centers,
+    iSize: live.sizes,
+    iUvRect: live.uvRects,
+    iTint: live.tints,
+    iFacing: live.facings,
+  };
 }
 
 /** World-space axes for a vertical billboard. */

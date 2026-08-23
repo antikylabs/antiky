@@ -23,12 +23,51 @@ const TERMINAL_THEME_KEYS = new Set([
   'palette',
 ]);
 
-test('Tauri uses the existing Antiky brand mark as its native icon', async () => {
-  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
-  assert.deepEqual(config.bundle.icon, [
-    '../../website/public/brand/antiky-labs-wordmark-white.png',
+function icnsPngRepresentations(contents) {
+  assert.equal(contents.toString('ascii', 0, 4), 'icns');
+  assert.equal(contents.readUInt32BE(4), contents.length);
+
+  const representations = new Map();
+  for (let offset = 8; offset < contents.length;) {
+    const type = contents.toString('ascii', offset, offset + 4);
+    const length = contents.readUInt32BE(offset + 4);
+    assert.ok(length >= 8, `${type} has an invalid ICNS record length`);
+    assert.ok(offset + length <= contents.length, `${type} leaves the ICNS container`);
+    const payload = contents.subarray(offset + 8, offset + length);
+    if (payload.subarray(0, 8).toString('hex') === '89504e470d0a1a0a') {
+      assert.equal(payload.toString('ascii', 12, 16), 'IHDR');
+      representations.set(type, [payload.readUInt32BE(16), payload.readUInt32BE(20)]);
+    }
+    offset += length;
+  }
+  return representations;
+}
+
+test('Tauri packages a complete macOS icon instead of resizing the small website mark', async () => {
+  const [config, packageManifest, source] = await Promise.all([
+    readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(packageDirectory, 'package.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(packageDirectory, 'icons/source.svg'), 'utf8'),
   ]);
-  await access(resolve(packageDirectory, config.bundle.icon[0]));
+  assert.deepEqual(config.bundle.icon, ['icons/icon.icns']);
+  assert.equal(packageManifest.scripts['icon:generate'], 'node scripts/icon/generate.mjs');
+  assert.match(source, /width="1024" height="1024"/);
+
+  const [icon, runtimeIcon] = await Promise.all([
+    readFile(resolve(packageDirectory, config.bundle.icon[0])),
+    readFile(resolve(packageDirectory, 'icons/icon.png')),
+  ]);
+  assert.equal(runtimeIcon.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+  assert.equal(runtimeIcon.toString('ascii', 12, 16), 'IHDR');
+  assert.deepEqual([runtimeIcon.readUInt32BE(16), runtimeIcon.readUInt32BE(20)], [512, 512]);
+
+  const representations = icnsPngRepresentations(icon);
+  assert.deepEqual(representations.get('ic11'), [32, 32]);
+  assert.deepEqual(representations.get('ic12'), [64, 64]);
+  assert.deepEqual(representations.get('ic07'), [128, 128]);
+  assert.deepEqual(representations.get('ic08'), [256, 256]);
+  assert.deepEqual(representations.get('ic09'), [512, 512]);
+  assert.deepEqual(representations.get('ic10'), [1024, 1024]);
 });
 
 test('the main window can invoke only the bounded Studio command surface', async () => {
@@ -39,6 +78,7 @@ test('the main window can invoke only the bounded Studio command surface', async
   assert.deepEqual(capability.permissions, [
     'core:event:allow-listen',
     'core:event:allow-unlisten',
+    'core:window:allow-set-fullscreen',
     'allow-project-initial-event',
     'allow-project-select',
     'allow-project-create',
@@ -61,7 +101,8 @@ test('the local macOS app bundle owns the named Antiky project association', asy
   const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
 
   assert.equal(config.bundle.active, true);
-  assert.deepEqual(config.bundle.targets, ['app']);
+  assert.deepEqual(config.bundle.targets, ['app', 'dmg']);
+  assert.equal(config.bundle.macOS.signingIdentity, '-');
   assert.deepEqual(config.bundle.fileAssociations, [{
     ext: ['antiky'],
     name: 'Antiky Project',
@@ -100,6 +141,26 @@ test('the native project picker accepts one file and restricts selection to .ant
   assert.match(picker, /setCanChooseDirectories:YES/);
   assert.match(picker, /setCanCreateDirectories:YES/);
   assert.match(picker, /setPrompt:@"Create project"/);
+});
+
+test('the Tauri File menu owns project-open and recent-project entries', async () => {
+  const [build, app, menu] = await Promise.all([
+    readFile(resolve(packageDirectory, 'build.rs'), 'utf8'),
+    readFile(resolve(packageDirectory, 'src/lib.rs'), 'utf8'),
+    readFile(resolve(packageDirectory, 'src/studio_menu.rs'), 'utf8'),
+  ]);
+
+  assert.doesNotMatch(build, /studio_menu\.m/);
+  assert.match(app, /\.menu\(studio_menu::build\)/);
+  assert.match(app, /\.on_menu_event\(studio_menu::handle_event\)/);
+  assert.match(menu, /Menu::default/);
+  assert.match(menu, /OPEN_PROJECT_MENU_ID/);
+  assert.match(menu, /RECENT_PROJECTS_MENU_ID/);
+  assert.match(menu, /MenuItem::with_id/);
+  assert.match(menu, /Submenu::with_id_and_items/);
+  assert.match(menu, /PredefinedMenuItem::separator/);
+  assert.match(menu, /refresh_recent_projects/);
+  assert.doesNotMatch(menu, /extern "C"/);
 });
 
 test('the main window can reach the website narrow-layout breakpoint', async () => {
@@ -170,15 +231,20 @@ test('the Studio terminal theme is a complete visual-only Ghostty profile', asyn
   assert.doesNotMatch(profile, /(?:command|input|keybind|font-family|working-directory|config-file)\s*=/);
   assert.deepEqual(config.bundle.resources, {
     'resources/node': 'project-service/node',
+    'resources/node-LICENSE': 'project-service/node-LICENSE',
+    'resources/node_modules/playwright': 'project-service/node_modules/playwright',
+    'resources/node_modules/playwright-core': 'project-service/node_modules/playwright-core',
     'resources/project-service.mjs': 'project-service/project-service.mjs',
     'resources/terminal/antiky-studio.ghostty': 'terminal/antiky-studio.ghostty',
+    'resources/terminal/antiky-studio.zshrc': 'terminal/.zshrc',
   });
 });
 
 test('Studio packages a project-service worker instead of an antiky dev command adapter', async () => {
-  const [config, source] = await Promise.all([
+  const [config, source, worker] = await Promise.all([
     readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8').then(JSON.parse),
     readFile(resolve(packageDirectory, 'src/development.rs'), 'utf8'),
+    readFile(resolve(packageDirectory, 'resources/project-service.mjs'), 'utf8'),
   ]);
 
   assert.equal(
@@ -187,10 +253,15 @@ test('Studio packages a project-service worker instead of an antiky dev command 
   );
   assert.equal(config.bundle.resources['resources/node'], 'project-service/node');
   await access(resolve(packageDirectory, 'resources/node'));
+  await access(resolve(packageDirectory, 'resources/node_modules/playwright/package.json'));
+  await access(resolve(packageDirectory, 'resources/node_modules/playwright-core/package.json'));
   await access(resolve(packageDirectory, 'resources/project-service.mjs'));
   assert.doesNotMatch(source, /antiky\s+dev|Command::new\([^)]*antiky/);
   assert.doesNotMatch(source, /Command::new\("node"\)/);
   assert.match(source, /project-service\.mjs/);
+  assert.match(worker, /STUDIO_PORT_RANGE_START = 7e3/);
+  assert.match(worker, /STUDIO_PORT_RANGE_END = 7999/);
+  assert.match(worker, /portAllocation: "studio-dynamic"/);
 });
 
 test('the packaged runtime can execute the bundled project-service worker', async () => {
@@ -215,6 +286,17 @@ test('the packaged runtime can execute the bundled project-service worker', asyn
       message: 'The Studio project service needs one project manifest path.',
     },
   });
+});
+
+test('the packaged Node runtime includes its upstream license', async () => {
+  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
+  const licensePath = resolve(packageDirectory, 'resources/node-LICENSE');
+
+  assert.equal(
+    config.bundle.resources['resources/node-LICENSE'],
+    'project-service/node-LICENSE',
+  );
+  assert.match(await readFile(licensePath, 'utf8'), /Node\.js is licensed for use as follows:/);
 });
 
 test('the bundled project service can initialize a Studio project', async () => {

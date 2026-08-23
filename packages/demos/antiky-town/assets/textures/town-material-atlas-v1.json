@@ -1,15 +1,24 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "emitMode": "padded",
   "image": "town-material-atlas-v1.png",
-  "imageSha256": "a0a503e0a0f3a320a792c6f6e65146d8cfa56e2a6caa8e614294e8e5535203ec",
+  "imageSha256": "fedb546d5cab69401e5ce0c311e6f3ba71821588ed659b7c9ad6df24083b877e",
   "size": {
-    "width": 1254,
-    "height": 1254
+    "width": 2048,
+    "height": 1920
   },
   "grid": {
     "columns": 4,
-    "rows": 3
+    "rows": 3,
+    "cellWidth": 512,
+    "cellHeight": 640
   },
+  "gutter": 64,
+  "inner": {
+    "width": 384,
+    "height": 512
+  },
+  "uvOrigin": "bottom-left",
   "tiles": [
     "warm-limestone",
     "mossy-cobblestone",
@@ -24,6 +33,108 @@
     "wet-canal-stone",
     "damp-waterfall-rock"
   ],
+  "tileRects": [
+    {
+      "name": "warm-limestone",
+      "x": 0.03125,
+      "y": 0.7,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "mossy-cobblestone",
+      "x": 0.28125,
+      "y": 0.7,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "aged-ivory-plaster",
+      "x": 0.53125,
+      "y": 0.7,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "hand-hewn-timber",
+      "x": 0.78125,
+      "y": 0.7,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "terracotta-shingles",
+      "x": 0.03125,
+      "y": 0.366666667,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "slate-shingles",
+      "x": 0.28125,
+      "y": 0.366666667,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "meadow-grass-and-flowers",
+      "x": 0.53125,
+      "y": 0.366666667,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "compacted-earth",
+      "x": 0.78125,
+      "y": 0.366666667,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "red-cream-market-cloth",
+      "x": 0.03125,
+      "y": 0.033333333,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "olive-leaves",
+      "x": 0.28125,
+      "y": 0.033333333,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "wet-canal-stone",
+      "x": 0.53125,
+      "y": 0.033333333,
+      "width": 0.1875,
+      "height": 0.266666667
+    },
+    {
+      "name": "damp-waterfall-rock",
+      "x": 0.78125,
+      "y": 0.033333333,
+      "width": 0.1875,
+      "height": 0.266666667
+    }
+  ],
+  "source": {
+    "image": "source/town-material-atlas-v1.png",
+    "grid": {
+      "columns": 4,
+      "rows": 3
+    },
+    "size": {
+      "width": 1254,
+      "height": 1254
+    },
+    "cell": {
+      "width": 313.5,
+      "height": 418
+    },
+    "sha256": "a0a503e0a0f3a320a792c6f6e65146d8cfa56e2a6caa8e614294e8e5535203ec"
+  },
   "usage": "Neutral albedo/detail atlas. Runtime lighting supplies directional illumination; vertex palette color remains authoritative.",
   "provenance": {
     "generator": "OpenAI built-in image generation",

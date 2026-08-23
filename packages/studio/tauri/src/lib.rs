@@ -6,6 +6,7 @@ mod native;
 mod project;
 mod project_picker;
 mod recent_projects;
+mod studio_menu;
 mod terminal;
 mod terminal_theme;
 
@@ -33,7 +34,7 @@ use commands::{
 use std::sync::{Mutex, OnceLock};
 use tauri::{Emitter, Manager, RunEvent, path::BaseDirectory};
 
-const PROJECT_OPEN_EVENT: &str = "antiky://project-open";
+pub(crate) const PROJECT_OPEN_EVENT: &str = "antiky://project-open";
 
 fn project_path_from_urls(urls: &[url::Url]) -> Result<std::path::PathBuf, NativeError> {
     if urls.len() != 1 {
@@ -73,6 +74,8 @@ pub fn run() {
             recent_projects: OnceLock::new(),
             terminal_theme: OnceLock::new(),
         })
+        .menu(studio_menu::build)
+        .on_menu_event(studio_menu::handle_event)
         .setup(|app| {
             let paths = app.path();
             let recent_projects = paths
@@ -87,6 +90,7 @@ pub fn run() {
                 .map_err(|_| {
                     NativeError::native_unavailable("Studio resources are already initialized.")
                 })?;
+            studio_menu::refresh_recent_projects(app.handle())?;
             let terminal_theme = match (
                 paths.resource_dir(),
                 paths.resolve(

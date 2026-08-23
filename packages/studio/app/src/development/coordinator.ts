@@ -4,7 +4,7 @@ import {
   type DevelopmentConnection,
   type DevelopmentMcpCallLog,
   type DevelopmentSessionControlResult,
-  type DevelopmentSnapshot,
+  type DevelopmentSnapshotV2,
 } from '@antiky/cli/development';
 
 export type StudioConnectionStatus = 'connecting' | 'connected' | 'stale' | 'disconnected' | 'stopped';
@@ -19,7 +19,7 @@ export type StudioIssue = Readonly<{
 export type StudioDevelopmentState = Readonly<{
   status: StudioConnectionStatus;
   developmentSessionId: string | null;
-  snapshot: DevelopmentSnapshot | null;
+  snapshot: DevelopmentSnapshotV2 | null;
   mcpCallLog: DevelopmentMcpCallLog | null;
   pendingControl: StudioControl | null;
   pendingLifecycle: StudioGameLifecycle | null;
@@ -29,12 +29,20 @@ export type StudioDevelopmentState = Readonly<{
 }>;
 
 export type StudioDevelopmentClient = Pick<DevelopmentClient,
-  | 'readDevelopmentSnapshot'
+  | 'readDevelopmentSnapshotV2'
   | 'getMcpCallLog'
   | 'requestReload'
   | 'pauseSimulation'
   | 'resumeSimulation'
   | 'stepSimulation'
+>;
+
+/** Browser-safe evidence operations Studio may adopt without gaining Playwright authority. */
+export type StudioCaptureClient = Pick<DevelopmentClient,
+  | 'getCaptureCapabilities'
+  | 'captureFrameV3'
+  | 'captureGameplaySequence'
+  | 'getRenderEvidence'
 >;
 
 type Scheduler = (callback: () => void, delayMilliseconds: number) => () => void;
@@ -167,7 +175,7 @@ export function createStudioCoordinator(options: CoordinatorOptions): StudioCoor
         ? client
         : makeClient(discovered);
       const [snapshot, mcpCallLog] = await Promise.all([
-        pollClient.readDevelopmentSnapshot(),
+        pollClient.readDevelopmentSnapshotV2(),
         pollClient.getMcpCallLog(),
       ]);
       if (!isCurrent(pollGeneration)) return;

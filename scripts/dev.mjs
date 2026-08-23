@@ -10,8 +10,9 @@ const workspaces = {
 
 const demoProjects = {
   'antiky-town': 'packages/demos/antiky-town/antiky-town.antiky',
-  'town-study': 'packages/demos/town-study/town-study.antiky',
-  'shader-study': 'packages/demos/shader-study/shader-study.antiky',
+  'combat-arena': 'packages/demos/combat-arena/combat-arena.antiky',
+  'point-light-expo': 'packages/demos/point-light-expo/point-light-expo.antiky',
+  'traversal-study': 'packages/demos/traversal-study/traversal-study.antiky',
 };
 
 if (!target || (!(target in workspaces) && target !== 'demos')) {
@@ -28,7 +29,7 @@ Shortcuts:
 }
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const demoSlug = targetArgs[0] ?? 'town-study';
+const demoSlug = targetArgs[0] ?? 'antiky-town';
 if (target === 'demos' && !(demoSlug in demoProjects)) {
   console.error(`Unknown demo: ${demoSlug}`);
   process.exit(1);
@@ -42,7 +43,7 @@ const childArgs = target === 'demos'
       workspaces[target],
       '--',
       ...(target === 'website' && targetArgs.length === 0
-        ? ['--hostname', '127.0.0.1', '--port', '3010']
+        ? ['--hostname', '127.0.0.1', '--port', '3020']
         : targetArgs),
     ];
 const child = spawn(

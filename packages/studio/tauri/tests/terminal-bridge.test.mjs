@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { spawn } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +13,10 @@ const bridgeSource = readFile(
 );
 const bridgeHeader = readFile(
   resolve(packageDirectory, 'src/native/terminal_bridge.h'),
+  'utf8',
+);
+const shellProfile = readFile(
+  resolve(packageDirectory, 'resources/terminal/antiky-studio.zshrc'),
   'utf8',
 );
 
@@ -42,6 +48,74 @@ test('the bridge validates and loads the Studio profile after user configuration
   assert.ok(finalize > studioProfile);
 });
 
+test('the Studio terminal isolates startup output and uses one non-identifying prompt', async () => {
+  const [source, profile] = await Promise.all([bridgeSource, shellProfile]);
+  const open = source.match(
+    /int32_t antiky_terminal_open\([\s\S]*?\n\}\n\nint32_t antiky_terminal_layout/,
+  )?.[0];
+
+  assert.ok(open, 'native terminal open must remain explicit and inspectable');
+  assert.match(open, /surface_config\.command = "\/bin\/zsh -d -i"/);
+  assert.doesNotMatch(open, /surface_config\.command = "\/bin\/zsh";/);
+  assert.match(open, /\.key = "ZDOTDIR", \.value = shell_config_directory/);
+  assert.doesNotMatch(open, /ANTIKY_STUDIO_USER_ZDOTDIR/);
+  assert.match(open, /surface_config\.env_vars = shell_environment/);
+  assert.match(open, /surface_config\.env_var_count = 1/);
+  assert.doesNotMatch(profile, /source\s+"?\$ZDOTDIR\/\.zshrc/);
+  assert.match(
+    profile,
+    /^printf '\\033\[3J\\033\[2J\\033\[H'/,
+    'Studio startup must erase the macOS login banner and its scrollback before drawing a prompt',
+  );
+  assert.match(profile, /PROMPT='%% '/);
+  assert.match(profile, /RPROMPT=''/);
+
+  const fixture = await mkdtemp(join(tmpdir(), 'antiky-terminal-prompt-'));
+  const studioConfig = join(fixture, 'studio');
+  const userConfig = join(fixture, 'generic-user');
+  await mkdir(studioConfig);
+  await mkdir(userConfig);
+  await writeFile(join(studioConfig, '.zshrc'), profile);
+  await writeFile(
+    join(userConfig, '.zshrc'),
+    "print -r -- 'private-user@private-machine'\nexport GENERIC_SHELL_FIXTURE=leaked\nPROMPT='private-user@private-machine '\n",
+  );
+
+  try {
+    const child = spawn('/bin/zsh', ['-d', '-i'], {
+      env: {
+        ...process.env,
+        ZDOTDIR: studioConfig,
+        ANTIKY_STUDIO_USER_ZDOTDIR: userConfig,
+      },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.stdin.end('print -r -- "${GENERIC_SHELL_FIXTURE:-isolated}"\nexit\n');
+    const exit = await new Promise((resolveExit) => {
+      child.once('exit', (code, signal) => resolveExit({ code, signal }));
+    });
+
+    assert.deepEqual(exit, { code: 0, signal: null }, stderr);
+    assert.match(stdout, /^\x1B\[3J\x1B\[2J\x1B\[H/);
+    const visibleOutput = stdout.replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '');
+    assert.match(visibleOutput, /^isolated$/m);
+    assert.doesNotMatch(visibleOutput, /private-user|private-machine/);
+    const visiblePrompt = stderr
+      .replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '')
+      .replaceAll('\r', '\n');
+    assert.match(visiblePrompt, /(?:^|\n)% /);
+    assert.doesNotMatch(visiblePrompt, /private-user|private-machine/);
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
+});
+
 test('terminal teardown frees the Ghostty surface without requesting an interactive close', async () => {
   const source = await bridgeSource;
   const teardown = source.match(
@@ -51,6 +125,58 @@ test('terminal teardown frees the Ghostty surface without requesting an interact
   assert.ok(teardown, 'native terminal teardown must remain explicit and inspectable');
   assert.doesNotMatch(teardown, /ghostty_surface_request_close/);
   assert.equal(teardown.match(/ghostty_surface_free\(surface\);/g)?.length, 1);
+});
+
+test('terminal teardown keeps the originating native view alive until Ghostty is finished with it', async () => {
+  const source = await bridgeSource;
+  const teardown = source.match(
+    /void antiky_terminal_close\(void\) \{[\s\S]*?\n\}\n\nantiky_terminal_status_s/,
+  )?.[0];
+
+  assert.ok(teardown, 'native terminal teardown must remain explicit and inspectable');
+  assert.match(
+    teardown,
+    /__attribute__\(\(objc_precise_lifetime\)\) AntikyGhosttyView \*view = antiky_view;/,
+  );
+  assert.match(teardown, /ghostty_surface_t surface = view\.surface;/);
+  assert.match(teardown, /view\.surface = NULL;/);
+});
+
+test('deferred Ghostty callbacks can mutate only the surface that emitted them', async () => {
+  const source = await bridgeSource;
+  const action = source.match(
+    /static bool runtime_action\([\s\S]*?\n\}/,
+  )?.[0];
+  const clipboard = source.match(
+    /static bool runtime_read_clipboard\([\s\S]*?\n\}/,
+  )?.[0];
+  const closeSurface = source.match(
+    /static void runtime_close_surface\([\s\S]*?\n\}/,
+  )?.[0];
+
+  assert.ok(action, 'Ghostty action routing must remain inspectable');
+  assert.ok(clipboard, 'clipboard routing must remain inspectable');
+  assert.ok(closeSurface, 'surface-close routing must remain inspectable');
+  assert.equal(
+    action.match(/antiky_view\.surface == surface/g)?.length,
+    3,
+    'render, child-exit, and renderer-health actions must verify their source surface',
+  );
+  assert.match(clipboard, /AntikyGhosttyView \*view = terminal_view\(userdata\);/);
+  assert.doesNotMatch(clipboard, /antiky_view\.surface/);
+  assert.match(closeSurface, /AntikyGhosttyView \*view = terminal_view\(userdata\);/);
+  assert.match(closeSurface, /antiky_view == view && view\.surface != NULL/);
+});
+
+test('opening a terminal replaces an exited shell instead of laying out its dead surface', async () => {
+  const source = await bridgeSource;
+  const open = source.match(
+    /int32_t antiky_terminal_open\([\s\S]*?\n\}\n\nint32_t antiky_terminal_layout/,
+  )?.[0];
+
+  assert.ok(open, 'native terminal open must remain explicit and inspectable');
+  assert.match(open, /ghostty_surface_process_exited\(antiky_view\.surface\)/);
+  assert.match(open, /antiky_terminal_close\(\);/);
 });
 
 test('the focused native terminal owns Control-key equivalents', async () => {

@@ -17,6 +17,7 @@
 **/dist/
 packages/website/public/demo-builds/
 packages/website/public/.demo-builds-stage-*/
+packages/website/public/previews/
 
 # local design workbench
 **/.impeccable/
@@ -48,5 +49,9 @@ next-env.d.ts
 docs/_internal
 
 # disposable objective evidence
-docs/objectives/**/outputs/
-docs/objectives/**/verification/
+docs/**/objectives/**/outputs/
+docs/**/objectives/**/verification/
+.playwright-mcp/
+/*.png
+.hdri-cache/
+.kenney-cache/

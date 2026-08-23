@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "catalogId": "poly-haven:forest-floor",
+      "installedAt": "2026-08-09T21:02:05.985Z",
+      "provider": {
+        "id": "poly-haven",
+        "name": "Poly Haven",
+        "url": "https://polyhaven.com"
+      },
+      "upstream": {
+        "id": "forest_floor",
+        "url": "https://polyhaven.com/a/forest_floor",
+        "filesHash": "7723fe51fafe4f43d1242eff1dd06f34560ec921",
+        "retrievedAt": "2026-08-09T00:00:00.000Z"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "attribution": {
+        "required": true,
+        "notice": "Asset and metadata delivered through the Poly Haven API. Assets are CC0; API attribution is required."
+      },
+      "files": [
+        {
+          "path": "assets/poly-haven/forest-floor/forest_floor_diff_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forest_floor/forest_floor_diff_1k.jpg",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "d67f308e4b8be6a65989e8dc76ec40fe"
+          },
+          "sha256": "f12e5adea1741f9eb7a528bfc621f8267885b9530b74c3a8afdb823899bdbf0b",
+          "size": 1329853
+        },
+        {
+          "path": "assets/poly-haven/forest-floor/forest_floor_ao_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forest_floor/forest_floor_ao_1k.jpg",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "882d6f7e0b0a1a27de4eb4ecfdc12649"
+          },
+          "sha256": "da7779f149d79af3cd1aca81cae3bff94fc394d476d8ffd7ed7edf7be03eafaa",
+          "size": 785094
+        },
+        {
+          "path": "assets/poly-haven/forest-floor/forest_floor_rough_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forest_floor/forest_floor_rough_1k.jpg",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "446092b42424c7bcf15994d651949546"
+          },
+          "sha256": "ece0b331f08c03f3edcd8ab6815b74a5ae20768beef64cd4f96a5b2fa26e116e",
+          "size": 736353
+        },
+        {
+          "path": "assets/poly-haven/forest-floor/forest_floor_nor_gl_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forest_floor/forest_floor_nor_gl_1k.jpg",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "7cb480d082527766acdf3b6c8cba50f4"
+          },
+          "sha256": "681f3de8c756c4d19bcda33039f953295498f38b1425ce9d56b37d6f97f6e518",
+          "size": 1380104
+        }
+      ]
+    },
+    {
+      "catalogId": "poly-haven:dead-tree-trunk",
+      "installedAt": "2026-08-10T17:47:41.008Z",
+      "provider": {
+        "id": "poly-haven",
+        "name": "Poly Haven",
+        "url": "https://polyhaven.com"
+      },
+      "upstream": {
+        "id": "dead_tree_trunk",
+        "url": "https://polyhaven.com/a/dead_tree_trunk",
+        "filesHash": "1e56e4393417d157e43e26bd8b7b019189d313ed",
+        "retrievedAt": "2026-08-09T00:00:00.000Z"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "attribution": {
+        "required": true,
+        "notice": "Asset and metadata delivered through the Poly Haven API. Assets are CC0; API attribution is required."
+      },
+      "files": [
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/dead_tree_trunk_1k.gltf",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/dead_tree_trunk/dead_tree_trunk_1k.gltf",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "7bbf9fc9fdf61b50ed0495a29c03ecab"
+          },
+          "sha256": "8baaf1ff66ba1f79acdceed0dc3797a882990a3abb10b18abe56762f34c26e39",
+          "size": 2812
+        },
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/dead_tree_trunk.bin",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/dead_tree_trunk/dead_tree_trunk.bin",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "2a2b05e67a5c51fba5fc7591a7857957"
+          },
+          "sha256": "c1ac6b3195246e8647a28eee2fbfdd4712a045c7cf2dcb4f5abcc2d40a446ca6",
+          "size": 2293788
+        },
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/textures/dead_tree_trunk_diff_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/dead_tree_trunk/dead_tree_trunk_diff_1k.jpg",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "fe92c64532d4684d3239f6edc7733192"
+          },
+          "sha256": "bc31d7d23db90d90cfb568c583914eeec11b29716b79096818b706a9e3e0216c",
+          "size": 713480
+        },
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/textures/dead_tree_trunk_nor_gl_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/dead_tree_trunk/dead_tree_trunk_nor_gl_1k.jpg",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "28992c1123371ae1899e49360953c846"
+          },
+          "sha256": "b7c393204c93f0c67535ff3b5d723b26598f9dbb2b5110b74249ab88189f026f",
+          "size": 1053075
+        },
+        {
+          "path": "assets/poly-haven/dead-tree-trunk/textures/dead_tree_trunk_arm_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/dead_tree_trunk/dead_tree_trunk_arm_1k.jpg",
+          "upstreamHash": {
+            "algorithm": "md5",
+            "value": "548a72849ce709a9f38fa06776732a07"
+          },
+          "sha256": "0e0f7d64ac4ee3a7e7861a48f4bbd1ec2c026facd8f48b756f6b5d4557af3fd3",
+          "size": 724384
+        }
+      ]
+    },
+    {
+      "catalogId": "poly-haven:forrest-ground-01",
+      "kind": "texture",
+      "installedAt": "2026-08-12T21:15:27.137Z",
+      "provider": {
+        "id": "poly-haven",
+        "name": "Poly Haven",
+        "url": "https://polyhaven.com"
+      },
+      "upstream": {
+        "id": "forrest_ground_01",
+        "url": "https://polyhaven.com/a/forrest_ground_01",
+        "filesHash": "ea3ef3539e362d9a9ffa409ecd467d08028569d5",
+        "retrievedAt": "2026-08-09T22:15:47.937Z"
+      },
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "resolution": "1k",
+      "format": "jpg",
+      "files": [
+        {
+          "map": "diff",
+          "file": "assets/poly-haven/forrest-ground-01/forrest-ground-01_diff_1k.jpg",
+          "bytes": 833711,
+          "md5": "236e7d928f5e357a194fd92de189cbe4",
+          "sha256": "3dd6875cb3908e022a3c45ebbffa5e84c670ff2691fbbb6dc9ea4bff88523800",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_diff_1k.jpg"
+        },
+        {
+          "map": "nor",
+          "file": "assets/poly-haven/forrest-ground-01/forrest-ground-01_nor_1k.jpg",
+          "bytes": 1428763,
+          "md5": "ba4265df25aea293913d004b69ef9ab0",
+          "sha256": "32528a7cdee962cc0b248ee4023a74d0df175737ea90e1eb425122351e0bdab4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_nor_gl_1k.jpg"
+        },
+        {
+          "map": "rough",
+          "file": "assets/poly-haven/forrest-ground-01/forrest-ground-01_rough_1k.jpg",
+          "bytes": 257165,
+          "md5": "72dacf5b829cafc025f08ca64e92e5eb",
+          "sha256": "30d8b56a03d7b12da16f58011b675662a40e58e1cdc768119a5f03968140058c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_rough_1k.jpg"
+        },
+        {
+          "map": "ao",
+          "file": "assets/poly-haven/forrest-ground-01/forrest-ground-01_ao_1k.jpg",
+          "bytes": 660492,
+          "md5": "e4bf07c1a9b664468b3ec419179ac8a8",
+          "sha256": "a3632232fa080e28239d456526a3f0c83e0a404515581339b9d6633324dca6a4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_ao_1k.jpg"
+        }
+      ]
+    }
+  ]
+}

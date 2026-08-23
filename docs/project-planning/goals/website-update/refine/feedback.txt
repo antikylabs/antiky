@@ -1,0 +1,13 @@
+Feedback for website update.
+
+- Several pages have prose that reads more like internal acceptance criteria dumped onto a visitor. Review every page for clarity and concision. Like this: "Research can change the roadmap without becoming the roadmap."... why does an end user care about that? they don't. Pages shouldn't explain methods etc... really... keep the the end user in mind.
+- add our research work from research/experiments/asset-generation-contract/dsl-testing/docs/DSL_REDESIGN.md to the resarch page.
+- Use the example assets/references here in the website too. Make sure framework and studio and other pages are not just walls of text: research/experiments/asset-generation-contract/dsl-testing/examples
+- Theres no studio page on the website navbar now, its hidden as an action button... Action button should be to join our discord community...
+- games is missing combat arena
+- resources navbar should be a dropdown too
+- We should make the CC0 resources more prominent as a secondar cta button on homepage and navbar "Get Free Game Assets" etc...
+- make sure all user face docs are complete and up to date. use $write-docs skill for it when you need to write or update docs.
+- docs should have getting started section on how to use the framework, studio, etc... tutorials.
+- docs currently is a long long list on left. It should be organized into tabs for major sections, then subsections and pages on left.
+- docs "on this page" should show the section they are looking at highlighted purple.

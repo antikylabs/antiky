@@ -1,5 +1,5 @@
-import { readSessionDescriptor } from '../host/session-descriptor.ts';
-import { loadAntikyProject } from '../project-node.ts';
+import { readSessionDescriptor } from '../host/session/descriptor.ts';
+import { loadAntikyProject } from '../project/node.ts';
 import {
   createDevelopmentClient,
   type DevelopmentClient,

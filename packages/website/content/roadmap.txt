@@ -1,0 +1,32 @@
+title: Antiky Labs roadmap
+intro: See what Antiky can do today and what we plan to add next across Framework, Studio, games, tools, and resources.
+notice: The stages are ordered, but they do not have estimated release dates.
+stages:
+  - v0.1. First public release: Publish the working source experience as a coherent release that new users can install, understand, and try.
+    - Framework and agent tools: Fixed-step sessions, stable IDs, runtime inspection, captures, point-light editing, and local CLI and MCP tools.
+    - Studio: A macOS workspace with project launch, a live game, native terminal, simulation controls, inspection, and activity history.
+    - Playable demos: Antiky Town, Point Light Expo, and Traversal Study in the browser. Emberwyrd remains separate until it is ready to show.
+    - Docs and resources: Getting-started tutorials, API reference, free game assets, agent skills, and clear source-build instructions.
+  - v0.2. Bring the game into agent conversations: Select something in a running game, share its context with a compatible coding agent, and keep feedback attached to the selected object.
+    - Visual selection: Select a visible game object and resolve it to a stable Framework entity.
+    - Agent conversations: Talk to an installed compatible coding agent from Studio while Antiky MCP provides the game tools.
+    - Contextual feedback: Attach comments and review material to the game state and object you meant.
+  - v0.3. Add core game-making systems: Expand Framework with reusable input, movement, animation, camera, and presentation tools built through playable game work.
+    - Input and movement: Reusable controls and captured game input.
+    - Animation: Sprite flipbooks and movement-aware animation timing.
+    - Presentation: Camera field of view, vignette, and other game-facing controls.
+    - Studio extensions: A foundation for focused mini apps and smaller panel tools.
+  - v0.4. Add focused Studio tools: Turn the Studio extension foundation into practical tools for common game-development tasks.
+    - Asset browser: Find free catalog assets and add them to a project.
+    - Sprite editor: Inspect and edit sprite content.
+    - Flipbook editor: Assemble and tune frame-based animation.
+    - Object properties: Inspect and edit supported object settings.
+  - Beyond. Expand the platform: Grow the creative libraries, engine integrations, examples, and platform support after the first four releases.
+    - Resource libraries: Expand game assets and agent skills, then add shader and starter-project libraries.
+    - Physics and rendering: Add supported physics options and more renderer integrations.
+    - Examples: Rebuild selected open-source games as practical Antiky examples.
+    - Platforms: Improve accessibility and support beyond macOS.
+  - Long term. Ship complete games: Use Antiky to create memorable independent games and let those games guide the systems the platform needs.
+    - Independent games: Games that build, run, and ship without Studio.
+    - Reusable systems: Move useful abilities, physics, rendering, asset, and online systems into Framework when more than one game needs them.
+    - Reliable releases: Tie builds, performance checks, and release notes to the exact version of each game.

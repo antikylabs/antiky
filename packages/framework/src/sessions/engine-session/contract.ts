@@ -1,6 +1,6 @@
 import type { SessionId, WorldId } from '../../identity/ids.ts';
 
-export const ENGINE_SESSION_SCHEMA_VERSION = 2 as const;
+export const ENGINE_SESSION_SCHEMA_VERSION = 3 as const;
 export const FIXED_STEP_SECONDS = 1 / 60;
 export const MAX_FRAME_ELAPSED_SECONDS = 0.05;
 export const MAX_STEPS_PER_FRAME = 3;
@@ -13,6 +13,7 @@ export type EngineSessionFaultSource =
   | 'input-capture'
   | 'system'
   | 'state-digest'
+  | 'completed-step-observer'
   | 'command';
 
 export type EngineSessionFault = Readonly<{
@@ -43,8 +44,23 @@ export type EngineSessionOptions<Input> = Readonly<{
   worldId: unknown;
   runtimeInstanceId: unknown;
   systems: readonly EngineSystem<Input>[];
+  /**
+   * Return semantic input as a deeply immutable graph of primitives, frozen plain objects, and
+   * frozen arrays. The session validates and copies that graph before systems run. Functions and
+   * accessor properties are rejected even when their container is frozen because they can retain
+   * mutable closure state.
+   */
   captureInput(input: Input): Readonly<Input> | null;
   getStateDigest?: () => string;
+  /**
+   * Observe each completed step once, after its systems and state digest succeed.
+   *
+   * The session calls this observer in completed-step order while its writer is busy. The observer
+   * receives no session or world authority and must not mutate game state. A thrown error faults
+   * the session as `completed-step-observer`, but the step remains completed and later steps in the
+   * same frame do not run. The session does not retain observed steps.
+   */
+  onCompletedStep?: (step: CompletedEngineStep<Input>) => void;
   services?: readonly EngineSessionOwnedService[];
   initialCompletedStepCount?: number;
 }>;
@@ -190,8 +206,26 @@ export class EngineSessionValidationError extends Error {
 export class EngineSessionDisposalError extends Error {
   readonly code = 'ANTIKY_ENGINE_SESSION_DISPOSAL_FAILED';
 
-  constructor(readonly failureCount: number) {
-    super(`EngineSession disposal failed for ${failureCount} owned service${failureCount === 1 ? '' : 's'}.`);
+  /**
+   * Why each service failed to dispose, in the order they were released.
+   *
+   * This used to carry only a count. A session whose services failed to release reported *how many*
+   * had failed and nothing about any of them, so the one piece of information needed to diagnose it
+   * was collected and then discarded a line later.
+   */
+  readonly causes: readonly unknown[];
+
+  constructor(causes: readonly unknown[]) {
+    const count = causes.length;
+    super(
+      `EngineSession disposal failed for ${count} owned service${count === 1 ? '' : 's'}.`,
+      { cause: causes[0] },
+    );
+    this.causes = Object.freeze([...causes]);
     this.name = 'EngineSessionDisposalError';
+  }
+
+  get failureCount(): number {
+    return this.causes.length;
   }
 }

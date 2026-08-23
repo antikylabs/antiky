@@ -21,20 +21,24 @@ npm run dev:studio
 
 Studio starts at the launcher. To initialize an existing game folder there, enter its project name,
 select **Create project**, and choose the folder. Studio creates the same manifest as `antiky init`
-and opens it. To open an existing manifest, select **Open project** and choose its `.antiky` file.
+and opens it. To open an existing manifest, select **Open project** in the launcher or choose
+**File > Open Project…** (`Command-O`), then choose its `.antiky` file.
 
 Projects that opened successfully appear under **Recent projects** the next time the launcher opens.
-Select an available entry to reopen it. Studio stores this bounded history on your device, not in
-the project, and keeps a moved or deleted project visible with a missing-file status.
+Select an available launcher entry, or choose it from **File > Recent Projects**, to reopen it.
+The File menu remains available while a project is open, so you do not have to close Studio to return
+to the launcher. Studio stores this bounded history on your device, not in the project. It keeps a
+moved or deleted project visible as **Missing** and disables that entry.
 
 Studio reads at most 64 KiB, validates the manifest without running project code, and uses the file's
 canonical parent directory as the project root. The workspace shows the project name in the title
 bar without adding manifest or schema details to the working area.
 
-Use **Open project** in an active workspace to switch projects. If the new file is invalid, Studio
-reports the error and leaves the current workspace unchanged. Invalid input includes a missing,
-oversized, malformed, incompatible, or unsafe file. Canceling the picker also keeps the current
-workspace.
+Use **File > Open Project…** or **File > Recent Projects** in an active workspace to switch projects
+in the same Studio window. Studio closes the old terminal and development session as it activates a
+valid replacement. If the new file is invalid, Studio reports the error and leaves the current
+workspace unchanged. Invalid input includes a missing, oversized, malformed, incompatible, or unsafe
+file. Canceling the picker also keeps the current workspace.
 
 Build the local macOS application bundle with:
 
@@ -42,10 +46,12 @@ Build the local macOS application bundle with:
 npm run build --workspace @antiky/studio-tauri
 ```
 
-The bundle is under `packages/studio/tauri/target/release/bundle/macos/`. It registers `.antiky` as an
-Antiky Studio document type. Double-click one `.antiky` file in Finder to open the same validated
-workspace. Opening another `.antiky` file while Studio runs switches the existing window after
-validation.
+The application bundle is under `packages/studio/tauri/target/release/bundle/macos/`, and the disk
+image is under `packages/studio/tauri/target/release/bundle/dmg/`. The application registers
+`.antiky` as an Antiky Studio document type. Double-click one `.antiky` file in Finder to open the
+same validated workspace. Opening another `.antiky` file while Studio runs switches the existing
+window after validation. See [Package and release Antiky Studio](package-and-release.md) for the
+version and GitHub release steps.
 
 If a project still uses the old `antiky.config.json`, migrate it once from the project root:
 
@@ -64,10 +70,10 @@ Studio stops the complete session when you close or replace the project. You do 
 ### Terminal appearance and shell ownership
 
 Studio applies an Antiky color profile to the embedded terminal surface, including its background,
-text, cursor, selection, and ANSI palette. Your normal shell still starts in the selected project.
-Studio does not replace your prompt, run a startup command, add a banner, write shell history, or
-select a font family. Your shell profiles and Ghostty settings outside Studio's visual color keys
-continue to apply.
+text, cursor, selection, and ANSI palette. The shell starts in the selected project with an isolated
+Studio startup profile and a non-identifying `% ` prompt. It does not load personal shell startup
+files, print a banner, or write shell history. This prevents user and machine names from appearing
+in the workspace by default. Your Ghostty settings outside Studio's visual color keys still apply.
 
 If Studio cannot load its packaged terminal color profile, the Terminal panel shows a clear error.
 The rest of the workspace remains available. The terminal stays available for your shell, build
@@ -170,5 +176,7 @@ managed game host and development services keep running. Close or replace the pr
 session.
 
 See [Connect Studio to a project service](development-connection.md) for the typed connection boundary.
+See [Use BroMetal or Three.js in Studio](renderers.md) for renderer-specific mounting and agent
+inspection behavior.
 See [Runtime inspection](../framework/inspection.md) to publish hierarchy, store, and event data
 from your game.

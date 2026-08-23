@@ -2,18 +2,26 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { NAV, SITE_NAME } from '@/lib/site';
+import { useEffect, useRef } from 'react';
+import { ArrowUpRight } from '@/components/Icons';
+import { bindDetailsDismissal } from '@/lib/dismissible-details';
+import { DISCORD_URL, NAV, RESOURCE_NAV, SITE_NAME } from '@/lib/site';
 
 export default function SiteHeader() {
   const pathname = usePathname();
-  const links = NAV.map((link) => {
+  const renderLink = (link: (typeof NAV)[number]) => {
     const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
     return (
       <Link key={link.href} href={link.href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
         {link.label}
       </Link>
     );
-  });
+  };
+  const renderLinks = (mobile = false) => NAV.map((link) => (
+    link.href === '/resources'
+      ? <ResourcesMenu mobile={mobile} pathname={pathname} key={link.href} />
+      : renderLink(link)
+  ));
 
   return (
     <header className="site-header">
@@ -21,13 +29,58 @@ export default function SiteHeader() {
         <Mark />
         <span>{SITE_NAME}</span>
       </Link>
-      <nav className="desktop-nav" aria-label="Primary navigation">{links}</nav>
-      <Link className="header-action" href="/demos/town-study">Run a study</Link>
+      <nav className="desktop-nav" aria-label="Primary navigation">{renderLinks()}</nav>
+      <div className="header-actions">
+        <Link className="header-secondary" href="/assets">Get free game assets</Link>
+        <a className="header-action" href={DISCORD_URL} target="_blank" rel="noreferrer">
+          Join Discord <ArrowUpRight />
+        </a>
+      </div>
       <details className="mobile-menu">
         <summary>Menu</summary>
-        <nav aria-label="Mobile navigation">{links}</nav>
+        <nav aria-label="Mobile navigation">
+          {renderLinks(true)}
+          <Link href="/demos">Demos</Link>
+          <Link className="mobile-secondary-action" href="/assets">Get free game assets</Link>
+          <a className="mobile-primary-action" href={DISCORD_URL} target="_blank" rel="noreferrer">
+            Join Discord <ArrowUpRight />
+          </a>
+        </nav>
       </details>
     </header>
+  );
+}
+
+function ResourcesMenu({ mobile, pathname }: { mobile: boolean; pathname: string }) {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const active = pathname === '/assets' || pathname.startsWith('/assets/')
+    || pathname === '/resources' || pathname.startsWith('/resources/');
+
+  useEffect(() => {
+    const details = detailsRef.current;
+    if (!details) return;
+
+    return bindDetailsDismissal(details, document);
+  }, []);
+
+  useEffect(() => {
+    if (detailsRef.current) detailsRef.current.open = false;
+  }, [pathname]);
+
+  return (
+    <details ref={detailsRef} className={mobile ? 'mobile-resource-menu' : 'nav-resources'}>
+      <summary className={active ? 'active' : undefined}>Resources</summary>
+      <div className="resource-menu-links">
+        {RESOURCE_NAV.map((link) => {
+          const linkActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
+          return (
+            <Link href={link.href} className={linkActive ? 'active' : undefined} aria-current={linkActive ? 'page' : undefined} key={link.href}>
+              {link.label}
+            </Link>
+          );
+        })}
+      </div>
+    </details>
   );
 }
 
