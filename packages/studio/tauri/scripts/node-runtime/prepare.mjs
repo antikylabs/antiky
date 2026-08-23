@@ -18,9 +18,9 @@ import { fileURLToPath } from 'node:url';
 import {
   NODE_RUNTIME_DEPENDENCY,
   cacheMatchesNodeRuntimeDependency,
-} from './node-runtime-dependency.mjs';
+} from './dependency.mjs';
 
-const packageDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
+const packageDirectory = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const nativeDirectory = join(packageDirectory, '.native');
 const downloadsDirectory = join(nativeDirectory, 'downloads');
 const manifestPath = join(nativeDirectory, 'node-runtime.json');

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-and-package:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.19.0
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/studio/tauri -> target
+      - name: Cache native Studio dependencies
+        uses: actions/cache@v6
+        with:
+          path: packages/studio/tauri/.native
+          key: ${{ runner.os }}-${{ runner.arch }}-studio-native-${{ hashFiles('packages/studio/tauri/scripts/ghostty-dependency.mjs', 'packages/studio/tauri/scripts/node-runtime/dependency.mjs') }}
+      - run: npm ci
+      - run: npm run version:check
+      - run: npm run check
+      - name: Prepare Studio package resources
+        run: |
+          npm run prepare:ghostty --workspace @antiky/studio-tauri
+          npm run prepare:resources --workspace @antiky/studio-tauri
+      - name: Package Antiky Studio
+        uses: tauri-apps/tauri-action@v1
+        with:
+          projectPath: packages/studio/tauri
+          args: --target aarch64-apple-darwin
+          uploadWorkflowArtifacts: true
+          workflowArtifactNamePattern: antiky-studio-[platform]-[arch]-[bundle]

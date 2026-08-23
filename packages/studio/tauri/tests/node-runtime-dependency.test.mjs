@@ -4,7 +4,7 @@ import test from 'node:test';
 import {
   NODE_RUNTIME_DEPENDENCY,
   cacheMatchesNodeRuntimeDependency,
-} from '../scripts/node-runtime-dependency.mjs';
+} from '../scripts/node-runtime/dependency.mjs';
 
 test('the packaged Node runtime is pinned, hash-verified, and cache-safe', () => {
   assert.deepEqual(NODE_RUNTIME_DEPENDENCY, {

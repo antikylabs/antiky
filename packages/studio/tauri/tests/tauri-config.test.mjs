@@ -62,7 +62,8 @@ test('the local macOS app bundle owns the named Antiky project association', asy
   const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
 
   assert.equal(config.bundle.active, true);
-  assert.deepEqual(config.bundle.targets, ['app']);
+  assert.deepEqual(config.bundle.targets, ['app', 'dmg']);
+  assert.equal(config.bundle.macOS.signingIdentity, '-');
   assert.deepEqual(config.bundle.fileAssociations, [{
     ext: ['antiky'],
     name: 'Antiky Project',

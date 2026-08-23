@@ -46,10 +46,12 @@ Build the local macOS application bundle with:
 npm run build --workspace @antiky/studio-tauri
 ```
 
-The bundle is under `packages/studio/tauri/target/release/bundle/macos/`. It registers `.antiky` as an
-Antiky Studio document type. Double-click one `.antiky` file in Finder to open the same validated
-workspace. Opening another `.antiky` file while Studio runs switches the existing window after
-validation.
+The application bundle is under `packages/studio/tauri/target/release/bundle/macos/`, and the disk
+image is under `packages/studio/tauri/target/release/bundle/dmg/`. The application registers
+`.antiky` as an Antiky Studio document type. Double-click one `.antiky` file in Finder to open the
+same validated workspace. Opening another `.antiky` file while Studio runs switches the existing
+window after validation. See [Package and release Antiky Studio](package-and-release.md) for the
+version and GitHub release steps.
 
 If a project still uses the old `antiky.config.json`, migrate it once from the project root:
 

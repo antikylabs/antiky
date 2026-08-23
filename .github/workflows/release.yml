@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-studio:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.19.0
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/studio/tauri -> target
+      - name: Cache native Studio dependencies
+        uses: actions/cache@v6
+        with:
+          path: packages/studio/tauri/.native
+          key: ${{ runner.os }}-${{ runner.arch }}-studio-native-${{ hashFiles('packages/studio/tauri/scripts/ghostty-dependency.mjs', 'packages/studio/tauri/scripts/node-runtime/dependency.mjs') }}
+      - run: npm ci
+      - run: npm run release:check
+      - run: npm run check
+      - name: Prepare Studio package resources
+        run: |
+          npm run prepare:ghostty --workspace @antiky/studio-tauri
+          npm run prepare:resources --workspace @antiky/studio-tauri
+      - name: Build draft release
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: packages/studio/tauri
+          args: --target aarch64-apple-darwin
+          tagName: v__VERSION__
+          releaseName: Antiky Studio v__VERSION__
+          releaseBody: Download the macOS arm64 disk image from the assets below.
+          releaseDraft: true
+          generateReleaseNotes: true
+          prerelease: false

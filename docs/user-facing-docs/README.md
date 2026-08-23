@@ -46,6 +46,8 @@ Follow these tutorials in order:
   Finder, and the CLI.
 - [Inspect a running game in Studio](studio/getting-started.md) beside a native terminal, simulation
   controls, hierarchy, stores, event history, and MCP call history.
+- [Package and release Antiky Studio](studio/package-and-release.md) as an arm64 macOS application
+  and draft GitHub release.
 - [Connect Studio to a project service](studio/development-connection.md) through the same lifecycle
   library and typed client used by CLI and MCP adapters.
 - [Use BroMetal or Three.js in Studio](studio/renderers.md) while keeping the host lifecycle,
