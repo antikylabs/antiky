@@ -102,6 +102,7 @@ test('CI checks the synchronized version and uploads an arm64 Studio package', a
   assert.match(ci, /actions\/setup-node@v6/);
   assert.match(ci, /node-version: 24\.19\.0/);
   assert.match(ci, /npm ci/);
+  assert.match(ci, /name: Install managed Chromium\n\s+run: npx playwright install chromium/);
   assert.match(ci, /npm run version:check/);
   assert.match(ci, /npm run check/);
   assert.match(ci, /npm run prepare:ghostty --workspace @antiky\/studio-tauri/);
@@ -122,9 +123,14 @@ test('release automation is tag-gated, validates the tag first, and creates a dr
   assert.match(studioJob, /permissions:\n\s+contents: write/);
   assert.match(studioJob, /runs-on: macos-latest/);
   assert.match(studioJob, /actions\/checkout@v7\n\s+with:\n\s+lfs: true/);
+  assert.match(studioJob, /name: Install managed Chromium\n\s+run: npx playwright install chromium/);
   assert.ok(
     studioJob.indexOf('npm run release:check') < studioJob.indexOf('tauri-apps/tauri-action@v1'),
     'the release tag must be checked before any release can be created',
+  );
+  assert.ok(
+    studioJob.indexOf('npx playwright install chromium') < studioJob.indexOf('npm run check'),
+    'managed Chromium must be installed before the release test gate',
   );
   assert.match(studioJob, /npm run prepare:ghostty --workspace @antiky\/studio-tauri/);
   assert.match(studioJob, /npm run prepare:resources --workspace @antiky\/studio-tauri/);
