@@ -1,20 +1,70 @@
 {
   "name": "@antiky/framework",
-  "private": true,
+  "description": "Game simulation, inspection, and rendering contracts for Antiky projects.",
+  "private": false,
   "version": "0.0.0",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./game": "./src/game/host.ts",
-    "./contract": "./src/game/contract.ts",
-    "./render-driver": "./src/render/brometal-driver.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./game": {
+      "types": "./dist/game/host.d.ts",
+      "import": "./dist/game/host.js",
+      "default": "./dist/game/host.js"
+    },
+    "./contract": {
+      "types": "./dist/game/contract.d.ts",
+      "import": "./dist/game/contract.js",
+      "default": "./dist/game/contract.js"
+    },
+    "./render-driver": {
+      "types": "./dist/render/brometal-driver.d.ts",
+      "import": "./dist/render/brometal-driver.js",
+      "default": "./dist/render/brometal-driver.js"
+    }
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.md"
+  ],
   "scripts": {
-    "dev": "tsc --noEmit --watch --preserveWatchOutput",
+    "build": "tsc -b tsconfig.build.json",
+    "dev": "tsc -b tsconfig.build.json --watch --preserveWatchOutput",
     "docs:api": "node scripts/generate-api-reference.mjs",
     "docs:api:check": "node scripts/generate-api-reference.mjs --check",
+    "prepack": "npm run build",
+    "pretest": "npm run build",
     "test": "npm run docs:api:check && node --experimental-strip-types --experimental-transform-types --test tests/**/*.test.ts tests/sessions/engine-session/*.test.ts tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antikylabs/antiky.git",
+    "directory": "packages/framework"
+  },
+  "homepage": "https://antikylabs.com/framework",
+  "bugs": {
+    "url": "https://github.com/antikylabs/antiky/issues"
+  },
+  "keywords": [
+    "game-development",
+    "game-engine",
+    "typescript",
+    "webgpu"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

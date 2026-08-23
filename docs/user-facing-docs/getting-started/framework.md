@@ -11,8 +11,8 @@ newer, npm, and a WebGPU-capable browser.
 Clone Antiky and install its workspace dependencies:
 
 ```sh
-git clone https://github.com/antikylabs/site.git
-cd site
+git clone https://github.com/antikylabs/antiky.git
+cd antiky
 npm install
 ```
 

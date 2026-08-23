@@ -1,27 +1,77 @@
 {
   "name": "@antiky/cli",
-  "private": true,
+  "description": "Command-line development host and project tools for Antiky games.",
+  "private": false,
   "version": "0.0.0",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
-    "antiky": "./src/bin.ts"
+    "antiky": "./dist/bin.js"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./development": "./src/development/index.ts",
-    "./project": "./src/project/index.ts",
-    "./studio-worker": "./src/studio/worker.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./development": {
+      "types": "./dist/development/index.d.ts",
+      "import": "./dist/development/index.js",
+      "default": "./dist/development/index.js"
+    },
+    "./project": {
+      "types": "./dist/project/index.d.ts",
+      "import": "./dist/project/index.js",
+      "default": "./dist/project/index.js"
+    },
+    "./studio-worker": {
+      "types": "./dist/studio/worker.d.ts",
+      "import": "./dist/studio/worker.js",
+      "default": "./dist/studio/worker.js"
+    }
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.md"
+  ],
   "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "prepack": "npm run build",
+    "pretest": "npm run build",
     "test": "node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts tests/development/*.test.ts tests/development/*.test.mjs tests/development/capture/*.test.ts tests/docs/*.test.ts tests/host/capture/*.test.ts tests/host/inspection/*.test.ts tests/host/session/*.test.ts tests/mcp/*.test.ts tests/project/*.test.ts tests/studio/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antikylabs/antiky.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://antikylabs.com/docs/cli/development",
+  "bugs": {
+    "url": "https://github.com/antikylabs/antiky/issues"
+  },
+  "keywords": [
+    "game-development",
+    "developer-tools",
+    "cli",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "@antiky/framework": "0.0.0",
+    "@types/node": "^22.15.0",
     "playwright": "1.62.1"
   },
   "devDependencies": {
-    "@types/node": "^22.15.0",
     "typescript": "^5.8.3"
   }
 }

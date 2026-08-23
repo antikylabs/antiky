@@ -5,7 +5,7 @@ on:
     tags: ['v*.*.*']
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -13,6 +13,8 @@ concurrency:
 
 jobs:
   release-studio:
+    permissions:
+      contents: write
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
@@ -52,3 +54,41 @@ jobs:
           releaseDraft: true
           generateReleaseNotes: true
           prerelease: false
+
+  publish-framework:
+    needs: release-studio
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.19.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run release:check
+      - run: npm run build --workspace @antiky/framework
+      - run: npm publish --workspace @antiky/framework --access public
+
+  publish-cli:
+    needs: publish-framework
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.19.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run release:check
+      - run: npm run build --workspace @antiky/cli
+      - run: npm publish --workspace @antiky/cli --access public

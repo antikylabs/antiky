@@ -28,8 +28,8 @@ Antiky renders through [BroMetal](https://brometal.dev), a typed shader and WebG
 does not need Studio, MCP, or a renderer to use the headless framework.
 
 > [!IMPORTANT]
-> Antiky is in active, pre-release development. The Framework and CLI are not published as stable
-> packages, and their APIs can change. Studio is planned but is not yet an application you can
+> Antiky is in active, pre-release development. Framework and CLI releases before 1.0 can change
+> their APIs. Studio is planned but is not yet an application you can
 > install. The browser demos and the source development workflow in this repository work today.
 
 ## Why Antiky exists
@@ -83,8 +83,8 @@ implementing another engine control path.
 You need Node.js 22 or newer, npm, and a WebGPU-capable browser for the rendered demos.
 
 ```bash
-git clone https://github.com/antikylabs/site.git
-cd site
+git clone https://github.com/antikylabs/antiky.git
+cd antiky
 npm install
 npm run antiky -- dev --project packages/demos/antiky-town/antiky-town.antiky
 ```
@@ -143,7 +143,8 @@ The repository contains core product workspaces plus four self-contained Antiky 
 | `@antiky/website` | [`packages/website`](packages/website) | The Antiky Labs website and public presentation of runnable demos |
 | `@antiky/studio-app` and `@antiky/studio-tauri` | [`packages/studio`](packages/studio) | Studio webview, native application host, project service, and terminal integration |
 
-The workspaces are private and pre-release.
+Framework and CLI are the only npm-publishable workspaces. The demos, website, Asset Catalog, and
+Studio workspaces remain private.
 
 The current package dependencies are:
 

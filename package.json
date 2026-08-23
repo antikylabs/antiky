@@ -13,7 +13,7 @@
   "scripts": {
     "antiky": "node --experimental-strip-types --experimental-transform-types packages/cli/src/bin.ts",
     "portRelease": "node scripts/port-release.mjs",
-    "postinstall": "node scripts/patch-brometal.mjs",
+    "postinstall": "node scripts/patch-brometal.mjs && npm run build --workspace @antiky/cli",
     "demos:shoot": "node scripts/shoot-demos.mjs",
     "demos:verify": "node --experimental-strip-types --experimental-transform-types --test packages/demos/*/tests/visual-budget.test.mjs packages/demos/combat-arena/tests/camera-shake.test.mjs packages/demos/tests/shader/graph.test.mjs packages/demos/tests/inspection-evidence.test.mjs packages/demos/tests/pipeline-invariants.test.mjs packages/demos/tests/material/invariants.test.mjs",
     "demos:assets:bake-sh9": "node packages/demos/scripts/bake/sh9-irradiance.mjs",
@@ -40,7 +40,7 @@
     "release:check": "node scripts/release-version.mjs check-tag",
     "package:studio": "npm run build --workspace @antiky/studio-tauri",
     "build": "npm run build --workspace @antiky/website",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build --workspace @antiky/cli && npm run typecheck --workspaces --if-present",
     "test": "sh docs/adr/tests/tag-hash.test.sh && node --test scripts/tests/*.test.mjs packages/demos/tests/build-texture-atlas.test.mjs packages/demos/tests/dev-host.test.mjs packages/demos/tests/shader/output-parity.test.mjs && node --experimental-strip-types --experimental-transform-types --test packages/demos/combat-arena/tests/camera-shake.test.mjs && npm test --workspaces --if-present",
     "test:gpu": "node --test packages/demos/tests/texture-array-gpu.test.mjs packages/demos/tests/target-readback-gpu.test.mjs",
     "check": "npm run typecheck && npm test"
