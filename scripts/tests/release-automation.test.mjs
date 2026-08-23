@@ -82,6 +82,15 @@ function assertCompiledPackage(pack, requiredPaths) {
   assert.ok(paths.every((path) => !path.startsWith('tests/')));
 }
 
+function workflowJob(workflow, name) {
+  const start = workflow.indexOf(`  ${name}:\n`);
+  assert.notEqual(start, -1, `missing workflow job: ${name}`);
+  const nextJob = workflow.slice(start + 1).search(/\n  [a-z][a-z0-9-]*:\n/u);
+  return nextJob < 0
+    ? workflow.slice(start)
+    : workflow.slice(start, start + 1 + nextJob);
+}
+
 test('CI checks the synchronized version and uploads an arm64 Studio package', async () => {
   const [ci] = await sources;
 
@@ -106,22 +115,51 @@ test('CI checks the synchronized version and uploads an arm64 Studio package', a
 
 test('release automation is tag-gated, validates the tag first, and creates a draft', async () => {
   const [, release] = await sources;
+  const studioJob = workflowJob(release, 'release-studio');
 
   assert.match(release, /tags: \['v\*\.\*\.\*'\]/);
-  assert.match(release, /permissions:\n  contents: write/);
-  assert.match(release, /runs-on: macos-latest/);
-  assert.match(release, /actions\/checkout@v7\n\s+with:\n\s+lfs: true/);
+  assert.match(release, /permissions:\n  contents: read/);
+  assert.match(studioJob, /permissions:\n\s+contents: write/);
+  assert.match(studioJob, /runs-on: macos-latest/);
+  assert.match(studioJob, /actions\/checkout@v7\n\s+with:\n\s+lfs: true/);
   assert.ok(
-    release.indexOf('npm run release:check') < release.indexOf('tauri-apps/tauri-action@v1'),
+    studioJob.indexOf('npm run release:check') < studioJob.indexOf('tauri-apps/tauri-action@v1'),
     'the release tag must be checked before any release can be created',
   );
-  assert.match(release, /npm run prepare:ghostty --workspace @antiky\/studio-tauri/);
-  assert.match(release, /npm run prepare:resources --workspace @antiky\/studio-tauri/);
-  assert.match(release, /tagName: v__VERSION__/);
-  assert.match(release, /releaseDraft: true/);
-  assert.match(release, /generateReleaseNotes: true/);
-  assert.match(release, /projectPath: packages\/studio\/tauri/);
-  assert.match(release, /args: --target aarch64-apple-darwin/);
+  assert.match(studioJob, /npm run prepare:ghostty --workspace @antiky\/studio-tauri/);
+  assert.match(studioJob, /npm run prepare:resources --workspace @antiky\/studio-tauri/);
+  assert.match(studioJob, /tagName: v__VERSION__/);
+  assert.match(studioJob, /releaseDraft: true/);
+  assert.match(studioJob, /generateReleaseNotes: true/);
+  assert.match(studioJob, /projectPath: packages\/studio\/tauri/);
+  assert.match(studioJob, /args: --target aarch64-apple-darwin/);
+});
+
+test('release publishes Framework before CLI through npm trusted publishing', async () => {
+  const [, release] = await sources;
+  const frameworkJob = workflowJob(release, 'publish-framework');
+  const cliJob = workflowJob(release, 'publish-cli');
+
+  for (const job of [frameworkJob, cliJob]) {
+    assert.match(job, /runs-on: ubuntu-latest/);
+    assert.match(job, /permissions:\n\s+contents: read\n\s+id-token: write/);
+    assert.match(job, /actions\/checkout@v7/);
+    assert.match(job, /actions\/setup-node@v6/);
+    assert.match(job, /node-version: 24\.19\.0/);
+    assert.match(job, /registry-url: https:\/\/registry\.npmjs\.org/);
+    assert.match(job, /package-manager-cache: false/);
+    assert.match(job, /npm ci/);
+    assert.match(job, /npm run release:check/);
+    assert.ok(
+      job.indexOf('npm run release:check') < job.indexOf('npm publish'),
+      'the release tag must be checked before npm publication',
+    );
+  }
+  assert.match(frameworkJob, /needs: release-studio/);
+  assert.match(frameworkJob, /npm publish --workspace @antiky\/framework --access public/);
+  assert.match(cliJob, /needs: publish-framework/);
+  assert.match(cliJob, /npm publish --workspace @antiky\/cli --access public/);
+  assert.doesNotMatch(release, /NPM_TOKEN|NODE_AUTH_TOKEN|secrets\.NPM/u);
 });
 
 test('local package commands build both ad-hoc-signed macOS bundle formats', async () => {
