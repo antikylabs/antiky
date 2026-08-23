@@ -1,7 +1,7 @@
 {
   "name": "@antiky/demo-point-light-expo",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "assets:build": "node scripts/pack-catalog-models.mjs",
@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@antiky/framework": "0.0.0",
+    "@antiky/framework": "0.1.0",
     "brometal": "0.18.0"
   },
   "devDependencies": {

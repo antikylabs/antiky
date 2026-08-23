@@ -1,7 +1,7 @@
 {
   "name": "@antiky/demo-combat-arena",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "build": "npm run shaders:prod && vite build",
@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@antiky/framework": "0.0.0",
+    "@antiky/framework": "0.1.0",
     "brometal": "0.18.0"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@
   "capturedAt": "2026-08-22T00:54:20.227Z",
   "warmUpFrames": 60,
   "source": {
-    "digest": "acee0539e4152439",
+    "digest": "6f014ad454bfa50f",
     "fileCount": 118
   },
   "frame": {
@@ -640,5 +640,5 @@
       "limitation": "The runtime sample is capped by display refresh and cannot resolve GPU cost below one refresh interval."
     }
   },
-  "seal": "a71df59f2be9900d"
+  "seal": "d58efd938014fa75"
 }
