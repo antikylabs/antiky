@@ -59,7 +59,7 @@
       "resources/terminal/antiky-studio.zshrc": "terminal/.zshrc"
     },
     "icon": [
-      "../../website/public/brand/antiky-labs-wordmark-white.png"
+      "icons/icon.icns"
     ]
   }
 }

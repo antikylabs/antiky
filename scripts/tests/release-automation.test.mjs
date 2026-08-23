@@ -19,7 +19,7 @@ test('CI checks the synchronized version and uploads an arm64 Studio package', a
   assert.match(ci, /branches: \[main\]/);
   assert.match(ci, /permissions:\n  contents: read/);
   assert.match(ci, /runs-on: macos-latest/);
-  assert.match(ci, /actions\/checkout@v7/);
+  assert.match(ci, /actions\/checkout@v7\n\s+with:\n\s+lfs: true/);
   assert.match(ci, /actions\/setup-node@v6/);
   assert.match(ci, /node-version: 24\.19\.0/);
   assert.match(ci, /npm ci/);
@@ -40,6 +40,7 @@ test('release automation is tag-gated, validates the tag first, and creates a dr
   assert.match(release, /tags: \['v\*\.\*\.\*'\]/);
   assert.match(release, /permissions:\n  contents: write/);
   assert.match(release, /runs-on: macos-latest/);
+  assert.match(release, /actions\/checkout@v7\n\s+with:\n\s+lfs: true/);
   assert.ok(
     release.indexOf('npm run release:check') < release.indexOf('tauri-apps/tauri-action@v1'),
     'the release tag must be checked before any release can be created',

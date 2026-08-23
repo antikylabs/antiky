@@ -23,12 +23,51 @@ const TERMINAL_THEME_KEYS = new Set([
   'palette',
 ]);
 
-test('Tauri uses the existing Antiky brand mark as its native icon', async () => {
-  const config = JSON.parse(await readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8'));
-  assert.deepEqual(config.bundle.icon, [
-    '../../website/public/brand/antiky-labs-wordmark-white.png',
+function icnsPngRepresentations(contents) {
+  assert.equal(contents.toString('ascii', 0, 4), 'icns');
+  assert.equal(contents.readUInt32BE(4), contents.length);
+
+  const representations = new Map();
+  for (let offset = 8; offset < contents.length;) {
+    const type = contents.toString('ascii', offset, offset + 4);
+    const length = contents.readUInt32BE(offset + 4);
+    assert.ok(length >= 8, `${type} has an invalid ICNS record length`);
+    assert.ok(offset + length <= contents.length, `${type} leaves the ICNS container`);
+    const payload = contents.subarray(offset + 8, offset + length);
+    if (payload.subarray(0, 8).toString('hex') === '89504e470d0a1a0a') {
+      assert.equal(payload.toString('ascii', 12, 16), 'IHDR');
+      representations.set(type, [payload.readUInt32BE(16), payload.readUInt32BE(20)]);
+    }
+    offset += length;
+  }
+  return representations;
+}
+
+test('Tauri packages a complete macOS icon instead of resizing the small website mark', async () => {
+  const [config, packageManifest, source] = await Promise.all([
+    readFile(resolve(packageDirectory, 'tauri.conf.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(packageDirectory, 'package.json'), 'utf8').then(JSON.parse),
+    readFile(resolve(packageDirectory, 'icons/source.svg'), 'utf8'),
   ]);
-  await access(resolve(packageDirectory, config.bundle.icon[0]));
+  assert.deepEqual(config.bundle.icon, ['icons/icon.icns']);
+  assert.equal(packageManifest.scripts['icon:generate'], 'node scripts/icon/generate.mjs');
+  assert.match(source, /width="1024" height="1024"/);
+
+  const [icon, runtimeIcon] = await Promise.all([
+    readFile(resolve(packageDirectory, config.bundle.icon[0])),
+    readFile(resolve(packageDirectory, 'icons/icon.png')),
+  ]);
+  assert.equal(runtimeIcon.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+  assert.equal(runtimeIcon.toString('ascii', 12, 16), 'IHDR');
+  assert.deepEqual([runtimeIcon.readUInt32BE(16), runtimeIcon.readUInt32BE(20)], [512, 512]);
+
+  const representations = icnsPngRepresentations(icon);
+  assert.deepEqual(representations.get('ic11'), [32, 32]);
+  assert.deepEqual(representations.get('ic12'), [64, 64]);
+  assert.deepEqual(representations.get('ic07'), [128, 128]);
+  assert.deepEqual(representations.get('ic08'), [256, 256]);
+  assert.deepEqual(representations.get('ic09'), [512, 512]);
+  assert.deepEqual(representations.get('ic10'), [1024, 1024]);
 });
 
 test('the main window can invoke only the bounded Studio command surface', async () => {

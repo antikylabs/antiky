@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 28 28" role="img" aria-labelledby="title">
+  <title id="title">Antiky Studio application icon</title>
+  <defs>
+    <linearGradient id="surface" x1="3" y1="2" x2="25" y2="27" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1d1a35" />
+      <stop offset="0.56" stop-color="#0b0c12" />
+      <stop offset="1" stop-color="#050506" />
+    </linearGradient>
+    <radialGradient id="accent" cx="0" cy="0" r="1" gradientTransform="translate(14 10) rotate(90) scale(13)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8b7cff" stop-opacity="0.3" />
+      <stop offset="1" stop-color="#8b7cff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="28" height="28" fill="url(#surface)" />
+  <rect width="28" height="28" fill="url(#accent)" />
+  <g fill="none" stroke="#f4f4f1" stroke-width="1.9" stroke-linejoin="miter">
+    <path d="M5 21V7h18v14" />
+    <path d="m9 18 5-9 5 9M11.2 14h5.6" />
+  </g>
+</svg>

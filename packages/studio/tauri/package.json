@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "icon:generate": "node scripts/icon/generate.mjs",
     "prepare:ghostty": "node scripts/prepare-ghostty.mjs",
     "prepare:node-runtime": "node scripts/node-runtime/prepare.mjs",
     "prepare:project-service": "npm run build:project-service --workspace @antiky/studio-app",
