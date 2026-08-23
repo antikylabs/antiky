@@ -18,6 +18,8 @@ agents, and Studio. Start with the task you want to complete.
 
 - [Initialize a project and run a local development session](cli/development.md) with one manifest,
   the game, shader watcher, inspection service, and MCP server.
+- [Install a catalog asset](cli/assets.md) from its Antiky asset ID with verified file sizes and
+  hashes.
 
 ## MCP
 
