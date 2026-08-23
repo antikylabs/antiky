@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { AntikyCliError } from '@antiky/cli';
 import { createDevelopmentClient } from '@antiky/cli/development';
-import { AntikyCliError } from '../../src/errors.ts';
 // @ts-ignore direct TypeScript source import for the Node strip-types runner
 import { readCaptureCapabilities } from '../../src/host/capture/capabilities.ts';
 import type {

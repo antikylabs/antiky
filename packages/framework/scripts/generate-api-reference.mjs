@@ -180,18 +180,26 @@ async function frameworkEntries() {
     fail('packages/framework/package.json must have a public exports map');
   }
   return Object.entries(metadata.exports).map(([subpath, target]) => {
+    const runtimeTarget = typeof target === 'object' && target !== null && !Array.isArray(target)
+      ? target.import
+      : target;
+    const typesTarget = typeof target === 'object' && target !== null && !Array.isArray(target)
+      ? target.types
+      : undefined;
     if (
       (subpath !== '.' && !/^\.\/[a-z][a-z0-9-]*$/.test(subpath))
-      || typeof target !== 'string'
-      || !target.startsWith('./src/')
-      || !target.endsWith('.ts')
+      || typeof runtimeTarget !== 'string'
+      || !runtimeTarget.startsWith('./dist/')
+      || !runtimeTarget.endsWith('.js')
+      || typesTarget !== `${runtimeTarget.slice(0, -3)}.d.ts`
     ) {
       fail(`unsupported package export ${subpath}`);
     }
+    const sourceTarget = `./src/${runtimeTarget.slice('./dist/'.length, -3)}.ts`;
     return {
       importPath: subpath === '.' ? metadata.name : `${metadata.name}/${subpath.slice(2)}`,
-      sourcePath: target.slice('./src/'.length),
-      filePath: resolve(frameworkRoot, target),
+      sourcePath: sourceTarget.slice('./src/'.length),
+      filePath: resolve(frameworkRoot, sourceTarget),
     };
   });
 }

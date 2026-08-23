@@ -21,7 +21,7 @@ async function readReachableSource(url, visited = new Set()) {
 
 test('@antiky/cli/development is a browser-safe public entry point', async () => {
   const packageJson = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
-  assert.equal(packageJson.exports['./development'], './src/development/index.ts');
+  assert.equal(packageJson.exports['./development'].import, './dist/development/index.js');
 
   const sources = await readReachableSource(new URL('development/index.ts', sourceDirectory));
   assert.ok(sources.length > 1);

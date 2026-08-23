@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --experimental-strip-types --experimental-transform-types
+#!/usr/bin/env node
 
 import { runCli } from './cli.ts';
 import { AntikyCliError } from './errors.ts';

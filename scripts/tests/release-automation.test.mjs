@@ -1,16 +1,86 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { execFile } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import test from 'node:test';
+import { promisify } from 'node:util';
 
 const repositoryRoot = resolve(import.meta.dirname, '../..');
+const execute = promisify(execFile);
 const sources = Promise.all([
   readFile(resolve(repositoryRoot, '.github/workflows/ci.yml'), 'utf8'),
   readFile(resolve(repositoryRoot, '.github/workflows/release.yml'), 'utf8'),
   readFile(resolve(repositoryRoot, 'package.json'), 'utf8').then(JSON.parse),
   readFile(resolve(repositoryRoot, 'packages/studio/tauri/package.json'), 'utf8').then(JSON.parse),
   readFile(resolve(repositoryRoot, 'packages/studio/tauri/tauri.conf.json'), 'utf8').then(JSON.parse),
+  readFile(resolve(repositoryRoot, 'packages/framework/package.json'), 'utf8').then(JSON.parse),
+  readFile(resolve(repositoryRoot, 'packages/cli/package.json'), 'utf8').then(JSON.parse),
 ]);
+
+const expectedRepository = 'git+https://github.com/antikylabs/antiky.git';
+
+async function trackedWorkspacePackages() {
+  const { stdout } = await execute('git', ['ls-files', 'packages'], { cwd: repositoryRoot });
+  const packagePaths = stdout
+    .trim()
+    .split('\n')
+    .filter((path) => path.endsWith('/package.json'));
+  return Promise.all(packagePaths.map(async (path) => (
+    JSON.parse(await readFile(resolve(repositoryRoot, path), 'utf8'))
+  )));
+}
+
+function assertPackageMetadata(manifest, directory, version) {
+  assert.equal(manifest.private, false);
+  assert.equal(manifest.version, version);
+  assert.equal(manifest.license, 'MIT');
+  assert.deepEqual(manifest.files, ['dist', 'README.md', 'LICENSE.md']);
+  assert.deepEqual(manifest.publishConfig, {
+    access: 'public',
+    registry: 'https://registry.npmjs.org/',
+  });
+  assert.deepEqual(manifest.repository, {
+    type: 'git',
+    url: expectedRepository,
+    directory,
+  });
+  assert.equal(manifest.bugs.url, 'https://github.com/antikylabs/antiky/issues');
+  assert.equal(manifest.engines.node, '>=22');
+  assert.equal(manifest.scripts.build, 'tsc -b tsconfig.build.json');
+  assert.equal(manifest.scripts.prepack, 'npm run build');
+  assert.equal(manifest.types, './dist/index.d.ts');
+}
+
+async function packWorkspace(workspace, destination) {
+  const { stdout } = await execute('npm', [
+    'pack',
+    '--workspace', workspace,
+    '--pack-destination', destination,
+    '--json',
+  ], { cwd: repositoryRoot, maxBuffer: 10 * 1024 * 1024 });
+  const jsonStart = stdout.lastIndexOf('\n[');
+  const [result] = JSON.parse(stdout.slice(jsonStart < 0 ? 0 : jsonStart + 1));
+  assert.equal(result.name, workspace);
+  return Object.freeze({
+    ...result,
+    tarball: resolve(destination, result.filename),
+  });
+}
+
+function assertCompiledPackage(pack, requiredPaths) {
+  const paths = pack.files.map((file) => file.path).sort();
+  for (const requiredPath of requiredPaths) assert.ok(paths.includes(requiredPath), requiredPath);
+  for (const path of paths) {
+    assert.ok(
+      ['LICENSE.md', 'README.md', 'package.json'].includes(path)
+        || /^dist\/.+\.(?:js|d\.ts)$/u.test(path),
+      `${pack.name} contains unexpected package file: ${path}`,
+    );
+  }
+  assert.ok(paths.every((path) => !path.startsWith('src/')));
+  assert.ok(paths.every((path) => !path.startsWith('tests/')));
+}
 
 test('CI checks the synchronized version and uploads an arm64 Studio package', async () => {
   const [ci] = await sources;
@@ -68,4 +138,111 @@ test('local package commands build both ad-hoc-signed macOS bundle formats', asy
   assert.equal(tauriPackage.scripts.build, 'tauri build');
   assert.deepEqual(tauriConfig.bundle.targets, ['app', 'dmg']);
   assert.equal(tauriConfig.bundle.macOS.signingIdentity, '-');
+});
+
+test('only Framework and CLI are configured as public npm packages', async () => {
+  const [, , rootPackage, , , frameworkPackage, cliPackage] = await sources;
+  const packages = await trackedWorkspacePackages();
+  const publishable = packages
+    .filter((manifest) => manifest.private === false)
+    .map((manifest) => manifest.name)
+    .sort();
+
+  assert.deepEqual(publishable, ['@antiky/cli', '@antiky/framework']);
+  assertPackageMetadata(frameworkPackage, 'packages/framework', rootPackage.version);
+  assertPackageMetadata(cliPackage, 'packages/cli', rootPackage.version);
+  assert.equal(rootPackage.private, true);
+  assert.equal(frameworkPackage.exports['.'].import, './dist/index.js');
+  assert.equal(frameworkPackage.exports['.'].types, './dist/index.d.ts');
+  assert.equal(frameworkPackage.exports['./render-driver'].import, './dist/render/brometal-driver.js');
+  assert.equal(cliPackage.bin.antiky, './dist/bin.js');
+  assert.equal(cliPackage.exports['.'].import, './dist/index.js');
+  assert.equal(cliPackage.exports['./development'].import, './dist/development/index.js');
+  assert.equal(cliPackage.dependencies['@antiky/framework'], cliPackage.version);
+  assert.equal(cliPackage.dependencies['@types/node'], '^22.15.0');
+});
+
+test('npm tarballs install and run without TypeScript source', { timeout: 120_000 }, async () => {
+  const temporaryRoot = await mkdtemp(join(tmpdir(), 'antiky-npm-smoke-'));
+  const tarballDirectory = join(temporaryRoot, 'tarballs');
+  const consumerDirectory = join(temporaryRoot, 'consumer');
+  await mkdir(tarballDirectory);
+  await mkdir(consumerDirectory);
+
+  try {
+    const frameworkPack = await packWorkspace('@antiky/framework', tarballDirectory);
+    const cliPack = await packWorkspace('@antiky/cli', tarballDirectory);
+    assertCompiledPackage(frameworkPack, [
+      'dist/index.d.ts',
+      'dist/index.js',
+      'dist/game/contract.js',
+      'dist/game/host.js',
+      'dist/render/brometal-driver.js',
+    ]);
+    assertCompiledPackage(cliPack, [
+      'dist/bin.js',
+      'dist/development/index.js',
+      'dist/index.d.ts',
+      'dist/index.js',
+      'dist/project/index.js',
+      'dist/studio/worker.js',
+    ]);
+
+    await writeFile(join(consumerDirectory, 'package.json'), JSON.stringify({
+      name: 'antiky-package-smoke-consumer',
+      private: true,
+      type: 'module',
+    }));
+    await execute('npm', [
+      'install',
+      '--offline',
+      '--ignore-scripts',
+      '--no-audit',
+      '--no-fund',
+      frameworkPack.tarball,
+      cliPack.tarball,
+    ], { cwd: consumerDirectory, timeout: 120_000 });
+
+    await execute('node', [
+      '--input-type=module',
+      '--eval',
+      [
+        "import { createWorldId, isUuidV7 } from '@antiky/framework';",
+        "await import('@antiky/framework/game');",
+        "await import('@antiky/framework/contract');",
+        "await import('@antiky/cli/development');",
+        "await import('@antiky/cli/project');",
+        "if (!isUuidV7(createWorldId())) throw new Error('Framework package returned an invalid ID.');",
+      ].join('\n'),
+    ], { cwd: consumerDirectory });
+
+    const binary = resolve(consumerDirectory, 'node_modules/.bin/antiky');
+    const { stdout } = await execute(binary, ['init', '--help'], { cwd: consumerDirectory });
+    assert.match(stdout, /Usage:\n  antiky init \[name\] \[--directory path\]/u);
+
+    const consumerSource = join(consumerDirectory, 'consumer.ts');
+    await writeFile(consumerSource, [
+      "import { createWorldId, type WorldId } from '@antiky/framework';",
+      "import type { CliIo } from '@antiky/cli';",
+      "import type { DevelopmentClient } from '@antiky/cli/development';",
+      'const worldId: WorldId = createWorldId();',
+      'const cliIo: CliIo | undefined = undefined;',
+      'const client: DevelopmentClient | undefined = undefined;',
+      'void worldId;',
+      'void cliIo;',
+      'void client;',
+    ].join('\n'));
+    await execute(process.execPath, [
+      resolve(repositoryRoot, 'node_modules/typescript/bin/tsc'),
+      '--noEmit',
+      '--strict',
+      '--module', 'NodeNext',
+      '--moduleResolution', 'NodeNext',
+      '--target', 'ES2022',
+      '--lib', 'ES2022,DOM,DOM.Iterable',
+      consumerSource,
+    ], { cwd: consumerDirectory });
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
 });
