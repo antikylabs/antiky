@@ -1,10 +1,17 @@
 import { resolve } from 'node:path';
 
 import { ID_KINDS, generateId, type IdKind } from '@antiky/framework';
-import { findAsset, type CatalogAsset } from '@antiky/asset-catalog';
-import { CATALOG_ASSETS } from '@antiky/asset-catalog/catalog';
-import { installCatalogAsset, type InstalledAssetReceipt } from '@antiky/asset-catalog/node';
 
+import {
+  CatalogInvalidError,
+  CatalogUnavailableError,
+  resolveCatalogAsset,
+  type CatalogAsset,
+} from './assets/catalog.ts';
+import {
+  installCatalogAsset,
+  type InstalledAssetReceipt,
+} from './assets/install.ts';
 import { connectDevelopmentClient, inspectDevelopmentSession } from './development/client.ts';
 import { AntikyCliError } from './errors.ts';
 import { launchGamePage } from './game-launch.ts';
@@ -22,7 +29,7 @@ import { launchStudioProject } from './studio/launch.ts';
 
 export const CLI_USAGE = `Usage:
   antiky init [name] [--directory path]
-  antiky asset install <provider:slug> [--project path]
+  antiky asset install <provider:slug> [--project path] [--allow-github-fallback]
   antiky studio [path | --project path]
   antiky dev [--open] [--project path]
   antiky inspect [--project path]
@@ -46,6 +53,7 @@ export type CliIo = Readonly<{
 export type RunCliOptions = Readonly<{
   diagnosticSink?: CliDiagnosticSink;
   studioLauncher?: (manifestPath: string) => Promise<void>;
+  catalogFetcher?: typeof fetch;
   assetInstaller?: (input: Readonly<{
     asset: CatalogAsset;
     projectRoot: string;
@@ -109,15 +117,44 @@ type InitInvocation =
   | Readonly<{ help: true }>
   | Readonly<{ help: false; name?: string; directory: string }>;
 
-type AssetInstallInvocation = Readonly<{ catalogId: string; projectPath?: string }>;
+type AssetInstallInvocation = Readonly<{
+  catalogId: string;
+  projectPath?: string;
+  allowGithubFallback: boolean;
+}>;
 
 function parseAssetInstallInvocation(args: readonly string[]): AssetInstallInvocation {
   const [verb, catalogId, ...options] = args;
   if (verb !== 'install' || !catalogId || !/^[a-z0-9-]+:[a-z0-9-]+$/u.test(catalogId)) {
     throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
   }
-  const projectPath = parseProjectPath(options);
-  return Object.freeze({ catalogId, ...(projectPath ? { projectPath } : {}) });
+  let projectPath: string | undefined;
+  let allowGithubFallback = false;
+  for (let index = 0; index < options.length;) {
+    const option = options[index]!;
+    if (option === '--allow-github-fallback') {
+      if (allowGithubFallback) throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+      allowGithubFallback = true;
+      index += 1;
+      continue;
+    }
+    if (option === '--project') {
+      const value = options[index + 1];
+      if (!value || value.startsWith('--') || projectPath !== undefined) {
+        throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+      }
+      projectPath = resolve(value);
+      index += 2;
+      continue;
+    }
+    throw new AntikyCliError('ANTIKY_ARGUMENT_INVALID', CLI_USAGE);
+  }
+
+  return Object.freeze({
+    catalogId,
+    allowGithubFallback,
+    ...(projectPath === undefined ? {} : { projectPath }),
+  });
 }
 
 function parseInitInvocation(args: readonly string[]): InitInvocation {
@@ -285,6 +322,7 @@ async function executeCli(
   io: CliIo,
   diagnosticSink: CliDiagnosticSink,
   studioLauncher: (manifestPath: string) => Promise<void>,
+  catalogFetcher: typeof fetch,
   assetInstaller: NonNullable<RunCliOptions['assetInstaller']>,
   developmentStarter: typeof startDevelopmentSession,
   gameLauncher: (url: string) => Promise<void>,
@@ -308,17 +346,36 @@ async function executeCli(
     const separator = invocation.catalogId.indexOf(':');
     const provider = invocation.catalogId.slice(0, separator);
     const slug = invocation.catalogId.slice(separator + 1);
-    const asset = findAsset(CATALOG_ASSETS, provider, slug);
+    const project = await loadAntikyProject(invocation.projectPath);
+    let asset: CatalogAsset | undefined;
+    try {
+      asset = await resolveCatalogAsset({
+        provider,
+        slug,
+        allowGithubFallback: invocation.allowGithubFallback,
+        fetch: catalogFetcher,
+      });
+    } catch (cause) {
+      if (cause instanceof CatalogInvalidError) {
+        throw new AntikyCliError('ANTIKY_CATALOG_INVALID', cause.message);
+      }
+      if (cause instanceof CatalogUnavailableError) {
+        throw new AntikyCliError('ANTIKY_CATALOG_UNAVAILABLE', cause.message);
+      }
+      throw cause;
+    }
     if (!asset) {
       throw new AntikyCliError('ANTIKY_ASSET_NOT_FOUND', `Unknown catalog asset: ${invocation.catalogId}`);
     }
-    const project = await loadAntikyProject(invocation.projectPath);
     let receipt: InstalledAssetReceipt;
     try {
       receipt = await assetInstaller({ asset, projectRoot: project.projectRoot });
     } catch (cause) {
       const detail = cause instanceof Error ? cause.message : 'Unknown installation failure';
-      throw new AntikyCliError('ANTIKY_ASSET_INSTALL_FAILED', `Could not install ${asset.id}: ${detail}`);
+      throw new AntikyCliError(
+        'ANTIKY_ASSET_INSTALL_FAILED',
+        `Could not install ${asset.id}: ${detail}`,
+      );
     }
     io.stdout(`Installed ${receipt.catalogId} (${receipt.files.length} files) in ${project.projectRoot}\n`);
     return 0;
@@ -442,6 +499,7 @@ export async function runCli(
 ): Promise<number> {
   const diagnosticSink = options.diagnosticSink ?? NOOP_CLI_DIAGNOSTIC_SINK;
   const studioLauncher = options.studioLauncher ?? launchStudioProject;
+  const catalogFetcher = options.catalogFetcher ?? fetch;
   const assetInstaller = options.assetInstaller ?? installCatalogAsset;
   const developmentStarter = options.developmentStarter ?? startDevelopmentSession;
   const gameLauncher = options.gameLauncher ?? launchGamePage;
@@ -451,6 +509,7 @@ export async function runCli(
       io,
       diagnosticSink,
       studioLauncher,
+      catalogFetcher,
       assetInstaller,
       developmentStarter,
       gameLauncher,
