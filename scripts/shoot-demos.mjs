@@ -234,6 +234,24 @@ export function evidencePngPath({ demoDirectory, developmentSessionId, evidenceI
   return path.join(demoDirectory, '.antiky', 'evidence', sessionKey, evidenceId, `${artifactId}.png`);
 }
 
+function canonicalPackageDigestBytes(bytes) {
+  const metadata = JSON.parse(bytes.toString('utf8'));
+  const releaseVersion = metadata.version;
+  delete metadata.version;
+
+  for (const field of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+    const dependencies = metadata[field];
+    if (!dependencies || typeof dependencies !== 'object' || Array.isArray(dependencies)) continue;
+    for (const [name, specifier] of Object.entries(dependencies)) {
+      if (name.startsWith('@antiky/') && specifier === releaseVersion) {
+        dependencies[name] = '<synchronized-workspace-version>';
+      }
+    }
+  }
+
+  return Buffer.from(JSON.stringify(metadata));
+}
+
 /**
  * A digest of everything that decides what a demo renders.
  *
@@ -288,9 +306,14 @@ export async function sourceDigest(rawDirectory) {
     }
   }
 
+  const packagePath = path.join(directory, 'package.json');
   for (const file of files.sort()) {
     hash.update(path.relative(directory, file));
-    hash.update(await readFile(file));
+    const bytes = await readFile(file);
+    // A synchronized release changes the package version and the matching local dependency pins,
+    // but not what the workspace build renders. Keep scripts and dependency membership in the
+    // digest while removing only that release bookkeeping.
+    hash.update(file === packagePath ? canonicalPackageDigestBytes(bytes) : bytes);
   }
   return { digest: hash.digest('hex').slice(0, 16), fileCount: files.length };
 }

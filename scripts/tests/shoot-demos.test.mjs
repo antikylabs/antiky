@@ -403,6 +403,41 @@ test('the source digest changes when the demo changes and not otherwise', async 
   assert.equal((await sourceDigest(directory)).digest, fourth.digest);
 });
 
+test('the source digest ignores synchronized release metadata but keeps runtime dependency changes', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'antiky-release-digest-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  await mkdir(path.join(directory, 'src'), { recursive: true });
+  await writeFile(path.join(directory, 'src', 'game.ts'), 'export const speed = 1;');
+
+  const writePackage = (version, brometal) => writeFile(path.join(directory, 'package.json'), JSON.stringify({
+    name: '@antiky/demo-fixture',
+    private: true,
+    version,
+    scripts: { build: 'vite build' },
+    dependencies: {
+      '@antiky/framework': version,
+      brometal,
+    },
+  }, null, 2));
+
+  await writePackage('0.0.0', '0.18.0');
+  const bootstrap = await sourceDigest(directory);
+
+  await writePackage('0.1.0', '0.18.0');
+  assert.deepEqual(
+    await sourceDigest(directory),
+    bootstrap,
+    'a synchronized workspace release must not make unchanged capture inputs stale',
+  );
+
+  await writePackage('0.1.0', '0.19.0');
+  assert.notEqual(
+    (await sourceDigest(directory)).digest,
+    bootstrap.digest,
+    'a changed runtime dependency must invalidate the capture source digest',
+  );
+});
+
 test('a declared probe reaches the sidecar and lands on its own rectangle', async (t) => {
   const directory = await mkdtemp(path.join(tmpdir(), 'antiky-probe-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
