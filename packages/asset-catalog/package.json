@@ -15,7 +15,6 @@
     "catalog:crawl:curated": "node --experimental-strip-types --experimental-transform-types scripts/crawl/curated-sources.mjs",
     "catalog:crawl:community": "node --experimental-strip-types --experimental-transform-types scripts/crawl/community-sources.mjs",
     "catalog:crawl:handpicked": "node --experimental-strip-types --experimental-transform-types scripts/crawl/handpicked-sources.mjs",
-    "catalog:fallback:write": "node --experimental-strip-types scripts/write-github-fallback.mjs",
     "previews": "node --experimental-strip-types --experimental-transform-types scripts/generate-previews.mjs public",
     "catalog:check": "node --experimental-strip-types --experimental-transform-types scripts/check-poly-haven.mjs",
     "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts tests/*.test.mjs",

@@ -168,21 +168,6 @@ test('the CLI guide defines the one project manifest and its migration path', as
   assert.match(source, /ANTIKY_PROJECT_INIT_INTERRUPTED/);
 });
 
-test('the asset guide documents hosted lookup and explicit GitHub fallback approval', async () => {
-  const [source, index] = await Promise.all([
-    readFile(new URL('../../../docs/user-facing-docs/cli/assets.md', import.meta.url), 'utf8'),
-    readFile(new URL('../../../docs/user-facing-docs/README.md', import.meta.url), 'utf8'),
-  ]);
-
-  assert.match(index, /\[Install a catalog asset\]\(cli\/assets\.md\)/);
-  assert.match(source, /antiky asset install poly-haven:forest-floor/);
-  assert.match(source, /https:\/\/assets\.antikylabs\.com/);
-  assert.match(source, /--allow-github-fallback/);
-  assert.match(source, /without\s+contacting GitHub/i);
-  assert.match(source, /ANTIKY_CATALOG_UNAVAILABLE/);
-  assert.match(source, /ANTIKY_CATALOG_INVALID/);
-});
-
 test('the game-module guide keeps game code separate from the development host', async () => {
   const [source, index] = await Promise.all([
     readFile(new URL('../../../docs/user-facing-docs/framework/game-modules.md', import.meta.url), 'utf8'),
