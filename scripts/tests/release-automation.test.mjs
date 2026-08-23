@@ -233,7 +233,7 @@ test('npm tarballs install and run without TypeScript source', { timeout: 120_00
     }));
     await execute('npm', [
       'install',
-      '--offline',
+      '--prefer-offline',
       '--ignore-scripts',
       '--no-audit',
       '--no-fund',
