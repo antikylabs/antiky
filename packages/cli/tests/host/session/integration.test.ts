@@ -302,7 +302,12 @@ test('public demo manifests mount their compiled module in the CLI-owned host', 
       assert.match(await hostResponse.text(), /<canvas[^>]+id="antiky-game"/);
 
       const moduleUrl = `${new URL(config.development.url).origin}/__antiky__/build/antiky.game.js`;
-      const moduleResponse = await fetch(moduleUrl);
+      let moduleResponse: Response | undefined;
+      await waitFor(async () => {
+        moduleResponse = await fetch(moduleUrl);
+        return moduleResponse.status === 200;
+      }, 10_000);
+      assert.ok(moduleResponse);
       assert.equal(moduleResponse.status, 200, slug);
       assert.match(moduleResponse.headers.get('content-type') ?? '', /^text\/javascript/);
       const moduleSource = await moduleResponse.text();

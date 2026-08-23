@@ -49,11 +49,11 @@ test('the production build statically generates assets and complete agent contex
   assert.match(assetsPage, /aria-label="Dimension"/);
   assert.match(assetsPage, /aria-label="Verification status"/);
   assert.match(natureKit, /Nature Kit/);
-  assert.match(natureKit, /https:\/\/catalog-api\.antikylabs\.com\/v1\/assets\/kenney\/nature-kit\.json/);
+  assert.match(natureKit, /https:\/\/assets\.antikylabs\.com\/v1\/assets\/kenney\/nature-kit\.json/);
   assert.match(llms, /^# Antiky Labs\n\n> /);
   assert.match(llms, /https:\/\/antikylabs\.com\/llms-full\.txt/);
   assert.match(llms, /https:\/\/antikylabs\.com\/assets\/kenney\/nature-kit/);
-  assert.match(llms, /https:\/\/catalog-api\.antikylabs\.com\/v1\/catalog\.json/);
+  assert.match(llms, /https:\/\/assets\.antikylabs\.com\/v1\/catalog\.json/);
   assert.match(llmsFull, /## Documentation: Framework API reference/);
   assert.match(llmsFull, /## Documentation: Find and use game assets/);
   assert.match(llmsFull, /### Nature Kit/);

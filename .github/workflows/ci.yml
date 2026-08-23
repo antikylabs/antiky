@@ -35,6 +35,8 @@ jobs:
           path: packages/studio/tauri/.native
           key: ${{ runner.os }}-${{ runner.arch }}-studio-native-${{ hashFiles('packages/studio/tauri/scripts/ghostty-dependency.mjs', 'packages/studio/tauri/scripts/node-runtime/dependency.mjs') }}
       - run: npm ci
+      - name: Install managed Chromium
+        run: npx playwright install chromium
       - run: npm run version:check
       - run: npm run check
       - name: Prepare Studio package resources

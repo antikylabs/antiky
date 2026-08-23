@@ -16,7 +16,7 @@ test('the website consumes the catalog package static delivery contract', async 
   assert.ok(natureKit);
   assert.equal(catalog.totalCatalogAssets, catalogCount());
   assert.deepEqual(catalog.assets.find((asset: { id: string }) => asset.id === natureKit.id), natureKit);
-  assert.equal(CATALOG_API_CATALOG_URL, 'https://catalog-api.antikylabs.com/v1/catalog.json');
+  assert.equal(CATALOG_API_CATALOG_URL, 'https://assets.antikylabs.com/v1/catalog.json');
   assert.equal(catalogApiAssetPath('kenney', 'nature-kit'), '/v1/assets/kenney/nature-kit.json');
-  assert.equal(catalogApiAssetUrl(natureKit), 'https://catalog-api.antikylabs.com/v1/assets/kenney/nature-kit.json');
+  assert.equal(catalogApiAssetUrl(natureKit), 'https://assets.antikylabs.com/v1/assets/kenney/nature-kit.json');
 });
