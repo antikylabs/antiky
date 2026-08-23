@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "workspaces": [
     "packages/cli",
+    "packages/asset-catalog",
     "packages/framework",
     "packages/website",
     "packages/demos/*",

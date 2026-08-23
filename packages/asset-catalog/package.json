@@ -1,0 +1,28 @@
+{
+  "name": "@antiky/asset-catalog",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./catalog": "./src/catalog-data.ts",
+    "./static-api": "./src/static-api.ts",
+    "./node": "./src/node/install.ts"
+  },
+  "scripts": {
+    "build": "node --experimental-strip-types scripts/build-static-api.mjs",
+    "catalog:crawl": "node --experimental-strip-types --experimental-transform-types scripts/crawl/poly-haven.mjs",
+    "catalog:crawl:curated": "node --experimental-strip-types --experimental-transform-types scripts/crawl/curated-sources.mjs",
+    "catalog:crawl:community": "node --experimental-strip-types --experimental-transform-types scripts/crawl/community-sources.mjs",
+    "catalog:crawl:handpicked": "node --experimental-strip-types --experimental-transform-types scripts/crawl/handpicked-sources.mjs",
+    "previews": "node --experimental-strip-types --experimental-transform-types scripts/generate-previews.mjs public",
+    "catalog:check": "node --experimental-strip-types --experimental-transform-types scripts/check-poly-haven.mjs",
+    "test": "npm run build && node --experimental-strip-types --experimental-transform-types --test tests/*.test.ts tests/*.test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3",
+    "sharp": "0.35.3"
+  }
+}

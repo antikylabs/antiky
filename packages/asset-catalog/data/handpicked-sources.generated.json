@@ -1,0 +1,1045 @@
+{
+  "schemaVersion": 1,
+  "policy": "handpicked-itch-html-metadata-only-no-archive-downloads",
+  "retrievedAt": "2026-08-12T15:04:10.163Z",
+  "sources": [
+    {
+      "url": "https://pixel-boy.itch.io/ninja-adventure-asset-pack",
+      "catalogId": "pixel-boy:ninja-adventure-asset-pack",
+      "quality": 0,
+      "existing": false
+    },
+    {
+      "url": "https://pixelfrog-assets.itch.io/tiny-swords",
+      "catalogId": "pixel-frog:tiny-swords",
+      "quality": 0,
+      "existing": false
+    },
+    {
+      "url": "https://kaylousberg.itch.io/kaykit-medieval-hexagon",
+      "catalogId": "kaykit:medieval-hexagon",
+      "quality": 0,
+      "existing": true
+    },
+    {
+      "url": "https://kaylousberg.itch.io/kaykit-dungeon-pack",
+      "catalogId": "kaykit:dungeon-remastered",
+      "quality": 0,
+      "existing": true
+    },
+    {
+      "url": "https://kaylousberg.itch.io/kaykit-forest",
+      "catalogId": "kaykit:forest-nature-pack",
+      "quality": 0,
+      "existing": true
+    },
+    {
+      "url": "https://quaternius.itch.io/stylized-nature-megakit",
+      "catalogId": "quaternius:stylizednaturemegakit",
+      "quality": 0,
+      "existing": true
+    },
+    {
+      "url": "https://pixelfrog-assets.itch.io/pixel-adventure-1",
+      "catalogId": "pixel-frog:pixel-adventure-1",
+      "quality": 0,
+      "existing": false
+    },
+    {
+      "url": "https://quaternius.itch.io/universal-animation-library",
+      "catalogId": "quaternius:universalanimationlibrary",
+      "quality": 1,
+      "existing": true
+    },
+    {
+      "url": "https://kaylousberg.itch.io/kaykit-skeletons",
+      "catalogId": "kaykit:characters-skeletons",
+      "quality": 1,
+      "existing": true
+    },
+    {
+      "url": "https://rgsdev.itch.io/free-3d-modular-low-poly-assets-for-prototyping-by-rgsdev",
+      "catalogId": "rgsdev:free-3d-modular-low-poly-assets-for-prototyping-by-rgsdev",
+      "quality": 1,
+      "existing": false
+    },
+    {
+      "url": "https://kevins-moms-house.itch.io/four-seasons-platformer-tileset",
+      "catalogId": "kevins-moms-house:four-seasons-platformer-tileset",
+      "quality": 1,
+      "existing": false
+    },
+    {
+      "url": "https://0x72.itch.io/dungeontileset-ii",
+      "catalogId": "0x72:dungeontileset-ii",
+      "quality": 2,
+      "existing": false
+    },
+    {
+      "url": "https://datagoblin.itch.io/monogram",
+      "catalogId": "datagoblin:monogram",
+      "quality": 2,
+      "existing": false
+    },
+    {
+      "url": "https://fertile-soil-productions.itch.io/modular-village-pack",
+      "catalogId": "fertile-soil-productions:modular-village-pack",
+      "quality": 2,
+      "existing": false
+    },
+    {
+      "url": "https://kevins-moms-house.itch.io/fantasy",
+      "catalogId": "kevins-moms-house:fantasy",
+      "quality": 2,
+      "existing": false
+    },
+    {
+      "url": "https://gibbongl.itch.io/gboracles-character-interior-pack",
+      "catalogId": "gibbongl:gboracles-character-interior-pack",
+      "quality": 2,
+      "existing": false
+    },
+    {
+      "url": "https://binbun3d.itch.io/godot-skies",
+      "catalogId": "binbun3d:godot-skies",
+      "quality": 3,
+      "existing": false
+    },
+    {
+      "url": "https://voxel-dev.itch.io/low-poly-camping-asset-pack-free-demo",
+      "catalogId": "voxel-dev:low-poly-camping-asset-pack-free-demo",
+      "quality": 4,
+      "existing": false
+    },
+    {
+      "url": "https://cc0gameassets.itch.io/lowpoly-3d-swords-cc0",
+      "catalogId": "cc0-game-assets:lowpoly-3d-swords-cc0",
+      "quality": 4,
+      "existing": false
+    }
+  ],
+  "assets": [
+    {
+      "id": "0x72:dungeontileset-ii",
+      "slug": "dungeontileset-ii",
+      "name": "16x16 DungeonTileset II",
+      "description": "A free tileset + animated characters + weapons + others.",
+      "kind": "sprite",
+      "quality": 2,
+      "fileCount": null,
+      "formats": [
+        "png"
+      ],
+      "tags": [
+        "dungeon crawler",
+        "fantasy",
+        "pixel art",
+        "retro",
+        "roguelike",
+        "roguelite",
+        "tilemap",
+        "2d",
+        "tileset",
+        "dungeon",
+        "sprite",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "2d",
+        "tileset",
+        "dungeon"
+      ],
+      "provider": {
+        "id": "0x72",
+        "name": "0x72",
+        "url": "https://0x72.itch.io"
+      },
+      "upstream": {
+        "id": "dungeontileset-ii",
+        "url": "https://0x72.itch.io/dungeontileset-ii",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1hZ2UvMzA5MDI4LzE1MTk3MjcucG5n/original/VCoz5j.png",
+        "sourceUrl": "https://img.itch.zone/aW1hZ2UvMzA5MDI4LzE1MTk3MjcucG5n/original/VCoz5j.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "0x72",
+        "sourceUrl": "https://0x72.itch.io/dungeontileset-ii",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by 0x72; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "binbun3d:godot-skies",
+      "slug": "godot-skies",
+      "name": "Godot Skies",
+      "description": "A customizable sky shader for Godot and 24 presets",
+      "kind": "hdri",
+      "quality": 3,
+      "fileCount": 24,
+      "formats": [
+        "gdshader"
+      ],
+      "tags": [
+        "3d",
+        "atmospheric",
+        "colorful",
+        "effects",
+        "environment",
+        "godot",
+        "shaders",
+        "sky",
+        "space",
+        "textures",
+        "shader",
+        "hdri",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "3d",
+        "sky",
+        "shader"
+      ],
+      "provider": {
+        "id": "binbun3d",
+        "name": "Binbun",
+        "url": "https://binbun3d.itch.io"
+      },
+      "upstream": {
+        "id": "godot-skies",
+        "url": "https://binbun3d.itch.io/godot-skies",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzI1MzE0NDQ5LnBuZw==/original/AgmiPC.png",
+        "sourceUrl": "https://img.itch.zone/aW1nLzI1MzE0NDQ5LnBuZw==/original/AgmiPC.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "Binbun",
+        "sourceUrl": "https://binbun3d.itch.io/godot-skies",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by Binbun; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "cc0-game-assets:lowpoly-3d-swords-cc0",
+      "slug": "lowpoly-3d-swords-cc0",
+      "name": "Lowpoly 3D Swords CC0",
+      "description": "Lowpoly 3D swords in public domain (CC0)!",
+      "kind": "model",
+      "quality": 4,
+      "fileCount": 50,
+      "formats": [
+        "fbx",
+        "glb"
+      ],
+      "tags": [
+        "3d",
+        "blender",
+        "dagger",
+        "fantasy",
+        "knife",
+        "low-poly",
+        "medieval",
+        "scimitar",
+        "swords",
+        "weapons",
+        "weapon",
+        "low poly",
+        "model",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "3d",
+        "weapon",
+        "low poly"
+      ],
+      "provider": {
+        "id": "cc0-game-assets",
+        "name": "CC0 Game Assets",
+        "url": "https://cc0gameassets.itch.io"
+      },
+      "upstream": {
+        "id": "lowpoly-3d-swords-cc0",
+        "url": "https://cc0gameassets.itch.io/lowpoly-3d-swords-cc0",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzEwNDM1ODI5LmpwZw==/original/9Q6QZ7.jpg",
+        "sourceUrl": "https://img.itch.zone/aW1nLzEwNDM1ODI5LmpwZw==/original/9Q6QZ7.jpg",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "CC0 Game Assets",
+        "sourceUrl": "https://cc0gameassets.itch.io/lowpoly-3d-swords-cc0",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by CC0 Game Assets; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "datagoblin:monogram",
+      "slug": "monogram",
+      "name": "monogram",
+      "description": "elegant monospace pixel font",
+      "kind": "font",
+      "quality": 2,
+      "fileCount": null,
+      "formats": [
+        "ttf",
+        "png",
+        "json",
+        "p8"
+      ],
+      "tags": [
+        "8-bit",
+        "asset pack",
+        "assets",
+        "fonts",
+        "pico-8",
+        "pixel art",
+        "pixel-font",
+        "retro",
+        "ttf",
+        "user interface (ui)",
+        "font",
+        "monospace",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "font",
+        "pixel art",
+        "monospace"
+      ],
+      "provider": {
+        "id": "datagoblin",
+        "name": "datagoblin",
+        "url": "https://datagoblin.itch.io"
+      },
+      "upstream": {
+        "id": "monogram",
+        "url": "https://datagoblin.itch.io/monogram",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzE3MjQyNDY3LnBuZw==/original/j47gjt.png",
+        "sourceUrl": "https://img.itch.zone/aW1nLzE3MjQyNDY3LnBuZw==/original/j47gjt.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "datagoblin",
+        "sourceUrl": "https://datagoblin.itch.io/monogram",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by datagoblin; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "fertile-soil-productions:modular-village-pack",
+      "slug": "modular-village-pack",
+      "name": "Modular Village Pack",
+      "description": "Low-poly modular village models that can be assembled like blocks",
+      "kind": "model",
+      "quality": 2,
+      "fileCount": 155,
+      "formats": [
+        "obj"
+      ],
+      "tags": [
+        "3d",
+        "action-adventure",
+        "city builder",
+        "exploration",
+        "fantasy",
+        "low-poly",
+        "medieval",
+        "touch-friendly",
+        "modular",
+        "village",
+        "model",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "3d",
+        "modular",
+        "village"
+      ],
+      "provider": {
+        "id": "fertile-soil-productions",
+        "name": "Fertile Soil Productions",
+        "url": "https://fertile-soil-productions.itch.io"
+      },
+      "upstream": {
+        "id": "modular-village-pack",
+        "url": "https://fertile-soil-productions.itch.io/modular-village-pack",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1hZ2UvMjk4NTIxLzE0NjAxNzAucG5n/original/sqCKho.png",
+        "sourceUrl": "https://img.itch.zone/aW1hZ2UvMjk4NTIxLzE0NjAxNzAucG5n/original/sqCKho.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "Keith at Fertile Soil Productions",
+        "sourceUrl": "https://fertile-soil-productions.itch.io/modular-village-pack",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by Keith at Fertile Soil Productions; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "gibbongl:gboracles-character-interior-pack",
+      "slug": "gboracles-character-interior-pack",
+      "name": "GB Oracles: Character & Interior Pack",
+      "description": "Asset pack for Zelda-like Gameboy games",
+      "kind": "sprite",
+      "quality": 2,
+      "fileCount": null,
+      "formats": [
+        "png"
+      ],
+      "tags": [
+        "2d",
+        "game boy",
+        "gbstudio",
+        "pixel art",
+        "sprites",
+        "tileset",
+        "top-down",
+        "top down adventure",
+        "zelda",
+        "character",
+        "interior",
+        "sprite",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "2d",
+        "character",
+        "interior"
+      ],
+      "provider": {
+        "id": "gibbongl",
+        "name": "GibbonGL",
+        "url": "https://gibbongl.itch.io"
+      },
+      "upstream": {
+        "id": "gboracles-character-interior-pack",
+        "url": "https://gibbongl.itch.io/gboracles-character-interior-pack",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzc4OTIwMTcucG5n/original/KLTBq%2B.png",
+        "sourceUrl": "https://img.itch.zone/aW1nLzc4OTIwMTcucG5n/original/KLTBq%2B.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "GibbonGL",
+        "sourceUrl": "https://gibbongl.itch.io/gboracles-character-interior-pack",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by GibbonGL; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "kevins-moms-house:fantasy",
+      "slug": "fantasy",
+      "name": "fantasy_",
+      "description": "fantasy_ [16x16]",
+      "kind": "sprite",
+      "quality": 2,
+      "fileCount": null,
+      "formats": [
+        "png"
+      ],
+      "tags": [
+        "2d",
+        "asset pack",
+        "dungeon crawler",
+        "fantasy",
+        "pixel art",
+        "tileset",
+        "top-down",
+        "sprite",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "2d",
+        "tileset",
+        "fantasy"
+      ],
+      "provider": {
+        "id": "kevins-moms-house",
+        "name": "Kevin's Mom's House",
+        "url": "https://kevins-moms-house.itch.io"
+      },
+      "upstream": {
+        "id": "fantasy",
+        "url": "https://kevins-moms-house.itch.io/fantasy",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzExMzA5MTAyLmdpZg==/original/OBq31y.gif",
+        "sourceUrl": "https://img.itch.zone/aW1nLzExMzA5MTAyLmdpZg==/original/OBq31y.gif",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "Kevin's Mom's House",
+        "sourceUrl": "https://kevins-moms-house.itch.io/fantasy",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by Kevin's Mom's House; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "kevins-moms-house:four-seasons-platformer-tileset",
+      "slug": "four-seasons-platformer-tileset",
+      "name": "fourSeasonsPlatformer_ [tileset]",
+      "description": "run, jump, dash & fall through the four seasons!",
+      "kind": "sprite",
+      "quality": 1,
+      "fileCount": null,
+      "formats": [
+        "png"
+      ],
+      "tags": [
+        "2d",
+        "asset pack",
+        "game design",
+        "metroidvania",
+        "pixel art",
+        "side scroller",
+        "tileset",
+        "platformer",
+        "sprite",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "2d",
+        "tileset",
+        "platformer"
+      ],
+      "provider": {
+        "id": "kevins-moms-house",
+        "name": "Kevin's Mom's House",
+        "url": "https://kevins-moms-house.itch.io"
+      },
+      "upstream": {
+        "id": "four-seasons-platformer-tileset",
+        "url": "https://kevins-moms-house.itch.io/four-seasons-platformer-tileset",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzExMTEzMTE2LmdpZg==/original/wzr0Kf.gif",
+        "sourceUrl": "https://img.itch.zone/aW1nLzExMTEzMTE2LmdpZg==/original/wzr0Kf.gif",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "Kevin's Mom's House",
+        "sourceUrl": "https://kevins-moms-house.itch.io/four-seasons-platformer-tileset",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by Kevin's Mom's House; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "pixel-boy:ninja-adventure-asset-pack",
+      "slug": "ninja-adventure-asset-pack",
+      "name": "Ninja Adventure - Asset Pack",
+      "description": "Assets for topdown game with ninja theme",
+      "kind": "sprite",
+      "quality": 0,
+      "fileCount": null,
+      "formats": [
+        "png"
+      ],
+      "tags": [
+        "16x16",
+        "2d",
+        "animation",
+        "asset pack",
+        "pixel art",
+        "sprites",
+        "tilemap",
+        "tileset",
+        "top-down",
+        "user interface (ui)",
+        "sprite",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "2d",
+        "sprite",
+        "top-down"
+      ],
+      "provider": {
+        "id": "pixel-boy",
+        "name": "pixel-boy",
+        "url": "https://pixel-boy.itch.io"
+      },
+      "upstream": {
+        "id": "ninja-adventure-asset-pack",
+        "url": "https://pixel-boy.itch.io/ninja-adventure-asset-pack",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzI1MDI5NTg3LmdpZg==/original/ISTIYS.gif",
+        "sourceUrl": "https://img.itch.zone/aW1nLzI1MDI5NTg3LmdpZg==/original/ISTIYS.gif",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "pixel-boy",
+        "sourceUrl": "https://pixel-boy.itch.io/ninja-adventure-asset-pack",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by pixel-boy; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "pixel-frog:pixel-adventure-1",
+      "slug": "pixel-adventure-1",
+      "name": "Pixel Adventure",
+      "description": "Assets for a fun Platform Adventure",
+      "kind": "sprite",
+      "quality": 0,
+      "fileCount": null,
+      "formats": [
+        "png"
+      ],
+      "tags": [
+        "2d",
+        "arcade",
+        "cute",
+        "funny",
+        "multiplayer",
+        "pixel art",
+        "retro",
+        "roguelike",
+        "sprite",
+        "platformer",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "2d",
+        "sprite",
+        "platformer"
+      ],
+      "provider": {
+        "id": "pixel-frog",
+        "name": "Pixel Frog",
+        "url": "https://pixelfrog-assets.itch.io"
+      },
+      "upstream": {
+        "id": "pixel-adventure-1",
+        "url": "https://pixelfrog-assets.itch.io/pixel-adventure-1",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzI1MzgxMjIucG5n/original/xx%2BcXh.png",
+        "sourceUrl": "https://img.itch.zone/aW1nLzI1MzgxMjIucG5n/original/xx%2BcXh.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "Pixel Frog",
+        "sourceUrl": "https://pixelfrog-assets.itch.io/pixel-adventure-1",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by Pixel Frog; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "pixel-frog:tiny-swords",
+      "slug": "tiny-swords",
+      "name": "Tiny Swords",
+      "description": "​The most brutal and colorful battle!",
+      "kind": "sprite",
+      "quality": 0,
+      "fileCount": null,
+      "formats": [
+        "png"
+      ],
+      "tags": [
+        "2d",
+        "animation",
+        "cartoon",
+        "fantasy",
+        "medieval",
+        "pixel art",
+        "real time strategy",
+        "sprites",
+        "tileset",
+        "top-down",
+        "sprite",
+        "strategy",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "2d",
+        "sprite",
+        "strategy"
+      ],
+      "provider": {
+        "id": "pixel-frog",
+        "name": "Pixel Frog",
+        "url": "https://pixelfrog-assets.itch.io"
+      },
+      "upstream": {
+        "id": "tiny-swords",
+        "url": "https://pixelfrog-assets.itch.io/tiny-swords",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzIzMzE1ODI5LnBuZw==/original/9se6fT.png",
+        "sourceUrl": "https://img.itch.zone/aW1nLzIzMzE1ODI5LnBuZw==/original/9se6fT.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "Pixel Frog",
+        "sourceUrl": "https://pixelfrog-assets.itch.io/tiny-swords",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by Pixel Frog; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "rgsdev:free-3d-modular-low-poly-assets-for-prototyping-by-rgsdev",
+      "slug": "free-3d-modular-low-poly-assets-for-prototyping-by-rgsdev",
+      "name": "Free 3D Modular Low Poly Assets For Prototyping",
+      "description": "A free modular low poly assets for prototyping 3d games",
+      "kind": "model",
+      "quality": 1,
+      "fileCount": 75,
+      "formats": [],
+      "tags": [
+        "3d",
+        "environments",
+        "exterior",
+        "godot",
+        "low-poly",
+        "modular",
+        "prototype",
+        "royalty free",
+        "unity",
+        "unreal engine",
+        "model",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "3d",
+        "modular",
+        "prototype"
+      ],
+      "provider": {
+        "id": "rgsdev",
+        "name": "RGS_Dev",
+        "url": "https://rgsdev.itch.io"
+      },
+      "upstream": {
+        "id": "free-3d-modular-low-poly-assets-for-prototyping-by-rgsdev",
+        "url": "https://rgsdev.itch.io/free-3d-modular-low-poly-assets-for-prototyping-by-rgsdev",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzk0MzYyMjAucG5n/original/KWwUKx.png",
+        "sourceUrl": "https://img.itch.zone/aW1nLzk0MzYyMjAucG5n/original/KWwUKx.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "RGS_Dev",
+        "sourceUrl": "https://rgsdev.itch.io/free-3d-modular-low-poly-assets-for-prototyping-by-rgsdev",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by RGS_Dev; credit is appreciated."
+      },
+      "verification": "source-verified"
+    },
+    {
+      "id": "voxel-dev:low-poly-camping-asset-pack-free-demo",
+      "slug": "low-poly-camping-asset-pack-free-demo",
+      "name": "CC0 low-poly camping asset pack [free demo]",
+      "description": "free version of the low poly cozy camping asset pack",
+      "kind": "model",
+      "quality": 4,
+      "fileCount": 8,
+      "formats": [],
+      "tags": [
+        "3d",
+        "asset pack",
+        "cozy",
+        "godot",
+        "low-poly",
+        "no ai",
+        "unity",
+        "camping",
+        "low poly",
+        "model",
+        "game assets",
+        "cc0"
+      ],
+      "categories": [
+        "3d",
+        "camping",
+        "low poly"
+      ],
+      "provider": {
+        "id": "voxel-dev",
+        "name": "VOXEL DEV",
+        "url": "https://voxel-dev.itch.io"
+      },
+      "upstream": {
+        "id": "low-poly-camping-asset-pack-free-demo",
+        "url": "https://voxel-dev.itch.io/low-poly-camping-asset-pack-free-demo",
+        "filesHash": "not-requested-metadata-only",
+        "retrievedAt": "2026-08-12T15:04:10.163Z"
+      },
+      "preview": {
+        "url": "https://img.itch.zone/aW1nLzI3OTc3ODY4LnBuZw==/original/86cuTo.png",
+        "sourceUrl": "https://img.itch.zone/aW1nLzI3OTc3ODY4LnBuZw==/original/86cuTo.png",
+        "width": 256,
+        "height": 256,
+        "hosting": "provider"
+      },
+      "facts": {},
+      "downloads": [],
+      "license": {
+        "id": "cc0-1.0",
+        "name": "CC0 1.0 Universal",
+        "referenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "permitsModification": true,
+        "permitsRedistribution": true,
+        "requiresAttribution": false
+      },
+      "provenance": {
+        "creator": "VOXEL DEV",
+        "sourceUrl": "https://voxel-dev.itch.io/low-poly-camping-asset-pack-free-demo",
+        "retrievedAt": "2026-08-12T15:04:10.163Z",
+        "sourceHash": null
+      },
+      "attribution": {
+        "required": false,
+        "notice": "CC0 asset by VOXEL DEV; credit is appreciated."
+      },
+      "verification": "source-verified"
+    }
+  ]
+}
