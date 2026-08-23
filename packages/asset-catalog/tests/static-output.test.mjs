@@ -13,11 +13,12 @@ const packageRoot = new URL('../', import.meta.url);
 const outputRoot = new URL('../dist/v1/', import.meta.url);
 
 test('builds a versioned, frontend-readable static catalog API', async () => {
-  const [manifest, index, catalog, natureKit] = await Promise.all([
+  const [manifest, index, catalog, natureKit, githubFallback] = await Promise.all([
     readFile(new URL('package.json', packageRoot), 'utf8').then(JSON.parse),
     readFile(new URL('index.json', outputRoot), 'utf8').then(JSON.parse),
     readFile(new URL('catalog.json', outputRoot), 'utf8').then(JSON.parse),
     readFile(new URL('assets/kenney/nature-kit.json', outputRoot), 'utf8').then(JSON.parse),
+    readFile(new URL('data/installable-assets.v1.json', packageRoot), 'utf8').then(JSON.parse),
   ]);
 
   assert.equal(manifest.scripts.build, 'node --experimental-strip-types scripts/build-static-api.mjs');
@@ -29,7 +30,13 @@ test('builds a versioned, frontend-readable static catalog API', async () => {
   assert.equal(catalog.assets.length, 1466);
   assert.equal(natureKit.asset.id, 'kenney:nature-kit');
   assert.deepEqual(catalog.assets, CATALOG_ASSETS);
-  assert.equal(CATALOG_API_BASE_URL, 'https://catalog-api.antikylabs.com/v1');
+  assert.equal(CATALOG_API_BASE_URL, 'https://assets.antikylabs.com/v1');
+  assert.equal(githubFallback.version, 'v1');
+  assert.equal(githubFallback.schemaVersion, 1);
+  assert.deepEqual(
+    githubFallback.assets,
+    CATALOG_ASSETS.filter((asset) => asset.verification === 'install-verified'),
+  );
 
   for (const asset of CATALOG_ASSETS) {
     const document = JSON.parse(await readFile(new URL(`../dist${catalogApiAssetPath(asset.provider.id, asset.slug)}`, import.meta.url), 'utf8'));
